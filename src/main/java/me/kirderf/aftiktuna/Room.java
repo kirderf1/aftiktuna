@@ -57,8 +57,11 @@ public final class Room {
 			System.out.println(builder);
 		}
 		
-		for (PlacedObject object : objects)
-			System.out.println(object.gameObj.getSymbol() + ": " + object.gameObj.getName());
+		Set<Character> writtenChars = new HashSet<>();
+		for (PlacedObject object : objects) {
+			if (writtenChars.add(object.gameObj.getSymbol()))
+				System.out.println(object.gameObj.getSymbol() + ": " + object.gameObj.getName());
+		}
 	}
 	
 	public record PlacedObject(GameObject gameObj, int pos) {}
