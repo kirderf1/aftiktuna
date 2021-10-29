@@ -6,21 +6,20 @@ import java.io.InputStreamReader;
 import java.util.OptionalInt;
 
 public class GameInstance {
-	private final Room room;
+	private final Location location;
 	private final BufferedReader in;
-	private final GameObject aftik, fuelCan;
+	private final GameObject aftik;
 	
 	public GameInstance() {
-		room = new Room(5);
-		room.addObject(aftik = new GameObject('A', "Aftik"), 1);
-		room.addObject(fuelCan = new GameObject('f', "Fuel can"), 4);
+		location = EarlyTestingLocations.createLocation1();
+		location.room.addObject(aftik = new GameObject('A', "Aftik"), location.entryPoint);
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
 	
 	public void run() {
 		boolean winCondition = false;
 		while (true) {
-			room.printRoom();
+			location.room.printRoom();
 			
 			if (winCondition) {
 				System.out.println("Congratulations, you won!");
@@ -36,10 +35,10 @@ public class GameInstance {
 					continue;
 				}
 				if (input.equals("take fuel can")) {
-					OptionalInt pos = room.getPosition(fuelCan);
+					OptionalInt pos = location.room.getPosition(location.fuelCan);
 					if (pos.isPresent()) {
-						room.moveObject(aftik, pos.getAsInt());
-						room.removeObject(fuelCan);
+						location.room.moveObject(aftik, pos.getAsInt());
+						location.room.removeObject(location.fuelCan);
 						System.out.println("You picked up the fuel can.");
 						
 						winCondition = true;
