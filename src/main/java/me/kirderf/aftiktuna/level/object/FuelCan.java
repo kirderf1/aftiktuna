@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
 

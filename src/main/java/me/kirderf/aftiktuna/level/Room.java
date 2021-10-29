@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class Room {
@@ -33,7 +34,13 @@ public final class Room {
 	
 	public Optional<GameObject> findNearest(Predicate<GameObject> condition, int position) {
 		return objects.stream().filter(condition)
-				.min(Comparator.comparingInt(placed -> Math.abs(position - placed.getCoord())));
+				.min(Comparator.comparingInt(object -> Math.abs(position - object.getCoord())));
+	}
+	
+	public <T> Optional<T> findNearest(Function<GameObject, Optional<T>> mapper, int position) {
+		return objects.stream().sorted(Comparator.comparingInt(object -> Math.abs(position - object.getCoord())))
+				.flatMap(object -> mapper.apply(object).stream())
+				.findFirst();
 	}
 	
 	public void removeObject(GameObject object) {

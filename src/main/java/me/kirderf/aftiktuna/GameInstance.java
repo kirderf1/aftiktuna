@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Location;
+import me.kirderf.aftiktuna.level.object.Door;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +15,7 @@ public final class GameInstance {
 	private final GameObject aftik;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createLocation3();
+		location = EarlyTestingLocations.createDoorLocation1();
 		location.addAtEntry(aftik = new GameObject('A', "Aftik", 10));
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
@@ -37,7 +38,7 @@ public final class GameInstance {
 					e.printStackTrace();
 					continue;
 				}
-				if (input.equals("take fuel can")) {
+				if (input.equalsIgnoreCase("take fuel can")) {
 					Optional<GameObject> optionalFuel = aftik.findNearest(GameObject::isFuelCan);
 					if (optionalFuel.isPresent()) {
 						
@@ -48,6 +49,16 @@ public final class GameInstance {
 						winCondition = true;
 					} else {
 						System.out.println("There is no fuel can here to pick up.");
+					}
+					break;
+				} else if (input.equalsIgnoreCase("go through door")) {
+					Optional<Door> optionalDoor = aftik.findNearest(GameObject::getAsDoor);
+					if (optionalDoor.isPresent()) {
+						
+						aftik.move(optionalDoor.get().getDestination());
+						System.out.println("You entered the door into a new room.");
+					} else {
+						System.out.println("There is no door here to go through.");
 					}
 					break;
 				} else {

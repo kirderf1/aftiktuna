@@ -1,6 +1,9 @@
 package me.kirderf.aftiktuna.level;
 
+import me.kirderf.aftiktuna.level.object.Door;
+
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class GameObject {
@@ -63,11 +66,20 @@ public class GameObject {
 		return false;
 	}
 	
+	public Optional<Door> getAsDoor() {
+		return Optional.empty();
+	}
+	
 	public final Optional<GameObject> findNearest(Predicate<GameObject> condition) {
 		return getRoom().findNearest(condition, getCoord());
 	}
 	
+	public final <T> Optional<T> findNearest(Function<GameObject, Optional<T>> mapper) {
+		return getRoom().findNearest(mapper, getCoord());
+	}
+	
 	public final void remove() {
 		getRoom().removeObject(this);
+		position = null;
 	}
 }
