@@ -15,4 +15,11 @@ public final class EarlyTestingLocations {
 		room.addObject(new FuelCan(), 3);
 		return new Location(room, 1);
 	}
+	
+	public static Location createLocation3() {
+		Room room = new Room(3);
+		room.addObject(new FuelCan(), 2);
+		room.addObject(new FuelCan(), 2);
+		return new Location(room, 0);
+	}
 }

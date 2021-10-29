@@ -40,10 +40,23 @@ public final class Room {
 	}
 	
 	public void printRoom() {
-		StringBuilder builder = new StringBuilder("_".repeat(length));
+		List<List<GameObject>> objectsByPos = new ArrayList<>();
+		for (int pos = 0; pos < length; pos++)
+			objectsByPos.add(new ArrayList<>());
 		for (PlacedObject object : objects)
-			builder.setCharAt(object.pos, object.gameObj.getSymbol());
-		System.out.println(builder);
+			objectsByPos.get(object.pos).add(object.gameObj);
+		
+		int lines = Math.max(1, objectsByPos.stream().map(List::size).max(Integer::compare).orElse(0));
+		
+		for (int line = lines - 1; line >= 0; line--) {
+			StringBuilder builder = new StringBuilder((line == 0 ? "_" : " ").repeat(length));
+			for (int pos = 0; pos < length; pos++) {
+				if (objectsByPos.get(pos).size() > line)
+					builder.setCharAt(pos, objectsByPos.get(pos).get(line).getSymbol());
+			}
+			System.out.println(builder);
+		}
+		
 		for (PlacedObject object : objects)
 			System.out.println(object.gameObj.getSymbol() + ": " + object.gameObj.getName());
 	}

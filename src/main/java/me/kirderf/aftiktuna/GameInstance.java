@@ -12,7 +12,7 @@ public class GameInstance {
 	private final GameObject aftik;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createLocation2();
+		location = EarlyTestingLocations.createLocation3();
 		location.room.addObject(aftik = new GameObject('A', "Aftik"), location.entryPoint);
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
