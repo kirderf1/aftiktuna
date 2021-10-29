@@ -1,15 +1,13 @@
 package me.kirderf.aftiktuna.level;
 
 public final class Location {
-	private final Room room;
-	private final int entryPoint;
+	private final Position entryPos;
 	
-	public Location(Room room, int entryPoint) {
-		this.room = room;
-		this.entryPoint = entryPoint;
+	public Location(Position entryPos) {
+		this.entryPos = entryPos;
 	}
 	
 	public void addAtEntry(GameObject object) {
-		room.addObject(object, entryPoint);
+		entryPos.room().addObject(object, entryPos);
 	}
 }

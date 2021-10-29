@@ -11,11 +11,19 @@ public final class Room {
 		this.length = length;
 	}
 	
-	public void addObject(GameObject object, int position) {
-		verifyValidPosition(position);
-		
-		object.setRoom(this, position);
-		objects.add(object);
+	public Position getPosAt(int coord) {
+		return new Position(this, coord);
+	}
+	
+	public void addObject(GameObject object, int coord) {
+		addObject(object, getPosAt(coord));
+	}
+	
+	public void addObject(GameObject object, Position position) {
+		if (position.room() == this) {
+			object.setRoom(position);
+			objects.add(object);
+		}
 	}
 	
 	public void verifyValidPosition(int position) {
@@ -25,7 +33,7 @@ public final class Room {
 	
 	public Optional<GameObject> findNearest(Predicate<GameObject> condition, int position) {
 		return objects.stream().filter(condition)
-				.min(Comparator.comparingInt(placed -> Math.abs(position - placed.getPosition())));
+				.min(Comparator.comparingInt(placed -> Math.abs(position - placed.getCoord())));
 	}
 	
 	public void removeObject(GameObject object) {
@@ -37,7 +45,7 @@ public final class Room {
 		for (int pos = 0; pos < length; pos++)
 			objectsByPos.add(new ArrayList<>());
 		for (GameObject object : objects)
-			objectsByPos.get(object.getPosition()).add(object);
+			objectsByPos.get(object.getCoord()).add(object);
 		for (List<GameObject> objectStack : objectsByPos)
 			objectStack.sort(Comparator.comparingInt(GameObject::getWeight).reversed());
 		
@@ -55,7 +63,7 @@ public final class Room {
 		Set<Character> writtenChars = new HashSet<>();
 		for (GameObject object : objects) {
 			if (writtenChars.add(object.getSymbol()))
-				System.out.println(object.getSymbol() + ": " + object.getName());
+				System.out.printf("%s: %s%n", object.getSymbol(), object.getName());
 		}
 	}
 }
