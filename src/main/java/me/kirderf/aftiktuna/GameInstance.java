@@ -1,26 +1,28 @@
 package me.kirderf.aftiktuna;
 
+import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.Location;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Optional;
-import java.util.OptionalInt;
 
-public class GameInstance {
+public final class GameInstance {
 	private final Location location;
 	private final BufferedReader in;
 	private final GameObject aftik;
 	
 	public GameInstance() {
 		location = EarlyTestingLocations.createLocation3();
-		location.room.addObject(aftik = new GameObject('A', "Aftik", 10), location.entryPoint);
+		location.addAtEntry(aftik = new GameObject('A', "Aftik", 10));
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
 	
 	public void run() {
 		boolean winCondition = false;
 		while (true) {
-			location.room.printRoom();
+			aftik.getRoom().printRoom();
 			
 			if (winCondition) {
 				System.out.println("Congratulations, you won!");
@@ -36,13 +38,11 @@ public class GameInstance {
 					continue;
 				}
 				if (input.equals("take fuel can")) {
-					OptionalInt aftikPos = location.room.getPosition(aftik);
-					
-					Optional<Room.PlacedObject> optionalFuel = location.room.findNearest(GameObject::isFuelCan, aftikPos.orElseThrow());
+					Optional<GameObject> optionalFuel = aftik.findNearest(GameObject::isFuelCan);
 					if (optionalFuel.isPresent()) {
 						
-						location.room.moveObject(aftik, optionalFuel.get().pos());
-						location.room.removeObject(optionalFuel.get().gameObj());
+						aftik.move(optionalFuel.get().getPosition());
+						optionalFuel.get().remove();
 						System.out.println("You picked up the fuel can.");
 						
 						winCondition = true;

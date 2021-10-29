@@ -1,5 +1,8 @@
 package me.kirderf.aftiktuna;
 
+import me.kirderf.aftiktuna.level.Location;
+import me.kirderf.aftiktuna.level.Room;
+
 @SuppressWarnings("unused")
 public final class EarlyTestingLocations {
 	
