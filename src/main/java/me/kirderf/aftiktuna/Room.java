@@ -45,6 +45,8 @@ public final class Room {
 			objectsByPos.add(new ArrayList<>());
 		for (PlacedObject object : objects)
 			objectsByPos.get(object.pos).add(object.gameObj);
+		for (List<GameObject> objectStack : objectsByPos)
+			objectStack.sort(Comparator.comparingInt(GameObject::getWeight).reversed());
 		
 		int lines = Math.max(1, objectsByPos.stream().map(List::size).max(Integer::compare).orElse(0));
 		

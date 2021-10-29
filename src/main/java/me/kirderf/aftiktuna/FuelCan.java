@@ -2,7 +2,7 @@ package me.kirderf.aftiktuna;
 
 public class FuelCan extends GameObject {
 	public FuelCan() {
-		super('f', "Fuel can");
+		super('f', "Fuel can", 1);
 	}
 	
 	@Override
