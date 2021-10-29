@@ -16,4 +16,8 @@ public class GameObject {
 	public String getName() {
 		return name;
 	}
+	
+	public boolean isFuelCan() {
+		return false;
+	}
 }

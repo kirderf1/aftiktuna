@@ -1,8 +1,7 @@
 package me.kirderf.aftiktuna;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.OptionalInt;
+import java.util.*;
+import java.util.function.Predicate;
 
 public final class Room {
 	private final int length;
@@ -26,6 +25,11 @@ public final class Room {
 		return OptionalInt.empty();
 	}
 	
+	public Optional<PlacedObject> findNearest(Predicate<GameObject> condition, int position) {
+		return objects.stream().filter(placed -> condition.test(placed.gameObj))
+				.min(Comparator.comparingInt(placed -> Math.abs(position - placed.pos)));
+	}
+	
 	public void moveObject(GameObject object, int position) {
 		removeObject(object);
 		addObject(object, position);
@@ -44,5 +48,5 @@ public final class Room {
 			System.out.println(object.gameObj.getSymbol() + ": " + object.gameObj.getName());
 	}
 	
-	private record PlacedObject(GameObject gameObj, int pos) {}
+	public record PlacedObject(GameObject gameObj, int pos) {}
 }
