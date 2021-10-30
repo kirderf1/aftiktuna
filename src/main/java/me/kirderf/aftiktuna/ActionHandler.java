@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.Door;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
@@ -41,14 +42,14 @@ public class ActionHandler {
 	}
 	
 	private static int takeItem(GameInstance game, ObjectType type) {
-		GameObject aftik = game.getAftik();
+		Aftik aftik = game.getAftik();
 		Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(type::matching));
 		if (optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
 			aftik.moveTo(item.getPosition());
 			item.remove();
-			game.addItem(type);
+			aftik.addItem(type);
 			
 			System.out.printf("You picked up the %s.%n", type.name().toLowerCase(Locale.ROOT));
 		} else {
@@ -58,12 +59,11 @@ public class ActionHandler {
 	}
 	
 	private static int goThroughDoor(GameInstance game, ObjectType doorType) {
-		GameObject aftik = game.getAftik();
+		Aftik aftik = game.getAftik();
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if (optionalDoor.isPresent()) {
 			
 			optionalDoor.get().enter(aftik);
-			System.out.println("You entered the door into a new room.");
 		} else {
 			System.out.println("There is no such door here to go through.");
 		}

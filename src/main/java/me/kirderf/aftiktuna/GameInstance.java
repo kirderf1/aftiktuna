@@ -1,24 +1,21 @@
 package me.kirderf.aftiktuna;
 
-import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Location;
+import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class GameInstance {
 	private final Location location;
 	private final BufferedReader in;
-	private final GameObject aftik;
-	private final List<ObjectType> inventory = new ArrayList<>();
+	private final Aftik aftik;
 	
 	public GameInstance() {
 		location = EarlyTestingLocations.createDoorLocation2();
-		location.addAtEntry(aftik = new GameObject(ObjectType.AFTIK, 10));
+		location.addAtEntry(aftik = new Aftik());
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
 	
@@ -26,7 +23,7 @@ public final class GameInstance {
 		while (true) {
 			aftik.getRoom().printRoom();
 			
-			if (inventory.contains(ObjectType.FUEL_CAN)) {
+			if (aftik.hasItem(ObjectType.FUEL_CAN)) {
 				System.out.println("Congratulations, you won!");
 				return;
 			}
@@ -46,11 +43,7 @@ public final class GameInstance {
 		}
 	}
 	
-	public void addItem(ObjectType type) {
-		inventory.add(type);
-	}
-	
-	public GameObject getAftik() {
+	public Aftik getAftik() {
 		return aftik;
 	}
 }

@@ -7,7 +7,7 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class GameObject {
+public abstract class GameObject {
 	private final ObjectType type;
 	private final int weight;
 	

@@ -14,8 +14,9 @@ public class Door extends GameObject {
 		this.destination = destination;
 	}
 	
-	public void enter(GameObject object) {
-		object.moveTo(destination);
+	public void enter(Aftik aftik) {
+		aftik.moveTo(destination);
+		System.out.println("You entered the door into a new room.");
 	}
 	
 	@Override
