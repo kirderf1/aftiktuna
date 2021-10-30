@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
@@ -18,7 +19,7 @@ public final class GameInstance {
 	
 	static {
 		DISPATCHER.register(literal("take").then(literal("fuel").then(literal("can").executes(context -> context.getSource().takeFuelCan()))));
-		DISPATCHER.register(literal("go").then(literal("through").then(literal("door").executes(context -> context.getSource().goThroughDoor()))));
+		DISPATCHER.register(literal("go").then(literal("through").then(literal("door").executes(context -> context.getSource().goThroughDoor(ObjectType.DOOR)))));
 	}
 	
 	private static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -79,8 +80,8 @@ public final class GameInstance {
 		return 1;
 	}
 	
-	private int goThroughDoor() {
-		Optional<Door> optionalDoor = aftik.findNearest(GameObject::getAsDoor);
+	private int goThroughDoor(ObjectType doorType) {
+		Optional<Door> optionalDoor = aftik.findNearest(doorType.matchingAndMapped(GameObject::getAsDoor));
 		if (optionalDoor.isPresent()) {
 			
 			aftik.move(optionalDoor.get().getDestination());
