@@ -4,10 +4,7 @@ import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.*;
-import me.kirderf.aftiktuna.level.object.door.Door;
-import me.kirderf.aftiktuna.level.object.door.DoorLockedProperty;
-import me.kirderf.aftiktuna.level.object.door.DoorProperty;
-import me.kirderf.aftiktuna.level.object.door.DoorStuckProperty;
+import me.kirderf.aftiktuna.level.object.door.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -54,16 +51,19 @@ public final class EarlyTestingLocations {
 		return new Location(firstRoom.getPosAt(0));
 	}
 	
-	public static Location createDoorLocation3() {
-		Room firstRoom = new Room(3);
+	public static Location createToolsLocation() {
+		Room firstRoom = new Room(4);
 		Room secondRoom = new Room(2);
 		Room thirdRoom = new Room(3);
+		Room sideRoom = new Room(3);
 		firstRoom.addObject(new Item(ObjectType.CROWBAR), 2);
 		firstRoom.addObject(new Item(ObjectType.KEYCARD), 2);
-		createDoors(ObjectType.DOOR, firstRoom.getPosAt(1), ObjectType.RIGHT_DOOR, secondRoom.getPosAt(1), new DoorStuckProperty());
+		createDoors(ObjectType.LEFT_DOOR, firstRoom.getPosAt(1), ObjectType.RIGHT_DOOR, secondRoom.getPosAt(1), new DoorStuckProperty());
+		createDoors(ObjectType.RIGHT_DOOR, firstRoom.getPosAt(3), ObjectType.DOOR, sideRoom.getPosAt(0), new DoorSealedProperty());
 		secondRoom.addObject(new Item(ObjectType.BLOWTORCH), 0);
 		createDoors(ObjectType.LEFT_DOOR, secondRoom.getPosAt(0), ObjectType.DOOR, thirdRoom.getPosAt(0), new DoorLockedProperty());
 		thirdRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
+		sideRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
 		return new Location(firstRoom.getPosAt(0));
 	}
 	
