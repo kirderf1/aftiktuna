@@ -1,6 +1,9 @@
-package me.kirderf.aftiktuna.level.object;
+package me.kirderf.aftiktuna.level.object.door;
 
-public class DoorLockedProperty extends DoorProperty {
+import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.ObjectType;
+
+public final class DoorLockedProperty extends DoorProperty {
 	
 	@Override
 	public boolean checkEntry(Aftik aftik) {

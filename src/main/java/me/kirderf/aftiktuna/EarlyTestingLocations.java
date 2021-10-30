@@ -4,6 +4,10 @@ import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.*;
+import me.kirderf.aftiktuna.level.object.door.Door;
+import me.kirderf.aftiktuna.level.object.door.DoorLockedProperty;
+import me.kirderf.aftiktuna.level.object.door.DoorProperty;
+import me.kirderf.aftiktuna.level.object.door.DoorStuckProperty;
 
 import java.util.concurrent.atomic.AtomicReference;
 

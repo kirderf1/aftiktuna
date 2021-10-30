@@ -1,4 +1,7 @@
-package me.kirderf.aftiktuna.level.object;
+package me.kirderf.aftiktuna.level.object.door;
+
+import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 
 public final class DoorStuckProperty extends DoorProperty {
 	
