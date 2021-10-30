@@ -55,8 +55,9 @@ public final class EarlyTestingLocations {
 		Room secondRoom = new Room(2);
 		Room thirdRoom = new Room(3);
 		firstRoom.addObject(new Item(ObjectType.CROWBAR), 2);
-		firstRoom.addObject(new Item(ObjectType.BLOWTORCH), 2);
+		firstRoom.addObject(new Item(ObjectType.KEYCARD), 2);
 		createDoors(ObjectType.DOOR, firstRoom.getPosAt(1), ObjectType.RIGHT_DOOR, secondRoom.getPosAt(1), new DoorStuckProperty());
+		secondRoom.addObject(new Item(ObjectType.BLOWTORCH), 0);
 		createDoors(ObjectType.LEFT_DOOR, secondRoom.getPosAt(0), ObjectType.DOOR, thirdRoom.getPosAt(0), new DoorLockedProperty());
 		thirdRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
 		return new Location(firstRoom.getPosAt(0));

@@ -3,7 +3,8 @@ package me.kirderf.aftiktuna.level.object;
 public abstract class DoorProperty {
 	public static final DoorProperty EMPTY = new DoorProperty() {
 		@Override
-		public boolean checkEntry() {
+		public boolean checkEntry(Aftik aftik) {
+			System.out.println("You entered the door into a new room.");
 			return true;
 		}
 		
@@ -14,7 +15,7 @@ public abstract class DoorProperty {
 		}
 	};
 	
-	public abstract boolean checkEntry();
+	public abstract boolean checkEntry(Aftik aftik);
 	
 	public abstract DoorProperty tryForce(Aftik aftik);
 }

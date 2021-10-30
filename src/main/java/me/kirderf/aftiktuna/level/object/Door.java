@@ -18,9 +18,8 @@ public class Door extends GameObject {
 	}
 	
 	public void enter(Aftik aftik) {
-		if (property.get().checkEntry()) {
+		if (property.get().checkEntry(aftik)) {
 			aftik.moveTo(destination);
-			System.out.println("You entered the door into a new room.");
 		}
 	}
 	

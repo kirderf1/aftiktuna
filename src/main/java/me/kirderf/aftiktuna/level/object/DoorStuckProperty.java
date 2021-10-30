@@ -2,7 +2,7 @@ package me.kirderf.aftiktuna.level.object;
 
 public final class DoorStuckProperty extends DoorProperty {
 	
-	public boolean checkEntry() {
+	public boolean checkEntry(Aftik aftik) {
 		System.out.println("The door is stuck.");
 		return false;
 	}
