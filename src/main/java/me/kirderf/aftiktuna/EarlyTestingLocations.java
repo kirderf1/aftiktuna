@@ -5,28 +5,28 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Door;
-import me.kirderf.aftiktuna.level.object.FuelCan;
+import me.kirderf.aftiktuna.level.object.Item;
 
 @SuppressWarnings("unused")
 public final class EarlyTestingLocations {
 	
 	public static Location createLocation1() {
 		Room room = new Room(5);
-		room.addObject(new FuelCan(), 4);
+		room.addObject(new Item(ObjectType.FUEL_CAN), 4);
 		return new Location(room.getPosAt(1));
 	}
 	
 	public static Location createLocation2() {
 		Room room = new Room(4);
-		room.addObject(new FuelCan(), 0);
-		room.addObject(new FuelCan(), 3);
+		room.addObject(new Item(ObjectType.FUEL_CAN), 0);
+		room.addObject(new Item(ObjectType.FUEL_CAN), 3);
 		return new Location(room.getPosAt(1));
 	}
 	
 	public static Location createLocation3() {
 		Room room = new Room(3);
-		room.addObject(new FuelCan(), 2);
-		room.addObject(new FuelCan(), 2);
+		room.addObject(new Item(ObjectType.FUEL_CAN), 2);
+		room.addObject(new Item(ObjectType.FUEL_CAN), 2);
 		return new Location(room.getPosAt(0));
 	}
 	
@@ -34,7 +34,7 @@ public final class EarlyTestingLocations {
 		Room firstRoom = new Room(3);
 		Room secondRoom = new Room(3);
 		createDoors(ObjectType.DOOR, firstRoom.getPosAt(2), ObjectType.DOOR, secondRoom.getPosAt(0));
-		secondRoom.addObject(new FuelCan(), 2);
+		secondRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
 		return new Location(firstRoom.getPosAt(0));
 	}
 	
@@ -45,8 +45,8 @@ public final class EarlyTestingLocations {
 		createDoors(ObjectType.LEFT_DOOR, firstRoom.getPosAt(1), ObjectType.LEFT_DOOR, leftRoom.getPosAt(0));
 		createDoors(ObjectType.RIGHT_DOOR, firstRoom.getPosAt(2), ObjectType.RIGHT_DOOR, rightRoom.getPosAt(1));
 		createDoors(ObjectType.RIGHT_DOOR, leftRoom.getPosAt(2), ObjectType.LEFT_DOOR, rightRoom.getPosAt(0));
-		rightRoom.addObject(new FuelCan(), 2);
-		rightRoom.addObject(new FuelCan(), 2);
+		rightRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
+		rightRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
 		return new Location(firstRoom.getPosAt(0));
 	}
 	

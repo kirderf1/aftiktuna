@@ -10,13 +10,15 @@ import me.kirderf.aftiktuna.level.object.Door;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
+import java.util.Locale;
 import java.util.Optional;
 
 public class ActionHandler {
 	private static final CommandDispatcher<GameInstance> DISPATCHER = new CommandDispatcher<>();
 	
 	static {
-		DISPATCHER.register(literal("take").then(literal("fuel").then(literal("can").executes(context -> takeFuelCan(context.getSource())))));
+		DISPATCHER.register(literal("take").then(literal("fuel").then(literal("can")
+				.executes(context -> takeItem(context.getSource(), ObjectType.FUEL_CAN)))));
 		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
 				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 	}
@@ -38,19 +40,19 @@ public class ActionHandler {
 		}
 	}
 	
-	private static int takeFuelCan(GameInstance game) {
+	private static int takeItem(GameInstance game, ObjectType type) {
 		GameObject aftik = game.getAftik();
-		Optional<GameObject> optionalFuel = aftik.findNearest(GameObject::isFuelCan);
-		if (optionalFuel.isPresent()) {
+		Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(type::matching));
+		if (optionalItem.isPresent()) {
 			
-			GameObject fuel = optionalFuel.get();
-			aftik.moveTo(fuel.getPosition());
-			fuel.remove();
-			game.addItem(fuel.getType());
+			GameObject item = optionalItem.get();
+			aftik.moveTo(item.getPosition());
+			item.remove();
+			game.addItem(type);
 			
-			System.out.println("You picked up the fuel can.");
+			System.out.printf("You picked up the %s.%n", type.name().toLowerCase(Locale.ROOT));
 		} else {
-			System.out.println("There is no fuel can here to pick up.");
+			System.out.printf("There is no %s here to pick up.%n", type.name().toLowerCase(Locale.ROOT));
 		}
 		return 1;
 	}

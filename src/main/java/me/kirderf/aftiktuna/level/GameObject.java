@@ -57,7 +57,7 @@ public class GameObject {
 		}
 	}
 	
-	public boolean isFuelCan() {
+	public boolean isItem() {
 		return false;
 	}
 	
