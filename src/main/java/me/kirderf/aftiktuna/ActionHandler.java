@@ -66,6 +66,7 @@ public class ActionHandler {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if(optionalDoor.isPresent()) {
 			
+			aftik.moveTo(optionalDoor.get().getPosition());
 			optionalDoor.get().enter(aftik);
 			return 1;
 		} else {
@@ -79,6 +80,7 @@ public class ActionHandler {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if(optionalDoor.isPresent()) {
 			
+			aftik.moveTo(optionalDoor.get().getPosition());
 			optionalDoor.get().force(aftik);
 			return 1;
 		} else {
