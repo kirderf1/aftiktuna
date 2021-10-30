@@ -7,24 +7,18 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class GameObject {
-	private final char symbol;
-	private final String name;
+	private final ObjectType type;
 	private final int weight;
 	
 	private Position position;
 	
-	public GameObject(char symbol, String name, int weight) {
-		this.symbol = symbol;
-		this.name = name;
+	public GameObject(ObjectType type, int weight) {
+		this.type = type;
 		this.weight = weight;
 	}
 	
-	public char getSymbol() {
-		return symbol;
-	}
-	
-	public String getName() {
-		return name;
+	public ObjectType getType() {
+		return type;
 	}
 	
 	public int getWeight() {

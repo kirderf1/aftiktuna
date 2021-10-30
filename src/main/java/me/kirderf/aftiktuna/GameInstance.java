@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Location;
+import me.kirderf.aftiktuna.level.ObjectType;
 import me.kirderf.aftiktuna.level.object.Door;
 
 import java.io.BufferedReader;
@@ -31,7 +32,7 @@ public final class GameInstance {
 	
 	public GameInstance() {
 		location = EarlyTestingLocations.createDoorLocation1();
-		location.addAtEntry(aftik = new GameObject('A', "Aftik", 10));
+		location.addAtEntry(aftik = new GameObject(ObjectType.AFTIK, 10));
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
 	

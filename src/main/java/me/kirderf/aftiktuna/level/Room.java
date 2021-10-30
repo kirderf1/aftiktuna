@@ -62,15 +62,15 @@ public final class Room {
 			StringBuilder builder = new StringBuilder((line == 0 ? "_" : " ").repeat(length));
 			for (int pos = 0; pos < length; pos++) {
 				if (objectsByPos.get(pos).size() > line)
-					builder.setCharAt(pos, objectsByPos.get(pos).get(line).getSymbol());
+					builder.setCharAt(pos, objectsByPos.get(pos).get(line).getType().symbol());
 			}
 			System.out.println(builder);
 		}
 		
-		Set<Character> writtenChars = new HashSet<>();
+		Set<ObjectType> writtenChars = new HashSet<>();
 		for (GameObject object : objects) {
-			if (writtenChars.add(object.getSymbol()))
-				System.out.printf("%s: %s%n", object.getSymbol(), object.getName());
+			if (writtenChars.add(object.getType()))
+				System.out.printf("%s: %s%n", object.getType().symbol(), object.getType().name());
 		}
 	}
 }

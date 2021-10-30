@@ -1,10 +1,11 @@
 package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.ObjectType;
 
 public class FuelCan extends GameObject {
 	public FuelCan() {
-		super('f', "Fuel can", 1);
+		super(ObjectType.FUEL_CAN, 1);
 	}
 	
 	@Override
