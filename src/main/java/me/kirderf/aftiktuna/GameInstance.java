@@ -23,6 +23,7 @@ public final class GameInstance {
 		while (true) {
 			System.out.println();
 			aftik.getRoom().printRoom();
+			aftik.optionallyPrintInventory();
 			
 			if (aftik.hasItem(ObjectType.FUEL_CAN)) {
 				System.out.println("Congratulations, you won!");
