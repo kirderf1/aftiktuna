@@ -7,6 +7,8 @@ import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Door;
 import me.kirderf.aftiktuna.level.object.Item;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @SuppressWarnings("unused")
 public final class EarlyTestingLocations {
 	
@@ -62,7 +64,8 @@ public final class EarlyTestingLocations {
 	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2) {
 		createDoors(type1, pos1, type2, pos2, false);
 	}
-	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, boolean stuck) {
+	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, boolean isStuck) {
+		AtomicBoolean stuck = isStuck ? new AtomicBoolean(true) : null;
 		pos1.room().addObject(new Door(type1, pos2, stuck), pos1.coord());
 		pos2.room().addObject(new Door(type2, pos1, stuck), pos2.coord());
 	}
