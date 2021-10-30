@@ -50,8 +50,20 @@ public final class EarlyTestingLocations {
 		return new Location(firstRoom.getPosAt(0));
 	}
 	
+	public static Location createDoorLocation3() {
+		Room firstRoom = new Room(3);
+		Room secondRoom = new Room(3);
+		createDoors(ObjectType.DOOR, firstRoom.getPosAt(1), ObjectType.DOOR, secondRoom.getPosAt(2), true);
+		firstRoom.addObject(new Item(ObjectType.CROWBAR), 2);
+		secondRoom.addObject(new Item(ObjectType.FUEL_CAN), 0);
+		return new Location(firstRoom.getPosAt(0));
+	}
+	
 	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2) {
-		pos1.room().addObject(new Door(type1, pos2), pos1.coord());
-		pos2.room().addObject(new Door(type2, pos1), pos2.coord());
+		createDoors(type1, pos1, type2, pos2, false);
+	}
+	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, boolean stuck) {
+		pos1.room().addObject(new Door(type1, pos2, stuck), pos1.coord());
+		pos2.room().addObject(new Door(type2, pos1, stuck), pos2.coord());
 	}
 }
