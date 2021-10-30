@@ -88,7 +88,7 @@ public final class GameInstance {
 	}
 	
 	private int goThroughDoor(ObjectType doorType) {
-		Optional<Door> optionalDoor = aftik.findNearest(doorType.matchingAndMapped(GameObject::getAsDoor));
+		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if (optionalDoor.isPresent()) {
 			
 			aftik.move(optionalDoor.get().getDestination());

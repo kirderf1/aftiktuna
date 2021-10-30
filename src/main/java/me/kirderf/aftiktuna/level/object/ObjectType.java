@@ -4,8 +4,6 @@ import me.kirderf.aftiktuna.level.GameObject;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 
 public record ObjectType(char symbol, String name) {
 	public static final ObjectType AFTIK = new ObjectType('A', "Aftik");
@@ -16,7 +14,7 @@ public record ObjectType(char symbol, String name) {
 	
 	public static final Collection<ObjectType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR);
 	
-	public <T> Function<GameObject, Optional<T>> matchingAndMapped(Function<GameObject, Optional<T>> mapper) {
-		return gameObject -> gameObject.getType() == ObjectType.this ? mapper.apply(gameObject) : Optional.empty();
+	public boolean matching(GameObject object) {
+		return object.getType() == this;
 	}
 }

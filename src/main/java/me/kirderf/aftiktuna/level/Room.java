@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level;
 
+import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.util.*;
@@ -34,15 +35,9 @@ public final class Room {
 			throw new IllegalArgumentException("Invalid position %d is not in range [0-%d)".formatted(position, length));
 	}
 	
-	public Optional<GameObject> findNearest(Predicate<GameObject> condition, int position) {
-		return objects.stream().filter(condition)
-				.min(Comparator.comparingInt(object -> Math.abs(position - object.getCoord())));
-	}
-	
-	public <T> Optional<T> findNearest(Function<GameObject, Optional<T>> mapper, int position) {
+	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper, int position) {
 		return objects.stream().sorted(Comparator.comparingInt(object -> Math.abs(position - object.getCoord())))
-				.flatMap(object -> mapper.apply(object).stream())
-				.findFirst();
+				.flatMap(mapper.toStream()).findFirst();
 	}
 	
 	public void removeObject(GameObject object) {
