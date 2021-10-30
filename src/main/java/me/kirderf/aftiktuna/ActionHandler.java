@@ -43,11 +43,12 @@ public class ActionHandler {
 		Optional<GameObject> optionalFuel = aftik.findNearest(GameObject::isFuelCan);
 		if (optionalFuel.isPresent()) {
 			
-			aftik.moveTo(optionalFuel.get().getPosition());
-			optionalFuel.get().remove();
-			System.out.println("You picked up the fuel can.");
+			GameObject fuel = optionalFuel.get();
+			aftik.moveTo(fuel.getPosition());
+			fuel.remove();
+			game.addItem(fuel.getType());
 			
-			game.setHasWon();
+			System.out.println("You picked up the fuel can.");
 		} else {
 			System.out.println("There is no fuel can here to pick up.");
 		}

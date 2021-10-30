@@ -7,12 +7,14 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class GameInstance {
 	private final Location location;
 	private final BufferedReader in;
 	private final GameObject aftik;
-	private boolean winCondition = false;
+	private final List<ObjectType> inventory = new ArrayList<>();
 	
 	public GameInstance() {
 		location = EarlyTestingLocations.createDoorLocation2();
@@ -24,7 +26,7 @@ public final class GameInstance {
 		while (true) {
 			aftik.getRoom().printRoom();
 			
-			if (winCondition) {
+			if (inventory.contains(ObjectType.FUEL_CAN)) {
 				System.out.println("Congratulations, you won!");
 				return;
 			}
@@ -44,8 +46,8 @@ public final class GameInstance {
 		}
 	}
 	
-	public void setHasWon() {
-		winCondition = true;
+	public void addItem(ObjectType type) {
+		inventory.add(type);
 	}
 	
 	public GameObject getAftik() {
