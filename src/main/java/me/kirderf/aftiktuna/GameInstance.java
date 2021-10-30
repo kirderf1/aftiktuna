@@ -3,9 +3,11 @@ package me.kirderf.aftiktuna;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Location;
+import me.kirderf.aftiktuna.level.ObjectArgument;
 import me.kirderf.aftiktuna.level.ObjectType;
 import me.kirderf.aftiktuna.level.object.Door;
 
@@ -19,11 +21,16 @@ public final class GameInstance {
 	
 	static {
 		DISPATCHER.register(literal("take").then(literal("fuel").then(literal("can").executes(context -> context.getSource().takeFuelCan()))));
-		DISPATCHER.register(literal("go").then(literal("through").then(literal("door").executes(context -> context.getSource().goThroughDoor(ObjectType.DOOR)))));
+		DISPATCHER.register(literal("go").then(literal("through").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
+				.executes(context -> context.getSource().goThroughDoor(ObjectArgument.getType(context, "door"))))));
 	}
 	
 	private static LiteralArgumentBuilder<GameInstance> literal(String str) {
 		return LiteralArgumentBuilder.literal(str);
+	}
+	
+	private static <T> RequiredArgumentBuilder<GameInstance, T> argument(String name, ArgumentType<T> argumentType) {
+		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
 	private final Location location;
@@ -87,7 +94,7 @@ public final class GameInstance {
 			aftik.move(optionalDoor.get().getDestination());
 			System.out.println("You entered the door into a new room.");
 		} else {
-			System.out.println("There is no door here to go through.");
+			System.out.println("There is no such door here to go through.");
 		}
 		return 1;
 	}
