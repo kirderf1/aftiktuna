@@ -17,8 +17,8 @@ public class ActionHandler {
 	private static final CommandDispatcher<GameInstance> DISPATCHER = new CommandDispatcher<>();
 	
 	static {
-		DISPATCHER.register(literal("take").then(literal("fuel").then(literal("can")
-				.executes(context -> takeItem(context.getSource(), ObjectType.FUEL_CAN)))));
+		DISPATCHER.register(literal("take").then(argument("item", ObjectArgument.create(ObjectType.ITEMS))
+				.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item")))));
 		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
 				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 	}
