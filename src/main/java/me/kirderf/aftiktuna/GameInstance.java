@@ -76,7 +76,7 @@ public final class GameInstance {
 		Optional<GameObject> optionalFuel = aftik.findNearest(GameObject::isFuelCan);
 		if (optionalFuel.isPresent()) {
 			
-			aftik.move(optionalFuel.get().getPosition());
+			aftik.moveTo(optionalFuel.get().getPosition());
 			optionalFuel.get().remove();
 			System.out.println("You picked up the fuel can.");
 			
@@ -91,7 +91,7 @@ public final class GameInstance {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if (optionalDoor.isPresent()) {
 			
-			aftik.move(optionalDoor.get().getDestination());
+			optionalDoor.get().enter(aftik);
 			System.out.println("You entered the door into a new room.");
 		} else {
 			System.out.println("There is no such door here to go through.");

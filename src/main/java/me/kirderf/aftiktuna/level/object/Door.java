@@ -14,8 +14,8 @@ public class Door extends GameObject {
 		this.destination = destination;
 	}
 	
-	public Position getDestination() {
-		return destination;
+	public void enter(GameObject object) {
+		object.moveTo(destination);
 	}
 	
 	@Override

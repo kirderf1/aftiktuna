@@ -5,7 +5,6 @@ import me.kirderf.aftiktuna.level.object.Door;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class GameObject {
@@ -45,11 +44,11 @@ public class GameObject {
 		this.position = pos;
 	}
 	
-	public final void move(int coord) {
-		move(this.position.atCoord(coord));
+	public final void moveTo(int coord) {
+		moveTo(this.position.atCoord(coord));
 	}
 	
-	public final void move(Position pos) {
+	public final void moveTo(Position pos) {
 		if (getRoom() == pos.room())
 			this.position = pos;
 		else {
