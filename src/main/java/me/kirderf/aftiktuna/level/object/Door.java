@@ -10,8 +10,8 @@ public class Door extends GameObject {
 	
 	private final Position destination;
 	
-	public Door(Position destination) {
-		super(ObjectType.DOOR, 20);
+	public Door(ObjectType type, Position destination) {
+		super(type, 20);
 		this.destination = destination;
 	}
 	

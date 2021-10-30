@@ -39,7 +39,7 @@ public final class GameInstance {
 	private boolean winCondition = false;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createDoorLocation1();
+		location = EarlyTestingLocations.createDoorLocation2();
 		location.addAtEntry(aftik = new GameObject(ObjectType.AFTIK, 10));
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
