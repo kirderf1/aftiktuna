@@ -8,9 +8,9 @@ import java.util.Optional;
 public class Door extends GameObject {
 	
 	private final Position destination;
-	private final DoorStuckProperty property;
+	private final DoorProperty property;
 	
-	public Door(ObjectType type, Position destination, DoorStuckProperty property) {
+	public Door(ObjectType type, Position destination, DoorProperty property) {
 		super(type, 20);
 		this.destination = destination;
 		this.property = property;

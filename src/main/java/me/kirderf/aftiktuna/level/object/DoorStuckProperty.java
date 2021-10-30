@@ -1,10 +1,6 @@
 package me.kirderf.aftiktuna.level.object;
 
-public final class DoorStuckProperty {
-	public static DoorStuckProperty EMPTY = new DoorStuckProperty();
-	static {
-		EMPTY.isStuck = false;
-	}
+public final class DoorStuckProperty extends DoorProperty {
 	
 	private boolean isStuck = true;
 	
@@ -28,8 +24,6 @@ public final class DoorStuckProperty {
 			} else {
 				System.out.println("You need some sort of tool to force the door open.");
 			}
-		} else {
-			System.out.println("The door does not seem to be stuck.");
-		}
+		} else super.tryForce(aftik);
 	}
 }
