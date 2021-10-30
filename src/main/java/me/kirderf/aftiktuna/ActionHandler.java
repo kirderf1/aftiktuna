@@ -17,8 +17,8 @@ public class ActionHandler {
 	
 	static {
 		DISPATCHER.register(literal("take").then(literal("fuel").then(literal("can").executes(context -> takeFuelCan(context.getSource())))));
-		DISPATCHER.register(literal("go").then(literal("through").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
-				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door"))))));
+		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
+				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 	}
 	
 	private static LiteralArgumentBuilder<GameInstance> literal(String str) {
