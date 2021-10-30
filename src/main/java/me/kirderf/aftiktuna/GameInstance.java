@@ -21,6 +21,7 @@ public final class GameInstance {
 	
 	public void run() {
 		while (true) {
+			System.out.println();
 			aftik.getRoom().printRoom();
 			
 			if (aftik.hasItem(ObjectType.FUEL_CAN)) {
