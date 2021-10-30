@@ -24,7 +24,7 @@ public class Door extends GameObject {
 	}
 	
 	public void force(Aftik aftik) {
-		property.tryForce(aftik.hasItem(ObjectType.CROWBAR));
+		property.tryForce(aftik);
 	}
 	
 	@Override

@@ -17,13 +17,16 @@ public final class DoorStuckProperty {
 		}
 	}
 	
-	public void tryForce(boolean hasCrowbar) {
+	public void tryForce(Aftik aftik) {
 		if (isStuck) {
-			if (hasCrowbar) {
+			if (aftik.hasItem(ObjectType.CROWBAR)) {
 				isStuck = false;
 				System.out.println("You use your crowbar to force the door open.");
+			} else if (aftik.hasItem(ObjectType.BLOWTORCH)) {
+				isStuck = false;
+				System.out.println("You use your blowtorch to cut the door open.");
 			} else {
-				System.out.println("You need a crowbar to force the door open.");
+				System.out.println("You need some sort of tool to force the door open.");
 			}
 		} else {
 			System.out.println("The door does not seem to be stuck.");
