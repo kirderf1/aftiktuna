@@ -52,10 +52,11 @@ public class ActionHandler {
 			aftik.addItem(type);
 			
 			System.out.printf("You picked up the %s.%n", type.name().toLowerCase(Locale.ROOT));
+			return 1;
 		} else {
 			System.out.printf("There is no %s here to pick up.%n", type.name().toLowerCase(Locale.ROOT));
+			return 0;
 		}
-		return 1;
 	}
 	
 	private static int goThroughDoor(GameInstance game, ObjectType doorType) {
@@ -64,9 +65,10 @@ public class ActionHandler {
 		if (optionalDoor.isPresent()) {
 			
 			optionalDoor.get().enter(aftik);
+			return 1;
 		} else {
 			System.out.println("There is no such door here to go through.");
+			return 0;
 		}
-		return 1;
 	}
 }
