@@ -4,27 +4,28 @@ import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Door extends GameObject {
 	
 	private final Position destination;
-	private final DoorProperty property;
+	private final AtomicReference<DoorProperty> property;
 	
-	public Door(ObjectType type, Position destination, DoorProperty property) {
+	public Door(ObjectType type, Position destination, AtomicReference<DoorProperty> property) {
 		super(type, 20);
 		this.destination = destination;
 		this.property = property;
 	}
 	
 	public void enter(Aftik aftik) {
-		if (property.checkEntry()) {
+		if (property.get().checkEntry()) {
 			aftik.moveTo(destination);
 			System.out.println("You entered the door into a new room.");
 		}
 	}
 	
 	public void force(Aftik aftik) {
-		property.tryForce(aftik);
+		property.set(property.get().tryForce(aftik));
 	}
 	
 	@Override

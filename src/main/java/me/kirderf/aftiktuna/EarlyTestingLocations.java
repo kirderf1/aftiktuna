@@ -5,6 +5,8 @@ import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.*;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 @SuppressWarnings("unused")
 public final class EarlyTestingLocations {
 	
@@ -64,7 +66,8 @@ public final class EarlyTestingLocations {
 		createDoors(type1, pos1, type2, pos2, DoorProperty.EMPTY);
 	}
 	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, DoorProperty property) {
-		pos1.room().addObject(new Door(type1, pos2, property), pos1.coord());
-		pos2.room().addObject(new Door(type2, pos1, property), pos2.coord());
+		AtomicReference<DoorProperty> atomic = new AtomicReference<>(property);
+		pos1.room().addObject(new Door(type1, pos2, atomic), pos1.coord());
+		pos2.room().addObject(new Door(type2, pos1, atomic), pos2.coord());
 	}
 }

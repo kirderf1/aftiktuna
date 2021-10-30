@@ -6,11 +6,15 @@ public abstract class DoorProperty {
 		public boolean checkEntry() {
 			return true;
 		}
+		
+		@Override
+		public DoorProperty tryForce(Aftik aftik) {
+			System.out.println("The door does not seem to be stuck.");
+			return this;
+		}
 	};
 	
 	public abstract boolean checkEntry();
 	
-	public void tryForce(Aftik aftik) {
-		System.out.println("The door does not seem to be stuck.");
-	}
+	public abstract DoorProperty tryForce(Aftik aftik);
 }
