@@ -1,13 +1,12 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.level.Location;
-import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Door;
+import me.kirderf.aftiktuna.level.object.DoorStuckProperty;
 import me.kirderf.aftiktuna.level.object.Item;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 
 @SuppressWarnings("unused")
 public final class EarlyTestingLocations {
@@ -55,18 +54,17 @@ public final class EarlyTestingLocations {
 	public static Location createDoorLocation3() {
 		Room firstRoom = new Room(3);
 		Room secondRoom = new Room(3);
-		createDoors(ObjectType.DOOR, firstRoom.getPosAt(1), ObjectType.DOOR, secondRoom.getPosAt(2), true);
+		createDoors(ObjectType.DOOR, firstRoom.getPosAt(1), ObjectType.DOOR, secondRoom.getPosAt(2), new DoorStuckProperty());
 		firstRoom.addObject(new Item(ObjectType.CROWBAR), 2);
 		secondRoom.addObject(new Item(ObjectType.FUEL_CAN), 0);
 		return new Location(firstRoom.getPosAt(0));
 	}
 	
 	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2) {
-		createDoors(type1, pos1, type2, pos2, false);
+		createDoors(type1, pos1, type2, pos2, DoorStuckProperty.EMPTY);
 	}
-	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, boolean isStuck) {
-		AtomicBoolean stuck = isStuck ? new AtomicBoolean(true) : null;
-		pos1.room().addObject(new Door(type1, pos2, stuck), pos1.coord());
-		pos2.room().addObject(new Door(type2, pos1, stuck), pos2.coord());
+	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, DoorStuckProperty property) {
+		pos1.room().addObject(new Door(type1, pos2, property), pos1.coord());
+		pos2.room().addObject(new Door(type2, pos1, property), pos2.coord());
 	}
 }
