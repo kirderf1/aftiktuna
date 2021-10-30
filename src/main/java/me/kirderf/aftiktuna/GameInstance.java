@@ -7,8 +7,8 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Location;
-import me.kirderf.aftiktuna.level.ObjectArgument;
-import me.kirderf.aftiktuna.level.ObjectType;
+import me.kirderf.aftiktuna.level.object.ObjectArgument;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.Door;
 
 import java.io.BufferedReader;

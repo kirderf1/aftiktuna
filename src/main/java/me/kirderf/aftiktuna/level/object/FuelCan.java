@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.ObjectType;
 
 public class FuelCan extends GameObject {
 	public FuelCan() {

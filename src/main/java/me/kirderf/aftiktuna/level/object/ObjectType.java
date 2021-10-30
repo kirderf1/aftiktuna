@@ -1,4 +1,6 @@
-package me.kirderf.aftiktuna.level;
+package me.kirderf.aftiktuna.level.object;
+
+import me.kirderf.aftiktuna.level.GameObject;
 
 import java.util.Collection;
 import java.util.List;

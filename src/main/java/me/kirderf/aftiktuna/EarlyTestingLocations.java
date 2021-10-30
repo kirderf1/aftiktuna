@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.level.Location;
-import me.kirderf.aftiktuna.level.ObjectType;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Door;

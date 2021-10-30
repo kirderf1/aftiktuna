@@ -1,5 +1,7 @@
 package me.kirderf.aftiktuna.level;
 
+import me.kirderf.aftiktuna.level.object.ObjectType;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;

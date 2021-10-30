@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level;
 
 import me.kirderf.aftiktuna.level.object.Door;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.util.Optional;
 import java.util.function.Function;

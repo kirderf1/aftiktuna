@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.level;
+package me.kirderf.aftiktuna.level.object;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
