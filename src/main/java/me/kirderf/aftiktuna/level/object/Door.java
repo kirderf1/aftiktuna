@@ -18,15 +18,24 @@ public class Door extends GameObject {
 	}
 	
 	public void enter(Aftik aftik) {
-		if (isStuck() && !aftik.hasItem(ObjectType.CROWBAR)) {
-			System.out.println("The door is stuck. You need a crowbar to force it open.");
+		if (isStuck()) {
+			System.out.println("The door is stuck.");
 		} else {
-			if (isStuck()) {
-				System.out.println("The door is stuck, so you use your crowbar to force it open.");
-				stuck.set(false);
-			}
 			aftik.moveTo(destination);
 			System.out.println("You entered the door into a new room.");
+		}
+	}
+	
+	public void force(Aftik aftik) {
+		if (isStuck()) {
+			if (aftik.hasItem(ObjectType.CROWBAR)) {
+				stuck.set(false);
+				System.out.println("You use your crowbar to force the door open.");
+			} else {
+				System.out.println("You need a crowbar to force the door open.");
+			}
+		} else {
+			System.out.println("The door does not seem to be stuck.");
 		}
 	}
 	

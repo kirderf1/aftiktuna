@@ -22,6 +22,8 @@ public class ActionHandler {
 				.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item")))));
 		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
 				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
+		DISPATCHER.register(literal("force").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
+				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 	}
 	
 	private static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -44,7 +46,7 @@ public class ActionHandler {
 	private static int takeItem(GameInstance game, ObjectType type) {
 		Aftik aftik = game.getAftik();
 		Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(type::matching));
-		if (optionalItem.isPresent()) {
+		if(optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
 			aftik.moveTo(item.getPosition());
@@ -62,12 +64,25 @@ public class ActionHandler {
 	private static int goThroughDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
-		if (optionalDoor.isPresent()) {
+		if(optionalDoor.isPresent()) {
 			
 			optionalDoor.get().enter(aftik);
 			return 1;
 		} else {
 			System.out.println("There is no such door here to go through.");
+			return 0;
+		}
+	}
+	
+	private static int forceDoor(GameInstance game, ObjectType doorType) {
+		Aftik aftik = game.getAftik();
+		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
+		if(optionalDoor.isPresent()) {
+			
+			optionalDoor.get().force(aftik);
+			return 1;
+		} else {
+			System.out.println("There is no such door here.");
 			return 0;
 		}
 	}
