@@ -36,8 +36,14 @@ public final class Room {
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper, int position) {
-		return objects.stream().sorted(Comparator.comparingInt(object -> Math.abs(position - object.getCoord())))
+		return objects.stream().sorted(byProximity(position))
 				.flatMap(mapper.toStream()).findFirst();
+	}
+	
+	public Optional<GameObject> findBlockingInRange(int from, int to) {
+		int start = Math.min(from, to), end = Math.max(from, to);
+		return objects.stream().sorted(byProximity(from)).filter(GameObject::isBlocking)
+				.filter(object -> start <= object.getCoord() && object.getCoord() <= end).findFirst();
 	}
 	
 	public void removeObject(GameObject object) {
@@ -69,5 +75,9 @@ public final class Room {
 			if (writtenChars.add(object.getType()))
 				System.out.printf("%s: %s%n", object.getType().symbol(), object.getType().name());
 		}
+	}
+	
+	private static Comparator<GameObject> byProximity(int position) {
+		return Comparator.comparingInt(object -> Math.abs(position - object.getCoord()));
 	}
 }

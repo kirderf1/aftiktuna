@@ -67,6 +67,19 @@ public final class EarlyTestingLocations {
 		return new Location(firstRoom.getPosAt(0));
 	}
 	
+	public static Location createBlockingLocation() {
+		Room firstRoom = new Room(6);
+		Room secondRoom = new Room(3);
+		createDoors(ObjectType.LEFT_DOOR, firstRoom.getPosAt(1), ObjectType.LEFT_DOOR, secondRoom.getPosAt(0));
+		createDoors(ObjectType.RIGHT_DOOR, firstRoom.getPosAt(3), ObjectType.RIGHT_DOOR, secondRoom.getPosAt(2));
+		firstRoom.addObject(new Creature(), 2);
+		firstRoom.addObject(new Item(ObjectType.CROWBAR), 0);
+		firstRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
+		firstRoom.addObject(new Item(ObjectType.FUEL_CAN), 5);
+		firstRoom.addObject(new Item(ObjectType.KEYCARD), 5);
+		return new Location(firstRoom.getPosAt(0));
+	}
+	
 	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2) {
 		createDoors(type1, pos1, type2, pos2, DoorProperty.EMPTY);
 	}

@@ -4,6 +4,7 @@ import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -44,20 +45,30 @@ public abstract class GameObject {
 		this.position = pos;
 	}
 	
-	public final void moveTo(int coord) {
-		moveTo(this.position.atCoord(coord));
-	}
-	
-	public final void moveTo(Position pos) {
-		if (getRoom() == pos.room())
-			this.position = pos;
-		else {
+	public final boolean moveTo(Position pos) {
+		if (getRoom() == pos.room()) {
+			if (pos.coord() != this.getCoord()) {
+				Optional<GameObject> blocking = getRoom().findBlockingInRange(getPosition().getPosTowards(pos.coord()).coord(), pos.coord());
+				if (blocking.isPresent()) {
+					System.out.printf("The %s is blocking the way.%n", blocking.get().getType().name().toLowerCase(Locale.ROOT));
+					return false;
+				} else {
+					this.position = pos;
+					return true;
+				}
+			} else return true;
+		} else {
 			remove();
 			pos.room().addObject(this, pos);
+			return true;
 		}
 	}
 	
 	public boolean isItem() {
+		return false;
+	}
+	
+	public boolean isBlocking() {
 		return false;
 	}
 	

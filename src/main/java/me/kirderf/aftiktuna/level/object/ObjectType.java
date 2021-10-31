@@ -7,6 +7,7 @@ import java.util.List;
 
 public record ObjectType(char symbol, String name) {
 	public static final ObjectType AFTIK = new ObjectType('A', "Aftik");
+	public static final ObjectType CREATURE = new ObjectType('C', "Creature");
 	
 	public static final ObjectType FUEL_CAN = new ObjectType('f', "Fuel can");
 	public static final ObjectType CROWBAR = new ObjectType('c', "Crowbar");
