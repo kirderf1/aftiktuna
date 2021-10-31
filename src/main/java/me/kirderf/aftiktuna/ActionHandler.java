@@ -7,6 +7,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.Creature;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
@@ -24,6 +25,8 @@ public class ActionHandler {
 				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 		DISPATCHER.register(literal("force").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
+		DISPATCHER.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectType.CREATURES))
+				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
 	}
 	
 	private static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -88,6 +91,24 @@ public class ActionHandler {
 			} else return 0;
 		} else {
 			System.out.println("There is no such door here.");
+			return 0;
+		}
+	}
+	
+	private static int attack(GameInstance game, ObjectType creatureType) {
+		Aftik aftik = game.getAftik();
+		
+		Optional<Creature> optionalCreature = aftik.findNearest(OptionalFunction.of(creatureType::matching).flatMap(Creature.CAST));
+		if (optionalCreature.isPresent()) {
+			Creature creature = optionalCreature.get();
+			
+			if (aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord())) {
+				creature.remove();
+				System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
+				return 1;
+			} else return 0;
+		} else {
+			System.out.println("There is no such creature to attack.");
 			return 0;
 		}
 	}

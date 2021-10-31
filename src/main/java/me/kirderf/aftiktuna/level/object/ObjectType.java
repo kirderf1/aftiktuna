@@ -18,6 +18,7 @@ public record ObjectType(char symbol, String name) {
 	public static final ObjectType LEFT_DOOR = new ObjectType('<', "Left door");
 	public static final ObjectType RIGHT_DOOR = new ObjectType('>', "Right door");
 	
+	public static final Collection<ObjectType> CREATURES = List.of(CREATURE);
 	public static final Collection<ObjectType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD);
 	public static final Collection<ObjectType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR);
 	
