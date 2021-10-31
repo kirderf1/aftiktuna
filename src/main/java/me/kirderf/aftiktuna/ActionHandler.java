@@ -103,7 +103,11 @@ public class ActionHandler {
 			Creature creature = optionalCreature.get();
 			
 			if (aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord())) {
-				creature.receiveAttack();
+				Creature.AttackResult result = creature.receiveAttack();
+				if (result.death())
+					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
+				else
+					System.out.printf("You attacked the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
 				return 1;
 			} else return 0;
 		} else {

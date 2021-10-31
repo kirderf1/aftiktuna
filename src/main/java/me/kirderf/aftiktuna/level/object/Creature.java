@@ -14,13 +14,16 @@ public class Creature extends GameObject {
 		super(ObjectType.CREATURE, 5);
 	}
 	
-	public void receiveAttack() {
+	public AttackResult receiveAttack() {
 		health--;
 		if (health <= 0) {
 			remove();
-			System.out.printf("You attacked and killed the %s.%n", getType().name().toLowerCase(Locale.ROOT));
-		} else System.out.printf("You attacked the %s.%n", getType().name().toLowerCase(Locale.ROOT));
+			return new AttackResult(true);
+		} else
+			return new AttackResult(false);
 	}
+	
+	public static record AttackResult(boolean death) {}
 	
 	@Override
 	public boolean isBlocking() {
