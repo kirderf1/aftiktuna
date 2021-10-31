@@ -49,7 +49,7 @@ public class ActionHandler {
 		if(optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
-			if (aftik.moveTo(item.getPosition())) {
+			if (aftik.tryMoveTo(item.getCoord())) {
 				item.remove();
 				aftik.addItem(type);
 				
@@ -67,7 +67,7 @@ public class ActionHandler {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if(optionalDoor.isPresent()) {
 			
-			if (aftik.moveTo(optionalDoor.get().getPosition())) {
+			if (aftik.tryMoveTo(optionalDoor.get().getCoord())) {
 				optionalDoor.get().enter(aftik);
 				return 1;
 			} else return 0;
@@ -82,9 +82,10 @@ public class ActionHandler {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(GameObject::getAsDoor));
 		if(optionalDoor.isPresent()) {
 			
-			aftik.moveTo(optionalDoor.get().getPosition());
-			optionalDoor.get().force(aftik);
-			return 1;
+			if (aftik.tryMoveTo(optionalDoor.get().getCoord())) {
+				optionalDoor.get().force(aftik);
+				return 1;
+			} else return 0;
 		} else {
 			System.out.println("There is no such door here.");
 			return 0;

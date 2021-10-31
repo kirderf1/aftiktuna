@@ -21,7 +21,7 @@ public class Door extends GameObject {
 	
 	public void enter(Aftik aftik) {
 		if (property.get().checkEntry(aftik)) {
-			aftik.moveTo(destination);
+			aftik.teleport(destination);
 		}
 	}
 	

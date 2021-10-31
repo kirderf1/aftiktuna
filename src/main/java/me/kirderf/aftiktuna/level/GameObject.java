@@ -45,23 +45,22 @@ public abstract class GameObject {
 		this.position = pos;
 	}
 	
-	public final boolean moveTo(Position pos) {
-		if (getRoom() == pos.room()) {
-			if (pos.coord() != this.getCoord()) {
-				Optional<GameObject> blocking = getRoom().findBlockingInRange(getPosition().getPosTowards(pos.coord()).coord(), pos.coord());
-				if (blocking.isPresent()) {
-					System.out.printf("The %s is blocking the way.%n", blocking.get().getType().name().toLowerCase(Locale.ROOT));
-					return false;
-				} else {
-					this.position = pos;
-					return true;
-				}
-			} else return true;
-		} else {
-			remove();
-			pos.room().addObject(this, pos);
-			return true;
-		}
+	public final boolean tryMoveTo(int coord) {
+		if(coord != this.getCoord()) {
+			Optional<GameObject> blocking = getRoom().findBlockingInRange(getPosition().getPosTowards(coord).coord(), coord);
+			if(blocking.isPresent()) {
+				System.out.printf("The %s is blocking the way.%n", blocking.get().getType().name().toLowerCase(Locale.ROOT));
+				return false;
+			} else {
+				this.position = getPosition().atCoord(coord);
+				return true;
+			}
+		} else return true;
+	}
+	
+	public final void teleport(Position pos) {
+		remove();
+		pos.room().addObject(this, pos);
 	}
 	
 	public boolean isItem() {
