@@ -4,9 +4,9 @@ import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public abstract class GameObject {
 	private final ObjectType type;
@@ -47,7 +47,7 @@ public abstract class GameObject {
 	
 	public final boolean tryMoveTo(int coord) {
 		if(coord != this.getCoord()) {
-			Optional<GameObject> blocking = getRoom().findBlockingInRange(getPosition().getPosTowards(coord).coord(), coord);
+			Optional<GameObject> blocking = findBlockingTo(coord);
 			if(blocking.isPresent()) {
 				System.out.printf("The %s is blocking the way.%n", blocking.get().getType().name().toLowerCase(Locale.ROOT));
 				return false;
@@ -56,6 +56,14 @@ public abstract class GameObject {
 				return true;
 			}
 		} else return true;
+	}
+	
+	public final boolean isAccessBlocked(int coord) {
+		return findBlockingTo(coord).isPresent();
+	}
+	
+	private Optional<GameObject> findBlockingTo(int coord) {
+		return getRoom().findBlockingInRange(getPosition().getPosTowards(coord).coord(), coord);
 	}
 	
 	public final void teleport(Position pos) {
@@ -75,16 +83,17 @@ public abstract class GameObject {
 		return Optional.empty();
 	}
 	
-	public final Optional<GameObject> findNearest(Predicate<GameObject> predicate) {
-		return findNearest(OptionalFunction.of(predicate));
-	}
-	
 	public final <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
-		return getRoom().findNearest(mapper, getCoord());
+		return getRoom().objectStream().sorted(blockingComparator().thenComparing(Room.byProximity(getCoord())))
+				.flatMap(mapper.toStream()).findFirst();
 	}
 	
 	public final void remove() {
 		getRoom().removeObject(this);
 		position = null;
+	}
+	
+	private Comparator<GameObject> blockingComparator() {
+		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
 	}
 }

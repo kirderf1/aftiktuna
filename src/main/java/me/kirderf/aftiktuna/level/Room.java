@@ -6,6 +6,7 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public final class Room {
 	final int length;
@@ -35,9 +36,8 @@ public final class Room {
 			throw new IllegalArgumentException("Invalid position %d is not in range [0-%d)".formatted(position, length));
 	}
 	
-	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper, int position) {
-		return objects.stream().sorted(byProximity(position))
-				.flatMap(mapper.toStream()).findFirst();
+	public Stream<GameObject> objectStream() {
+		return objects.stream();
 	}
 	
 	public Optional<GameObject> findBlockingInRange(int from, int to) {
@@ -77,7 +77,7 @@ public final class Room {
 		}
 	}
 	
-	private static Comparator<GameObject> byProximity(int position) {
+	public static Comparator<GameObject> byProximity(int position) {
 		return Comparator.comparingInt(object -> Math.abs(position - object.getCoord()));
 	}
 }
