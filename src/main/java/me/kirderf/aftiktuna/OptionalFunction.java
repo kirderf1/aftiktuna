@@ -12,6 +12,10 @@ public interface OptionalFunction<T, R> extends Function<T, Optional<R>> {
 		return t -> predicate.test(t) ? Optional.of(t) : Optional.empty();
 	}
 	
+	static <T, R> OptionalFunction<T, R> cast(Class<R> clazz) {
+		return t -> clazz.isInstance(t) ? Optional.of(clazz.cast(t)) : Optional.empty();
+	}
+	
 	default <S> OptionalFunction<T, R> filter(Predicate<R> predicate) {
 		return t -> this.apply(t).filter(predicate);
 	}

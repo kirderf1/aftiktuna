@@ -59,10 +59,6 @@ public abstract class GameObject {
 		return false;
 	}
 	
-	public Optional<Door> getAsDoor() {
-		return Optional.empty();
-	}
-	
 	public final void remove() {
 		getRoom().removeObject(this);
 		position = null;
