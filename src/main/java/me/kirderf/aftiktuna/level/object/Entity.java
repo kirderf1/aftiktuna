@@ -62,7 +62,7 @@ public abstract class Entity extends GameObject {
 		return new AttackResult(this, isDead());
 	}
 	
-	public final MoveAndAttackResult moveAndAttack(Creature creature) {
+	public final MoveAndAttackResult moveAndAttack(Entity creature) {
 		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()));
 		if (move.success()) {
 			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
