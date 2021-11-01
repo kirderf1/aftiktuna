@@ -11,6 +11,7 @@ import me.kirderf.aftiktuna.level.object.Creature;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.door.Door;
+import me.kirderf.aftiktuna.level.object.door.EnterResult;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -107,7 +108,9 @@ public final class ActionHandler {
 			
 			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
 			if (move.success()) {
-				optionalDoor.get().enter(aftik);
+				EnterResult result = optionalDoor.get().enter(aftik);
+				
+				printEnterResult(result);
 				return 1;
 			} else {
 				printMoveFailure(move);
@@ -167,5 +170,16 @@ public final class ActionHandler {
 		result.blocking().ifPresent(object ->
 				System.out.printf("The %s is blocking the way.%n", object.getType().name().toLowerCase(Locale.ROOT))
 		);
+	}
+	
+	private static void printEnterResult(EnterResult result) {
+		result.either().run(ActionHandler::printEnterSuccess,
+				failureType -> System.out.printf("The door is %s.%n", failureType.getAdjective()));
+	}
+	
+	private static void printEnterSuccess(EnterResult.Success success) {
+		success.usedItem().ifPresentOrElse(
+				item -> System.out.printf("Using your %s, you entered the door into a new room.%n", item.name().toLowerCase(Locale.ROOT)),
+				() -> System.out.printf("You entered the door into a new room.%n"));
 	}
 }

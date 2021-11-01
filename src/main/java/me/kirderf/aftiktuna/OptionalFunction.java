@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 @FunctionalInterface
 public interface OptionalFunction<T, R> extends Function<T, Optional<R>> {
 	

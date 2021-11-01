@@ -1,0 +1,42 @@
+package me.kirderf.aftiktuna.level.object.door;
+
+import me.kirderf.aftiktuna.Either;
+import me.kirderf.aftiktuna.level.object.ObjectType;
+
+import java.util.Optional;
+
+public record EnterResult(Either<Success, FailureType> either) {
+	public EnterResult(ObjectType usedItem) {
+		this(Either.left(new Success(Optional.of(usedItem))));
+	}
+	
+	public EnterResult() {
+		this(Either.left(new Success(Optional.empty())));
+	}
+	
+	public EnterResult(FailureType failure) {
+		this(Either.right(failure));
+	}
+	
+	public boolean success() {
+		return either.isLeft();
+	}
+	
+	public static record Success(Optional<ObjectType> usedItem) {}
+	
+	public static final class FailureType {
+		public static final EnterResult.FailureType STUCK = new EnterResult.FailureType("stuck");
+		public static final EnterResult.FailureType LOCKED = new EnterResult.FailureType("locked");
+		public static final EnterResult.FailureType SEALED = new EnterResult.FailureType("sealed shut");
+		
+		private final String adjective;
+		
+		public FailureType(String adjective) {
+			this.adjective = adjective;
+		}
+		
+		public String getAdjective() {
+			return adjective;
+		}
+	}
+}

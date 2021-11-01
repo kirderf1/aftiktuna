@@ -3,17 +3,14 @@ package me.kirderf.aftiktuna.level.object.door;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
-import java.util.Optional;
-
 public final class DoorLockedProperty extends DoorProperty {
 	
 	@Override
-	public Optional<EnterResult> checkEntry(Aftik aftik) {
+	public EnterResult checkEntry(Aftik aftik) {
 		if (aftik.hasItem(ObjectType.KEYCARD)) {
-			return Optional.of(new EnterResult(ObjectType.KEYCARD));
+			return new EnterResult(ObjectType.KEYCARD);
 		} else {
-			System.out.println("The door is locked.");
-			return Optional.empty();
+			return new EnterResult(EnterResult.FailureType.LOCKED);
 		}
 	}
 	
