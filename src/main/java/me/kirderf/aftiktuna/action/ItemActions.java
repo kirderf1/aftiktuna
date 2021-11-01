@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.util.OptionalFunction;
@@ -27,7 +28,7 @@ public final class ItemActions {
 		if(optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
-			Aftik.MoveResult move = aftik.tryMoveTo(item.getCoord());
+			Entity.MoveResult move = aftik.tryMoveTo(item.getCoord());
 			if (move.success()) {
 				item.remove();
 				aftik.addItem(type);
@@ -55,7 +56,7 @@ public final class ItemActions {
 			if(optionalItem.isPresent()) {
 				
 				GameObject item = optionalItem.get();
-				Aftik.MoveResult move = aftik.tryMoveTo(item.getCoord());
+				Entity.MoveResult move = aftik.tryMoveTo(item.getCoord());
 				if (move.success()) {
 					item.remove();
 					aftik.wield(itemType);

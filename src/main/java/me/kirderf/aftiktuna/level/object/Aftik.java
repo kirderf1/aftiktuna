@@ -62,33 +62,12 @@ public final class Aftik extends Entity {
 	}
 	
 	public MoveAndAttackResult moveAndAttack(Creature creature) {
-		Aftik.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()).coord());
+		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()).coord());
 		if (move.success()) {
 			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
 			return new MoveAndAttackResult(result);
 		} else
 			return new MoveAndAttackResult(move);
-	}
-	
-	public MoveResult tryMoveTo(int coord) {
-		if(coord != this.getCoord()) {
-			Optional<GameObject> blocking = findBlockingTo(coord);
-			if(blocking.isPresent()) {
-				return new MoveResult(blocking);
-			} else {
-				teleport(coord);
-				return new MoveResult(Optional.empty());
-			}
-		} else
-			return new MoveResult(Optional.empty());
-	}
-	
-	public boolean isAccessBlocked(int coord) {
-		return findBlockingTo(coord).isPresent();
-	}
-	
-	private Optional<GameObject> findBlockingTo(int coord) {
-		return getRoom().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
@@ -98,12 +77,6 @@ public final class Aftik extends Entity {
 	
 	private Comparator<GameObject> blockingComparator() {
 		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
-	}
-	
-	public static record MoveResult(Optional<GameObject> blocking) {
-		public boolean success() {
-			return blocking.isEmpty();
-		}
 	}
 	
 	public static record MoveAndAttackResult(Either<AttackResult, MoveResult> either) {

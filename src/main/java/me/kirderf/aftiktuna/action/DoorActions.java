@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.door.Door;
@@ -28,7 +29,7 @@ public final class DoorActions {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
+			Entity.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
 			if (move.success()) {
 				EnterResult result = optionalDoor.get().enter(aftik);
 				
