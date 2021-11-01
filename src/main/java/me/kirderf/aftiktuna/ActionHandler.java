@@ -15,7 +15,7 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import java.util.Locale;
 import java.util.Optional;
 
-public class ActionHandler {
+public final class ActionHandler {
 	private static final CommandDispatcher<GameInstance> DISPATCHER = new CommandDispatcher<>();
 	
 	static {
@@ -52,13 +52,17 @@ public class ActionHandler {
 		if(optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
-			if (aftik.tryMoveTo(item.getCoord())) {
+			Aftik.MoveResult move = aftik.tryMoveTo(item.getCoord());
+			if (move.success()) {
 				item.remove();
 				aftik.addItem(type);
 				
 				System.out.printf("You picked up the %s.%n", type.name().toLowerCase(Locale.ROOT));
 				return 1;
-			} else return 0;
+			} else {
+				printMoveFailure(move);
+				return 0;
+			}
 		} else {
 			System.out.printf("There is no %s here to pick up.%n", type.name().toLowerCase(Locale.ROOT));
 			return 0;
@@ -70,10 +74,14 @@ public class ActionHandler {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			if (aftik.tryMoveTo(optionalDoor.get().getCoord())) {
+			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
+			if (move.success()) {
 				optionalDoor.get().enter(aftik);
 				return 1;
-			} else return 0;
+			} else {
+				printMoveFailure(move);
+				return 0;
+			}
 		} else {
 			System.out.println("There is no such door here to go through.");
 			return 0;
@@ -85,10 +93,14 @@ public class ActionHandler {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			if (aftik.tryMoveTo(optionalDoor.get().getCoord())) {
+			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
+			if (move.success()) {
 				optionalDoor.get().force(aftik);
 				return 1;
-			} else return 0;
+			} else {
+				printMoveFailure(move);
+				return 0;
+			}
 		} else {
 			System.out.println("There is no such door here.");
 			return 0;
@@ -102,17 +114,27 @@ public class ActionHandler {
 		if (optionalCreature.isPresent()) {
 			Creature creature = optionalCreature.get();
 			
-			if (aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord())) {
+			Aftik.MoveResult move = aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord());
+			if (move.success()) {
 				Creature.AttackResult result = creature.receiveAttack();
 				if (result.death())
 					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
 				else
 					System.out.printf("You attacked the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
 				return 1;
-			} else return 0;
+			} else {
+				printMoveFailure(move);
+				return 0;
+			}
 		} else {
 			System.out.println("There is no such creature to attack.");
 			return 0;
 		}
+	}
+	
+	private static void printMoveFailure(Aftik.MoveResult result) {
+		result.blocking().ifPresent(object ->
+				System.out.printf("The %s is blocking the way.%n", object.getType().name().toLowerCase(Locale.ROOT))
+		);
 	}
 }

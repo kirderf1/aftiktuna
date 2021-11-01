@@ -7,7 +7,7 @@ import me.kirderf.aftiktuna.level.Room;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Aftik extends GameObject {
+public final class Aftik extends GameObject {
 	private final List<ObjectType> inventory = new ArrayList<>();
 	
 	public Aftik() {
@@ -29,33 +29,39 @@ public class Aftik extends GameObject {
 		}
 	}
 	
-	public final boolean tryMoveTo(int coord) {
+	public MoveResult tryMoveTo(int coord) {
 		if(coord != this.getCoord()) {
 			Optional<GameObject> blocking = findBlockingTo(coord);
 			if(blocking.isPresent()) {
-				System.out.printf("The %s is blocking the way.%n", blocking.get().getType().name().toLowerCase(Locale.ROOT));
-				return false;
+				return new MoveResult(blocking);
 			} else {
 				teleport(coord);
-				return true;
+				return new MoveResult(Optional.empty());
 			}
-		} else return true;
+		} else
+			return new MoveResult(Optional.empty());
 	}
 	
-	public final boolean isAccessBlocked(int coord) {
+	public boolean isAccessBlocked(int coord) {
 		return findBlockingTo(coord).isPresent();
 	}
 	
-	protected final Optional<GameObject> findBlockingTo(int coord) {
+	private Optional<GameObject> findBlockingTo(int coord) {
 		return getRoom().findBlockingInRange(getPosition().getPosTowards(coord).coord(), coord);
 	}
 	
-	public final <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
+	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
 		return getRoom().objectStream().sorted(blockingComparator().thenComparing(Room.byProximity(getCoord())))
 				.flatMap(mapper.toStream()).findFirst();
 	}
 	
 	private Comparator<GameObject> blockingComparator() {
 		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
+	}
+	
+	public static record MoveResult(Optional<GameObject> blocking) {
+		public boolean success() {
+			return blocking.isEmpty();
+		}
 	}
 }
