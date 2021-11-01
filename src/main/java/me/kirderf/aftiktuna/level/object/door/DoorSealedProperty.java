@@ -3,11 +3,13 @@ package me.kirderf.aftiktuna.level.object.door;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
+import java.util.Optional;
+
 public final class DoorSealedProperty extends DoorProperty {
 	@Override
-	public boolean checkEntry(Aftik aftik) {
+	public Optional<EnterResult> checkEntry(Aftik aftik) {
 		System.out.println("The door is sealed shut.");
-		return false;
+		return Optional.empty();
 	}
 	
 	@Override

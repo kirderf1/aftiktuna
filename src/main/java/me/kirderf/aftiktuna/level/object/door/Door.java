@@ -6,9 +6,11 @@ import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
+import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Door extends GameObject {
+public final class Door extends GameObject {
 	public static final OptionalFunction<GameObject, Door> CAST = OptionalFunction.cast(Door.class);
 	
 	private final Position destination;
@@ -21,9 +23,13 @@ public class Door extends GameObject {
 	}
 	
 	public void enter(Aftik aftik) {
-		if (property.get().checkEntry(aftik)) {
+		Optional<DoorProperty.EnterResult> optionalResult = property.get().checkEntry(aftik);
+		optionalResult.ifPresent(result -> {
+			result.usedItem().ifPresentOrElse(
+					item -> System.out.printf("Using your %s, you entered the door into a new room.%n", item.name().toLowerCase(Locale.ROOT)),
+					() -> System.out.printf("You entered the door into a new room.%n"));
 			aftik.teleport(destination);
-		}
+		});
 	}
 	
 	public void force(Aftik aftik) {
