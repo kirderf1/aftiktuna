@@ -1,9 +1,7 @@
 package me.kirderf.aftiktuna.level;
 
+import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectType;
-import me.kirderf.aftiktuna.level.object.door.Door;
-
-import java.util.Optional;
 
 public abstract class GameObject {
 	private final ObjectType type;
@@ -55,7 +53,7 @@ public abstract class GameObject {
 		return false;
 	}
 	
-	public boolean isBlocking() {
+	public boolean isBlocking(Entity entity) {
 		return false;
 	}
 	

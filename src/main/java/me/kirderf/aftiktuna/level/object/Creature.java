@@ -13,8 +13,8 @@ public final class Creature extends Entity {
 	}
 	
 	@Override
-	public boolean isBlocking() {
-		return true;
+	public boolean isBlocking(Entity entity) {
+		return entity instanceof Aftik;
 	}
 	
 	public boolean isTargeting() {

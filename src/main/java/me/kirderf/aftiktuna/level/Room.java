@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level;
 
+import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.util.*;
@@ -37,9 +38,9 @@ public final class Room {
 		return objects.stream();
 	}
 	
-	public Optional<GameObject> findBlockingInRange(int from, int to) {
+	public Optional<GameObject> findBlockingInRange(Entity entity, int from, int to) {
 		int start = Math.min(from, to), end = Math.max(from, to);
-		return objects.stream().sorted(byProximity(from)).filter(GameObject::isBlocking)
+		return objects.stream().sorted(byProximity(from)).filter(object -> object.isBlocking(entity))
 				.filter(object -> start <= object.getCoord() && object.getCoord() <= end).findFirst();
 	}
 	

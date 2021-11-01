@@ -88,7 +88,7 @@ public final class Aftik extends Entity {
 	}
 	
 	private Optional<GameObject> findBlockingTo(int coord) {
-		return getRoom().findBlockingInRange(getPosition().getPosTowards(coord).coord(), coord);
+		return getRoom().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
