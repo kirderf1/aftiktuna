@@ -12,6 +12,7 @@ import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.door.EnterResult;
+import me.kirderf.aftiktuna.level.object.door.ForceResult;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -129,7 +130,9 @@ public final class ActionHandler {
 			
 			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
 			if (move.success()) {
-				optionalDoor.get().force(aftik);
+				ForceResult result = optionalDoor.get().force(aftik);
+				
+				printForceResult(result);
 				return 1;
 			} else {
 				printMoveFailure(move);
@@ -177,9 +180,25 @@ public final class ActionHandler {
 				failureType -> System.out.printf("The door is %s.%n", failureType.adjective()));
 	}
 	
-	private static void printEnterSuccess(EnterResult.Success success) {
-		success.usedItem().ifPresentOrElse(
+	private static void printEnterSuccess(EnterResult.Success result) {
+		result.usedItem().ifPresentOrElse(
 				item -> System.out.printf("Using your %s, you entered the door into a new room.%n", item.name().toLowerCase(Locale.ROOT)),
 				() -> System.out.printf("You entered the door into a new room.%n"));
+	}
+	
+	private static void printForceResult(ForceResult result) {
+		result.either().run(ActionHandler::printForceSuccess, ActionHandler::printForceStatus);
+	}
+	
+	private static void printForceSuccess(ForceResult.Success result) {
+		System.out.printf("You use your %s to %s.%n", result.item().name().toLowerCase(Locale.ROOT), result.method().text());
+	}
+	
+	private static void printForceStatus(ForceResult.Status status) {
+		switch(status) {
+			case NOT_STUCK -> System.out.println("The door does not seem to be stuck.");
+			case NEED_TOOL -> System.out.println("You need some sort of tool to force the door open.");
+			case NEED_BREAK_TOOL -> System.out.println("You need some sort of tool to break the door open.");
+		}
 	}
 }
