@@ -6,7 +6,7 @@ import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.Creature;
 import me.kirderf.aftiktuna.level.object.Entity;
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.ObjectTypes;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public final class GameInstance {
 				return;
 			}
 			
-			if (aftik.hasItem(ObjectType.FUEL_CAN)) {
+			if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
 				System.out.println("Congratulations, you won!");
 				return;
 			}

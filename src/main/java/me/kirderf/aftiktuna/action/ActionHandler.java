@@ -18,7 +18,7 @@ public final class ActionHandler {
 	public ActionHandler() {
 		ItemActions.register(dispatcher);
 		DoorActions.register(dispatcher);
-		dispatcher.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectType.CREATURES))
+		dispatcher.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
 	}
 	

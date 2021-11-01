@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna.level.object.door;
 
 import me.kirderf.aftiktuna.level.object.Aftik;
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.ObjectTypes;
 
 public final class DoorStuckProperty extends DoorProperty {
 	
@@ -10,10 +10,10 @@ public final class DoorStuckProperty extends DoorProperty {
 	}
 	
 	public ForceResult tryForce(Aftik aftik) {
-		if(aftik.hasItem(ObjectType.CROWBAR)) {
-			return new ForceResult(ObjectType.CROWBAR, ForceResult.Method.FORCE);
-		} else if(aftik.hasItem(ObjectType.BLOWTORCH)) {
-			return new ForceResult(ObjectType.BLOWTORCH, ForceResult.Method.CUT);
+		if(aftik.hasItem(ObjectTypes.CROWBAR)) {
+			return new ForceResult(ObjectTypes.CROWBAR, ForceResult.Method.FORCE);
+		} else if(aftik.hasItem(ObjectTypes.BLOWTORCH)) {
+			return new ForceResult(ObjectTypes.BLOWTORCH, ForceResult.Method.CUT);
 		} else {
 			return new ForceResult(ForceResult.Status.NEED_TOOL);
 		}

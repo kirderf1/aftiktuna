@@ -14,15 +14,15 @@ public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
 	
 	private final List<ObjectType> inventory = new ArrayList<>();
-	private ObjectType wielded = null;
+	private WeaponType wielded = null;
 	
 	public Aftik() {
-		super(ObjectType.AFTIK, 10, 5);
+		super(ObjectTypes.AFTIK, 10, 5);
 	}
 	
 	@Override
 	protected int getAttackPower() {
-		return wielded != null ? 3 : 2;
+		return wielded != null ? wielded.getDamageValue() : 2;
 	}
 	
 	public void addItem(ObjectType type) {
@@ -33,7 +33,7 @@ public final class Aftik extends Entity {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
-	public boolean wieldFromInventory(ObjectType type) {
+	public boolean wieldFromInventory(WeaponType type) {
 		if (inventory.remove(type)) {
 			wield(type);
 			return true;
@@ -42,7 +42,7 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public void wield(ObjectType item) {
+	public void wield(WeaponType item) {
 		if (wielded != null)
 			addItem(wielded);
 		wielded = item;

@@ -13,7 +13,7 @@ public final class Creature extends Entity {
 	private boolean isTargeting = false;
 	
 	public Creature(boolean isMoving) {
-		super(ObjectType.CREATURE, 5, 5);
+		super(ObjectTypes.CREATURE, 5, 5);
 		this.isMoving = isMoving;
 	}
 	

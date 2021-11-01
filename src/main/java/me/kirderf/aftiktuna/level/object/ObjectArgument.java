@@ -13,28 +13,32 @@ import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class ObjectArgument implements ArgumentType<ObjectType> {
+public class ObjectArgument<T extends ObjectType> implements ArgumentType<T> {
 	private static final SimpleCommandExceptionType INVALID_TYPE = new SimpleCommandExceptionType(() -> "No such object type");
 	
-	private final Collection<ObjectType> types;
+	private final Collection<T> types;
 	
-	private ObjectArgument(Collection<ObjectType> types) {
+	private ObjectArgument(Collection<T> types) {
 		this.types = types;
 	}
 	
-	public static ObjectArgument create(Collection<ObjectType> types) {
-		return new ObjectArgument(types);
+	public static <T extends ObjectType> ObjectArgument<T> create(Collection<T> types) {
+		return new ObjectArgument<>(types);
 	}
 	
 	public static ObjectType getType(CommandContext<?> context, String name) {
-		return context.getArgument(name, ObjectType.class);
+		return getType(context, name, ObjectType.class);
+	}
+	
+	public static <T extends ObjectType> T getType(CommandContext<?> context, String name, Class<T> clazz) {
+		return context.getArgument(name, clazz);
 	}
 	
 	@Override
-	public ObjectType parse(StringReader reader) throws CommandSyntaxException {
+	public T parse(StringReader reader) throws CommandSyntaxException {
 		int start = reader.getCursor();
 		String remaining = reader.getRemaining().toLowerCase(Locale.ROOT);
-		for (ObjectType type : types) {
+		for (T type : types) {
 			String name = type.name().toLowerCase(Locale.ROOT);
 			if (remaining.startsWith(name)) {
 				reader.setCursor(start + name.length());

@@ -2,10 +2,7 @@ package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.level.object.Aftik;
-import me.kirderf.aftiktuna.level.object.Entity;
-import me.kirderf.aftiktuna.level.object.ObjectArgument;
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.door.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.ForceResult;
@@ -18,9 +15,9 @@ import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class DoorActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
-		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
+		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
-		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectType.DOORS))
+		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 	}
 	

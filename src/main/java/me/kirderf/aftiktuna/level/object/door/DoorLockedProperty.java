@@ -1,14 +1,14 @@
 package me.kirderf.aftiktuna.level.object.door;
 
 import me.kirderf.aftiktuna.level.object.Aftik;
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.ObjectTypes;
 
 public final class DoorLockedProperty extends DoorProperty {
 	
 	@Override
 	public EnterResult checkEntry(Aftik aftik) {
-		if (aftik.hasItem(ObjectType.KEYCARD)) {
-			return new EnterResult(ObjectType.KEYCARD);
+		if (aftik.hasItem(ObjectTypes.KEYCARD)) {
+			return new EnterResult(ObjectTypes.KEYCARD);
 		} else {
 			return new EnterResult(EnterResult.FailureType.LOCKED);
 		}
@@ -16,8 +16,8 @@ public final class DoorLockedProperty extends DoorProperty {
 	
 	@Override
 	public ForceResult tryForce(Aftik aftik) {
-		if(aftik.hasItem(ObjectType.BLOWTORCH)) {
-			return new ForceResult(ObjectType.BLOWTORCH, ForceResult.Method.CUT);
+		if(aftik.hasItem(ObjectTypes.BLOWTORCH)) {
+			return new ForceResult(ObjectTypes.BLOWTORCH, ForceResult.Method.CUT);
 		} else {
 			return new ForceResult(ForceResult.Status.NEED_BREAK_TOOL);
 		}

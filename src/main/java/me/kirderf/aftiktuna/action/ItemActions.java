@@ -3,10 +3,7 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.object.Aftik;
-import me.kirderf.aftiktuna.level.object.Entity;
-import me.kirderf.aftiktuna.level.object.ObjectArgument;
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
@@ -16,10 +13,10 @@ import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class ItemActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
-		dispatcher.register(literal("take").then(argument("item", ObjectArgument.create(ObjectType.ITEMS))
+		dispatcher.register(literal("take").then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 				.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item")))));
-		dispatcher.register(literal("wield").then(argument("item", ObjectArgument.create(ObjectType.WEAPONS))
-				.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item")))));
+		dispatcher.register(literal("wield").then(argument("item", ObjectArgument.create(ObjectTypes.WEAPONS))
+				.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
 	}
 	
 	private static int takeItem(GameInstance game, ObjectType type) {
@@ -45,7 +42,7 @@ public final class ItemActions {
 		}
 	}
 	
-	private static int wieldItem(GameInstance game, ObjectType itemType) {
+	private static int wieldItem(GameInstance game, WeaponType itemType) {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.wieldFromInventory(itemType)) {
