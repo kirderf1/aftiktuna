@@ -1,10 +1,11 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.util.OptionalFunction;

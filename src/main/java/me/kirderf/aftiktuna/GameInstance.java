@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna;
 
+import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectType;

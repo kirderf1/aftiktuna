@@ -1,6 +1,7 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
+import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
@@ -9,8 +10,8 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
 
-import static me.kirderf.aftiktuna.ActionHandler.argument;
-import static me.kirderf.aftiktuna.ActionHandler.literal;
+import static me.kirderf.aftiktuna.action.ActionHandler.argument;
+import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class ItemActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
