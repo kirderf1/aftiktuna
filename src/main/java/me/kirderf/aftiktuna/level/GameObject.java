@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna.level;
 
-import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 public abstract class GameObject {
 	private final ObjectType type;

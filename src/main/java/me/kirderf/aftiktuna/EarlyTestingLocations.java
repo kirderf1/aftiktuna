@@ -3,11 +3,11 @@ package me.kirderf.aftiktuna;
 import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.LocationBuilder;
 import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.level.object.Creature;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.level.object.door.DoorSealedProperty;
 import me.kirderf.aftiktuna.level.object.door.DoorStuckProperty;
+import me.kirderf.aftiktuna.level.object.entity.Creature;
 
 @SuppressWarnings("unused")
 public final class EarlyTestingLocations {

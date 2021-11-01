@@ -1,8 +1,9 @@
-package me.kirderf.aftiktuna.level.object;
+package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;

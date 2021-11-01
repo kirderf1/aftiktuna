@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.level.object;
+package me.kirderf.aftiktuna.level.object.entity;
 
 public record AttackResult(Entity attacked, Type type) {
 	

@@ -1,6 +1,6 @@
 package me.kirderf.aftiktuna.level.object.door;
 
-import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.entity.Aftik;
 
 public abstract class DoorProperty {
 	public static final DoorProperty EMPTY = new DoorProperty() {

@@ -1,6 +1,7 @@
-package me.kirderf.aftiktuna.level.object;
+package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;

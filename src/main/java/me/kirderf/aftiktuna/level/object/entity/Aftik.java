@@ -1,7 +1,10 @@
-package me.kirderf.aftiktuna.level.object;
+package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
+import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.ObjectTypes;
+import me.kirderf.aftiktuna.level.object.WeaponType;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.ArrayList;

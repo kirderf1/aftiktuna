@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.level;
 
-import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.Item;
 import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 import java.util.*;
 import java.util.stream.Stream;

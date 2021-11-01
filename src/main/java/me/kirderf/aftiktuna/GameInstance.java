@@ -3,10 +3,10 @@ package me.kirderf.aftiktuna;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.level.object.Aftik;
-import me.kirderf.aftiktuna.level.object.Creature;
-import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
+import me.kirderf.aftiktuna.level.object.entity.Aftik;
+import me.kirderf.aftiktuna.level.object.entity.Creature;
+import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
