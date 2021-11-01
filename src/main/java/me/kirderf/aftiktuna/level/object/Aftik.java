@@ -4,7 +4,10 @@ import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class Aftik extends GameObject {
@@ -24,7 +27,7 @@ public final class Aftik extends GameObject {
 	}
 	
 	public boolean hasItem(ObjectType type) {
-		return inventory.contains(type);
+		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
 	public boolean wieldItem(ObjectType type) {
