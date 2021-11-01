@@ -48,6 +48,12 @@ public final class Aftik extends GameObject {
 		}
 	}
 	
+	public void optionallyPrintWieldedItem() {
+		if (wielded != null) {
+			System.out.printf("Wielded: %s%n", wielded.name());
+		}
+	}
+	
 	public MoveResult tryMoveTo(int coord) {
 		if(coord != this.getCoord()) {
 			Optional<GameObject> blocking = findBlockingTo(coord);
