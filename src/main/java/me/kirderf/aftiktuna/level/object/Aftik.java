@@ -30,15 +30,19 @@ public final class Aftik extends GameObject {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
-	public boolean wieldItem(ObjectType type) {
+	public boolean wieldFromInventory(ObjectType type) {
 		if (inventory.remove(type)) {
-			if (wielded != null)
-				addItem(wielded);
-			wielded = type;
+			wield(type);
 			return true;
 		} else {
 			return false;
 		}
+	}
+	
+	public void wield(ObjectType item) {
+		if (wielded != null)
+			addItem(wielded);
+		wielded = item;
 	}
 	
 	public void optionallyPrintInventory() {

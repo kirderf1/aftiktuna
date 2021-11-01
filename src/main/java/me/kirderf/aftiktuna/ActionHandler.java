@@ -8,9 +8,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.Creature;
-import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.door.Door;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -68,6 +68,35 @@ public final class ActionHandler {
 		} else {
 			System.out.printf("There is no %s here to pick up.%n", type.name().toLowerCase(Locale.ROOT));
 			return 0;
+		}
+	}
+	
+	private static int wieldItem(GameInstance game, ObjectType itemType) {
+		Aftik aftik = game.getAftik();
+		
+		if (aftik.wieldFromInventory(itemType)) {
+			System.out.printf("You wielded a %s.%n", itemType.name().toLowerCase(Locale.ROOT));
+			return 1;
+		} else {
+			Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(itemType::matching));
+			if(optionalItem.isPresent()) {
+				
+				GameObject item = optionalItem.get();
+				Aftik.MoveResult move = aftik.tryMoveTo(item.getCoord());
+				if (move.success()) {
+					item.remove();
+					aftik.wield(itemType);
+					
+					System.out.printf("You picked up and wielded the %s.%n", itemType.name().toLowerCase(Locale.ROOT));
+					return 1;
+				} else {
+					printMoveFailure(move);
+					return 0;
+				}
+			} else {
+				System.out.printf("There is no %s that you can wield.%n", itemType.name().toLowerCase(Locale.ROOT));
+				return 0;
+			}
 		}
 	}
 	
@@ -130,18 +159,6 @@ public final class ActionHandler {
 			}
 		} else {
 			System.out.println("There is no such creature to attack.");
-			return 0;
-		}
-	}
-	
-	public static int wieldItem(GameInstance game, ObjectType itemType) {
-		Aftik aftik = game.getAftik();
-		
-		if (aftik.wieldItem(itemType)) {
-			System.out.printf("You equipped a %s.%n", itemType.name().toLowerCase(Locale.ROOT));
-			return 1;
-		} else {
-			System.out.printf("You do not have a %s in your inventory.%n", itemType.name().toLowerCase(Locale.ROOT));
 			return 0;
 		}
 	}
