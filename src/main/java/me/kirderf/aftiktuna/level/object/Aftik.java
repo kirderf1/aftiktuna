@@ -14,6 +14,10 @@ public final class Aftik extends GameObject {
 		super(ObjectType.AFTIK, 10);
 	}
 	
+	public int getAttackPower() {
+		return 2;
+	}
+	
 	public void addItem(ObjectType type) {
 		inventory.add(type);
 	}

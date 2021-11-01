@@ -3,19 +3,17 @@ package me.kirderf.aftiktuna.level.object;
 import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.GameObject;
 
-import java.util.Locale;
-
 public class Creature extends GameObject {
 	public static final OptionalFunction<GameObject, Creature> CAST = OptionalFunction.cast(Creature.class);
 	
-	private int health = 3;
+	private int health = 5;
 	
 	public Creature() {
 		super(ObjectType.CREATURE, 5);
 	}
 	
-	public AttackResult receiveAttack() {
-		health--;
+	public AttackResult receiveAttack(int attackPower) {
+		health -= attackPower;
 		if (health <= 0) {
 			remove();
 			return new AttackResult(true);

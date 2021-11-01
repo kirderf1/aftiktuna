@@ -116,7 +116,7 @@ public final class ActionHandler {
 			
 			Aftik.MoveResult move = aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord());
 			if (move.success()) {
-				Creature.AttackResult result = creature.receiveAttack();
+				Creature.AttackResult result = creature.receiveAttack(aftik.getAttackPower());
 				if (result.death())
 					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
 				else
