@@ -78,16 +78,13 @@ public final class ActionHandler {
 	}
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
-		Aftik aftik = game.getAftik();
-		if(creature.isTargeting() && aftik.isAlive()) {
-			Entity.MoveAndAttackResult result = creature.moveAndAttack(aftik);
-			result.either().getLeft().ifPresent(attack -> {
-				if(attack.death()) {
-					System.out.printf("The %s attacked and killed you.%n", creature.getType().lowerCaseName());
-				} else {
-					System.out.printf("The %s attacked you.%n", creature.getType().lowerCaseName());
-				}
-			});
-		}
+		Optional<Entity.AttackResult> result = creature.doAction(game.getAftik());
+		result.ifPresent(attack -> {
+			if(attack.death()) {
+				System.out.printf("The %s attacked and killed you.%n", creature.getType().lowerCaseName());
+			} else {
+				System.out.printf("The %s attacked you.%n", creature.getType().lowerCaseName());
+			}
+		});
 	}
 }

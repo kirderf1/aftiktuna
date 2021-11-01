@@ -31,6 +31,10 @@ public abstract class Entity extends GameObject {
 		return health > 0;
 	}
 	
+	public final MoveResult tryMoveNextTo(Position pos) {
+		return tryMoveTo(pos.getPosTowards(this.getCoord()));
+	}
+	
 	public final MoveResult tryMoveTo(Position pos) {
 		if (pos.room() != this.getRoom())
 			throw new IllegalArgumentException("Rooms must be the same.");
@@ -55,17 +59,23 @@ public abstract class Entity extends GameObject {
 		return getRoom().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
 	}
 	
-	public final Creature.AttackResult receiveAttack(int attackPower) {
+	public final AttackResult attack(Entity target) {
+		if (!target.getPosition().isAdjacent(this.getPosition()))
+			throw new IllegalStateException("Expected to be next to target when attacking.");
+		return target.receiveAttack(getAttackPower());
+	}
+	
+	public final AttackResult receiveAttack(int attackPower) {
 		health -= attackPower;
 		if (this.isDead())
 			this.onDeath();
 		return new AttackResult(this, isDead());
 	}
 	
-	public final MoveAndAttackResult moveAndAttack(Entity creature) {
-		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()));
+	public final MoveAndAttackResult moveAndAttack(Entity target) {
+		MoveResult move = tryMoveNextTo(target.getPosition());
 		if (move.success()) {
-			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
+			AttackResult result = attack(target);
 			return new MoveAndAttackResult(result);
 		} else
 			return new MoveAndAttackResult(move);

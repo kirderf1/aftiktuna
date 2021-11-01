@@ -81,7 +81,7 @@ public final class EarlyTestingLocations {
 		Room secondRoom = builder.newRoom(3);
 		builder.createDoors(ObjectType.LEFT_DOOR, firstRoom.getPosAt(1), ObjectType.LEFT_DOOR, secondRoom.getPosAt(0));
 		builder.createDoors(ObjectType.RIGHT_DOOR, firstRoom.getPosAt(3), ObjectType.RIGHT_DOOR, secondRoom.getPosAt(2));
-		firstRoom.addObject(new Creature(), 2);
+		firstRoom.addObject(new Creature(false), 2);
 		firstRoom.addObject(new Item(ObjectType.CROWBAR), 0);
 		firstRoom.addObject(new Item(ObjectType.FUEL_CAN), 2);
 		firstRoom.addObject(new Item(ObjectType.FUEL_CAN), 5);
@@ -92,9 +92,9 @@ public final class EarlyTestingLocations {
 	public static Location createDeathLocation() {
 		LocationBuilder builder = new LocationBuilder();
 		Room room = builder.newRoom(5);
-		room.addObject(new Creature(), 2);
-		room.addObject(new Creature(), 2);
-		room.addObject(new Creature(), 3);
+		room.addObject(new Creature(true), 2);
+		room.addObject(new Creature(true), 2);
+		room.addObject(new Creature(true), 3);
 		room.addObject(new Item(ObjectType.FUEL_CAN), 4);
 		return builder.build(room.getPosAt(0));
 	}
