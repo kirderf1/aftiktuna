@@ -9,7 +9,7 @@ public final class Room {
 	final int length;
 	private final List<GameObject> objects = new ArrayList<>();
 	
-	public Room(int length) {
+	Room(int length) {
 		this.length = length;
 	}
 	
