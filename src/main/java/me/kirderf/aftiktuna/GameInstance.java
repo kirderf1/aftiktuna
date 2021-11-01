@@ -24,6 +24,7 @@ public final class GameInstance {
 			System.out.println();
 			
 			aftik.getRoom().printRoom();
+			printHealth(aftik);
 			aftik.optionallyPrintWieldedItem();
 			aftik.optionallyPrintInventory();
 			
@@ -54,5 +55,13 @@ public final class GameInstance {
 	
 	public Aftik getAftik() {
 		return aftik;
+	}
+	
+	private static void printHealth(Aftik aftik) {
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < 5; i++) {
+			builder.append(i < aftik.getHealth() ? '#' : '.');
+		}
+		System.out.printf("Health: %s%n", builder);
 	}
 }

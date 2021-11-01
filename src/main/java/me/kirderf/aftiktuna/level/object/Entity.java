@@ -11,6 +11,10 @@ public abstract class Entity extends GameObject {
 		this.health = initialHealth;
 	}
 	
+	public int getHealth() {
+		return health;
+	}
+	
 	public boolean isDead() {
 		return health <= 0;
 	}
