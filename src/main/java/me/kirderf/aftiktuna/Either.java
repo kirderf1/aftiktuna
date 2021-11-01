@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @SuppressWarnings("unused")
@@ -16,6 +17,10 @@ public abstract class Either<A, B> {
 	public abstract boolean isLeft();
 	
 	public abstract boolean isRight();
+	
+	public abstract Optional<A> getLeft();
+	
+	public abstract Optional<B> getRight();
 	
 	public abstract void run(Consumer<A> left, Consumer<B> right);
 	
@@ -34,6 +39,16 @@ public abstract class Either<A, B> {
 		@Override
 		public boolean isRight() {
 			return false;
+		}
+		
+		@Override
+		public Optional<A> getLeft() {
+			return Optional.of(element);
+		}
+		
+		@Override
+		public Optional<B> getRight() {
+			return Optional.empty();
 		}
 		
 		@Override
@@ -57,6 +72,16 @@ public abstract class Either<A, B> {
 		@Override
 		public boolean isRight() {
 			return true;
+		}
+		
+		@Override
+		public Optional<A> getLeft() {
+			return Optional.empty();
+		}
+		
+		@Override
+		public Optional<B> getRight() {
+			return Optional.of(element);
 		}
 		
 		@Override

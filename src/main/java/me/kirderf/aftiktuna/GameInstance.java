@@ -14,7 +14,7 @@ public final class GameInstance {
 	private final Aftik aftik;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createBlockingLocation();
+		location = EarlyTestingLocations.createToolsLocation();
 		location.addAtEntry(aftik = new Aftik());
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}

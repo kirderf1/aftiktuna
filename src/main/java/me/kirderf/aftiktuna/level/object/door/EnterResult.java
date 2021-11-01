@@ -24,19 +24,9 @@ public record EnterResult(Either<Success, FailureType> either) {
 	
 	public static record Success(Optional<ObjectType> usedItem) {}
 	
-	public static final class FailureType {
+	public record FailureType(String adjective) {
 		public static final EnterResult.FailureType STUCK = new EnterResult.FailureType("stuck");
 		public static final EnterResult.FailureType LOCKED = new EnterResult.FailureType("locked");
 		public static final EnterResult.FailureType SEALED = new EnterResult.FailureType("sealed shut");
-		
-		private final String adjective;
-		
-		public FailureType(String adjective) {
-			this.adjective = adjective;
-		}
-		
-		public String getAdjective() {
-			return adjective;
-		}
 	}
 }

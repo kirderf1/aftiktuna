@@ -174,7 +174,7 @@ public final class ActionHandler {
 	
 	private static void printEnterResult(EnterResult result) {
 		result.either().run(ActionHandler::printEnterSuccess,
-				failureType -> System.out.printf("The door is %s.%n", failureType.getAdjective()));
+				failureType -> System.out.printf("The door is %s.%n", failureType.adjective()));
 	}
 	
 	private static void printEnterSuccess(EnterResult.Success success) {

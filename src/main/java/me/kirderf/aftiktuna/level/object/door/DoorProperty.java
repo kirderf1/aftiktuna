@@ -10,13 +10,13 @@ public abstract class DoorProperty {
 		}
 		
 		@Override
-		public DoorProperty tryForce(Aftik aftik) {
+		public ForceResult tryForce(Aftik aftik) {
 			System.out.println("The door does not seem to be stuck.");
-			return this;
+			return new ForceResult(ForceResult.Status.NOT_STUCK);
 		}
 	};
 	
 	public abstract EnterResult checkEntry(Aftik aftik);
 	
-	public abstract DoorProperty tryForce(Aftik aftik);
+	public abstract ForceResult tryForce(Aftik aftik);
 }
