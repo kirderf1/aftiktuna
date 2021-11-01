@@ -5,8 +5,8 @@ import me.kirderf.aftiktuna.level.GameObject;
 import java.util.Locale;
 
 public class ObjectType {
-	private final char symbol;
-	private final String name;
+	protected final char symbol;
+	protected final String name;
 	
 	public ObjectType(char symbol, String name) {
 		this.symbol = symbol;

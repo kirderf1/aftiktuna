@@ -11,4 +11,13 @@ public final class WeaponType extends ObjectType {
 	public int getDamageValue() {
 		return damageValue;
 	}
+	
+	@Override
+	public String toString() {
+		return "WeaponType{" +
+				"symbol=" + symbol +
+				", name='" + name + '\'' +
+				", damageValue=" + damageValue +
+				'}';
+	}
 }
