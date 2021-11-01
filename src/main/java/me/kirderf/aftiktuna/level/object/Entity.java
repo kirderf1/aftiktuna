@@ -17,11 +17,7 @@ public abstract class Entity extends GameObject {
 	
 	public Creature.AttackResult receiveAttack(int attackPower) {
 		health -= attackPower;
-		if (this.isDead()) {
-			remove();
-			return new Creature.AttackResult(true);
-		} else
-			return new Creature.AttackResult(false);
+		return new AttackResult(isDead());
 	}
 	
 	public static record AttackResult(boolean death) {}

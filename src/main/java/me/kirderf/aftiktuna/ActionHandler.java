@@ -151,10 +151,13 @@ public final class ActionHandler {
 			Aftik.MoveResult move = aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord());
 			if (move.success()) {
 				Entity.AttackResult result = creature.receiveAttack(aftik.getAttackPower());
-				if (result.death())
+				if (result.death()) {
+					creature.remove();
+					
 					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
-				else {
+				} else {
 					Entity.AttackResult retaliationResult = aftik.receiveAttack(1);
+					
 					if (retaliationResult.death()) {
 						System.out.printf("You attacked the %s, which attacked back in retaliation, killing you.%n",
 								creatureType.name().toLowerCase(Locale.ROOT));
