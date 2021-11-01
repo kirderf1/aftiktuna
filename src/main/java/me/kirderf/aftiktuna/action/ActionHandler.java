@@ -75,19 +75,17 @@ public final class ActionHandler {
 	
 	public void handleCreatures(GameInstance game) {
 		Room room = game.getAftik().getRoom();
-		room.objectStream().flatMap(Creature.CAST.toStream()).forEach(creature -> handleCreature(game, creature));
+		room.objectStream().flatMap(Creature.CAST.toStream()).filter(Entity::isAlive).forEach(creature -> handleCreature(game, creature));
 	}
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
-		if (!creature.isDead()) {
-			Aftik aftik = game.getAftik();
-			if (!aftik.isDead() && aftik.getPosition().isAdjacent(creature.getPosition())) {
-				Entity.AttackResult result = aftik.receiveAttack(1);
-				if (result.death()) {
-					System.out.printf("The %s attacked and killed you.%n", creature.getType().lowerCaseName());
-				} else {
-					System.out.printf("The %s attacked you.%n", creature.getType().lowerCaseName());
-				}
+		Aftik aftik = game.getAftik();
+		if(creature.isTargeting() && aftik.isAlive() && aftik.getPosition().isAdjacent(creature.getPosition())) {
+			Entity.AttackResult result = aftik.receiveAttack(1);
+			if(result.death()) {
+				System.out.printf("The %s attacked and killed you.%n", creature.getType().lowerCaseName());
+			} else {
+				System.out.printf("The %s attacked you.%n", creature.getType().lowerCaseName());
 			}
 		}
 	}

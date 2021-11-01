@@ -31,7 +31,7 @@ public final class LocationBuilder {
 	
 	public Location build(Position entryPos) {
 		verifyPosition(entryPos);
-		return new Location(entryPos);
+		return new Location(rooms, entryPos);
 	}
 	
 	private void verifyPosition(Position pos) {

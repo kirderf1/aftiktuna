@@ -11,12 +11,16 @@ public abstract class Entity extends GameObject {
 		this.health = initialHealth;
 	}
 	
-	public int getHealth() {
+	public final int getHealth() {
 		return health;
 	}
 	
-	public boolean isDead() {
-		return health <= 0;
+	public final boolean isDead() {
+		return !isAlive();
+	}
+	
+	public final boolean isAlive() {
+		return health > 0;
 	}
 	
 	public Creature.AttackResult receiveAttack(int attackPower) {

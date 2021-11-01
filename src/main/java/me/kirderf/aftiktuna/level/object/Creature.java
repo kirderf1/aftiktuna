@@ -6,6 +6,8 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 public final class Creature extends Entity {
 	public static final OptionalFunction<GameObject, Creature> CAST = OptionalFunction.cast(Creature.class);
 	
+	private boolean isTargeting = false;
+	
 	public Creature() {
 		super(ObjectType.CREATURE, 5, 5);
 	}
@@ -13,5 +15,13 @@ public final class Creature extends Entity {
 	@Override
 	public boolean isBlocking() {
 		return true;
+	}
+	
+	public boolean isTargeting() {
+		return isTargeting;
+	}
+	
+	public void prepare() {
+		isTargeting = getRoom().objectStream().flatMap(Aftik.CAST.toStream()).anyMatch(Entity::isAlive);
 	}
 }

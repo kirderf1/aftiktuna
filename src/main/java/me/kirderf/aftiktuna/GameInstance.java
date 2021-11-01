@@ -2,7 +2,10 @@ package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.level.Location;
+import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Aftik;
+import me.kirderf.aftiktuna.level.object.Creature;
+import me.kirderf.aftiktuna.level.object.Entity;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.io.BufferedReader;
@@ -16,13 +19,16 @@ public final class GameInstance {
 	private final Aftik aftik;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createDeathLocation();
+		location = EarlyTestingLocations.createBlockingLocation();
 		location.addAtEntry(aftik = new Aftik());
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
 	
 	public void run() {
 		while (true) {
+			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Creature.CAST.toStream())
+							.filter(Entity::isAlive).forEach(Creature::prepare);
+			
 			System.out.println();
 			
 			aftik.getRoom().printRoom();
