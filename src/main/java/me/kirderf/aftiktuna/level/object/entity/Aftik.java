@@ -7,11 +7,7 @@ import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.WeaponType;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
@@ -51,17 +47,12 @@ public final class Aftik extends Entity {
 		wielded = item;
 	}
 	
-	public void optionallyPrintInventory() {
-		if (!inventory.isEmpty()) {
-			String itemList = inventory.stream().map(ObjectType::name).collect(Collectors.joining(", "));
-			System.out.printf("Inventory: %s%n", itemList);
-		}
+	public Optional<WeaponType> getWieldedItem() {
+		return Optional.ofNullable(wielded);
 	}
 	
-	public void optionallyPrintWieldedItem() {
-		if (wielded != null) {
-			System.out.printf("Wielded: %s%n", wielded.name());
-		}
+	public List<ObjectType> getInventory() {
+		return Collections.unmodifiableList(inventory);
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {

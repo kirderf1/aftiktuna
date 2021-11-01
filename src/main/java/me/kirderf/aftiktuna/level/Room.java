@@ -4,7 +4,10 @@ import me.kirderf.aftiktuna.level.object.Item;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class Room {
@@ -13,6 +16,10 @@ public final class Room {
 	
 	Room(int length) {
 		this.length = length;
+	}
+	
+	public int getLength() {
+		return length;
 	}
 	
 	public Position getPosAt(int coord) {
@@ -51,33 +58,6 @@ public final class Room {
 	
 	public void removeObject(GameObject object) {
 		objects.remove(object);
-	}
-	
-	public void printRoom() {
-		List<List<GameObject>> objectsByPos = new ArrayList<>();
-		for (int pos = 0; pos < length; pos++)
-			objectsByPos.add(new ArrayList<>());
-		for (GameObject object : objects)
-			objectsByPos.get(object.getCoord()).add(object);
-		for (List<GameObject> objectStack : objectsByPos)
-			objectStack.sort(Comparator.comparingInt(GameObject::getWeight).reversed());
-		
-		int lines = Math.max(1, objectsByPos.stream().map(List::size).max(Integer::compare).orElse(0));
-		
-		for (int line = lines - 1; line >= 0; line--) {
-			StringBuilder builder = new StringBuilder((line == 0 ? "_" : " ").repeat(length));
-			for (int pos = 0; pos < length; pos++) {
-				if (objectsByPos.get(pos).size() > line)
-					builder.setCharAt(pos, objectsByPos.get(pos).get(line).getType().symbol());
-			}
-			System.out.println(builder);
-		}
-		
-		Set<ObjectType> writtenChars = new HashSet<>();
-		for (GameObject object : objects) {
-			if (writtenChars.add(object.getType()))
-				System.out.printf("%s: %s%n", object.getType().symbol(), object.getType().name());
-		}
 	}
 	
 	public static Comparator<GameObject> byProximity(int position) {
