@@ -4,6 +4,7 @@ import me.kirderf.aftiktuna.level.GameObject;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 
 public record ObjectType(char symbol, String name) {
 	public static final ObjectType AFTIK = new ObjectType('A', "Aftik");
@@ -25,5 +26,9 @@ public record ObjectType(char symbol, String name) {
 	
 	public boolean matching(GameObject object) {
 		return object.getType() == this;
+	}
+	
+	public String lowerCaseName() {
+		return name.toLowerCase(Locale.ROOT);
 	}
 }

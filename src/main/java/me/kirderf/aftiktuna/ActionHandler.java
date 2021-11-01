@@ -13,7 +13,6 @@ import me.kirderf.aftiktuna.level.object.door.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.ForceResult;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
-import java.util.Locale;
 import java.util.Optional;
 
 public final class ActionHandler {
@@ -60,14 +59,14 @@ public final class ActionHandler {
 				item.remove();
 				aftik.addItem(type);
 				
-				System.out.printf("You picked up the %s.%n", type.name().toLowerCase(Locale.ROOT));
+				System.out.printf("You picked up the %s.%n", type.lowerCaseName());
 				return 1;
 			} else {
 				printMoveFailure(move);
 				return 0;
 			}
 		} else {
-			System.out.printf("There is no %s here to pick up.%n", type.name().toLowerCase(Locale.ROOT));
+			System.out.printf("There is no %s here to pick up.%n", type.lowerCaseName());
 			return 0;
 		}
 	}
@@ -76,7 +75,7 @@ public final class ActionHandler {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.wieldFromInventory(itemType)) {
-			System.out.printf("You wielded a %s.%n", itemType.name().toLowerCase(Locale.ROOT));
+			System.out.printf("You wielded a %s.%n", itemType.lowerCaseName());
 			return 1;
 		} else {
 			Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(itemType::matching));
@@ -88,14 +87,14 @@ public final class ActionHandler {
 					item.remove();
 					aftik.wield(itemType);
 					
-					System.out.printf("You picked up and wielded the %s.%n", itemType.name().toLowerCase(Locale.ROOT));
+					System.out.printf("You picked up and wielded the %s.%n", itemType.lowerCaseName());
 					return 1;
 				} else {
 					printMoveFailure(move);
 					return 0;
 				}
 			} else {
-				System.out.printf("There is no %s that you can wield.%n", itemType.name().toLowerCase(Locale.ROOT));
+				System.out.printf("There is no %s that you can wield.%n", itemType.lowerCaseName());
 				return 0;
 			}
 		}
@@ -156,9 +155,9 @@ public final class ActionHandler {
 				if (result.death()) {
 					creature.remove();
 					
-					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
+					System.out.printf("You attacked and killed the %s.%n", creatureType.lowerCaseName());
 				} else {
-					System.out.printf("You attacked the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
+					System.out.printf("You attacked the %s.%n", creatureType.lowerCaseName());
 				}
 				return 1;
 			} else {
@@ -173,7 +172,7 @@ public final class ActionHandler {
 	
 	private static void printMoveFailure(Aftik.MoveResult result) {
 		result.blocking().ifPresent(object ->
-				System.out.printf("The %s is blocking the way.%n", object.getType().name().toLowerCase(Locale.ROOT))
+				System.out.printf("The %s is blocking the way.%n", object.getType().lowerCaseName())
 		);
 	}
 	
@@ -184,7 +183,7 @@ public final class ActionHandler {
 	
 	private static void printEnterSuccess(EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> System.out.printf("Using your %s, you entered the door into a new room.%n", item.name().toLowerCase(Locale.ROOT)),
+				item -> System.out.printf("Using your %s, you entered the door into a new room.%n", item.lowerCaseName()),
 				() -> System.out.printf("You entered the door into a new room.%n"));
 	}
 	
@@ -193,7 +192,7 @@ public final class ActionHandler {
 	}
 	
 	private static void printForceSuccess(ForceResult.Success result) {
-		System.out.printf("You use your %s to %s.%n", result.item().name().toLowerCase(Locale.ROOT), result.method().text());
+		System.out.printf("You use your %s to %s.%n", result.item().lowerCaseName(), result.method().text());
 	}
 	
 	private static void printForceStatus(ForceResult.Status status) {
@@ -215,9 +214,9 @@ public final class ActionHandler {
 			if (!aftik.isDead() && aftik.getPosition().isAdjacent(creature.getPosition())) {
 				Entity.AttackResult result = aftik.receiveAttack(1);
 				if (result.death()) {
-					System.out.printf("The %s attacked and killed you.%n", creature.getType().name().toLowerCase(Locale.ROOT));
+					System.out.printf("The %s attacked and killed you.%n", creature.getType().lowerCaseName());
 				} else {
-					System.out.printf("The %s attacked you.%n", creature.getType().name().toLowerCase(Locale.ROOT));
+					System.out.printf("The %s attacked you.%n", creature.getType().lowerCaseName());
 				}
 			}
 		}
