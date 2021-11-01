@@ -20,6 +20,7 @@ public record ObjectType(char symbol, String name) {
 	
 	public static final Collection<ObjectType> CREATURES = List.of(CREATURE);
 	public static final Collection<ObjectType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD);
+	public static final Collection<ObjectType> WEAPONS = List.of(CROWBAR);
 	public static final Collection<ObjectType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR);
 	
 	public boolean matching(GameObject object) {

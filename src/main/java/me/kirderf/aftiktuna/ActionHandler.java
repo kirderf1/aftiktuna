@@ -27,6 +27,8 @@ public final class ActionHandler {
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 		DISPATCHER.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectType.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
+		DISPATCHER.register(literal("wield").then(argument("item", ObjectArgument.create(ObjectType.WEAPONS))
+				.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item")))));
 	}
 	
 	private static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -128,6 +130,18 @@ public final class ActionHandler {
 			}
 		} else {
 			System.out.println("There is no such creature to attack.");
+			return 0;
+		}
+	}
+	
+	public static int wieldItem(GameInstance game, ObjectType itemType) {
+		Aftik aftik = game.getAftik();
+		
+		if (aftik.wieldItem(itemType)) {
+			System.out.printf("You equipped a %s.%n", itemType.name().toLowerCase(Locale.ROOT));
+			return 1;
+		} else {
+			System.out.printf("You do not have a %s in your inventory.%n", itemType.name().toLowerCase(Locale.ROOT));
 			return 0;
 		}
 	}

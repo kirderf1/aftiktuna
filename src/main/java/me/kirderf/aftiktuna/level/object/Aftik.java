@@ -9,13 +9,14 @@ import java.util.stream.Collectors;
 
 public final class Aftik extends GameObject {
 	private final List<ObjectType> inventory = new ArrayList<>();
+	private ObjectType wielded = null;
 	
 	public Aftik() {
 		super(ObjectType.AFTIK, 10);
 	}
 	
 	public int getAttackPower() {
-		return 2;
+		return wielded != null ? 3 : 2;
 	}
 	
 	public void addItem(ObjectType type) {
@@ -24,6 +25,17 @@ public final class Aftik extends GameObject {
 	
 	public boolean hasItem(ObjectType type) {
 		return inventory.contains(type);
+	}
+	
+	public boolean wieldItem(ObjectType type) {
+		if (inventory.remove(type)) {
+			if (wielded != null)
+				addItem(wielded);
+			wielded = type;
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public void optionallyPrintInventory() {
