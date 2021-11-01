@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
@@ -30,7 +31,10 @@ public abstract class Entity extends GameObject {
 		return health > 0;
 	}
 	
-	public final MoveResult tryMoveTo(int coord) {
+	public final MoveResult tryMoveTo(Position pos) {
+		if (pos.room() != this.getRoom())
+			throw new IllegalArgumentException("Rooms must be the same.");
+		int coord = pos.coord();
 		if(coord != this.getCoord()) {
 			Optional<GameObject> blocking = findBlockingTo(coord);
 			if(blocking.isPresent()) {
@@ -59,7 +63,7 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final MoveAndAttackResult moveAndAttack(Creature creature) {
-		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()).coord());
+		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()));
 		if (move.success()) {
 			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
 			return new MoveAndAttackResult(result);

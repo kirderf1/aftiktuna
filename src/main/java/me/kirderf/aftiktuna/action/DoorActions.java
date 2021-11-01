@@ -29,7 +29,7 @@ public final class DoorActions {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			Entity.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
+			Entity.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getPosition());
 			if (move.success()) {
 				EnterResult result = optionalDoor.get().enter(aftik);
 				
@@ -50,7 +50,7 @@ public final class DoorActions {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getCoord());
+			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getPosition());
 			if (move.success()) {
 				ForceResult result = optionalDoor.get().force(aftik);
 				

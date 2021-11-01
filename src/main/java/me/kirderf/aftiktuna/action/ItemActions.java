@@ -28,7 +28,7 @@ public final class ItemActions {
 		if(optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
-			Entity.MoveResult move = aftik.tryMoveTo(item.getCoord());
+			Entity.MoveResult move = aftik.tryMoveTo(item.getPosition());
 			if (move.success()) {
 				item.remove();
 				aftik.addItem(type);
@@ -56,7 +56,7 @@ public final class ItemActions {
 			if(optionalItem.isPresent()) {
 				
 				GameObject item = optionalItem.get();
-				Entity.MoveResult move = aftik.tryMoveTo(item.getCoord());
+				Entity.MoveResult move = aftik.tryMoveTo(item.getPosition());
 				if (move.success()) {
 					item.remove();
 					aftik.wield(itemType);
