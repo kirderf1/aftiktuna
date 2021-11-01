@@ -13,12 +13,12 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 import java.util.Optional;
 
 public final class ActionHandler {
-	private static final CommandDispatcher<GameInstance> DISPATCHER = new CommandDispatcher<>();
+	private final CommandDispatcher<GameInstance> dispatcher = new CommandDispatcher<>();
 	
-	static {
-		ItemActions.register(DISPATCHER);
-		DoorActions.register(DISPATCHER);
-		DISPATCHER.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectType.CREATURES))
+	public ActionHandler() {
+		ItemActions.register(dispatcher);
+		DoorActions.register(dispatcher);
+		dispatcher.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectType.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
 	}
 	
@@ -30,9 +30,9 @@ public final class ActionHandler {
 		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
-	public static int handleInput(GameInstance game, String input) {
+	public int handleInput(GameInstance game, String input) {
 		try {
-			return DISPATCHER.execute(input, game);
+			return dispatcher.execute(input, game);
 		} catch(CommandSyntaxException ignored) {
 			System.out.printf("Unexpected input \"%s\"%n", input);
 			return 0;
@@ -73,7 +73,7 @@ public final class ActionHandler {
 		);
 	}
 	
-	public static void handleCreatures(GameInstance game) {
+	public void handleCreatures(GameInstance game) {
 		Room room = game.getAftik().getRoom();
 		room.objectStream().flatMap(Creature.CAST.toStream()).forEach(creature -> handleCreature(game, creature));
 	}

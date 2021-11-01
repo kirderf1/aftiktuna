@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public final class GameInstance {
+	private final ActionHandler actionHandler = new ActionHandler();
 	private final Location location;
 	private final BufferedReader in;
 	private final Aftik aftik;
@@ -49,10 +50,10 @@ public final class GameInstance {
 					continue;
 				}
 				
-				result = ActionHandler.handleInput(this, input);
+				result = actionHandler.handleInput(this, input);
 			} while (result <= 0);
 			
-			ActionHandler.handleCreatures(this);
+			actionHandler.handleCreatures(this);
 		}
 	}
 	
