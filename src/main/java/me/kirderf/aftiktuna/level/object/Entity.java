@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level.object;
 
+import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.util.Either;
@@ -66,10 +67,14 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final AttackResult receiveAttack(int attackPower) {
-		health -= attackPower;
-		if (this.isDead())
-			this.onDeath();
-		return new AttackResult(this, isDead());
+		if (GameInstance.RANDOM.nextInt(4) == 0) {
+			return new AttackResult(this, AttackResult.Type.DODGE);
+		} else {
+			health -= attackPower;
+			if(this.isDead())
+				this.onDeath();
+			return new AttackResult(this, isDead() ? AttackResult.Type.KILL : AttackResult.Type.HIT);
+		}
 	}
 	
 	public final MoveAndAttackResult moveAndAttack(Entity target) {
@@ -86,8 +91,6 @@ public abstract class Entity extends GameObject {
 			return blocking.isEmpty();
 		}
 	}
-	
-	public static record AttackResult(Entity attacked, boolean death) {}
 	
 	public static record MoveAndAttackResult(Either<AttackResult, MoveResult> either) {
 		public MoveAndAttackResult(AttackResult result) {

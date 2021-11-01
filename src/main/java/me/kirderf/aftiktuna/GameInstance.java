@@ -11,8 +11,11 @@ import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Random;
 
 public final class GameInstance {
+	public static final Random RANDOM = new Random();
+	
 	private final ActionHandler actionHandler = new ActionHandler();
 	private final Location location;
 	private final BufferedReader in;

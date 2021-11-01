@@ -63,12 +63,12 @@ public final class ActionHandler {
 		);
 	}
 	
-	private static void printAttackAction(Entity.AttackResult result) {
+	private static void printAttackAction(AttackResult result) {
 		String name = result.attacked().getType().lowerCaseName();
-		if(result.death()) {
-			System.out.printf("You attacked and killed the %s.%n", name);
-		} else {
-			System.out.printf("You attacked the %s.%n", name);
+		switch(result.type()) {
+			case HIT -> System.out.printf("You attacked the %s.%n", name);
+			case KILL -> System.out.printf("You attacked and killed the %s.%n", name);
+			case DODGE -> System.out.printf("The %s dodged your attack.%n", name);
 		}
 	}
 	
@@ -78,12 +78,13 @@ public final class ActionHandler {
 	}
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
-		Optional<Entity.AttackResult> result = creature.doAction(game.getAftik());
+		Optional<AttackResult> result = creature.doAction(game.getAftik());
 		result.ifPresent(attack -> {
-			if(attack.death()) {
-				System.out.printf("The %s attacked and killed you.%n", creature.getType().lowerCaseName());
-			} else {
-				System.out.printf("The %s attacked you.%n", creature.getType().lowerCaseName());
+			String name = creature.getType().lowerCaseName();
+			switch(attack.type()) {
+				case HIT -> System.out.printf("The %s attacked you.%n", name);
+				case KILL -> System.out.printf("The %s attacked and killed you.%n", name);
+				case DODGE -> System.out.printf("You dodged the %s's attack.%n", name);
 			}
 		});
 	}
