@@ -46,7 +46,7 @@ public final class ActionHandler {
 		if (optionalCreature.isPresent()) {
 			Creature creature = optionalCreature.get();
 			
-			Aftik.MoveAndAttackResult result = aftik.moveAndAttack(creature);
+			Entity.MoveAndAttackResult result = aftik.moveAndAttack(creature);
 			
 			result.either().run(ActionHandler::printAttackAction, ActionHandler::printMoveFailure);
 			

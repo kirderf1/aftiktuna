@@ -2,7 +2,6 @@ package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.ArrayList;
@@ -21,7 +20,8 @@ public final class Aftik extends Entity {
 		super(ObjectType.AFTIK, 10, 5);
 	}
 	
-	public int getAttackPower() {
+	@Override
+	protected int getAttackPower() {
 		return wielded != null ? 3 : 2;
 	}
 	
@@ -61,15 +61,6 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public MoveAndAttackResult moveAndAttack(Creature creature) {
-		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()).coord());
-		if (move.success()) {
-			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
-			return new MoveAndAttackResult(result);
-		} else
-			return new MoveAndAttackResult(move);
-	}
-	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
 		return getRoom().objectStream().sorted(blockingComparator().thenComparing(Room.byProximity(getCoord())))
 				.flatMap(mapper.toStream()).findFirst();
@@ -77,19 +68,5 @@ public final class Aftik extends Entity {
 	
 	private Comparator<GameObject> blockingComparator() {
 		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
-	}
-	
-	public static record MoveAndAttackResult(Either<AttackResult, MoveResult> either) {
-		public MoveAndAttackResult(AttackResult result) {
-			this(Either.left(result));
-		}
-		
-		public MoveAndAttackResult(MoveResult result) {
-			this(Either.right(result));
-		}
-		
-		public boolean success() {
-			return either.isLeft();
-		}
 	}
 }

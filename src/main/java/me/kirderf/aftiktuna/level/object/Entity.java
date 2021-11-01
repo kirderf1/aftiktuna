@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 
@@ -14,6 +15,8 @@ public abstract class Entity extends GameObject {
 	}
 	
 	protected void onDeath() {}
+	
+	protected abstract int getAttackPower();
 	
 	public final int getHealth() {
 		return health;
@@ -55,6 +58,15 @@ public abstract class Entity extends GameObject {
 		return new AttackResult(this, isDead());
 	}
 	
+	public final MoveAndAttackResult moveAndAttack(Creature creature) {
+		Entity.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()).coord());
+		if (move.success()) {
+			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
+			return new MoveAndAttackResult(result);
+		} else
+			return new MoveAndAttackResult(move);
+	}
+	
 	public static record MoveResult(Optional<GameObject> blocking) {
 		public boolean success() {
 			return blocking.isEmpty();
@@ -62,4 +74,18 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public static record AttackResult(Entity attacked, boolean death) {}
+	
+	public static record MoveAndAttackResult(Either<AttackResult, MoveResult> either) {
+		public MoveAndAttackResult(AttackResult result) {
+			this(Either.left(result));
+		}
+		
+		public MoveAndAttackResult(MoveResult result) {
+			this(Either.right(result));
+		}
+		
+		public boolean success() {
+			return either.isLeft();
+		}
+	}
 }

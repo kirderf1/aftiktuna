@@ -13,6 +13,11 @@ public final class Creature extends Entity {
 	}
 	
 	@Override
+	protected int getAttackPower() {
+		return 1;
+	}
+	
+	@Override
 	public boolean isBlocking(Entity entity) {
 		return entity instanceof Aftik;
 	}
