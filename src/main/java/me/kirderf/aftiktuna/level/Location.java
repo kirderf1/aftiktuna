@@ -15,6 +15,10 @@ public final class Location {
 		return rooms;
 	}
 	
+	public Position getEntryPos() {
+		return entryPos;
+	}
+	
 	public void addAtEntry(GameObject object) {
 		entryPos.room().addObject(object, entryPos);
 	}

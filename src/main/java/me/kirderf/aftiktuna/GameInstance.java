@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.Room;
+import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Creature;
@@ -17,14 +18,19 @@ public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
 	private final ActionHandler actionHandler = new ActionHandler();
-	private final Location location;
 	private final BufferedReader in;
+	
+	private final Location location;
+	private final Ship ship;
 	private final Aftik aftik;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createBlockingLocation();
-		location.addAtEntry(aftik = new Aftik());
 		in = new BufferedReader(new InputStreamReader(System.in));
+		
+		location = EarlyTestingLocations.createBlockingLocation();
+		ship = new Ship();
+		ship.createEntrance(location.getEntryPos());
+		location.addAtEntry(aftik = new Aftik());
 	}
 	
 	public void run() {
@@ -44,7 +50,7 @@ public final class GameInstance {
 				return;
 			}
 			
-			if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
+			if (aftik.getRoom() == ship.getRoom() && aftik.hasItem(ObjectTypes.FUEL_CAN)) {
 				System.out.println("Congratulations, you won!");
 				return;
 			}
