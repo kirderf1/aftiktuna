@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.level.object;
 
-import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
+import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.ArrayList;
 import java.util.Comparator;

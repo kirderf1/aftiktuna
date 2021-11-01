@@ -1,10 +1,10 @@
 package me.kirderf.aftiktuna.level.object.door;
 
-import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.object.Aftik;
 import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.concurrent.atomic.AtomicReference;
 

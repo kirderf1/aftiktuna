@@ -1,11 +1,8 @@
 package me.kirderf.aftiktuna.level;
 
-import me.kirderf.aftiktuna.OptionalFunction;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public final class Room {

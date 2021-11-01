@@ -10,6 +10,7 @@ import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.door.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.ForceResult;
+import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Locale;
 import java.util.Optional;

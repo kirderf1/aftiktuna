@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna.level.object.door;
 
-import me.kirderf.aftiktuna.Either;
 import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 

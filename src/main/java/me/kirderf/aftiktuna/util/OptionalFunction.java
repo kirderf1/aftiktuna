@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.util;
 
 import java.util.Optional;
 import java.util.function.Function;
