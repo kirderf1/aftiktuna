@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level;
 
 import me.kirderf.aftiktuna.level.object.Entity;
+import me.kirderf.aftiktuna.level.object.Item;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 
 import java.util.*;
@@ -16,6 +17,10 @@ public final class Room {
 	
 	public Position getPosAt(int coord) {
 		return new Position(this, coord);
+	}
+	
+	public void addItem(ObjectType type, int coord) {
+		addObject(new Item(type), coord);
 	}
 	
 	public void addObject(GameObject object, int coord) {
