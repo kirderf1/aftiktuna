@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public final class Aftik extends GameObject {
+public final class Aftik extends Entity {
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private ObjectType wielded = null;
 	
 	public Aftik() {
-		super(ObjectType.AFTIK, 10);
+		super(ObjectType.AFTIK, 10, 5);
 	}
 	
 	public int getAttackPower() {

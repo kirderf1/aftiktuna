@@ -14,7 +14,7 @@ public final class GameInstance {
 	private final Aftik aftik;
 	
 	public GameInstance() {
-		location = EarlyTestingLocations.createToolsLocation();
+		location = EarlyTestingLocations.createDeathLocation();
 		location.addAtEntry(aftik = new Aftik());
 		in = new BufferedReader(new InputStreamReader(System.in));
 	}
@@ -22,6 +22,12 @@ public final class GameInstance {
 	public void run() {
 		while (true) {
 			System.out.println();
+			
+			if (aftik.isDead()) {
+				System.out.println("You lost.");
+				return;
+			}
+			
 			aftik.getRoom().printRoom();
 			aftik.optionallyPrintWieldedItem();
 			aftik.optionallyPrintInventory();

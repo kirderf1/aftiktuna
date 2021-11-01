@@ -3,7 +3,9 @@ package me.kirderf.aftiktuna;
 import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.level.object.*;
+import me.kirderf.aftiktuna.level.object.Creature;
+import me.kirderf.aftiktuna.level.object.Item;
+import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.door.*;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,6 +80,15 @@ public final class EarlyTestingLocations {
 		firstRoom.addObject(new Item(ObjectType.FUEL_CAN), 5);
 		firstRoom.addObject(new Item(ObjectType.KEYCARD), 5);
 		return new Location(firstRoom.getPosAt(0));
+	}
+	
+	public static Location createDeathLocation() {
+		Room room = new Room(5);
+		room.addObject(new Creature(), 2);
+		room.addObject(new Creature(), 2);
+		room.addObject(new Creature(), 3);
+		room.addObject(new Item(ObjectType.FUEL_CAN), 4);
+		return new Location(room.getPosAt(0));
 	}
 	
 	private static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2) {

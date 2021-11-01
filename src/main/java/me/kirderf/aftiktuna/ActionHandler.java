@@ -6,10 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.object.Aftik;
-import me.kirderf.aftiktuna.level.object.Creature;
-import me.kirderf.aftiktuna.level.object.ObjectArgument;
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.door.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.ForceResult;
@@ -153,11 +150,18 @@ public final class ActionHandler {
 			
 			Aftik.MoveResult move = aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord());
 			if (move.success()) {
-				Creature.AttackResult result = creature.receiveAttack(aftik.getAttackPower());
+				Entity.AttackResult result = creature.receiveAttack(aftik.getAttackPower());
 				if (result.death())
 					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
-				else
-					System.out.printf("You attacked the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
+				else {
+					Entity.AttackResult retaliationResult = aftik.receiveAttack(1);
+					if (retaliationResult.death()) {
+						System.out.printf("You attacked the %s, which attacked back in retaliation, killing you.%n",
+								creatureType.name().toLowerCase(Locale.ROOT));
+					} else {
+						System.out.printf("You attacked the %s, which attacked back in retaliation.%n", creatureType.name().toLowerCase(Locale.ROOT));
+					}
+				}
 				return 1;
 			} else {
 				printMoveFailure(move);
