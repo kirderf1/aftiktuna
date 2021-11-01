@@ -27,10 +27,10 @@ public abstract class Entity extends GameObject {
 		health -= attackPower;
 		if (this.isDead())
 			this.onDeath();
-		return new AttackResult(isDead());
+		return new AttackResult(this, isDead());
 	}
 	
 	protected void onDeath() {}
 	
-	public static record AttackResult(boolean death) {}
+	public static record AttackResult(Entity attacked, boolean death) {}
 }

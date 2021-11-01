@@ -48,14 +48,7 @@ public final class ActionHandler {
 			
 			Aftik.MoveAndAttackResult result = aftik.moveAndAttack(creature);
 			
-			result.either().run(
-					attack -> {
-						if(attack.death()) {
-							System.out.printf("You attacked and killed the %s.%n", creatureType.lowerCaseName());
-						} else {
-							System.out.printf("You attacked the %s.%n", creatureType.lowerCaseName());
-						}
-					}, ActionHandler::printMoveFailure);
+			result.either().run(ActionHandler::printAttackAction, ActionHandler::printMoveFailure);
 			
 			return result.success() ? 1 : 0;
 		} else {
@@ -68,6 +61,15 @@ public final class ActionHandler {
 		result.blocking().ifPresent(object ->
 				System.out.printf("The %s is blocking the way.%n", object.getType().lowerCaseName())
 		);
+	}
+	
+	private static void printAttackAction(Entity.AttackResult result) {
+		String name = result.attacked().getType().lowerCaseName();
+		if(result.death()) {
+			System.out.printf("You attacked and killed the %s.%n", name);
+		} else {
+			System.out.printf("You attacked the %s.%n", name);
+		}
 	}
 	
 	public void handleCreatures(GameInstance game) {
