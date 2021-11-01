@@ -50,6 +50,8 @@ public final class GameInstance {
 				
 				result = ActionHandler.handleInput(this, input);
 			} while (result <= 0);
+			
+			ActionHandler.handleCreatures(this);
 		}
 	}
 	

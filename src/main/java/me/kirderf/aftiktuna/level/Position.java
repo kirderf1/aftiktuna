@@ -9,6 +9,10 @@ public record Position(Room room, int coord) {
 		return new Position(room, newCoord);
 	}
 	
+	public boolean isAdjacent(Position other) {
+		return other.room == this.room && Math.abs(other.coord - this.coord) <= 1;
+	}
+	
 	public Position getPosTowards(int otherCoord) {
 		if (this.coord < otherCoord) {
 			return atCoord(this.coord + 1);

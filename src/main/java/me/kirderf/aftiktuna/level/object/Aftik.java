@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class Aftik extends Entity {
+	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
+	
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private ObjectType wielded = null;
 	

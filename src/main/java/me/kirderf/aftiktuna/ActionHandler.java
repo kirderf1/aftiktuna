@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.door.EnterResult;
@@ -157,14 +158,7 @@ public final class ActionHandler {
 					
 					System.out.printf("You attacked and killed the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
 				} else {
-					Entity.AttackResult retaliationResult = aftik.receiveAttack(1);
-					
-					if (retaliationResult.death()) {
-						System.out.printf("You attacked the %s, which attacked back in retaliation, killing you.%n",
-								creatureType.name().toLowerCase(Locale.ROOT));
-					} else {
-						System.out.printf("You attacked the %s, which attacked back in retaliation.%n", creatureType.name().toLowerCase(Locale.ROOT));
-					}
+					System.out.printf("You attacked the %s.%n", creatureType.name().toLowerCase(Locale.ROOT));
 				}
 				return 1;
 			} else {
@@ -207,6 +201,25 @@ public final class ActionHandler {
 			case NOT_STUCK -> System.out.println("The door does not seem to be stuck.");
 			case NEED_TOOL -> System.out.println("You need some sort of tool to force the door open.");
 			case NEED_BREAK_TOOL -> System.out.println("You need some sort of tool to break the door open.");
+		}
+	}
+	
+	public static void handleCreatures(GameInstance game) {
+		Room room = game.getAftik().getRoom();
+		room.objectStream().flatMap(Creature.CAST.toStream()).forEach(creature -> handleCreature(game, creature));
+	}
+	
+	private static void handleCreature(GameInstance game, Creature creature) {
+		if (!creature.isDead()) {
+			Aftik aftik = game.getAftik();
+			if (!aftik.isDead() && aftik.getPosition().isAdjacent(creature.getPosition())) {
+				Entity.AttackResult result = aftik.receiveAttack(1);
+				if (result.death()) {
+					System.out.printf("The %s attacked and killed you.%n", creature.getType().name().toLowerCase(Locale.ROOT));
+				} else {
+					System.out.printf("The %s attacked you.%n", creature.getType().name().toLowerCase(Locale.ROOT));
+				}
+			}
 		}
 	}
 }
