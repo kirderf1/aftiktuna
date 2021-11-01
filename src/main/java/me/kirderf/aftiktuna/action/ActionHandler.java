@@ -46,21 +46,18 @@ public final class ActionHandler {
 		if (optionalCreature.isPresent()) {
 			Creature creature = optionalCreature.get();
 			
-			Aftik.MoveResult move = aftik.tryMoveTo(creature.getPosition().getPosTowards(aftik.getCoord()).coord());
-			if (move.success()) {
-				Entity.AttackResult result = creature.receiveAttack(aftik.getAttackPower());
-				if (result.death()) {
-					creature.remove();
-					
-					System.out.printf("You attacked and killed the %s.%n", creatureType.lowerCaseName());
-				} else {
-					System.out.printf("You attacked the %s.%n", creatureType.lowerCaseName());
-				}
-				return 1;
-			} else {
-				printMoveFailure(move);
-				return 0;
-			}
+			Aftik.MoveAndAttackResult result = aftik.moveAndAttack(creature);
+			
+			result.either().run(
+					attack -> {
+						if(attack.death()) {
+							System.out.printf("You attacked and killed the %s.%n", creatureType.lowerCaseName());
+						} else {
+							System.out.printf("You attacked the %s.%n", creatureType.lowerCaseName());
+						}
+					}, ActionHandler::printMoveFailure);
+			
+			return result.success() ? 1 : 0;
 		} else {
 			System.out.println("There is no such creature to attack.");
 			return 0;

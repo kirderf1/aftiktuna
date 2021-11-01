@@ -24,4 +24,9 @@ public final class Creature extends Entity {
 	public void prepare() {
 		isTargeting = getRoom().objectStream().flatMap(Aftik.CAST.toStream()).anyMatch(Entity::isAlive);
 	}
+	
+	@Override
+	protected void onDeath() {
+		this.remove();
+	}
 }

@@ -23,10 +23,14 @@ public abstract class Entity extends GameObject {
 		return health > 0;
 	}
 	
-	public Creature.AttackResult receiveAttack(int attackPower) {
+	public final Creature.AttackResult receiveAttack(int attackPower) {
 		health -= attackPower;
+		if (this.isDead())
+			this.onDeath();
 		return new AttackResult(isDead());
 	}
+	
+	protected void onDeath() {}
 	
 	public static record AttackResult(boolean death) {}
 }

@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
+import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.ArrayList;
@@ -60,6 +61,15 @@ public final class Aftik extends Entity {
 		}
 	}
 	
+	public MoveAndAttackResult moveAndAttack(Creature creature) {
+		Aftik.MoveResult move = this.tryMoveTo(creature.getPosition().getPosTowards(this.getCoord()).coord());
+		if (move.success()) {
+			Entity.AttackResult result = creature.receiveAttack(this.getAttackPower());
+			return new MoveAndAttackResult(result);
+		} else
+			return new MoveAndAttackResult(move);
+	}
+	
 	public MoveResult tryMoveTo(int coord) {
 		if(coord != this.getCoord()) {
 			Optional<GameObject> blocking = findBlockingTo(coord);
@@ -93,6 +103,20 @@ public final class Aftik extends Entity {
 	public static record MoveResult(Optional<GameObject> blocking) {
 		public boolean success() {
 			return blocking.isEmpty();
+		}
+	}
+	
+	public static record MoveAndAttackResult(Either<AttackResult, MoveResult> either) {
+		public MoveAndAttackResult(AttackResult result) {
+			this(Either.left(result));
+		}
+		
+		public MoveAndAttackResult(MoveResult result) {
+			this(Either.right(result));
+		}
+		
+		public boolean success() {
+			return either.isLeft();
 		}
 	}
 }
