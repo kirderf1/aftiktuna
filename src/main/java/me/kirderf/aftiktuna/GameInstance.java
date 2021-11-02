@@ -71,7 +71,7 @@ public final class GameInstance {
 					out.println("Congratulations, you won!");
 					return;
 				} else {
-					out.println("You got fuel to your ship, and proceeded to your next location.");
+					out.printf("You got fuel to your ship,%nand proceeded to your next location.%n");
 					
 					aftik.remove();
 					initLocation(false);
@@ -127,11 +127,24 @@ public final class GameInstance {
 			out.println(builder);
 		}
 		
+		StringBuilder builder = new StringBuilder();
 		Set<ObjectType> writtenChars = new HashSet<>();
 		room.objectStream().forEach(object -> {
-			if (writtenChars.add(object.getType()))
-				out.printf("%s: %s%n", object.getType().symbol(), object.getType().name());
+			if (writtenChars.add(object.getType())) {
+				String entry = "%s: %s".formatted(object.getType().symbol(), object.getType().name());
+				if (!builder.isEmpty()) {
+					if(builder.length() + entry.length() + 3 <= 50)
+						builder.append("   ");
+					else {
+						out.println(builder);
+						builder.setLength(0);
+					}
+				}
+				builder.append(entry);
+			}
 		});
+		if (!builder.isEmpty())
+			out.println(builder);
 	}
 	
 	private void printHealth(Aftik aftik) {
