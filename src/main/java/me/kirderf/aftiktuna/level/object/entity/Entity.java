@@ -89,7 +89,7 @@ public abstract class Entity extends GameObject {
 			health -= attackPower;
 			if(this.isDead())
 				this.onDeath();
-			return new AttackResult(this, isDead() ? AttackResult.Type.KILL : AttackResult.Type.HIT);
+			return new AttackResult(this, AttackResult.Type.HIT);
 		}
 	}
 	
