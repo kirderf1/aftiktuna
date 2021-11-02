@@ -57,7 +57,7 @@ public final class Main {
 	
 	private static Component initOutputArea(BufferedReader reader) {
 		
-		JTextArea area = new JTextArea(15, 50);
+		JTextArea area = new JTextArea(15, GameInstance.EXPECTED_LINE_LENGTH);
 		area.setEditable(false);
 		area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
 		

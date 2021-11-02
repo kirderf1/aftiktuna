@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public final class GameInstance {
+	public static final int EXPECTED_LINE_LENGTH = 60;
 	public static final Random RANDOM = new Random();
 	
 	private final ActionHandler actionHandler = new ActionHandler();
@@ -134,7 +135,7 @@ public final class GameInstance {
 			if (writtenChars.add(object.getType())) {
 				String entry = "%s: %s".formatted(object.getType().symbol(), object.getType().name());
 				if (!builder.isEmpty()) {
-					if(builder.length() + entry.length() + 3 <= 50)
+					if(builder.length() + entry.length() + 3 <= EXPECTED_LINE_LENGTH)
 						builder.append("   ");
 					else {
 						out.println(builder);
