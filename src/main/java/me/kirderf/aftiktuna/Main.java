@@ -3,7 +3,6 @@ package me.kirderf.aftiktuna;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
-import java.util.function.Consumer;
 
 public final class Main {
 	
@@ -17,7 +16,7 @@ public final class Main {
 		if (noGui) {
 			instance = new GameInstance(new BufferedReader(new InputStreamReader(System.in)));
 		} else {
-			instance = createWindow();
+			instance = initGuiGame();
 		}
 		instance.run();
 	}
@@ -30,22 +29,26 @@ public final class Main {
 		return false;
 	}
 	
-	private static GameInstance createWindow() throws IOException {
-		JFrame frame = new JFrame("Aftiktuna");
+	private static GameInstance initGuiGame() throws IOException {
+		PipedReader in = new PipedReader();
+		PipedWriter inWriter = new PipedWriter(in);
 		
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		
-		Reader in = setupInputField(frame.getContentPane()::add);
-		
-		frame.pack();
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
+		SwingUtilities.invokeLater(() -> {
+			JFrame frame = new JFrame("Aftiktuna");
+			
+			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+			
+			frame.getContentPane().add(initInputField(inWriter));
+			
+			frame.pack();
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+		});
 		
 		return new GameInstance(new BufferedReader(in));
 	}
 	
-	private static Reader setupInputField(Consumer<Component> componentConsumer) throws IOException {
-		PipedWriter writer = new PipedWriter();
+	private static Component initInputField(Writer writer) {
 		JTextField textField = new JTextField();
 		textField.addActionListener(e -> {
 			try {
@@ -56,7 +59,7 @@ public final class Main {
 				ex.printStackTrace();
 			}
 		});
-		componentConsumer.accept(textField);
-		return new PipedReader(writer);
+		
+		return textField;
 	}
 }
