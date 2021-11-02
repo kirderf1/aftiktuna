@@ -13,7 +13,6 @@ import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,8 +26,8 @@ public final class GameInstance {
 	private final Ship ship;
 	private final Aftik aftik;
 	
-	public GameInstance() {
-		in = new BufferedReader(new InputStreamReader(System.in));
+	public GameInstance(BufferedReader in) {
+		this.in = in;
 		
 		location = EarlyTestingLocations.createBlockingLocation();
 		ship = new Ship();
