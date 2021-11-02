@@ -58,6 +58,7 @@ public final class Main {
 		
 		JTextArea area = new JTextArea(15, 50);
 		area.setEditable(false);
+		area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
 		
 		new SwingWorker<Void, String>() {
 			@Override
@@ -85,6 +86,7 @@ public final class Main {
 	
 	private static Component initInputField(Writer writer, PrintWriter out) {
 		JTextField textField = new JTextField();
+		textField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
 		textField.addActionListener(e -> {
 			try {
 				writer.write(textField.getText() + "\n");
