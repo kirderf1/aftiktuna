@@ -23,21 +23,31 @@ public final class GameInstance {
 	private final PrintWriter out;
 	private final BufferedReader in;
 	
-	private final Location location;
-	private final Ship ship;
-	private final Aftik aftik;
+	private Location location;
+	private Ship ship;
+	private Aftik aftik;
 	
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
 		
-		location = EarlyTestingLocations.createBlockingLocation();
+	}
+	
+	private void initLocation(boolean debugLevel) {
+		if (debugLevel) {
+			location = EarlyTestingLocations.createBlockingLocation();
+		} else {
+			location = Locations.getRandomLocation();
+		}
+		
 		ship = new Ship();
 		ship.createEntrance(location.getEntryPos());
 		location.addAtEntry(aftik = new Aftik());
 	}
 	
-	public void run() {
+	public void run(boolean debugLevel) {
+		initLocation(debugLevel);
+		
 		while (true) {
 			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Entity.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Entity::prepare);

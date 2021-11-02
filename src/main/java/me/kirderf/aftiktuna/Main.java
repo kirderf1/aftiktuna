@@ -12,6 +12,7 @@ public final class Main {
 		System.out.println();
 		
 		boolean noGui = findFlag("--nogui", args);
+		boolean debugLevel = findFlag("--debuglevel", args);
 		
 		GameInstance instance;
 		
@@ -20,7 +21,7 @@ public final class Main {
 		} else {
 			instance = initGuiGame();
 		}
-		instance.run();
+		instance.run(debugLevel);
 	}
 	
 	private static boolean findFlag(String flag, String[] args) {
