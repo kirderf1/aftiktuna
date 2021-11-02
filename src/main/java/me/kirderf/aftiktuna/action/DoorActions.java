@@ -30,14 +30,14 @@ public final class DoorActions {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			Entity.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getPosition());
-			if (move.success()) {
+			Optional<Entity.MoveFailure> move = aftik.tryMoveTo(optionalDoor.get().getPosition());
+			if (move.isEmpty()) {
 				EnterResult result = optionalDoor.get().enter(aftik);
 				
 				printEnterResult(game, result);
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(game, move);
+				ActionHandler.printMoveFailure(game, move.get());
 				return 0;
 			}
 		} else {
@@ -51,14 +51,14 @@ public final class DoorActions {
 		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
 		if(optionalDoor.isPresent()) {
 			
-			Aftik.MoveResult move = aftik.tryMoveTo(optionalDoor.get().getPosition());
-			if (move.success()) {
+			Optional<Entity.MoveFailure> move = aftik.tryMoveTo(optionalDoor.get().getPosition());
+			if (move.isEmpty()) {
 				ForceResult result = optionalDoor.get().force(aftik);
 				
 				printForceResult(game, result);
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(game, move);
+				ActionHandler.printMoveFailure(game, move.get());
 				return 0;
 			}
 		} else {

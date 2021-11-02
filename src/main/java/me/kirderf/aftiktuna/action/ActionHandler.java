@@ -63,10 +63,8 @@ public final class ActionHandler {
 		}
 	}
 	
-	static void printMoveFailure(GameInstance game, Aftik.MoveResult result) {
-		result.blocking().ifPresent(object ->
-				game.out().printf("The %s is blocking the way.%n", object.getType().lowerCaseName())
-		);
+	static void printMoveFailure(GameInstance game, Entity.MoveFailure result) {
+		game.out().printf("The %s is blocking the way.%n", result.blocking().getType().lowerCaseName());
 	}
 	
 	private static void printAttackAction(GameInstance game, AttackResult result) {

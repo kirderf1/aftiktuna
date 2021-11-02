@@ -30,15 +30,15 @@ public final class ItemActions {
 		if(optionalItem.isPresent()) {
 			
 			GameObject item = optionalItem.get();
-			Entity.MoveResult move = aftik.tryMoveTo(item.getPosition());
-			if (move.success()) {
+			Optional<Entity.MoveFailure> move = aftik.tryMoveTo(item.getPosition());
+			if (move.isEmpty()) {
 				item.remove();
 				aftik.addItem(type);
 				
 				game.out().printf("You picked up the %s.%n", type.lowerCaseName());
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(game, move);
+				ActionHandler.printMoveFailure(game, move.get());
 				return 0;
 			}
 		} else {
@@ -58,15 +58,15 @@ public final class ItemActions {
 			if(optionalItem.isPresent()) {
 				
 				GameObject item = optionalItem.get();
-				Entity.MoveResult move = aftik.tryMoveTo(item.getPosition());
-				if (move.success()) {
+				Optional<Entity.MoveFailure> move = aftik.tryMoveTo(item.getPosition());
+				if (move.isEmpty()) {
 					item.remove();
 					aftik.wield(itemType);
 					
 					game.out().printf("You picked up and wielded the %s.%n", itemType.lowerCaseName());
 					return 1;
 				} else {
-					ActionHandler.printMoveFailure(game, move);
+					ActionHandler.printMoveFailure(game, move.get());
 					return 0;
 				}
 			} else {

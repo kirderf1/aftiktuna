@@ -33,24 +33,24 @@ public abstract class Entity extends GameObject {
 		return health > 0;
 	}
 	
-	public final MoveResult tryMoveNextTo(Position pos) {
+	public final Optional<MoveFailure> tryMoveNextTo(Position pos) {
 		return tryMoveTo(pos.getPosTowards(this.getCoord()));
 	}
 	
-	public final MoveResult tryMoveTo(Position pos) {
+	public final Optional<MoveFailure> tryMoveTo(Position pos) {
 		if (pos.room() != this.getRoom())
 			throw new IllegalArgumentException("Rooms must be the same.");
+		
 		int coord = pos.coord();
 		if(coord != this.getCoord()) {
 			Optional<GameObject> blocking = findBlockingTo(coord);
-			if(blocking.isPresent()) {
-				return new MoveResult(blocking);
-			} else {
+			if(blocking.isEmpty()) {
 				teleport(coord);
-				return new MoveResult(Optional.empty());
 			}
+			
+			return blocking.map(MoveFailure::new);
 		} else
-			return new MoveResult(Optional.empty());
+			return Optional.empty();
 	}
 	
 	public final boolean isAccessBlocked(int coord) {
@@ -79,26 +79,23 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final MoveAndAttackResult moveAndAttack(Entity target) {
-		MoveResult move = tryMoveNextTo(target.getPosition());
-		if (move.success()) {
+		Optional<MoveFailure> move = tryMoveNextTo(target.getPosition());
+		if (move.isEmpty()) {
 			AttackResult result = attack(target);
 			return new MoveAndAttackResult(result);
 		} else
-			return new MoveAndAttackResult(move);
+			return new MoveAndAttackResult(move.get());
 	}
 	
-	public static record MoveResult(Optional<GameObject> blocking) {
-		public boolean success() {
-			return blocking.isEmpty();
-		}
+	public static record MoveFailure(GameObject blocking) {
 	}
 	
-	public static record MoveAndAttackResult(Either<AttackResult, MoveResult> either) {
+	public static record MoveAndAttackResult(Either<AttackResult, MoveFailure> either) {
 		public MoveAndAttackResult(AttackResult result) {
 			this(Either.left(result));
 		}
 		
-		public MoveAndAttackResult(MoveResult result) {
+		public MoveAndAttackResult(MoveFailure result) {
 			this(Either.right(result));
 		}
 		
