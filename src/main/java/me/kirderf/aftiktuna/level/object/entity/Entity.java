@@ -5,12 +5,17 @@ import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.util.Either;
+import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
 
 public abstract class Entity extends GameObject {
+	public static final OptionalFunction<GameObject, Entity> CAST = OptionalFunction.cast(Entity.class);
+	
+	private static final int STAMINA_MAX = 5;
 	
 	private int health;
+	private int dodgingStamina = STAMINA_MAX;
 	
 	public Entity(ObjectType type, int weight, int initialHealth) {
 		super(type, weight);
@@ -20,6 +25,10 @@ public abstract class Entity extends GameObject {
 	protected void onDeath() {}
 	
 	protected abstract int getAttackPower();
+	
+	public void prepare() {
+		dodgingStamina = Math.min(dodgingStamina + 1, STAMINA_MAX);
+	}
 	
 	public final int getHealth() {
 		return health;
@@ -68,7 +77,7 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final AttackResult receiveAttack(int attackPower) {
-		if (GameInstance.RANDOM.nextInt(4) == 0) {
+		if (tryDodge()) {
 			return new AttackResult(this, AttackResult.Type.DODGE);
 		} else {
 			health -= attackPower;
@@ -76,6 +85,15 @@ public abstract class Entity extends GameObject {
 				this.onDeath();
 			return new AttackResult(this, isDead() ? AttackResult.Type.KILL : AttackResult.Type.HIT);
 		}
+	}
+	
+	private boolean tryDodge() {
+		if (dodgingStamina > 0) {
+			boolean dodged = GameInstance.RANDOM.nextInt(20) < dodgingStamina;
+			dodgingStamina -= 2;
+			return dodged;
+		} else
+			return false;
 	}
 	
 	public final MoveAndAttackResult moveAndAttack(Entity target) {

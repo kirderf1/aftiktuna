@@ -8,7 +8,6 @@ import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
-import me.kirderf.aftiktuna.level.object.entity.Creature;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 import java.io.BufferedReader;
@@ -40,8 +39,8 @@ public final class GameInstance {
 	
 	public void run() {
 		while (true) {
-			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Creature.CAST.toStream())
-							.filter(Entity::isAlive).forEach(Creature::prepare);
+			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Entity.CAST.toStream())
+							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
 			printRoom(aftik.getRoom());
 			printHealth(aftik);
