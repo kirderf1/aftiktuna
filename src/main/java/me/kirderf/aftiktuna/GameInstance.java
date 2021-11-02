@@ -23,14 +23,15 @@ public final class GameInstance {
 	private final PrintWriter out;
 	private final BufferedReader in;
 	
+	private int beatenLocations = 0;
 	private Location location;
 	private Ship ship;
-	private Aftik aftik;
+	private final Aftik aftik;
 	
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
-		
+		aftik = new Aftik();
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -42,7 +43,7 @@ public final class GameInstance {
 		
 		ship = new Ship();
 		ship.createEntrance(location.getEntryPos());
-		location.addAtEntry(aftik = new Aftik());
+		location.addAtEntry(aftik);
 	}
 	
 	public void run(boolean debugLevel) {
@@ -62,9 +63,20 @@ public final class GameInstance {
 				return;
 			}
 			
-			if (aftik.getRoom() == ship.getRoom() && aftik.hasItem(ObjectTypes.FUEL_CAN)) {
-				out.println("Congratulations, you won!");
-				return;
+			if (aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+				beatenLocations++;
+				
+				if (debugLevel || beatenLocations >= 3) {
+					out.println("You got fuel to your ship.");
+					out.println("Congratulations, you won!");
+					return;
+				} else {
+					out.println("You got fuel to your ship, and proceeded to your next location.");
+					
+					aftik.remove();
+					initLocation(false);
+					continue;
+				}
 			}
 			
 			int result = 0;

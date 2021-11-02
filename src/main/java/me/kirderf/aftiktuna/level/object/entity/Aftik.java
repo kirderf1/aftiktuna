@@ -28,6 +28,16 @@ public final class Aftik extends Entity {
 		inventory.add(type);
 	}
 	
+	public boolean removeItem(ObjectType type) {
+		if (inventory.remove(type)) {
+			return true;
+		} else if (wielded == type) {
+			wielded = null;
+			return true;
+		} else
+			return false;
+	}
+	
 	public boolean hasItem(ObjectType type) {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
