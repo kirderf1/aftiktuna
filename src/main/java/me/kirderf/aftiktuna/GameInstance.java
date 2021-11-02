@@ -13,7 +13,7 @@ import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,15 +21,15 @@ public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
 	private final ActionHandler actionHandler = new ActionHandler();
-	private final PrintStream out;
+	private final PrintWriter out;
 	private final BufferedReader in;
 	
 	private final Location location;
 	private final Ship ship;
 	private final Aftik aftik;
 	
-	public GameInstance(BufferedReader in) {
-		this.out = System.out;
+	public GameInstance(PrintWriter out, BufferedReader in) {
+		this.out = out;
 		this.in = in;
 		
 		location = EarlyTestingLocations.createBlockingLocation();
@@ -42,8 +42,6 @@ public final class GameInstance {
 		while (true) {
 			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Creature.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Creature::prepare);
-			
-			out.println();
 			
 			printRoom(aftik.getRoom());
 			printHealth(aftik);
@@ -74,6 +72,8 @@ public final class GameInstance {
 			} while (result <= 0);
 			
 			actionHandler.handleCreatures(this);
+			
+			out.println();
 		}
 	}
 	
@@ -81,7 +81,7 @@ public final class GameInstance {
 		return aftik;
 	}
 	
-	public PrintStream out() {
+	public PrintWriter out() {
 		return out;
 	}
 	
