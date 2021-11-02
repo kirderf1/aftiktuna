@@ -14,12 +14,14 @@ public abstract class Entity extends GameObject {
 	
 	private static final int STAMINA_MAX = 5;
 	
+	private final int maxHealth;
 	private int health;
 	private int dodgingStamina = STAMINA_MAX;
 	
 	public Entity(ObjectType type, int weight, int initialHealth) {
 		super(type, weight);
-		this.health = initialHealth;
+		this.maxHealth = initialHealth;
+		restoreHealth();
 	}
 	
 	protected void onDeath() {}
@@ -32,6 +34,10 @@ public abstract class Entity extends GameObject {
 	
 	public final int getHealth() {
 		return health;
+	}
+	
+	public final void restoreHealth() {
+		this.health = this.maxHealth;
 	}
 	
 	public final boolean isDead() {

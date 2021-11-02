@@ -71,9 +71,10 @@ public final class GameInstance {
 					out.println("Congratulations, you won!");
 					return;
 				} else {
-					out.printf("You got fuel to your ship,%nand proceeded to your next location.%n");
+					out.printf("You got fuel to your ship,%nand proceeded to your next location.%n%n");
 					
 					aftik.remove();
+					aftik.restoreHealth();
 					initLocation(false);
 					continue;
 				}
