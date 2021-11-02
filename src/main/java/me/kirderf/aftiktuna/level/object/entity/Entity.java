@@ -32,6 +32,10 @@ public abstract class Entity extends GameObject {
 		dodgingStamina = Math.min(dodgingStamina + 1, STAMINA_MAX);
 	}
 	
+	public int getMaxHealth() {
+		return maxHealth;
+	}
+	
 	public final int getHealth() {
 		return health;
 	}

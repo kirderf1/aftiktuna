@@ -151,7 +151,7 @@ public final class GameInstance {
 	private void printHealth(Aftik aftik) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 5; i++) {
-			builder.append(i < aftik.getHealth() ? '#' : '.');
+			builder.append(i * aftik.getMaxHealth() < 5 * aftik.getHealth() ? '#' : '.');
 		}
 		out.printf("Health: %s%n", builder);
 	}
