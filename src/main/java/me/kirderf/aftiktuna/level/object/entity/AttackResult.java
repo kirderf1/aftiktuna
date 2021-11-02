@@ -7,7 +7,8 @@ public record AttackResult(Entity attacked, Type type) {
 	}
 	
 	public enum Type {
-		HIT,
+		DIRECT_HIT,
+		GRAZING_HIT,
 		DODGE
 	}
 }

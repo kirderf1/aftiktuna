@@ -70,7 +70,8 @@ public final class ActionHandler {
 	private static void printAttackAction(GameInstance game, AttackResult result) {
 		String name = result.attacked().getType().lowerCaseName();
 		switch(result.type()) {
-			case HIT -> game.out().printf("You attacked%s the %s.%n", result.isKill() ? " and killed" : "", name);
+			case DIRECT_HIT -> game.out().printf("You got a direct hit on%s the %s.%n", result.isKill() ? " and killed" : "", name);
+			case GRAZING_HIT -> game.out().printf("You grazed%s the %s.%n", result.isKill() ? " and killed" : "", name);
 			case DODGE -> game.out().printf("The %s dodged your attack.%n", name);
 		}
 	}
@@ -85,7 +86,8 @@ public final class ActionHandler {
 		result.ifPresent(attack -> {
 			String name = creature.getType().lowerCaseName();
 			switch(attack.type()) {
-				case HIT -> game.out().printf("The %s attacked%s you.%n", name, attack.isKill() ? " and killed" : "");
+				case DIRECT_HIT -> game.out().printf("The %s's attack hit you directly%s.%n", name, attack.isKill() ? " and killed you" : "");
+				case GRAZING_HIT -> game.out().printf("The %s's attack grazed%s you.%n", name, attack.isKill() ? " and killed" : "");
 				case DODGE -> game.out().printf("You dodged the %s's attack.%n", name);
 			}
 		});

@@ -12,7 +12,7 @@ import java.util.Optional;
 public abstract class Entity extends GameObject {
 	public static final OptionalFunction<GameObject, Entity> CAST = OptionalFunction.cast(Entity.class);
 	
-	private static final int STAMINA_MAX = 5;
+	private static final int STAMINA_MAX = 10;
 	
 	private final int maxHealth;
 	private int health;
@@ -87,23 +87,34 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final AttackResult receiveAttack(int attackPower) {
-		if (tryDodge()) {
-			return new AttackResult(this, AttackResult.Type.DODGE);
-		} else {
+		AttackResult.Type type = tryDodge();
+		if (type == AttackResult.Type.GRAZING_HIT) {
+			attackPower /= 2;
+			if (attackPower <= 0)
+				type = AttackResult.Type.DODGE;
+		}
+		
+		if (type != AttackResult.Type.DODGE) {
 			health -= attackPower;
 			if(this.isDead())
 				this.onDeath();
-			return new AttackResult(this, AttackResult.Type.HIT);
 		}
+		return new AttackResult(this, type);
 	}
 	
-	private boolean tryDodge() {
+	private AttackResult.Type tryDodge() {
 		if (dodgingStamina > 0) {
-			boolean dodged = GameInstance.RANDOM.nextInt(20) < dodgingStamina;
+			int dodgeRating = dodgingStamina - GameInstance.RANDOM.nextInt(20);
 			dodgingStamina -= 2;
-			return dodged;
+			
+			if (dodgeRating > 5)
+				return AttackResult.Type.DODGE;
+			else if (dodgeRating > 0)
+				return AttackResult.Type.GRAZING_HIT;
+			else
+				return AttackResult.Type.DIRECT_HIT;
 		} else
-			return false;
+			return AttackResult.Type.DIRECT_HIT;
 	}
 	
 	public final MoveAndAttackResult moveAndAttack(Entity target) {
