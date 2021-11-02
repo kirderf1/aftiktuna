@@ -13,6 +13,7 @@ import me.kirderf.aftiktuna.level.object.entity.Entity;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,6 +21,7 @@ public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
 	private final ActionHandler actionHandler = new ActionHandler();
+	private final PrintStream out;
 	private final BufferedReader in;
 	
 	private final Location location;
@@ -27,6 +29,7 @@ public final class GameInstance {
 	private final Aftik aftik;
 	
 	public GameInstance(BufferedReader in) {
+		this.out = System.out;
 		this.in = in;
 		
 		location = EarlyTestingLocations.createBlockingLocation();
@@ -40,7 +43,7 @@ public final class GameInstance {
 			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Creature.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Creature::prepare);
 			
-			System.out.println();
+			out.println();
 			
 			printRoom(aftik.getRoom());
 			printHealth(aftik);
@@ -48,12 +51,12 @@ public final class GameInstance {
 			optionallyPrintInventory(aftik);
 			
 			if (aftik.isDead()) {
-				System.out.println("You lost.");
+				out.println("You lost.");
 				return;
 			}
 			
 			if (aftik.getRoom() == ship.getRoom() && aftik.hasItem(ObjectTypes.FUEL_CAN)) {
-				System.out.println("Congratulations, you won!");
+				out.println("Congratulations, you won!");
 				return;
 			}
 			
@@ -78,7 +81,11 @@ public final class GameInstance {
 		return aftik;
 	}
 	
-	private static void printRoom(Room room) {
+	public PrintStream out() {
+		return out;
+	}
+	
+	private void printRoom(Room room) {
 		List<List<GameObject>> objectsByPos = new ArrayList<>();
 		for (int pos = 0; pos < room.getLength(); pos++)
 			objectsByPos.add(new ArrayList<>());
@@ -96,34 +103,34 @@ public final class GameInstance {
 				if (objectsByPos.get(pos).size() > line)
 					builder.setCharAt(pos, objectsByPos.get(pos).get(line).getType().symbol());
 			}
-			System.out.println(builder);
+			out.println(builder);
 		}
 		
 		Set<ObjectType> writtenChars = new HashSet<>();
 		room.objectStream().forEach(object -> {
 			if (writtenChars.add(object.getType()))
-				System.out.printf("%s: %s%n", object.getType().symbol(), object.getType().name());
+				out.printf("%s: %s%n", object.getType().symbol(), object.getType().name());
 		});
 	}
 	
-	private static void printHealth(Aftik aftik) {
+	private void printHealth(Aftik aftik) {
 		StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < 5; i++) {
 			builder.append(i < aftik.getHealth() ? '#' : '.');
 		}
-		System.out.printf("Health: %s%n", builder);
+		out.printf("Health: %s%n", builder);
 	}
 	
-	private static void optionallyPrintWieldedItem(Aftik aftik) {
+	private void optionallyPrintWieldedItem(Aftik aftik) {
 		aftik.getWieldedItem().ifPresent(wielded ->
-				System.out.printf("Wielded: %s%n", wielded.name()));
+				out.printf("Wielded: %s%n", wielded.name()));
 	}
 	
-	private static void optionallyPrintInventory(Aftik aftik) {
+	private void optionallyPrintInventory(Aftik aftik) {
 		List<ObjectType> inventory = aftik.getInventory();
 		if (!inventory.isEmpty()) {
 			String itemList = inventory.stream().map(ObjectType::name).collect(Collectors.joining(", "));
-			System.out.printf("Inventory: %s%n", itemList);
+			out.printf("Inventory: %s%n", itemList);
 		}
 	}
 }

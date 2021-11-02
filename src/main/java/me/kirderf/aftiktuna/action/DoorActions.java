@@ -34,14 +34,14 @@ public final class DoorActions {
 			if (move.success()) {
 				EnterResult result = optionalDoor.get().enter(aftik);
 				
-				printEnterResult(result);
+				printEnterResult(game, result);
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(move);
+				ActionHandler.printMoveFailure(game, move);
 				return 0;
 			}
 		} else {
-			System.out.println("There is no such door here to go through.");
+			game.out().println("There is no such door here to go through.");
 			return 0;
 		}
 	}
@@ -55,43 +55,43 @@ public final class DoorActions {
 			if (move.success()) {
 				ForceResult result = optionalDoor.get().force(aftik);
 				
-				printForceResult(result);
+				printForceResult(game, result);
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(move);
+				ActionHandler.printMoveFailure(game, move);
 				return 0;
 			}
 		} else {
-			System.out.println("There is no such door here.");
+			game.out().println("There is no such door here.");
 			return 0;
 		}
 	}
 	
 	
-	private static void printEnterResult(EnterResult result) {
-		result.either().run(DoorActions::printEnterSuccess,
-				failureType -> System.out.printf("The door is %s.%n", failureType.adjective()));
+	private static void printEnterResult(GameInstance game, EnterResult result) {
+		result.either().run(success -> printEnterSuccess(game, success),
+				failureType -> game.out().printf("The door is %s.%n", failureType.adjective()));
 	}
 	
-	private static void printEnterSuccess(EnterResult.Success result) {
+	private static void printEnterSuccess(GameInstance game, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> System.out.printf("Using your %s, you entered the door into a new room.%n", item.lowerCaseName()),
-				() -> System.out.printf("You entered the door into a new room.%n"));
+				item -> game.out().printf("Using your %s, you entered the door into a new room.%n", item.lowerCaseName()),
+				() -> game.out().printf("You entered the door into a new room.%n"));
 	}
 	
-	private static void printForceResult(ForceResult result) {
-		result.either().run(DoorActions::printForceSuccess, DoorActions::printForceStatus);
+	private static void printForceResult(GameInstance game, ForceResult result) {
+		result.either().run(success -> printForceSuccess(game, success), status -> printForceStatus(game, status));
 	}
 	
-	private static void printForceSuccess(ForceResult.Success result) {
-		System.out.printf("You use your %s to %s.%n", result.item().lowerCaseName(), result.method().text());
+	private static void printForceSuccess(GameInstance game, ForceResult.Success result) {
+		game.out().printf("You use your %s to %s.%n", result.item().lowerCaseName(), result.method().text());
 	}
 	
-	private static void printForceStatus(ForceResult.Status status) {
+	private static void printForceStatus(GameInstance game, ForceResult.Status status) {
 		switch(status) {
-			case NOT_STUCK -> System.out.println("The door does not seem to be stuck.");
-			case NEED_TOOL -> System.out.println("You need some sort of tool to force the door open.");
-			case NEED_BREAK_TOOL -> System.out.println("You need some sort of tool to break the door open.");
+			case NOT_STUCK -> game.out().println("The door does not seem to be stuck.");
+			case NEED_TOOL -> game.out().println("You need some sort of tool to force the door open.");
+			case NEED_BREAK_TOOL -> game.out().println("You need some sort of tool to break the door open.");
 		}
 	}
 }

@@ -40,7 +40,7 @@ public final class ActionHandler {
 		try {
 			return dispatcher.execute(input, game);
 		} catch(CommandSyntaxException ignored) {
-			System.out.printf("Unexpected input \"%s\"%n", input);
+			game.out().printf("Unexpected input \"%s\"%n", input);
 			return 0;
 		}
 	}
@@ -54,27 +54,27 @@ public final class ActionHandler {
 			
 			Entity.MoveAndAttackResult result = aftik.moveAndAttack(creature);
 			
-			result.either().run(ActionHandler::printAttackAction, ActionHandler::printMoveFailure);
+			result.either().run(attack -> printAttackAction(game, attack), move -> printMoveFailure(game, move));
 			
 			return result.success() ? 1 : 0;
 		} else {
-			System.out.println("There is no such creature to attack.");
+			game.out().println("There is no such creature to attack.");
 			return 0;
 		}
 	}
 	
-	static void printMoveFailure(Aftik.MoveResult result) {
+	static void printMoveFailure(GameInstance game, Aftik.MoveResult result) {
 		result.blocking().ifPresent(object ->
-				System.out.printf("The %s is blocking the way.%n", object.getType().lowerCaseName())
+				game.out().printf("The %s is blocking the way.%n", object.getType().lowerCaseName())
 		);
 	}
 	
-	private static void printAttackAction(AttackResult result) {
+	private static void printAttackAction(GameInstance game, AttackResult result) {
 		String name = result.attacked().getType().lowerCaseName();
 		switch(result.type()) {
-			case HIT -> System.out.printf("You attacked the %s.%n", name);
-			case KILL -> System.out.printf("You attacked and killed the %s.%n", name);
-			case DODGE -> System.out.printf("The %s dodged your attack.%n", name);
+			case HIT -> game.out().printf("You attacked the %s.%n", name);
+			case KILL -> game.out().printf("You attacked and killed the %s.%n", name);
+			case DODGE -> game.out().printf("The %s dodged your attack.%n", name);
 		}
 	}
 	
@@ -88,9 +88,9 @@ public final class ActionHandler {
 		result.ifPresent(attack -> {
 			String name = creature.getType().lowerCaseName();
 			switch(attack.type()) {
-				case HIT -> System.out.printf("The %s attacked you.%n", name);
-				case KILL -> System.out.printf("The %s attacked and killed you.%n", name);
-				case DODGE -> System.out.printf("You dodged the %s's attack.%n", name);
+				case HIT -> game.out().printf("The %s attacked you.%n", name);
+				case KILL -> game.out().printf("The %s attacked and killed you.%n", name);
+				case DODGE -> game.out().printf("You dodged the %s's attack.%n", name);
 			}
 		});
 	}

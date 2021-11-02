@@ -35,14 +35,14 @@ public final class ItemActions {
 				item.remove();
 				aftik.addItem(type);
 				
-				System.out.printf("You picked up the %s.%n", type.lowerCaseName());
+				game.out().printf("You picked up the %s.%n", type.lowerCaseName());
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(move);
+				ActionHandler.printMoveFailure(game, move);
 				return 0;
 			}
 		} else {
-			System.out.printf("There is no %s here to pick up.%n", type.lowerCaseName());
+			game.out().printf("There is no %s here to pick up.%n", type.lowerCaseName());
 			return 0;
 		}
 	}
@@ -51,7 +51,7 @@ public final class ItemActions {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.wieldFromInventory(itemType)) {
-			System.out.printf("You wielded a %s.%n", itemType.lowerCaseName());
+			game.out().printf("You wielded a %s.%n", itemType.lowerCaseName());
 			return 1;
 		} else {
 			Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(itemType::matching));
@@ -63,14 +63,14 @@ public final class ItemActions {
 					item.remove();
 					aftik.wield(itemType);
 					
-					System.out.printf("You picked up and wielded the %s.%n", itemType.lowerCaseName());
+					game.out().printf("You picked up and wielded the %s.%n", itemType.lowerCaseName());
 					return 1;
 				} else {
-					ActionHandler.printMoveFailure(move);
+					ActionHandler.printMoveFailure(game, move);
 					return 0;
 				}
 			} else {
-				System.out.printf("There is no %s that you can wield.%n", itemType.lowerCaseName());
+				game.out().printf("There is no %s that you can wield.%n", itemType.lowerCaseName());
 				return 0;
 			}
 		}
