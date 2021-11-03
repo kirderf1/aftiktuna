@@ -1,17 +1,21 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class Creature extends Entity {
 	public static final OptionalFunction<GameObject, Creature> CAST = OptionalFunction.cast(Creature.class);
 	
 	private final boolean isMoving;
 	
-	private boolean isTargeting = false;
+	private Collection<Aftik> targets = Collections.emptyList();
 	
 	public Creature(boolean isMoving) {
 		super(ObjectTypes.CREATURE, 5, 5);
@@ -31,11 +35,15 @@ public final class Creature extends Entity {
 	@Override
 	public void prepare() {
 		super.prepare();
-		isTargeting = getRoom().objectStream().flatMap(Aftik.CAST.toStream()).anyMatch(Entity::isAlive);
+		targets = getRoom().objectStream().flatMap(Aftik.CAST.toStream()).filter(Entity::isAlive).collect(Collectors.toList());
 	}
 	
-	public Optional<AttackResult> doAction(Aftik aftik) {
-		if(isTargeting && aftik.isAlive()) {
+	public Optional<AttackResult> doAction() {
+		
+		Optional<Aftik> target = targets.stream().filter(Entity::isAlive)
+				.filter(aftik -> aftik.getRoom() == this.getRoom()).min(Room.byProximity(this.getCoord()));
+		if(target.isPresent()) {
+			Aftik aftik = target.get();
 			if (isMoving) {
 				tryMoveNextTo(aftik.getPosition());
 			}

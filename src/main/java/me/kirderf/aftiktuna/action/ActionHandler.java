@@ -6,7 +6,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -77,12 +76,11 @@ public final class ActionHandler {
 	}
 	
 	public void handleCreatures(GameInstance game) {
-		Room room = game.getAftik().getRoom();
-		room.objectStream().flatMap(Creature.CAST.toStream()).filter(Entity::isAlive).forEach(creature -> handleCreature(game, creature));
+		game.getGameObjectStream().flatMap(Creature.CAST.toStream()).filter(Entity::isAlive).forEach(creature -> handleCreature(game, creature));
 	}
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
-		Optional<AttackResult> result = creature.doAction(game.getAftik());
+		Optional<AttackResult> result = creature.doAction();
 		result.ifPresent(attack -> {
 			String name = creature.getType().lowerCaseName();
 			switch(attack.type()) {

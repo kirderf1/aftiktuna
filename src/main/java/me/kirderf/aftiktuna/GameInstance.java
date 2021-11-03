@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class GameInstance {
 	public static final int EXPECTED_LINE_LENGTH = 60;
@@ -51,7 +52,7 @@ public final class GameInstance {
 		initLocation(debugLevel);
 		
 		while (true) {
-			location.getRooms().stream().flatMap(Room::objectStream).flatMap(Entity.CAST.toStream())
+			getGameObjectStream().flatMap(Entity.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
 			printRoom(aftik.getRoom());
@@ -102,6 +103,10 @@ public final class GameInstance {
 	
 	public Aftik getAftik() {
 		return aftik;
+	}
+	
+	public Stream<GameObject> getGameObjectStream() {
+		return location.getRooms().stream().flatMap(Room::objectStream);
 	}
 	
 	public PrintWriter out() {
