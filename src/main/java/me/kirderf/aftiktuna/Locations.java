@@ -25,8 +25,8 @@ public class Locations {
 		Room firstRoom = builder.newRoom(7);
 		Room leftRoom = builder.newRoom(3);
 		Room rightRoom = builder.newRoom(4);
-		builder.createDoors(ObjectTypes.LEFT_DOOR, firstRoom.getPosAt(1), ObjectTypes.DOOR, leftRoom.getPosAt(2));
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, firstRoom.getPosAt(5), ObjectTypes.DOOR, rightRoom.getPosAt(0), new DoorStuckProperty());
+		builder.markDoors(firstRoom.getPosAt(1), leftRoom.getPosAt(2));
+		builder.markDoors(firstRoom.getPosAt(5), rightRoom.getPosAt(0), new DoorStuckProperty());
 		leftRoom.addItem(ObjectTypes.CROWBAR, 1);
 		rightRoom.addItem(ObjectTypes.FUEL_CAN, 3);
 		rightRoom.addObject(new Creature(true), 2);
@@ -39,8 +39,8 @@ public class Locations {
 		Room firstRoom = builder.newRoom(3);
 		Room secondRoom = builder.newRoom(6);
 		Room thirdRoom = builder.newRoom(4);
-		builder.createDoors(ObjectTypes.DOOR, firstRoom.getPosAt(2), ObjectTypes.LEFT_DOOR, secondRoom.getPosAt(3));
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, secondRoom.getPosAt(4), ObjectTypes.DOOR, thirdRoom.getPosAt(1), new DoorSealedProperty());
+		builder.markDoors(firstRoom.getPosAt(2), secondRoom.getPosAt(3));
+		builder.markDoors(secondRoom.getPosAt(4), thirdRoom.getPosAt(1), new DoorSealedProperty());
 		secondRoom.addItem(ObjectTypes.BLOWTORCH, 0);
 		secondRoom.addItem(ObjectTypes.FUEL_CAN, 5);
 		thirdRoom.addItem(ObjectTypes.KNIFE, 3);
@@ -54,8 +54,8 @@ public class Locations {
 		Room firstRoom = builder.newRoom(6);
 		Room leftRoom = builder.newRoom(3);
 		Room rightRoom = builder.newRoom(4);
-		builder.createDoors(ObjectTypes.LEFT_DOOR, firstRoom.getPosAt(2), ObjectTypes.DOOR, leftRoom.getPosAt(2), new DoorLockedProperty());
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, firstRoom.getPosAt(5), ObjectTypes.DOOR, rightRoom.getPosAt(1));
+		builder.markDoors(firstRoom.getPosAt(2), leftRoom.getPosAt(2), new DoorLockedProperty());
+		builder.markDoors(firstRoom.getPosAt(5), rightRoom.getPosAt(1));
 		leftRoom.addItem(ObjectTypes.FUEL_CAN, 0);
 		leftRoom.addItem(ObjectTypes.FUEL_CAN, 1);
 		rightRoom.addItem(ObjectTypes.KEYCARD, 0);

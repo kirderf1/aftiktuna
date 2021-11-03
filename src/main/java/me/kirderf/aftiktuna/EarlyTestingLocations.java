@@ -39,7 +39,7 @@ public final class EarlyTestingLocations {
 		LocationBuilder builder = new LocationBuilder();
 		Room firstRoom = builder.newRoom(3);
 		Room secondRoom = builder.newRoom(3);
-		builder.createDoors(ObjectTypes.DOOR, firstRoom.getPosAt(2), ObjectTypes.DOOR, secondRoom.getPosAt(0));
+		builder.markDoors(firstRoom.getPosAt(2), secondRoom.getPosAt(0));
 		secondRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		return builder.build(firstRoom.getPosAt(0));
 	}
@@ -49,9 +49,9 @@ public final class EarlyTestingLocations {
 		Room firstRoom = builder.newRoom(3);
 		Room leftRoom = builder.newRoom(3);
 		Room rightRoom = builder.newRoom(3);
-		builder.createDoors(ObjectTypes.LEFT_DOOR, firstRoom.getPosAt(1), ObjectTypes.LEFT_DOOR, leftRoom.getPosAt(0));
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, firstRoom.getPosAt(2), ObjectTypes.RIGHT_DOOR, rightRoom.getPosAt(1));
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, leftRoom.getPosAt(2), ObjectTypes.LEFT_DOOR, rightRoom.getPosAt(0));
+		builder.markDoors(firstRoom.getPosAt(1), leftRoom.getPosAt(0));
+		builder.markDoors(firstRoom.getPosAt(2), rightRoom.getPosAt(1));
+		builder.markDoors(leftRoom.getPosAt(2), rightRoom.getPosAt(0));
 		rightRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		rightRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		return builder.build(firstRoom.getPosAt(0));
@@ -65,10 +65,10 @@ public final class EarlyTestingLocations {
 		Room sideRoom = builder.newRoom(3);
 		firstRoom.addItem(ObjectTypes.CROWBAR, 2);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 2);
-		builder.createDoors(ObjectTypes.LEFT_DOOR, firstRoom.getPosAt(1), ObjectTypes.RIGHT_DOOR, secondRoom.getPosAt(1), new DoorStuckProperty());
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, firstRoom.getPosAt(3), ObjectTypes.DOOR, sideRoom.getPosAt(0), new DoorSealedProperty());
+		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(1), new DoorStuckProperty());
+		builder.markDoors(firstRoom.getPosAt(3), sideRoom.getPosAt(0), new DoorSealedProperty());
 		secondRoom.addItem(ObjectTypes.BLOWTORCH, 0);
-		builder.createDoors(ObjectTypes.LEFT_DOOR, secondRoom.getPosAt(0), ObjectTypes.DOOR, thirdRoom.getPosAt(0), new DoorLockedProperty());
+		builder.markDoors(secondRoom.getPosAt(0), thirdRoom.getPosAt(0), new DoorLockedProperty());
 		thirdRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		sideRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		return builder.build(firstRoom.getPosAt(0));
@@ -78,8 +78,8 @@ public final class EarlyTestingLocations {
 		LocationBuilder builder = new LocationBuilder();
 		Room firstRoom = builder.newRoom(6);
 		Room secondRoom = builder.newRoom(3);
-		builder.createDoors(ObjectTypes.LEFT_DOOR, firstRoom.getPosAt(1), ObjectTypes.LEFT_DOOR, secondRoom.getPosAt(0));
-		builder.createDoors(ObjectTypes.RIGHT_DOOR, firstRoom.getPosAt(3), ObjectTypes.RIGHT_DOOR, secondRoom.getPosAt(2));
+		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(0));
+		builder.markDoors(firstRoom.getPosAt(3), secondRoom.getPosAt(2));
 		firstRoom.addObject(new Creature(false), 2);
 		firstRoom.addItem(ObjectTypes.CROWBAR, 0);
 		firstRoom.addItem(ObjectTypes.FUEL_CAN, 2);
