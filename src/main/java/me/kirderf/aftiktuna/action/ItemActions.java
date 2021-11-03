@@ -29,13 +29,11 @@ public final class ItemActions {
 	}
 	
 	private static void takeItem(GameInstance game, Aftik aftik, Item item) {
-		Optional<Entity.MoveFailure> failure = aftik.moveAndTake(item);
+		Optional<Entity.MoveFailure> result = aftik.moveAndTake(item);
 		
-		if(failure.isEmpty()) {
-			game.out().printf("You picked up the %s.%n", item.getType().lowerCaseName());
-		} else {
-			ActionHandler.printMoveFailure(game, failure.get());
-		}
+		result.ifPresentOrElse(
+				failure -> ActionHandler.printMoveFailure(game, failure),
+				() -> game.out().printf("You picked up the %s.%n", item.getType().lowerCaseName()));
 	}
 	
 	private static int wieldItem(GameInstance game, WeaponType weaponType) {
@@ -52,12 +50,11 @@ public final class ItemActions {
 	}
 	
 	private static void wieldItem(GameInstance game, Aftik aftik, Item item, WeaponType type) {
-		Optional<Entity.MoveFailure> failure = aftik.moveAndWield(item, type);
-		if(failure.isEmpty()) {
-			game.out().printf("You picked up and wielded the %s.%n", type.lowerCaseName());
-		} else {
-			ActionHandler.printMoveFailure(game, failure.get());
-		}
+		Optional<Entity.MoveFailure> result = aftik.moveAndWield(item, type);
+		
+		result.ifPresentOrElse(
+				failure -> ActionHandler.printMoveFailure(game, failure),
+				() -> game.out().printf("You picked up and wielded the %s.%n", type.lowerCaseName()));
 	}
 	
 	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Item> onSuccess, Runnable onNoMatch) {
