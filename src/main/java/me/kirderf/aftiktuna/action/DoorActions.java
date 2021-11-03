@@ -81,7 +81,7 @@ public final class DoorActions {
 	
 	private static void printEnterSuccess(GameInstance game, Aftik aftik, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> game.out().printf("Using their %s, %s entered the door into a new room.%n", item.lowerCaseName(), aftik.getDisplayName()),
+				item -> game.out().printf("Using their %s, %s entered the door into a new room.%n", item.name(), aftik.getDisplayName()),
 				() -> game.out().printf("%s entered the door into a new room.%n", aftik.getDisplayName()));
 	}
 	
@@ -90,7 +90,7 @@ public final class DoorActions {
 	}
 	
 	private static void printForceSuccess(GameInstance game, Aftik aftik, ForceResult.Success result) {
-		game.out().printf("%s used their %s to %s.%n", aftik.getDisplayName(), result.item().lowerCaseName(), result.method().text());
+		game.out().printf("%s used their %s to %s.%n", aftik.getDisplayName(), result.item().name(), result.method().text());
 	}
 	
 	private static void printForceStatus(GameInstance game, Aftik aftik, ForceResult.Status status) {

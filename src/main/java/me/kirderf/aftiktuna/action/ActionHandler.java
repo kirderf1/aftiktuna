@@ -68,11 +68,11 @@ public final class ActionHandler {
 	}
 	
 	static void printBlocking(GameInstance game, GameObject blocking) {
-		game.out().printf("The %s is blocking the way.%n", blocking.getType().lowerCaseName());
+		game.out().printf("The %s is blocking the way.%n", blocking.getType().name());
 	}
 	
 	private static void printAttackAction(GameInstance game, Aftik aftik, AttackResult result) {
-		String name = result.attacked().getType().lowerCaseName();
+		String name = result.attacked().getType().name();
 		switch(result.type()) {
 			case DIRECT_HIT -> game.out().printf(condition("%s got a direct hit on[ and killed] the %s.%n", result.isKill()), aftik.getDisplayName(), name);
 			case GRAZING_HIT -> game.out().printf(condition("%s grazed[ and killed] the %s.%n", result.isKill()), aftik.getDisplayName(), name);
@@ -87,7 +87,7 @@ public final class ActionHandler {
 	private static void handleCreature(GameInstance game, Creature creature) {
 		Optional<AttackResult> result = creature.doAction();
 		result.ifPresent(attack -> {
-			String name = creature.getType().lowerCaseName();
+			String name = creature.getType().name();
 			switch(attack.type()) {
 				case DIRECT_HIT -> game.out().printf(condition("The %s's attack hit %s directly[ and killed them].%n", attack.isKill()), name, attack.attacked().getDisplayName());
 				case GRAZING_HIT -> game.out().printf(condition("The %s's attack grazed[ and killed] %s.%n", attack.isKill()), name, attack.attacked().getDisplayName());

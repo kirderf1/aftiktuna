@@ -163,13 +163,13 @@ public final class GameInstance {
 	
 	private void optionallyPrintWieldedItem(Aftik aftik) {
 		aftik.getWieldedItem().ifPresent(wielded ->
-				out.printf("Wielded: %s%n", wielded.name()));
+				out.printf("Wielded: %s%n", wielded.capitalizedName()));
 	}
 	
 	private void optionallyPrintInventory(Aftik aftik) {
 		List<ObjectType> inventory = aftik.getInventory();
 		if (!inventory.isEmpty()) {
-			String itemList = inventory.stream().map(ObjectType::name).collect(Collectors.joining(", "));
+			String itemList = inventory.stream().map(ObjectType::capitalizedName).collect(Collectors.joining(", "));
 			out.printf("Inventory: %s%n", itemList);
 		}
 	}

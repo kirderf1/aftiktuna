@@ -19,7 +19,7 @@ public abstract class GameObject {
 	}
 	
 	public String getDisplayName() {
-		return type.name();
+		return type.capitalizedName();
 	}
 	
 	public final int getWeight() {

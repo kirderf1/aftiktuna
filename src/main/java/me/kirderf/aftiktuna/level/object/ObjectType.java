@@ -2,15 +2,14 @@ package me.kirderf.aftiktuna.level.object;
 
 import me.kirderf.aftiktuna.level.GameObject;
 
-import java.util.Locale;
-
 public class ObjectType {
 	protected final char symbol;
-	protected final String name;
+	protected final String name, capitalizedName;
 	
 	public ObjectType(char symbol, String name) {
 		this.symbol = symbol;
 		this.name = name;
+		this.capitalizedName = Character.toUpperCase(name.charAt(0)) + name.substring(1);
 	}
 	
 	public boolean matching(GameObject object) {
@@ -21,12 +20,12 @@ public class ObjectType {
 		return symbol;
 	}
 	
-	public final String name() {
-		return name;
+	public final String capitalizedName() {
+		return capitalizedName;
 	}
 	
-	public final String lowerCaseName() {
-		return name.toLowerCase(Locale.ROOT);
+	public final String name() {
+		return name;
 	}
 	
 	@Override
