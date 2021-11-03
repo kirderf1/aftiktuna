@@ -37,7 +37,7 @@ public final class DoorActions {
 	private static void enterDoor(GameInstance game, Aftik aftik, Door door) {
 		Either<EnterResult, Entity.MoveFailure> result = aftik.moveAndEnter(door);
 		
-		result.run(enterResult -> printEnterResult(game, enterResult),
+		result.run(enterResult -> printEnterResult(game, aftik, enterResult),
 				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));
 	}
 	
@@ -51,7 +51,7 @@ public final class DoorActions {
 	private static void forceDoor(GameInstance game, Aftik aftik, Door door) {
 		Either<ForceResult, Entity.MoveFailure> result = aftik.moveAndForce(door);
 		
-		result.run(forceResult -> printForceResult(game, forceResult),
+		result.run(forceResult -> printForceResult(game, aftik, forceResult),
 				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));
 	}
 	
@@ -74,30 +74,30 @@ public final class DoorActions {
 		}
 	}
 	
-	private static void printEnterResult(GameInstance game, EnterResult result) {
-		result.either().run(success -> printEnterSuccess(game, success),
+	private static void printEnterResult(GameInstance game, Aftik aftik, EnterResult result) {
+		result.either().run(success -> printEnterSuccess(game, aftik, success),
 				failureType -> game.out().printf("The door is %s.%n", failureType.adjective()));
 	}
 	
-	private static void printEnterSuccess(GameInstance game, EnterResult.Success result) {
+	private static void printEnterSuccess(GameInstance game, Aftik aftik, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> game.out().printf("Using your %s, you entered the door into a new room.%n", item.lowerCaseName()),
-				() -> game.out().printf("You entered the door into a new room.%n"));
+				item -> game.out().printf("Using their %s, %s entered the door into a new room.%n", item.lowerCaseName(), aftik.getDisplayName()),
+				() -> game.out().printf("%s entered the door into a new room.%n", aftik.getDisplayName()));
 	}
 	
-	private static void printForceResult(GameInstance game, ForceResult result) {
-		result.either().run(success -> printForceSuccess(game, success), status -> printForceStatus(game, status));
+	private static void printForceResult(GameInstance game, Aftik aftik, ForceResult result) {
+		result.either().run(success -> printForceSuccess(game, aftik, success), status -> printForceStatus(game, aftik, status));
 	}
 	
-	private static void printForceSuccess(GameInstance game, ForceResult.Success result) {
-		game.out().printf("You use your %s to %s.%n", result.item().lowerCaseName(), result.method().text());
+	private static void printForceSuccess(GameInstance game, Aftik aftik, ForceResult.Success result) {
+		game.out().printf("%s used their %s to %s.%n", aftik.getDisplayName(), result.item().lowerCaseName(), result.method().text());
 	}
 	
-	private static void printForceStatus(GameInstance game, ForceResult.Status status) {
+	private static void printForceStatus(GameInstance game, Aftik aftik, ForceResult.Status status) {
 		switch(status) {
 			case NOT_STUCK -> game.out().println("The door does not seem to be stuck.");
-			case NEED_TOOL -> game.out().println("You need some sort of tool to force the door open.");
-			case NEED_BREAK_TOOL -> game.out().println("You need some sort of tool to break the door open.");
+			case NEED_TOOL -> game.out().printf("%s need some sort of tool to force the door open.%n", aftik.getDisplayName());
+			case NEED_BREAK_TOOL -> game.out().printf("%s need some sort of tool to break the door open.%n", aftik.getDisplayName());
 		}
 	}
 }

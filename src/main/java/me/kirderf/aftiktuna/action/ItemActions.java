@@ -33,19 +33,19 @@ public final class ItemActions {
 		
 		result.ifPresentOrElse(
 				failure -> ActionHandler.printMoveFailure(game, failure),
-				() -> game.out().printf("You picked up the %s.%n", item.getType().lowerCaseName()));
+				() -> game.out().printf("%s picked up the %s.%n", aftik.getDisplayName(), item.getType().lowerCaseName()));
 	}
 	
 	private static int wieldItem(GameInstance game, WeaponType weaponType) {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.wieldFromInventory(weaponType)) {
-			game.out().printf("You wielded a %s.%n", weaponType.lowerCaseName());
+			game.out().printf("%s wielded a %s.%n", aftik.getDisplayName(), weaponType.lowerCaseName());
 			return 1;
 		} else {
 			return searchForAndIfNotBlocked(game, aftik, weaponType,
 					item -> wieldItem(game, aftik, item, weaponType),
-					() -> game.out().printf("There is no %s that you can wield.%n", weaponType.lowerCaseName()));
+					() -> game.out().printf("There is no %s that %s can wield.%n", weaponType.lowerCaseName(), aftik.getDisplayName()));
 		}
 	}
 	
@@ -53,8 +53,8 @@ public final class ItemActions {
 		Optional<Entity.MoveFailure> result = aftik.moveAndWield(item, type);
 		
 		result.ifPresentOrElse(
-				failure -> ActionHandler.printMoveFailure(game, failure),
-				() -> game.out().printf("You picked up and wielded the %s.%n", type.lowerCaseName()));
+				failure -> ActionHandler.printMoveFailure(game,failure),
+				() -> game.out().printf("%s picked up and wielded the %s.%n", aftik.getDisplayName(), type.lowerCaseName()));
 	}
 	
 	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Item> onSuccess, Runnable onNoMatch) {

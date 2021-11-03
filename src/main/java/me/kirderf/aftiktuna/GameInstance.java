@@ -33,7 +33,7 @@ public final class GameInstance {
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
-		aftik = new Aftik();
+		aftik = new Aftik("Cerulean");
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -138,13 +138,12 @@ public final class GameInstance {
 		Set<ObjectType> writtenChars = new HashSet<>();
 		room.objectStream().forEach(object -> {
 			if (writtenChars.add(object.getType())) {
-				String entry = "%s: %s".formatted(object.getType().symbol(), object.getType().name());
+				String entry = "%s: %s".formatted(object.getType().symbol(), object.getDisplayName());
 				if (!builder.isEmpty()) {
 					if(builder.length() + entry.length() + 3 <= EXPECTED_LINE_LENGTH)
 						builder.append("   ");
 					else {
-						out.println(builder);
-						builder.setLength(0);
+						builder.append('\n');
 					}
 				}
 				builder.append(entry);

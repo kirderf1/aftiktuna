@@ -17,11 +17,19 @@ import java.util.*;
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
 	
+	private final String name;
+	
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
-	public Aftik() {
+	public Aftik(String name) {
 		super(ObjectTypes.AFTIK, 10, 5);
+		this.name = name;
+	}
+	
+	@Override
+	public String getDisplayName() {
+		return name;
 	}
 	
 	@Override

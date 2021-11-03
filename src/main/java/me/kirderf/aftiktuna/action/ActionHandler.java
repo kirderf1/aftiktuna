@@ -54,7 +54,7 @@ public final class ActionHandler {
 			
 			Entity.MoveAndAttackResult result = aftik.moveAndAttack(creature);
 			
-			result.either().run(attack -> printAttackAction(game, attack), move -> printMoveFailure(game, move));
+			result.either().run(attack -> printAttackAction(game, aftik, attack), move -> printMoveFailure(game, move));
 			
 			return result.success() ? 1 : 0;
 		} else {
@@ -71,12 +71,12 @@ public final class ActionHandler {
 		game.out().printf("The %s is blocking the way.%n", blocking.getType().lowerCaseName());
 	}
 	
-	private static void printAttackAction(GameInstance game, AttackResult result) {
+	private static void printAttackAction(GameInstance game, Aftik aftik, AttackResult result) {
 		String name = result.attacked().getType().lowerCaseName();
 		switch(result.type()) {
-			case DIRECT_HIT -> game.out().printf(condition("You got a direct hit on[ and killed] the %s.%n", result.isKill()), name);
-			case GRAZING_HIT -> game.out().printf(condition("You grazed[ and killed] the %s.%n", result.isKill()), name);
-			case DODGE -> game.out().printf("The %s dodged your attack.%n", name);
+			case DIRECT_HIT -> game.out().printf(condition("%s got a direct hit on[ and killed] the %s.%n", result.isKill()), aftik.getDisplayName(), name);
+			case GRAZING_HIT -> game.out().printf(condition("%s grazed[ and killed] the %s.%n", result.isKill()), aftik.getDisplayName(), name);
+			case DODGE -> game.out().printf("The %s dodged %s's attack.%n", aftik.getDisplayName(), name);
 		}
 	}
 	
@@ -89,9 +89,9 @@ public final class ActionHandler {
 		result.ifPresent(attack -> {
 			String name = creature.getType().lowerCaseName();
 			switch(attack.type()) {
-				case DIRECT_HIT -> game.out().printf(condition("The %s's attack hit you directly[ and killed you].%n", attack.isKill()), name);
-				case GRAZING_HIT -> game.out().printf(condition("The %s's attack grazed[ and killed] you.%n", attack.isKill()), name);
-				case DODGE -> game.out().printf("You dodged the %s's attack.%n", name);
+				case DIRECT_HIT -> game.out().printf(condition("The %s's attack hit %s directly[ and killed them].%n", attack.isKill()), name, attack.attacked().getDisplayName());
+				case GRAZING_HIT -> game.out().printf(condition("The %s's attack grazed[ and killed] %s.%n", attack.isKill()), name, attack.attacked().getDisplayName());
+				case DODGE -> game.out().printf("%s dodged the %s's attack.%n", attack.attacked().getDisplayName(), name);
 			}
 		});
 	}

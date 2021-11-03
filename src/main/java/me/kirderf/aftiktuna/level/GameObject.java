@@ -14,11 +14,15 @@ public abstract class GameObject {
 		this.weight = weight;
 	}
 	
-	public ObjectType getType() {
+	public final ObjectType getType() {
 		return type;
 	}
 	
-	public int getWeight() {
+	public String getDisplayName() {
+		return type.name();
+	}
+	
+	public final int getWeight() {
 		return weight;
 	}
 	
