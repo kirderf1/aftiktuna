@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
+import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -10,9 +11,9 @@ import me.kirderf.aftiktuna.level.object.door.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.ForceResult;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
-import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;
@@ -20,53 +21,65 @@ import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 public final class DoorActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
 		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
-				.executes(context -> goThroughDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
+				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 	}
 	
-	private static int goThroughDoor(GameInstance game, ObjectType doorType) {
+	private static int enterDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
-		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
-		if(optionalDoor.isPresent()) {
+		return searchForAndIfNotBlocked(game, aftik, doorType,
+				door -> enterDoor(game, aftik, door),
+				() -> game.out().println("There is no such door here to go through."));
+	}
+	
+	private static void enterDoor(GameInstance game, Aftik aftik, Door door) {
+		Optional<Entity.MoveFailure> move = aftik.tryMoveTo(door.getPosition());
+		if (move.isEmpty()) {
+			EnterResult result = door.enter(aftik);
 			
-			Optional<Entity.MoveFailure> move = aftik.tryMoveTo(optionalDoor.get().getPosition());
-			if (move.isEmpty()) {
-				EnterResult result = optionalDoor.get().enter(aftik);
-				
-				printEnterResult(game, result);
-				return 1;
-			} else {
-				ActionHandler.printMoveFailure(game, move.get());
-				return 0;
-			}
+			printEnterResult(game, result);
 		} else {
-			game.out().println("There is no such door here to go through.");
-			return 0;
+			ActionHandler.printMoveFailure(game, move.get());
 		}
 	}
 	
 	private static int forceDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
-		Optional<Door> optionalDoor = aftik.findNearest(OptionalFunction.of(doorType::matching).flatMap(Door.CAST));
-		if(optionalDoor.isPresent()) {
+		return searchForAndIfNotBlocked(game, aftik, doorType,
+				door -> forceDoor(game, aftik, door),
+				() -> game.out().println("There is no such door here."));
+	}
+	
+	private static void forceDoor(GameInstance game, Aftik aftik, Door door) {
+		Optional<Entity.MoveFailure> move = aftik.tryMoveTo(door.getPosition());
+		if (move.isEmpty()) {
+			ForceResult result = door.force(aftik);
 			
-			Optional<Entity.MoveFailure> move = aftik.tryMoveTo(optionalDoor.get().getPosition());
-			if (move.isEmpty()) {
-				ForceResult result = optionalDoor.get().force(aftik);
-				
-				printForceResult(game, result);
-				return 1;
-			} else {
-				ActionHandler.printMoveFailure(game, move.get());
-				return 0;
-			}
+			printForceResult(game, result);
 		} else {
-			game.out().println("There is no such door here.");
-			return 0;
+			ActionHandler.printMoveFailure(game, move.get());
 		}
 	}
 	
+	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Door> onSuccess, Runnable onNoMatch) {
+		Optional<Door> optionalDoor = aftik.findNearest(Door.CAST.filter(type::matching));
+		if (optionalDoor.isPresent()) {
+			Door door = optionalDoor.get();
+			
+			Optional<GameObject> blocking = aftik.findBlockingTo(door.getCoord());
+			if (blocking.isEmpty()) {
+				onSuccess.accept(door);
+				return 1;
+			} else {
+				ActionHandler.printBlocking(game, blocking.get());
+				return 0;
+			}
+		} else {
+			onNoMatch.run();
+			return 0;
+		}
+	}
 	
 	private static void printEnterResult(GameInstance game, EnterResult result) {
 		result.either().run(success -> printEnterSuccess(game, success),
