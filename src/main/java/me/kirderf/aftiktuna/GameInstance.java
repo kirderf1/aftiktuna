@@ -106,7 +106,7 @@ public final class GameInstance {
 	}
 	
 	public Stream<GameObject> getGameObjectStream() {
-		return location.getRooms().stream().flatMap(Room::objectStream);
+		return Stream.concat(Stream.of(ship.getRoom()), location.getRooms().stream()).flatMap(Room::objectStream);
 	}
 	
 	public PrintWriter out() {
