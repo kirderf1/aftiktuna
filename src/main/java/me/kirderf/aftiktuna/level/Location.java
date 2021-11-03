@@ -1,6 +1,11 @@
 package me.kirderf.aftiktuna.level;
 
+import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.door.Door;
+import me.kirderf.aftiktuna.level.object.door.DoorProperty;
+
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class Location {
 	private final List<Room> rooms;
@@ -21,5 +26,11 @@ public final class Location {
 	
 	public void addAtEntry(GameObject object) {
 		entryPos.room().addObject(object, entryPos);
+	}
+	
+	static void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, DoorProperty property) {
+		AtomicReference<DoorProperty> atomic = new AtomicReference<>(property);
+		pos1.room().addObject(new Door(type1, pos2, atomic), pos1.coord());
+		pos2.room().addObject(new Door(type2, pos1, atomic), pos2.coord());
 	}
 }
