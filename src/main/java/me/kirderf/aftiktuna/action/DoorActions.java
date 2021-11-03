@@ -11,6 +11,7 @@ import me.kirderf.aftiktuna.level.object.door.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.ForceResult;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
+import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -34,14 +35,10 @@ public final class DoorActions {
 	}
 	
 	private static void enterDoor(GameInstance game, Aftik aftik, Door door) {
-		Optional<Entity.MoveFailure> move = aftik.tryMoveTo(door.getPosition());
-		if (move.isEmpty()) {
-			EnterResult result = door.enter(aftik);
-			
-			printEnterResult(game, result);
-		} else {
-			ActionHandler.printMoveFailure(game, move.get());
-		}
+		Either<EnterResult, Entity.MoveFailure> result = aftik.moveAndEnter(door);
+		
+		result.run(enterResult -> printEnterResult(game, enterResult),
+				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));
 	}
 	
 	private static int forceDoor(GameInstance game, ObjectType doorType) {
@@ -52,14 +49,10 @@ public final class DoorActions {
 	}
 	
 	private static void forceDoor(GameInstance game, Aftik aftik, Door door) {
-		Optional<Entity.MoveFailure> move = aftik.tryMoveTo(door.getPosition());
-		if (move.isEmpty()) {
-			ForceResult result = door.force(aftik);
-			
-			printForceResult(game, result);
-		} else {
-			ActionHandler.printMoveFailure(game, move.get());
-		}
+		Either<ForceResult, Entity.MoveFailure> result = aftik.moveAndForce(door);
+		
+		result.run(forceResult -> printForceResult(game, forceResult),
+				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));
 	}
 	
 	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Door> onSuccess, Runnable onNoMatch) {

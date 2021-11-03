@@ -6,6 +6,10 @@ import me.kirderf.aftiktuna.level.object.Item;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.WeaponType;
+import me.kirderf.aftiktuna.level.object.door.Door;
+import me.kirderf.aftiktuna.level.object.door.EnterResult;
+import me.kirderf.aftiktuna.level.object.door.ForceResult;
+import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.*;
@@ -44,6 +48,24 @@ public final class Aftik extends Entity {
 			wield(type);
 		}
 		return failure;
+	}
+	
+	public Either<EnterResult, MoveFailure> moveAndEnter(Door door) {
+		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
+		if (failure.isEmpty()) {
+			EnterResult result = door.enter(this);
+			return Either.left(result);
+		} else
+			return Either.right(failure.get());
+	}
+	
+	public Either<ForceResult, MoveFailure> moveAndForce(Door door) {
+		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
+		if (failure.isEmpty()) {
+			ForceResult result = door.force(this);
+			return Either.left(result);
+		} else
+			return Either.right(failure.get());
 	}
 	
 	public void addItem(ObjectType type) {
