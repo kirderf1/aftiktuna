@@ -18,8 +18,11 @@ public abstract class GameObject {
 		return type;
 	}
 	
-	public String getDisplayName() {
-		return type.capitalizedName();
+	public String getDisplayName(boolean definite, boolean capitalized) {
+		if (definite)
+			return (capitalized ? "The " : "the ") + type.name();
+		else
+			return capitalized ? type.capitalizedName() : type.name();
 	}
 	
 	public final int getWeight() {

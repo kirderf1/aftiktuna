@@ -138,7 +138,7 @@ public final class GameInstance {
 		Set<ObjectType> writtenChars = new HashSet<>();
 		room.objectStream().forEach(object -> {
 			if (writtenChars.add(object.getType())) {
-				String entry = "%s: %s".formatted(object.getType().symbol(), object.getDisplayName());
+				String entry = "%s: %s".formatted(object.getType().symbol(), object.getDisplayName(false, true));
 				if (!builder.isEmpty()) {
 					if(builder.length() + entry.length() + 3 <= EXPECTED_LINE_LENGTH)
 						builder.append("   ");

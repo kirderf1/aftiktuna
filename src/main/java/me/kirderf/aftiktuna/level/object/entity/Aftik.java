@@ -27,8 +27,12 @@ public final class Aftik extends Entity {
 		this.name = name;
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean definite, boolean capitalized) {
 		return name;
 	}
 	

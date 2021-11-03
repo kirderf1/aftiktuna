@@ -71,12 +71,15 @@ public final class ActionHandler {
 		game.out().printf("The %s is blocking the way.%n", blocking.getType().name());
 	}
 	
-	private static void printAttackAction(GameInstance game, Aftik aftik, AttackResult result) {
-		String name = result.attacked().getType().name();
+	private static void printAttackAction(GameInstance game, Entity attacker, AttackResult result) {
+		Entity attacked = result.attacked();
 		switch(result.type()) {
-			case DIRECT_HIT -> game.out().printf(condition("%s got a direct hit on[ and killed] the %s.%n", result.isKill()), aftik.getDisplayName(), name);
-			case GRAZING_HIT -> game.out().printf(condition("%s grazed[ and killed] the %s.%n", result.isKill()), aftik.getDisplayName(), name);
-			case DODGE -> game.out().printf("The %s dodged %s's attack.%n", aftik.getDisplayName(), name);
+			case DIRECT_HIT -> game.out().printf(condition("%s got a direct hit on[ and killed] %s.%n", result.isKill()),
+					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
+			case GRAZING_HIT -> game.out().printf(condition("%s's attack grazed[ and killed] %s.%n", result.isKill()),
+					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
+			case DODGE -> game.out().printf("%s dodged %s's attack.%n",
+					attacked.getDisplayName(true, true), attacker.getDisplayName(true, false));
 		}
 	}
 	
@@ -86,14 +89,7 @@ public final class ActionHandler {
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
 		Optional<AttackResult> result = creature.doAction();
-		result.ifPresent(attack -> {
-			String name = creature.getType().name();
-			switch(attack.type()) {
-				case DIRECT_HIT -> game.out().printf(condition("The %s's attack hit %s directly[ and killed them].%n", attack.isKill()), name, attack.attacked().getDisplayName());
-				case GRAZING_HIT -> game.out().printf(condition("The %s's attack grazed[ and killed] %s.%n", attack.isKill()), name, attack.attacked().getDisplayName());
-				case DODGE -> game.out().printf("%s dodged the %s's attack.%n", attack.attacked().getDisplayName(), name);
-			}
-		});
+		result.ifPresent(attack -> printAttackAction(game, creature, attack));
 	}
 	
 	private static String condition(String text, boolean b) {
