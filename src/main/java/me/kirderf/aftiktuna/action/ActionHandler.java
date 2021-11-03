@@ -6,6 +6,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.GameInstance;
+import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -63,7 +64,11 @@ public final class ActionHandler {
 	}
 	
 	static void printMoveFailure(GameInstance game, Entity.MoveFailure result) {
-		game.out().printf("The %s is blocking the way.%n", result.blocking().getType().lowerCaseName());
+		printBlocking(game, result.blocking());
+	}
+	
+	static void printBlocking(GameInstance game, GameObject blocking) {
+		game.out().printf("The %s is blocking the way.%n", blocking.getType().lowerCaseName());
 	}
 	
 	private static void printAttackAction(GameInstance game, AttackResult result) {

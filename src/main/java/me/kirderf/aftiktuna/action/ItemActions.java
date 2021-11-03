@@ -3,13 +3,9 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.object.ObjectArgument;
-import me.kirderf.aftiktuna.level.object.ObjectType;
-import me.kirderf.aftiktuna.level.object.ObjectTypes;
-import me.kirderf.aftiktuna.level.object.WeaponType;
+import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
-import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
 
@@ -26,19 +22,23 @@ public final class ItemActions {
 	
 	private static int takeItem(GameInstance game, ObjectType type) {
 		Aftik aftik = game.getAftik();
-		Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(type::matching));
+		Optional<Item> optionalItem = aftik.findNearest(Item.CAST.filter(type::matching));
 		if(optionalItem.isPresent()) {
 			
-			GameObject item = optionalItem.get();
-			Optional<Entity.MoveFailure> move = aftik.tryMoveTo(item.getPosition());
-			if (move.isEmpty()) {
-				item.remove();
-				aftik.addItem(type);
+			Item item = optionalItem.get();
+			Optional<GameObject> blocking = aftik.findBlockingTo(item.getCoord());
+			if (blocking.isEmpty()) {
+				Optional<Entity.MoveFailure> move = aftik.moveAndTake(item);
 				
-				game.out().printf("You picked up the %s.%n", type.lowerCaseName());
+				if(move.isEmpty()) {
+					game.out().printf("You picked up the %s.%n", type.lowerCaseName());
+				} else {
+					ActionHandler.printMoveFailure(game, move.get());
+				}
+				
 				return 1;
 			} else {
-				ActionHandler.printMoveFailure(game, move.get());
+				ActionHandler.printBlocking(game, blocking.get());
 				return 0;
 			}
 		} else {
@@ -54,19 +54,21 @@ public final class ItemActions {
 			game.out().printf("You wielded a %s.%n", itemType.lowerCaseName());
 			return 1;
 		} else {
-			Optional<GameObject> optionalItem = aftik.findNearest(OptionalFunction.of(GameObject::isItem).filter(itemType::matching));
+			Optional<Item> optionalItem = aftik.findNearest(Item.CAST.filter(itemType::matching));
 			if(optionalItem.isPresent()) {
 				
-				GameObject item = optionalItem.get();
-				Optional<Entity.MoveFailure> move = aftik.tryMoveTo(item.getPosition());
-				if (move.isEmpty()) {
-					item.remove();
-					aftik.wield(itemType);
-					
-					game.out().printf("You picked up and wielded the %s.%n", itemType.lowerCaseName());
+				Item item = optionalItem.get();
+				Optional<GameObject> blocking = aftik.findBlockingTo(item.getCoord());
+				if (blocking.isEmpty()) {
+					Optional<Entity.MoveFailure> move = aftik.moveAndWield(item, itemType);
+					if(move.isEmpty()) {
+						game.out().printf("You picked up and wielded the %s.%n", itemType.lowerCaseName());
+					} else {
+						ActionHandler.printMoveFailure(game, move.get());
+					}
 					return 1;
 				} else {
-					ActionHandler.printMoveFailure(game, move.get());
+					ActionHandler.printBlocking(game, blocking.get());
 					return 0;
 				}
 			} else {

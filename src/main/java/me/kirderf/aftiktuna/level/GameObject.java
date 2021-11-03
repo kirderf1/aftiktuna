@@ -49,10 +49,6 @@ public abstract class GameObject {
 		position = position.atCoord(coord);
 	}
 	
-	public boolean isItem() {
-		return false;
-	}
-	
 	public boolean isBlocking(Entity entity) {
 		return false;
 	}

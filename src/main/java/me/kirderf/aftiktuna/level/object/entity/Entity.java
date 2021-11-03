@@ -76,8 +76,11 @@ public abstract class Entity extends GameObject {
 		return findBlockingTo(coord).isPresent();
 	}
 	
-	private Optional<GameObject> findBlockingTo(int coord) {
-		return getRoom().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
+	public final Optional<GameObject> findBlockingTo(int coord) {
+		if (coord != this.getCoord())
+			return getRoom().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
+		else
+			return Optional.empty();
 	}
 	
 	public final AttackResult attack(Entity target) {

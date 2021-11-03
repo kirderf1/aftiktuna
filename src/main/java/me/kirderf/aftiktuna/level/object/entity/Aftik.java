@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
+import me.kirderf.aftiktuna.level.object.Item;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.WeaponType;
@@ -22,6 +23,27 @@ public final class Aftik extends Entity {
 	@Override
 	protected int getAttackPower() {
 		return wielded != null ? wielded.getDamageValue() : 2;
+	}
+	
+	public Optional<Entity.MoveFailure> moveAndTake(Item item) {
+		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
+		if (failure.isEmpty()) {
+			item.remove();
+			addItem(item.getType());
+		}
+		return failure;
+	}
+	
+	public Optional<MoveFailure> moveAndWield(Item item, WeaponType type) {
+		if (item.getType() != type)
+			throw new IllegalArgumentException("Incorrect type given");
+		
+		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
+		if (failure.isEmpty()) {
+			item.remove();
+			wield(type);
+		}
+		return failure;
 	}
 	
 	public void addItem(ObjectType type) {
