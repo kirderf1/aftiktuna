@@ -59,7 +59,9 @@ public final class GameInstance {
 		out.printf("You're playing as the aftik %s.%n", aftik.getName());
 		
 		while (true) {
-			if (checkDeath()) return;
+			handleCrewDeaths();
+			
+			if (checkCharacterStatus()) return;
 			
 			if (checkShipStatus(debugLevel)) return;
 			
@@ -89,14 +91,28 @@ public final class GameInstance {
 		location.addAtEntry(aftik);
 	}
 	
-	private boolean checkDeath() {
-		if (aftik.isDead()) {
-			printStatus();
-			out.printf("%s is dead.%n", aftik.getName());
-			
-			crew.remove(aftik);
-			aftik.remove();
-			
+	private void handleCrewDeaths() {
+		for (Aftik aftik : List.copyOf(crew)) {
+			if (aftik.isDead()) {
+				if (this.aftik == aftik)
+					printStatus();
+				out.printf("%s is dead.%n", aftik.getName());
+				
+				aftik.remove();
+				removeFromCrew(aftik);
+			}
+		}
+	}
+	
+	//Possible calls to this should be followed up by checkCharacterStatus()
+	private void removeFromCrew(Aftik aftik) {
+		crew.remove(aftik);
+		if (this.aftik == aftik)
+			this.aftik = null;
+	}
+	
+	private boolean checkCharacterStatus() {
+		if (aftik == null) {
 			if (crew.isEmpty()) {
 				out.println("You lost.");
 				return true;
