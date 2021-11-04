@@ -42,6 +42,40 @@ public final class GameInstance {
 		crew.forEach(aftik1 -> ship.getRoom().addObject(aftik1, 0));
 	}
 	
+	public Aftik getAftik() {
+		return aftik;
+	}
+	
+	public Stream<GameObject> getGameObjectStream() {
+		return Stream.concat(Stream.of(ship.getRoom()), location.getRooms().stream()).flatMap(Room::objectStream);
+	}
+	
+	public PrintWriter out() {
+		return out;
+	}
+	
+	public void run(boolean debugLevel) {
+		initLocation(debugLevel);
+		out.printf("You're playing as the aftik %s.%n", aftik.getName());
+		
+		while (true) {
+			if (checkDeath()) return;
+			
+			if (checkShipStatus(debugLevel)) return;
+			
+			getGameObjectStream().flatMap(Entity.CAST.toStream())
+							.filter(Entity::isAlive).forEach(Entity::prepare);
+			
+			printStatus();
+			
+			handleUserAction();
+			
+			actionHandler.handleCreatures(this);
+			
+			out.println();
+		}
+	}
+	
 	private void initLocation(boolean debugLevel) {
 		if (debugLevel) {
 			location = EarlyTestingLocations.createBlockingLocation();
@@ -55,81 +89,66 @@ public final class GameInstance {
 		location.addAtEntry(aftik);
 	}
 	
-	public void run(boolean debugLevel) {
-		initLocation(debugLevel);
-		out.printf("You're playing as the aftik %s.%n", aftik.getName());
-		
-		while (true) {
-			getGameObjectStream().flatMap(Entity.CAST.toStream())
-							.filter(Entity::isAlive).forEach(Entity::prepare);
+	private boolean checkDeath() {
+		if (aftik.isDead()) {
+			printStatus();
+			out.printf("%s is dead.%n", aftik.getName());
 			
-			printRoom(aftik.getRoom());
-			printHealth(aftik);
-			optionallyPrintWieldedItem(aftik);
-			optionallyPrintInventory(aftik);
+			crew.remove(aftik);
+			aftik.remove();
 			
-			if (aftik.isDead()) {
-				out.printf("%s is dead.%n", aftik.getName());
-				crew.remove(aftik);
-				aftik.remove();
-				
-				if (crew.isEmpty()) {
-					out.println("You lost.");
-					return;
-				} else {
-					aftik = crew.get(0);
-					out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
-					continue;
-				}
+			if (crew.isEmpty()) {
+				out.println("You lost.");
+				return true;
+			} else {
+				aftik = crew.get(0);
+				out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
 			}
-			
-			if (aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
-				beatenLocations++;
-				
-				if (debugLevel || beatenLocations >= 3) {
-					out.println("You got fuel to your ship.");
-					out.println("Congratulations, you won!");
-					return;
-				} else {
-					out.printf("You got fuel to your ship,%n and proceeded to your next location.%n%n");
-					
-					ship.separateFromLocation();
-					aftik.restoreHealth();
-					
-					initLocation(false);
-					continue;
-				}
-			}
-			
-			int result = 0;
-			do {
-				String input;
-				try {
-					input = in.readLine();
-				} catch(IOException e) {
-					e.printStackTrace();
-					continue;
-				}
-				
-				result = actionHandler.handleInput(this, input);
-			} while (result <= 0);
-			
-			actionHandler.handleCreatures(this);
-			
-			out.println();
 		}
+		return false;
 	}
 	
-	public Aftik getAftik() {
-		return aftik;
+	private boolean checkShipStatus(boolean debugLevel) {
+		if (aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+			printStatus();
+			beatenLocations++;
+			
+			if (debugLevel || beatenLocations >= 3) {
+				out.println("You got fuel to your ship.");
+				out.println("Congratulations, you won!");
+				return true;
+			} else {
+				out.printf("You got fuel to your ship,%n and proceeded to your next location.%n%n");
+				
+				ship.separateFromLocation();
+				aftik.restoreHealth();
+				
+				initLocation(false);
+			}
+		}
+		return false;
 	}
 	
-	public Stream<GameObject> getGameObjectStream() {
-		return Stream.concat(Stream.of(ship.getRoom()), location.getRooms().stream()).flatMap(Room::objectStream);
+	private void handleUserAction() {
+		int result = 0;
+		do {
+			String input;
+			try {
+				input = in.readLine();
+			} catch(IOException e) {
+				e.printStackTrace();
+				continue;
+			}
+			
+			result = actionHandler.handleInput(this, input);
+		} while (result <= 0);
 	}
 	
-	public PrintWriter out() {
-		return out;
+	private void printStatus() {
+		printRoom(aftik.getRoom());
+		printHealth(aftik);
+		optionallyPrintWieldedItem(aftik);
+		optionallyPrintInventory(aftik);
 	}
 	
 	private void printRoom(Room room) {
