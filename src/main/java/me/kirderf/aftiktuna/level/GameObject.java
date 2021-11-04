@@ -18,6 +18,10 @@ public abstract class GameObject {
 		return type;
 	}
 	
+	public boolean hasCustomName() {
+		return false;
+	}
+	
 	public String getDisplayName(boolean definite, boolean capitalized) {
 		if (definite)
 			return (capitalized ? "The " : "the ") + type.name();

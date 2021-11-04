@@ -32,8 +32,13 @@ public final class Aftik extends Entity {
 	}
 	
 	@Override
+	public boolean hasCustomName() {
+		return true;
+	}
+	
+	@Override
 	public String getDisplayName(boolean definite, boolean capitalized) {
-		return name;
+		return getName();
 	}
 	
 	@Override

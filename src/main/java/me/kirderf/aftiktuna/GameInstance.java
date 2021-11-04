@@ -133,6 +133,34 @@ public final class GameInstance {
 	}
 	
 	private void printRoom(Room room) {
+		
+		Map<GameObject, Character> symbolTable = new HashMap<>();
+		Map<Character, String> nameTable = new HashMap<>();
+		
+		buildTables(room, symbolTable, nameTable);
+		
+		printRoomMap(room, symbolTable);
+		
+		printRoomLabels(nameTable);
+	}
+	
+	private void buildTables(Room room, Map<GameObject, Character> symbolTable, Map<Character, String> nameTable) {
+		
+		char spareSymbol = '0';
+		for (GameObject object : room.objectStream()
+				.sorted(Comparator.comparing(GameObject::hasCustomName, Boolean::compareTo))	//Let objects without a custom name get chars first
+				.collect(Collectors.toList())) {
+			char symbol = object.getType().symbol();
+			String name = object.getDisplayName(false, true);
+			if (nameTable.containsKey(symbol) && !name.equals(nameTable.get(symbol)))
+				symbol = spareSymbol++;
+			
+			symbolTable.put(object, symbol);
+			nameTable.put(symbol, name);
+		}
+	}
+	
+	private void printRoomMap(Room room, Map<GameObject, Character> symbolTable) {
 		List<List<GameObject>> objectsByPos = new ArrayList<>();
 		for (int pos = 0; pos < room.getLength(); pos++)
 			objectsByPos.add(new ArrayList<>());
@@ -148,16 +176,15 @@ public final class GameInstance {
 			StringBuilder builder = new StringBuilder((line == 0 ? "_" : " ").repeat(room.getLength()));
 			for (int pos = 0; pos < room.getLength(); pos++) {
 				if (objectsByPos.get(pos).size() > line)
-					builder.setCharAt(pos, objectsByPos.get(pos).get(line).getType().symbol());
+					builder.setCharAt(pos, symbolTable.get(objectsByPos.get(pos).get(line)));
 			}
 			out.println(builder);
 		}
-		
-		Map<String, Character> charMap = new HashMap<>();
-		room.objectStream().forEach(object -> charMap.put(object.getDisplayName(false, true), object.getType().symbol()));
-		
+	}
+	
+	private void printRoomLabels(Map<Character, String> nameTable) {
 		StringBuilder builder = new StringBuilder();
-		charMap.forEach((name, symbol) -> {
+		nameTable.forEach((symbol, name) -> {
 			String label = "%s: %s".formatted(symbol, name);
 			if (!builder.isEmpty()) {
 				if (builder.length() + label.length() + 3 <= EXPECTED_LINE_LENGTH)
