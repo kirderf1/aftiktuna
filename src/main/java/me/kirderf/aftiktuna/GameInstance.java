@@ -61,10 +61,18 @@ public final class GameInstance {
 		
 		while (true) {
 			handleCrewDeaths();
+			handleShipStatus(debugLevel);
 			
-			if (checkCharacterStatus()) return;
+			if (crew.isEmpty()) {
+				out.println("You lost.");
+				return;
+			}
+			replaceLostControlCharacter();
 			
-			if (checkShipStatus(debugLevel)) return;
+			if (noMoreLevels(debugLevel)) {
+				out.println("Congratulations, you won!");
+				return;
+			}
 			
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Entity::prepare);
@@ -112,38 +120,39 @@ public final class GameInstance {
 			this.aftik = null;
 	}
 	
-	private boolean checkCharacterStatus() {
+	//Assumes that the crew isn't empty
+	private void replaceLostControlCharacter() {
 		if (aftik == null) {
-			if (crew.isEmpty()) {
-				out.println("You lost.");
-				return true;
-			} else {
-				aftik = crew.get(0);
-				out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
-			}
+			aftik = crew.get(0);
+			out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
 		}
-		return false;
 	}
 	
-	private boolean checkShipStatus(boolean debugLevel) {
-		if (aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+	private void handleShipStatus(boolean debugLevel) {
+		if (aftik != null && aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
 			statusPrinter.printStatus(aftik);
 			beatenLocations++;
 			
-			if (debugLevel || beatenLocations >= 3) {
+			if (noMoreLevels(debugLevel)) {
 				out.println("You got fuel to your ship.");
-				out.println("Congratulations, you won!");
-				return true;
 			} else {
 				out.printf("You got fuel to your ship,%n and proceeded to your next location.%n%n");
 				
 				ship.separateFromLocation();
-				aftik.restoreHealth();
+				for (Aftik aftik : List.copyOf(crew)) {
+					if (aftik.getRoom() != ship.getRoom())
+						removeFromCrew(aftik);
+				}
+				
+				crew.forEach(Entity::restoreHealth);
 				
 				initLocation(false);
 			}
 		}
-		return false;
+	}
+	
+	private boolean noMoreLevels(boolean debugLevel) {
+		return beatenLocations >= (debugLevel ? 1 : 3);
 	}
 	
 	private void handleUserAction() {
