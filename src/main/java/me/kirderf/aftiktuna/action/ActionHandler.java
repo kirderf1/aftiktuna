@@ -17,6 +17,7 @@ import me.kirderf.aftiktuna.level.object.entity.Entity;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class ActionHandler {
 	private final CommandDispatcher<GameInstance> dispatcher = new CommandDispatcher<>();
@@ -84,12 +85,14 @@ public final class ActionHandler {
 	}
 	
 	public void handleCreatures(GameInstance game) {
-		game.getGameObjectStream().flatMap(Creature.CAST.toStream()).filter(Entity::isAlive).forEach(creature -> handleCreature(game, creature));
+		game.getGameObjectStream().flatMap(Creature.CAST.toStream()).collect(Collectors.toList()).forEach(creature -> handleCreature(game, creature));
 	}
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
-		Optional<AttackResult> result = creature.doAction();
-		result.ifPresent(attack -> printAttackAction(game, creature, attack));
+		if (creature.isAlive()) {
+			Optional<AttackResult> result = creature.doAction();
+			result.ifPresent(attack -> printAttackAction(game, creature, attack));
+		}
 	}
 	
 	private static String condition(String text, boolean b) {

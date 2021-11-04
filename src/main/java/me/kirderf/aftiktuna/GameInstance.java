@@ -27,13 +27,14 @@ public final class GameInstance {
 	
 	private int beatenLocations = 0;
 	private Location location;
-	private Ship ship;
+	private final Ship ship;
 	private final Aftik aftik;
 	
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
 		aftik = new Aftik("Cerulean");
+		ship = new Ship();
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -43,7 +44,6 @@ public final class GameInstance {
 			location = Locations.getRandomLocation();
 		}
 		
-		ship = new Ship();
 		ship.createEntrance(location.getEntryPos());
 		location.addAtEntry(aftik);
 	}
@@ -75,8 +75,9 @@ public final class GameInstance {
 				} else {
 					out.printf("You got fuel to your ship,%n and proceeded to your next location.%n%n");
 					
-					aftik.remove();
+					ship.separateFromLocation();
 					aftik.restoreHealth();
+					
 					initLocation(false);
 					continue;
 				}
