@@ -25,6 +25,10 @@ public final class DoorActions {
 				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
 		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
+		dispatcher.register(literal("enter").then(literal("ship")
+				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_ENTRANCE))));
+		dispatcher.register(literal("exit").then(literal("ship")
+				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_EXIT))));
 	}
 	
 	private static int enterDoor(GameInstance game, ObjectType doorType) {
