@@ -28,13 +28,18 @@ public final class GameInstance {
 	private int beatenLocations = 0;
 	private Location location;
 	private final Ship ship;
-	private final Aftik aftik;
+	private Aftik aftik;
+	private final List<Aftik> crew;
 	
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
-		aftik = new Aftik("Cerulean");
+		
+		crew = new ArrayList<>(List.of(new Aftik("Cerulean"), new Aftik("Mint")));
+		aftik = crew.get(0);
+		
 		ship = new Ship();
+		crew.forEach(aftik1 -> ship.getRoom().addObject(aftik1, 0));
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -45,11 +50,14 @@ public final class GameInstance {
 		}
 		
 		ship.createEntrance(location.getEntryPos());
+		
+		aftik.remove();
 		location.addAtEntry(aftik);
 	}
 	
 	public void run(boolean debugLevel) {
 		initLocation(debugLevel);
+		out.printf("You're playing as the aftik %s.%n", aftik.getName());
 		
 		while (true) {
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
@@ -61,8 +69,18 @@ public final class GameInstance {
 			optionallyPrintInventory(aftik);
 			
 			if (aftik.isDead()) {
-				out.println("You lost.");
-				return;
+				out.printf("%s is dead.%n", aftik.getName());
+				crew.remove(aftik);
+				aftik.remove();
+				
+				if (crew.isEmpty()) {
+					out.println("You lost.");
+					return;
+				} else {
+					aftik = crew.get(0);
+					out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
+					continue;
+				}
 			}
 			
 			if (aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {

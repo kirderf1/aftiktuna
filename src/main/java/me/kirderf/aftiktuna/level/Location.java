@@ -25,8 +25,6 @@ public final class Location {
 	}
 	
 	public void addAtEntry(GameObject object) {
-		if (object.getPosition() != null)
-			object.remove();
 		entryPos.room().addObject(object, entryPos);
 	}
 	
