@@ -30,6 +30,7 @@ public final class GameInstance {
 	private final Ship ship;
 	private Aftik aftik;
 	private final List<Aftik> crew;
+	private boolean isShipLaunching = false;
 	
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
@@ -45,6 +46,10 @@ public final class GameInstance {
 	
 	public Aftik getAftik() {
 		return aftik;
+	}
+	
+	public Ship getShip() {
+		return ship;
 	}
 	
 	public Stream<GameObject> getGameObjectStream() {
@@ -85,6 +90,14 @@ public final class GameInstance {
 			
 			out.println();
 		}
+	}
+	
+	public boolean tryLaunchShip(Aftik aftik) {
+		if (!isShipLaunching && aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+			isShipLaunching = true;
+			return true;
+		} else
+			return false;
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -129,14 +142,12 @@ public final class GameInstance {
 	}
 	
 	private void handleShipStatus(boolean debugLevel) {
-		if (aftik != null && aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
-			statusPrinter.printStatus(aftik);
+		if (isShipLaunching) {
+			isShipLaunching = false;
 			beatenLocations++;
 			
-			if (noMoreLevels(debugLevel)) {
-				out.println("You got fuel to your ship.");
-			} else {
-				out.printf("You got fuel to your ship,%n and proceeded to your next location.%n%n");
+			if (!noMoreLevels(debugLevel)) {
+				out.printf("The ship moves on to the next location.%n%n");
 				
 				ship.separateFromLocation();
 				for (Aftik aftik : List.copyOf(crew)) {
@@ -156,6 +167,8 @@ public final class GameInstance {
 	}
 	
 	private void handleUserAction() {
+		if (aftik == null)
+			throw new IllegalStateException("Aftik should not be null at this point");
 		int result = 0;
 		do {
 			String input;

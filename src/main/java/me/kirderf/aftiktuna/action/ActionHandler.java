@@ -27,6 +27,7 @@ public final class ActionHandler {
 		DoorActions.register(dispatcher);
 		dispatcher.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
+		dispatcher.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
 	}
 	
 	static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -60,6 +61,25 @@ public final class ActionHandler {
 			return result.success() ? 1 : 0;
 		} else {
 			game.out().println("There is no such creature to attack.");
+			return 0;
+		}
+	}
+	
+	private static int launchShip(GameInstance game) {
+		Aftik aftik = game.getAftik();
+		
+		if (aftik.getRoom() == game.getShip().getRoom()) {
+			boolean result = game.tryLaunchShip(aftik);
+			
+			if (result) {
+				game.out().printf("%s got fuel to the ship.%n", aftik.getName());
+			} else {
+				game.out().println("The ship can't be launched at this time.");
+			}
+			
+			return 1;
+		} else {
+			game.out().printf("%s need to be in the ship in order to launch it.%n", aftik.getName());
 			return 0;
 		}
 	}
