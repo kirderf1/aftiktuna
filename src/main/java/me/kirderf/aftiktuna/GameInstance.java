@@ -153,20 +153,21 @@ public final class GameInstance {
 			out.println(builder);
 		}
 		
+		Map<String, Character> charMap = new HashMap<>();
+		room.objectStream().forEach(object -> charMap.put(object.getDisplayName(false, true), object.getType().symbol()));
+		
 		StringBuilder builder = new StringBuilder();
-		Set<ObjectType> writtenChars = new HashSet<>();
-		room.objectStream().forEach(object -> {
-			if (writtenChars.add(object.getType())) {
-				String entry = "%s: %s".formatted(object.getType().symbol(), object.getDisplayName(false, true));
-				if (!builder.isEmpty()) {
-					if(builder.length() + entry.length() + 3 <= EXPECTED_LINE_LENGTH)
-						builder.append("   ");
-					else {
-						builder.append('\n');
-					}
+		charMap.forEach((name, symbol) -> {
+			String label = "%s: %s".formatted(symbol, name);
+			if (!builder.isEmpty()) {
+				if (builder.length() + label.length() + 3 <= EXPECTED_LINE_LENGTH)
+					builder.append("   ");
+				else {
+					out.println(builder);
+					builder.setLength(0);
 				}
-				builder.append(entry);
 			}
+			builder.append(label);
 		});
 		if (!builder.isEmpty())
 			out.println(builder);
