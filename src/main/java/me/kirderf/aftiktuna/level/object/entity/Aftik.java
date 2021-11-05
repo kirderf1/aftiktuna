@@ -76,6 +76,21 @@ public final class Aftik extends Entity {
 		return failure;
 	}
 	
+	public Either<Boolean, MoveFailure> moveAndGive(Aftik aftik, ObjectType type) {
+		Optional<Entity.MoveFailure> failure = tryMoveTo(aftik.getPosition());
+		
+		if (failure.isEmpty()) {
+			
+			if (this.removeItem(type)) {
+				aftik.addItem(type);
+				return Either.left(true);
+			} else
+				return Either.left(false);
+		} else {
+			return Either.right(failure.get());
+		}
+	}
+	
 	public Either<EnterResult, MoveFailure> moveAndEnter(Door door) {
 		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
 		if (failure.isEmpty()) {

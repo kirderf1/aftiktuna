@@ -1,17 +1,18 @@
 package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
+import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static me.kirderf.aftiktuna.action.ActionHandler.argument;
-import static me.kirderf.aftiktuna.action.ActionHandler.literal;
+import static me.kirderf.aftiktuna.action.ActionHandler.*;
 
 public final class ItemActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
@@ -19,6 +20,9 @@ public final class ItemActions {
 				.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item")))));
 		dispatcher.register(literal("wield").then(argument("item", ObjectArgument.create(ObjectTypes.WEAPONS))
 				.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
+		dispatcher.register(literal("give").then(argument("name", StringArgumentType.string())
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS)).executes(context -> giveItem(context.getSource(),
+						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item"))))));
 	}
 	
 	private static int takeItem(GameInstance game, ObjectType type) {
@@ -55,6 +59,39 @@ public final class ItemActions {
 		result.ifPresentOrElse(
 				failure -> ActionHandler.printMoveFailure(game,failure),
 				() -> game.out().printf("%s picked up and wielded the %s.%n", aftik.getName(), type.name()));
+	}
+	
+	private static int giveItem(GameInstance game, String name, ObjectType type) {
+		Aftik aftik = game.getAftik();
+		Optional<Aftik> aftikOptional = game.findByName(name);
+		
+		if (aftikOptional.isPresent() && aftik.getRoom() == aftikOptional.get().getRoom()) {
+			Aftik target = aftikOptional.get();
+			
+			if (aftik == target) {
+				game.out().printf("%s can't give an item to themselves.%n", aftik.getName());
+				return 0;
+			}
+			
+			if (aftik.hasItem(type)) {
+				
+				Either<Boolean, Entity.MoveFailure> result = aftik.moveAndGive(target, type);
+				
+				result.run(success -> {
+					if (success)
+						game.out().printf("%s gave %s a %s.%n", aftik.getName(), target.getName(), type.name());
+					else
+						game.out().printf("%s does not have that item.%n", aftik.getName());
+				}, moveFailure -> printMoveFailure(game, moveFailure));
+				return 1;
+			} else {
+				game.out().printf("%s does not have that item.%n", aftik.getName());
+				return 0;
+			}
+		} else {
+			game.out().printf("There is no such aftik in the room.%n");
+			return 0;
+		}
 	}
 	
 	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Item> onSuccess, Runnable onNoMatch) {
