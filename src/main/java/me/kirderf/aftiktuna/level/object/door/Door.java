@@ -1,5 +1,7 @@
 package me.kirderf.aftiktuna.level.object.door;
 
+import me.kirderf.aftiktuna.action.EnterResult;
+import me.kirderf.aftiktuna.action.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.object.ObjectType;

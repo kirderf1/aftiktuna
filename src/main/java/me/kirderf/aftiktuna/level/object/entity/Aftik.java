@@ -1,5 +1,7 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
+import me.kirderf.aftiktuna.action.EnterResult;
+import me.kirderf.aftiktuna.action.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.Item;
@@ -7,8 +9,6 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.WeaponType;
 import me.kirderf.aftiktuna.level.object.door.Door;
-import me.kirderf.aftiktuna.level.object.door.EnterResult;
-import me.kirderf.aftiktuna.level.object.door.ForceResult;
 import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 

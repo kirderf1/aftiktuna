@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
+import me.kirderf.aftiktuna.action.AttackResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;

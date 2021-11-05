@@ -11,7 +11,6 @@ import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
-import me.kirderf.aftiktuna.level.object.entity.AttackResult;
 import me.kirderf.aftiktuna.level.object.entity.Creature;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
 import me.kirderf.aftiktuna.util.OptionalFunction;
