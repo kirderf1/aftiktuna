@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -27,6 +28,8 @@ public final class ActionHandler {
 		dispatcher.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
 		dispatcher.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
+		dispatcher.register(literal("control").then(argument("name", StringArgumentType.string())
+				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
 	}
 	
 	static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -81,6 +84,22 @@ public final class ActionHandler {
 			game.out().printf("%s need to be in the ship in order to launch it.%n", aftik.getName());
 			return 0;
 		}
+	}
+	
+	private static int controlAftik(GameInstance game, String name) {
+		Optional<Aftik> aftikOptional = game.findByName(name);
+		if (aftikOptional.isPresent()) {
+			Aftik aftik = aftikOptional.get();
+			if (aftik != game.getAftik()) {
+				game.setControllingAftik(aftik);
+				game.printStatus();
+			} else {
+				game.out().println("You're already in control of them.");
+			}
+		} else {
+			game.out().println("There is no crew member by that name.");
+		}
+		return 0;
 	}
 	
 	static void printMoveFailure(GameInstance game, Entity.MoveFailure result) {

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -56,6 +57,14 @@ public final class GameInstance {
 		return Stream.concat(Stream.of(ship.getRoom()), location.getRooms().stream()).flatMap(Room::objectStream);
 	}
 	
+	public Optional<Aftik> findByName(String name) {
+		for (Aftik aftik : crew) {
+			if (aftik.getName().equalsIgnoreCase(name))
+				return Optional.of(aftik);
+		}
+		return Optional.empty();
+	}
+	
 	public PrintWriter out() {
 		return out;
 	}
@@ -82,7 +91,7 @@ public final class GameInstance {
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
-			statusPrinter.printStatus(aftik);
+			printStatus();
 			
 			handleUserAction();
 			
@@ -92,12 +101,23 @@ public final class GameInstance {
 		}
 	}
 	
+	public void setControllingAftik(Aftik aftik) {
+		if (!crew.contains(aftik))
+			throw new IllegalArgumentException("Aftik must be part of the crew.");
+		this.aftik = aftik;
+		out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
+	}
+	
 	public boolean tryLaunchShip(Aftik aftik) {
 		if (!isShipLaunching && aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
 			isShipLaunching = true;
 			return true;
 		} else
 			return false;
+	}
+	
+	public void printStatus() {
+		statusPrinter.printStatus(this.aftik);
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -119,7 +139,7 @@ public final class GameInstance {
 		for (Aftik aftik : List.copyOf(crew)) {
 			if (aftik.isDead()) {
 				if (this.aftik == aftik)
-					statusPrinter.printStatus(aftik);
+					printStatus();
 				out.printf("%s is dead.%n", aftik.getName());
 				
 				aftik.dropItems();
@@ -139,8 +159,7 @@ public final class GameInstance {
 	//Assumes that the crew isn't empty
 	private void replaceLostControlCharacter() {
 		if (aftik == null) {
-			aftik = crew.get(0);
-			out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
+			setControllingAftik(crew.get(0));
 		}
 	}
 	
