@@ -126,6 +126,17 @@ public final class Aftik extends Entity {
 		return Collections.unmodifiableList(inventory);
 	}
 	
+	public void dropItems() {
+		if (wielded != null) {
+			getRoom().addObject(new Item(wielded), getPosition());
+			wielded = null;
+		}
+		for (ObjectType item : inventory) {
+			getRoom().addObject(new Item(item), getPosition());
+		}
+		inventory.clear();
+	}
+	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
 		return getRoom().objectStream().sorted(blockingComparator().thenComparing(Room.byProximity(getCoord())))
 				.flatMap(mapper.toStream()).findFirst();

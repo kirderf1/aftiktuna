@@ -127,6 +127,7 @@ public final class GameInstance {
 					statusPrinter.printStatus(aftik);
 				out.printf("%s is dead.%n", aftik.getName());
 				
+				aftik.dropItems();
 				aftik.remove();
 				removeFromCrew(aftik);
 			}
@@ -154,7 +155,7 @@ public final class GameInstance {
 			beatenLocations++;
 			
 			if (!noMoreLevels(debugLevel)) {
-				out.printf("The ship moves on to the next location.%n%n");
+				out.printf("The ship moves on to the next location.%n");
 				
 				ship.separateFromLocation();
 				for (Aftik aftik : List.copyOf(crew)) {
