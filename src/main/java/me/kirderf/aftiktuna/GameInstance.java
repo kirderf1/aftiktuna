@@ -86,6 +86,11 @@ public final class GameInstance {
 			
 			handleUserAction();
 			
+			for (Aftik other : crew) {
+				if (other.isAlive() && other.getRoom() != aftik.getRoom())
+					other.teleport(aftik.getPosition());
+			}
+			
 			actionHandler.handleCreatures(this);
 			
 			out.println();
@@ -109,8 +114,10 @@ public final class GameInstance {
 		
 		ship.createEntrance(location.getEntryPos());
 		
-		aftik.remove();
-		location.addAtEntry(aftik);
+		for (Aftik aftik : crew) {
+			aftik.remove();
+			location.addAtEntry(aftik);
+		}
 	}
 	
 	private void handleCrewDeaths() {
