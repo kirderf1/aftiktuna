@@ -86,12 +86,7 @@ public final class GameInstance {
 			
 			handleUserAction();
 			
-			for (Aftik other : crew) {
-				if (other.isAlive() && other != aftik)
-					other.tryFollow();
-			}
-			
-			actionHandler.handleCreatures(this);
+			actionHandler.handleEntities(this);
 			
 			out.println();
 		}

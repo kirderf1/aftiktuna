@@ -150,10 +150,13 @@ public final class Aftik extends Entity {
 		this.targetDoor = door;
 	}
 	
-	public void tryFollow() {
+	public boolean tryFollow() {
 		if (targetDoor != null && targetDoor.getRoom() == this.getRoom()) {
-			moveAndEnter(targetDoor);
+			Either<EnterResult, MoveFailure> result = moveAndEnter(targetDoor);
+			
+			return result.getLeft().map(EnterResult::success).orElse(false);
 		}
+		return false;
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {

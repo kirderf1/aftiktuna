@@ -104,8 +104,21 @@ public final class ActionHandler {
 		}
 	}
 	
-	public void handleCreatures(GameInstance game) {
-		game.getGameObjectStream().flatMap(Creature.CAST.toStream()).collect(Collectors.toList()).forEach(creature -> handleCreature(game, creature));
+	public void handleEntities(GameInstance game) {
+		
+		for (Aftik aftik : game.getGameObjectStream().flatMap(Aftik.CAST.toStream()).collect(Collectors.toList())) {
+			if (aftik.isAlive() && aftik != game.getAftik()) {
+				boolean success = aftik.tryFollow();
+				
+				if (success) {
+					game.out().printf("%s follows %s into the room.%n", aftik.getName(), game.getAftik().getName());
+				}
+			}
+		}
+		
+		for (Creature creature : game.getGameObjectStream().flatMap(Creature.CAST.toStream()).collect(Collectors.toList())) {
+			handleCreature(game, creature);
+		}
 	}
 	
 	private static void handleCreature(GameInstance game, Creature creature) {
