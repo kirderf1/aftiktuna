@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -39,7 +40,15 @@ public final class DoorActions {
 	}
 	
 	private static void enterDoor(GameInstance game, Aftik aftik, Door door) {
+		Room originalRoom = aftik.getRoom();
+		
 		Either<EnterResult, Entity.MoveFailure> result = aftik.moveAndEnter(door);
+		
+		result.getLeft().ifPresent(enterResult -> {
+			if (enterResult.success()) {
+				originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.observeEnteredDoor(door));
+			}
+		});
 		
 		result.run(enterResult -> printEnterResult(game, aftik, enterResult),
 				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));

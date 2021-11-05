@@ -22,6 +22,9 @@ public final class Aftik extends Entity {
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
+	// The door that the player aftik entered at the same turn. Other aftiks may try to follow along
+	private Door targetDoor;
+	
 	public Aftik(String name) {
 		super(ObjectTypes.AFTIK, 10, 5);
 		this.name = name;
@@ -44,6 +47,12 @@ public final class Aftik extends Entity {
 	@Override
 	protected int getAttackPower() {
 		return wielded != null ? wielded.getDamageValue() : 2;
+	}
+	
+	@Override
+	public void prepare() {
+		super.prepare();
+		targetDoor = null;
 	}
 	
 	public Optional<Entity.MoveFailure> moveAndTake(Item item) {
@@ -135,6 +144,16 @@ public final class Aftik extends Entity {
 			getRoom().addObject(new Item(item), getPosition());
 		}
 		inventory.clear();
+	}
+	
+	public void observeEnteredDoor(Door door) {
+		this.targetDoor = door;
+	}
+	
+	public void tryFollow() {
+		if (targetDoor != null && targetDoor.getRoom() == this.getRoom()) {
+			moveAndEnter(targetDoor);
+		}
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {

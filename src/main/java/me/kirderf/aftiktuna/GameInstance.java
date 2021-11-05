@@ -87,8 +87,8 @@ public final class GameInstance {
 			handleUserAction();
 			
 			for (Aftik other : crew) {
-				if (other.isAlive() && other.getRoom() != aftik.getRoom())
-					other.teleport(aftik.getPosition());
+				if (other.isAlive() && other != aftik)
+					other.tryFollow();
 			}
 			
 			actionHandler.handleCreatures(this);
