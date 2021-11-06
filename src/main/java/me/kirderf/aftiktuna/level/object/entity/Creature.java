@@ -1,8 +1,6 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.ContextPrinter;
-import me.kirderf.aftiktuna.action.ActionHandler;
-import me.kirderf.aftiktuna.action.AttackResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -48,12 +46,11 @@ public final class Creature extends Entity {
 				.filter(aftik -> aftik.getRoom() == this.getRoom()).min(Room.byProximity(this.getCoord()));
 		if(target.isPresent()) {
 			Aftik aftik = target.get();
+			
 			if (isMoving) {
-				tryMoveNextTo(aftik.getPosition());
-			}
-			if (aftik.getPosition().isAdjacent(this.getPosition())) {
-				AttackResult result = attack(aftik);
-				ActionHandler.printAttackAction(out, this, result);
+				this.moveAndAttack(aftik, out);
+			} else if (aftik.getPosition().isAdjacent(this.getPosition())) {
+				this.attack(aftik, out);
 			}
 		}
 	}

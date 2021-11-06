@@ -65,7 +65,7 @@ public final class Aftik extends Entity {
 			Either<EnterResult, MoveFailure> result = moveAndEnter(followTarget.door);
 			
 			if (result.getLeft().map(EnterResult::success).orElse(false)) {
-				out.printf(this.getRoom(), "%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
+				out.printAt(this, "%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
 			}
 		} else {
 			Optional<WeaponType> weaponType = findWieldableItem();
@@ -150,13 +150,13 @@ public final class Aftik extends Entity {
 	
 	public void wieldFromInventory(WeaponType type, ContextPrinter out) {
 		if (type == wielded) {
-			out.printf(this, "%s is already wielding a %s.%n", this.getName(), type.name());
+			out.printFor(this, "%s is already wielding a %s.%n", this.getName(), type.name());
 		} else {
 			if (inventory.remove(type)) {
 				wield(type);
-				out.printf(this.getRoom(), "%s wielded a %s.%n", this.getName(), type.name());
+				out.printAt(this, "%s wielded a %s.%n", this.getName(), type.name());
 			} else {
-				out.printf(this, "%s does not have a %s.%n", this.getName(), type.name());
+				out.printFor(this, "%s does not have a %s.%n", this.getName(), type.name());
 			}
 		}
 	}

@@ -57,11 +57,9 @@ public final class ActionHandler {
 		if (optionalCreature.isPresent()) {
 			Creature creature = optionalCreature.get();
 			
-			Entity.MoveAndAttackResult result = aftik.moveAndAttack(creature);
+			aftik.moveAndAttack(creature, new ContextPrinter(game));
 			
-			result.either().run(attack -> printAttackAction(new ContextPrinter(game), aftik, attack), move -> printMoveFailure(game, move));
-			
-			return result.success() ? 1 : 0;
+			return 1;
 		} else {
 			game.out().println("There is no such creature to attack.");
 			return 0;
@@ -104,21 +102,29 @@ public final class ActionHandler {
 	}
 	
 	static void printMoveFailure(GameInstance game, Entity.MoveFailure result) {
-		printBlocking(game, result.blocking());
+		printBlocking(new ContextPrinter(game), game.getAftik(), result.blocking());
+	}
+	
+	public static void printMoveFailure(ContextPrinter out, Entity entity, Entity.MoveFailure result) {
+		printBlocking(out, entity, result.blocking());
 	}
 	
 	static void printBlocking(GameInstance game, GameObject blocking) {
-		game.out().printf("The %s is blocking the way.%n", blocking.getType().name());
+		printBlocking(new ContextPrinter(game), game.getAftik(), blocking);
+	}
+	
+	static void printBlocking(ContextPrinter out, Entity entity, GameObject blocking) {
+		out.printFor(entity, "The %s is blocking the way.%n", blocking.getType().name());
 	}
 	
 	public static void printAttackAction(ContextPrinter out, Entity attacker, AttackResult result) {
 		Entity attacked = result.attacked();
 		switch(result.type()) {
-			case DIRECT_HIT -> out.printf(attacker.getRoom(), condition("%s got a direct hit on[ and killed] %s.%n", result.isKill()),
+			case DIRECT_HIT -> out.printAt(attacker, condition("%s got a direct hit on[ and killed] %s.%n", result.isKill()),
 					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case GRAZING_HIT -> out.printf(attacker.getRoom(), condition("%s's attack grazed[ and killed] %s.%n", result.isKill()),
+			case GRAZING_HIT -> out.printAt(attacker, condition("%s's attack grazed[ and killed] %s.%n", result.isKill()),
 					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case DODGE -> out.printf(attacker.getRoom(), "%s dodged %s's attack.%n",
+			case DODGE -> out.printAt(attacker, "%s dodged %s's attack.%n",
 					attacked.getDisplayName(true, true), attacker.getDisplayName(true, false));
 		}
 	}

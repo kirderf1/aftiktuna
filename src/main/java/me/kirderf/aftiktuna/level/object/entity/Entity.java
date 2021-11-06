@@ -2,11 +2,11 @@ package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
+import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.AttackResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.object.ObjectType;
-import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
@@ -87,10 +87,13 @@ public abstract class Entity extends GameObject {
 			return Optional.empty();
 	}
 	
-	public final AttackResult attack(Entity target) {
+	public final void attack(Entity target, ContextPrinter out) {
 		if (!target.getPosition().isAdjacent(this.getPosition()))
 			throw new IllegalStateException("Expected to be next to target when attacking.");
-		return target.receiveAttack(getAttackPower());
+		
+		AttackResult result = target.receiveAttack(getAttackPower());
+		
+		ActionHandler.printAttackAction(out, this, result);
 	}
 	
 	public final AttackResult receiveAttack(int attackPower) {
@@ -124,29 +127,14 @@ public abstract class Entity extends GameObject {
 			return AttackResult.Type.DIRECT_HIT;
 	}
 	
-	public final MoveAndAttackResult moveAndAttack(Entity target) {
+	public final void moveAndAttack(Entity target, ContextPrinter out) {
 		Optional<MoveFailure> move = tryMoveNextTo(target.getPosition());
 		if (move.isEmpty()) {
-			AttackResult result = attack(target);
-			return new MoveAndAttackResult(result);
+			attack(target, out);
 		} else
-			return new MoveAndAttackResult(move.get());
+			ActionHandler.printMoveFailure(out, this, move.get());
 	}
 	
 	public static record MoveFailure(GameObject blocking) {
-	}
-	
-	public static record MoveAndAttackResult(Either<AttackResult, MoveFailure> either) {
-		public MoveAndAttackResult(AttackResult result) {
-			this(Either.left(result));
-		}
-		
-		public MoveAndAttackResult(MoveFailure result) {
-			this(Either.right(result));
-		}
-		
-		public boolean success() {
-			return either.isLeft();
-		}
 	}
 }
