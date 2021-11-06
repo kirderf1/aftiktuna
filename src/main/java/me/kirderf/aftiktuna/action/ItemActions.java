@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.*;
@@ -44,7 +45,7 @@ public final class ItemActions {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.hasItem(weaponType)) {
-			aftik.wieldFromInventoryWithMessage(weaponType, game.out());
+			aftik.wieldFromInventory(weaponType, new ContextPrinter(game));
 			return 1;
 		} else {
 			return searchForAndIfNotBlocked(game, aftik, weaponType,

@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
+import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.action.EnterResult;
 import me.kirderf.aftiktuna.action.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
@@ -12,7 +13,6 @@ import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
-import java.io.PrintWriter;
 import java.util.*;
 
 public final class Aftik extends Entity {
@@ -58,19 +58,19 @@ public final class Aftik extends Entity {
 		followTarget = null;
 	}
 	
-	public void performAction(PrintWriter out) {
+	public void performAction(ContextPrinter out) {
 		
 		if (followTarget != null && followTarget.door.getRoom() == this.getRoom()) {
 			Either<EnterResult, MoveFailure> result = moveAndEnter(followTarget.door);
 			
 			if (result.getLeft().map(EnterResult::success).orElse(false)) {
-				out.printf("%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
+				out.printf(this.getRoom(), "%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
 			}
 		} else {
 			Optional<WeaponType> weaponType = findWieldableItem();
+			
 			if (weaponType.isPresent()) {
-				if (wieldFromInventory(weaponType.get()))
-					out.printf("%s wielded a %s.%n", this.getName(), weaponType.get().name());
+				wieldFromInventory(weaponType.get(), out);
 			}
 		}
 	}
@@ -147,25 +147,16 @@ public final class Aftik extends Entity {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
-	public void wieldFromInventoryWithMessage(WeaponType type, PrintWriter out) {
+	public void wieldFromInventory(WeaponType type, ContextPrinter out) {
 		if (type == wielded) {
-			out.printf("%s is already wielding a %s.%n", this.getName(), type.name());
+			out.printf(this, "%s is already wielding a %s.%n", this.getName(), type.name());
 		} else {
-			boolean success = wieldFromInventory(type);
-			if (success) {
-				out.printf("%s wielded a %s.%n", this.getName(), type.name());
+			if (inventory.remove(type)) {
+				wield(type);
+				out.printf(this.getRoom(), "%s wielded a %s.%n", this.getName(), type.name());
 			} else {
-				out.printf("%s does not have a %s.%n", this.getName(), type.name());
+				out.printf(this, "%s does not have a %s.%n", this.getName(), type.name());
 			}
-		}
-	}
-	
-	public boolean wieldFromInventory(WeaponType type) {
-		if (inventory.remove(type)) {
-			wield(type);
-			return true;
-		} else {
-			return false;
 		}
 	}
 	
