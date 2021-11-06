@@ -60,6 +60,7 @@ public final class Aftik extends Entity {
 	
 	@Override
 	public void performAction(ContextPrinter out) {
+		Optional<WeaponType> weaponType = findWieldableItem();
 		
 		if (followTarget != null && followTarget.door.getRoom() == this.getRoom()) {
 			Either<EnterResult, MoveFailure> result = moveAndEnter(followTarget.door);
@@ -67,12 +68,11 @@ public final class Aftik extends Entity {
 			if (result.getLeft().map(EnterResult::success).orElse(false)) {
 				out.printAt(this, "%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
 			}
+		} else if (weaponType.isPresent()) {
+			wieldFromInventory(weaponType.get(), out);
 		} else {
-			Optional<WeaponType> weaponType = findWieldableItem();
-			
-			if (weaponType.isPresent()) {
-				wieldFromInventory(weaponType.get(), out);
-			}
+			Optional<Creature> target = findNearest(Creature.CAST);
+			target.ifPresent(creature -> moveAndAttack(creature, out));
 		}
 	}
 	
