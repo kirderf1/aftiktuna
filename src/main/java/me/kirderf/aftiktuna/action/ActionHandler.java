@@ -59,7 +59,7 @@ public final class ActionHandler {
 			
 			Entity.MoveAndAttackResult result = aftik.moveAndAttack(creature);
 			
-			result.either().run(attack -> printAttackAction(game, aftik, attack), move -> printMoveFailure(game, move));
+			result.either().run(attack -> printAttackAction(new ContextPrinter(game), aftik, attack), move -> printMoveFailure(game, move));
 			
 			return result.success() ? 1 : 0;
 		} else {
@@ -111,35 +111,24 @@ public final class ActionHandler {
 		game.out().printf("The %s is blocking the way.%n", blocking.getType().name());
 	}
 	
-	private static void printAttackAction(GameInstance game, Entity attacker, AttackResult result) {
+	public static void printAttackAction(ContextPrinter out, Entity attacker, AttackResult result) {
 		Entity attacked = result.attacked();
 		switch(result.type()) {
-			case DIRECT_HIT -> game.out().printf(condition("%s got a direct hit on[ and killed] %s.%n", result.isKill()),
+			case DIRECT_HIT -> out.printf(attacker.getRoom(), condition("%s got a direct hit on[ and killed] %s.%n", result.isKill()),
 					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case GRAZING_HIT -> game.out().printf(condition("%s's attack grazed[ and killed] %s.%n", result.isKill()),
+			case GRAZING_HIT -> out.printf(attacker.getRoom(), condition("%s's attack grazed[ and killed] %s.%n", result.isKill()),
 					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case DODGE -> game.out().printf("%s dodged %s's attack.%n",
+			case DODGE -> out.printf(attacker.getRoom(), "%s dodged %s's attack.%n",
 					attacked.getDisplayName(true, true), attacker.getDisplayName(true, false));
 		}
 	}
 	
 	public void handleEntities(GameInstance game) {
 		
-		for (Aftik aftik : game.getGameObjectStream().flatMap(Aftik.CAST.toStream()).collect(Collectors.toList())) {
-			if (aftik.isAlive() && aftik != game.getAftik()) {
-				aftik.performAction(new ContextPrinter(game));
+		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
+			if (entity.isAlive() && entity != game.getAftik()) {
+				entity.performAction(new ContextPrinter(game));
 			}
-		}
-		
-		for (Creature creature : game.getGameObjectStream().flatMap(Creature.CAST.toStream()).collect(Collectors.toList())) {
-			handleCreature(game, creature);
-		}
-	}
-	
-	private static void handleCreature(GameInstance game, Creature creature) {
-		if (creature.isAlive()) {
-			Optional<AttackResult> result = creature.doAction();
-			result.ifPresent(attack -> printAttackAction(game, creature, attack));
 		}
 	}
 	

@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
+import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.AttackResult;
 import me.kirderf.aftiktuna.level.GameObject;
@@ -32,6 +33,8 @@ public abstract class Entity extends GameObject {
 	public void prepare() {
 		dodgingStamina = Math.min(dodgingStamina + 1, STAMINA_MAX);
 	}
+	
+	public abstract void performAction(ContextPrinter out);
 	
 	public int getMaxHealth() {
 		return maxHealth;

@@ -1,5 +1,7 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
+import me.kirderf.aftiktuna.ContextPrinter;
+import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.AttackResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
@@ -39,7 +41,8 @@ public final class Creature extends Entity {
 		targets = getRoom().objectStream().flatMap(Aftik.CAST.toStream()).filter(Entity::isAlive).collect(Collectors.toList());
 	}
 	
-	public Optional<AttackResult> doAction() {
+	@Override
+	public void performAction(ContextPrinter out) {
 		
 		Optional<Aftik> target = targets.stream().filter(Entity::isAlive)
 				.filter(aftik -> aftik.getRoom() == this.getRoom()).min(Room.byProximity(this.getCoord()));
@@ -50,10 +53,9 @@ public final class Creature extends Entity {
 			}
 			if (aftik.getPosition().isAdjacent(this.getPosition())) {
 				AttackResult result = attack(aftik);
-				return Optional.of(result);
+				ActionHandler.printAttackAction(out, this, result);
 			}
 		}
-		return Optional.empty();
 	}
 	
 	@Override

@@ -58,6 +58,7 @@ public final class Aftik extends Entity {
 		followTarget = null;
 	}
 	
+	@Override
 	public void performAction(ContextPrinter out) {
 		
 		if (followTarget != null && followTarget.door.getRoom() == this.getRoom()) {
