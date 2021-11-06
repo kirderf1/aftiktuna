@@ -66,10 +66,16 @@ public final class Aftik extends Entity {
 			if (result.getLeft().map(EnterResult::success).orElse(false)) {
 				out.printf("%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
 			}
+		} else {
+			Optional<WeaponType> weaponType = findWieldableItem();
+			if (weaponType.isPresent()) {
+				if (wieldFromInventory(weaponType.get()))
+					out.printf("%s wielded a %s.%n", this.getName(), weaponType.get().name());
+			}
 		}
 	}
 	
-	public Optional<Entity.MoveFailure> moveAndTake(Item item) {
+	public Optional<MoveFailure> moveAndTake(Item item) {
 		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
 		if (failure.isEmpty()) {
 			item.remove();
@@ -186,5 +192,11 @@ public final class Aftik extends Entity {
 	
 	private Comparator<GameObject> blockingComparator() {
 		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
+	}
+	
+	private Optional<WeaponType> findWieldableItem() {
+		return inventory.stream().flatMap(OptionalFunction.cast(WeaponType.class).toStream())
+				.max(Comparator.comparingInt(WeaponType::getDamageValue))
+				.filter(type -> wielded == null || wielded.getDamageValue() < type.getDamageValue());
 	}
 }
