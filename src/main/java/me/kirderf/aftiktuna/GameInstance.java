@@ -122,7 +122,7 @@ public final class GameInstance {
 	
 	private void initLocation(boolean debugLevel) {
 		if (debugLevel) {
-			location = EarlyTestingLocations.createBlockingLocation();
+			location = CrewTestingLocations.separationTest();
 		} else {
 			location = Locations.getRandomLocation();
 		}
