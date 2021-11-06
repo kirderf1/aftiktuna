@@ -126,11 +126,7 @@ public final class ActionHandler {
 		
 		for (Aftik aftik : game.getGameObjectStream().flatMap(Aftik.CAST.toStream()).collect(Collectors.toList())) {
 			if (aftik.isAlive() && aftik != game.getAftik()) {
-				boolean success = aftik.tryFollow();
-				
-				if (success) {
-					game.out().printf("%s follows %s into the room.%n", aftik.getName(), game.getAftik().getName());
-				}
+				aftik.performAction(game);
 			}
 		}
 		

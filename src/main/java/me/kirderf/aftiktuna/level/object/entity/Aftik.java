@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
+import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.EnterResult;
 import me.kirderf.aftiktuna.action.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
@@ -53,6 +54,17 @@ public final class Aftik extends Entity {
 	public void prepare() {
 		super.prepare();
 		targetDoor = null;
+	}
+	
+	public void performAction(GameInstance game) {
+		
+		if (targetDoor != null && targetDoor.getRoom() == this.getRoom()) {
+			Either<EnterResult, MoveFailure> result = moveAndEnter(targetDoor);
+			
+			if (result.getLeft().map(EnterResult::success).orElse(false)) {
+				game.out().printf("%s follows %s into the room.%n", this.getName(), game.getAftik().getName());
+			}
+		}
 	}
 	
 	public Optional<Entity.MoveFailure> moveAndTake(Item item) {
@@ -163,15 +175,6 @@ public final class Aftik extends Entity {
 	
 	public void observeEnteredDoor(Door door) {
 		this.targetDoor = door;
-	}
-	
-	public boolean tryFollow() {
-		if (targetDoor != null && targetDoor.getRoom() == this.getRoom()) {
-			Either<EnterResult, MoveFailure> result = moveAndEnter(targetDoor);
-			
-			return result.getLeft().map(EnterResult::success).orElse(false);
-		}
-		return false;
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
