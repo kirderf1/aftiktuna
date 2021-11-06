@@ -147,6 +147,19 @@ public final class Aftik extends Entity {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
+	public void wieldFromInventoryWithMessage(WeaponType type, PrintWriter out) {
+		if (type == wielded) {
+			out.printf("%s is already wielding a %s.%n", this.getName(), type.name());
+		} else {
+			boolean success = wieldFromInventory(type);
+			if (success) {
+				out.printf("%s wielded a %s.%n", this.getName(), type.name());
+			} else {
+				out.printf("%s does not have a %s.%n", this.getName(), type.name());
+			}
+		}
+	}
+	
 	public boolean wieldFromInventory(WeaponType type) {
 		if (inventory.remove(type)) {
 			wield(type);

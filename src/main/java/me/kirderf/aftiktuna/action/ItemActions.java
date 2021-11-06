@@ -43,8 +43,8 @@ public final class ItemActions {
 	private static int wieldItem(GameInstance game, WeaponType weaponType) {
 		Aftik aftik = game.getAftik();
 		
-		if (aftik.wieldFromInventory(weaponType)) {
-			game.out().printf("%s wielded a %s.%n", aftik.getName(), weaponType.name());
+		if (aftik.hasItem(weaponType)) {
+			aftik.wieldFromInventoryWithMessage(weaponType, game.out());
 			return 1;
 		} else {
 			return searchForAndIfNotBlocked(game, aftik, weaponType,
