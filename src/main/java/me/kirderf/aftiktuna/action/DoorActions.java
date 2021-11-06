@@ -44,7 +44,7 @@ public final class DoorActions {
 		
 		result.getLeft().ifPresent(enterResult -> {
 			if (enterResult.success()) {
-				originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.observeEnteredDoor(door));
+				originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.observeEnteredDoor(aftik, door));
 			}
 		});
 		

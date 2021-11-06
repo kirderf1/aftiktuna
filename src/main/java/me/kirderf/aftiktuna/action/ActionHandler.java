@@ -126,7 +126,7 @@ public final class ActionHandler {
 		
 		for (Aftik aftik : game.getGameObjectStream().flatMap(Aftik.CAST.toStream()).collect(Collectors.toList())) {
 			if (aftik.isAlive() && aftik != game.getAftik()) {
-				aftik.performAction(game);
+				aftik.performAction(game.out());
 			}
 		}
 		

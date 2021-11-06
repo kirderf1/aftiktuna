@@ -1,6 +1,5 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
-import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.EnterResult;
 import me.kirderf.aftiktuna.action.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
@@ -13,6 +12,7 @@ import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 public final class Aftik extends Entity {
@@ -24,7 +24,9 @@ public final class Aftik extends Entity {
 	private WeaponType wielded = null;
 	
 	// The door that the player aftik entered at the same turn. Other aftiks may try to follow along
-	private Door targetDoor;
+	private FollowTarget followTarget;
+	
+	private static record FollowTarget(Door door, Aftik aftik) {}
 	
 	public Aftik(String name) {
 		super(ObjectTypes.AFTIK, 10, 5);
@@ -53,16 +55,16 @@ public final class Aftik extends Entity {
 	@Override
 	public void prepare() {
 		super.prepare();
-		targetDoor = null;
+		followTarget = null;
 	}
 	
-	public void performAction(GameInstance game) {
+	public void performAction(PrintWriter out) {
 		
-		if (targetDoor != null && targetDoor.getRoom() == this.getRoom()) {
-			Either<EnterResult, MoveFailure> result = moveAndEnter(targetDoor);
+		if (followTarget != null && followTarget.door.getRoom() == this.getRoom()) {
+			Either<EnterResult, MoveFailure> result = moveAndEnter(followTarget.door);
 			
 			if (result.getLeft().map(EnterResult::success).orElse(false)) {
-				game.out().printf("%s follows %s into the room.%n", this.getName(), game.getAftik().getName());
+				out.printf("%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
 			}
 		}
 	}
@@ -173,8 +175,8 @@ public final class Aftik extends Entity {
 		inventory.clear();
 	}
 	
-	public void observeEnteredDoor(Door door) {
-		this.targetDoor = door;
+	public void observeEnteredDoor(Aftik aftik, Door door) {
+		this.followTarget = new FollowTarget(door, aftik);
 	}
 	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
