@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.ContextPrinter;
+import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.WeaponType;
@@ -16,7 +17,7 @@ public final class AftikMind {
 	
 	// The door that the player aftik entered at the same turn. Other aftiks may try to follow along
 	private FollowTarget followTarget;
-	
+	private Door forceTarget;
 	private boolean launchShip;
 	
 	private static record FollowTarget(Door door, Aftik aftik) {}
@@ -30,8 +31,14 @@ public final class AftikMind {
 		return launchShip;
 	}
 	
-	public void observeEnteredDoor(Aftik aftik, Door door) {
-		this.followTarget = new FollowTarget(door, aftik);
+	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
+		if (result.success()) {
+			this.followTarget = new FollowTarget(door, aftik);
+		}
+		result.either().getRight().ifPresent(failureType -> {
+			if (canForceDoor(failureType))
+				forceTarget = door;
+		});
 	}
 	
 	public void setLaunchShip(ContextPrinter out) {
@@ -54,6 +61,9 @@ public final class AftikMind {
 			if (result.success()) {
 				out.printAt(aftik, "%s follows %s into the room.%n", aftik.getName(), followTarget.aftik.getName());
 			}
+		} else if (forceTarget != null) {
+			aftik.moveAndForce(forceTarget, out);
+			forceTarget = null;
 		} else if (weaponType.isPresent()) {
 			aftik.wieldFromInventory(weaponType.get(), out);
 		} else {
@@ -91,5 +101,12 @@ public final class AftikMind {
 		return aftik.getInventory().stream().flatMap(OptionalFunction.cast(WeaponType.class).toStream())
 				.max(Comparator.comparingInt(WeaponType::getDamageValue))
 				.filter(type -> currentWeaponValue < type.getDamageValue());
+	}
+	
+	private boolean canForceDoor(EnterResult.FailureType type) {
+		if (type == EnterResult.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
+			return true;
+		else
+			return aftik.hasItem(ObjectTypes.BLOWTORCH);
 	}
 }

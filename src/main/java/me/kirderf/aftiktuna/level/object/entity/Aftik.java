@@ -117,9 +117,9 @@ public final class Aftik extends Entity {
 		
 		MoveAndEnterResult result = moveAndEnter(door);
 		
-		if (result.success()) {
-			originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.getMind().observeEnteredDoor(this, door));
-		}
+		result.either.getLeft().ifPresent(enterResult ->
+				originalRoom.objectStream().flatMap(Aftik.CAST.toStream())
+						.forEach(other -> other.getMind().observeEnteredDoor(this, door, enterResult)));
 		
 		result.either().run(enterResult -> DoorActions.printEnterResult(out, this, enterResult),
 				moveFailure -> ActionHandler.printMoveFailure(out, this, moveFailure));
@@ -141,13 +141,13 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public Either<ForceResult, MoveFailure> moveAndForce(Door door) {
+	public void moveAndForce(Door door, ContextPrinter out) {
 		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
 		if (failure.isEmpty()) {
 			ForceResult result = door.force(this);
-			return Either.left(result);
+			DoorActions.printForceResult(out, this, result);
 		} else
-			return Either.right(failure.get());
+			ActionHandler.printMoveFailure(out, this, failure.get());
 	}
 	
 	public void addItem(ObjectType type) {

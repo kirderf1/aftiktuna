@@ -11,8 +11,6 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
-import me.kirderf.aftiktuna.level.object.entity.Entity;
-import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -42,15 +40,8 @@ public final class DoorActions {
 	private static int forceDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
 		return searchForAndIfNotBlocked(game, aftik, doorType,
-				door -> forceDoor(game, aftik, door),
+				door -> aftik.moveAndForce(door, new ContextPrinter(game)),
 				() -> game.out().println("There is no such door here."));
-	}
-	
-	private static void forceDoor(GameInstance game, Aftik aftik, Door door) {
-		Either<ForceResult, Entity.MoveFailure> result = aftik.moveAndForce(door);
-		
-		result.run(forceResult -> printForceResult(game, aftik, forceResult),
-				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));
 	}
 	
 	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Door> onSuccess, Runnable onNoMatch) {
@@ -83,19 +74,19 @@ public final class DoorActions {
 				() -> out.printFor(aftik, "%s entered the door into a new room.%n", aftik.getName()));
 	}
 	
-	private static void printForceResult(GameInstance game, Aftik aftik, ForceResult result) {
-		result.either().run(success -> printForceSuccess(game, aftik, success), status -> printForceStatus(game, aftik, status));
+	public static void printForceResult(ContextPrinter out, Aftik aftik, ForceResult result) {
+		result.either().run(success -> printForceSuccess(out, aftik, success), status -> printForceStatus(out, aftik, status));
 	}
 	
-	private static void printForceSuccess(GameInstance game, Aftik aftik, ForceResult.Success result) {
-		game.out().printf("%s used their %s to %s.%n", aftik.getName(), result.item().name(), result.method().text());
+	private static void printForceSuccess(ContextPrinter out, Aftik aftik, ForceResult.Success result) {
+		out.printAt(aftik, "%s used their %s to %s.%n", aftik.getName(), result.item().name(), result.method().text());
 	}
 	
-	private static void printForceStatus(GameInstance game, Aftik aftik, ForceResult.Status status) {
+	private static void printForceStatus(ContextPrinter out, Aftik aftik, ForceResult.Status status) {
 		switch(status) {
-			case NOT_STUCK -> game.out().println("The door does not seem to be stuck.");
-			case NEED_TOOL -> game.out().printf("%s need some sort of tool to force the door open.%n", aftik.getName());
-			case NEED_BREAK_TOOL -> game.out().printf("%s need some sort of tool to break the door open.%n", aftik.getName());
+			case NOT_STUCK -> out.printFor(aftik, "The door does not seem to be stuck.%n");
+			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the door open.%n", aftik.getName());
+			case NEED_BREAK_TOOL -> out.printFor(aftik, "%s need some sort of tool to break the door open.%n", aftik.getName());
 		}
 	}
 }
