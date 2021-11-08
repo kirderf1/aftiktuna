@@ -7,6 +7,7 @@ import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
+import me.kirderf.aftiktuna.level.object.entity.Stats;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,7 +40,7 @@ public final class GameInstance {
 		statusPrinter = new StatusPrinter(out);
 		
 		ship = new Ship();
-		crew = new ArrayList<>(List.of(new Aftik("Cerulean", 9, ship), new Aftik("Mint", 8, ship)));
+		crew = new ArrayList<>(List.of(new Aftik("Cerulean", new Stats(9, 2), ship), new Aftik("Mint", new Stats(8, 3), ship)));
 		aftik = crew.get(0);
 		crew.forEach(aftik1 -> ship.getRoom().addObject(aftik1, 0));
 	}

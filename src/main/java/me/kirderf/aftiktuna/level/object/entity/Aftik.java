@@ -27,8 +27,8 @@ public final class Aftik extends Entity {
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
-	public Aftik(String name, int strength, Ship ship) {
-		super(ObjectTypes.AFTIK, 10, strength, 8);
+	public Aftik(String name, Stats stats, Ship ship) {
+		super(ObjectTypes.AFTIK, 10, stats);
 		this.name = name;
 		mind = new AftikMind(this, ship);
 	}

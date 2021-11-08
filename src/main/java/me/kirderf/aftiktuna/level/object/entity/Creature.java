@@ -20,7 +20,7 @@ public final class Creature extends Entity {
 	private Collection<Aftik> targets = Collections.emptyList();
 	
 	public Creature(boolean isMoving) {
-		super(ObjectTypes.CREATURE, 5, 4, 10);
+		super(ObjectTypes.CREATURE, 5, new Stats(4, 4));
 		this.isMoving = isMoving;
 	}
 	

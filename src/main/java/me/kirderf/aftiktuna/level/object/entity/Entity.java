@@ -17,15 +17,13 @@ public abstract class Entity extends GameObject {
 	
 	private static final int STAMINA_MAX = 10;
 	
-	private final int strength;
-	private final int maxHealth;
+	private final Stats stats;
 	private float health;
 	private int dodgingStamina = STAMINA_MAX;
 	
-	public Entity(ObjectType type, int weight, int strength, int maxHealth) {
+	public Entity(ObjectType type, int weight, Stats stats) {
 		super(type, weight);
-		this.strength = strength;
-		this.maxHealth = maxHealth;
+		this.stats = stats;
 		restoreHealth();
 	}
 	
@@ -40,7 +38,7 @@ public abstract class Entity extends GameObject {
 	public abstract void performAction(ContextPrinter out);
 	
 	public int getMaxHealth() {
-		return maxHealth;
+		return 4 + stats.endurance() * 2;
 	}
 	
 	public final float getHealth() {
@@ -48,7 +46,7 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final void restoreHealth() {
-		this.health = this.maxHealth;
+		this.health = getMaxHealth();
 	}
 	
 	public final boolean isDead() {
@@ -114,7 +112,7 @@ public abstract class Entity extends GameObject {
 	}
 	
 	private float getStrengthModifier() {
-		return 1/3F + strength/6F;
+		return 1/3F + stats.strength()/6F;
 	}
 	
 	private float getAttackPower() {
