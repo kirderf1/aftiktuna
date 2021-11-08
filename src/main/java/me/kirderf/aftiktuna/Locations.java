@@ -9,15 +9,18 @@ import me.kirderf.aftiktuna.level.object.door.DoorSealedProperty;
 import me.kirderf.aftiktuna.level.object.door.DoorStuckProperty;
 import me.kirderf.aftiktuna.level.object.entity.Creature;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class Locations {
+public final class Locations {
 	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation, Locations::createKeycardLocation);
 	
-	public static Location getRandomLocation() {
-		int i = GameInstance.RANDOM.nextInt(levels.size());
-		return levels.get(i).get();
+	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
+	
+	public Location getRandomLocation() {
+		int i = GameInstance.RANDOM.nextInt(unusedLevels.size());
+		return unusedLevels.remove(i).get();
 	}
 	
 	private static Location createCrowbarLocation() {

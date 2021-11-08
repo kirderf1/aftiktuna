@@ -20,10 +20,12 @@ import java.util.stream.Stream;
 public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
-	private final ActionHandler actionHandler = new ActionHandler();
 	private final StatusPrinter statusPrinter;
 	private final PrintWriter out;
 	private final BufferedReader in;
+	
+	private final ActionHandler actionHandler = new ActionHandler();
+	private final Locations locations = new Locations();
 	
 	private int beatenLocations = 0;
 	private Location location;
@@ -113,7 +115,7 @@ public final class GameInstance {
 		if (debugLevel) {
 			location = CrewTestingLocations.separationTest();
 		} else {
-			location = Locations.getRandomLocation();
+			location = locations.getRandomLocation();
 		}
 		
 		ship.createEntrance(location.getEntryPos());
