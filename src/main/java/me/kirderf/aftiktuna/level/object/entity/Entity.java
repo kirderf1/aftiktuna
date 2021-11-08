@@ -15,8 +15,6 @@ import java.util.OptionalInt;
 public abstract class Entity extends GameObject {
 	public static final OptionalFunction<GameObject, Entity> CAST = OptionalFunction.cast(Entity.class);
 	
-	private static final int STAMINA_MAX = 10;
-	
 	private final Stats stats;
 	private float health;
 	private int dodgingStamina;
@@ -32,12 +30,16 @@ public abstract class Entity extends GameObject {
 	protected abstract OptionalInt getWeaponPower();
 	
 	public void prepare() {
-		dodgingStamina = Math.min(dodgingStamina + 1, STAMINA_MAX);
+		dodgingStamina = Math.min(dodgingStamina + 1, getMaxStamina());
 	}
 	
 	public abstract void performAction(ContextPrinter out);
 	
-	public int getMaxHealth() {
+	public final int getMaxHealth() {
+		return 4 + stats.endurance() * 2;
+	}
+	
+	private int getMaxStamina() {
 		return 4 + stats.endurance() * 2;
 	}
 	
@@ -47,7 +49,7 @@ public abstract class Entity extends GameObject {
 	
 	public final void restoreStatus() {
 		this.health = getMaxHealth();
-		dodgingStamina = STAMINA_MAX;
+		dodgingStamina = getMaxStamina();
 	}
 	
 	public final boolean isDead() {
@@ -122,8 +124,8 @@ public abstract class Entity extends GameObject {
 	
 	private AttackResult.Type tryDodge() {
 		if (dodgingStamina > 0) {
-			int dodgeRating = dodgingStamina - GameInstance.RANDOM.nextInt(20);
-			dodgingStamina -= 2;
+			float dodgeRating = 10 * getDodgeEndurance() - GameInstance.RANDOM.nextInt(20);
+			dodgingStamina -= 3;
 			
 			if (dodgeRating > 5)
 				return AttackResult.Type.DODGE;
@@ -133,6 +135,10 @@ public abstract class Entity extends GameObject {
 				return AttackResult.Type.DIRECT_HIT;
 		} else
 			return AttackResult.Type.DIRECT_HIT;
+	}
+	
+	private float getDodgeEndurance() {
+		return dodgingStamina / (float) getMaxStamina();
 	}
 	
 	public final void moveAndAttack(Entity target, ContextPrinter out) {
