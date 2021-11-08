@@ -3,7 +3,7 @@ package me.kirderf.aftiktuna.level.object.entity;
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.ActionHandler;
-import me.kirderf.aftiktuna.action.AttackResult;
+import me.kirderf.aftiktuna.action.result.AttackResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Position;
 import me.kirderf.aftiktuna.level.object.ObjectType;

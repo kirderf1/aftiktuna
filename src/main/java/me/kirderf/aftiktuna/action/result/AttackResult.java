@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.action.result;
 
 import me.kirderf.aftiktuna.level.object.entity.Entity;
 

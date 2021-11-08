@@ -3,6 +3,8 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
+import me.kirderf.aftiktuna.action.result.EnterResult;
+import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
