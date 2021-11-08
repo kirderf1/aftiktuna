@@ -168,7 +168,7 @@ public final class GameInstance {
 						removeFromCrew(aftik);
 				}
 				
-				crew.forEach(Entity::restoreHealth);
+				crew.forEach(Entity::restoreStatus);
 				
 				initLocation(false);
 			}

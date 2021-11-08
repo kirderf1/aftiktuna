@@ -19,12 +19,12 @@ public abstract class Entity extends GameObject {
 	
 	private final Stats stats;
 	private float health;
-	private int dodgingStamina = STAMINA_MAX;
+	private int dodgingStamina;
 	
 	public Entity(ObjectType type, int weight, Stats stats) {
 		super(type, weight);
 		this.stats = stats;
-		restoreHealth();
+		restoreStatus();
 	}
 	
 	protected void onDeath() {}
@@ -45,8 +45,9 @@ public abstract class Entity extends GameObject {
 		return health;
 	}
 	
-	public final void restoreHealth() {
+	public final void restoreStatus() {
 		this.health = getMaxHealth();
+		dodgingStamina = STAMINA_MAX;
 	}
 	
 	public final boolean isDead() {
