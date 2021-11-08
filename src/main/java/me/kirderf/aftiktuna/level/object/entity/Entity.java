@@ -95,13 +95,13 @@ public abstract class Entity extends GameObject {
 		if (!target.getPosition().isAdjacent(this.getPosition()))
 			throw new IllegalStateException("Expected to be next to target when attacking.");
 		
-		AttackResult result = target.receiveAttack(getAttackPower());
+		AttackResult result = target.receiveAttack(getAttackPower(), stats.agility());
 		
 		ActionHandler.printAttackAction(out, this, result);
 	}
 	
-	public final AttackResult receiveAttack(float attackPower) {
-		AttackResult.Type type = tryDodge();
+	public final AttackResult receiveAttack(float attackPower, int hitAgility) {
+		AttackResult.Type type = tryDodge(hitAgility);
 		if (type == AttackResult.Type.GRAZING_HIT) {
 			attackPower /= 2;
 		}
@@ -122,9 +122,9 @@ public abstract class Entity extends GameObject {
 		return getStrengthModifier() * getWeaponPower().orElse(2);
 	}
 	
-	private AttackResult.Type tryDodge() {
+	private AttackResult.Type tryDodge(int hitAgility) {
 		if (dodgingStamina > 0) {
-			float dodgeRating = 10 * getDodgeEndurance() - GameInstance.RANDOM.nextInt(20);
+			float dodgeRating = getDodgeFactor(hitAgility) * getDodgeEndurance() - GameInstance.RANDOM.nextInt(20);
 			dodgingStamina -= 3;
 			
 			if (dodgeRating > 5)
@@ -135,6 +135,10 @@ public abstract class Entity extends GameObject {
 				return AttackResult.Type.DIRECT_HIT;
 		} else
 			return AttackResult.Type.DIRECT_HIT;
+	}
+	
+	private float getDodgeFactor(int hitAgility) {
+		return 2*stats.agility() - hitAgility;
 	}
 	
 	private float getDodgeEndurance() {

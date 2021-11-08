@@ -40,7 +40,7 @@ public final class GameInstance {
 		statusPrinter = new StatusPrinter(out);
 		
 		ship = new Ship();
-		crew = new ArrayList<>(List.of(new Aftik("Cerulean", new Stats(9, 2), ship), new Aftik("Mint", new Stats(8, 3), ship)));
+		crew = new ArrayList<>(List.of(new Aftik("Cerulean", new Stats(9, 2, 10), ship), new Aftik("Mint", new Stats(10, 3, 8), ship)));
 		aftik = crew.get(0);
 		crew.forEach(aftik1 -> ship.getRoom().addObject(aftik1, 0));
 	}
