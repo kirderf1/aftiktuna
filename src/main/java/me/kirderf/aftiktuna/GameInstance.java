@@ -179,7 +179,7 @@ public final class GameInstance {
 	private void handleUserAction() {
 		if (aftik == null)
 			throw new IllegalStateException("Aftik should not be null at this point");
-		if (aftik.overridesPlayerInput()) {
+		if (aftik.getMind().overridesPlayerInput()) {
 			aftik.performAction(new ContextPrinter(this));
 		} else {
 			int result = 0;

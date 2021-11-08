@@ -21,27 +21,24 @@ import java.util.*;
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
 	
+	private final AftikMind mind;
 	private final String name;
-	private final Ship ship;
 	
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
-	// The door that the player aftik entered at the same turn. Other aftiks may try to follow along
-	private FollowTarget followTarget;
-	
-	private boolean launchShip;
-	
-	private static record FollowTarget(Door door, Aftik aftik) {}
-	
 	public Aftik(String name, Ship ship) {
 		super(ObjectTypes.AFTIK, 10, 5);
 		this.name = name;
-		this.ship = ship;
+		mind = new AftikMind(this, ship);
 	}
 	
 	public String getName() {
 		return name;
+	}
+	
+	public AftikMind getMind() {
+		return mind;
 	}
 	
 	@Override
@@ -62,31 +59,12 @@ public final class Aftik extends Entity {
 	@Override
 	public void prepare() {
 		super.prepare();
-		followTarget = null;
+		mind.prepare();
 	}
 	
 	@Override
 	public void performAction(ContextPrinter out) {
-		Optional<WeaponType> weaponType = findWieldableItem();
-		
-		if (launchShip) {
-			tryLaunchShip(out);
-		} else if (followTarget != null && followTarget.door.getRoom() == this.getRoom()) {
-			MoveAndEnterResult result = moveAndEnter(followTarget.door);
-			
-			if (result.success()) {
-				out.printAt(this, "%s follows %s into the room.%n", this.getName(), followTarget.aftik.getName());
-			}
-		} else if (weaponType.isPresent()) {
-			wieldFromInventory(weaponType.get(), out);
-		} else {
-			Optional<Creature> target = findNearest(Creature.CAST);
-			target.ifPresent(creature -> moveAndAttack(creature, out));
-		}
-	}
-	
-	public boolean overridesPlayerInput() {
-		return launchShip;
+		mind.performAction(out);
 	}
 	
 	public Optional<MoveFailure> moveAndTake(Item item) {
@@ -140,7 +118,7 @@ public final class Aftik extends Entity {
 		MoveAndEnterResult result = moveAndEnter(door);
 		
 		if (result.success()) {
-			originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.observeEnteredDoor(this, door));
+			originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.getMind().observeEnteredDoor(this, door));
 		}
 		
 		result.either().run(enterResult -> DoorActions.printEnterResult(out, this, enterResult),
@@ -170,35 +148,6 @@ public final class Aftik extends Entity {
 			return Either.left(result);
 		} else
 			return Either.right(failure.get());
-	}
-	
-	public void setLaunchShip(ContextPrinter out) {
-		launchShip = true;
-		tryLaunchShip(out);
-	}
-	
-	private void tryLaunchShip(ContextPrinter out) {
-		if (this.getRoom() != ship.getRoom()) {
-			tryGoToShip(out);
-		} else {
-			ship.tryLaunchShip(this, out);
-			launchShip = false;
-		}
-	}
-	
-	private void tryGoToShip(ContextPrinter out) {
-		Optional<Door> optional = findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching));
-		if (optional.isPresent()) {
-			Door door = optional.get();
-			
-			MoveAndEnterResult result = moveEnterMain(door, out);
-			
-			if (!result.success())
-				launchShip = false;
-		} else {
-			out.printFor(this, "%s need to be near the ship in order to launch it.%n", this.getName());
-			launchShip = false;
-		}
 	}
 	
 	public void addItem(ObjectType type) {
@@ -257,10 +206,6 @@ public final class Aftik extends Entity {
 		inventory.clear();
 	}
 	
-	public void observeEnteredDoor(Aftik aftik, Door door) {
-		this.followTarget = new FollowTarget(door, aftik);
-	}
-	
 	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
 		return getRoom().objectStream().sorted(blockingComparator().thenComparing(Room.byProximity(getCoord())))
 				.flatMap(mapper.toStream()).findFirst();
@@ -268,11 +213,5 @@ public final class Aftik extends Entity {
 	
 	private Comparator<GameObject> blockingComparator() {
 		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
-	}
-	
-	private Optional<WeaponType> findWieldableItem() {
-		return inventory.stream().flatMap(OptionalFunction.cast(WeaponType.class).toStream())
-				.max(Comparator.comparingInt(WeaponType::getDamageValue))
-				.filter(type -> wielded == null || wielded.getDamageValue() < type.getDamageValue());
 	}
 }

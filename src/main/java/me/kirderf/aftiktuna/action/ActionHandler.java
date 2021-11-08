@@ -73,7 +73,7 @@ public final class ActionHandler {
 		
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
 			if (isNearShip(aftik, game.getShip())) {
-				aftik.setLaunchShip(new ContextPrinter(game));
+				aftik.getMind().setLaunchShip(new ContextPrinter(game));
 				
 				return 1;
 			} else {
