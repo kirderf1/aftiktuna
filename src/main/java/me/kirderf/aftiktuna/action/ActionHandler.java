@@ -9,9 +9,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
+import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
+import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Creature;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
@@ -69,20 +71,23 @@ public final class ActionHandler {
 	private static int launchShip(GameInstance game) {
 		Aftik aftik = game.getAftik();
 		
-		if (aftik.getRoom() == game.getShip().getRoom()) {
-			boolean result = game.tryLaunchShip(aftik);
-			
-			if (result) {
-				game.out().printf("%s got fuel to the ship.%n", aftik.getName());
+		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
+			if (isNearShip(aftik, game.getShip())) {
+				aftik.setLaunchShip(new ContextPrinter(game));
+				
+				return 1;
 			} else {
-				game.out().println("The ship can't be launched at this time.");
+				game.out().printf("%s need to be near the ship in order to launch it.%n", aftik.getName());
+				return 0;
 			}
-			
-			return 1;
 		} else {
-			game.out().printf("%s need to be in the ship in order to launch it.%n", aftik.getName());
+			game.out().printf("%s need a fuel can to launch the ship.%n", aftik.getName());
 			return 0;
 		}
+	}
+	
+	private static boolean isNearShip(Aftik aftik, Ship ship) {
+		return aftik.getRoom() == ship.getRoom() || aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching)).isPresent();
 	}
 	
 	private static int controlAftik(GameInstance game, String name) {

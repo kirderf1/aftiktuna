@@ -5,7 +5,6 @@ import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Location;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.Ship;
-import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
 
@@ -31,17 +30,15 @@ public final class GameInstance {
 	private final Ship ship;
 	private Aftik aftik;
 	private final List<Aftik> crew;
-	private boolean isShipLaunching = false;
 	
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
 		statusPrinter = new StatusPrinter(out);
 		
-		crew = new ArrayList<>(List.of(new Aftik("Cerulean"), new Aftik("Mint")));
-		aftik = crew.get(0);
-		
 		ship = new Ship();
+		crew = new ArrayList<>(List.of(new Aftik("Cerulean", ship), new Aftik("Mint", ship)));
+		aftik = crew.get(0);
 		crew.forEach(aftik1 -> ship.getRoom().addObject(aftik1, 0));
 	}
 	
@@ -108,14 +105,6 @@ public final class GameInstance {
 		out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
 	}
 	
-	public boolean tryLaunchShip(Aftik aftik) {
-		if (!isShipLaunching && aftik.getRoom() == ship.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
-			isShipLaunching = true;
-			return true;
-		} else
-			return false;
-	}
-	
 	public void printStatus() {
 		statusPrinter.printStatus(this.aftik);
 	}
@@ -164,8 +153,7 @@ public final class GameInstance {
 	}
 	
 	private void handleShipStatus(boolean debugLevel) {
-		if (isShipLaunching) {
-			isShipLaunching = false;
+		if (ship.getAndClearIsLaunching()) {
 			beatenLocations++;
 			
 			if (!noMoreLevels(debugLevel)) {
@@ -191,17 +179,21 @@ public final class GameInstance {
 	private void handleUserAction() {
 		if (aftik == null)
 			throw new IllegalStateException("Aftik should not be null at this point");
-		int result = 0;
-		do {
-			String input;
-			try {
-				input = in.readLine();
-			} catch(IOException e) {
-				e.printStackTrace();
-				continue;
-			}
-			
-			result = actionHandler.handleInput(this, input);
-		} while (result <= 0);
+		if (aftik.overridesPlayerInput()) {
+			aftik.performAction(new ContextPrinter(this));
+		} else {
+			int result = 0;
+			do {
+				String input;
+				try {
+					input = in.readLine();
+				} catch(IOException e) {
+					e.printStackTrace();
+					continue;
+				}
+				
+				result = actionHandler.handleInput(this, input);
+			} while (result <= 0);
+		}
 	}
 }

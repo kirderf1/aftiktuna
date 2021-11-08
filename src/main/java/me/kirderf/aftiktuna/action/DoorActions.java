@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
+import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -33,23 +33,8 @@ public final class DoorActions {
 	private static int enterDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
 		return searchForAndIfNotBlocked(game, aftik, doorType,
-				door -> enterDoor(game, aftik, door),
+				door -> aftik.moveEnterMain(door, new ContextPrinter(game)),
 				() -> game.out().println("There is no such door here to go through."));
-	}
-	
-	private static void enterDoor(GameInstance game, Aftik aftik, Door door) {
-		Room originalRoom = aftik.getRoom();
-		
-		Either<EnterResult, Entity.MoveFailure> result = aftik.moveAndEnter(door);
-		
-		result.getLeft().ifPresent(enterResult -> {
-			if (enterResult.success()) {
-				originalRoom.objectStream().flatMap(Aftik.CAST.toStream()).forEach(other -> other.observeEnteredDoor(aftik, door));
-			}
-		});
-		
-		result.run(enterResult -> printEnterResult(game, aftik, enterResult),
-				moveFailure -> ActionHandler.printMoveFailure(game, moveFailure));
 	}
 	
 	private static int forceDoor(GameInstance game, ObjectType doorType) {
@@ -85,15 +70,15 @@ public final class DoorActions {
 		}
 	}
 	
-	private static void printEnterResult(GameInstance game, Aftik aftik, EnterResult result) {
-		result.either().run(success -> printEnterSuccess(game, aftik, success),
-				failureType -> game.out().printf("The door is %s.%n", failureType.adjective()));
+	public static void printEnterResult(ContextPrinter out, Aftik aftik, EnterResult result) {
+		result.either().run(success -> printEnterSuccess(out, aftik, success),
+				failureType -> out.printFor(aftik, "The door is %s.%n", failureType.adjective()));
 	}
 	
-	private static void printEnterSuccess(GameInstance game, Aftik aftik, EnterResult.Success result) {
+	private static void printEnterSuccess(ContextPrinter out, Aftik aftik, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> game.out().printf("Using their %s, %s entered the door into a new room.%n", item.name(), aftik.getName()),
-				() -> game.out().printf("%s entered the door into a new room.%n", aftik.getName()));
+				item -> out.printFor(aftik, "Using their %s, %s entered the door into a new room.%n", item.name(), aftik.getName()),
+				() -> out.printFor(aftik, "%s entered the door into a new room.%n", aftik.getName()));
 	}
 	
 	private static void printForceResult(GameInstance game, Aftik aftik, ForceResult result) {
