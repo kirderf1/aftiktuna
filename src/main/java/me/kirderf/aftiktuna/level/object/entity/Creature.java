@@ -9,6 +9,7 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 public final class Creature extends Entity {
@@ -19,13 +20,13 @@ public final class Creature extends Entity {
 	private Collection<Aftik> targets = Collections.emptyList();
 	
 	public Creature(boolean isMoving) {
-		super(ObjectTypes.CREATURE, 5, 5);
+		super(ObjectTypes.CREATURE, 5, 4, 10);
 		this.isMoving = isMoving;
 	}
 	
 	@Override
-	protected int getAttackPower() {
-		return 1;
+	protected OptionalInt getWeaponPower() {
+		return OptionalInt.empty();
 	}
 	
 	@Override

@@ -27,8 +27,8 @@ public final class Aftik extends Entity {
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
-	public Aftik(String name, Ship ship) {
-		super(ObjectTypes.AFTIK, 10, 5);
+	public Aftik(String name, int strength, Ship ship) {
+		super(ObjectTypes.AFTIK, 10, strength, 8);
 		this.name = name;
 		mind = new AftikMind(this, ship);
 	}
@@ -52,8 +52,8 @@ public final class Aftik extends Entity {
 	}
 	
 	@Override
-	protected int getAttackPower() {
-		return wielded != null ? wielded.getDamageValue() : 2;
+	protected OptionalInt getWeaponPower() {
+		return wielded != null ? OptionalInt.of(wielded.getDamageValue()) : OptionalInt.empty();
 	}
 	
 	@Override

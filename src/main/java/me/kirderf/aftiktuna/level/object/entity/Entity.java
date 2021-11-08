@@ -10,25 +10,28 @@ import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 
 public abstract class Entity extends GameObject {
 	public static final OptionalFunction<GameObject, Entity> CAST = OptionalFunction.cast(Entity.class);
 	
 	private static final int STAMINA_MAX = 10;
 	
+	private final int strength;
 	private final int maxHealth;
-	private int health;
+	private float health;
 	private int dodgingStamina = STAMINA_MAX;
 	
-	public Entity(ObjectType type, int weight, int initialHealth) {
+	public Entity(ObjectType type, int weight, int strength, int maxHealth) {
 		super(type, weight);
-		this.maxHealth = initialHealth;
+		this.strength = strength;
+		this.maxHealth = maxHealth;
 		restoreHealth();
 	}
 	
 	protected void onDeath() {}
 	
-	protected abstract int getAttackPower();
+	protected abstract OptionalInt getWeaponPower();
 	
 	public void prepare() {
 		dodgingStamina = Math.min(dodgingStamina + 1, STAMINA_MAX);
@@ -40,7 +43,7 @@ public abstract class Entity extends GameObject {
 		return maxHealth;
 	}
 	
-	public final int getHealth() {
+	public final float getHealth() {
 		return health;
 	}
 	
@@ -96,12 +99,10 @@ public abstract class Entity extends GameObject {
 		ActionHandler.printAttackAction(out, this, result);
 	}
 	
-	public final AttackResult receiveAttack(int attackPower) {
+	public final AttackResult receiveAttack(float attackPower) {
 		AttackResult.Type type = tryDodge();
 		if (type == AttackResult.Type.GRAZING_HIT) {
 			attackPower /= 2;
-			if (attackPower <= 0)
-				type = AttackResult.Type.DODGE;
 		}
 		
 		if (type != AttackResult.Type.DODGE) {
@@ -110,6 +111,14 @@ public abstract class Entity extends GameObject {
 				this.onDeath();
 		}
 		return new AttackResult(this, type);
+	}
+	
+	private float getStrengthModifier() {
+		return 1/3F + strength/6F;
+	}
+	
+	private float getAttackPower() {
+		return getStrengthModifier() * getWeaponPower().orElse(2);
 	}
 	
 	private AttackResult.Type tryDodge() {
