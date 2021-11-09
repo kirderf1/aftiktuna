@@ -1,10 +1,11 @@
-package me.kirderf.aftiktuna.level.object.entity;
+package me.kirderf.aftiktuna.level.object.entity.ai;
 
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.door.Door;
+import me.kirderf.aftiktuna.level.object.entity.Aftik;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +37,11 @@ public final class AftikMind {
 		tryLaunchShip(out);
 	}
 	
-	void prepare() {
+	public void prepare() {
 		tasks.forEach(Task::prepare);
 	}
 	
-	void performAction(ContextPrinter out) {
-		
+	public void performAction(ContextPrinter out) {
 		if (launchShip) {
 			tryLaunchShip(out);
 		} else {

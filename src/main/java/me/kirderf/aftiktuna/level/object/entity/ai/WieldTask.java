@@ -1,7 +1,8 @@
-package me.kirderf.aftiktuna.level.object.entity;
+package me.kirderf.aftiktuna.level.object.entity.ai;
 
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.level.object.WeaponType;
+import me.kirderf.aftiktuna.level.object.entity.Aftik;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Comparator;
