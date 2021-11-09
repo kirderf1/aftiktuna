@@ -4,17 +4,16 @@ import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
-import me.kirderf.aftiktuna.level.object.WeaponType;
 import me.kirderf.aftiktuna.level.object.door.Door;
-import me.kirderf.aftiktuna.util.OptionalFunction;
 
-import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 public final class AftikMind {
 	private final Aftik aftik;
 	private final Ship ship;
 	
+	private final List<Task> tasks;
 	// The door that the player aftik entered at the same turn. Other aftiks may try to follow along
 	private FollowTarget followTarget;
 	private Door forceTarget;
@@ -25,6 +24,7 @@ public final class AftikMind {
 	public AftikMind(Aftik aftik, Ship ship) {
 		this.aftik = aftik;
 		this.ship = ship;
+		tasks = List.of(new WieldTask(aftik), new FightTask(aftik));
 	}
 	
 	public boolean overridesPlayerInput() {
@@ -51,7 +51,6 @@ public final class AftikMind {
 	}
 	
 	void performAction(ContextPrinter out) {
-		Optional<WeaponType> weaponType = findWieldableInventoryItem();
 		
 		if (launchShip) {
 			tryLaunchShip(out);
@@ -64,11 +63,11 @@ public final class AftikMind {
 		} else if (forceTarget != null) {
 			aftik.moveAndForce(forceTarget, out);
 			forceTarget = null;
-		} else if (weaponType.isPresent()) {
-			aftik.wieldFromInventory(weaponType.get(), out);
 		} else {
-			Optional<Creature> target = aftik.findNearest(Creature.CAST);
-			target.ifPresent(creature -> aftik.moveAndAttack(creature, out));
+			for (Task task : tasks) {
+				if (task.performAction(out))
+					return;
+			}
 		}
 	}
 	
@@ -94,13 +93,6 @@ public final class AftikMind {
 			out.printFor(aftik, "%s need to be near the ship in order to launch it.%n", aftik.getName());
 			launchShip = false;
 		}
-	}
-	
-	private Optional<WeaponType> findWieldableInventoryItem() {
-		int currentWeaponValue = aftik.getWieldedItem().map(WeaponType::getDamageValue).orElse(0);
-		return aftik.getInventory().stream().flatMap(OptionalFunction.cast(WeaponType.class).toStream())
-				.max(Comparator.comparingInt(WeaponType::getDamageValue))
-				.filter(type -> currentWeaponValue < type.getDamageValue());
 	}
 	
 	private boolean canForceDoor(EnterResult.FailureType type) {
