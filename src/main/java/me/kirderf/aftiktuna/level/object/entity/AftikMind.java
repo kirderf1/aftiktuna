@@ -14,17 +14,13 @@ public final class AftikMind {
 	private final Ship ship;
 	
 	private final List<Task> tasks;
-	// The door that the player aftik entered at the same turn. Other aftiks may try to follow along
-	private FollowTarget followTarget;
-	private Door forceTarget;
 	private boolean launchShip;
-	
-	private static record FollowTarget(Door door, Aftik aftik) {}
 	
 	public AftikMind(Aftik aftik, Ship ship) {
 		this.aftik = aftik;
 		this.ship = ship;
-		tasks = List.of(new WieldTask(aftik), new FightTask(aftik));
+		tasks = List.of(new FollowTask(aftik), new ForceDoorTask(aftik),
+				new WieldTask(aftik), new FightTask(aftik));
 	}
 	
 	public boolean overridesPlayerInput() {
@@ -32,13 +28,7 @@ public final class AftikMind {
 	}
 	
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		if (result.success()) {
-			this.followTarget = new FollowTarget(door, aftik);
-		}
-		result.either().getRight().ifPresent(failureType -> {
-			if (canForceDoor(failureType))
-				forceTarget = door;
-		});
+		tasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
 	}
 	
 	public void setLaunchShip(ContextPrinter out) {
@@ -47,22 +37,13 @@ public final class AftikMind {
 	}
 	
 	void prepare() {
-		followTarget = null;
+		tasks.forEach(Task::prepare);
 	}
 	
 	void performAction(ContextPrinter out) {
 		
 		if (launchShip) {
 			tryLaunchShip(out);
-		} else if (followTarget != null && followTarget.door.getRoom() == aftik.getRoom()) {
-			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door);
-			
-			if (result.success()) {
-				out.printAt(aftik, "%s follows %s into the room.%n", aftik.getName(), followTarget.aftik.getName());
-			}
-		} else if (forceTarget != null) {
-			aftik.moveAndForce(forceTarget, out);
-			forceTarget = null;
 		} else {
 			for (Task task : tasks) {
 				if (task.performAction(out))
@@ -93,12 +74,5 @@ public final class AftikMind {
 			out.printFor(aftik, "%s need to be near the ship in order to launch it.%n", aftik.getName());
 			launchShip = false;
 		}
-	}
-	
-	private boolean canForceDoor(EnterResult.FailureType type) {
-		if (type == EnterResult.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
-			return true;
-		else
-			return aftik.hasItem(ObjectTypes.BLOWTORCH);
 	}
 }

@@ -17,7 +17,7 @@ public final class FightTask extends Task {
 		if (target.isPresent()) {
 			aftik.moveAndAttack(target.get(), out);
 			return true;
-		}
-		return false;
+		} else
+			return false;
 	}
 }
