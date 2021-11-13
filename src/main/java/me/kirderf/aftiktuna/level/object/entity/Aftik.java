@@ -19,6 +19,8 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.*;
 
+import static me.kirderf.aftiktuna.action.ActionHandler.printMoveFailure;
+
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
 	
@@ -62,39 +64,46 @@ public final class Aftik extends Entity {
 		mind.performAction(out);
 	}
 	
-	public Optional<MoveFailure> moveAndTake(Item item) {
+	public void moveAndTake(Item item, ContextPrinter out) {
 		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
 		if (failure.isEmpty()) {
 			item.remove();
 			addItem(item.getType());
+			
+			out.printAt(this, "%s picked up the %s.%n", this.getName(), item.getType().name());
+		} else {
+			ActionHandler.printMoveFailure(out, this, failure.get());
 		}
-		return failure;
 	}
 	
-	public Optional<MoveFailure> moveAndWield(Item item, WeaponType type) {
+	public void moveAndWield(Item item, WeaponType type, ContextPrinter out) {
 		if (item.getType() != type)
 			throw new IllegalArgumentException("Incorrect type given");
 		
 		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
+		
 		if (failure.isEmpty()) {
 			item.remove();
 			wield(type);
+			
+			out.printAt(this, "%s picked up and wielded the %s.%n", this.getName(), type.name());
+		} else {
+			ActionHandler.printMoveFailure(out, this, failure.get());
 		}
-		return failure;
 	}
 	
-	public Either<Boolean, MoveFailure> moveAndGive(Aftik aftik, ObjectType type) {
+	public void moveAndGive(Aftik aftik, ObjectType type, ContextPrinter out) {
 		Optional<Entity.MoveFailure> failure = tryMoveTo(aftik.getPosition());
 		
 		if (failure.isEmpty()) {
 			
 			if (this.removeItem(type)) {
 				aftik.addItem(type);
-				return Either.left(true);
+				out.printAt(this, "%s gave %s a %s.%n", this.getName(), aftik.getName(), type.name());
 			} else
-				return Either.left(false);
+				out.printFor(this, "%s does not have that item.%n", this.getName());
 		} else {
-			return Either.right(failure.get());
+			printMoveFailure(out, this, failure.get());
 		}
 	}
 	

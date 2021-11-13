@@ -108,16 +108,8 @@ public final class ActionHandler {
 		return 0;
 	}
 	
-	static void printMoveFailure(GameInstance game, Entity.MoveFailure result) {
-		printBlocking(game.out(), game.getAftik(), result.blocking());
-	}
-	
 	public static void printMoveFailure(ContextPrinter out, Entity entity, Entity.MoveFailure result) {
 		printBlocking(out, entity, result.blocking());
-	}
-	
-	static void printBlocking(GameInstance game, GameObject blocking) {
-		printBlocking(game.out(), game.getAftik(), blocking);
 	}
 	
 	static void printBlocking(ContextPrinter out, Entity entity, GameObject blocking) {

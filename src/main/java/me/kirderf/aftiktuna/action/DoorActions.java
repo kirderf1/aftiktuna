@@ -55,7 +55,7 @@ public final class DoorActions {
 				onSuccess.accept(door);
 				return 1;
 			} else {
-				ActionHandler.printBlocking(game, blocking.get());
+				ActionHandler.printBlocking(game.out(), aftik, blocking.get());
 				return 0;
 			}
 		} else {

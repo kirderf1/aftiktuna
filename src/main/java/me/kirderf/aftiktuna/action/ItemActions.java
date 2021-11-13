@@ -2,18 +2,16 @@ package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
-import me.kirderf.aftiktuna.level.object.entity.Entity;
-import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import static me.kirderf.aftiktuna.action.ActionHandler.*;
+import static me.kirderf.aftiktuna.action.ActionHandler.argument;
+import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class ItemActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
@@ -29,16 +27,8 @@ public final class ItemActions {
 	private static int takeItem(GameInstance game, ObjectType type) {
 		Aftik aftik = game.getAftik();
 		return searchForAndIfNotBlocked(game, aftik, type,
-				item -> takeItem(aftik, item, game.out()),
+				item -> aftik.moveAndTake(item, game.out()),
 				() -> game.directOut().printf("There is no %s here to pick up.%n", type.name()));
-	}
-	
-	private static void takeItem(Aftik aftik, Item item, ContextPrinter out) {
-		Optional<Entity.MoveFailure> result = aftik.moveAndTake(item);
-		
-		result.ifPresentOrElse(
-				failure -> ActionHandler.printMoveFailure(out, aftik, failure),
-				() -> out.printAt(aftik, "%s picked up the %s.%n", aftik.getName(), item.getType().name()));
 	}
 	
 	private static int wieldItem(GameInstance game, WeaponType weaponType) {
@@ -49,17 +39,9 @@ public final class ItemActions {
 			return 1;
 		} else {
 			return searchForAndIfNotBlocked(game, aftik, weaponType,
-					item -> wieldItem(aftik, item, weaponType, game.out()),
+					item -> aftik.moveAndWield(item, weaponType, game.out()),
 					() -> game.directOut().printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
 		}
-	}
-	
-	private static void wieldItem(Aftik aftik, Item item, WeaponType type, ContextPrinter out) {
-		Optional<Entity.MoveFailure> result = aftik.moveAndWield(item, type);
-		
-		result.ifPresentOrElse(
-				failure -> ActionHandler.printMoveFailure(out, aftik, failure),
-				() -> out.printAt(aftik, "%s picked up and wielded the %s.%n", aftik.getName(), type.name()));
 	}
 	
 	private static int giveItem(GameInstance game, String name, ObjectType type) {
@@ -76,14 +58,7 @@ public final class ItemActions {
 			
 			if (aftik.hasItem(type)) {
 				
-				Either<Boolean, Entity.MoveFailure> result = aftik.moveAndGive(target, type);
-				
-				result.run(success -> {
-					if (success)
-						game.out().printAt(aftik, "%s gave %s a %s.%n", aftik.getName(), target.getName(), type.name());
-					else
-						game.out().printFor(aftik, "%s does not have that item.%n", aftik.getName());
-				}, moveFailure -> printMoveFailure(game, moveFailure));
+				aftik.moveAndGive(target, type, game.out());
 				return 1;
 			} else {
 				game.directOut().printf("%s does not have that item.%n", aftik.getName());
@@ -105,7 +80,7 @@ public final class ItemActions {
 				onSuccess.accept(item);
 				return 1;
 			} else {
-				ActionHandler.printBlocking(game, blocking.get());
+				ActionHandler.printBlocking(game.out(), aftik, blocking.get());
 				return 0;
 			}
 		} else {
