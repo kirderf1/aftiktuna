@@ -50,15 +50,20 @@ public final class LocationBuilder {
 	private void buildDoors() {
 		for (Room room : rooms) {
 			List<DoorMark> marks = doorMap.get(room);
+			marks.sort(Comparator.comparingInt(DoorMark::coord));
 			if (marks.size() == 1) {
 				DoorMark door = marks.get(0);
 				room.addObject(new Door(ObjectTypes.DOOR, door.destination, door.property), door.coord);
 			} else if (marks.size() == 2) {
-				marks.sort(Comparator.comparingInt(DoorMark::coord));
 				DoorMark leftDoor = marks.get(0), rightDoor = marks.get(1);
 				room.addObject(new Door(ObjectTypes.LEFT_DOOR, leftDoor.destination, leftDoor.property), leftDoor.coord);
 				room.addObject(new Door(ObjectTypes.RIGHT_DOOR, rightDoor.destination, rightDoor.property), rightDoor.coord);
-			} else if (marks.size() > 2) {
+			} else if (marks.size() == 3) {
+				DoorMark leftDoor = marks.get(0), midDoor = marks.get(1), rightDoor = marks.get(2);
+				room.addObject(new Door(ObjectTypes.LEFT_DOOR, leftDoor.destination, leftDoor.property), leftDoor.coord);
+				room.addObject(new Door(ObjectTypes.MIDDLE_DOOR, midDoor.destination, midDoor.property), midDoor.coord);
+				room.addObject(new Door(ObjectTypes.RIGHT_DOOR, rightDoor.destination, rightDoor.property), rightDoor.coord);
+			} else if (marks.size() > 3) {
 				throw new IllegalStateException("Marked more than two doors in a room. This is not currently supported.");
 			}
 		}
