@@ -56,8 +56,7 @@ public final class ItemActions {
 			
 			if (aftik.hasItem(type)) {
 				
-				aftik.moveAndGive(target, type, game.out());
-				return 1;
+				return ActionHandler.ifNotBlocked(game, aftik, target, () -> aftik.moveAndGive(target, type, game.out()));
 			} else {
 				game.directOut().printf("%s does not have that item.%n", aftik.getName());
 				return 0;

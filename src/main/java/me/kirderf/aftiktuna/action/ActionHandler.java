@@ -114,16 +114,20 @@ public final class ActionHandler {
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
 			
-			Optional<GameObject> blocking = aftik.findBlockingTo(object.getCoord());
-			if (blocking.isEmpty()) {
-				onSuccess.accept(object);
-				return 1;
-			} else {
-				ActionHandler.printBlocking(game.out(), aftik, blocking.get());
-				return 0;
-			}
+			return ifNotBlocked(game, aftik, object, () -> onSuccess.accept(object));
 		} else {
 			onNoMatch.run();
+			return 0;
+		}
+	}
+	
+	static <T extends GameObject> int ifNotBlocked(GameInstance game, Aftik aftik, T object, Runnable onSuccess) {
+		Optional<GameObject> blocking = aftik.findBlockingTo(object.getCoord());
+		if (blocking.isEmpty()) {
+			onSuccess.run();
+			return 1;
+		} else {
+			ActionHandler.printBlocking(game.out(), aftik, blocking.get());
 			return 0;
 		}
 	}
