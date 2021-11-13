@@ -158,6 +158,9 @@ public final class GameInstance {
 	private void handleUserAction() {
 		Aftik aftik = crew.getAftik();
 		if (aftik.getMind().overridesPlayerInput()) {
+			try {
+				Thread.sleep(2000);
+			} catch(InterruptedException ignored) {}
 			aftik.performAction(contextPrinter);
 		} else {
 			int result = 0;
