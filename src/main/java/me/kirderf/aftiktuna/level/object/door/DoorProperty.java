@@ -12,12 +12,12 @@ public abstract class DoorProperty {
 		}
 		
 		@Override
-		public ForceResult tryForce(Aftik aftik) {
-			return new ForceResult(ForceResult.Status.NOT_STUCK);
+		public ForceResult.PropertyResult tryForce(Aftik aftik) {
+			return ForceResult.status(ForceResult.Status.NOT_STUCK);
 		}
 	};
 	
 	public abstract EnterResult checkEntry(Aftik aftik);
 	
-	public abstract ForceResult tryForce(Aftik aftik);
+	public abstract ForceResult.PropertyResult tryForce(Aftik aftik);
 }

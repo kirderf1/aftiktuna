@@ -31,9 +31,9 @@ public final class Door extends GameObject {
 	}
 	
 	public ForceResult force(Aftik aftik) {
-		ForceResult result = property.get().tryForce(aftik);
+		ForceResult.PropertyResult result = property.get().tryForce(aftik);
 		
 		result.getNewProperty().ifPresent(property::set);
-		return result;
+		return new ForceResult(new DoorPair(this, destination.room()), result);
 	}
 }

@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna;
 
+import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
 import me.kirderf.aftiktuna.level.object.entity.Entity;
 
@@ -22,7 +23,7 @@ public final class ContextPrinter {
 			game.out().printf(message, args);
 	}
 	
-	public void printAt(Entity entity, String message, Object... args) {
-		printAt(entity.getRoom(), message, args);
+	public void printAt(GameObject object, String message, Object... args) {
+		printAt(object.getRoom(), message, args);
 	}
 }

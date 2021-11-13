@@ -11,13 +11,13 @@ public final class DoorStuckProperty extends DoorProperty {
 		return new EnterResult(EnterResult.FailureType.STUCK);
 	}
 	
-	public ForceResult tryForce(Aftik aftik) {
+	public ForceResult.PropertyResult tryForce(Aftik aftik) {
 		if(aftik.hasItem(ObjectTypes.CROWBAR)) {
-			return new ForceResult(ObjectTypes.CROWBAR, ForceResult.Method.FORCE);
+			return ForceResult.success(ObjectTypes.CROWBAR, ForceResult.Method.FORCE);
 		} else if(aftik.hasItem(ObjectTypes.BLOWTORCH)) {
-			return new ForceResult(ObjectTypes.BLOWTORCH, ForceResult.Method.CUT);
+			return ForceResult.success(ObjectTypes.BLOWTORCH, ForceResult.Method.CUT);
 		} else {
-			return new ForceResult(ForceResult.Status.NEED_TOOL);
+			return ForceResult.status(ForceResult.Status.NEED_TOOL);
 		}
 	}
 }

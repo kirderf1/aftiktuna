@@ -1,30 +1,34 @@
 package me.kirderf.aftiktuna.action.result;
 
 import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.level.object.door.DoorPair;
 import me.kirderf.aftiktuna.level.object.door.DoorProperty;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 
-public record ForceResult(Either<Success, Status> either) {
+public record ForceResult(DoorPair pair, PropertyResult propertyResult) {
 	
-	public ForceResult(Status status) {
-		this(Either.right(status));
+	public static PropertyResult success(ObjectType item, Method method) {
+		return new PropertyResult(Either.left(new Success(DoorProperty.EMPTY, item, method)));
 	}
 	
-	public ForceResult(ObjectType item, Method method) {
-		this(Either.left(new Success(DoorProperty.EMPTY, item, method)));
+	public static PropertyResult status(Status status) {
+		return new PropertyResult(Either.right(status));
 	}
 	
-	public Optional<DoorProperty> getNewProperty() {
-		return either.getLeft().map(Success::newProperty);
+	public static record PropertyResult(Either<Success, Status> either) {
+		public Optional<DoorProperty> getNewProperty() {
+			return either.getLeft().map(Success::newProperty);
+		}
 	}
 	
 	public static record Success(DoorProperty newProperty, ObjectType item, Method method) {}
 	
+	
 	public final record Method(String text) {
-		public static final Method FORCE = new Method("force the door open");
-		public static final Method CUT = new Method("cut the door open");
+		public static final Method FORCE = new Method("forced open");
+		public static final Method CUT = new Method("cut open");
 	}
 	
 	public enum Status {

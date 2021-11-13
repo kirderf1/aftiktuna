@@ -10,6 +10,7 @@ import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.door.Door;
+import me.kirderf.aftiktuna.level.object.door.DoorPair;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 
 import java.util.Optional;
@@ -75,11 +76,12 @@ public final class DoorActions {
 	}
 	
 	public static void printForceResult(ContextPrinter out, Aftik aftik, ForceResult result) {
-		result.either().run(success -> printForceSuccess(out, aftik, success), status -> printForceStatus(out, aftik, status));
+		result.propertyResult().either().run(success -> printForceSuccess(out, aftik, result.pair(), success), status -> printForceStatus(out, aftik, status));
 	}
 	
-	private static void printForceSuccess(ContextPrinter out, Aftik aftik, ForceResult.Success result) {
-		out.printAt(aftik, "%s used their %s to %s.%n", aftik.getName(), result.item().name(), result.method().text());
+	private static void printForceSuccess(ContextPrinter out, Aftik aftik, DoorPair pair, ForceResult.Success result) {
+		out.printAt(pair.targetDoor(), "%s used their %s and %s the door.%n", aftik.getName(), result.item().name(), result.method().text());
+		out.printAt(pair.destination(), "A door was %s from the other side.%n", result.method().text());
 	}
 	
 	private static void printForceStatus(ContextPrinter out, Aftik aftik, ForceResult.Status status) {
