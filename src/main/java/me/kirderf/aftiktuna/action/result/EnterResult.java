@@ -1,6 +1,6 @@
 package me.kirderf.aftiktuna.action.result;
 
-import me.kirderf.aftiktuna.level.object.ObjectType;
+import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;

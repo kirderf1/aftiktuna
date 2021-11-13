@@ -1,6 +1,6 @@
 package me.kirderf.aftiktuna.action.result;
 
-import me.kirderf.aftiktuna.level.object.entity.Entity;
+import me.kirderf.aftiktuna.object.entity.Entity;
 
 public record AttackResult(Entity attacked, Type type) {
 	

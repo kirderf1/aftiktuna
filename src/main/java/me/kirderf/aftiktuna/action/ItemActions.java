@@ -3,8 +3,8 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.level.object.*;
-import me.kirderf.aftiktuna.level.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.*;
+import me.kirderf.aftiktuna.object.entity.Aftik;
 
 import java.util.Optional;
 

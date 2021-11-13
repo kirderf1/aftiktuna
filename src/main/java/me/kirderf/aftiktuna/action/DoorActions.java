@@ -5,12 +5,12 @@ import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
-import me.kirderf.aftiktuna.level.object.ObjectArgument;
-import me.kirderf.aftiktuna.level.object.ObjectType;
-import me.kirderf.aftiktuna.level.object.ObjectTypes;
-import me.kirderf.aftiktuna.level.object.door.Door;
-import me.kirderf.aftiktuna.level.object.door.DoorPair;
-import me.kirderf.aftiktuna.level.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.ObjectArgument;
+import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.ObjectTypes;
+import me.kirderf.aftiktuna.object.door.Door;
+import me.kirderf.aftiktuna.object.door.DoorPair;
+import me.kirderf.aftiktuna.object.entity.Aftik;
 
 import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;

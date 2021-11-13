@@ -1,12 +1,14 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
-import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.Location;
-import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.level.Ship;
-import me.kirderf.aftiktuna.level.object.entity.Aftik;
-import me.kirderf.aftiktuna.level.object.entity.Entity;
+import me.kirderf.aftiktuna.location.GameObject;
+import me.kirderf.aftiktuna.location.Location;
+import me.kirderf.aftiktuna.location.Room;
+import me.kirderf.aftiktuna.location.Ship;
+import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
+import me.kirderf.aftiktuna.location.levels.Locations;
+import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.Entity;
 
 import java.io.BufferedReader;
 import java.io.IOException;

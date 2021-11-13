@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna;
 
-import me.kirderf.aftiktuna.level.GameObject;
-import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.level.object.entity.Entity;
+import me.kirderf.aftiktuna.location.GameObject;
+import me.kirderf.aftiktuna.location.Room;
+import me.kirderf.aftiktuna.object.entity.Entity;
 
 import java.io.PrintWriter;
 
