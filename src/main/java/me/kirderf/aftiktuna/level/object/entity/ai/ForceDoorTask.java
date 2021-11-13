@@ -2,13 +2,12 @@ package me.kirderf.aftiktuna.level.object.entity.ai;
 
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.action.result.EnterResult;
-import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 
 public final class ForceDoorTask extends Task {
 	private final Aftik aftik;
-	private Door forceTarget;
+	private ForceDoorTaskFragment forceFragment;
 	
 	public ForceDoorTask(Aftik aftik) {
 		this.aftik = aftik;
@@ -16,26 +15,16 @@ public final class ForceDoorTask extends Task {
 	
 	@Override
 	public boolean performAction(ContextPrinter out) {
-		if (forceTarget != null) {
-			aftik.moveAndForce(forceTarget, out);
-			forceTarget = null;
-			return true;
+		if (forceFragment != null) {
+			boolean result = forceFragment.performAction(aftik, out);
+			forceFragment = null;
+			return result;
 		} else
 			return false;
 	}
 	
 	@Override
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		result.either().getRight().ifPresent(failureType -> {
-			if (canForceDoor(failureType))
-				forceTarget = door;
-		});
-	}
-	
-	private boolean canForceDoor(EnterResult.FailureType type) {
-		if (type == EnterResult.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
-			return true;
-		else
-			return aftik.hasItem(ObjectTypes.BLOWTORCH);
+		result.either().getRight().ifPresent(failureType -> forceFragment = new ForceDoorTaskFragment(door, failureType));
 	}
 }

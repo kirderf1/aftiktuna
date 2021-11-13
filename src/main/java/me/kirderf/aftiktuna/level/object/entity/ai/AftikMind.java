@@ -37,10 +37,6 @@ public final class AftikMind {
 		tryLaunchShip(out);
 	}
 	
-	public void prepare() {
-		tasks.forEach(Task::prepare);
-	}
-	
 	public void performAction(ContextPrinter out) {
 		if (launchShip) {
 			tryLaunchShip(out);
