@@ -6,7 +6,7 @@ import java.io.*;
 import java.util.List;
 
 public final class Main {
-	public static final int EXPECTED_LINE_LENGTH = 60;
+	public static final int EXPECTED_LINE_LENGTH = 80;
 	
 	public static void main(String[] args) throws IOException {
 		System.out.println("Hello universe");
@@ -58,7 +58,7 @@ public final class Main {
 	
 	private static Component initOutputArea(BufferedReader reader) {
 		
-		JTextArea area = new JTextArea(15, EXPECTED_LINE_LENGTH);
+		JTextArea area = new JTextArea(20, EXPECTED_LINE_LENGTH);
 		area.setEditable(false);
 		area.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
 		

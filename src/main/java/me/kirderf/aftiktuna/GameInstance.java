@@ -62,7 +62,7 @@ public final class GameInstance {
 	
 	public void run(boolean debugLevel) {
 		initLocation(debugLevel);
-		out.printf("You're playing as the aftik %s.%n", crew.getAftik().getName());
+		out.printf("You're playing as the aftik %s.%n%n", crew.getAftik().getName());
 		
 		while (true) {
 			handleCrewDeaths();
