@@ -34,9 +34,10 @@ public final class GameInstance {
 	public GameInstance(PrintWriter out, BufferedReader in) {
 		this.out = out;
 		this.in = in;
-		statusPrinter = new StatusPrinter(out);
 		
 		crew = new Crew();
+		
+		statusPrinter = new StatusPrinter(out, crew);
 		contextPrinter = new ContextPrinter(out, crew);
 	}
 	
@@ -83,7 +84,7 @@ public final class GameInstance {
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
-			printStatus();
+			statusPrinter.printStatus(false);
 			
 			handleUserAction();
 			
@@ -98,7 +99,7 @@ public final class GameInstance {
 	}
 	
 	public void printStatus() {
-		statusPrinter.printStatus(crew.getAftik());
+		statusPrinter.printStatus(true);
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -117,7 +118,7 @@ public final class GameInstance {
 		for (Aftik aftik : crew.getCrewMembers()) {
 			if (aftik.isDead()) {
 				if (crew.getAftik() == aftik)
-					printStatus();
+					statusPrinter.printStatus(true);
 				out.printf("%s is dead.%n", aftik.getName());
 				
 				aftik.dropItems();
