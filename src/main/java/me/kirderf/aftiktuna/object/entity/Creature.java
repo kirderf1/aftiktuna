@@ -19,6 +19,10 @@ public final class Creature extends Entity {
 	
 	private Collection<Aftik> targets = Collections.emptyList();
 	
+	public Creature(CreatureType type) {
+		this(type, true);
+	}
+	
 	public Creature(CreatureType type, boolean isMoving) {
 		super(type, 5, type.getStats());
 		this.isMoving = isMoving;

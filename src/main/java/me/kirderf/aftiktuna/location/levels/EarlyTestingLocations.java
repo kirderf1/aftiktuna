@@ -92,9 +92,9 @@ public final class EarlyTestingLocations {
 	public static Location createDeathLocation() {
 		LocationBuilder builder = new LocationBuilder();
 		Room room = builder.newRoom(5);
-		room.addObject(new Creature(ObjectTypes.AZURECLOPS, true), 2);
-		room.addObject(new Creature(ObjectTypes.AZURECLOPS, true), 2);
-		room.addObject(new Creature(ObjectTypes.AZURECLOPS, true), 3);
+		room.addCreature(ObjectTypes.AZURECLOPS, 2);
+		room.addCreature(ObjectTypes.AZURECLOPS, 2);
+		room.addCreature(ObjectTypes.AZURECLOPS, 3);
 		room.addItem(ObjectTypes.FUEL_CAN, 4);
 		return builder.build(room.getPosAt(0));
 	}

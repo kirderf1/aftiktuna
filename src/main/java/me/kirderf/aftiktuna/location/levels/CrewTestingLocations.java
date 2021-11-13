@@ -5,7 +5,6 @@ import me.kirderf.aftiktuna.location.LocationBuilder;
 import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
-import me.kirderf.aftiktuna.object.entity.Creature;
 
 public final class CrewTestingLocations {
 	public static Location separationTest() {
@@ -15,7 +14,7 @@ public final class CrewTestingLocations {
 		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), new DoorLockedProperty());
 		firstRoom.addItem(ObjectTypes.KEYCARD, 0);
 		firstRoom.addItem(ObjectTypes.BLOWTORCH, 0);
-		firstRoom.addObject(new Creature(ObjectTypes.EYESAUR, true), 3);
+		firstRoom.addCreature(ObjectTypes.EYESAUR, 3);
 		
 		return builder.build(firstRoom.getPosAt(1));
 	}

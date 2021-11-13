@@ -1,7 +1,9 @@
 package me.kirderf.aftiktuna.location;
 
+import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
 
 import java.util.ArrayList;
@@ -28,6 +30,10 @@ public final class Room {
 	
 	public void addItem(ObjectType type, int coord) {
 		addObject(new Item(type), coord);
+	}
+	
+	public void addCreature(CreatureType type, int coord) {
+		addObject(new Creature(type), coord);
 	}
 	
 	public void addObject(GameObject object, int coord) {
