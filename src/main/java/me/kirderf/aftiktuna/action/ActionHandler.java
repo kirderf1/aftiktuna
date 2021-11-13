@@ -49,7 +49,7 @@ public final class ActionHandler {
 		try {
 			return dispatcher.execute(input, game);
 		} catch(CommandSyntaxException ignored) {
-			game.out().printf("Unexpected input \"%s\"%n", input);
+			game.directOut().printf("Unexpected input \"%s\"%n", input);
 			return 0;
 		}
 	}
@@ -61,11 +61,11 @@ public final class ActionHandler {
 		if (optionalCreature.isPresent()) {
 			Creature creature = optionalCreature.get();
 			
-			aftik.moveAndAttack(creature, new ContextPrinter(game));
+			aftik.moveAndAttack(creature, game.out());
 			
 			return 1;
 		} else {
-			game.out().println("There is no such creature to attack.");
+			game.directOut().println("There is no such creature to attack.");
 			return 0;
 		}
 	}
@@ -75,15 +75,15 @@ public final class ActionHandler {
 		
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
 			if (isNearShip(aftik, game.getCrew().getShip())) {
-				aftik.getMind().setLaunchShip(new ContextPrinter(game));
+				aftik.getMind().setLaunchShip(game.out());
 				
 				return 1;
 			} else {
-				game.out().printf("%s need to be near the ship in order to launch it.%n", aftik.getName());
+				game.directOut().printf("%s need to be near the ship in order to launch it.%n", aftik.getName());
 				return 0;
 			}
 		} else {
-			game.out().printf("%s need a fuel can to launch the ship.%n", aftik.getName());
+			game.directOut().printf("%s need a fuel can to launch the ship.%n", aftik.getName());
 			return 0;
 		}
 	}
@@ -100,16 +100,16 @@ public final class ActionHandler {
 				game.setControllingAftik(aftik);
 				game.printStatus();
 			} else {
-				game.out().println("You're already in control of them.");
+				game.directOut().println("You're already in control of them.");
 			}
 		} else {
-			game.out().println("There is no crew member by that name.");
+			game.directOut().println("There is no crew member by that name.");
 		}
 		return 0;
 	}
 	
 	static void printMoveFailure(GameInstance game, Entity.MoveFailure result) {
-		printBlocking(new ContextPrinter(game), game.getAftik(), result.blocking());
+		printBlocking(game.out(), game.getAftik(), result.blocking());
 	}
 	
 	public static void printMoveFailure(ContextPrinter out, Entity entity, Entity.MoveFailure result) {
@@ -117,7 +117,7 @@ public final class ActionHandler {
 	}
 	
 	static void printBlocking(GameInstance game, GameObject blocking) {
-		printBlocking(new ContextPrinter(game), game.getAftik(), blocking);
+		printBlocking(game.out(), game.getAftik(), blocking);
 	}
 	
 	static void printBlocking(ContextPrinter out, Entity entity, GameObject blocking) {
@@ -140,7 +140,7 @@ public final class ActionHandler {
 		
 		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
 			if (entity.isAlive() && entity != game.getAftik()) {
-				entity.performAction(new ContextPrinter(game));
+				entity.performAction(game.out());
 			}
 		}
 	}

@@ -34,15 +34,15 @@ public final class DoorActions {
 	private static int enterDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
 		return searchForAndIfNotBlocked(game, aftik, doorType,
-				door -> aftik.moveEnterMain(door, new ContextPrinter(game)),
-				() -> game.out().println("There is no such door here to go through."));
+				door -> aftik.moveEnterMain(door, game.out()),
+				() -> game.directOut().println("There is no such door here to go through."));
 	}
 	
 	private static int forceDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
 		return searchForAndIfNotBlocked(game, aftik, doorType,
-				door -> aftik.moveAndForce(door, new ContextPrinter(game)),
-				() -> game.out().println("There is no such door here."));
+				door -> aftik.moveAndForce(door, game.out()),
+				() -> game.directOut().println("There is no such door here."));
 	}
 	
 	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Door> onSuccess, Runnable onNoMatch) {

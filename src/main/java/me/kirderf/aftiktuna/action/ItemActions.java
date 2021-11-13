@@ -29,37 +29,37 @@ public final class ItemActions {
 	private static int takeItem(GameInstance game, ObjectType type) {
 		Aftik aftik = game.getAftik();
 		return searchForAndIfNotBlocked(game, aftik, type,
-				item -> takeItem(game, aftik, item),
-				() -> game.out().printf("There is no %s here to pick up.%n", type.name()));
+				item -> takeItem(aftik, item, game.out()),
+				() -> game.directOut().printf("There is no %s here to pick up.%n", type.name()));
 	}
 	
-	private static void takeItem(GameInstance game, Aftik aftik, Item item) {
+	private static void takeItem(Aftik aftik, Item item, ContextPrinter out) {
 		Optional<Entity.MoveFailure> result = aftik.moveAndTake(item);
 		
 		result.ifPresentOrElse(
-				failure -> ActionHandler.printMoveFailure(game, failure),
-				() -> game.out().printf("%s picked up the %s.%n", aftik.getName(), item.getType().name()));
+				failure -> ActionHandler.printMoveFailure(out, aftik, failure),
+				() -> out.printAt(aftik, "%s picked up the %s.%n", aftik.getName(), item.getType().name()));
 	}
 	
 	private static int wieldItem(GameInstance game, WeaponType weaponType) {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.hasItem(weaponType)) {
-			aftik.wieldFromInventory(weaponType, new ContextPrinter(game));
+			aftik.wieldFromInventory(weaponType, game.out());
 			return 1;
 		} else {
 			return searchForAndIfNotBlocked(game, aftik, weaponType,
-					item -> wieldItem(game, aftik, item, weaponType),
-					() -> game.out().printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
+					item -> wieldItem(aftik, item, weaponType, game.out()),
+					() -> game.directOut().printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
 		}
 	}
 	
-	private static void wieldItem(GameInstance game, Aftik aftik, Item item, WeaponType type) {
+	private static void wieldItem(Aftik aftik, Item item, WeaponType type, ContextPrinter out) {
 		Optional<Entity.MoveFailure> result = aftik.moveAndWield(item, type);
 		
 		result.ifPresentOrElse(
-				failure -> ActionHandler.printMoveFailure(game,failure),
-				() -> game.out().printf("%s picked up and wielded the %s.%n", aftik.getName(), type.name()));
+				failure -> ActionHandler.printMoveFailure(out, aftik, failure),
+				() -> out.printAt(aftik, "%s picked up and wielded the %s.%n", aftik.getName(), type.name()));
 	}
 	
 	private static int giveItem(GameInstance game, String name, ObjectType type) {
@@ -70,7 +70,7 @@ public final class ItemActions {
 			Aftik target = aftikOptional.get();
 			
 			if (aftik == target) {
-				game.out().printf("%s can't give an item to themselves.%n", aftik.getName());
+				game.directOut().printf("%s can't give an item to themselves.%n", aftik.getName());
 				return 0;
 			}
 			
@@ -80,17 +80,17 @@ public final class ItemActions {
 				
 				result.run(success -> {
 					if (success)
-						game.out().printf("%s gave %s a %s.%n", aftik.getName(), target.getName(), type.name());
+						game.out().printAt(aftik, "%s gave %s a %s.%n", aftik.getName(), target.getName(), type.name());
 					else
-						game.out().printf("%s does not have that item.%n", aftik.getName());
+						game.out().printFor(aftik, "%s does not have that item.%n", aftik.getName());
 				}, moveFailure -> printMoveFailure(game, moveFailure));
 				return 1;
 			} else {
-				game.out().printf("%s does not have that item.%n", aftik.getName());
+				game.directOut().printf("%s does not have that item.%n", aftik.getName());
 				return 0;
 			}
 		} else {
-			game.out().printf("There is no such aftik in the room.%n");
+			game.directOut().printf("There is no such aftik in the room.%n");
 			return 0;
 		}
 	}

@@ -19,6 +19,7 @@ public final class GameInstance {
 	
 	private final StatusPrinter statusPrinter;
 	private final PrintWriter out;
+	private final ContextPrinter contextPrinter;
 	private final BufferedReader in;
 	
 	private final ActionHandler actionHandler = new ActionHandler();
@@ -34,6 +35,7 @@ public final class GameInstance {
 		statusPrinter = new StatusPrinter(out);
 		
 		crew = new Crew();
+		contextPrinter = new ContextPrinter(out, crew);
 	}
 	
 	public Aftik getAftik() {
@@ -48,7 +50,11 @@ public final class GameInstance {
 		return Stream.concat(Stream.of(crew.getShip().getRoom()), location.getRooms().stream()).flatMap(Room::objectStream);
 	}
 	
-	public PrintWriter out() {
+	public ContextPrinter out() {
+		return contextPrinter;
+	}
+	
+	public PrintWriter directOut() {
 		return out;
 	}
 	
@@ -147,7 +153,7 @@ public final class GameInstance {
 	private void handleUserAction() {
 		Aftik aftik = crew.getAftik();
 		if (aftik.getMind().overridesPlayerInput()) {
-			aftik.performAction(new ContextPrinter(this));
+			aftik.performAction(contextPrinter);
 		} else {
 			int result = 0;
 			do {
