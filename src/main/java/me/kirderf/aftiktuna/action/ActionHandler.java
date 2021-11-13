@@ -73,7 +73,7 @@ public final class ActionHandler {
 		Aftik aftik = game.getAftik();
 		
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
-			if (isNearShip(aftik, game.getShip())) {
+			if (isNearShip(aftik, game.getCrew().getShip())) {
 				aftik.getMind().setLaunchShip(new ContextPrinter(game));
 				
 				return 1;
@@ -92,7 +92,7 @@ public final class ActionHandler {
 	}
 	
 	private static int controlAftik(GameInstance game, String name) {
-		Optional<Aftik> aftikOptional = game.findByName(name);
+		Optional<Aftik> aftikOptional = game.getCrew().findByName(name);
 		if (aftikOptional.isPresent()) {
 			Aftik aftik = aftikOptional.get();
 			if (aftik != game.getAftik()) {

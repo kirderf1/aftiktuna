@@ -64,7 +64,7 @@ public final class ItemActions {
 	
 	private static int giveItem(GameInstance game, String name, ObjectType type) {
 		Aftik aftik = game.getAftik();
-		Optional<Aftik> aftikOptional = game.findByName(name);
+		Optional<Aftik> aftikOptional = game.getCrew().findByName(name);
 		
 		if (aftikOptional.isPresent() && aftik.getRoom() == aftikOptional.get().getRoom()) {
 			Aftik target = aftikOptional.get();
