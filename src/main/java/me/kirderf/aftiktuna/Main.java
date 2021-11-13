@@ -4,6 +4,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class Main {
 	public static final int EXPECTED_LINE_LENGTH = 80;
@@ -18,7 +20,8 @@ public final class Main {
 		GameInstance instance;
 		
 		if (noGui) {
-			instance = new GameInstance(new PrintWriter(System.out, true), new BufferedReader(new InputStreamReader(System.in)));
+			instance = new GameInstance(new PrintWriter(System.out, true),
+					new BufferedReader(new InputStreamReader(System.in)), () -> System.out.print("> "));
 		} else {
 			instance = initGuiGame();
 		}
@@ -39,6 +42,7 @@ public final class Main {
 		
 		PrintWriter out = new PrintWriter(new PipedWriter(outReader), true);
 		BufferedReader in = new BufferedReader(new PipedReader(inWriter));
+		AtomicReference<JTextField> inputFieldRef = new AtomicReference<>();
 		
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Aftiktuna");
@@ -46,14 +50,19 @@ public final class Main {
 			frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 			
 			frame.getContentPane().add(initOutputArea(new BufferedReader(outReader)), BorderLayout.NORTH);
-			frame.getContentPane().add(initInputField(inWriter, out), BorderLayout.SOUTH);
+			frame.getContentPane().add(initInputField(inWriter, out, inputFieldRef), BorderLayout.SOUTH);
 			
 			frame.pack();
 			frame.setLocationRelativeTo(null);
 			frame.setVisible(true);
 		});
 		
-		return new GameInstance(out, in);
+		return new GameInstance(out, in, () -> prepareForInput(inputFieldRef));
+	}
+	
+	private static void prepareForInput(AtomicReference<JTextField> inputFieldRef) {
+		SwingUtilities.invokeLater(() -> Optional.ofNullable(inputFieldRef.get())
+				.ifPresent(textField -> textField.setEditable(true)));
 	}
 	
 	private static Component initOutputArea(BufferedReader reader) {
@@ -86,11 +95,12 @@ public final class Main {
 		return scrollPane;
 	}
 	
-	private static Component initInputField(Writer writer, PrintWriter out) {
+	private static Component initInputField(Writer writer, PrintWriter out, AtomicReference<JTextField> textFieldRef) {
 		JTextField textField = new JTextField();
 		textField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
 		textField.addActionListener(e -> {
 			try {
+				textField.setEditable(false);
 				writer.write(textField.getText() + "\n");
 				out.printf("> %s%n", textField.getText());
 				textField.setText("");
@@ -98,6 +108,7 @@ public final class Main {
 				ex.printStackTrace();
 			}
 		});
+		textFieldRef.set(textField);
 		
 		return textField;
 	}

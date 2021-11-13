@@ -19,10 +19,11 @@ import java.util.stream.Stream;
 public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
-	private final StatusPrinter statusPrinter;
 	private final PrintWriter out;
-	private final ContextPrinter contextPrinter;
 	private final BufferedReader in;
+	private final Runnable prepareForInput;
+	private final ContextPrinter contextPrinter;
+	private final StatusPrinter statusPrinter;
 	
 	private final ActionHandler actionHandler = new ActionHandler();
 	private final Locations locations = new Locations();
@@ -31,9 +32,10 @@ public final class GameInstance {
 	private Location location;
 	private final Crew crew;
 	
-	public GameInstance(PrintWriter out, BufferedReader in) {
+	public GameInstance(PrintWriter out, BufferedReader in, Runnable prepareForInput) {
 		this.out = out;
 		this.in = in;
+		this.prepareForInput = prepareForInput;
 		
 		crew = new Crew();
 		
@@ -162,6 +164,7 @@ public final class GameInstance {
 			do {
 				String input;
 				try {
+					prepareForInput.run();
 					input = in.readLine();
 				} catch(IOException e) {
 					e.printStackTrace();
