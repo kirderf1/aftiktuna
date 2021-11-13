@@ -3,12 +3,10 @@ package me.kirderf.aftiktuna.action;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.*;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;
@@ -26,7 +24,7 @@ public final class ItemActions {
 	
 	private static int takeItem(GameInstance game, ObjectType type) {
 		Aftik aftik = game.getAftik();
-		return searchForAndIfNotBlocked(game, aftik, type,
+		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Item.CAST.filter(type::matching),
 				item -> aftik.moveAndTake(item, game.out()),
 				() -> game.directOut().printf("There is no %s here to pick up.%n", type.name()));
 	}
@@ -38,7 +36,7 @@ public final class ItemActions {
 			aftik.wieldFromInventory(weaponType, game.out());
 			return 1;
 		} else {
-			return searchForAndIfNotBlocked(game, aftik, weaponType,
+			return ActionHandler.searchForAndIfNotBlocked(game, aftik, Item.CAST.filter(weaponType::matching),
 					item -> aftik.moveAndWield(item, weaponType, game.out()),
 					() -> game.directOut().printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
 		}
@@ -66,25 +64,6 @@ public final class ItemActions {
 			}
 		} else {
 			game.directOut().printf("There is no such aftik in the room.%n");
-			return 0;
-		}
-	}
-	
-	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Item> onSuccess, Runnable onNoMatch) {
-		Optional<Item> optionalItem = aftik.findNearest(Item.CAST.filter(type::matching));
-		if (optionalItem.isPresent()) {
-			Item item = optionalItem.get();
-			
-			Optional<GameObject> blocking = aftik.findBlockingTo(item.getCoord());
-			if (blocking.isEmpty()) {
-				onSuccess.accept(item);
-				return 1;
-			} else {
-				ActionHandler.printBlocking(game.out(), aftik, blocking.get());
-				return 0;
-			}
-		} else {
-			onNoMatch.run();
 			return 0;
 		}
 	}

@@ -21,6 +21,7 @@ import me.kirderf.aftiktuna.level.object.entity.Entity;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class ActionHandler {
@@ -106,6 +107,25 @@ public final class ActionHandler {
 			game.directOut().println("There is no crew member by that name.");
 		}
 		return 0;
+	}
+	
+	static <T extends GameObject> int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, OptionalFunction<GameObject, T> mapper, Consumer<T> onSuccess, Runnable onNoMatch) {
+		Optional<T> optionalDoor = aftik.findNearest(mapper);
+		if (optionalDoor.isPresent()) {
+			T object = optionalDoor.get();
+			
+			Optional<GameObject> blocking = aftik.findBlockingTo(object.getCoord());
+			if (blocking.isEmpty()) {
+				onSuccess.accept(object);
+				return 1;
+			} else {
+				ActionHandler.printBlocking(game.out(), aftik, blocking.get());
+				return 0;
+			}
+		} else {
+			onNoMatch.run();
+			return 0;
+		}
 	}
 	
 	public static void printMoveFailure(ContextPrinter out, Entity entity, Entity.MoveFailure result) {

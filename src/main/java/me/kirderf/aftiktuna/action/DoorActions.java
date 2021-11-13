@@ -5,16 +5,12 @@ import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
-import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.object.ObjectArgument;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.door.DoorPair;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
-
-import java.util.Optional;
-import java.util.function.Consumer;
 
 import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;
@@ -33,35 +29,16 @@ public final class DoorActions {
 	
 	private static int enterDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
-		return searchForAndIfNotBlocked(game, aftik, doorType,
+		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Door.CAST.filter(doorType::matching),
 				door -> aftik.moveEnterMain(door, game.out()),
 				() -> game.directOut().println("There is no such door here to go through."));
 	}
 	
 	private static int forceDoor(GameInstance game, ObjectType doorType) {
 		Aftik aftik = game.getAftik();
-		return searchForAndIfNotBlocked(game, aftik, doorType,
+		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Door.CAST.filter(doorType::matching),
 				door -> aftik.moveAndForce(door, game.out()),
 				() -> game.directOut().println("There is no such door here."));
-	}
-	
-	private static int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, ObjectType type, Consumer<Door> onSuccess, Runnable onNoMatch) {
-		Optional<Door> optionalDoor = aftik.findNearest(Door.CAST.filter(type::matching));
-		if (optionalDoor.isPresent()) {
-			Door door = optionalDoor.get();
-			
-			Optional<GameObject> blocking = aftik.findBlockingTo(door.getCoord());
-			if (blocking.isEmpty()) {
-				onSuccess.accept(door);
-				return 1;
-			} else {
-				ActionHandler.printBlocking(game.out(), aftik, blocking.get());
-				return 0;
-			}
-		} else {
-			onNoMatch.run();
-			return 0;
-		}
 	}
 	
 	public static void printEnterResult(ContextPrinter out, Aftik aftik, EnterResult result) {
