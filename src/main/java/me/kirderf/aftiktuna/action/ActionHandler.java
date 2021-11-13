@@ -36,6 +36,7 @@ public final class ActionHandler {
 		dispatcher.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
 		dispatcher.register(literal("wait").executes(context -> 1));
+		dispatcher.register(literal("status").executes(context -> {context.getSource().printStatus(); return 0;}));
 	}
 	
 	static LiteralArgumentBuilder<GameInstance> literal(String str) {
