@@ -102,9 +102,11 @@ public final class StatusPrinter {
 	private void printHealth(Aftik aftik, boolean forcePrint) {
 		float health = aftik.getHealth();
 		if (forcePrint || shownHealth != health) {
+			final int barLength = 10;
+			
 			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < 5; i++) {
-				builder.append(i * aftik.getMaxHealth() < 5 * health ? '#' : '.');
+			for (int i = 0; i < barLength; i++) {
+				builder.append(i * aftik.getMaxHealth() < barLength * health ? '#' : '.');
 			}
 			out.printf("Health: %s%n", builder);
 			shownHealth = health;
