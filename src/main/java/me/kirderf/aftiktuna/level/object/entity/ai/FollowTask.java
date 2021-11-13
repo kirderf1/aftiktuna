@@ -18,6 +18,13 @@ public final class FollowTask extends Task {
 	
 	@Override
 	public boolean performAction(ContextPrinter out) {
+		if (followTarget != null &&
+				(followTarget.door.getRoom() != this.aftik.getRoom() || followTarget.aftik.getRoom() == this.aftik.getRoom())) {
+			followTarget = null;
+			forceFragment = null;
+			return false;
+		}
+		
 		if (forceFragment != null) {
 			if (forceFragment.performAction(aftik, out)) {
 				forceFragment = null;
@@ -29,22 +36,17 @@ public final class FollowTask extends Task {
 			}
 		} else if (followTarget != null) {
 			
-			if (followTarget.door.getRoom() == aftik.getRoom()) {
-				Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door);
-				
-				if (result.success()) {
-					out.printAt(aftik, "%s follows %s into the room.%n", aftik.getName(), followTarget.aftik.getName());
-				}
-				
-				result.either().getLeft().flatMap(enterResult -> enterResult.either().getRight())
-						.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(followTarget.door, failureType),
-								() -> followTarget = null);
-				
-				return true;
-			} else {
-				followTarget = null;
-				return false;
+			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door);
+			
+			if (result.success()) {
+				out.printAt(aftik, "%s follows %s into the room.%n", aftik.getName(), followTarget.aftik.getName());
 			}
+			
+			result.either().getLeft().flatMap(enterResult -> enterResult.either().getRight())
+					.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(followTarget.door, failureType),
+							() -> followTarget = null);
+			
+			return true;
 		} else {
 			return false;
 		}
