@@ -1,13 +1,13 @@
 package me.kirderf.aftiktuna.level.object.entity;
 
 import me.kirderf.aftiktuna.ContextPrinter;
+import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.DoorActions;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.level.GameObject;
 import me.kirderf.aftiktuna.level.Room;
-import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.Item;
 import me.kirderf.aftiktuna.level.object.ObjectType;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -28,10 +28,10 @@ public final class Aftik extends Entity {
 	private final List<ObjectType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
-	public Aftik(String name, Stats stats, Ship ship) {
+	public Aftik(String name, Stats stats, Crew crew) {
 		super(ObjectTypes.AFTIK, 10, stats);
 		this.name = name;
-		mind = new AftikMind(this, ship);
+		mind = new AftikMind(this, crew);
 	}
 	
 	public String getName() {

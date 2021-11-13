@@ -1,19 +1,23 @@
 package me.kirderf.aftiktuna.level.object.entity.ai;
 
 import me.kirderf.aftiktuna.ContextPrinter;
+import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.level.object.door.Door;
 import me.kirderf.aftiktuna.level.object.entity.Aftik;
 
 public final class FollowTask extends Task {
 	private final Aftik aftik;
+	private final Crew crew;
+	
 	private FollowTarget followTarget;
 	private ForceDoorTaskFragment forceFragment;
 	
 	private static record FollowTarget(Door door, Aftik aftik) {}
 	
-	public FollowTask(Aftik aftik) {
+	public FollowTask(Aftik aftik, Crew crew) {
 		this.aftik = aftik;
+		this.crew = crew;
 	}
 	
 	@Override
@@ -54,7 +58,7 @@ public final class FollowTask extends Task {
 	
 	@Override
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		if (result.success()) {
+		if (aftik == crew.getAftik() && result.success()) {
 			this.followTarget = new FollowTarget(door, aftik);
 		}
 	}

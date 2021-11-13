@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.level.object.entity.ai;
 
 import me.kirderf.aftiktuna.ContextPrinter;
+import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.level.Ship;
 import me.kirderf.aftiktuna.level.object.ObjectTypes;
@@ -12,15 +13,15 @@ import java.util.Optional;
 
 public final class AftikMind {
 	private final Aftik aftik;
-	private final Ship ship;
+	private final Crew crew;
 	
 	private final List<Task> tasks;
 	private boolean launchShip;
 	
-	public AftikMind(Aftik aftik, Ship ship) {
+	public AftikMind(Aftik aftik, Crew crew) {
 		this.aftik = aftik;
-		this.ship = ship;
-		tasks = List.of(new FollowTask(aftik), new ForceDoorTask(aftik),
+		this.crew = crew;
+		tasks = List.of(new FollowTask(aftik, crew), new ForceDoorTask(aftik),
 				new WieldTask(aftik), new FightTask(aftik));
 	}
 	
@@ -49,6 +50,7 @@ public final class AftikMind {
 	}
 	
 	private void tryLaunchShip(ContextPrinter out) {
+		Ship ship = crew.getShip();
 		if (aftik.getRoom() != ship.getRoom()) {
 			tryGoToShip(out);
 		} else {

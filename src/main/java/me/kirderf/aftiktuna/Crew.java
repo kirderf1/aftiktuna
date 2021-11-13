@@ -17,8 +17,8 @@ public final class Crew {
 	
 	Crew() {
 		ship = new Ship();
-		crewMembers = new ArrayList<>(List.of(new Aftik("Cerulean", new Stats(9, 2, 10), ship),
-				new Aftik("Mint", new Stats(10, 3, 8), ship)));
+		crewMembers = new ArrayList<>(List.of(new Aftik("Cerulean", new Stats(9, 2, 10), this),
+				new Aftik("Mint", new Stats(10, 3, 8), this)));
 		aftik = crewMembers.get(0);
 		crewMembers.forEach(aftik1 -> ship.getRoom().addObject(aftik1, 0));
 	}
