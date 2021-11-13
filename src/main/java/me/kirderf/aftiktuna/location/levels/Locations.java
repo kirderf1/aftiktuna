@@ -33,7 +33,7 @@ public final class Locations {
 		builder.markDoors(firstRoom.getPosAt(5), rightRoom.getPosAt(0), new DoorStuckProperty());
 		leftRoom.addItem(ObjectTypes.CROWBAR, 1);
 		rightRoom.addItem(ObjectTypes.FUEL_CAN, 3);
-		rightRoom.addObject(new Creature(true), 2);
+		rightRoom.addObject(new Creature(ObjectTypes.AZURECLOPS, true), 2);
 		
 		return builder.build(firstRoom.getPosAt(3));
 	}
@@ -48,7 +48,7 @@ public final class Locations {
 		secondRoom.addItem(ObjectTypes.BLOWTORCH, 0);
 		secondRoom.addItem(ObjectTypes.FUEL_CAN, 5);
 		thirdRoom.addItem(ObjectTypes.KNIFE, 3);
-		secondRoom.addObject(new Creature(true), 1);
+		secondRoom.addObject(new Creature(ObjectTypes.EYESAUR, true), 1);
 		
 		return builder.build(firstRoom.getPosAt(0));
 	}
@@ -63,8 +63,8 @@ public final class Locations {
 		leftRoom.addItem(ObjectTypes.FUEL_CAN, 0);
 		leftRoom.addItem(ObjectTypes.FUEL_CAN, 1);
 		rightRoom.addItem(ObjectTypes.KEYCARD, 0);
-		rightRoom.addObject(new Creature(true), 2);
-		rightRoom.addObject(new Creature(true), 3);
+		rightRoom.addObject(new Creature(ObjectTypes.GOBLIN, true), 2);
+		rightRoom.addObject(new Creature(ObjectTypes.GOBLIN, true), 3);
 		
 		return builder.build(firstRoom.getPosAt(0));
 	}

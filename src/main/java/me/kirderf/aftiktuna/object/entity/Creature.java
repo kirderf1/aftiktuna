@@ -3,7 +3,7 @@ package me.kirderf.aftiktuna.object.entity;
 import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Room;
-import me.kirderf.aftiktuna.object.ObjectTypes;
+import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Collection;
@@ -19,8 +19,8 @@ public final class Creature extends Entity {
 	
 	private Collection<Aftik> targets = Collections.emptyList();
 	
-	public Creature(boolean isMoving) {
-		super(ObjectTypes.CREATURE, 5, new Stats(4, 4, 4));
+	public Creature(CreatureType type, boolean isMoving) {
+		super(type, 5, type.getStats());
 		this.isMoving = isMoving;
 	}
 	
