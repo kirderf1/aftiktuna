@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public final class Locations {
-	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation, Locations::createKeycardLocation);
+	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation, Locations::createKeycardLocation, Locations::abandonedFacility);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
 	
@@ -66,5 +66,40 @@ public final class Locations {
 		rightRoom.addCreature(ObjectTypes.GOBLIN, 3);
 		
 		return builder.build(firstRoom.getPosAt(0));
+	}
+	
+	private static Location abandonedFacility() {
+		LocationBuilder builder = new LocationBuilder();
+		Room field = builder.newRoom(6);
+		Room rightField = builder.newRoom(5);
+		Room entrance = builder.newRoom(7);
+		Room corridor1 = builder.newRoom(5);
+		Room corridor2 = builder.newRoom(5);
+		Room room1 = builder.newRoom(4);
+		Room room2 = builder.newRoom(4);
+		Room room3 = builder.newRoom(4);
+		Room sealedRoom = builder.newRoom(4);
+		
+		builder.markDoors(field.getPosAt(2), entrance.getPosAt(5), new DoorLockedProperty());
+		builder.createDoors(ObjectTypes.RIGHT_PATH, field.getPosAt(5), ObjectTypes.PATH, rightField.getPosAt(0));
+		rightField.addItem(ObjectTypes.KEYCARD, 3);
+		
+		builder.markDoors(entrance.getPosAt(1), sealedRoom.getPosAt(2), new DoorSealedProperty());
+		builder.markDoors(entrance.getPosAt(3), corridor1.getPosAt(0));
+		builder.markDoors(corridor1.getPosAt(2), room1.getPosAt(3));
+		builder.markDoors(corridor1.getPosAt(4), corridor2.getPosAt(0));
+		builder.markDoors(corridor2.getPosAt(2), room2.getPosAt(3), new DoorStuckProperty());
+		builder.markDoors(corridor2.getPosAt(4), room3.getPosAt(0));
+		room1.addItem(ObjectTypes.CROWBAR, 1);
+		corridor1.addCreature(ObjectTypes.EYESAUR, 3);
+		room2.addItem(ObjectTypes.BLOWTORCH, 0);
+		room3.addItem(ObjectTypes.FUEL_CAN, 3);
+		room3.addCreature(ObjectTypes.EYESAUR, 1);
+		room3.addCreature(ObjectTypes.EYESAUR, 2);
+		sealedRoom.addItem(ObjectTypes.FUEL_CAN, 0);
+		sealedRoom.addItem(ObjectTypes.KNIFE, 3);
+		sealedRoom.addCreature(ObjectTypes.AZURECLOPS, 1);
+		
+		return builder.build(field.getPosAt(0));
 	}
 }
