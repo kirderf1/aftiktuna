@@ -79,6 +79,7 @@ public final class StatusPrinter {
 		
 		int lines = Math.max(1, objectsByPos.stream().map(List::size).max(Integer::compare).orElse(0));
 		
+		out.printf("%s:%n", room.getLabel());
 		for (int line = lines - 1; line >= 0; line--) {
 			StringBuilder builder = new StringBuilder((line == 0 ? "_" : " ").repeat(room.getLength()));
 			for (int pos = 0; pos < room.getLength(); pos++) {

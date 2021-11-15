@@ -8,7 +8,7 @@ import me.kirderf.aftiktuna.print.ContextPrinter;
 import java.util.stream.Collectors;
 
 public final class Ship {
-	private final Room room = new Room(4);
+	private final Room room = new Room("Ship", 4);
 	private final Position entrancePos = room.getPosAt(3);
 	private boolean isShipLaunching = false;
 	

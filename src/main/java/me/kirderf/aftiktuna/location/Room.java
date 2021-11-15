@@ -13,15 +13,21 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class Room {
+	final String label;
 	final int length;
 	private final List<GameObject> objects = new ArrayList<>();
 	
-	Room(int length) {
+	Room(String label, int length) {
+		this.label = label;
 		this.length = length;
 	}
 	
 	public int getLength() {
 		return length;
+	}
+	
+	public String getLabel() {
+		return label;
 	}
 	
 	public Position getPosAt(int coord) {

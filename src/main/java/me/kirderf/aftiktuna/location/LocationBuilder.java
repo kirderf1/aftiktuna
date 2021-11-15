@@ -13,12 +13,16 @@ public final class LocationBuilder {
 	private final Map<Room, List<DoorMark>> doorMap = new HashMap<>();
 	private final Map<Room, List<DoorMark>> pathMap = new HashMap<>();
 	
-	public Room newRoom(int size) {
-		Room room = new Room(size);
+	public Room newRoom(String label, int size) {
+		Room room = new Room(label, size);
 		rooms.add(room);
 		doorMap.put(room, new ArrayList<>());
 		pathMap.put(room, new ArrayList<>());
 		return room;
+	}
+	
+	public Room newTestRoom(int size) {
+		return newRoom("Room", size);
 	}
 	
 	public void markDoors(Position pos1, Position pos2) {
