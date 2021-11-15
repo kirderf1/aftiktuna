@@ -1,5 +1,5 @@
 package me.kirderf.aftiktuna.object.door;
 
-import me.kirderf.aftiktuna.location.Room;
+import me.kirderf.aftiktuna.location.Area;
 
-public final record DoorPair(Door targetDoor, Room destination) {}
+public final record DoorPair(Door targetDoor, Area destination) {}

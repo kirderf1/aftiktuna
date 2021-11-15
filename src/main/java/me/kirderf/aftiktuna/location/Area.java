@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class Room {
+public final class Area {
 	final String label;
 	final int length;
 	private final List<GameObject> objects = new ArrayList<>();
 	
-	Room(String label, int length) {
+	Area(String label, int length) {
 		this.label = label;
 		this.length = length;
 	}
@@ -47,8 +47,8 @@ public final class Room {
 	}
 	
 	public void addObject(GameObject object, Position position) {
-		if (position.room() == this) {
-			object.setRoom(position);
+		if (position.area() == this) {
+			object.setArea(position);
 			objects.add(object);
 		}
 	}

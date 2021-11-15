@@ -8,7 +8,7 @@ import me.kirderf.aftiktuna.print.ContextPrinter;
 import java.util.stream.Collectors;
 
 public final class Ship {
-	private final Room room = new Room("Ship", 4);
+	private final Area room = new Area("Ship", 4);
 	private final Position entrancePos = room.getPosAt(3);
 	private boolean isShipLaunching = false;
 	
@@ -20,12 +20,12 @@ public final class Ship {
 		Location.createDoors(ObjectTypes.SHIP_ENTRANCE, destination, ObjectTypes.SHIP_EXIT, entrancePos, DoorProperty.EMPTY);
 	}
 	
-	public Room getRoom() {
+	public Area getRoom() {
 		return room;
 	}
 	
 	public void tryLaunchShip(Aftik aftik, ContextPrinter out) {
-		if (!isShipLaunching && aftik.getRoom() == this.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+		if (!isShipLaunching && aftik.getArea() == this.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
 			isShipLaunching = true;
 			
 			out.printAt(getRoom(), "%s got fuel to the ship.%n", aftik.getName());

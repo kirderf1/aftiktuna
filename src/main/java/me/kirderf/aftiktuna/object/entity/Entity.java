@@ -3,9 +3,9 @@ package me.kirderf.aftiktuna.object.entity;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.result.AttackResult;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
-import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
@@ -84,8 +84,8 @@ public abstract class Entity extends GameObject {
 	}
 	
 	public final Optional<MoveFailure> tryMoveTo(Position pos) {
-		if (pos.room() != this.getRoom())
-			throw new IllegalArgumentException("Rooms must be the same.");
+		if (pos.area() != this.getArea())
+			throw new IllegalArgumentException("Areas must be the same.");
 		
 		int coord = pos.coord();
 		if(coord != this.getCoord()) {
@@ -107,7 +107,7 @@ public abstract class Entity extends GameObject {
 	
 	public final Optional<GameObject> findBlockingTo(int coord) {
 		if (coord != this.getCoord())
-			return getRoom().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
+			return getArea().findBlockingInRange(this, getPosition().getPosTowards(coord).coord(), coord);
 		else
 			return Optional.empty();
 	}
@@ -189,34 +189,34 @@ public abstract class Entity extends GameObject {
 	////// Utilities
 	
 	/**
-	 * Finds the nearest object in the room that passes the optional function and that this entity can move to.
+	 * Finds the nearest object in the area that passes the optional function and that this entity can move to.
 	 * @param exactPos if the entity need to be able to move to the exact position of the object.
 	 */
 	public final <T extends GameObject> Optional<T> findNearestAccessible(OptionalFunction<GameObject, T> mapper, boolean exactPos) {
-		return findNearestAccessibleFrom(getRoom().objectStream().flatMap(mapper.toStream()), exactPos);
+		return findNearestAccessibleFrom(getArea().objectStream().flatMap(mapper.toStream()), exactPos);
 	}
 	
 	/**
 	 * Finds the nearest object in the stream that this entity can move to.
-	 * Assumes that all objects in the stream is in the same room.
+	 * Assumes that all objects in the stream is in the same area.
 	 * @param exactPos if the entity need to be able to move to the exact position of the object.
 	 */
 	public final <T extends GameObject> Optional<T> findNearestAccessibleFrom(Stream<T> stream, boolean exactPos) {
 		return StreamUtils.findRandomMin(stream.filter(object -> isAccessible(object.getPosition(), exactPos)),
-				Room.byProximity(getCoord()));
+				Area.byProximity(getCoord()));
 	}
 	
 	/**
-	 * Finds the nearest accessible object in the room that passes the optional function, or failing that,
+	 * Finds the nearest accessible object in the area that passes the optional function, or failing that,
 	 * the nearest inaccessible object.
 	 * @param exactPos if the entity need to be able to move to the exact position of the object for it to count as accessible.
 	 */
 	public final <T extends GameObject> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper, boolean exactPos) {
-		return StreamUtils.findRandomMin(getRoom().objectStream().flatMap(mapper.toStream()),
-				blockingComparator(exactPos).thenComparing(Room.byProximity(getCoord())));
+		return StreamUtils.findRandomMin(getArea().objectStream().flatMap(mapper.toStream()),
+				blockingComparator(exactPos).thenComparing(Area.byProximity(getCoord())));
 	}
 	
 	public final boolean isAnyNear(Predicate<GameObject> predicate) {
-		return getRoom().objectStream().anyMatch(predicate);
+		return getArea().objectStream().anyMatch(predicate);
 	}
 }

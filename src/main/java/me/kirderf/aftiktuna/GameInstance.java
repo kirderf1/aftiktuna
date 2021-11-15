@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
-import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
 import me.kirderf.aftiktuna.location.levels.Locations;
@@ -54,7 +54,7 @@ public final class GameInstance {
 	}
 	
 	public Stream<GameObject> getGameObjectStream() {
-		return Stream.concat(Stream.of(crew.getShip().getRoom()), location.getRooms().stream()).flatMap(Room::objectStream);
+		return Stream.concat(Stream.of(crew.getShip().getRoom()), location.getAreas().stream()).flatMap(Area::objectStream);
 	}
 	
 	public ContextPrinter out() {
@@ -144,7 +144,7 @@ public final class GameInstance {
 				
 				ship.separateFromLocation();
 				for (Aftik aftik : crew.getCrewMembers()) {
-					if (aftik.getRoom() != ship.getRoom())
+					if (aftik.getArea() != ship.getRoom())
 						crew.removeCrewMember(aftik);
 					else
 						aftik.restoreStatus();

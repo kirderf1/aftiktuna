@@ -46,7 +46,7 @@ public final class ItemActions {
 		Aftik aftik = game.getAftik();
 		Optional<Aftik> aftikOptional = game.getCrew().findByName(name);
 		
-		if (aftikOptional.isPresent() && aftik.getRoom() == aftikOptional.get().getRoom()) {
+		if (aftikOptional.isPresent() && aftik.getArea() == aftikOptional.get().getArea()) {
 			Aftik target = aftikOptional.get();
 			
 			if (aftik == target) {
@@ -62,7 +62,7 @@ public final class ItemActions {
 				return 0;
 			}
 		} else {
-			game.directOut().printf("There is no such aftik in the room.%n");
+			game.directOut().printf("There is no such aftik in the area.%n");
 			return 0;
 		}
 	}

@@ -37,8 +37,8 @@ public abstract class GameObject {
 		return weight;
 	}
 	
-	public final Room getRoom() {
-		return position.room();
+	public final Area getArea() {
+		return position.area();
 	}
 	
 	public final int getCoord() {
@@ -49,7 +49,7 @@ public abstract class GameObject {
 		return position;
 	}
 	
-	final void setRoom(Position pos) {
+	final void setArea(Position pos) {
 		if (this.position != null)
 			throw new IllegalStateException("Position has already been set!");
 		this.position = pos;
@@ -57,7 +57,7 @@ public abstract class GameObject {
 	
 	public final void teleport(Position pos) {
 		remove();
-		pos.room().addObject(this, pos);
+		pos.area().addObject(this, pos);
 	}
 	
 	public final void teleport(int coord) {
@@ -69,7 +69,7 @@ public abstract class GameObject {
 	}
 	
 	public final void remove() {
-		getRoom().removeObject(this);
+		getArea().removeObject(this);
 		position = null;
 	}
 }

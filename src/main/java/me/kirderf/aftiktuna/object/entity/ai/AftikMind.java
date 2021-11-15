@@ -51,7 +51,7 @@ public final class AftikMind {
 	
 	private void tryLaunchShip(ContextPrinter out) {
 		Ship ship = crew.getShip();
-		if (aftik.getRoom() != ship.getRoom()) {
+		if (aftik.getArea() != ship.getRoom()) {
 			tryGoToShip(out);
 		} else {
 			ship.tryLaunchShip(aftik, out);

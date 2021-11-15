@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.location.levels;
 
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
-import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.object.door.DoorSealedProperty;
@@ -14,14 +14,14 @@ public final class EarlyTestingLocations {
 	
 	public static Location createLocation1() {
 		LocationBuilder builder = new LocationBuilder();
-		Room room = builder.newTestRoom(5);
+		Area room = builder.newTestRoom(5);
 		room.addItem(ObjectTypes.FUEL_CAN, 4);
 		return builder.build(room.getPosAt(1));
 	}
 	
 	public static Location createLocation2() {
 		LocationBuilder builder = new LocationBuilder();
-		Room room = builder.newTestRoom(4);
+		Area room = builder.newTestRoom(4);
 		room.addItem(ObjectTypes.FUEL_CAN, 0);
 		room.addItem(ObjectTypes.FUEL_CAN, 3);
 		return builder.build(room.getPosAt(1));
@@ -29,7 +29,7 @@ public final class EarlyTestingLocations {
 	
 	public static Location createLocation3() {
 		LocationBuilder builder = new LocationBuilder();
-		Room room = builder.newTestRoom(3);
+		Area room = builder.newTestRoom(3);
 		room.addItem(ObjectTypes.FUEL_CAN, 2);
 		room.addItem(ObjectTypes.FUEL_CAN, 2);
 		return builder.build(room.getPosAt(0));
@@ -37,8 +37,8 @@ public final class EarlyTestingLocations {
 	
 	public static Location createDoorLocation1() {
 		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newTestRoom(3);
-		Room secondRoom = builder.newTestRoom(3);
+		Area firstRoom = builder.newTestRoom(3);
+		Area secondRoom = builder.newTestRoom(3);
 		builder.markDoors(firstRoom.getPosAt(2), secondRoom.getPosAt(0));
 		secondRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		return builder.build(firstRoom.getPosAt(0));
@@ -46,9 +46,9 @@ public final class EarlyTestingLocations {
 	
 	public static Location createDoorLocation2() {
 		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newTestRoom(3);
-		Room leftRoom = builder.newTestRoom(3);
-		Room rightRoom = builder.newTestRoom(3);
+		Area firstRoom = builder.newTestRoom(3);
+		Area leftRoom = builder.newTestRoom(3);
+		Area rightRoom = builder.newTestRoom(3);
 		builder.markDoors(firstRoom.getPosAt(1), leftRoom.getPosAt(0));
 		builder.markDoors(firstRoom.getPosAt(2), rightRoom.getPosAt(1));
 		builder.markDoors(leftRoom.getPosAt(2), rightRoom.getPosAt(0));
@@ -59,10 +59,10 @@ public final class EarlyTestingLocations {
 	
 	public static Location createToolsLocation() {
 		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newTestRoom(4);
-		Room secondRoom = builder.newTestRoom(2);
-		Room thirdRoom = builder.newTestRoom(3);
-		Room sideRoom = builder.newTestRoom(3);
+		Area firstRoom = builder.newTestRoom(4);
+		Area secondRoom = builder.newTestRoom(2);
+		Area thirdRoom = builder.newTestRoom(3);
+		Area sideRoom = builder.newTestRoom(3);
 		firstRoom.addItem(ObjectTypes.CROWBAR, 2);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 2);
 		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(1), new DoorStuckProperty());
@@ -76,8 +76,8 @@ public final class EarlyTestingLocations {
 	
 	public static Location createBlockingLocation() {
 		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newTestRoom(6);
-		Room secondRoom = builder.newTestRoom(3);
+		Area firstRoom = builder.newTestRoom(6);
+		Area secondRoom = builder.newTestRoom(3);
 		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(0));
 		builder.markDoors(firstRoom.getPosAt(3), secondRoom.getPosAt(2));
 		firstRoom.addObject(new Creature(ObjectTypes.EYESAUR, false), 2);
@@ -91,7 +91,7 @@ public final class EarlyTestingLocations {
 	
 	public static Location createDeathLocation() {
 		LocationBuilder builder = new LocationBuilder();
-		Room room = builder.newTestRoom(5);
+		Area room = builder.newTestRoom(5);
 		room.addCreature(ObjectTypes.AZURECLOPS, 2);
 		room.addCreature(ObjectTypes.AZURECLOPS, 2);
 		room.addCreature(ObjectTypes.AZURECLOPS, 3);

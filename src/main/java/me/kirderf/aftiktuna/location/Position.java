@@ -1,16 +1,16 @@
 package me.kirderf.aftiktuna.location;
 
-public record Position(Room room, int coord) {
+public record Position(Area area, int coord) {
 	public Position {
-		room.verifyValidPosition(coord);
+		area.verifyValidPosition(coord);
 	}
 	
 	public Position atCoord(int newCoord) {
-		return new Position(room, newCoord);
+		return new Position(area, newCoord);
 	}
 	
 	public boolean isAdjacent(Position other) {
-		return other.room == this.room && Math.abs(other.coord - this.coord) <= 1;
+		return other.area == this.area && Math.abs(other.coord - this.coord) <= 1;
 	}
 	
 	public Position getPosTowards(int otherCoord) {

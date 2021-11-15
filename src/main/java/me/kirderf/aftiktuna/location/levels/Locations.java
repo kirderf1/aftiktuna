@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.location.levels;
 
 import me.kirderf.aftiktuna.GameInstance;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
-import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.object.door.DoorSealedProperty;
@@ -32,15 +32,15 @@ public final class Locations {
 	
 	private static Location abandonedFacility() {
 		LocationBuilder builder = new LocationBuilder();
-		Room field = builder.newRoom("Field in front of a building", 6);
-		Room rightField = builder.newRoom("Field", 5);
-		Room entrance = builder.newRoom("Entrance hall", 7);
-		Room corridor1 = builder.newRoom("Corridor", 5);
-		Room corridor2 = builder.newRoom("Corridor", 5);
-		Room room1 = builder.newRoom("Room", 4);
-		Room room2 = builder.newRoom("Room", 4);
-		Room room3 = builder.newRoom("Room", 4);
-		Room sealedRoom = builder.newRoom("Room", 4);
+		Area field = builder.newArea("Field in front of a building", 6);
+		Area rightField = builder.newArea("Field", 5);
+		Area entrance = builder.newArea("Entrance hall", 7);
+		Area corridor1 = builder.newArea("Corridor", 5);
+		Area corridor2 = builder.newArea("Corridor", 5);
+		Area room1 = builder.newArea("Room", 4);
+		Area room2 = builder.newArea("Room", 4);
+		Area room3 = builder.newArea("Room", 4);
+		Area sealedRoom = builder.newArea("Room", 4);
 		
 		builder.markDoors(field.getPosAt(2), entrance.getPosAt(5), new DoorLockedProperty());
 		builder.createDoors(ObjectTypes.RIGHT_PATH, field.getPosAt(5), ObjectTypes.PATH, rightField.getPosAt(0));
@@ -67,15 +67,15 @@ public final class Locations {
 	
 	private static Location abandonedFacility2() {
 		LocationBuilder builder = new LocationBuilder();
-		Room field = builder.newRoom("Field in front of a building", 6);
-		Room leftField = builder.newRoom("Field next to a building", 5);
-		Room entrance = builder.newRoom("Entrance hall", 6);
-		Room corridor = builder.newRoom("Corridor", 6);
-		Room sideEntrance = builder.newRoom("Corridor", 5);
-		Room room1 = builder.newRoom("Room", 4);
-		Room room2 = builder.newRoom("Room", 4);
-		Room room3 = builder.newRoom("Room", 4);
-		Room storage = builder.newRoom("Storage Room", 3);
+		Area field = builder.newArea("Field in front of a building", 6);
+		Area leftField = builder.newArea("Field next to a building", 5);
+		Area entrance = builder.newArea("Entrance hall", 6);
+		Area corridor = builder.newArea("Corridor", 6);
+		Area sideEntrance = builder.newArea("Corridor", 5);
+		Area room1 = builder.newArea("Room", 4);
+		Area room2 = builder.newArea("Room", 4);
+		Area room3 = builder.newArea("Room", 4);
+		Area storage = builder.newArea("Storage Room", 3);
 		
 		builder.markDoors(field.getPosAt(3), entrance.getPosAt(3));
 		builder.createDoors(ObjectTypes.LEFT_PATH, field.getPosAt(0), ObjectTypes.PATH, leftField.getPosAt(4));
@@ -104,13 +104,13 @@ public final class Locations {
 	
 	private static Location goblinForest() {
 		LocationBuilder builder = new LocationBuilder();
-		Room field = builder.newRoom("Field in front of a forest", 7);
-		Room entrance = builder.newRoom("Forest entrance", 5);
-		Room leftPath = builder.newRoom("Forest path leading to a shack", 6);
-		Room leftPath2 = builder.newRoom("Forest path", 5);
-		Room rightPath = builder.newRoom("Forest path", 6);
-		Room rightPath2 = builder.newRoom("Forest path", 6);
-		Room shack = builder.newRoom("Shack", 4);
+		Area field = builder.newArea("Field in front of a forest", 7);
+		Area entrance = builder.newArea("Forest entrance", 5);
+		Area leftPath = builder.newArea("Forest path leading to a shack", 6);
+		Area leftPath2 = builder.newArea("Forest path", 5);
+		Area rightPath = builder.newArea("Forest path", 6);
+		Area rightPath2 = builder.newArea("Forest path", 6);
+		Area shack = builder.newArea("Shack", 4);
 		
 		builder.markPath(field.getPosAt(4), entrance.getPosAt(2));
 		builder.markPath(entrance.getPosAt(0), leftPath.getPosAt(4));
@@ -135,15 +135,15 @@ public final class Locations {
 	
 	private static Location eyesaurForest() {
 		LocationBuilder builder = new LocationBuilder();
-		Room field = builder.newRoom("Field in front of a forest", 8);
-		Room leftEntrance = builder.newRoom("Forest entrance", 6);
-		Room leftPath = builder.newRoom("Forest path", 6);
-		Room leftPath2 = builder.newRoom("Forest path", 4);
-		Room rightEntrance = builder.newRoom("Forest entrance", 6);
-		Room rightPath = builder.newRoom("Forest path", 5);
-		Room rightPath2 = builder.newRoom("Forest path", 5);
-		Room midPath = builder.newRoom("Forest path", 6);
-		Room midPath2 = builder.newRoom("Forest path", 7);
+		Area field = builder.newArea("Field in front of a forest", 8);
+		Area leftEntrance = builder.newArea("Forest entrance", 6);
+		Area leftPath = builder.newArea("Forest path", 6);
+		Area leftPath2 = builder.newArea("Forest path", 4);
+		Area rightEntrance = builder.newArea("Forest entrance", 6);
+		Area rightPath = builder.newArea("Forest path", 5);
+		Area rightPath2 = builder.newArea("Forest path", 5);
+		Area midPath = builder.newArea("Forest path", 6);
+		Area midPath2 = builder.newArea("Forest path", 7);
 		
 		builder.markPath(field.getPosAt(1), leftEntrance.getPosAt(3));
 		builder.markPath(leftEntrance.getPosAt(0), leftPath.getPosAt(2));

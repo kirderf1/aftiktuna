@@ -5,8 +5,8 @@ import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.DoorActions;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
@@ -122,12 +122,12 @@ public final class Aftik extends Entity {
 	}
 	
 	public MoveAndEnterResult moveEnterMain(Door door, ContextPrinter out) {
-		Room originalRoom = this.getRoom();
+		Area originalArea = this.getArea();
 		
 		MoveAndEnterResult result = moveAndEnter(door);
 		
 		result.either.getLeft().ifPresent(enterResult ->
-				originalRoom.objectStream().flatMap(Aftik.CAST.toStream())
+				originalArea.objectStream().flatMap(Aftik.CAST.toStream())
 						.forEach(other -> other.getMind().observeEnteredDoor(this, door, enterResult)));
 		
 		result.either().run(enterResult -> DoorActions.printEnterResult(out, this, enterResult),
@@ -206,11 +206,11 @@ public final class Aftik extends Entity {
 	
 	public void dropItems() {
 		if (wielded != null) {
-			getRoom().addObject(new Item(wielded), getPosition());
+			getArea().addObject(new Item(wielded), getPosition());
 			wielded = null;
 		}
 		for (ObjectType item : inventory) {
-			getRoom().addObject(new Item(item), getPosition());
+			getArea().addObject(new Item(item), getPosition());
 		}
 		inventory.clear();
 	}

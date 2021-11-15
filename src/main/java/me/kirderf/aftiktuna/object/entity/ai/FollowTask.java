@@ -23,7 +23,7 @@ public final class FollowTask extends Task {
 	@Override
 	public boolean performAction(ContextPrinter out) {
 		if (followTarget != null &&
-				(followTarget.door.getRoom() != this.aftik.getRoom() || followTarget.aftik.getRoom() == this.aftik.getRoom())) {
+				(followTarget.door.getArea() != this.aftik.getArea() || followTarget.aftik.getArea() == this.aftik.getArea())) {
 			followTarget = null;
 			forceFragment = null;
 			return false;
@@ -43,7 +43,7 @@ public final class FollowTask extends Task {
 			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door);
 			
 			if (result.success()) {
-				out.printAt(aftik, "%s follows %s into the room.%n", aftik.getName(), followTarget.aftik.getName());
+				out.printAt(aftik, "%s follows %s into the area.%n", aftik.getName(), followTarget.aftik.getName());
 			}
 			
 			result.either().getLeft().flatMap(enterResult -> enterResult.either().getRight())

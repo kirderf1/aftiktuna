@@ -48,8 +48,8 @@ public final class DoorActions {
 	
 	private static void printEnterSuccess(ContextPrinter out, Aftik aftik, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> out.printFor(aftik, "Using their %s, %s entered the door into a new room.%n", item.name(), aftik.getName()),
-				() -> out.printFor(aftik, "%s entered the door into a new room.%n", aftik.getName()));
+				item -> out.printFor(aftik, "Using their %s, %s entered the door into a new area.%n", item.name(), aftik.getName()),
+				() -> out.printFor(aftik, "%s entered the door into a new area.%n", aftik.getName()));
 	}
 	
 	public static void printForceResult(ContextPrinter out, Aftik aftik, ForceResult result) {

@@ -44,14 +44,14 @@ public final class Creature extends Entity {
 	@Override
 	public void prepare() {
 		super.prepare();
-		targets = getRoom().objectStream().flatMap(Aftik.CAST.toStream()).filter(Entity::isAlive).collect(Collectors.toList());
+		targets = getArea().objectStream().flatMap(Aftik.CAST.toStream()).filter(Entity::isAlive).collect(Collectors.toList());
 	}
 	
 	@Override
 	public void performAction(ContextPrinter out) {
 		
 		Optional<Aftik> target = findNearestAccessibleFrom(targets.stream().filter(Entity::isAlive)
-				.filter(aftik -> aftik.getRoom() == this.getRoom()), false);
+				.filter(aftik -> aftik.getArea() == this.getArea()), false);
 		if(target.isPresent()) {
 			Aftik aftik = target.get();
 			

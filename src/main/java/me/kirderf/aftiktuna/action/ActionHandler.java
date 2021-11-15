@@ -92,7 +92,7 @@ public final class ActionHandler {
 	}
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
-		return aftik.getRoom() == ship.getRoom() || aftik.isAnyNear(ObjectTypes.SHIP_ENTRANCE::matching);
+		return aftik.getArea() == ship.getRoom() || aftik.isAnyNear(ObjectTypes.SHIP_ENTRANCE::matching);
 	}
 	
 	private static int controlAftik(GameInstance game, String name) {

@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.print;
 
 import me.kirderf.aftiktuna.Crew;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.entity.Entity;
 
 import java.io.PrintWriter;
@@ -22,13 +22,13 @@ public final class ContextPrinter {
 			out.printf(message, args);
 	}
 	
-	// Print message if the aftik controlled by the player is in the room
-	public void printAt(Room room, String message, Object... args) {
-		if (room == crew.getAftik().getRoom())
+	// Print message if the aftik controlled by the player is in the area
+	public void printAt(Area area, String message, Object... args) {
+		if (area == crew.getAftik().getArea())
 			out.printf(message, args);
 	}
 	
 	public void printAt(GameObject object, String message, Object... args) {
-		printAt(object.getRoom(), message, args);
+		printAt(object.getArea(), message, args);
 	}
 }
