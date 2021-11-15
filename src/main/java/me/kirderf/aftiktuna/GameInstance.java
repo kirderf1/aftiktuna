@@ -100,8 +100,8 @@ public final class GameInstance {
 		crew.setControllingAftik(aftik, out);
 	}
 	
-	public void printStatus() {
-		statusPrinter.printStatus(true);
+	public StatusPrinter getStatusPrinter() {
+		return statusPrinter;
 	}
 	
 	private void initLocation(boolean debugLevel) {

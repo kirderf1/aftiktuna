@@ -2,8 +2,6 @@ package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Room;
-import me.kirderf.aftiktuna.object.ObjectType;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 
 import java.io.PrintWriter;
@@ -14,22 +12,30 @@ public final class StatusPrinter {
 	private final PrintWriter out;
 	private final Crew crew;
 	
-	private ObjectType shownWielded = ObjectTypes.SHIP_EXIT;	//Dummy value so that the status is printed the first time the print function is called
-	private List<ObjectType> shownInventory = List.of(ObjectTypes.SHIP_EXIT);
-	private float shownHealth = -1;
+	//Printer for the aftik that is being controlled
+	private AftikPrinter aftikPrinter;
 	
 	StatusPrinter(PrintWriter out, Crew crew) {
 		this.out = out;
 		this.crew = crew;
 	}
 	
-	void printStatus(boolean fullStatus) {
+	public void printStatus(boolean fullStatus) {
 		Aftik aftik = crew.getAftik();
 		printRoom(aftik.getRoom());
 		
-		printHealth(aftik, fullStatus);
-		printWieldedItem(aftik, fullStatus);
-		printInventory(aftik, fullStatus);
+		if (!(aftikPrinter != null && aftikPrinter.isForAftik(aftik))) {
+			aftikPrinter = new AftikPrinter(out, aftik);
+			aftikPrinter.printAftik(true);
+		} else
+			aftikPrinter.printAftik(fullStatus);
+	}
+	
+	public void printCrewStatus() {
+		out.printf("Crew:%n");
+		for (Aftik aftik : crew.getCrewMembers()) {
+			new AftikPrinter(out, aftik).printAftikWithName();
+		}
 	}
 	
 	private void printRoom(Room room) {
@@ -97,44 +103,5 @@ public final class StatusPrinter {
 		});
 		if (!builder.isEmpty())
 			out.println(builder);
-	}
-	
-	private void printHealth(Aftik aftik, boolean forcePrint) {
-		float health = aftik.getHealth();
-		if (forcePrint || shownHealth != health) {
-			final int barLength = 10;
-			
-			StringBuilder builder = new StringBuilder();
-			for (int i = 0; i < barLength; i++) {
-				builder.append(i * aftik.getMaxHealth() < barLength * health ? '#' : '.');
-			}
-			out.printf("Health: %s%n", builder);
-			shownHealth = health;
-		}
-	}
-	
-	private void printWieldedItem(Aftik aftik, boolean forcePrint) {
-		aftik.getWieldedItem().ifPresentOrElse(wielded -> {
-			if (forcePrint || shownWielded != wielded)
-				out.printf("Wielded: %s%n", wielded.capitalizedName());
-			shownWielded = wielded;
-		}, () -> {
-			if (forcePrint || shownWielded != null)
-				out.printf("Wielded: Nothing%n");
-			shownWielded = null;
-		});
-	}
-	
-	private void printInventory(Aftik aftik, boolean forcePrint) {
-		List<ObjectType> inventory = aftik.getInventory();
-		if (forcePrint || !shownInventory.equals(inventory)) {
-			if (!inventory.isEmpty()) {
-				String itemList = inventory.stream().map(ObjectType::capitalizedName).collect(Collectors.joining(", "));
-				out.printf("Inventory: %s%n", itemList);
-			} else {
-				out.printf("Inventory: Empty%n");
-			}
-			shownInventory = List.copyOf(inventory);
-		}
 	}
 }
