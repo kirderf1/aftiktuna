@@ -28,15 +28,15 @@ public final class StatusPrinter {
 		
 		if (!(aftikPrinter != null && aftikPrinter.isForAftik(aftik))) {
 			aftikPrinter = new AftikPrinter(out, aftik);
-			aftikPrinter.printAftik(true);
+			aftikPrinter.printAftikStatus(true);
 		} else
-			aftikPrinter.printAftik(fullStatus);
+			aftikPrinter.printAftikStatus(fullStatus);
 	}
 	
 	public void printCrewStatus() {
 		out.printf("Crew:%n");
 		for (Aftik aftik : crew.getCrewMembers()) {
-			new AftikPrinter(out, aftik).printAftikWithName();
+			new AftikPrinter(out, aftik).printAftikProfile();
 		}
 	}
 	

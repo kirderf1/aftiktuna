@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna.print;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.Stats;
 
 import java.io.PrintWriter;
 import java.util.List;
@@ -25,15 +26,21 @@ final class AftikPrinter {
 		return aftik == this.aftik;
 	}
 	
-	public void printAftikWithName() {
+	public void printAftikProfile() {
 		out.printf("%s (Aftik):%n", aftik.getName());
-		printAftik(true);
+		printStats();
+		printAftikStatus(true);
 	}
 	
-	public void printAftik(boolean fullStatus) {
+	public void printAftikStatus(boolean fullStatus) {
 		printHealth(fullStatus);
 		printWieldedItem(fullStatus);
 		printInventory(fullStatus);
+	}
+	
+	private void printStats() {
+		Stats stats = aftik.getStats();
+		out.printf("Strength: %d   Endurance: %d   Agility: %d%n", stats.strength(), stats.endurance(), stats.agility());
 	}
 	
 	private void printHealth(boolean forcePrint) {

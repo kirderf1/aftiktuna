@@ -35,6 +35,10 @@ public abstract class Entity extends GameObject {
 	
 	public abstract void performAction(ContextPrinter out);
 	
+	public final Stats getStats() {
+		return stats;
+	}
+	
 	public final int getMaxHealth() {
 		return 4 + stats.endurance() * 2;
 	}
