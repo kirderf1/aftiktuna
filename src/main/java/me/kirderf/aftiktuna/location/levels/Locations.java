@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public final class Locations {
-	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation, Locations::createKeycardLocation, Locations::abandonedFacility);
+	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation, Locations::createKeycardLocation,
+			Locations::abandonedFacility, Locations::abandonedFacility2);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
 	
@@ -101,5 +102,42 @@ public final class Locations {
 		sealedRoom.addCreature(ObjectTypes.AZURECLOPS, 1);
 		
 		return builder.build(field.getPosAt(0));
+	}
+	
+	private static Location abandonedFacility2() {
+		LocationBuilder builder = new LocationBuilder();
+		Room field = builder.newRoom(6);
+		Room leftField = builder.newRoom(5);
+		Room entrance = builder.newRoom(6);
+		Room corridor = builder.newRoom(6);
+		Room sideEntrance = builder.newRoom(5);
+		Room room1 = builder.newRoom(4);
+		Room room2 = builder.newRoom(4);
+		Room room3 = builder.newRoom(4);
+		Room storage = builder.newRoom(3);
+		
+		builder.markDoors(field.getPosAt(3), entrance.getPosAt(3));
+		builder.createDoors(ObjectTypes.LEFT_PATH, field.getPosAt(0), ObjectTypes.PATH, leftField.getPosAt(4));
+		builder.markDoors(leftField.getPosAt(0), sideEntrance.getPosAt(0), new DoorStuckProperty());
+		
+		builder.markDoors(entrance.getPosAt(0), corridor.getPosAt(0));
+		builder.markDoors(entrance.getPosAt(5), room1.getPosAt(0));
+		room1.addItem(ObjectTypes.BLOWTORCH, 3);
+		entrance.addCreature(ObjectTypes.EYESAUR, 1);
+		room1.addCreature(ObjectTypes.AZURECLOPS, 2);
+		
+		builder.markDoors(corridor.getPosAt(3), sideEntrance.getPosAt(3));
+		builder.markDoors(corridor.getPosAt(5), room2.getPosAt(0));
+		corridor.addItem(ObjectTypes.KNIFE, 2);
+		room2.addItem(ObjectTypes.CROWBAR, 3);
+		corridor.addCreature(ObjectTypes.EYESAUR, 1);
+		
+		builder.markDoors(sideEntrance.getPosAt(5), room3.getPosAt(0));
+		builder.markDoors(room3.getPosAt(3), storage.getPosAt(0), new DoorSealedProperty());
+		room3.addItem(ObjectTypes.FUEL_CAN, 2);
+		storage.addItem(ObjectTypes.FUEL_CAN, 2);
+		room3.addCreature(ObjectTypes.GOBLIN, 1);
+		
+		return builder.build(field.getPosAt(5));
 	}
 }
