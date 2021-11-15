@@ -32,4 +32,8 @@ public interface OptionalFunction<T, R> extends Function<T, Optional<R>> {
 	default Function<T, Stream<R>> toStream() {
 		return t -> this.apply(t).stream();
 	}
+	
+	default Predicate<T> toPredicate() {
+		return t -> this.apply(t).isPresent();
+	}
 }

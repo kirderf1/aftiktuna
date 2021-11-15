@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna.object.entity.ai;
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.location.Ship;
+import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
@@ -17,6 +18,7 @@ public final class AftikMind {
 	
 	private final List<Task> tasks;
 	private boolean launchShip;
+	private boolean takeItems;
 	
 	public AftikMind(Aftik aftik, Crew crew) {
 		this.aftik = aftik;
@@ -26,7 +28,7 @@ public final class AftikMind {
 	}
 	
 	public boolean overridesPlayerInput() {
-		return launchShip;
+		return launchShip || takeItems;
 	}
 	
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
@@ -38,14 +40,37 @@ public final class AftikMind {
 		tryLaunchShip(out);
 	}
 	
+	public void setTakeItems(ContextPrinter out) {
+		takeItems = true;
+		tryTakeItems(out);
+	}
+	
 	public void performAction(ContextPrinter out) {
 		if (launchShip) {
 			tryLaunchShip(out);
+		} else if (takeItems) {
+			tryTakeItems(out);
 		} else {
 			for (Task task : tasks) {
 				if (task.performAction(out))
 					return;
 			}
+		}
+	}
+	
+	private void tryTakeItems(ContextPrinter out) {
+		Optional<Item> optionalItem = aftik.findNearestAccessible(Item.CAST, true);
+		
+		if (optionalItem.isPresent()) {
+			Item item = optionalItem.get();
+			
+			aftik.moveAndTake(item, out);
+			
+			if (aftik.findNearestAccessible(Item.CAST, true).isEmpty())
+				takeItems = false;
+		} else {
+			out.printFor(aftik, "There are no nearby items to take.%n");
+			takeItems = false;
 		}
 	}
 	

@@ -13,8 +13,10 @@ import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class ItemActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
-		dispatcher.register(literal("take").then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
-				.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item")))));
+		dispatcher.register(literal("take")
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+						.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item"))))
+				.then(literal("items").executes(context -> takeItems(context.getSource()))));
 		dispatcher.register(literal("wield").then(argument("item", ObjectArgument.create(ObjectTypes.WEAPONS))
 				.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
 		dispatcher.register(literal("give").then(argument("name", StringArgumentType.string())
@@ -27,6 +29,19 @@ public final class ItemActions {
 		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Item.CAST.filter(type::matching),
 				item -> aftik.moveAndTake(item, game.out()),
 				() -> game.directOut().printf("There is no %s here to pick up.%n", type.name()));
+	}
+	
+	private static int takeItems(GameInstance game) {
+		Aftik aftik = game.getAftik();
+		
+		if (aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)) {
+			aftik.getMind().setTakeItems(game.out());
+			
+			return 1;
+		} else {
+			game.directOut().printf("There are no nearby items to take.%n");
+			return 0;
+		}
 	}
 	
 	private static int wieldItem(GameInstance game, WeaponType weaponType) {

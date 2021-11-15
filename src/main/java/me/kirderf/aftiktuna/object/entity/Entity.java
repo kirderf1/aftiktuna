@@ -216,6 +216,10 @@ public abstract class Entity extends GameObject {
 				blockingComparator(exactPos).thenComparing(Area.byProximity(getCoord())));
 	}
 	
+	public final boolean isAnyNearAccessible(Predicate<GameObject> predicate, boolean exactPos) {
+		return isAnyNear(predicate.and(object -> isAccessible(object.getPosition(), exactPos)));
+	}
+	
 	public final boolean isAnyNear(Predicate<GameObject> predicate) {
 		return getArea().objectStream().anyMatch(predicate);
 	}
