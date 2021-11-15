@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public final class Locations {
 	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation,
-			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest);
+			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest, Locations::eyesaurForest);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
 	
@@ -139,5 +139,45 @@ public final class Locations {
 		leftPath2.addCreature(ObjectTypes.GOBLIN, 3);
 		
 		return builder.build(field.getPosAt(1));
+	}
+	
+	private static Location eyesaurForest() {
+		LocationBuilder builder = new LocationBuilder();
+		Room field = builder.newRoom(8);
+		Room leftEntrance = builder.newRoom(6);
+		Room leftPath = builder.newRoom(6);
+		Room leftPath2 = builder.newRoom(4);
+		Room rightEntrance = builder.newRoom(6);
+		Room rightPath = builder.newRoom(5);
+		Room rightPath2 = builder.newRoom(5);
+		Room midPath = builder.newRoom(6);
+		Room midPath2 = builder.newRoom(7);
+		
+		builder.markPath(field.getPosAt(1), leftEntrance.getPosAt(3));
+		builder.markPath(leftEntrance.getPosAt(0), leftPath.getPosAt(2));
+		builder.markPath(leftPath.getPosAt(0), leftPath2.getPosAt(0));
+		leftPath.addItem(ObjectTypes.FUEL_CAN, 4);
+		leftEntrance.addCreature(ObjectTypes.EYESAUR, 1);
+		leftPath2.addCreature(ObjectTypes.EYESAUR, 1);
+		
+		builder.markPath(leftEntrance.getPosAt(5), midPath.getPosAt(0));
+		builder.markPath(rightEntrance.getPosAt(0), midPath.getPosAt(5));
+		builder.markPath(midPath.getPosAt(2), midPath2.getPosAt(3));
+		builder.markPath(leftPath2.getPosAt(3), midPath2.getPosAt(0));
+		builder.markPath(rightPath.getPosAt(0), midPath2.getPosAt(5));
+		midPath2.addItem(ObjectTypes.KNIFE, 2);
+		midPath.addCreature(ObjectTypes.EYESAUR, 3);
+		
+		builder.markPath(field.getPosAt(6), rightEntrance.getPosAt(2));
+		builder.markPath(rightEntrance.getPosAt(4), rightPath.getPosAt(4));
+		builder.markPath(rightPath.getPosAt(2), rightPath2.getPosAt(0));
+		rightEntrance.addItem(ObjectTypes.CROWBAR, 3);
+		rightPath2.addItem(ObjectTypes.BLOWTORCH, 4);
+		rightPath2.addItem(ObjectTypes.FUEL_CAN, 4);
+		rightPath.addCreature(ObjectTypes.EYESAUR, 1);
+		rightPath2.addCreature(ObjectTypes.EYESAUR, 2);
+		rightPath2.addCreature(ObjectTypes.EYESAUR, 3);
+		
+		return builder.build(field.getPosAt(3));
 	}
 }
