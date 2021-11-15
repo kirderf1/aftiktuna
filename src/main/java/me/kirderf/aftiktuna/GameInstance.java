@@ -106,6 +106,8 @@ public final class GameInstance {
 	
 	private void initLocation(boolean debugLevel) {
 		if (debugLevel) {
+			Locations.checkLocations();	//Check for errors in locations
+			
 			location = CrewTestingLocations.separationTest();
 		} else {
 			location = locations.getRandomLocation();

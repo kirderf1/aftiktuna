@@ -19,6 +19,12 @@ public final class Locations {
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
 	
+	public static void checkLocations() {
+		for (Supplier<Location> level : levels) {
+			level.get();
+		}
+	}
+	
 	public Location getRandomLocation() {
 		int i = GameInstance.RANDOM.nextInt(unusedLevels.size());
 		return unusedLevels.remove(i).get();
