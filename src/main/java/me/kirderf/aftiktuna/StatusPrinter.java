@@ -49,7 +49,7 @@ public final class StatusPrinter {
 		for (GameObject object : room.objectStream()
 				.sorted(Comparator.comparing(GameObject::hasCustomName, Boolean::compareTo))	//Let objects without a custom name get chars first
 				.collect(Collectors.toList())) {
-			char symbol = object.getType().symbol();
+			char symbol = object.getDisplaySymbol();
 			String name = object.getDisplayName(false, true);
 			if (nameTable.containsKey(symbol) && !name.equals(nameTable.get(symbol)))
 				symbol = spareSymbol++;

@@ -50,6 +50,11 @@ public final class Aftik extends Entity {
 	}
 	
 	@Override
+	public char getDisplaySymbol() {
+		return name.charAt(0);
+	}
+	
+	@Override
 	public String getDisplayName(boolean definite, boolean capitalized) {
 		return getName();
 	}

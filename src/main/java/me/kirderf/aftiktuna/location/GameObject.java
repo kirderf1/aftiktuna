@@ -22,6 +22,10 @@ public abstract class GameObject {
 		return false;
 	}
 	
+	public char getDisplaySymbol() {
+		return type.symbol();
+	}
+	
 	public String getDisplayName(boolean definite, boolean capitalized) {
 		if (definite)
 			return (capitalized ? "The " : "the ") + type.name();

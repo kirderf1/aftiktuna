@@ -138,7 +138,7 @@ public final class ActionHandler {
 	}
 	
 	static void printBlocking(ContextPrinter out, Entity entity, GameObject blocking) {
-		out.printFor(entity, "The %s is blocking the way.%n", blocking.getType().name());
+		out.printFor(entity, "%s is blocking the way.%n", blocking.getDisplayName(true, true));
 	}
 	
 	public static void printAttackAction(ContextPrinter out, Entity attacker, AttackResult result) {
