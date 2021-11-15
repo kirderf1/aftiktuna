@@ -6,6 +6,7 @@ import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
+import me.kirderf.aftiktuna.util.StreamUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -51,8 +52,8 @@ public final class Creature extends Entity {
 	@Override
 	public void performAction(ContextPrinter out) {
 		
-		Optional<Aftik> target = targets.stream().filter(Entity::isAlive)
-				.filter(aftik -> aftik.getRoom() == this.getRoom()).min(Room.byProximity(this.getCoord()));
+		Optional<Aftik> target = StreamUtils.randomTiebreakSort(targets.stream().filter(Entity::isAlive)
+				.filter(aftik -> aftik.getRoom() == this.getRoom()), Room.byProximity(this.getCoord())).findFirst();
 		if(target.isPresent()) {
 			Aftik aftik = target.get();
 			
