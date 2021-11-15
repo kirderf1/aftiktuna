@@ -38,6 +38,7 @@ public final class ActionHandler {
 		dispatcher.register(literal("status").executes(context -> {
 			context.getSource().getStatusPrinter().printCrewStatus();
 			return 0;}));
+		dispatcher.register(literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
 	static LiteralArgumentBuilder<GameInstance> literal(String str) {
@@ -55,6 +56,16 @@ public final class ActionHandler {
 			game.directOut().printf("Unexpected input \"%s\"%n", input);
 			return 0;
 		}
+	}
+	
+	private int printCommands(GameInstance game) {
+		game.directOut().printf("Commands:%n");
+		
+		for (String command : dispatcher.getSmartUsage(dispatcher.getRoot(), game).values()) {
+			game.directOut().printf("> %s%n", command);
+		}
+		
+		return 0;
 	}
 	
 	private static int attack(GameInstance game, ObjectType creatureType) {
