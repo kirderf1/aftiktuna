@@ -19,7 +19,7 @@ public final class DoorActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
 		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
+		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
 		dispatcher.register(literal("enter").then(literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_ENTRANCE))));

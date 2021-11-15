@@ -36,11 +36,7 @@ public final class LocationBuilder {
 	}
 	
 	public void markPath(Position pos1, Position pos2) {
-		markPath(pos1, pos2, DoorProperty.EMPTY);
-	}
-	
-	public void markPath(Position pos1, Position pos2, DoorProperty property) {
-		AtomicReference<DoorProperty> reference = new AtomicReference<>(property);
+		AtomicReference<DoorProperty> reference = new AtomicReference<>(DoorProperty.EMPTY);
 		pathMap.get(pos1.area()).add(new DoorMark(pos1.coord(), pos2, reference));
 		pathMap.get(pos2.area()).add(new DoorMark(pos2.coord(), pos1, reference));
 	}

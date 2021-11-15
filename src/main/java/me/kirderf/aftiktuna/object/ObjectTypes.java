@@ -35,4 +35,6 @@ public final class ObjectTypes {
 	public static final Collection<WeaponType> WEAPONS = List.of(CROWBAR, KNIFE);
 	public static final Collection<DoorType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR, MIDDLE_DOOR,
 			SHIP_ENTRANCE, SHIP_EXIT, PATH, LEFT_PATH, RIGHT_PATH, MIDDLE_PATH);
+	public static final Collection<DoorType> FORCEABLE = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR, MIDDLE_DOOR,
+			SHIP_ENTRANCE, SHIP_EXIT);
 }
