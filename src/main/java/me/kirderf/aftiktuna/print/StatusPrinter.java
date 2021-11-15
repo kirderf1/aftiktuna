@@ -1,5 +1,7 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.print;
 
+import me.kirderf.aftiktuna.Crew;
+import me.kirderf.aftiktuna.Main;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.entity.Aftik;
@@ -15,7 +17,7 @@ public final class StatusPrinter {
 	//Printer for the aftik that is being controlled
 	private AftikPrinter aftikPrinter;
 	
-	StatusPrinter(PrintWriter out, Crew crew) {
+	public StatusPrinter(PrintWriter out, Crew crew) {
 		this.out = out;
 		this.crew = crew;
 	}

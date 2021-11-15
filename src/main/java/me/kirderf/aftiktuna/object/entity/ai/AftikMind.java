@@ -1,12 +1,12 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 
 import java.util.List;
 import java.util.Optional;

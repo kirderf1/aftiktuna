@@ -9,6 +9,8 @@ import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
 import me.kirderf.aftiktuna.location.levels.Locations;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.BufferedReader;
 import java.io.IOException;

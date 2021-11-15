@@ -1,10 +1,10 @@
 package me.kirderf.aftiktuna.object.entity;
 
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Collection;

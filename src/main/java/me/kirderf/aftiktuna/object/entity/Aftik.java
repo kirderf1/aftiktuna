@@ -1,6 +1,5 @@
 package me.kirderf.aftiktuna.object.entity;
 
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.DoorActions;
@@ -14,6 +13,7 @@ import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.ai.AftikMind;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 

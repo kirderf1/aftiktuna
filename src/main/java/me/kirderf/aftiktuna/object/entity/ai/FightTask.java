@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 
 import java.util.Optional;
 

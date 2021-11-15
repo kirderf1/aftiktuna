@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.print;
 
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.WeaponType;

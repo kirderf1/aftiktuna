@@ -6,7 +6,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.AttackResult;
 import me.kirderf.aftiktuna.location.GameObject;
@@ -18,6 +17,7 @@ import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;

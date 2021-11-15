@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
@@ -11,6 +10,7 @@ import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorPair;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 
 import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;

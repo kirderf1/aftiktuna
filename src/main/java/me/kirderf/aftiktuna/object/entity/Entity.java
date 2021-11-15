@@ -1,12 +1,12 @@
 package me.kirderf.aftiktuna.object.entity;
 
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.result.AttackResult;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;

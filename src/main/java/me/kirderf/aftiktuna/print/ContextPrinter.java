@@ -1,5 +1,6 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.print;
 
+import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.entity.Entity;

@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.location;
 
-import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.print.ContextPrinter;
 
 import java.util.stream.Collectors;
 
