@@ -16,7 +16,7 @@ public final class ForceDoorTaskFragment {
 	}
 	
 	public boolean performAction(Aftik aftik, ContextPrinter out) {
-		if (canForceDoor(aftik)) {
+		if (aftik.getRoom() == door.getRoom() && canForceDoor(aftik)) {
 			aftik.moveAndForce(door, out);
 			return true;
 		} else
