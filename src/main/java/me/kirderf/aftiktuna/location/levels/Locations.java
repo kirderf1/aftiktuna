@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public final class Locations {
 	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation,
-			Locations::abandonedFacility, Locations::abandonedFacility2);
+			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
 	
@@ -123,5 +123,36 @@ public final class Locations {
 		room3.addCreature(ObjectTypes.GOBLIN, 1);
 		
 		return builder.build(field.getPosAt(5));
+	}
+	
+	private static Location goblinForest() {
+		LocationBuilder builder = new LocationBuilder();
+		Room field = builder.newRoom(7);
+		Room entrance = builder.newRoom(5);
+		Room leftPath = builder.newRoom(6);
+		Room leftPath2 = builder.newRoom(5);
+		Room rightPath = builder.newRoom(6);
+		Room rightPath2 = builder.newRoom(6);
+		Room shack = builder.newRoom(4);
+		
+		builder.markPath(field.getPosAt(4), entrance.getPosAt(2));
+		builder.markPath(entrance.getPosAt(0), leftPath.getPosAt(4));
+		builder.markPath(entrance.getPosAt(4), rightPath.getPosAt(2));
+		
+		builder.markPath(rightPath.getPosAt(0), rightPath2.getPosAt(5));
+		builder.markPath(rightPath2.getPosAt(0), leftPath2.getPosAt(4));
+		rightPath.addItem(ObjectTypes.CROWBAR, 5);
+		rightPath2.addItem(ObjectTypes.KNIFE, 1);
+		rightPath.addCreature(ObjectTypes.GOBLIN, 4);
+		rightPath2.addCreature(ObjectTypes.GOBLIN, 2);
+		rightPath2.addCreature(ObjectTypes.GOBLIN, 3);
+		
+		builder.markPath(leftPath.getPosAt(2), leftPath2.getPosAt(0));
+		builder.markDoors(leftPath.getPosAt(0), shack.getPosAt(3), new DoorStuckProperty());
+		shack.addItem(ObjectTypes.FUEL_CAN, 0);
+		shack.addCreature(ObjectTypes.EYESAUR, 1);
+		leftPath2.addCreature(ObjectTypes.GOBLIN, 3);
+		
+		return builder.build(field.getPosAt(1));
 	}
 }

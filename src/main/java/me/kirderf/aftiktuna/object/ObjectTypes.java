@@ -27,10 +27,11 @@ public final class ObjectTypes {
 	public static final ObjectType PATH = new ObjectType('^', "path");
 	public static final ObjectType LEFT_PATH = new ObjectType('<', "left path");
 	public static final ObjectType RIGHT_PATH = new ObjectType('>', "right path");
+	public static final ObjectType MIDDLE_PATH = new ObjectType('^', "Middle path");
 	
 	public static final Collection<CreatureType> CREATURES = List.of(EYESAUR, GOBLIN, AZURECLOPS);
 	public static final Collection<ObjectType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD, KNIFE);
 	public static final Collection<WeaponType> WEAPONS = List.of(CROWBAR, KNIFE);
 	public static final Collection<ObjectType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR, MIDDLE_DOOR,
-			SHIP_ENTRANCE, SHIP_EXIT, PATH, LEFT_PATH, RIGHT_PATH);
+			SHIP_ENTRANCE, SHIP_EXIT, PATH, LEFT_PATH, RIGHT_PATH, MIDDLE_PATH);
 }

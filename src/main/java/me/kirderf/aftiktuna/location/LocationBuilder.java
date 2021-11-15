@@ -11,11 +11,13 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class LocationBuilder {
 	private final List<Room> rooms = new ArrayList<>();
 	private final Map<Room, List<DoorMark>> doorMap = new HashMap<>();
+	private final Map<Room, List<DoorMark>> pathMap = new HashMap<>();
 	
 	public Room newRoom(int size) {
 		Room room = new Room(size);
 		rooms.add(room);
 		doorMap.put(room, new ArrayList<>());
+		pathMap.put(room, new ArrayList<>());
 		return room;
 	}
 	
@@ -27,6 +29,16 @@ public final class LocationBuilder {
 		AtomicReference<DoorProperty> reference = new AtomicReference<>(property);
 		doorMap.get(pos1.room()).add(new DoorMark(pos1.coord(), pos2, reference));
 		doorMap.get(pos2.room()).add(new DoorMark(pos2.coord(), pos1, reference));
+	}
+	
+	public void markPath(Position pos1, Position pos2) {
+		markPath(pos1, pos2, DoorProperty.EMPTY);
+	}
+	
+	public void markPath(Position pos1, Position pos2, DoorProperty property) {
+		AtomicReference<DoorProperty> reference = new AtomicReference<>(property);
+		pathMap.get(pos1.room()).add(new DoorMark(pos1.coord(), pos2, reference));
+		pathMap.get(pos2.room()).add(new DoorMark(pos2.coord(), pos1, reference));
 	}
 	
 	private static record DoorMark(int coord, Position destination, AtomicReference<DoorProperty> property) {}
@@ -52,21 +64,36 @@ public final class LocationBuilder {
 			List<DoorMark> marks = doorMap.get(room);
 			marks.sort(Comparator.comparingInt(DoorMark::coord));
 			if (marks.size() == 1) {
-				DoorMark door = marks.get(0);
-				room.addObject(new Door(ObjectTypes.DOOR, door.destination, door.property), door.coord);
+				addMarkedDoor(room, ObjectTypes.DOOR, marks.get(0));
 			} else if (marks.size() == 2) {
-				DoorMark leftDoor = marks.get(0), rightDoor = marks.get(1);
-				room.addObject(new Door(ObjectTypes.LEFT_DOOR, leftDoor.destination, leftDoor.property), leftDoor.coord);
-				room.addObject(new Door(ObjectTypes.RIGHT_DOOR, rightDoor.destination, rightDoor.property), rightDoor.coord);
+				addMarkedDoor(room, ObjectTypes.LEFT_DOOR, marks.get(0));
+				addMarkedDoor(room, ObjectTypes.RIGHT_DOOR, marks.get(1));
 			} else if (marks.size() == 3) {
-				DoorMark leftDoor = marks.get(0), midDoor = marks.get(1), rightDoor = marks.get(2);
-				room.addObject(new Door(ObjectTypes.LEFT_DOOR, leftDoor.destination, leftDoor.property), leftDoor.coord);
-				room.addObject(new Door(ObjectTypes.MIDDLE_DOOR, midDoor.destination, midDoor.property), midDoor.coord);
-				room.addObject(new Door(ObjectTypes.RIGHT_DOOR, rightDoor.destination, rightDoor.property), rightDoor.coord);
+				addMarkedDoor(room, ObjectTypes.LEFT_DOOR, marks.get(0));
+				addMarkedDoor(room, ObjectTypes.MIDDLE_DOOR, marks.get(1));
+				addMarkedDoor(room, ObjectTypes.RIGHT_DOOR, marks.get(2));
 			} else if (marks.size() > 3) {
-				throw new IllegalStateException("Marked more than two doors in a room. This is not currently supported.");
+				throw new IllegalStateException("Marked more than three doors in a room. This is not currently supported.");
+			}
+			List<DoorMark> paths = pathMap.get(room);
+			paths.sort(Comparator.comparingInt(DoorMark::coord));
+			if (paths.size() == 1) {
+				addMarkedDoor(room, ObjectTypes.PATH, paths.get(0));
+			} else if (paths.size() == 2) {
+				addMarkedDoor(room, ObjectTypes.LEFT_PATH, paths.get(0));
+				addMarkedDoor(room, ObjectTypes.RIGHT_PATH, paths.get(1));
+			} else if (paths.size() == 3) {
+				addMarkedDoor(room, ObjectTypes.LEFT_PATH, paths.get(0));
+				addMarkedDoor(room, ObjectTypes.MIDDLE_PATH, paths.get(1));
+				addMarkedDoor(room, ObjectTypes.RIGHT_PATH, paths.get(2));
+			} else if (paths.size() > 3) {
+				throw new IllegalStateException("Marked more than three paths in a room. This is not currently supported.");
 			}
 		}
+	}
+	
+	private static void addMarkedDoor(Room room, ObjectType type, DoorMark rightPath) {
+		room.addObject(new Door(type, rightPath.destination, rightPath.property), rightPath.coord);
 	}
 	
 	private void verifyPosition(Position pos) {
