@@ -59,7 +59,7 @@ public final class Locations {
 		room3.addCreature(ObjectTypes.EYESAUR, 1);
 		room3.addCreature(ObjectTypes.EYESAUR, 2);
 		sealedRoom.addItem(ObjectTypes.FUEL_CAN, 0);
-		sealedRoom.addItem(ObjectTypes.KNIFE, 3);
+		sealedRoom.addItem(ObjectTypes.SWORD, 3);
 		sealedRoom.addCreature(ObjectTypes.AZURECLOPS, 1);
 		
 		return builder.build(field.getPosAt(0));
@@ -84,6 +84,7 @@ public final class Locations {
 		builder.markDoors(entrance.getPosAt(0), corridor.getPosAt(0));
 		builder.markDoors(entrance.getPosAt(5), room1.getPosAt(0));
 		room1.addItem(ObjectTypes.BLOWTORCH, 3);
+		room1.addItem(ObjectTypes.SWORD, 3);
 		entrance.addCreature(ObjectTypes.EYESAUR, 1);
 		room1.addCreature(ObjectTypes.AZURECLOPS, 2);
 		
