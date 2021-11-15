@@ -5,6 +5,7 @@ import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
@@ -20,6 +21,9 @@ public final class Door extends GameObject {
 		super(type, 20);
 		this.destination = destination;
 		this.property = property;
+		
+		if (!ObjectTypes.DOORS.contains(type))
+			throw new IllegalArgumentException("Invalid door type %s".formatted(type.name()));
 	}
 	
 	public EnterResult enter(Aftik aftik) {

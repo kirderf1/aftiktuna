@@ -4,6 +4,7 @@ import me.kirderf.aftiktuna.ContextPrinter;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Room;
 import me.kirderf.aftiktuna.object.CreatureType;
+import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Collection;
@@ -26,6 +27,9 @@ public final class Creature extends Entity {
 	public Creature(CreatureType type, boolean isMoving) {
 		super(type, 5, type.getStats());
 		this.isMoving = isMoving;
+		
+		if (!ObjectTypes.CREATURES.contains(type))
+			throw new IllegalArgumentException("Invalid creature type %s".formatted(type.name()));
 	}
 	
 	@Override
