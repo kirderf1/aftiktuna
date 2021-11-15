@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public final class Locations {
-	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation,
+	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation,
 			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
@@ -36,21 +36,6 @@ public final class Locations {
 		rightRoom.addCreature(ObjectTypes.AZURECLOPS, 2);
 		
 		return builder.build(firstRoom.getPosAt(3));
-	}
-	
-	private static Location createBlowtorchLocation() {
-		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newRoom(3);
-		Room secondRoom = builder.newRoom(6);
-		Room thirdRoom = builder.newRoom(4);
-		builder.markDoors(firstRoom.getPosAt(2), secondRoom.getPosAt(3));
-		builder.markDoors(secondRoom.getPosAt(4), thirdRoom.getPosAt(1), new DoorSealedProperty());
-		secondRoom.addItem(ObjectTypes.BLOWTORCH, 0);
-		secondRoom.addItem(ObjectTypes.FUEL_CAN, 5);
-		thirdRoom.addItem(ObjectTypes.KNIFE, 3);
-		secondRoom.addCreature(ObjectTypes.EYESAUR, 1);
-		
-		return builder.build(firstRoom.getPosAt(0));
 	}
 	
 	private static Location abandonedFacility() {
