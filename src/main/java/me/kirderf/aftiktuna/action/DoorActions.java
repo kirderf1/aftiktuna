@@ -5,10 +5,10 @@ import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.ObjectArgument;
-import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorPair;
+import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ContextPrinter;
 
@@ -18,54 +18,54 @@ import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 public final class DoorActions {
 	static void register(CommandDispatcher<GameInstance> dispatcher) {
 		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
-				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
+				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
 		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
-				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door")))));
+				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
 		dispatcher.register(literal("enter").then(literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_ENTRANCE))));
 		dispatcher.register(literal("exit").then(literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_EXIT))));
 	}
 	
-	private static int enterDoor(GameInstance game, ObjectType doorType) {
+	private static int enterDoor(GameInstance game, DoorType doorType) {
 		Aftik aftik = game.getAftik();
 		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Door.CAST.filter(doorType::matching),
 				door -> aftik.moveEnterMain(door, game.out()),
-				() -> game.directOut().println("There is no such door here to go through."));
+				() -> game.directOut().printf("There is no such %s here to go through.%n", doorType.getCategoryName()));
 	}
 	
-	private static int forceDoor(GameInstance game, ObjectType doorType) {
+	private static int forceDoor(GameInstance game, DoorType doorType) {
 		Aftik aftik = game.getAftik();
 		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Door.CAST.filter(doorType::matching),
 				door -> aftik.moveAndForce(door, game.out()),
-				() -> game.directOut().println("There is no such door here."));
+				() -> game.directOut().printf("There is no such %s here.%n", doorType.getCategoryName()));
 	}
 	
-	public static void printEnterResult(ContextPrinter out, Aftik aftik, EnterResult result) {
-		result.either().run(success -> printEnterSuccess(out, aftik, success),
-				failureType -> out.printFor(aftik, "The door is %s.%n", failureType.adjective()));
+	public static void printEnterResult(ContextPrinter out, Aftik aftik, Door door, EnterResult result) {
+		result.either().run(success -> printEnterSuccess(out, aftik, door, success),
+				failureType -> out.printFor(aftik, "The %s is %s.%n", door.getType().getCategoryName(), failureType.adjective()));
 	}
 	
-	private static void printEnterSuccess(ContextPrinter out, Aftik aftik, EnterResult.Success result) {
+	private static void printEnterSuccess(ContextPrinter out, Aftik aftik, Door door, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> out.printFor(aftik, "Using their %s, %s entered the door into a new area.%n", item.name(), aftik.getName()),
-				() -> out.printFor(aftik, "%s entered the door into a new area.%n", aftik.getName()));
+				item -> out.printFor(aftik, "Using their %s, %s entered the %s into a new area.%n", item.name(), aftik.getName(), door.getType().getCategoryName()),
+				() -> out.printFor(aftik, "%s entered the %s into a new area.%n", aftik.getName(), door.getType().getCategoryName()));
 	}
 	
-	public static void printForceResult(ContextPrinter out, Aftik aftik, ForceResult result) {
-		result.propertyResult().either().run(success -> printForceSuccess(out, aftik, result.pair(), success), status -> printForceStatus(out, aftik, status));
+	public static void printForceResult(ContextPrinter out, Aftik aftik, Door door, ForceResult result) {
+		result.propertyResult().either().run(success -> printForceSuccess(out, aftik, result.pair(), success), status -> printForceStatus(out, aftik, door, status));
 	}
 	
 	private static void printForceSuccess(ContextPrinter out, Aftik aftik, DoorPair pair, ForceResult.Success result) {
-		out.printAt(pair.targetDoor(), "%s used their %s and %s the door.%n", aftik.getName(), result.item().name(), result.method().text());
-		out.printAt(pair.destination(), "A door was %s from the other side.%n", result.method().text());
+		out.printAt(pair.targetDoor(), "%s used their %s and %s the %s.%n", aftik.getName(), result.item().name(), result.method().text(), pair.targetDoor().getType());
+		out.printAt(pair.destination(), "A %s was %s from the other side.%n", pair.targetDoor().getType().getCategoryName(), result.method().text());
 	}
 	
-	private static void printForceStatus(ContextPrinter out, Aftik aftik, ForceResult.Status status) {
+	private static void printForceStatus(ContextPrinter out, Aftik aftik, Door door, ForceResult.Status status) {
 		switch(status) {
-			case NOT_STUCK -> out.printFor(aftik, "The door does not seem to be stuck.%n");
-			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the door open.%n", aftik.getName());
-			case NEED_BREAK_TOOL -> out.printFor(aftik, "%s need some sort of tool to break the door open.%n", aftik.getName());
+			case NOT_STUCK -> out.printFor(aftik, "The %s does not seem to be stuck.%n", door.getType().getCategoryName());
+			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the %s open.%n", aftik.getName(), door.getType().getCategoryName());
+			case NEED_BREAK_TOOL -> out.printFor(aftik, "%s need some sort of tool to break the %s open.%n", aftik.getName(), door.getType().getCategoryName());
 		}
 	}
 }

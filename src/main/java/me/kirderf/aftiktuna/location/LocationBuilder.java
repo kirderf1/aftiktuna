@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.location;
 
-import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
+import me.kirderf.aftiktuna.object.door.DoorType;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,11 +47,11 @@ public final class LocationBuilder {
 	
 	private static record DoorMark(int coord, Position destination, AtomicReference<DoorProperty> property) {}
 	
-	public void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2) {
+	public void createDoors(DoorType type1, Position pos1, DoorType type2, Position pos2) {
 		createDoors(type1, pos1, type2, pos2, DoorProperty.EMPTY);
 	}
 	
-	public void createDoors(ObjectType type1, Position pos1, ObjectType type2, Position pos2, DoorProperty property) {
+	public void createDoors(DoorType type1, Position pos1, DoorType type2, Position pos2, DoorProperty property) {
 		verifyPosition(pos1);
 		verifyPosition(pos2);
 		Location.createDoors(type1, pos1, type2, pos2, property);
@@ -96,7 +96,7 @@ public final class LocationBuilder {
 		}
 	}
 	
-	private static void addMarkedDoor(Area area, ObjectType type, DoorMark rightPath) {
+	private static void addMarkedDoor(Area area, DoorType type, DoorMark rightPath) {
 		area.addObject(new Door(type, rightPath.destination, rightPath.property), rightPath.coord);
 	}
 	

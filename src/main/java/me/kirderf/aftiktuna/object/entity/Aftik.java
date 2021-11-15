@@ -130,7 +130,7 @@ public final class Aftik extends Entity {
 				originalArea.objectStream().flatMap(Aftik.CAST.toStream())
 						.forEach(other -> other.getMind().observeEnteredDoor(this, door, enterResult)));
 		
-		result.either().run(enterResult -> DoorActions.printEnterResult(out, this, enterResult),
+		result.either().run(enterResult -> DoorActions.printEnterResult(out, this, door, enterResult),
 				moveFailure -> ActionHandler.printMoveFailure(out, this, moveFailure));
 		
 		return result;
@@ -154,7 +154,7 @@ public final class Aftik extends Entity {
 		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
 		if (failure.isEmpty()) {
 			ForceResult result = door.force(this);
-			DoorActions.printForceResult(out, this, result);
+			DoorActions.printForceResult(out, this, door, result);
 		} else
 			ActionHandler.printMoveFailure(out, this, failure.get());
 	}

@@ -14,7 +14,7 @@ public abstract class GameObject {
 		this.weight = weight;
 	}
 	
-	public final ObjectType getType() {
+	public ObjectType getType() {
 		return type;
 	}
 	
