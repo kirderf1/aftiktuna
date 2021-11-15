@@ -81,13 +81,13 @@ public final class Locations {
 		entrance.addCreature(ObjectTypes.EYESAUR, 1);
 		room1.addCreature(ObjectTypes.AZURECLOPS, 2);
 		
-		builder.markDoors(corridor.getPosAt(3), sideEntrance.getPosAt(3));
+		builder.markDoors(corridor.getPosAt(3), sideEntrance.getPosAt(2));
 		builder.markDoors(corridor.getPosAt(5), room2.getPosAt(0));
 		corridor.addItem(ObjectTypes.KNIFE, 2);
 		room2.addItem(ObjectTypes.CROWBAR, 3);
 		corridor.addCreature(ObjectTypes.EYESAUR, 1);
 		
-		builder.markDoors(sideEntrance.getPosAt(5), room3.getPosAt(0));
+		builder.markDoors(sideEntrance.getPosAt(4), room3.getPosAt(0));
 		builder.markDoors(room3.getPosAt(3), storage.getPosAt(0), new DoorSealedProperty());
 		room3.addItem(ObjectTypes.FUEL_CAN, 2);
 		storage.addItem(ObjectTypes.FUEL_CAN, 2);
