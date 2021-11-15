@@ -15,7 +15,7 @@ public final class FightTask extends Task {
 	
 	@Override
 	public boolean performAction(ContextPrinter out) {
-		Optional<Creature> target = aftik.findNearest(Creature.CAST);
+		Optional<Creature> target = aftik.findNearestAccessible(Creature.CAST, false);
 		if (target.isPresent()) {
 			aftik.moveAndAttack(target.get(), out);
 			return true;

@@ -60,7 +60,7 @@ public final class AftikMind {
 	}
 	
 	private void tryGoToShip(ContextPrinter out) {
-		Optional<Door> optional = aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching));
+		Optional<Door> optional = aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			

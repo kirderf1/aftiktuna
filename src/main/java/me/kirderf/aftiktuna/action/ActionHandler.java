@@ -13,7 +13,6 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
-import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
@@ -61,7 +60,7 @@ public final class ActionHandler {
 	private static int attack(GameInstance game, ObjectType creatureType) {
 		Aftik aftik = game.getAftik();
 		
-		Optional<Creature> optionalCreature = aftik.findNearest(OptionalFunction.of(creatureType::matching).flatMap(Creature.CAST));
+		Optional<Creature> optionalCreature = aftik.findNearest(OptionalFunction.of(creatureType::matching).flatMap(Creature.CAST), false);
 		if (optionalCreature.isPresent()) {
 			Creature creature = optionalCreature.get();
 			
@@ -93,7 +92,7 @@ public final class ActionHandler {
 	}
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
-		return aftik.getRoom() == ship.getRoom() || aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching)).isPresent();
+		return aftik.getRoom() == ship.getRoom() || aftik.isAnyNear(ObjectTypes.SHIP_ENTRANCE::matching);
 	}
 	
 	private static int controlAftik(GameInstance game, String name) {
@@ -113,7 +112,7 @@ public final class ActionHandler {
 	}
 	
 	static <T extends GameObject> int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, OptionalFunction<GameObject, T> mapper, Consumer<T> onSuccess, Runnable onNoMatch) {
-		Optional<T> optionalDoor = aftik.findNearest(mapper);
+		Optional<T> optionalDoor = aftik.findNearest(mapper, true);
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
 			

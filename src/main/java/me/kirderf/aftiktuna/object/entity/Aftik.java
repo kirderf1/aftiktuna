@@ -214,13 +214,4 @@ public final class Aftik extends Entity {
 		}
 		inventory.clear();
 	}
-	
-	public <T> Optional<T> findNearest(OptionalFunction<GameObject, T> mapper) {
-		return getRoom().objectStream().sorted(blockingComparator().thenComparing(Room.byProximity(getCoord())))
-				.flatMap(mapper.toStream()).findFirst();
-	}
-	
-	private Comparator<GameObject> blockingComparator() {
-		return Comparator.comparing(value -> isAccessBlocked(value.getCoord()), Boolean::compareTo);
-	}
 }
