@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public final class Locations {
-	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation, Locations::createKeycardLocation,
+	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation, Locations::createBlowtorchLocation,
 			Locations::abandonedFacility, Locations::abandonedFacility2);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
@@ -49,22 +49,6 @@ public final class Locations {
 		secondRoom.addItem(ObjectTypes.FUEL_CAN, 5);
 		thirdRoom.addItem(ObjectTypes.KNIFE, 3);
 		secondRoom.addCreature(ObjectTypes.EYESAUR, 1);
-		
-		return builder.build(firstRoom.getPosAt(0));
-	}
-	
-	private static Location createKeycardLocation() {
-		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newRoom(6);
-		Room leftRoom = builder.newRoom(3);
-		Room rightRoom = builder.newRoom(4);
-		builder.markDoors(firstRoom.getPosAt(2), leftRoom.getPosAt(2), new DoorLockedProperty());
-		builder.markDoors(firstRoom.getPosAt(5), rightRoom.getPosAt(1));
-		leftRoom.addItem(ObjectTypes.FUEL_CAN, 0);
-		leftRoom.addItem(ObjectTypes.FUEL_CAN, 1);
-		rightRoom.addItem(ObjectTypes.KEYCARD, 0);
-		rightRoom.addCreature(ObjectTypes.GOBLIN, 2);
-		rightRoom.addCreature(ObjectTypes.GOBLIN, 3);
 		
 		return builder.build(firstRoom.getPosAt(0));
 	}
