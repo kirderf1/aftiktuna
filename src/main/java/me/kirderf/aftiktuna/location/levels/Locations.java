@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public final class Locations {
-	private static final List<Supplier<Location>> levels = List.of(Locations::createCrowbarLocation,
+	private static final List<Supplier<Location>> levels = List.of(
 			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest, Locations::eyesaurForest);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
@@ -22,20 +22,6 @@ public final class Locations {
 	public Location getRandomLocation() {
 		int i = GameInstance.RANDOM.nextInt(unusedLevels.size());
 		return unusedLevels.remove(i).get();
-	}
-	
-	private static Location createCrowbarLocation() {
-		LocationBuilder builder = new LocationBuilder();
-		Room firstRoom = builder.newRoom(7);
-		Room leftRoom = builder.newRoom(3);
-		Room rightRoom = builder.newRoom(4);
-		builder.markDoors(firstRoom.getPosAt(1), leftRoom.getPosAt(2));
-		builder.markDoors(firstRoom.getPosAt(5), rightRoom.getPosAt(0), new DoorStuckProperty());
-		leftRoom.addItem(ObjectTypes.CROWBAR, 1);
-		rightRoom.addItem(ObjectTypes.FUEL_CAN, 3);
-		rightRoom.addCreature(ObjectTypes.AZURECLOPS, 2);
-		
-		return builder.build(firstRoom.getPosAt(3));
 	}
 	
 	private static Location abandonedFacility() {
