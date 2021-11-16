@@ -78,7 +78,7 @@ public final class Locations {
 		Area storage = builder.newArea("Storage Room", 3);
 		
 		builder.markDoors(field.getPosAt(3), entrance.getPosAt(3));
-		builder.createDoors(ObjectTypes.LEFT_PATH, field.getPosAt(0), ObjectTypes.PATH, leftField.getPosAt(4));
+		builder.createDoors(ObjectTypes.LEFT_PATH, field.getPosAt(0), ObjectTypes.RIGHT_PATH, leftField.getPosAt(4));
 		builder.markDoors(leftField.getPosAt(0), sideEntrance.getPosAt(0), new DoorStuckProperty());
 		
 		builder.markDoors(entrance.getPosAt(0), corridor.getPosAt(0));
