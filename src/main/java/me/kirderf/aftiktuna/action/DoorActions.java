@@ -57,7 +57,7 @@ public final class DoorActions {
 	}
 	
 	private static void printForceSuccess(ContextPrinter out, Aftik aftik, DoorPair pair, ForceResult.Success result) {
-		out.printAt(pair.targetDoor(), "%s used their %s and %s the %s.%n", aftik.getName(), result.item().name(), result.method().text(), pair.targetDoor().getType());
+		out.printAt(pair.targetDoor(), "%s used their %s and %s the %s.%n", aftik.getName(), result.item().name(), result.method().text(), pair.targetDoor().getType().getCategoryName());
 		out.printAt(pair.destination(), "A %s was %s from the other side.%n", pair.targetDoor().getType().getCategoryName(), result.method().text());
 	}
 	
