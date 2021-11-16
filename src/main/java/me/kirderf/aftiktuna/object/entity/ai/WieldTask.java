@@ -17,7 +17,7 @@ public final class WieldTask extends Task {
 	
 	@Override
 	public boolean performAction(ContextPrinter out) {
-		Optional<WeaponType> weaponType = findWieldableInventoryItem();
+		Optional<WeaponType> weaponType = findWieldableInventoryItem(aftik);
 		
 		if (weaponType.isPresent()) {
 			aftik.wieldFromInventory(weaponType.get(), out);
@@ -26,8 +26,9 @@ public final class WieldTask extends Task {
 			return false;
 	}
 	
-	private Optional<WeaponType> findWieldableInventoryItem() {
+	public static Optional<WeaponType> findWieldableInventoryItem(Aftik aftik) {
 		int currentWeaponValue = aftik.getWieldedItem().map(WeaponType::getDamageValue).orElse(0);
+		
 		return aftik.getInventory().stream().flatMap(OptionalFunction.cast(WeaponType.class).toStream())
 				.max(Comparator.comparingInt(WeaponType::getDamageValue))
 				.filter(type -> currentWeaponValue < type.getDamageValue());

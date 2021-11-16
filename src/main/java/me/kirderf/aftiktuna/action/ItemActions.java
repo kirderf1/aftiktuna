@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
 
 import java.util.Optional;
 
@@ -17,8 +18,10 @@ public final class ItemActions {
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item"))))
 				.then(literal("items").executes(context -> takeItems(context.getSource()))));
-		dispatcher.register(literal("wield").then(argument("item", ObjectArgument.create(ObjectTypes.WEAPONS))
-				.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
+		dispatcher.register(literal("wield")
+				.executes(context -> wieldBestWeapon(context.getSource()))
+				.then(argument("item", ObjectArgument.create(ObjectTypes.WEAPONS))
+						.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
 		dispatcher.register(literal("give").then(argument("name", StringArgumentType.string())
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS)).executes(context -> giveItem(context.getSource(),
 						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item"))))));
@@ -54,6 +57,20 @@ public final class ItemActions {
 			return ActionHandler.searchForAndIfNotBlocked(game, aftik, Item.CAST.filter(weaponType::matching),
 					item -> aftik.moveAndWield(item, weaponType, game.out()),
 					() -> game.directOut().printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
+		}
+	}
+	
+	private static int wieldBestWeapon(GameInstance game) {
+		Aftik aftik = game.getAftik();
+		
+		Optional<WeaponType> weaponType = WieldTask.findWieldableInventoryItem(aftik);
+		
+		if (weaponType.isPresent()) {
+			aftik.wieldFromInventory(weaponType.get(), game.out());
+			return 1;
+		} else {
+			game.directOut().printf("%s does not have a better item to wield.%n", aftik.getName());
+			return 0;
 		}
 	}
 	
