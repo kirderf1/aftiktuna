@@ -32,24 +32,28 @@ public final class AftikMind {
 	
 	public void setLaunchShip(ContextPrinter out) {
 		command = new LaunchShipCommand(aftik, crew.getShip());
-		command.performAction(out);
+		performCommandAction(out);
 	}
 	
 	public void setTakeItems(ContextPrinter out) {
 		command = new TakeItemsCommand(aftik);
-		command.performAction(out);
+		performCommandAction(out);
 	}
 	
 	public void performAction(ContextPrinter out) {
 		if (command != null) {
-			boolean finished = command.performAction(out);
-			if (finished)
-				command = null;
+			performCommandAction(out);
 		} else {
 			for (Task task : tasks) {
 				if (task.performAction(out))
 					return;
 			}
 		}
+	}
+	
+	private void performCommandAction(ContextPrinter out) {
+		boolean finished = command.performAction(out);
+		if (finished)
+			command = null;
 	}
 }
