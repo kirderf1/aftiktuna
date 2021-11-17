@@ -9,11 +9,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.AttackResult;
 import me.kirderf.aftiktuna.location.GameObject;
+import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ContextPrinter;
@@ -34,6 +36,7 @@ public final class ActionHandler {
 		dispatcher.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
 		dispatcher.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
+		dispatcher.register(literal("recruit").then(literal("aftik").executes(context -> recruitAftik(context.getSource()))));
 		dispatcher.register(literal("wait").executes(context -> 1));
 		dispatcher.register(literal("status").executes(context -> {
 			context.getSource().getStatusPrinter().printCrewStatus();
@@ -122,20 +125,43 @@ public final class ActionHandler {
 		return 0;
 	}
 	
+	private static int recruitAftik(GameInstance game) {
+		Aftik aftik = game.getAftik();
+		Optional<AftikNPC> npcOptional = aftik.findNearest(AftikNPC.CAST, false);
+		
+		if (npcOptional.isPresent()) {
+			AftikNPC npc = npcOptional.get();
+			
+			Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
+			return ifNotBlocked(game, aftik, pos, () -> {
+				Optional<Entity.MoveFailure> failure = aftik.tryMoveNextTo(npc.getPosition());
+				
+				if (failure.isEmpty()) {
+					game.recruitAftik(npc);
+				} else {
+					printMoveFailure(game.out(), aftik, failure.get());
+				}
+			});
+		} else {
+			game.directOut().printf("There is no aftik here to recruit.%n");
+			return 0;
+		}
+	}
+	
 	static <T extends GameObject> int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, OptionalFunction<GameObject, T> mapper, Consumer<T> onSuccess, Runnable onNoMatch) {
 		Optional<T> optionalDoor = aftik.findNearest(mapper, true);
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
 			
-			return ifNotBlocked(game, aftik, object, () -> onSuccess.accept(object));
+			return ifNotBlocked(game, aftik, object.getPosition(), () -> onSuccess.accept(object));
 		} else {
 			onNoMatch.run();
 			return 0;
 		}
 	}
 	
-	static <T extends GameObject> int ifNotBlocked(GameInstance game, Aftik aftik, T object, Runnable onSuccess) {
-		Optional<GameObject> blocking = aftik.findBlockingTo(object.getCoord());
+	static int ifNotBlocked(GameInstance game, Aftik aftik, Position pos, Runnable onSuccess) {
+		Optional<GameObject> blocking = aftik.findBlockingTo(pos.coord());
 		if (blocking.isEmpty()) {
 			onSuccess.run();
 			return 1;

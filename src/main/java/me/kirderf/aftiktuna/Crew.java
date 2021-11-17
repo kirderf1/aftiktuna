@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Stats;
 
 import java.io.PrintWriter;
@@ -62,6 +63,13 @@ public final class Crew {
 			aftik.remove();
 			location.addAtEntry(aftik);
 		}
+	}
+	
+	void addCrewMember(AftikNPC npc, PrintWriter out) {
+		Aftik aftik = npc.createAftikForCrew(this);
+		crewMembers.add(aftik);
+		
+		out.printf("%s joined the crew!%n", aftik.getName());
 	}
 	
 	void removeCrewMember(Aftik aftik) {

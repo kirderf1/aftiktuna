@@ -8,6 +8,7 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
 import me.kirderf.aftiktuna.location.levels.Locations;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.print.StatusPrinter;
@@ -102,6 +103,10 @@ public final class GameInstance {
 		crew.setControllingAftik(aftik, out);
 	}
 	
+	public void recruitAftik(AftikNPC npc) {
+		crew.addCrewMember(npc, out);
+	}
+	
 	public StatusPrinter getStatusPrinter() {
 		return statusPrinter;
 	}
@@ -110,7 +115,7 @@ public final class GameInstance {
 		if (debugLevel) {
 			Locations.checkLocations();	//Check for errors in locations
 			
-			location = CrewTestingLocations.separationTest();
+			location = CrewTestingLocations.recruitment();
 		} else {
 			location = locations.getRandomLocation();
 		}
