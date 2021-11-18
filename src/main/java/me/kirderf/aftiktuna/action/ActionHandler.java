@@ -128,12 +128,10 @@ public final class ActionHandler {
 			
 			Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
 			return ifNotBlocked(context, aftik, pos, out -> {
-				Optional<Entity.MoveFailure> failure = aftik.tryMoveNextTo(npc.getPosition());
+				boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
 				
-				if (failure.isEmpty()) {
+				if (success) {
 					context.getGame().recruitAftik(npc);
-				} else {
-					printMoveFailure(out, aftik, failure.get());
 				}
 			});
 		} else {
@@ -161,11 +159,7 @@ public final class ActionHandler {
 		}
 	}
 	
-	public static void printMoveFailure(ContextPrinter out, Entity entity, Entity.MoveFailure result) {
-		out.printFor(entity, createBlockingMessage(result.blocking()));
-	}
-	
-	static String createBlockingMessage(GameObject blocking) {
+	public static String createBlockingMessage(GameObject blocking) {
 		return "%s is blocking the way.%n".formatted(blocking.getDisplayName(true, true));
 	}
 	

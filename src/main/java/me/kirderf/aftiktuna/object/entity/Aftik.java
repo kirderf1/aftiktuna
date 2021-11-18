@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.Crew;
-import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.DoorActions;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
@@ -14,12 +13,9 @@ import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.ai.AftikMind;
 import me.kirderf.aftiktuna.print.ContextPrinter;
-import me.kirderf.aftiktuna.util.Either;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.*;
-
-import static me.kirderf.aftiktuna.action.ActionHandler.printMoveFailure;
 
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
@@ -70,14 +66,12 @@ public final class Aftik extends Entity {
 	}
 	
 	public void moveAndTake(Item item, ContextPrinter out) {
-		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
-		if (failure.isEmpty()) {
+		boolean success = tryMoveTo(item.getPosition(), out);
+		if (success) {
 			item.remove();
 			addItem(item.getType());
 			
 			out.printAt(this, "%s picked up the %s.%n", this.getName(), item.getType().name());
-		} else {
-			ActionHandler.printMoveFailure(out, this, failure.get());
 		}
 	}
 	
@@ -85,78 +79,74 @@ public final class Aftik extends Entity {
 		if (item.getType() != type)
 			throw new IllegalArgumentException("Incorrect type given");
 		
-		Optional<Entity.MoveFailure> failure = tryMoveTo(item.getPosition());
+		boolean success = tryMoveTo(item.getPosition(), out);
 		
-		if (failure.isEmpty()) {
+		if (success) {
 			item.remove();
 			wield(type);
 			
 			out.printAt(this, "%s picked up and wielded the %s.%n", this.getName(), type.name());
-		} else {
-			ActionHandler.printMoveFailure(out, this, failure.get());
 		}
 	}
 	
 	public void moveAndGive(Aftik aftik, ObjectType type, ContextPrinter out) {
-		Optional<Entity.MoveFailure> failure = tryMoveTo(aftik.getPosition());
+		boolean success = tryMoveTo(aftik.getPosition(), out);
 		
-		if (failure.isEmpty()) {
+		if (success) {
 			
 			if (this.removeItem(type)) {
 				aftik.addItem(type);
 				out.printAt(this, "%s gave %s a %s.%n", this.getName(), aftik.getName(), type.name());
 			} else
 				out.printFor(this, "%s does not have that item.%n", this.getName());
-		} else {
-			printMoveFailure(out, this, failure.get());
 		}
 	}
 	
-	public MoveAndEnterResult moveAndEnter(Door door) {
-		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
-		if (failure.isEmpty()) {
+	public MoveAndEnterResult moveAndEnter(Door door, ContextPrinter out) {
+		return moveAndEnter(door, null, out);
+	}
+	
+	public MoveAndEnterResult moveAndEnter(Door door, Aftik followTarget, ContextPrinter out) {
+		boolean success = tryMoveTo(door.getPosition(), out);
+		if (success) {
+			Area originalArea = this.getArea();
+			
 			EnterResult result = door.enter(this);
+			
+			originalArea.objectStream().flatMap(Aftik.CAST.toStream())
+					.forEach(other -> other.getMind().observeEnteredDoor(this, door, result));
+			
+			if (followTarget != null) {
+				out.printAt(this, "%s follows %s into the area.%n", this.getName(), followTarget.getName());
+			} else {
+				DoorActions.printEnterResult(out, this, door, result);
+			}
+			
 			return new MoveAndEnterResult(result);
 		} else
-			return new MoveAndEnterResult(failure.get());
+			return new MoveAndEnterResult();
 	}
 	
-	public MoveAndEnterResult moveEnterMain(Door door, ContextPrinter out) {
-		Area originalArea = this.getArea();
-		
-		MoveAndEnterResult result = moveAndEnter(door);
-		
-		result.either.getLeft().ifPresent(enterResult ->
-				originalArea.objectStream().flatMap(Aftik.CAST.toStream())
-						.forEach(other -> other.getMind().observeEnteredDoor(this, door, enterResult)));
-		
-		result.either().run(enterResult -> DoorActions.printEnterResult(out, this, door, enterResult),
-				moveFailure -> ActionHandler.printMoveFailure(out, this, moveFailure));
-		
-		return result;
-	}
-	
-	public static record MoveAndEnterResult(Either<EnterResult, MoveFailure> either) {
+	public static record MoveAndEnterResult(Optional<EnterResult> optional) {
 		public MoveAndEnterResult(EnterResult result) {
-			this(Either.left(result));
+			this(Optional.of(result));
 		}
 		
-		public MoveAndEnterResult(MoveFailure failure) {
-			this(Either.right(failure));
+		public MoveAndEnterResult() {
+			this(Optional.empty());
 		}
 		
 		public boolean success() {
-			return either.getLeft().map(EnterResult::success).orElse(false);
+			return optional.map(EnterResult::success).orElse(false);
 		}
 	}
 	
 	public void moveAndForce(Door door, ContextPrinter out) {
-		Optional<Entity.MoveFailure> failure = tryMoveTo(door.getPosition());
-		if (failure.isEmpty()) {
+		boolean success = tryMoveTo(door.getPosition(), out);
+		if (success) {
 			ForceResult result = door.force(this);
 			DoorActions.printForceResult(out, this, door, result);
-		} else
-			ActionHandler.printMoveFailure(out, this, failure.get());
+		}
 	}
 	
 	public void addItem(ObjectType type) {

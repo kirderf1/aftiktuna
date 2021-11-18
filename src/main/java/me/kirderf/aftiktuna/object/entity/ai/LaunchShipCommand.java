@@ -32,7 +32,7 @@ public final class LaunchShipCommand extends Command {
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			
-			Aftik.MoveAndEnterResult result = aftik.moveEnterMain(door, out);
+			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(door, out);
 			
 			return !result.success();
 		} else {

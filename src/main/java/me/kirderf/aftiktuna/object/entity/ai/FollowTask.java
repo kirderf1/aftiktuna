@@ -40,13 +40,9 @@ public final class FollowTask extends Task {
 			}
 		} else if (followTarget != null) {
 			
-			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door);
+			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door, followTarget.aftik, out);
 			
-			if (result.success()) {
-				out.printAt(aftik, "%s follows %s into the area.%n", aftik.getName(), followTarget.aftik.getName());
-			}
-			
-			result.either().getLeft().flatMap(enterResult -> enterResult.either().getRight())
+			result.optional().flatMap(enterResult -> enterResult.either().getRight())
 					.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(followTarget.door, failureType),
 							() -> followTarget = null);
 			

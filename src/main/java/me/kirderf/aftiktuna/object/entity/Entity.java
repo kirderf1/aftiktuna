@@ -79,11 +79,11 @@ public abstract class Entity extends GameObject {
 	
 	////// Movement
 	
-	public final Optional<MoveFailure> tryMoveNextTo(Position pos) {
-		return tryMoveTo(pos.getPosTowards(this.getCoord()));
+	public final boolean tryMoveNextTo(Position pos, ContextPrinter out) {
+		return tryMoveTo(pos.getPosTowards(this.getCoord()), out);
 	}
 	
-	public final Optional<MoveFailure> tryMoveTo(Position pos) {
+	public final boolean tryMoveTo(Position pos, ContextPrinter out) {
 		if (pos.area() != this.getArea())
 			throw new IllegalArgumentException("Areas must be the same.");
 		
@@ -94,9 +94,12 @@ public abstract class Entity extends GameObject {
 				teleport(coord);
 			}
 			
-			return blocking.map(MoveFailure::new);
+			blocking.ifPresent(blockingObject ->
+					out.printFor(this, ActionHandler.createBlockingMessage(blockingObject)));
+			
+			return blocking.isEmpty();
 		} else
-			return Optional.empty();
+			return true;
 	}
 	
 	public final boolean isAccessible(Position pos, boolean exactPos) {
@@ -112,9 +115,6 @@ public abstract class Entity extends GameObject {
 			return Optional.empty();
 	}
 	
-	public static record MoveFailure(GameObject blocking) {
-	}
-	
 	/**
 	 * A comparator that places accessible objects before inaccessible ones.
 	 */
@@ -125,11 +125,10 @@ public abstract class Entity extends GameObject {
 	////// Combat
 	
 	public final void moveAndAttack(Entity target, ContextPrinter out) {
-		Optional<MoveFailure> move = tryMoveNextTo(target.getPosition());
-		if (move.isEmpty()) {
+		boolean success = tryMoveNextTo(target.getPosition(), out);
+		if (success) {
 			attack(target, out);
-		} else
-			ActionHandler.printMoveFailure(out, this, move.get());
+		}
 	}
 	
 	public final void attack(Entity target, ContextPrinter out) {

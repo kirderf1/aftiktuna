@@ -29,7 +29,7 @@ public final class DoorActions {
 	private static int enterDoor(InputActionContext context, DoorType doorType) {
 		Aftik aftik = context.getControlledAftik();
 		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Door.CAST.filter(doorType::matching),
-				aftik::moveEnterMain,
+				aftik::moveAndEnter,
 				out -> out.printf("There is no such %s here to go through.%n", doorType.getCategoryName()));
 	}
 	
