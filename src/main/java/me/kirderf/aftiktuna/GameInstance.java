@@ -44,7 +44,7 @@ public final class GameInstance {
 		crew = new Crew();
 		
 		statusPrinter = new StatusPrinter(out, crew);
-		actionOut = new ContextPrinter(out, crew);
+		actionOut = new ContextPrinter(crew);
 	}
 	
 	public Crew getCrew() {
@@ -83,6 +83,8 @@ public final class GameInstance {
 			handleUserAction();
 			
 			actionHandler.handleEntities(this, actionOut);
+			
+			actionOut.flush(out);
 			
 			out.println();
 		}
