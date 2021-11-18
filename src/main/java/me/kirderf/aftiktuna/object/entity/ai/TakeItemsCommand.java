@@ -24,7 +24,7 @@ public final class TakeItemsCommand extends Command {
 			
 			return aftik.findNearestAccessible(Item.CAST, true).isEmpty();
 		} else {
-			out.printFor(aftik, "There are no nearby items to take.%n");
+			out.printFor(aftik, "There are no nearby items to take.");
 			return true;
 		}
 	}

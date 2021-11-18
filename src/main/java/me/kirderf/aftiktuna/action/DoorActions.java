@@ -42,13 +42,13 @@ public final class DoorActions {
 	
 	public static void printEnterResult(ContextPrinter out, Aftik aftik, Door door, EnterResult result) {
 		result.either().run(success -> printEnterSuccess(out, aftik, door, success),
-				failureType -> out.printFor(aftik, "The %s is %s.%n", door.getType().getCategoryName(), failureType.adjective()));
+				failureType -> out.printFor(aftik, "The %s is %s.", door.getType().getCategoryName(), failureType.adjective()));
 	}
 	
 	private static void printEnterSuccess(ContextPrinter out, Aftik aftik, Door door, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> out.printFor(aftik, "Using their %s, %s entered the %s into a new area.%n", item.name(), aftik.getName(), door.getType().getCategoryName()),
-				() -> out.printFor(aftik, "%s entered the %s into a new area.%n", aftik.getName(), door.getType().getCategoryName()));
+				item -> out.printFor(aftik, "Using their %s, %s entered the %s into a new area.", item.name(), aftik.getName(), door.getType().getCategoryName()),
+				() -> out.printFor(aftik, "%s entered the %s into a new area.", aftik.getName(), door.getType().getCategoryName()));
 	}
 	
 	public static void printForceResult(ContextPrinter out, Aftik aftik, Door door, ForceResult result) {
@@ -56,15 +56,15 @@ public final class DoorActions {
 	}
 	
 	private static void printForceSuccess(ContextPrinter out, Aftik aftik, DoorPair pair, ForceResult.Success result) {
-		out.printAt(pair.targetDoor(), "%s used their %s and %s the %s.%n", aftik.getName(), result.item().name(), result.method().text(), pair.targetDoor().getType().getCategoryName());
-		out.printAt(pair.destination(), "A %s was %s from the other side.%n", pair.targetDoor().getType().getCategoryName(), result.method().text());
+		out.printAt(pair.targetDoor(), "%s used their %s and %s the %s.", aftik.getName(), result.item().name(), result.method().text(), pair.targetDoor().getType().getCategoryName());
+		out.printAt(pair.destination(), "A %s was %s from the other side.", pair.targetDoor().getType().getCategoryName(), result.method().text());
 	}
 	
 	private static void printForceStatus(ContextPrinter out, Aftik aftik, Door door, ForceResult.Status status) {
 		switch(status) {
-			case NOT_STUCK -> out.printFor(aftik, "The %s does not seem to be stuck.%n", door.getType().getCategoryName());
-			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the %s open.%n", aftik.getName(), door.getType().getCategoryName());
-			case NEED_BREAK_TOOL -> out.printFor(aftik, "%s need some sort of tool to break the %s open.%n", aftik.getName(), door.getType().getCategoryName());
+			case NOT_STUCK -> out.printFor(aftik, "The %s does not seem to be stuck.", door.getType().getCategoryName());
+			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the %s open.", aftik.getName(), door.getType().getCategoryName());
+			case NEED_BREAK_TOOL -> out.printFor(aftik, "%s need some sort of tool to break the %s open.", aftik.getName(), door.getType().getCategoryName());
 		}
 	}
 }

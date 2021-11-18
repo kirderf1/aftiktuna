@@ -19,13 +19,13 @@ public final class ContextPrinter {
 	// Print message if the player is controlling the aftik
 	public void printFor(Entity entity, String message, Object... args) {
 		if (entity == crew.getAftik())
-			out.printf(message, args);
+			out.printf(message + "%n", args);
 	}
 	
 	// Print message if the aftik controlled by the player is in the area
 	public void printAt(Area area, String message, Object... args) {
 		if (area == crew.getAftik().getArea())
-			out.printf(message, args);
+			out.printf(message + "%n", args);
 	}
 	
 	public void printAt(GameObject object, String message, Object... args) {

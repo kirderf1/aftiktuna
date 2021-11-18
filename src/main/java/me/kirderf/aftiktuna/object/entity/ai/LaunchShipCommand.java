@@ -36,7 +36,7 @@ public final class LaunchShipCommand extends Command {
 			
 			return !result.success();
 		} else {
-			out.printFor(aftik, "%s need to be near the ship in order to launch it.%n", aftik.getName());
+			out.printFor(aftik, "%s need to be near the ship in order to launch it.", aftik.getName());
 			return true;
 		}
 	}

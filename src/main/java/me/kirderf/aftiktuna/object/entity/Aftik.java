@@ -71,7 +71,7 @@ public final class Aftik extends Entity {
 			item.remove();
 			addItem(item.getType());
 			
-			out.printAt(this, "%s picked up the %s.%n", this.getName(), item.getType().name());
+			out.printAt(this, "%s picked up the %s.", this.getName(), item.getType().name());
 		}
 	}
 	
@@ -85,7 +85,7 @@ public final class Aftik extends Entity {
 			item.remove();
 			wield(type);
 			
-			out.printAt(this, "%s picked up and wielded the %s.%n", this.getName(), type.name());
+			out.printAt(this, "%s picked up and wielded the %s.", this.getName(), type.name());
 		}
 	}
 	
@@ -96,9 +96,9 @@ public final class Aftik extends Entity {
 			
 			if (this.removeItem(type)) {
 				aftik.addItem(type);
-				out.printAt(this, "%s gave %s a %s.%n", this.getName(), aftik.getName(), type.name());
+				out.printAt(this, "%s gave %s a %s.", this.getName(), aftik.getName(), type.name());
 			} else
-				out.printFor(this, "%s does not have that item.%n", this.getName());
+				out.printFor(this, "%s does not have that item.", this.getName());
 		}
 	}
 	
@@ -117,7 +117,7 @@ public final class Aftik extends Entity {
 					.forEach(other -> other.getMind().observeEnteredDoor(this, door, result));
 			
 			if (followTarget != null) {
-				out.printAt(this, "%s follows %s into the area.%n", this.getName(), followTarget.getName());
+				out.printAt(this, "%s follows %s into the area.", this.getName(), followTarget.getName());
 			} else {
 				DoorActions.printEnterResult(out, this, door, result);
 			}
@@ -169,13 +169,13 @@ public final class Aftik extends Entity {
 	
 	public void wieldFromInventory(WeaponType type, ContextPrinter out) {
 		if (type == wielded) {
-			out.printFor(this, "%s is already wielding a %s.%n", this.getName(), type.name());
+			out.printFor(this, "%s is already wielding a %s.", this.getName(), type.name());
 		} else {
 			if (inventory.remove(type)) {
 				wield(type);
-				out.printAt(this, "%s wielded a %s.%n", this.getName(), type.name());
+				out.printAt(this, "%s wielded a %s.", this.getName(), type.name());
 			} else {
-				out.printFor(this, "%s does not have a %s.%n", this.getName(), type.name());
+				out.printFor(this, "%s does not have a %s.", this.getName(), type.name());
 			}
 		}
 	}

@@ -154,22 +154,22 @@ public final class ActionHandler {
 		if (blocking.isEmpty()) {
 			return onSuccess.getAsInt();
 		} else {
-			return context.printNoAction(createBlockingMessage(blocking.get()));
+			return context.printNoAction(createBlockingMessage(blocking.get()) + "%n");
 		}
 	}
 	
 	public static String createBlockingMessage(GameObject blocking) {
-		return "%s is blocking the way.%n".formatted(blocking.getDisplayName(true, true));
+		return "%s is blocking the way.".formatted(blocking.getDisplayName(true, true));
 	}
 	
 	public static void printAttackAction(ContextPrinter out, Entity attacker, AttackResult result) {
 		Entity attacked = result.attacked();
 		switch(result.type()) {
-			case DIRECT_HIT -> out.printAt(attacker, condition("%s got a direct hit on[ and killed] %s.%n", result.isKill()),
+			case DIRECT_HIT -> out.printAt(attacker, condition("%s got a direct hit on[ and killed] %s.", result.isKill()),
 					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case GRAZING_HIT -> out.printAt(attacker, condition("%s's attack grazed[ and killed] %s.%n", result.isKill()),
+			case GRAZING_HIT -> out.printAt(attacker, condition("%s's attack grazed[ and killed] %s.", result.isKill()),
 					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case DODGE -> out.printAt(attacker, "%s dodged %s's attack.%n",
+			case DODGE -> out.printAt(attacker, "%s dodged %s's attack.",
 					attacked.getDisplayName(true, true), attacker.getDisplayName(true, false));
 		}
 	}
