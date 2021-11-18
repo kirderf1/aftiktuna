@@ -2,7 +2,7 @@ package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Comparator;
@@ -16,7 +16,7 @@ public final class WieldTask extends Task {
 	}
 	
 	@Override
-	public boolean performAction(ContextPrinter out) {
+	public boolean performAction(ActionPrinter out) {
 		Optional<WeaponType> weaponType = findWieldableInventoryItem(aftik);
 		
 		if (weaponType.isPresent()) {

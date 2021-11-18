@@ -3,7 +3,7 @@ package me.kirderf.aftiktuna.object.entity;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Collection;
@@ -48,7 +48,7 @@ public final class Creature extends Entity {
 	}
 	
 	@Override
-	public void performAction(ContextPrinter out) {
+	public void performAction(ActionPrinter out) {
 		
 		Optional<Aftik> target = findNearestAccessibleFrom(targets.stream().filter(Entity::isAlive)
 				.filter(aftik -> aftik.getArea() == this.getArea()), false);

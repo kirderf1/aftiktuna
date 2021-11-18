@@ -7,7 +7,7 @@ import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.object.ObjectType;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 import me.kirderf.aftiktuna.util.StreamUtils;
 
@@ -44,7 +44,7 @@ public abstract class Entity extends GameObject {
 		dodgingStamina = Math.min(dodgingStamina + 1, getMaxStamina());
 	}
 	
-	public abstract void performAction(ContextPrinter out);
+	public abstract void performAction(ActionPrinter out);
 	
 	////// Health and stats
 	
@@ -79,11 +79,11 @@ public abstract class Entity extends GameObject {
 	
 	////// Movement
 	
-	public final boolean tryMoveNextTo(Position pos, ContextPrinter out) {
+	public final boolean tryMoveNextTo(Position pos, ActionPrinter out) {
 		return tryMoveTo(pos.getPosTowards(this.getCoord()), out);
 	}
 	
-	public final boolean tryMoveTo(Position pos, ContextPrinter out) {
+	public final boolean tryMoveTo(Position pos, ActionPrinter out) {
 		if (pos.area() != this.getArea())
 			throw new IllegalArgumentException("Areas must be the same.");
 		
@@ -124,14 +124,14 @@ public abstract class Entity extends GameObject {
 	
 	////// Combat
 	
-	public final void moveAndAttack(Entity target, ContextPrinter out) {
+	public final void moveAndAttack(Entity target, ActionPrinter out) {
 		boolean success = tryMoveNextTo(target.getPosition(), out);
 		if (success) {
 			attack(target, out);
 		}
 	}
 	
-	public final void attack(Entity target, ContextPrinter out) {
+	public final void attack(Entity target, ActionPrinter out) {
 		if (!target.getPosition().isAdjacent(this.getPosition()))
 			throw new IllegalStateException("Expected to be next to target when attacking.");
 		

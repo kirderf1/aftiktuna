@@ -3,7 +3,7 @@ package me.kirderf.aftiktuna.object.entity.ai;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 public final class ForceDoorTask extends Task {
 	private final Aftik aftik;
@@ -14,7 +14,7 @@ public final class ForceDoorTask extends Task {
 	}
 	
 	@Override
-	public boolean performAction(ContextPrinter out) {
+	public boolean performAction(ActionPrinter out) {
 		if (forceFragment != null) {
 			boolean result = forceFragment.performAction(aftik, out);
 			forceFragment = null;

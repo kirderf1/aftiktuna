@@ -9,11 +9,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class ContextPrinter {
+public final class ActionPrinter {
 	private final Crew crew;
 	private final List<String> messages = new ArrayList<>();
 	
-	public ContextPrinter(Crew crew) {
+	public ActionPrinter(Crew crew) {
 		this.crew = crew;
 	}
 	

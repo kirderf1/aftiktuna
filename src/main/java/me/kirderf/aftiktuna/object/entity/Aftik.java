@@ -12,7 +12,7 @@ import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.ai.AftikMind;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.*;
@@ -61,11 +61,11 @@ public final class Aftik extends Entity {
 	}
 	
 	@Override
-	public void performAction(ContextPrinter out) {
+	public void performAction(ActionPrinter out) {
 		mind.performAction(out);
 	}
 	
-	public void moveAndTake(Item item, ContextPrinter out) {
+	public void moveAndTake(Item item, ActionPrinter out) {
 		boolean success = tryMoveTo(item.getPosition(), out);
 		if (success) {
 			item.remove();
@@ -75,7 +75,7 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public void moveAndWield(Item item, WeaponType type, ContextPrinter out) {
+	public void moveAndWield(Item item, WeaponType type, ActionPrinter out) {
 		if (item.getType() != type)
 			throw new IllegalArgumentException("Incorrect type given");
 		
@@ -89,7 +89,7 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public void moveAndGive(Aftik aftik, ObjectType type, ContextPrinter out) {
+	public void moveAndGive(Aftik aftik, ObjectType type, ActionPrinter out) {
 		boolean success = tryMoveTo(aftik.getPosition(), out);
 		
 		if (success) {
@@ -102,11 +102,11 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public MoveAndEnterResult moveAndEnter(Door door, ContextPrinter out) {
+	public MoveAndEnterResult moveAndEnter(Door door, ActionPrinter out) {
 		return moveAndEnter(door, null, out);
 	}
 	
-	public MoveAndEnterResult moveAndEnter(Door door, Aftik followTarget, ContextPrinter out) {
+	public MoveAndEnterResult moveAndEnter(Door door, Aftik followTarget, ActionPrinter out) {
 		boolean success = tryMoveTo(door.getPosition(), out);
 		if (success) {
 			Area originalArea = this.getArea();
@@ -141,7 +141,7 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public void moveAndForce(Door door, ContextPrinter out) {
+	public void moveAndForce(Door door, ActionPrinter out) {
 		boolean success = tryMoveTo(door.getPosition(), out);
 		if (success) {
 			ForceResult result = door.force(this);
@@ -167,7 +167,7 @@ public final class Aftik extends Entity {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
-	public void wieldFromInventory(WeaponType type, ContextPrinter out) {
+	public void wieldFromInventory(WeaponType type, ActionPrinter out) {
 		if (type == wielded) {
 			out.printFor(this, "%s is already wielding a %s.", this.getName(), type.name());
 		} else {

@@ -18,7 +18,7 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
@@ -166,7 +166,7 @@ public final class ActionHandler {
 		return "%s is blocking the way.".formatted(blocking.getDisplayName(true, true));
 	}
 	
-	public static void printAttackAction(ContextPrinter out, Entity attacker, AttackResult result) {
+	public static void printAttackAction(ActionPrinter out, Entity attacker, AttackResult result) {
 		Entity attacked = result.attacked();
 		switch(result.type()) {
 			case DIRECT_HIT -> out.printAt(attacker, condition("%s got a direct hit on[ and killed] %s.", result.isKill()),
@@ -178,7 +178,7 @@ public final class ActionHandler {
 		}
 	}
 	
-	public void handleEntities(GameInstance game, ContextPrinter out) {
+	public void handleEntities(GameInstance game, ActionPrinter out) {
 		
 		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
 			if (entity.isAlive() && entity != game.getCrew().getAftik()) {

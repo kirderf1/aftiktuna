@@ -4,7 +4,7 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;
 
@@ -18,7 +18,7 @@ public final class LaunchShipCommand extends Command {
 	}
 	
 	@Override
-	public boolean performAction(ContextPrinter out) {
+	public boolean performAction(ActionPrinter out) {
 		if (aftik.getArea() != ship.getRoom()) {
 			return tryGoToShip(out);
 		} else {
@@ -27,7 +27,7 @@ public final class LaunchShipCommand extends Command {
 		}
 	}
 	
-	private boolean tryGoToShip(ContextPrinter out) {
+	private boolean tryGoToShip(ActionPrinter out) {
 		Optional<Door> optional = aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
 		if (optional.isPresent()) {
 			Door door = optional.get();

@@ -4,7 +4,7 @@ import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.List;
 
@@ -30,17 +30,17 @@ public final class AftikMind {
 		tasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
 	}
 	
-	public void setLaunchShip(ContextPrinter out) {
+	public void setLaunchShip(ActionPrinter out) {
 		command = new LaunchShipCommand(aftik, crew.getShip());
 		performCommandAction(out);
 	}
 	
-	public void setTakeItems(ContextPrinter out) {
+	public void setTakeItems(ActionPrinter out) {
 		command = new TakeItemsCommand(aftik);
 		performCommandAction(out);
 	}
 	
-	public void performAction(ContextPrinter out) {
+	public void performAction(ActionPrinter out) {
 		if (command != null) {
 			performCommandAction(out);
 		} else {
@@ -51,7 +51,7 @@ public final class AftikMind {
 		}
 	}
 	
-	private void performCommandAction(ContextPrinter out) {
+	private void performCommandAction(ActionPrinter out) {
 		boolean finished = command.performAction(out);
 		if (finished)
 			command = null;

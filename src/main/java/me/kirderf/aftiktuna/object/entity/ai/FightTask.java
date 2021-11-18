@@ -2,7 +2,7 @@ package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;
 
@@ -14,7 +14,7 @@ public final class FightTask extends Task {
 	}
 	
 	@Override
-	public boolean performAction(ContextPrinter out) {
+	public boolean performAction(ActionPrinter out) {
 		Optional<Creature> target = aftik.findNearestAccessible(Creature.CAST, false);
 		if (target.isPresent()) {
 			aftik.moveAndAttack(target.get(), out);

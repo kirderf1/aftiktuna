@@ -4,7 +4,7 @@ import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 public final class FollowTask extends Task {
 	private final Aftik aftik;
@@ -21,7 +21,7 @@ public final class FollowTask extends Task {
 	}
 	
 	@Override
-	public boolean performAction(ContextPrinter out) {
+	public boolean performAction(ActionPrinter out) {
 		if (followTarget != null &&
 				(followTarget.door.getArea() != this.aftik.getArea() || followTarget.aftik.getArea() == this.aftik.getArea())) {
 			followTarget = null;

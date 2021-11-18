@@ -11,7 +11,7 @@ import me.kirderf.aftiktuna.location.levels.Locations;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Entity;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.BufferedReader;
@@ -26,7 +26,7 @@ public final class GameInstance {
 	private final PrintWriter out;
 	private final BufferedReader in;
 	private final Runnable prepareForInput;
-	private final ContextPrinter actionOut;
+	private final ActionPrinter actionOut;
 	private final StatusPrinter statusPrinter;
 	
 	private final ActionHandler actionHandler = new ActionHandler();
@@ -44,7 +44,7 @@ public final class GameInstance {
 		crew = new Crew();
 		
 		statusPrinter = new StatusPrinter(out, crew);
-		actionOut = new ContextPrinter(crew);
+		actionOut = new ActionPrinter(crew);
 	}
 	
 	public Crew getCrew() {

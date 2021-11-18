@@ -3,17 +3,17 @@ package me.kirderf.aftiktuna.action;
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.io.PrintWriter;
 import java.util.function.Consumer;
 
 public final class InputActionContext {
 	private final PrintWriter out;
-	private final ContextPrinter actionOut;
+	private final ActionPrinter actionOut;
 	private final GameInstance game;
 	
-	public InputActionContext(GameInstance game, PrintWriter out, ContextPrinter actionOut) {
+	public InputActionContext(GameInstance game, PrintWriter out, ActionPrinter actionOut) {
 		this.game = game;
 		this.out = out;
 		this.actionOut = actionOut;
@@ -44,7 +44,7 @@ public final class InputActionContext {
 		return 1;
 	}
 	
-	public int action(Consumer<ContextPrinter> action) {
+	public int action(Consumer<ActionPrinter> action) {
 		action.accept(actionOut);
 		return 1;
 	}

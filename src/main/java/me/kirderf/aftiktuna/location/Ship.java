@@ -3,7 +3,7 @@ package me.kirderf.aftiktuna.location;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.print.ContextPrinter;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.stream.Collectors;
 
@@ -24,7 +24,7 @@ public final class Ship {
 		return room;
 	}
 	
-	public void tryLaunchShip(Aftik aftik, ContextPrinter out) {
+	public void tryLaunchShip(Aftik aftik, ActionPrinter out) {
 		if (!isShipLaunching && aftik.getArea() == this.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
 			isShipLaunching = true;
 			
