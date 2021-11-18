@@ -29,8 +29,8 @@ public final class ItemActions {
 	private static int takeItem(InputActionContext context, ObjectType type) {
 		Aftik aftik = context.getControlledAftik();
 		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Item.CAST.filter(type::matching),
-				aftik::moveAndTake,
-				out -> out.printf("There is no %s here to pick up.%n", type.name()));
+				item -> context.action(out -> aftik.moveAndTake(item, out)),
+				() -> context.printNoAction("There is no %s here to pick up.%n", type.name()));
 	}
 	
 	private static int takeItems(InputActionContext context) {
@@ -50,8 +50,8 @@ public final class ItemActions {
 			return context.action(out -> aftik.wieldFromInventory(weaponType, out));
 		} else {
 			return ActionHandler.searchForAndIfNotBlocked(context, aftik, Item.CAST.filter(weaponType::matching),
-					(item, out) -> aftik.moveAndWield(item, weaponType, out),
-					out -> out.printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
+					item -> context.action(out -> aftik.moveAndWield(item, weaponType, out)),
+					() -> context.printNoAction("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
 		}
 	}
 	
@@ -76,7 +76,8 @@ public final class ItemActions {
 			}
 			
 			if (aftik.hasItem(type)) {
-				return ActionHandler.ifNotBlocked(context, aftik, target.getPosition(), out -> aftik.moveAndGive(target, type, out));
+				return ActionHandler.ifNotBlocked(context, aftik, target.getPosition(),
+						() -> context.action(out -> aftik.moveAndGive(target, type, out)));
 			} else {
 				return context.printNoAction("%s does not have that item.%n", aftik.getName());
 			}

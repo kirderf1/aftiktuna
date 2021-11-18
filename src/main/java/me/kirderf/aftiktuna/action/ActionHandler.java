@@ -21,10 +21,9 @@ import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
-import java.io.PrintWriter;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.function.IntSupplier;
+import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 public final class ActionHandler {
@@ -127,33 +126,33 @@ public final class ActionHandler {
 			AftikNPC npc = npcOptional.get();
 			
 			Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
-			return ifNotBlocked(context, aftik, pos, out -> {
+			return ifNotBlocked(context, aftik, pos, () -> context.action(out -> {
 				boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
 				
 				if (success) {
 					context.getGame().recruitAftik(npc);
 				}
-			});
+			}));
 		} else {
 			return context.printNoAction("There is no aftik here to recruit.%n");
 		}
 	}
 	
-	static <T extends GameObject> int searchForAndIfNotBlocked(InputActionContext context, Aftik aftik, OptionalFunction<GameObject, T> mapper, BiConsumer<T, ContextPrinter> onSuccess, Consumer<PrintWriter> onNoMatch) {
+	static <T extends GameObject> int searchForAndIfNotBlocked(InputActionContext context, Aftik aftik, OptionalFunction<GameObject, T> mapper, ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
 		Optional<T> optionalDoor = aftik.findNearest(mapper, true);
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
 			
-			return ifNotBlocked(context, aftik, object.getPosition(), out -> onSuccess.accept(object, out));
+			return ifNotBlocked(context, aftik, object.getPosition(), () -> onSuccess.applyAsInt(object));
 		} else {
-			return context.noAction(onNoMatch);
+			return onNoMatch.getAsInt();
 		}
 	}
 	
-	static int ifNotBlocked(InputActionContext context, Aftik aftik, Position pos, Consumer<ContextPrinter> action) {
+	static int ifNotBlocked(InputActionContext context, Aftik aftik, Position pos, IntSupplier onSuccess) {
 		Optional<GameObject> blocking = aftik.findBlockingTo(pos.coord());
 		if (blocking.isEmpty()) {
-			return context.action(action);
+			return onSuccess.getAsInt();
 		} else {
 			return context.printNoAction(createBlockingMessage(blocking.get()));
 		}
