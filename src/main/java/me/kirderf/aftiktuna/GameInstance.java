@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
+import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
@@ -25,7 +26,7 @@ public final class GameInstance {
 	private final PrintWriter out;
 	private final BufferedReader in;
 	private final Runnable prepareForInput;
-	private final ContextPrinter contextPrinter;
+	private final ContextPrinter actionOut;
 	private final StatusPrinter statusPrinter;
 	
 	private final ActionHandler actionHandler = new ActionHandler();
@@ -43,11 +44,7 @@ public final class GameInstance {
 		crew = new Crew();
 		
 		statusPrinter = new StatusPrinter(out, crew);
-		contextPrinter = new ContextPrinter(out, crew);
-	}
-	
-	public Aftik getAftik() {
-		return getCrew().getAftik();
+		actionOut = new ContextPrinter(out, crew);
 	}
 	
 	public Crew getCrew() {
@@ -56,14 +53,6 @@ public final class GameInstance {
 	
 	public Stream<GameObject> getGameObjectStream() {
 		return Stream.concat(Stream.of(crew.getShip().getRoom()), location.getAreas().stream()).flatMap(Area::objectStream);
-	}
-	
-	public ContextPrinter out() {
-		return contextPrinter;
-	}
-	
-	public PrintWriter directOut() {
-		return out;
 	}
 	
 	public void run(boolean debugLevel) {
@@ -93,7 +82,7 @@ public final class GameInstance {
 			
 			handleUserAction();
 			
-			actionHandler.handleEntities(this);
+			actionHandler.handleEntities(this, actionOut);
 			
 			out.println();
 		}
@@ -170,7 +159,7 @@ public final class GameInstance {
 			try {
 				Thread.sleep(2000);
 			} catch(InterruptedException ignored) {}
-			aftik.performAction(contextPrinter);
+			aftik.performAction(actionOut);
 		} else {
 			int result = 0;
 			do {
@@ -183,7 +172,7 @@ public final class GameInstance {
 					continue;
 				}
 				
-				result = actionHandler.handleInput(this, input);
+				result = actionHandler.handleInput(new InputActionContext(this, out, actionOut), input);
 			} while (result <= 0);
 		}
 	}

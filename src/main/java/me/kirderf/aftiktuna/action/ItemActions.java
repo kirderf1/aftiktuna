@@ -2,7 +2,6 @@ package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
@@ -13,7 +12,7 @@ import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class ItemActions {
-	static void register(CommandDispatcher<GameInstance> dispatcher) {
+	static void register(CommandDispatcher<InputActionContext> dispatcher) {
 		dispatcher.register(literal("take")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item"))))
@@ -27,75 +26,62 @@ public final class ItemActions {
 						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item"))))));
 	}
 	
-	private static int takeItem(GameInstance game, ObjectType type) {
-		Aftik aftik = game.getAftik();
-		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Item.CAST.filter(type::matching),
-				item -> aftik.moveAndTake(item, game.out()),
-				() -> game.directOut().printf("There is no %s here to pick up.%n", type.name()));
+	private static int takeItem(InputActionContext context, ObjectType type) {
+		Aftik aftik = context.getControlledAftik();
+		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Item.CAST.filter(type::matching),
+				aftik::moveAndTake,
+				out -> out.printf("There is no %s here to pick up.%n", type.name()));
 	}
 	
-	private static int takeItems(GameInstance game) {
-		Aftik aftik = game.getAftik();
+	private static int takeItems(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)) {
-			aftik.getMind().setTakeItems(game.out());
-			
-			return 1;
+			return context.action(out -> aftik.getMind().setTakeItems(out));
 		} else {
-			game.directOut().printf("There are no nearby items to take.%n");
-			return 0;
+			return context.printNoAction("There are no nearby items to take.%n");
 		}
 	}
 	
-	private static int wieldItem(GameInstance game, WeaponType weaponType) {
-		Aftik aftik = game.getAftik();
+	private static int wieldItem(InputActionContext context, WeaponType weaponType) {
+		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.hasItem(weaponType)) {
-			aftik.wieldFromInventory(weaponType, game.out());
-			return 1;
+			return context.action(out -> aftik.wieldFromInventory(weaponType, out));
 		} else {
-			return ActionHandler.searchForAndIfNotBlocked(game, aftik, Item.CAST.filter(weaponType::matching),
-					item -> aftik.moveAndWield(item, weaponType, game.out()),
-					() -> game.directOut().printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
+			return ActionHandler.searchForAndIfNotBlocked(context, aftik, Item.CAST.filter(weaponType::matching),
+					(item, out) -> aftik.moveAndWield(item, weaponType, out),
+					out -> out.printf("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
 		}
 	}
 	
-	private static int wieldBestWeapon(GameInstance game) {
-		Aftik aftik = game.getAftik();
+	private static int wieldBestWeapon(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
 		
 		Optional<WeaponType> weaponType = WieldTask.findWieldableInventoryItem(aftik);
 		
-		if (weaponType.isPresent()) {
-			aftik.wieldFromInventory(weaponType.get(), game.out());
-			return 1;
-		} else {
-			game.directOut().printf("%s does not have a better item to wield.%n", aftik.getName());
-			return 0;
-		}
+		return weaponType.map(type -> context.action(out -> aftik.wieldFromInventory(type, out)))
+				.orElseGet(() -> context.printNoAction("%s does not have a better item to wield.%n", aftik.getName()));
 	}
 	
-	private static int giveItem(GameInstance game, String name, ObjectType type) {
-		Aftik aftik = game.getAftik();
-		Optional<Aftik> aftikOptional = game.getCrew().findByName(name);
+	private static int giveItem(InputActionContext context, String name, ObjectType type) {
+		Aftik aftik = context.getControlledAftik();
+		Optional<Aftik> aftikOptional = context.getCrew().findByName(name);
 		
 		if (aftikOptional.isPresent() && aftik.getArea() == aftikOptional.get().getArea()) {
 			Aftik target = aftikOptional.get();
 			
 			if (aftik == target) {
-				game.directOut().printf("%s can't give an item to themselves.%n", aftik.getName());
-				return 0;
+				return context.printNoAction("%s can't give an item to themselves.%n", aftik.getName());
 			}
 			
 			if (aftik.hasItem(type)) {
-				
-				return ActionHandler.ifNotBlocked(game, aftik, target.getPosition(), () -> aftik.moveAndGive(target, type, game.out()));
+				return ActionHandler.ifNotBlocked(context, aftik, target.getPosition(), out -> aftik.moveAndGive(target, type, out));
 			} else {
-				game.directOut().printf("%s does not have that item.%n", aftik.getName());
-				return 0;
+				return context.printNoAction("%s does not have that item.%n", aftik.getName());
 			}
 		} else {
-			game.directOut().printf("There is no such aftik in the area.%n");
-			return 0;
+			return context.printNoAction("There is no such aftik in the area.%n");
 		}
 	}
 }

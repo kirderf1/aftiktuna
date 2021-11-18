@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
-import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.ObjectArgument;
@@ -16,7 +15,7 @@ import static me.kirderf.aftiktuna.action.ActionHandler.argument;
 import static me.kirderf.aftiktuna.action.ActionHandler.literal;
 
 public final class DoorActions {
-	static void register(CommandDispatcher<GameInstance> dispatcher) {
+	static void register(CommandDispatcher<InputActionContext> dispatcher) {
 		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
 		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
@@ -27,18 +26,18 @@ public final class DoorActions {
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_EXIT))));
 	}
 	
-	private static int enterDoor(GameInstance game, DoorType doorType) {
-		Aftik aftik = game.getAftik();
-		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Door.CAST.filter(doorType::matching),
-				door -> aftik.moveEnterMain(door, game.out()),
-				() -> game.directOut().printf("There is no such %s here to go through.%n", doorType.getCategoryName()));
+	private static int enterDoor(InputActionContext context, DoorType doorType) {
+		Aftik aftik = context.getControlledAftik();
+		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Door.CAST.filter(doorType::matching),
+				aftik::moveEnterMain,
+				out -> out.printf("There is no such %s here to go through.%n", doorType.getCategoryName()));
 	}
 	
-	private static int forceDoor(GameInstance game, DoorType doorType) {
-		Aftik aftik = game.getAftik();
-		return ActionHandler.searchForAndIfNotBlocked(game, aftik, Door.CAST.filter(doorType::matching),
-				door -> aftik.moveAndForce(door, game.out()),
-				() -> game.directOut().printf("There is no such %s here.%n", doorType.getCategoryName()));
+	private static int forceDoor(InputActionContext context, DoorType doorType) {
+		Aftik aftik = context.getControlledAftik();
+		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Door.CAST.filter(doorType::matching),
+				aftik::moveAndForce,
+				out -> out.printf("There is no such %s here.%n", doorType.getCategoryName()));
 	}
 	
 	public static void printEnterResult(ContextPrinter out, Aftik aftik, Door door, EnterResult result) {

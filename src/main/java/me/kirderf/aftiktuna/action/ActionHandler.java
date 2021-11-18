@@ -21,12 +21,14 @@ import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ContextPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
+import java.io.PrintWriter;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public final class ActionHandler {
-	private final CommandDispatcher<GameInstance> dispatcher = new CommandDispatcher<>();
+	private final CommandDispatcher<InputActionContext> dispatcher = new CommandDispatcher<>();
 	
 	public ActionHandler() {
 		ItemActions.register(dispatcher);
@@ -37,71 +39,62 @@ public final class ActionHandler {
 		dispatcher.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
 		dispatcher.register(literal("recruit").then(literal("aftik").executes(context -> recruitAftik(context.getSource()))));
-		dispatcher.register(literal("wait").executes(context -> 1));
-		dispatcher.register(literal("status").executes(context -> {
-			context.getSource().getStatusPrinter().printCrewStatus();
-			return 0;}));
+		dispatcher.register(literal("wait").executes(context -> context.getSource().action()));
+		dispatcher.register(literal("status").executes(context -> printStatus(context.getSource())));
 		dispatcher.register(literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
-	static LiteralArgumentBuilder<GameInstance> literal(String str) {
+	static LiteralArgumentBuilder<InputActionContext> literal(String str) {
 		return LiteralArgumentBuilder.literal(str);
 	}
 	
-	static <T> RequiredArgumentBuilder<GameInstance, T> argument(String name, ArgumentType<T> argumentType) {
+	static <T> RequiredArgumentBuilder<InputActionContext, T> argument(String name, ArgumentType<T> argumentType) {
 		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
-	public int handleInput(GameInstance game, String input) {
+	public int handleInput(InputActionContext context, String input) {
 		try {
-			return dispatcher.execute(input, game);
+			return dispatcher.execute(input, context);
 		} catch(CommandSyntaxException ignored) {
-			game.directOut().printf("Unexpected input \"%s\"%n", input);
-			return 0;
+			return context.printNoAction("Unexpected input \"%s\"%n", input);
 		}
 	}
 	
-	private int printCommands(GameInstance game) {
-		game.directOut().printf("Commands:%n");
-		
-		for (String command : dispatcher.getSmartUsage(dispatcher.getRoot(), game).values()) {
-			game.directOut().printf("> %s%n", command);
-		}
-		
-		return 0;
+	private int printStatus(InputActionContext context) {
+		return context.noAction(out -> context.getGame().getStatusPrinter().printCrewStatus());
 	}
 	
-	private static int attack(GameInstance game, ObjectType creatureType) {
-		Aftik aftik = game.getAftik();
+	private int printCommands(InputActionContext context) {
+		return context.noAction(out -> {
+			out.printf("Commands:%n");
+			
+			for (String command : dispatcher.getSmartUsage(dispatcher.getRoot(), context).values()) {
+				out.printf("> %s%n", command);
+			}
+		});
+	}
+	
+	private static int attack(InputActionContext context, ObjectType creatureType) {
+		Aftik aftik = context.getControlledAftik();
 		
 		Optional<Creature> optionalCreature = aftik.findNearest(OptionalFunction.of(creatureType::matching).flatMap(Creature.CAST), false);
-		if (optionalCreature.isPresent()) {
-			Creature creature = optionalCreature.get();
-			
-			aftik.moveAndAttack(creature, game.out());
-			
-			return 1;
-		} else {
-			game.directOut().println("There is no such creature to attack.");
-			return 0;
-		}
+		
+		return optionalCreature.map(creature -> context.action(out -> aftik.moveAndAttack(creature, out)))
+				.orElseGet(() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
-	private static int launchShip(GameInstance game) {
-		Aftik aftik = game.getAftik();
+	private static int launchShip(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
-			if (isNearShip(aftik, game.getCrew().getShip())) {
-				aftik.getMind().setLaunchShip(game.out());
+			if (isNearShip(aftik, context.getCrew().getShip())) {
 				
-				return 1;
+				return context.action(aftik.getMind()::setLaunchShip);
 			} else {
-				game.directOut().printf("%s need to be near the ship in order to launch it.%n", aftik.getName());
-				return 0;
+				return context.printNoAction("%s need to be near the ship in order to launch it.%n", aftik.getName());
 			}
 		} else {
-			game.directOut().printf("%s need a fuel can to launch the ship.%n", aftik.getName());
-			return 0;
+			return context.printNoAction("%s need a fuel can to launch the ship.%n", aftik.getName());
 		}
 	}
 	
@@ -109,74 +102,71 @@ public final class ActionHandler {
 		return aftik.getArea() == ship.getRoom() || aftik.isAnyNear(ObjectTypes.SHIP_ENTRANCE::matching);
 	}
 	
-	private static int controlAftik(GameInstance game, String name) {
-		Optional<Aftik> aftikOptional = game.getCrew().findByName(name);
+	private static int controlAftik(InputActionContext context, String name) {
+		Optional<Aftik> aftikOptional = context.getCrew().findByName(name);
 		if (aftikOptional.isPresent()) {
 			Aftik aftik = aftikOptional.get();
-			if (aftik != game.getAftik()) {
-				game.setControllingAftik(aftik);
-				game.getStatusPrinter().printStatus(true);
+			if (aftik != context.getControlledAftik()) {
+				return context.action(out -> {
+					context.getGame().setControllingAftik(aftik);
+					context.getGame().getStatusPrinter().printStatus(true);
+				});
 			} else {
-				game.directOut().println("You're already in control of them.");
+				return context.printNoAction("You're already in control of them.%n");
 			}
 		} else {
-			game.directOut().println("There is no crew member by that name.");
+			return context.printNoAction("There is no crew member by that name.%n");
 		}
-		return 0;
 	}
 	
-	private static int recruitAftik(GameInstance game) {
-		Aftik aftik = game.getAftik();
+	private static int recruitAftik(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
 		Optional<AftikNPC> npcOptional = aftik.findNearest(AftikNPC.CAST, false);
 		
 		if (npcOptional.isPresent()) {
 			AftikNPC npc = npcOptional.get();
 			
 			Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
-			return ifNotBlocked(game, aftik, pos, () -> {
+			return ifNotBlocked(context, aftik, pos, out -> {
 				Optional<Entity.MoveFailure> failure = aftik.tryMoveNextTo(npc.getPosition());
 				
 				if (failure.isEmpty()) {
-					game.recruitAftik(npc);
+					context.getGame().recruitAftik(npc);
 				} else {
-					printMoveFailure(game.out(), aftik, failure.get());
+					printMoveFailure(out, aftik, failure.get());
 				}
 			});
 		} else {
-			game.directOut().printf("There is no aftik here to recruit.%n");
-			return 0;
+			return context.printNoAction("There is no aftik here to recruit.%n");
 		}
 	}
 	
-	static <T extends GameObject> int searchForAndIfNotBlocked(GameInstance game, Aftik aftik, OptionalFunction<GameObject, T> mapper, Consumer<T> onSuccess, Runnable onNoMatch) {
+	static <T extends GameObject> int searchForAndIfNotBlocked(InputActionContext context, Aftik aftik, OptionalFunction<GameObject, T> mapper, BiConsumer<T, ContextPrinter> onSuccess, Consumer<PrintWriter> onNoMatch) {
 		Optional<T> optionalDoor = aftik.findNearest(mapper, true);
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
 			
-			return ifNotBlocked(game, aftik, object.getPosition(), () -> onSuccess.accept(object));
+			return ifNotBlocked(context, aftik, object.getPosition(), out -> onSuccess.accept(object, out));
 		} else {
-			onNoMatch.run();
-			return 0;
+			return context.noAction(onNoMatch);
 		}
 	}
 	
-	static int ifNotBlocked(GameInstance game, Aftik aftik, Position pos, Runnable onSuccess) {
+	static int ifNotBlocked(InputActionContext context, Aftik aftik, Position pos, Consumer<ContextPrinter> action) {
 		Optional<GameObject> blocking = aftik.findBlockingTo(pos.coord());
 		if (blocking.isEmpty()) {
-			onSuccess.run();
-			return 1;
+			return context.action(action);
 		} else {
-			ActionHandler.printBlocking(game.out(), aftik, blocking.get());
-			return 0;
+			return context.printNoAction(createBlockingMessage(blocking.get()));
 		}
 	}
 	
 	public static void printMoveFailure(ContextPrinter out, Entity entity, Entity.MoveFailure result) {
-		printBlocking(out, entity, result.blocking());
+		out.printFor(entity, createBlockingMessage(result.blocking()));
 	}
 	
-	static void printBlocking(ContextPrinter out, Entity entity, GameObject blocking) {
-		out.printFor(entity, "%s is blocking the way.%n", blocking.getDisplayName(true, true));
+	static String createBlockingMessage(GameObject blocking) {
+		return "%s is blocking the way.%n".formatted(blocking.getDisplayName(true, true));
 	}
 	
 	public static void printAttackAction(ContextPrinter out, Entity attacker, AttackResult result) {
@@ -191,11 +181,11 @@ public final class ActionHandler {
 		}
 	}
 	
-	public void handleEntities(GameInstance game) {
+	public void handleEntities(GameInstance game, ContextPrinter out) {
 		
 		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
-			if (entity.isAlive() && entity != game.getAftik()) {
-				entity.performAction(game.out());
+			if (entity.isAlive() && entity != game.getCrew().getAftik()) {
+				entity.performAction(out);
 			}
 		}
 	}
