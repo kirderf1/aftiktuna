@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 
 public final class Crew {
+	private static final int MAX_SIZE = 2;
+	
 	private final Ship ship;
 	private final List<Aftik> crewMembers;
 	private Aftik aftik;
@@ -51,6 +53,10 @@ public final class Crew {
 		return crewMembers.isEmpty();
 	}
 	
+	public boolean hasCapacity() {
+		return crewMembers.size() < MAX_SIZE;
+	}
+	
 	void setControllingAftik(Aftik aftik, PrintWriter out) {
 		if (!crewMembers.contains(aftik))
 			throw new IllegalArgumentException("Aftik must be part of the crew.");
@@ -66,10 +72,12 @@ public final class Crew {
 	}
 	
 	void addCrewMember(AftikNPC npc, PrintWriter out) {
-		Aftik aftik = npc.createAftikForCrew(this);
-		crewMembers.add(aftik);
-		
-		out.printf("%s joined the crew!%n", aftik.getName());
+		if (hasCapacity()) {
+			Aftik aftik = npc.createAftikForCrew(this);
+			crewMembers.add(aftik);
+			
+			out.printf("%s joined the crew!%n", aftik.getName());
+		}
 	}
 	
 	void removeCrewMember(Aftik aftik) {

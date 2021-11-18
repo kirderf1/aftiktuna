@@ -25,8 +25,12 @@ public final class CrewTestingLocations {
 	public static Location recruitment() {
 		LocationBuilder builder = new LocationBuilder();
 		Area room = builder.newTestRoom(4);
+		Area foeRoom = builder.newTestRoom(4);
 		
 		room.addObject(new AftikNPC("Plum", new Stats(10, 2, 9)), 3);
+		
+		builder.markPath(room.getPosAt(1), foeRoom.getPosAt(1));
+		foeRoom.addCreature(ObjectTypes.AZURECLOPS, 3);
 		
 		return builder.build(room.getPosAt(0));
 	}

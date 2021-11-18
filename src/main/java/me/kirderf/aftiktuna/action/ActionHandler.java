@@ -120,19 +120,23 @@ public final class ActionHandler {
 	
 	private static int recruitAftik(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
-		Optional<AftikNPC> npcOptional = aftik.findNearest(AftikNPC.CAST, false);
+		Optional<AftikNPC> npcOptional = aftik.findNearest(AftikNPC.CAST.filter(ObjectTypes.AFTIK::matching), false);
 		
 		if (npcOptional.isPresent()) {
 			AftikNPC npc = npcOptional.get();
 			
-			Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
-			return ifNotBlocked(context, aftik, pos, () -> context.action(out -> {
-				boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
-				
-				if (success) {
-					context.getGame().recruitAftik(npc);
-				}
-			}));
+			if (context.getCrew().hasCapacity()) {
+				Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
+				return ifNotBlocked(context, aftik, pos, () -> context.action(out -> {
+					boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
+					
+					if (success) {
+						context.getGame().recruitAftik(npc);
+					}
+				}));
+			} else {
+				return context.printNoAction("There is not enough room for another crew member.%n");
+			}
 		} else {
 			return context.printNoAction("There is no aftik here to recruit.%n");
 		}
