@@ -106,10 +106,7 @@ public final class ActionHandler {
 		if (aftikOptional.isPresent()) {
 			Aftik aftik = aftikOptional.get();
 			if (aftik != context.getControlledAftik()) {
-				return context.action(out -> {
-					context.getGame().setControllingAftik(aftik);
-					context.getGame().getStatusPrinter().printStatus(true);
-				});
+				return context.noAction(out -> context.getGame().setControllingAftik(aftik));
 			} else {
 				return context.printNoAction("You're already in control of them.%n");
 			}
@@ -131,7 +128,7 @@ public final class ActionHandler {
 					boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
 					
 					if (success) {
-						context.getGame().recruitAftik(npc);
+						context.getCrew().addCrewMember(npc, out);
 					}
 				}));
 			} else {

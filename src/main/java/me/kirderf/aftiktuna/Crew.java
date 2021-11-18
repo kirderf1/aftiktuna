@@ -5,8 +5,8 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Stats;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -57,11 +57,11 @@ public final class Crew {
 		return crewMembers.size() < MAX_SIZE;
 	}
 	
-	void setControllingAftik(Aftik aftik, PrintWriter out) {
+	void setControllingAftik(Aftik aftik, ActionPrinter out) {
 		if (!crewMembers.contains(aftik))
 			throw new IllegalArgumentException("Aftik must be part of the crew.");
 		this.aftik = aftik;
-		out.printf("You're now playing as the aftik %s.%n%n", aftik.getName());
+		out.print("You're now playing as the aftik %s.", aftik.getName());
 	}
 	
 	void placeCrewAtLocation(Location location) {
@@ -71,12 +71,12 @@ public final class Crew {
 		}
 	}
 	
-	void addCrewMember(AftikNPC npc, PrintWriter out) {
+	public void addCrewMember(AftikNPC npc, ActionPrinter out) {
 		if (hasCapacity()) {
 			Aftik aftik = npc.createAftikForCrew(this);
 			crewMembers.add(aftik);
 			
-			out.printf("%s joined the crew!%n", aftik.getName());
+			out.print("%s joined the crew!", aftik.getName());
 		}
 	}
 	
@@ -84,7 +84,7 @@ public final class Crew {
 		crewMembers.remove(aftik);
 	}
 	
-	void replaceLostControlCharacter(PrintWriter out) {
+	void replaceLostControlCharacter(ActionPrinter out) {
 		if (!crewMembers.contains(aftik)) {
 			setControllingAftik(crewMembers.get(0), out);
 		}

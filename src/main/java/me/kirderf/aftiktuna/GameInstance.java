@@ -9,7 +9,6 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
 import me.kirderf.aftiktuna.location.levels.Locations;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.StatusPrinter;
@@ -57,45 +56,44 @@ public final class GameInstance {
 	
 	public void run(boolean debugLevel) {
 		initLocation(debugLevel);
-		out.printf("You're playing as the aftik %s.%n%n", crew.getAftik().getName());
+		actionOut.print("You're playing as the aftik %s.", crew.getAftik().getName());
 		
 		while (true) {
-			handleCrewDeaths();
-			handleShipStatus(debugLevel);
-			
-			if (crew.isEmpty()) {
-				out.println("You lost.");
-				return;
-			}
-			
-			crew.replaceLostControlCharacter(out);
 			
 			if (noMoreLevels(debugLevel)) {
+				actionOut.flush(out);
 				out.println("Congratulations, you won!");
 				return;
 			}
 			
+			printStatusAndMessages(false);
+			
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
 							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
-			statusPrinter.printStatus(false);
-			
 			handleUserAction();
-			
 			actionHandler.handleEntities(this, actionOut);
 			
-			actionOut.flush(out);
+			printSeparatorLine();
 			
-			out.println();
+			handleCrewDeaths();
+			handleShipStatus(debugLevel);
+			
+			if (crew.isEmpty()) {
+				actionOut.flush(out);
+				out.println("You lost.");
+				return;
+			}
+			
+			crew.replaceLostControlCharacter(actionOut);
 		}
 	}
 	
 	public void setControllingAftik(Aftik aftik) {
-		crew.setControllingAftik(aftik, out);
-	}
-	
-	public void recruitAftik(AftikNPC npc) {
-		crew.addCrewMember(npc, out);
+		crew.setControllingAftik(aftik, actionOut);
+		
+		printSeparatorLine();
+		printStatusAndMessages(true);
 	}
 	
 	public StatusPrinter getStatusPrinter() {
@@ -106,7 +104,7 @@ public final class GameInstance {
 		if (debugLevel) {
 			Locations.checkLocations();	//Check for errors in locations
 			
-			location = CrewTestingLocations.recruitment();
+			location = CrewTestingLocations.separationTest();
 		} else {
 			location = locations.getRandomLocation();
 		}
@@ -117,11 +115,16 @@ public final class GameInstance {
 	}
 	
 	private void handleCrewDeaths() {
+		
+		if (crew.getAftik().isDead()) {
+			printStatusAndMessages(true);
+			sleep();
+			printSeparatorLine();
+		}
+		
 		for (Aftik aftik : crew.getCrewMembers()) {
 			if (aftik.isDead()) {
-				if (crew.getAftik() == aftik)
-					statusPrinter.printStatus(true);
-				out.printf("%s is dead.%n", aftik.getName());
+				actionOut.print("%s is dead.", aftik.getName());
 				
 				aftik.dropItems();
 				aftik.remove();
@@ -136,7 +139,7 @@ public final class GameInstance {
 			beatenLocations++;
 			
 			if (!noMoreLevels(debugLevel)) {
-				out.printf("The ship moves on to the next location.%n");
+				actionOut.print("The ship moves on to the next location.");
 				
 				ship.separateFromLocation();
 				for (Aftik aftik : crew.getCrewMembers()) {
@@ -158,9 +161,7 @@ public final class GameInstance {
 	private void handleUserAction() {
 		Aftik aftik = crew.getAftik();
 		if (aftik.getMind().overridesPlayerInput()) {
-			try {
-				Thread.sleep(2000);
-			} catch(InterruptedException ignored) {}
+			sleep();
 			aftik.performAction(actionOut);
 		} else {
 			int result = 0;
@@ -177,5 +178,22 @@ public final class GameInstance {
 				result = actionHandler.handleInput(new InputActionContext(this, out, actionOut), input);
 			} while (result <= 0);
 		}
+	}
+	
+	private void printSeparatorLine() {
+		out.println("-".repeat(Main.EXPECTED_LINE_LENGTH));
+	}
+	
+	private void printStatusAndMessages(boolean fullStatus) {
+		statusPrinter.printArea(crew.getAftik().getArea());
+		out.println();
+		actionOut.flush(out);
+		statusPrinter.printStatus(fullStatus);
+	}
+	
+	private void sleep() {
+		try {
+			Thread.sleep(2000);
+		} catch(InterruptedException ignored) {}
 	}
 }

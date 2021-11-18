@@ -24,7 +24,6 @@ public final class StatusPrinter {
 	
 	public void printStatus(boolean fullStatus) {
 		Aftik aftik = crew.getAftik();
-		printArea(aftik.getArea());
 		
 		if (!(aftikPrinter != null && aftikPrinter.isForAftik(aftik))) {
 			aftikPrinter = new AftikPrinter(out, aftik);
@@ -40,7 +39,7 @@ public final class StatusPrinter {
 		}
 	}
 	
-	private void printArea(Area area) {
+	public void printArea(Area area) {
 		
 		Map<GameObject, Character> symbolTable = new HashMap<>();
 		Map<Character, String> nameTable = new HashMap<>();
