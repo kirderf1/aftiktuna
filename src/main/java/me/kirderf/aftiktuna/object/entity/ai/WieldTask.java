@@ -8,6 +8,9 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 import java.util.Comparator;
 import java.util.Optional;
 
+/**
+ * A task where the character wields their best weapon in their inventory.
+ */
 public final class WieldTask extends Task {
 	private final Aftik aftik;
 	

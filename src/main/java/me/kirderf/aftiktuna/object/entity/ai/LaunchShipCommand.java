@@ -8,6 +8,12 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;
 
+/**
+ * A command that has the character try to enter the ship, and when in the ship, launch it.
+ * The command is cancelled if there is no accessible ship entrance in the area,
+ * or if the move-and-enter action fails in some way.
+ * Command is finished after attempting to launch the ship, independently of the result.
+ */
 public final class LaunchShipCommand extends Command {
 	private final Aftik aftik;
 	private final Ship ship;

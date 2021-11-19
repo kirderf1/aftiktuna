@@ -6,6 +6,10 @@ import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
+/**
+ * A task where the character follows the controlled character through doors.
+ * If the door cannot be entered, an attempt might be made to force the door.
+ */
 public final class FollowTask extends Task {
 	private final Aftik aftik;
 	private final Crew crew;
