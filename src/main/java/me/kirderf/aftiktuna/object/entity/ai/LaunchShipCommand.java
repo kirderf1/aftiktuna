@@ -18,6 +18,15 @@ public final class LaunchShipCommand extends Command {
 	}
 	
 	@Override
+	public Status prepare() {
+		if (aftik.getArea() != ship.getRoom()) {
+			if (findPathTowardsShip().map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
+				return Status.REMOVE;
+		}
+		return Status.KEEP;
+	}
+	
+	@Override
 	public Status performAction(ActionPrinter out) {
 		if (aftik.getArea() != ship.getRoom()) {
 			return tryGoToShip(out);
@@ -28,7 +37,7 @@ public final class LaunchShipCommand extends Command {
 	}
 	
 	private Status tryGoToShip(ActionPrinter out) {
-		Optional<Door> optional = aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
+		Optional<Door> optional = findPathTowardsShip();
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			
@@ -39,5 +48,9 @@ public final class LaunchShipCommand extends Command {
 			out.printFor(aftik, "%s need to be near the ship in order to launch it.", aftik.getName());
 			return Status.REMOVE;
 		}
+	}
+	
+	private Optional<Door> findPathTowardsShip() {
+		return aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
 	}
 }
