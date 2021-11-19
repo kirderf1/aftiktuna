@@ -40,6 +40,14 @@ public final class AftikMind {
 		performCommandAction(out);
 	}
 	
+	public void prepare() {
+		if (command != null) {
+			Command.Status status = command.prepare();
+			if (status == Command.Status.REMOVE)
+				command = null;
+		}
+	}
+	
 	public void performAction(ActionPrinter out) {
 		if (command != null) {
 			performCommandAction(out);

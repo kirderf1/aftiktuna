@@ -4,6 +4,10 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 
 public abstract class Command {
 	
+	public Status prepare() {
+		return Status.KEEP;
+	}
+	
 	/**
 	 * Returns REMOVE when the command is finished and should be removed.
 	 */

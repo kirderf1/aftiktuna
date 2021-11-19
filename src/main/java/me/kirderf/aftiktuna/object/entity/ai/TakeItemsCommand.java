@@ -14,6 +14,12 @@ public final class TakeItemsCommand extends Command {
 	}
 	
 	@Override
+	public Status prepare() {
+		return aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)
+				? Status.KEEP : Status.REMOVE;
+	}
+	
+	@Override
 	public Status performAction(ActionPrinter out) {
 		Optional<Item> optionalItem = aftik.findNearestAccessible(Item.CAST, true);
 		
@@ -22,8 +28,7 @@ public final class TakeItemsCommand extends Command {
 			
 			aftik.moveAndTake(item, out);
 			
-			return aftik.findNearestAccessible(Item.CAST, true).isPresent()
-					? Status.KEEP : Status.REMOVE;
+			return Status.KEEP;
 		} else {
 			out.printFor(aftik, "There are no nearby items to take.");
 			return Status.REMOVE;

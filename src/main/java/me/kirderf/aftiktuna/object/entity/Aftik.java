@@ -61,6 +61,12 @@ public final class Aftik extends Entity {
 	}
 	
 	@Override
+	public void prepare() {
+		super.prepare();
+		mind.prepare();
+	}
+	
+	@Override
 	public void performAction(ActionPrinter out) {
 		mind.performAction(out);
 	}
