@@ -18,26 +18,26 @@ public final class LaunchShipCommand extends Command {
 	}
 	
 	@Override
-	public boolean performAction(ActionPrinter out) {
+	public Status performAction(ActionPrinter out) {
 		if (aftik.getArea() != ship.getRoom()) {
 			return tryGoToShip(out);
 		} else {
 			ship.tryLaunchShip(aftik, out);
-			return true;
+			return Status.REMOVE;
 		}
 	}
 	
-	private boolean tryGoToShip(ActionPrinter out) {
+	private Status tryGoToShip(ActionPrinter out) {
 		Optional<Door> optional = aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			
 			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(door, out);
 			
-			return !result.success();
+			return result.success() ? Status.KEEP : Status.REMOVE;
 		} else {
 			out.printFor(aftik, "%s need to be near the ship in order to launch it.", aftik.getName());
-			return true;
+			return Status.REMOVE;
 		}
 	}
 }

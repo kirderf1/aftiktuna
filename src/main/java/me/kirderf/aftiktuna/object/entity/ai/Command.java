@@ -5,7 +5,12 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 public abstract class Command {
 	
 	/**
-	 * Returns true when the command is finished and should be removed.
+	 * Returns REMOVE when the command is finished and should be removed.
 	 */
-	public abstract boolean performAction(ActionPrinter out);
+	public abstract Status performAction(ActionPrinter out);
+	
+	public enum Status {
+		KEEP,
+		REMOVE
+	}
 }

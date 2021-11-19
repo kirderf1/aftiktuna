@@ -52,8 +52,8 @@ public final class AftikMind {
 	}
 	
 	private void performCommandAction(ActionPrinter out) {
-		boolean finished = command.performAction(out);
-		if (finished)
+		Command.Status status = command.performAction(out);
+		if (status == Command.Status.REMOVE)
 			command = null;
 	}
 }
