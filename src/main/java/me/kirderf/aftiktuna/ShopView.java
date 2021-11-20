@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna;
 
+import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
-import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.io.PrintWriter;
 
@@ -20,7 +20,7 @@ public final class ShopView extends GameView {
 	}
 	
 	@Override
-	public int handleInput(String input, PrintWriter out, ActionPrinter actionOut) {
-		return StoreCommands.handleInput(input, new StoreCommands.StoreContext(game, shopkeeper, out, actionOut));
+	public int handleInput(String input, InputActionContext context) {
+		return StoreCommands.handleInput(input, new StoreCommands.StoreContext(context, shopkeeper));
 	}
 }

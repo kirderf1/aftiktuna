@@ -2,7 +2,6 @@ package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.InputActionContext;
-import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.PrintWriter;
@@ -20,7 +19,7 @@ public final class AreaView extends GameView {
 	}
 	
 	@Override
-	public int handleInput(String input, PrintWriter out, ActionPrinter actionOut) {
-		return ActionHandler.handleInput(new InputActionContext(game, out, actionOut), input);
+	public int handleInput(String input, InputActionContext context) {
+		return ActionHandler.handleInput(context, input);
 	}
 }

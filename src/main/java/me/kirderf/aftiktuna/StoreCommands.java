@@ -4,14 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
-import me.kirderf.aftiktuna.print.ActionPrinter;
 
-import java.io.PrintWriter;
 import java.util.Optional;
 
 public final class StoreCommands {
@@ -21,8 +20,8 @@ public final class StoreCommands {
 	static {
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("buy")
 				.then(RequiredArgumentBuilder.<StoreContext, ObjectType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
-						.executes(context -> buyItem(context.getSource(), ObjectArgument.getType(context, "item")))));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource())));
+						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item")))));
+		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
@@ -30,43 +29,43 @@ public final class StoreCommands {
 		try {
 			return DISPATCHER.execute(input, context);
 		} catch(CommandSyntaxException e) {
-			context.out.printf("Unexpected input \"%s\"%n", input);
-			return 0;
+			return context.inputContext.printNoAction("Unexpected input \"%s\"%n", input);
 		}
 	}
 	
-	public static record StoreContext(GameInstance game, Shopkeeper shopkeeper, PrintWriter out, ActionPrinter actionOut) {}
+	public static record StoreContext(InputActionContext inputContext, Shopkeeper shopkeeper) {}
 	
 	private static int printCommands(StoreContext context) {
-		context.out.printf("Commands:%n");
-		
-		for (String command : DISPATCHER.getSmartUsage(DISPATCHER.getRoot(), context).values()) {
-			context.out.printf("> %s%n", command);
-		}
-		context.out.println();
-		return 0;
+		return context.inputContext().noAction(out -> {
+			out.printf("Commands:%n");
+			
+			for (String command : DISPATCHER.getSmartUsage(DISPATCHER.getRoot(), context).values()) {
+				out.printf("> %s%n", command);
+			}
+			out.println();
+		});
 	}
 	
-	private static int exit(StoreContext context) {
-		context.game.restoreView();
-		context.actionOut.print("%s stops trading with the shopkeeper.", context.game.getCrew().getAftik().getName());
-		
-		return 1;
+	private static int exit(InputActionContext context) {
+		return context.action(out -> {
+			context.getGame().restoreView();
+			out.print("%s stops trading with the shopkeeper.", context.getControlledAftik().getName());
+		});
 	}
 	
-	private static int buyItem(StoreContext context, ObjectType item) {
-		Aftik aftik = context.game.getCrew().getAftik();
+	private static int buyItem(InputActionContext context, Shopkeeper shopkeeper, ObjectType item) {
+		Aftik aftik = context.getControlledAftik();
 		
 		if (item == ObjectTypes.FUEL_CAN) {
-			Optional<ObjectType> optionalItem = context.shopkeeper.buyItem(aftik.getCrew());
-			optionalItem.ifPresentOrElse(_item -> {
-				aftik.addItem(item);
-				context.actionOut.print("%s bought a %s.", aftik.getName(), item.name());
-			}, () -> context.actionOut.print("%s does not have enough points to buy a fuel can.", aftik.getName()));
-			return 1;
+			return context.action(out -> {
+				Optional<ObjectType> optionalItem = shopkeeper.buyItem(aftik.getCrew());
+				optionalItem.ifPresentOrElse(_item -> {
+					aftik.addItem(item);
+					out.print("%s bought a %s.", aftik.getName(), item.name());
+				}, () -> out.print("%s does not have enough points to buy a fuel can.", aftik.getName()));
+			});
 		} else {
-			context.out.printf("A %s is not in stock.%n", item.name());
-			return 0;
+			return context.printNoAction("A %s is not in stock.%n", item.name());
 		}
 	}
 }

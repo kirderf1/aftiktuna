@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
+import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
@@ -189,7 +190,7 @@ public final class GameInstance {
 					continue;
 				}
 				
-				result = view.handleInput(input, out, actionOut);
+				result = view.handleInput(input, new InputActionContext(this, out, actionOut));
 			} while (result <= 0);
 		}
 	}
