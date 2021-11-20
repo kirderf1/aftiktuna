@@ -144,11 +144,7 @@ public final class ActionHandler {
 				shopkeeper -> context.action(out -> {
 					boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
 					if (success) {
-						Optional<ObjectType> optionalItem = shopkeeper.buyItem(context.getCrew());
-						optionalItem.ifPresentOrElse(item -> {
-							aftik.addItem(item);
-							out.printAt(aftik, "%s bought a %s.", aftik.getName(), item.name());
-						}, () -> out.printFor(aftik, "%s does not have enough points to buy a fuel can.", aftik.getName()));
+						context.getGame().runTrade(aftik, shopkeeper);
 					}
 				}), () -> context.printNoAction("There is no shopkeeper here to trade with.%n"));
 	}

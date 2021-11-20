@@ -20,6 +20,7 @@ import java.util.*;
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
 	
+	private final Crew crew;
 	private final AftikMind mind;
 	private final String name;
 	
@@ -28,8 +29,13 @@ public final class Aftik extends Entity {
 	
 	public Aftik(String name, Stats stats, Crew crew) {
 		super(ObjectTypes.AFTIK, 10, stats);
+		this.crew = crew;
 		this.name = name;
-		mind = new AftikMind(this, crew);
+		mind = new AftikMind(this);
+	}
+	
+	public Crew getCrew() {
+		return crew;
 	}
 	
 	public String getName() {

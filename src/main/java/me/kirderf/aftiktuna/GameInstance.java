@@ -10,6 +10,7 @@ import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
 import me.kirderf.aftiktuna.location.levels.Locations;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 
@@ -101,6 +102,23 @@ public final class GameInstance {
 	
 	public StatusPrinter getStatusPrinter() {
 		return statusPrinter;
+	}
+	
+	public void runTrade(Aftik aftik, Shopkeeper shopkeeper) {
+		out.printf("%s starts trading with the shopkeeper.%n", aftik.getName());
+		int result = 0;
+		do {
+			String input;
+			try {
+				prepareForInput.run();
+				input = in.readLine();
+			} catch(IOException e) {
+				e.printStackTrace();
+				continue;
+			}
+			
+			result = StoreCommands.handleInput(input, new StoreCommands.StoreContext(aftik, shopkeeper, out));
+		} while (result <= 0);
 	}
 	
 	private void initLocation(boolean debugLevel) {
