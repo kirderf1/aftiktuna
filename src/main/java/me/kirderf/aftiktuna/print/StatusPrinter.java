@@ -43,18 +43,25 @@ public final class StatusPrinter {
 		}
 	}
 	
-	public void printArea(Area area) {
+	private void printCrewPoints(boolean forcePrint) {
+		if (forcePrint || crew.getPoints() != shownPoints) {
+			out.printf("Crew points: %d%n", crew.getPoints());
+			shownPoints = crew.getPoints();
+		}
+	}
+	
+	public static void printArea(Area area, PrintWriter out) {
 		
 		Map<GameObject, Character> symbolTable = new HashMap<>();
 		Map<Character, String> nameTable = new HashMap<>();
 		
 		buildTables(area, symbolTable, nameTable);
 		
-		printAreaMap(area, symbolTable);
-		printObjectLabels(nameTable);
+		printAreaMap(area, symbolTable, out);
+		printObjectLabels(nameTable, out);
 	}
 	
-	private void buildTables(Area area, Map<GameObject, Character> symbolTable, Map<Character, String> nameTable) {
+	private static void buildTables(Area area, Map<GameObject, Character> symbolTable, Map<Character, String> nameTable) {
 		
 		char spareSymbol = '0';
 		for (GameObject object : area.objectStream()
@@ -70,7 +77,7 @@ public final class StatusPrinter {
 		}
 	}
 	
-	private void printAreaMap(Area area, Map<GameObject, Character> symbolTable) {
+	private static void printAreaMap(Area area, Map<GameObject, Character> symbolTable, PrintWriter out) {
 		List<List<GameObject>> objectsByPos = new ArrayList<>();
 		for (int pos = 0; pos < area.getLength(); pos++)
 			objectsByPos.add(new ArrayList<>());
@@ -93,7 +100,7 @@ public final class StatusPrinter {
 		}
 	}
 	
-	private void printObjectLabels(Map<Character, String> nameTable) {
+	private static void printObjectLabels(Map<Character, String> nameTable, PrintWriter out) {
 		StringBuilder builder = new StringBuilder();
 		nameTable.forEach((symbol, name) -> {
 			String label = "%s: %s".formatted(symbol, name);
@@ -109,12 +116,5 @@ public final class StatusPrinter {
 		});
 		if (!builder.isEmpty())
 			out.println(builder);
-	}
-	
-	private void printCrewPoints(boolean forcePrint) {
-		if (forcePrint || crew.getPoints() != shownPoints) {
-			out.printf("Crew points: %d%n", crew.getPoints());
-			shownPoints = crew.getPoints();
-		}
 	}
 }

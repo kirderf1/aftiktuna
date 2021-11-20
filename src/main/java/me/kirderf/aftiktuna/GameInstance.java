@@ -206,7 +206,7 @@ public final class GameInstance {
 	}
 	
 	private void printStatusAndMessages(boolean fullStatus) {
-		statusPrinter.printArea(crew.getAftik().getArea());
+		StatusPrinter.printArea(crew.getAftik().getArea(), out);
 		out.println();
 		actionOut.flush(out);
 		statusPrinter.printStatus(fullStatus);
