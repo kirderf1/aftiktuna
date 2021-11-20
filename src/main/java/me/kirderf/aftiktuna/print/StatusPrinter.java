@@ -1,13 +1,13 @@
 package me.kirderf.aftiktuna.print;
 
 import me.kirderf.aftiktuna.Crew;
-import me.kirderf.aftiktuna.Main;
-import me.kirderf.aftiktuna.location.Area;
-import me.kirderf.aftiktuna.location.GameObject;
+import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.Stats;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class StatusPrinter {
@@ -29,7 +29,7 @@ public final class StatusPrinter {
 		printCrewPoints(fullStatus);
 		
 		if (!(aftikPrinter != null && aftikPrinter.isForAftik(aftik))) {
-			aftikPrinter = new AftikPrinter(out, aftik);
+			aftikPrinter = new AftikPrinter(aftik);
 			aftikPrinter.printAftikStatus(true);
 		} else
 			aftikPrinter.printAftikStatus(fullStatus);
@@ -39,7 +39,7 @@ public final class StatusPrinter {
 		printCrewPoints(true);
 		out.printf("Crew:%n");
 		for (Aftik aftik : crew.getCrewMembers()) {
-			new AftikPrinter(out, aftik).printAftikProfile();
+			new AftikPrinter(aftik).printAftikProfile();
 		}
 	}
 	
@@ -50,71 +50,75 @@ public final class StatusPrinter {
 		}
 	}
 	
-	public static void printArea(Area area, PrintWriter out) {
+	final class AftikPrinter {
+		private WeaponType shownWielded;
+		private List<ObjectType> shownInventory;
+		private float shownHealth;
 		
-		Map<GameObject, Character> symbolTable = new HashMap<>();
-		Map<Character, String> nameTable = new HashMap<>();
+		private final Aftik aftik;
 		
-		buildTables(area, symbolTable, nameTable);
-		
-		printAreaMap(area, symbolTable, out);
-		printObjectLabels(nameTable, out);
-	}
-	
-	private static void buildTables(Area area, Map<GameObject, Character> symbolTable, Map<Character, String> nameTable) {
-		
-		char spareSymbol = '0';
-		for (GameObject object : area.objectStream()
-				.sorted(Comparator.comparing(GameObject::hasCustomName, Boolean::compareTo))	//Let objects without a custom name get chars first
-				.collect(Collectors.toList())) {
-			char symbol = object.getDisplaySymbol();
-			String name = object.getDisplayName(false, true);
-			if (nameTable.containsKey(symbol) && !name.equals(nameTable.get(symbol)))
-				symbol = spareSymbol++;
-			
-			symbolTable.put(object, symbol);
-			nameTable.put(symbol, name);
+		AftikPrinter(Aftik aftik) {
+			this.aftik = aftik;
 		}
-	}
-	
-	private static void printAreaMap(Area area, Map<GameObject, Character> symbolTable, PrintWriter out) {
-		List<List<GameObject>> objectsByPos = new ArrayList<>();
-		for (int pos = 0; pos < area.getLength(); pos++)
-			objectsByPos.add(new ArrayList<>());
 		
-		area.objectStream().forEach(object -> objectsByPos.get(object.getCoord()).add(object));
-		
-		for (List<GameObject> objectStack : objectsByPos)
-			objectStack.sort(Comparator.comparingInt(GameObject::getWeight).reversed());
-		
-		int lines = Math.max(1, objectsByPos.stream().map(List::size).max(Integer::compare).orElse(0));
-		
-		out.printf("%s:%n", area.getLabel());
-		for (int line = lines - 1; line >= 0; line--) {
-			StringBuilder builder = new StringBuilder((line == 0 ? "_" : " ").repeat(area.getLength()));
-			for (int pos = 0; pos < area.getLength(); pos++) {
-				if (objectsByPos.get(pos).size() > line)
-					builder.setCharAt(pos, symbolTable.get(objectsByPos.get(pos).get(line)));
-			}
-			out.println(builder);
+		public boolean isForAftik(Aftik aftik) {
+			return aftik == this.aftik;
 		}
-	}
-	
-	private static void printObjectLabels(Map<Character, String> nameTable, PrintWriter out) {
-		StringBuilder builder = new StringBuilder();
-		nameTable.forEach((symbol, name) -> {
-			String label = "%s: %s".formatted(symbol, name);
-			if (!builder.isEmpty()) {
-				if (builder.length() + label.length() + 3 <= Main.EXPECTED_LINE_LENGTH)
-					builder.append("   ");
-				else {
-					out.println(builder);
-					builder.setLength(0);
+		
+		public void printAftikProfile() {
+			out.printf("%s (Aftik):%n", aftik.getName());
+			printStats();
+			printAftikStatus(true);
+		}
+		
+		public void printAftikStatus(boolean fullStatus) {
+			printHealth(fullStatus);
+			printWieldedItem(fullStatus);
+			printInventory(fullStatus);
+		}
+		
+		private void printStats() {
+			Stats stats = aftik.getStats();
+			out.printf("Strength: %d   Endurance: %d   Agility: %d%n", stats.strength(), stats.endurance(), stats.agility());
+		}
+		
+		private void printHealth(boolean forcePrint) {
+			float health = aftik.getHealth();
+			if (forcePrint || shownHealth != health) {
+				final int barLength = 10;
+				
+				StringBuilder builder = new StringBuilder();
+				for (int i = 0; i < barLength; i++) {
+					builder.append(i * aftik.getMaxHealth() < barLength * health ? '#' : '.');
 				}
+				out.printf("Health: %s%n", builder);
+				shownHealth = health;
 			}
-			builder.append(label);
-		});
-		if (!builder.isEmpty())
-			out.println(builder);
+		}
+		
+		private void printWieldedItem(boolean forcePrint) {
+			aftik.getWieldedItem().ifPresentOrElse(wielded -> {
+				if (forcePrint || shownWielded != wielded)
+					out.printf("Wielding: %s%n", wielded.capitalizedName());
+				shownWielded = wielded;
+			}, () -> {
+				if (forcePrint || shownWielded != null)
+					out.printf("Wielding: Nothing%n");
+				shownWielded = null;
+			});
+		}
+		
+		private void printInventory(boolean forcePrint) {
+			List<ObjectType> inventory = aftik.getInventory();
+			if (forcePrint || !inventory.equals(shownInventory)) {
+				if (!inventory.isEmpty()) {
+					String itemList = inventory.stream().map(ObjectType::capitalizedName).collect(Collectors.joining(", "));
+					out.printf("Inventory: %s%n", itemList);
+				} else {
+					out.printf("Inventory: Empty%n");
+				}
+				shownInventory = List.copyOf(inventory);
+			}
+		}
 	}
 }
