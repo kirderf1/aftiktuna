@@ -37,7 +37,8 @@ public final class GameInstance {
 	private Location location;
 	private final Crew crew;
 	
-	private final GameView view = new AreaView(this);
+	private final GameView areaView = new AreaView(this);
+	private GameView view = areaView;
 	
 	public GameInstance(PrintWriter out, BufferedReader in, Runnable prepareForInput) {
 		this.out = out;
@@ -104,21 +105,12 @@ public final class GameInstance {
 		return statusPrinter;
 	}
 	
-	public void runTrade(Aftik aftik, Shopkeeper shopkeeper) {
-		out.printf("%s starts trading with the shopkeeper.%n", aftik.getName());
-		int result = 0;
-		do {
-			String input;
-			try {
-				prepareForInput.run();
-				input = in.readLine();
-			} catch(IOException e) {
-				e.printStackTrace();
-				continue;
-			}
-			
-			result = StoreCommands.handleInput(input, new StoreCommands.StoreContext(aftik, shopkeeper, out));
-		} while (result <= 0);
+	public void restoreView() {
+		view = areaView;
+	}
+	
+	public void setShopView(Shopkeeper shopkeeper) {
+		view = new ShopView(this, shopkeeper);
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -138,6 +130,7 @@ public final class GameInstance {
 	private void handleCrewDeaths() {
 		
 		if (crew.getAftik().isDead()) {
+			restoreView();
 			printStatusAndMessages(true);
 			sleep();
 			printSeparatorLine();

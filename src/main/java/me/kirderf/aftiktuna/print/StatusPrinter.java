@@ -45,7 +45,7 @@ public final class StatusPrinter {
 	
 	private void printCrewPoints(boolean forcePrint) {
 		if (forcePrint || crew.getPoints() != shownPoints) {
-			out.printf("Crew points: %d%n", crew.getPoints());
+			out.printf("Crew points: %dp%n", crew.getPoints());
 			shownPoints = crew.getPoints();
 		}
 	}

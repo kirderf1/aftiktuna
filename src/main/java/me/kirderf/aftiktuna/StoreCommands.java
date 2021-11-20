@@ -9,6 +9,7 @@ import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.io.PrintWriter;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public final class StoreCommands {
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("buy")
 				.then(RequiredArgumentBuilder.<StoreContext, ObjectType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> buyItem(context.getSource(), ObjectArgument.getType(context, "item")))));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> 1));
+		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource())));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
@@ -34,7 +35,7 @@ public final class StoreCommands {
 		}
 	}
 	
-	public static record StoreContext(Aftik aftik, Shopkeeper shopkeeper, PrintWriter out) {}
+	public static record StoreContext(GameInstance game, Shopkeeper shopkeeper, PrintWriter out, ActionPrinter actionOut) {}
 	
 	private static int printCommands(StoreContext context) {
 		context.out.printf("Commands:%n");
@@ -46,18 +47,26 @@ public final class StoreCommands {
 		return 0;
 	}
 	
+	private static int exit(StoreContext context) {
+		context.game.restoreView();
+		context.actionOut.print("%s stops trading with the shopkeeper.", context.game.getCrew().getAftik().getName());
+		
+		return 1;
+	}
+	
 	private static int buyItem(StoreContext context, ObjectType item) {
-		Aftik aftik = context.aftik;
+		Aftik aftik = context.game.getCrew().getAftik();
 		
 		if (item == ObjectTypes.FUEL_CAN) {
 			Optional<ObjectType> optionalItem = context.shopkeeper.buyItem(aftik.getCrew());
 			optionalItem.ifPresentOrElse(_item -> {
 				aftik.addItem(item);
-				context.out.printf("%s bought a %s.%n", aftik.getName(), item.name());
-			}, () -> context.out.printf("%s does not have enough points to buy a fuel can.%n", aftik.getName()));
+				context.actionOut.print("%s bought a %s.", aftik.getName(), item.name());
+			}, () -> context.actionOut.print("%s does not have enough points to buy a fuel can.", aftik.getName()));
+			return 1;
 		} else {
 			context.out.printf("A %s is not in stock.%n", item.name());
+			return 0;
 		}
-		return 0;
 	}
 }

@@ -145,7 +145,9 @@ public final class ActionHandler {
 				shopkeeper -> context.action(out -> {
 					boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
 					if (success) {
-						context.getGame().runTrade(aftik, shopkeeper);
+						context.getGame().setShopView(shopkeeper);
+						
+						out.print("%s starts trading with the shopkeeper.", aftik.getName());
 					}
 				}), () -> context.printNoAction("There is no shopkeeper here to trade with.%n"));
 	}
