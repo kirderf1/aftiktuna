@@ -1,6 +1,5 @@
 package me.kirderf.aftiktuna.action;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.entity.Aftik;
@@ -8,20 +7,19 @@ import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
 
 import java.util.Optional;
 
-import static me.kirderf.aftiktuna.action.ActionHandler.argument;
-import static me.kirderf.aftiktuna.action.ActionHandler.literal;
+import static me.kirderf.aftiktuna.action.ActionHandler.*;
 
 public final class ItemActions {
-	static void register(CommandDispatcher<InputActionContext> dispatcher) {
-		dispatcher.register(literal("take")
+	static void register() {
+		DISPATCHER.register(literal("take")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> takeItem(context.getSource(), ObjectArgument.getType(context, "item"))))
 				.then(literal("items").executes(context -> takeItems(context.getSource()))));
-		dispatcher.register(literal("wield")
+		DISPATCHER.register(literal("wield")
 				.executes(context -> wieldBestWeapon(context.getSource()))
 				.then(argument("item", ObjectArgument.create(ObjectTypes.WEAPONS))
 						.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
-		dispatcher.register(literal("give").then(argument("name", StringArgumentType.string())
+		DISPATCHER.register(literal("give").then(argument("name", StringArgumentType.string())
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS)).executes(context -> giveItem(context.getSource(),
 						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item", ItemType.class))))));
 	}

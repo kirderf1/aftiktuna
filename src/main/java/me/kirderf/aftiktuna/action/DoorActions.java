@@ -1,6 +1,5 @@
 package me.kirderf.aftiktuna.action;
 
-import com.mojang.brigadier.CommandDispatcher;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.ObjectArgument;
@@ -11,18 +10,17 @@ import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
-import static me.kirderf.aftiktuna.action.ActionHandler.argument;
-import static me.kirderf.aftiktuna.action.ActionHandler.literal;
+import static me.kirderf.aftiktuna.action.ActionHandler.*;
 
 public final class DoorActions {
-	static void register(CommandDispatcher<InputActionContext> dispatcher) {
-		dispatcher.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
+	static void register() {
+		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		dispatcher.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
+		DISPATCHER.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		dispatcher.register(literal("enter").then(literal("ship")
+		DISPATCHER.register(literal("enter").then(literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_ENTRANCE))));
-		dispatcher.register(literal("exit").then(literal("ship")
+		DISPATCHER.register(literal("exit").then(literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_EXIT))));
 	}
 	

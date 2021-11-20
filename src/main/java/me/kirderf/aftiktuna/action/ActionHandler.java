@@ -24,11 +24,11 @@ import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 public final class ActionHandler {
-	private static final CommandDispatcher<InputActionContext> DISPATCHER = new CommandDispatcher<>();
+	static final CommandDispatcher<InputActionContext> DISPATCHER = new CommandDispatcher<>();
 	
 	static {
-		ItemActions.register(DISPATCHER);
-		DoorActions.register(DISPATCHER);
+		ItemActions.register();
+		DoorActions.register();
 		DISPATCHER.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
 		DISPATCHER.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
