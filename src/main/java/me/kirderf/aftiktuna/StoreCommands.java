@@ -7,12 +7,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.ObjectArgument;
-import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
-
-import java.util.Optional;
 
 public final class StoreCommands {
 	
@@ -54,13 +51,14 @@ public final class StoreCommands {
 	private static int buyItem(InputActionContext context, Shopkeeper shopkeeper, ItemType item) {
 		Aftik aftik = context.getControlledAftik();
 		
-		if (item == ObjectTypes.FUEL_CAN) {
+		if (shopkeeper.getItemsInStock().contains(item)) {
 			return context.action(out -> {
-				Optional<ObjectType> optionalItem = shopkeeper.buyItem(aftik.getCrew());
-				optionalItem.ifPresentOrElse(_item -> {
+				boolean success = shopkeeper.buyItem(aftik.getCrew(), item);
+				if (success) {
 					aftik.addItem(item);
 					out.print("%s bought a %s.", aftik.getName(), item.name());
-				}, () -> out.print("%s does not have enough points to buy a fuel can.", aftik.getName()));
+				} else
+					out.print("%s does not have enough points to buy a %s.", aftik.getName(), item.name());
 			});
 		} else {
 			return context.printNoAction("A %s is not in stock.%n", item.name());

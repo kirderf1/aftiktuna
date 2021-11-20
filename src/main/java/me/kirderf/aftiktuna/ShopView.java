@@ -2,7 +2,7 @@ package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.action.InputActionContext;
-import me.kirderf.aftiktuna.object.ObjectTypes;
+import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 
 import java.io.PrintWriter;
@@ -21,6 +21,8 @@ public final class ShopView extends GameView {
 	
 	@Override
 	public void printView(PrintWriter out) {
-		out.printf("Fuel Can | %sp%n", ObjectTypes.FUEL_CAN.getPrice());
+		for (ItemType item : shopkeeper.getItemsInStock()) {
+			out.printf("%s | %dp%n", item.capitalizedName(), item.getPrice());
+		}
 	}
 }
