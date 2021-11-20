@@ -6,6 +6,7 @@ import me.kirderf.aftiktuna.location.LocationBuilder;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
+import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.object.entity.Stats;
 
 @SuppressWarnings("unused")
@@ -29,6 +30,7 @@ public final class CrewTestingLocations {
 		Area foeRoom = builder.newTestRoom(4);
 		
 		room.addObject(new AftikNPC("Plum", new Stats(10, 2, 9)), 3);
+		room.addObject(new Shopkeeper(), 2);
 		
 		builder.markPath(room.getPosAt(1), foeRoom.getPosAt(1));
 		foeRoom.addCreature(ObjectTypes.AZURECLOPS, 3);

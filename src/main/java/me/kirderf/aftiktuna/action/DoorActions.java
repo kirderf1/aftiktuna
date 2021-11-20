@@ -28,14 +28,14 @@ public final class DoorActions {
 	
 	private static int enterDoor(InputActionContext context, DoorType doorType) {
 		Aftik aftik = context.getControlledAftik();
-		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Door.CAST.filter(doorType::matching),
+		return ActionHandler.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching),
 				door -> context.action(out -> aftik.moveAndEnter(door, out)),
 				() -> context.printNoAction("There is no such %s here to go through.%n", doorType.getCategoryName()));
 	}
 	
 	private static int forceDoor(InputActionContext context, DoorType doorType) {
 		Aftik aftik = context.getControlledAftik();
-		return ActionHandler.searchForAndIfNotBlocked(context, aftik, Door.CAST.filter(doorType::matching),
+		return ActionHandler.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching),
 				door -> context.action(out -> aftik.moveAndForce(door, out)),
 				() -> context.printNoAction("There is no such %s here.%n", doorType.getCategoryName()));
 	}

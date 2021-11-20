@@ -17,6 +17,7 @@ public final class Crew {
 	private final Ship ship;
 	private final List<Aftik> crewMembers;
 	private Aftik aftik;
+	private int points = 10000;
 	
 	Crew() {
 		ship = new Ship();
@@ -88,5 +89,17 @@ public final class Crew {
 		if (!crewMembers.contains(aftik)) {
 			setControllingAftik(crewMembers.get(0), out);
 		}
+	}
+	
+	public int getPoints() {
+		return points;
+	}
+	
+	public boolean trySpendPoints(int cost) {
+		if (points >= cost) {
+			points -= cost;
+			return true;
+		} else
+			return false;
 	}
 }

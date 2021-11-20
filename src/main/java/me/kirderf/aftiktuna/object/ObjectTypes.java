@@ -8,6 +8,7 @@ import java.util.List;
 
 public final class ObjectTypes {
 	public static final ObjectType AFTIK = new ObjectType('A', "aftik");
+	public static final ObjectType SHOPKEEPER = new ObjectType('S', "shopkeeper");
 	
 	public static final CreatureType EYESAUR = new CreatureType('E', "Eyesaur", new Stats(7, 7, 4));
 	public static final CreatureType GOBLIN = new CreatureType('G', "Goblin", new Stats(2, 4, 10));

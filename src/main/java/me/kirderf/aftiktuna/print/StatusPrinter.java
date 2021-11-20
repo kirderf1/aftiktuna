@@ -14,6 +14,7 @@ public final class StatusPrinter {
 	private final PrintWriter out;
 	private final Crew crew;
 	
+	private int shownPoints = -1;
 	//Printer for the aftik that is being controlled
 	private AftikPrinter aftikPrinter;
 	
@@ -25,6 +26,8 @@ public final class StatusPrinter {
 	public void printStatus(boolean fullStatus) {
 		Aftik aftik = crew.getAftik();
 		
+		printCrewPoints(fullStatus);
+		
 		if (!(aftikPrinter != null && aftikPrinter.isForAftik(aftik))) {
 			aftikPrinter = new AftikPrinter(out, aftik);
 			aftikPrinter.printAftikStatus(true);
@@ -33,6 +36,7 @@ public final class StatusPrinter {
 	}
 	
 	public void printCrewStatus() {
+		printCrewPoints(true);
 		out.printf("Crew:%n");
 		for (Aftik aftik : crew.getCrewMembers()) {
 			new AftikPrinter(out, aftik).printAftikProfile();
@@ -105,5 +109,12 @@ public final class StatusPrinter {
 		});
 		if (!builder.isEmpty())
 			out.println(builder);
+	}
+	
+	private void printCrewPoints(boolean forcePrint) {
+		if (forcePrint || crew.getPoints() != shownPoints) {
+			out.printf("Crew points: %d%n", crew.getPoints());
+			shownPoints = crew.getPoints();
+		}
 	}
 }

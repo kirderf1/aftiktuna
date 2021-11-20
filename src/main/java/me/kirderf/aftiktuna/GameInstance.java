@@ -17,10 +17,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public final class GameInstance {
 	public static final Random RANDOM = new Random();
+	
+	private static final Supplier<Location> DEBUG_LEVEL = CrewTestingLocations::recruitment;
 	
 	private final PrintWriter out;
 	private final BufferedReader in;
@@ -104,7 +107,7 @@ public final class GameInstance {
 		if (debugLevel) {
 			Locations.checkLocations();	//Check for errors in locations
 			
-			location = CrewTestingLocations.separationTest();
+			location = DEBUG_LEVEL.get();
 		} else {
 			location = locations.getRandomLocation();
 		}

@@ -14,10 +14,7 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
-import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.object.entity.AftikNPC;
-import me.kirderf.aftiktuna.object.entity.Creature;
-import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.object.entity.*;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
@@ -38,6 +35,7 @@ public final class ActionHandler {
 		dispatcher.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
 		dispatcher.register(literal("recruit").then(literal("aftik").executes(context -> recruitAftik(context.getSource()))));
+		dispatcher.register(literal("trade").executes(context -> trade(context.getSource())));
 		dispatcher.register(literal("wait").executes(context -> context.getSource().action()));
 		dispatcher.register(literal("status").executes(context -> printStatus(context.getSource())));
 		dispatcher.register(literal("help").executes(context -> printCommands(context.getSource())));
@@ -124,7 +122,7 @@ public final class ActionHandler {
 			
 			if (context.getCrew().hasCapacity()) {
 				Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
-				return ifNotBlocked(context, aftik, pos, () -> context.action(out -> {
+				return ifAccessible(context, aftik, pos, () -> context.action(out -> {
 					boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
 					
 					if (success) {
@@ -139,18 +137,36 @@ public final class ActionHandler {
 		}
 	}
 	
-	static <T extends GameObject> int searchForAndIfNotBlocked(InputActionContext context, Aftik aftik, OptionalFunction<GameObject, T> mapper, ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
+	private static int trade(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
+		
+		return searchForAccessible(context, aftik, Shopkeeper.CAST,
+				shopkeeper -> context.action(out -> {
+					boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
+					if (success) {
+						Optional<ObjectType> optionalItem = shopkeeper.buyItem(context.getCrew());
+						optionalItem.ifPresentOrElse(item -> {
+							aftik.addItem(item);
+							out.printAt(aftik, "%s bought a %s.", aftik.getName(), item.name());
+						}, () -> out.printFor(aftik, "%s does not have enough points to buy a fuel can.", aftik.getName()));
+					}
+				}), () -> context.printNoAction("There is no shopkeeper here to trade with.%n"));
+	}
+	
+	static <T extends GameObject> int searchForAccessible(InputActionContext context, Aftik aftik,
+														  OptionalFunction<GameObject, T> mapper,
+														  ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
 		Optional<T> optionalDoor = aftik.findNearest(mapper, true);
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
 			
-			return ifNotBlocked(context, aftik, object.getPosition(), () -> onSuccess.applyAsInt(object));
+			return ifAccessible(context, aftik, object.getPosition(), () -> onSuccess.applyAsInt(object));
 		} else {
 			return onNoMatch.getAsInt();
 		}
 	}
 	
-	static int ifNotBlocked(InputActionContext context, Aftik aftik, Position pos, IntSupplier onSuccess) {
+	static int ifAccessible(InputActionContext context, Aftik aftik, Position pos, IntSupplier onSuccess) {
 		Optional<GameObject> blocking = aftik.findBlockingTo(pos.coord());
 		if (blocking.isEmpty()) {
 			return onSuccess.getAsInt();
