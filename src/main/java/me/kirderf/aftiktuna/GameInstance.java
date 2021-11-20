@@ -67,16 +67,10 @@ public final class GameInstance {
 		
 		while (true) {
 			
-			if (noMoreLevels(debugLevel)) {
-				actionOut.flush(out);
-				out.println("Congratulations, you won!");
-				return;
-			}
+			getGameObjectStream().flatMap(Entity.CAST.toStream())
+					.filter(Entity::isAlive).forEach(Entity::prepare);
 			
 			printStatusAndMessages(false);
-			
-			getGameObjectStream().flatMap(Entity.CAST.toStream())
-							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
 			handleUserAction();
 			ActionHandler.handleEntities(this, actionOut);
@@ -93,6 +87,12 @@ public final class GameInstance {
 			}
 			
 			crew.replaceLostControlCharacter(actionOut);
+			
+			if (noMoreLevels(debugLevel)) {
+				actionOut.flush(out);
+				out.println("Congratulations, you won!");
+				return;
+			}
 		}
 	}
 	
