@@ -42,6 +42,7 @@ public final class StoreCommands {
 		for (String command : DISPATCHER.getSmartUsage(DISPATCHER.getRoot(), context).values()) {
 			context.out.printf("> %s%n", command);
 		}
+		context.out.println();
 		return 0;
 	}
 	

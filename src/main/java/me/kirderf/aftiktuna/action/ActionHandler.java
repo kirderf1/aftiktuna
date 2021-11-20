@@ -68,6 +68,7 @@ public final class ActionHandler {
 			for (String command : dispatcher.getSmartUsage(dispatcher.getRoot(), context).values()) {
 				out.printf("> %s%n", command);
 			}
+			out.println();
 		});
 	}
 	
