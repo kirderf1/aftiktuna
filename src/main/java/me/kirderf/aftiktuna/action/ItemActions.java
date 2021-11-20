@@ -23,7 +23,7 @@ public final class ItemActions {
 						.executes(context -> wieldItem(context.getSource(), ObjectArgument.getType(context, "item", WeaponType.class)))));
 		dispatcher.register(literal("give").then(argument("name", StringArgumentType.string())
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS)).executes(context -> giveItem(context.getSource(),
-						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item"))))));
+						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item", ItemType.class))))));
 	}
 	
 	private static int takeItem(InputActionContext context, ObjectType type) {
@@ -64,7 +64,7 @@ public final class ItemActions {
 				.orElseGet(() -> context.printNoAction("%s does not have a better item to wield.%n", aftik.getName()));
 	}
 	
-	private static int giveItem(InputActionContext context, String name, ObjectType type) {
+	private static int giveItem(InputActionContext context, String name, ItemType type) {
 		Aftik aftik = context.getControlledAftik();
 		Optional<Aftik> aftikOptional = context.getCrew().findByName(name);
 		

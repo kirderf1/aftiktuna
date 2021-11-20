@@ -16,7 +16,7 @@ public final class Shopkeeper extends GameObject {
 	}
 	
 	public Optional<ObjectType> buyItem(Crew crew) {
-		if (crew.trySpendPoints(7000)) {
+		if (crew.trySpendPoints(ObjectTypes.FUEL_CAN.getPrice())) {
 			return Optional.of(ObjectTypes.FUEL_CAN);
 		} else {
 			return Optional.empty();

@@ -6,10 +6,7 @@ import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.object.Item;
-import me.kirderf.aftiktuna.object.ObjectType;
-import me.kirderf.aftiktuna.object.ObjectTypes;
-import me.kirderf.aftiktuna.object.WeaponType;
+import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.ai.AftikMind;
 import me.kirderf.aftiktuna.print.ActionPrinter;
@@ -24,7 +21,7 @@ public final class Aftik extends Entity {
 	private final AftikMind mind;
 	private final String name;
 	
-	private final List<ObjectType> inventory = new ArrayList<>();
+	private final List<ItemType> inventory = new ArrayList<>();
 	private WeaponType wielded = null;
 	
 	public Aftik(String name, Stats stats, Crew crew) {
@@ -101,7 +98,7 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public void moveAndGive(Aftik aftik, ObjectType type, ActionPrinter out) {
+	public void moveAndGive(Aftik aftik, ItemType type, ActionPrinter out) {
 		boolean success = tryMoveTo(aftik.getPosition(), out);
 		
 		if (success) {
@@ -161,11 +158,11 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public void addItem(ObjectType type) {
+	public void addItem(ItemType type) {
 		inventory.add(type);
 	}
 	
-	public boolean removeItem(ObjectType type) {
+	public boolean removeItem(ItemType type) {
 		if (inventory.remove(type)) {
 			return true;
 		} else if (wielded == type) {
@@ -175,7 +172,7 @@ public final class Aftik extends Entity {
 			return false;
 	}
 	
-	public boolean hasItem(ObjectType type) {
+	public boolean hasItem(ItemType type) {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
@@ -208,11 +205,11 @@ public final class Aftik extends Entity {
 	
 	public void dropItems() {
 		if (wielded != null) {
-			getArea().addObject(new Item(wielded), getPosition());
+			getArea().addItem(wielded, getCoord());
 			wielded = null;
 		}
-		for (ObjectType item : inventory) {
-			getArea().addObject(new Item(item), getPosition());
+		for (ItemType item : inventory) {
+			getArea().addItem(item, getCoord());
 		}
 		inventory.clear();
 	}

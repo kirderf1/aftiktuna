@@ -14,12 +14,12 @@ public final class ObjectTypes {
 	public static final CreatureType GOBLIN = new CreatureType('G', "Goblin", new Stats(2, 4, 10));
 	public static final CreatureType AZURECLOPS = new CreatureType('Z', "Azureclops", new Stats(15, 10, 4));
 	
-	public static final ObjectType FUEL_CAN = new ObjectType('f', "fuel can");
-	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3);
-	public static final ObjectType BLOWTORCH = new ObjectType('b', "blowtorch");
-	public static final ObjectType KEYCARD = new ObjectType('k', "keycard");
-	public static final WeaponType KNIFE = new WeaponType('K', "knife", 4);
-	public static final WeaponType SWORD = new WeaponType('s', "sword", 5);
+	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 7000);
+	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1);
+	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1);
+	public static final ItemType KEYCARD = new ItemType('k', "keycard", -1);
+	public static final WeaponType KNIFE = new WeaponType('K', "knife", 4, 300);
+	public static final WeaponType SWORD = new WeaponType('s', "sword", 5, 3000);
 	
 	public static final DoorType DOOR = new DoorType('^', "door");
 	public static final DoorType LEFT_DOOR = new DoorType('<', "left door", DOOR);
@@ -33,7 +33,7 @@ public final class ObjectTypes {
 	public static final DoorType MIDDLE_PATH = new DoorType('^', "Middle path", PATH);
 	
 	public static final Collection<CreatureType> CREATURES = List.of(EYESAUR, GOBLIN, AZURECLOPS);
-	public static final Collection<ObjectType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD, KNIFE, SWORD);
+	public static final Collection<ItemType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD, KNIFE, SWORD);
 	public static final Collection<WeaponType> WEAPONS = List.of(CROWBAR, KNIFE, SWORD);
 	public static final Collection<DoorType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR, MIDDLE_DOOR,
 			SHIP_ENTRANCE, SHIP_EXIT, PATH, LEFT_PATH, RIGHT_PATH, MIDDLE_PATH);

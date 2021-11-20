@@ -5,6 +5,7 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.action.InputActionContext;
+import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
@@ -19,8 +20,8 @@ public final class StoreCommands {
 	
 	static {
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("buy")
-				.then(RequiredArgumentBuilder.<StoreContext, ObjectType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
-						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item")))));
+				.then(RequiredArgumentBuilder.<StoreContext, ItemType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item", ItemType.class)))));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
 	}
@@ -50,7 +51,7 @@ public final class StoreCommands {
 		});
 	}
 	
-	private static int buyItem(InputActionContext context, Shopkeeper shopkeeper, ObjectType item) {
+	private static int buyItem(InputActionContext context, Shopkeeper shopkeeper, ItemType item) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (item == ObjectTypes.FUEL_CAN) {

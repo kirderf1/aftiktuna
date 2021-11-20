@@ -2,7 +2,7 @@ package me.kirderf.aftiktuna.location;
 
 import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.object.Item;
-import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
 
@@ -34,7 +34,7 @@ public final class Area {
 		return new Position(this, coord);
 	}
 	
-	public void addItem(ObjectType type, int coord) {
+	public void addItem(ItemType type, int coord) {
 		addObject(new Item(type), coord);
 	}
 	
