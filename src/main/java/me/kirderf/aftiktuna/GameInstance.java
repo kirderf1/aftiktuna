@@ -107,8 +107,11 @@ public final class GameInstance {
 		return statusPrinter;
 	}
 	
-	public void restoreView() {
+	public void restoreViewAndPrintArea() {
 		view = areaView;
+		printSeparatorLine();
+		view.printView(out);
+		out.println();
 	}
 	
 	public void setShopView(Shopkeeper shopkeeper) {
@@ -132,7 +135,7 @@ public final class GameInstance {
 	private void handleCrewDeaths() {
 		
 		if (crew.getAftik().isDead()) {
-			restoreView();
+			view = areaView;
 			printStatusAndMessages(true);
 			sleep();
 			printSeparatorLine();

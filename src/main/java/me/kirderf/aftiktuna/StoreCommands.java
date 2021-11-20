@@ -43,9 +43,10 @@ public final class StoreCommands {
 	}
 	
 	private static int exit(InputActionContext context) {
-		return context.action(out -> {
-			context.getGame().restoreView();
-			out.print("%s stops trading with the shopkeeper.", context.getControlledAftik().getName());
+		return context.noAction(out -> {
+			context.getGame().restoreViewAndPrintArea();
+			
+			out.printf("%s stops trading with the shopkeeper.%n", context.getControlledAftik().getName());
 		});
 	}
 	
