@@ -25,12 +25,8 @@ public final class StoreCommands {
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
-	public static int handleInput(String input, StoreContext context) {
-		try {
-			return DISPATCHER.execute(input, context);
-		} catch(CommandSyntaxException e) {
-			return context.inputContext.printNoAction("Unexpected input \"%s\"%n", input);
-		}
+	public static int handleInput(String input, StoreContext context) throws CommandSyntaxException {
+		return DISPATCHER.execute(input, context);
 	}
 	
 	public static record StoreContext(InputActionContext inputContext, Shopkeeper shopkeeper) {}

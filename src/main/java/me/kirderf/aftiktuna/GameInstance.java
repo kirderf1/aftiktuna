@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.location.Area;
@@ -111,7 +112,7 @@ public final class GameInstance {
 	}
 	
 	public void setShopView(Shopkeeper shopkeeper) {
-		view = new ShopView(this, shopkeeper);
+		view = new ShopView(shopkeeper);
 	}
 	
 	private void initLocation(boolean debugLevel) {
@@ -190,7 +191,12 @@ public final class GameInstance {
 					continue;
 				}
 				
-				result = view.handleInput(input, new InputActionContext(this, out, actionOut));
+				InputActionContext context = new InputActionContext(this, out, actionOut);
+				try {
+					result = view.handleInput(input, context);
+				} catch(CommandSyntaxException e) {
+					result = context.printNoAction("Unexpected input \"%s\"%n", input);
+				}
 			} while (result <= 0);
 		}
 	}

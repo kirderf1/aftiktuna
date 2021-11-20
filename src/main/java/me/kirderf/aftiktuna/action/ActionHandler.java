@@ -49,12 +49,8 @@ public final class ActionHandler {
 		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
-	public static int handleInput(InputActionContext context, String input) {
-		try {
-			return DISPATCHER.execute(input, context);
-		} catch(CommandSyntaxException ignored) {
-			return context.printNoAction("Unexpected input \"%s\"%n", input);
-		}
+	public static int handleInput(InputActionContext context, String input) throws CommandSyntaxException {
+		return DISPATCHER.execute(input, context);
 	}
 	
 	private static int printStatus(InputActionContext context) {
