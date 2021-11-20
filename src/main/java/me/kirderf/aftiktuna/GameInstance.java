@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.action.ActionHandler;
-import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
@@ -32,12 +31,13 @@ public final class GameInstance {
 	private final ActionPrinter actionOut;
 	private final StatusPrinter statusPrinter;
 	
-	private final ActionHandler actionHandler = new ActionHandler();
 	private final Locations locations = new Locations();
 	
 	private int beatenLocations = 0;
 	private Location location;
 	private final Crew crew;
+	
+	private final GameView view = new AreaView(this);
 	
 	public GameInstance(PrintWriter out, BufferedReader in, Runnable prepareForInput) {
 		this.out = out;
@@ -76,7 +76,7 @@ public final class GameInstance {
 							.filter(Entity::isAlive).forEach(Entity::prepare);
 			
 			handleUserAction();
-			actionHandler.handleEntities(this, actionOut);
+			ActionHandler.handleEntities(this, actionOut);
 			
 			printSeparatorLine();
 			
@@ -196,7 +196,7 @@ public final class GameInstance {
 					continue;
 				}
 				
-				result = actionHandler.handleInput(new InputActionContext(this, out, actionOut), input);
+				result = view.handleInput(input, out, actionOut);
 			} while (result <= 0);
 		}
 	}
@@ -206,7 +206,7 @@ public final class GameInstance {
 	}
 	
 	private void printStatusAndMessages(boolean fullStatus) {
-		StatusPrinter.printArea(crew.getAftik().getArea(), out);
+		view.printView(out);
 		out.println();
 		actionOut.flush(out);
 		statusPrinter.printStatus(fullStatus);

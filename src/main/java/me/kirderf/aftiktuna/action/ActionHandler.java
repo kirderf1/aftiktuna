@@ -24,21 +24,21 @@ import java.util.function.ToIntFunction;
 import java.util.stream.Collectors;
 
 public final class ActionHandler {
-	private final CommandDispatcher<InputActionContext> dispatcher = new CommandDispatcher<>();
+	private static final CommandDispatcher<InputActionContext> DISPATCHER = new CommandDispatcher<>();
 	
-	public ActionHandler() {
-		ItemActions.register(dispatcher);
-		DoorActions.register(dispatcher);
-		dispatcher.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
+	static {
+		ItemActions.register(DISPATCHER);
+		DoorActions.register(DISPATCHER);
+		DISPATCHER.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
 				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
-		dispatcher.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
-		dispatcher.register(literal("control").then(argument("name", StringArgumentType.string())
+		DISPATCHER.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
+		DISPATCHER.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
-		dispatcher.register(literal("recruit").then(literal("aftik").executes(context -> recruitAftik(context.getSource()))));
-		dispatcher.register(literal("trade").executes(context -> trade(context.getSource())));
-		dispatcher.register(literal("wait").executes(context -> context.getSource().action()));
-		dispatcher.register(literal("status").executes(context -> printStatus(context.getSource())));
-		dispatcher.register(literal("help").executes(context -> printCommands(context.getSource())));
+		DISPATCHER.register(literal("recruit").then(literal("aftik").executes(context -> recruitAftik(context.getSource()))));
+		DISPATCHER.register(literal("trade").executes(context -> trade(context.getSource())));
+		DISPATCHER.register(literal("wait").executes(context -> context.getSource().action()));
+		DISPATCHER.register(literal("status").executes(context -> printStatus(context.getSource())));
+		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
 	static LiteralArgumentBuilder<InputActionContext> literal(String str) {
@@ -49,23 +49,23 @@ public final class ActionHandler {
 		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
-	public int handleInput(InputActionContext context, String input) {
+	public static int handleInput(InputActionContext context, String input) {
 		try {
-			return dispatcher.execute(input, context);
+			return DISPATCHER.execute(input, context);
 		} catch(CommandSyntaxException ignored) {
 			return context.printNoAction("Unexpected input \"%s\"%n", input);
 		}
 	}
 	
-	private int printStatus(InputActionContext context) {
+	private static int printStatus(InputActionContext context) {
 		return context.noAction(out -> context.getGame().getStatusPrinter().printCrewStatus());
 	}
 	
-	private int printCommands(InputActionContext context) {
+	private static int printCommands(InputActionContext context) {
 		return context.noAction(out -> {
 			out.printf("Commands:%n");
 			
-			for (String command : dispatcher.getSmartUsage(dispatcher.getRoot(), context).values()) {
+			for (String command : DISPATCHER.getSmartUsage(DISPATCHER.getRoot(), context).values()) {
 				out.printf("> %s%n", command);
 			}
 			out.println();
@@ -188,7 +188,7 @@ public final class ActionHandler {
 		}
 	}
 	
-	public void handleEntities(GameInstance game, ActionPrinter out) {
+	public static void handleEntities(GameInstance game, ActionPrinter out) {
 		
 		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
 			if (entity.isAlive() && entity != game.getCrew().getAftik()) {
