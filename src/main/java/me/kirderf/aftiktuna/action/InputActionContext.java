@@ -11,6 +11,7 @@ public final class InputActionContext {
 	private final ActionPrinter out;
 	private final GameInstance game;
 	private boolean showView = false;
+	private boolean isUsed = false;
 	
 	public InputActionContext(GameInstance game, ActionPrinter out) {
 		this.game = game;
@@ -38,23 +39,30 @@ public final class InputActionContext {
 	}
 	
 	public int noAction(Consumer<ActionPrinter> messages) {
+		onUse();
 		messages.accept(out);
 		return 0;
 	}
 	
-	
 	public int noActionWithView(Consumer<ActionPrinter> messages) {
-		messages.accept(out);
 		showView = true;
-		return 0;
+		return noAction(messages);
 	}
 	
 	public int action() {
+		onUse();
 		return 1;
 	}
 	
 	public int action(Consumer<ActionPrinter> action) {
+		onUse();
 		action.accept(out);
 		return 1;
+	}
+	
+	private void onUse() {
+		if (isUsed)
+			throw new IllegalStateException("This context has already been used.");
+		isUsed = true;
 	}
 }
