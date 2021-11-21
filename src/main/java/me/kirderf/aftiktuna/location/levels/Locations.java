@@ -120,7 +120,7 @@ public final class Locations {
 		builder.markPath(rightPath.getPosAt(0), rightPath2.getPosAt(5));
 		builder.markPath(rightPath2.getPosAt(0), leftPath2.getPosAt(4));
 		rightPath.addItem(ObjectTypes.CROWBAR, 5);
-		rightPath2.addItem(ObjectTypes.KNIFE, 1);
+		rightPath2.addItem(ObjectTypes.BAT, 1);
 		rightPath.addCreature(ObjectTypes.GOBLIN, 4);
 		rightPath2.addCreature(ObjectTypes.GOBLIN, 2);
 		rightPath2.addCreature(ObjectTypes.GOBLIN, 3);
@@ -158,13 +158,13 @@ public final class Locations {
 		builder.markPath(midPath.getPosAt(2), midPath2.getPosAt(3));
 		builder.markPath(leftPath2.getPosAt(3), midPath2.getPosAt(0));
 		builder.markPath(rightPath.getPosAt(0), midPath2.getPosAt(5));
-		midPath2.addItem(ObjectTypes.KNIFE, 2);
+		midPath2.addItem(ObjectTypes.BAT, 2);
 		midPath.addCreature(ObjectTypes.EYESAUR, 3);
 		
 		builder.markPath(field.getPosAt(6), rightEntrance.getPosAt(2));
 		builder.markPath(rightEntrance.getPosAt(4), rightPath.getPosAt(4));
 		builder.markPath(rightPath.getPosAt(2), rightPath2.getPosAt(0));
-		rightEntrance.addItem(ObjectTypes.CROWBAR, 3);
+		rightEntrance.addItem(ObjectTypes.KNIFE, 3);
 		rightPath2.addItem(ObjectTypes.BLOWTORCH, 4);
 		rightPath2.addItem(ObjectTypes.FUEL_CAN, 4);
 		rightPath.addCreature(ObjectTypes.EYESAUR, 1);
