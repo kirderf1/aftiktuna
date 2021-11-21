@@ -8,6 +8,9 @@ import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.object.door.DoorSealedProperty;
 import me.kirderf.aftiktuna.object.door.DoorStuckProperty;
+import me.kirderf.aftiktuna.object.entity.AftikNPC;
+import me.kirderf.aftiktuna.object.entity.Shopkeeper;
+import me.kirderf.aftiktuna.object.entity.Stats;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +18,7 @@ import java.util.function.Supplier;
 
 public final class Locations {
 	private static final List<Supplier<Location>> levels = List.of(
-			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest, Locations::eyesaurForest);
+			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest, Locations::eyesaurForest, Locations::village);
 	
 	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
 	
@@ -172,5 +175,36 @@ public final class Locations {
 		rightPath2.addCreature(ObjectTypes.EYESAUR, 3);
 		
 		return builder.build(field.getPosAt(3));
+	}
+	
+	private static Location village() {
+		LocationBuilder builder = new LocationBuilder();
+		Area villageRoad1 = builder.newArea("Village road", 10);
+		Area villageRoad2 = builder.newArea("Village road", 10);
+		Area sidePath = builder.newArea("Side path", 9);
+		Area aftikHouse = builder.newArea("House", 4);
+		Area store = builder.newArea("Store", 4);
+		Area stuckHouse = builder.newArea("House", 4);
+		Area guardedHouse = builder.newArea("House", 4);
+		
+		builder.markDoors(villageRoad1.getPosAt(1), aftikHouse.getPosAt(2));
+		builder.markDoors(villageRoad1.getPosAt(8), store.getPosAt(0));
+		builder.createDoors(ObjectTypes.PATH, villageRoad1.getPosAt(5), ObjectTypes.RIGHT_PATH, villageRoad2.getPosAt(5));
+		aftikHouse.addObject(new AftikNPC("Plum", new Stats(10, 2, 9)), 0);
+		store.addObject(new Shopkeeper(ObjectTypes.FUEL_CAN, ObjectTypes.BAT, ObjectTypes.SWORD), 2);
+		
+		builder.createDoors(ObjectTypes.LEFT_PATH, villageRoad2.getPosAt(1), ObjectTypes.LEFT_PATH, sidePath.getPosAt(1));
+		builder.markDoors(villageRoad2.getPosAt(8), stuckHouse.getPosAt(0), new DoorStuckProperty());
+		builder.markDoors(sidePath.getPosAt(7), guardedHouse.getPosAt(0));
+		stuckHouse.addItem(ObjectTypes.METEOR_CHUNK, 2);
+		stuckHouse.addItem(ObjectTypes.ANCIENT_COIN, 3);
+		sidePath.addItem(ObjectTypes.ANCIENT_COIN, 0);
+		guardedHouse.addItem(ObjectTypes.METEOR_CHUNK, 2);
+		guardedHouse.addItem(ObjectTypes.BAT, 3);
+		sidePath.addCreature(ObjectTypes.GOBLIN, 3);
+		sidePath.addCreature(ObjectTypes.GOBLIN, 4);
+		sidePath.addCreature(ObjectTypes.GOBLIN, 6);
+		
+		return builder.build(villageRoad1.getPosAt(3));
 	}
 }

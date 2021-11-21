@@ -19,7 +19,7 @@ public final class ObjectTypes {
 	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1);
 	public static final ItemType KEYCARD = new ItemType('k', "keycard", -1);
 	public static final WeaponType KNIFE = new WeaponType('K', "knife", 3, 300);
-	public static final WeaponType BAT = new WeaponType('b', "bat", 4, 1000);
+	public static final WeaponType BAT = new WeaponType('B', "bat", 4, 1000);
 	public static final WeaponType SWORD = new WeaponType('s', "sword", 5, 3000);
 	public static final ItemType METEOR_CHUNK = new ItemType('m', "meteor chunk", 2500);
 	public static final ItemType ANCIENT_COIN = new ItemType('a', "ancient coin", 500);
