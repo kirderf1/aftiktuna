@@ -26,7 +26,7 @@ public final class ItemActions {
 	
 	private static int takeItem(InputActionContext context, ObjectType type) {
 		Aftik aftik = context.getControlledAftik();
-		return ActionHandler.searchForAccessible(context, aftik, Item.CAST.filter(type::matching),
+		return ActionHandler.searchForAccessible(context, aftik, Item.CAST.filter(type::matching), true,
 				item -> context.action(out -> aftik.moveAndTake(item, out)),
 				() -> context.printNoAction("There is no %s here to pick up.", type.name()));
 	}
@@ -47,7 +47,7 @@ public final class ItemActions {
 		if (aftik.hasItem(weaponType)) {
 			return context.action(out -> aftik.wieldFromInventory(weaponType, out));
 		} else {
-			return ActionHandler.searchForAccessible(context, aftik, Item.CAST.filter(weaponType::matching),
+			return ActionHandler.searchForAccessible(context, aftik, Item.CAST.filter(weaponType::matching), true,
 					item -> context.action(out -> aftik.moveAndWield(item, weaponType, out)),
 					() -> context.printNoAction("There is no %s that %s can wield.", weaponType.name(), aftik.getName()));
 		}

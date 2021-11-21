@@ -72,21 +72,17 @@ public final class ActionHandler {
 	private static int attack(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
-		Optional<Creature> optionalCreature = aftik.findNearest(Creature.CAST, false);
-		
-		return optionalCreature.map(creature -> ifAccessible(context, aftik, creature.getPosition().getPosTowards(aftik.getCoord()),
-						() -> context.action(out -> aftik.moveAndAttack(creature, out))))
-				.orElseGet(() -> context.printNoAction("There is no such creature to attack."));
+		return searchForAccessible(context, aftik, Creature.CAST, false,
+				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
+				() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
 	private static int attack(InputActionContext context, ObjectType creatureType) {
 		Aftik aftik = context.getControlledAftik();
 		
-		Optional<Creature> optionalCreature = aftik.findNearest(OptionalFunction.of(creatureType::matching).flatMap(Creature.CAST), false);
-		
-		return optionalCreature.map(creature -> ifAccessible(context, aftik, creature.getPosition().getPosTowards(aftik.getCoord()),
-						() -> context.action(out -> aftik.moveAndAttack(creature, out))))
-				.orElseGet(() -> context.printNoAction("There is no such creature to attack."));
+		return searchForAccessible(context, aftik, Creature.CAST.filter(creatureType::matching), false,
+				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
+				() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
 	private static int launchShip(InputActionContext context) {
@@ -124,50 +120,51 @@ public final class ActionHandler {
 	
 	private static int recruitAftik(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
-		Optional<AftikNPC> npcOptional = aftik.findNearest(AftikNPC.CAST.filter(ObjectTypes.AFTIK::matching), false);
 		
-		if (npcOptional.isPresent()) {
-			AftikNPC npc = npcOptional.get();
-			
-			if (context.getCrew().hasCapacity()) {
-				Position pos = npc.getPosition().getPosTowards(aftik.getCoord());
-				return ifAccessible(context, aftik, pos, () -> context.action(out -> {
-					boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
-					
-					if (success) {
-						context.getCrew().addCrewMember(npc, out);
-					}
-				}));
-			} else {
-				return context.printNoAction("There is not enough room for another crew member.");
-			}
+		if (context.getCrew().hasCapacity()) {
+			return searchForAccessible(context, aftik, AftikNPC.CAST.filter(ObjectTypes.AFTIK::matching), false,
+					npc -> context.action(out -> recruitAftik(context, aftik, npc, out)),
+					() -> context.printNoAction("There is no aftik here to recruit."));
 		} else {
-			return context.printNoAction("There is no aftik here to recruit.");
+			return context.printNoAction("There is not enough room for another crew member.");
+		}
+	}
+	
+	private static void recruitAftik(InputActionContext context, Aftik aftik, AftikNPC npc, ActionPrinter out) {
+		boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
+		
+		if (success) {
+			context.getCrew().addCrewMember(npc, out);
 		}
 	}
 	
 	private static int trade(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
-		return searchForAccessible(context, aftik, Shopkeeper.CAST,
-				shopkeeper -> context.action(out -> {
-					boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
-					if (success) {
-						context.getGame().setStoreView(shopkeeper);
-						
-						out.print("%s starts trading with the shopkeeper.", aftik.getName());
-					}
-				}), () -> context.printNoAction("There is no shopkeeper here to trade with."));
+		return searchForAccessible(context, aftik, Shopkeeper.CAST, false,
+				shopkeeper -> context.action(out -> trade(context, aftik, shopkeeper, out)),
+				() -> context.printNoAction("There is no shopkeeper here to trade with."));
+	}
+	
+	private static void trade(InputActionContext context, Aftik aftik, Shopkeeper shopkeeper, ActionPrinter out) {
+		boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
+		if (success) {
+			context.getGame().setStoreView(shopkeeper);
+			
+			out.print("%s starts trading with the shopkeeper.", aftik.getName());
+		}
 	}
 	
 	static <T extends GameObject> int searchForAccessible(InputActionContext context, Aftik aftik,
-														  OptionalFunction<GameObject, T> mapper,
+														  OptionalFunction<GameObject, T> mapper, boolean exactPos,
 														  ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
-		Optional<T> optionalDoor = aftik.findNearest(mapper, true);
+		Optional<T> optionalDoor = aftik.findNearest(mapper, exactPos);
 		if (optionalDoor.isPresent()) {
 			T object = optionalDoor.get();
+			Position pos = exactPos ? object.getPosition()
+					: object.getPosition().getPosTowards(aftik.getCoord());
 			
-			return ifAccessible(context, aftik, object.getPosition(), () -> onSuccess.applyAsInt(object));
+			return ifAccessible(context, aftik, pos, () -> onSuccess.applyAsInt(object));
 		} else {
 			return onNoMatch.getAsInt();
 		}
