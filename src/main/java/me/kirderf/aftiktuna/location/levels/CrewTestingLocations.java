@@ -30,7 +30,7 @@ public final class CrewTestingLocations {
 		Area foeRoom = builder.newTestRoom(4);
 		
 		room.addObject(new AftikNPC("Plum", new Stats(10, 2, 9)), 3);
-		room.addObject(new Shopkeeper(), 2);
+		room.addObject(new Shopkeeper(ObjectTypes.FUEL_CAN, ObjectTypes.SWORD), 2);
 		
 		builder.markPath(room.getPosAt(1), foeRoom.getPosAt(1));
 		foeRoom.addCreature(ObjectTypes.AZURECLOPS, 3);

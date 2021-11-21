@@ -11,12 +11,15 @@ import java.util.List;
 public final class Shopkeeper extends GameObject {
 	public static final OptionalFunction<GameObject, Shopkeeper> CAST = OptionalFunction.cast(Shopkeeper.class);
 	
-	public Shopkeeper() {
+	private final List<ItemType> stock;
+	
+	public Shopkeeper(ItemType... items) {
 		super(ObjectTypes.SHOPKEEPER, 15);
+		stock = List.of(items);
 	}
 	
 	public List<ItemType> getItemsInStock() {
-		return List.of(ObjectTypes.FUEL_CAN);
+		return stock;
 	}
 	
 	public boolean buyItem(Crew crew, ItemType item) {
