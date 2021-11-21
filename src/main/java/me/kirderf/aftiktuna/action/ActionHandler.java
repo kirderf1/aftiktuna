@@ -140,7 +140,7 @@ public final class ActionHandler {
 				shopkeeper -> context.action(out -> {
 					boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
 					if (success) {
-						context.getGame().setShopView(shopkeeper);
+						context.getGame().setStoreView(shopkeeper);
 						
 						out.print("%s starts trading with the shopkeeper.", aftik.getName());
 					}

@@ -5,14 +5,17 @@ import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.action.StoreCommands;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
+import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.PrintWriter;
 import java.util.List;
 
-public final class ShopView extends GameView {
+public final class StoreView extends GameView {
+	private final StatusPrinter statusPrinter;
 	private final Shopkeeper shopkeeper;
 	
-	public ShopView(Shopkeeper shopkeeper) {
+	public StoreView(StatusPrinter statusPrinter, Shopkeeper shopkeeper) {
+		this.statusPrinter = statusPrinter;
 		this.shopkeeper = shopkeeper;
 	}
 	
@@ -31,5 +34,7 @@ public final class ShopView extends GameView {
 			
 			out.printf("%s | %dp%n", name + " ".repeat(maxLength - name.length()), item.getPrice());
 		}
+		
+		statusPrinter.printCrewPoints(true);
 	}
 }

@@ -103,8 +103,8 @@ public final class GameInstance {
 		view = areaView;
 	}
 	
-	public void setShopView(Shopkeeper shopkeeper) {
-		view = new ShopView(shopkeeper);
+	public void setStoreView(Shopkeeper shopkeeper) {
+		view = new StoreView(statusPrinter, shopkeeper);
 	}
 	
 	private void initLocation(boolean debugLevel) {
