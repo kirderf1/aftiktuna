@@ -7,7 +7,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.action.result.AttackResult;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.location.Ship;
@@ -174,18 +173,6 @@ public final class ActionHandler {
 		return "%s is blocking the way.".formatted(blocking.getDisplayName(true, true));
 	}
 	
-	public static void printAttackAction(ActionPrinter out, Entity attacker, AttackResult result) {
-		Entity attacked = result.attacked();
-		switch(result.type()) {
-			case DIRECT_HIT -> out.printAt(attacker, condition("%s got a direct hit on[ and killed] %s.", result.isKill()),
-					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case GRAZING_HIT -> out.printAt(attacker, condition("%s's attack grazed[ and killed] %s.", result.isKill()),
-					attacker.getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case DODGE -> out.printAt(attacker, "%s dodged %s's attack.",
-					attacked.getDisplayName(true, true), attacker.getDisplayName(true, false));
-		}
-	}
-	
 	public static void handleEntities(GameInstance game, ActionPrinter out) {
 		
 		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
@@ -195,7 +182,7 @@ public final class ActionHandler {
 		}
 	}
 	
-	private static String condition(String text, boolean b) {
+	public static String condition(String text, boolean b) {
 		if (b)
 			return text.replaceAll("[\\[\\]]", "");
 		else return text.replaceAll("\\[.*]", "");

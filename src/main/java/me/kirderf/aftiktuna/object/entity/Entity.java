@@ -137,7 +137,15 @@ public abstract class Entity extends GameObject {
 		
 		AttackResult result = target.receiveAttack(getAttackPower(), stats.agility());
 		
-		ActionHandler.printAttackAction(out, this, result);
+		Entity attacked = result.attacked();
+		switch(result.type()) {
+			case DIRECT_HIT -> out.printAt(this, ActionHandler.condition("%s got a direct hit on[ and killed] %s.", result.isKill()),
+					getDisplayName(true, true), attacked.getDisplayName(true, false));
+			case GRAZING_HIT -> out.printAt(this, ActionHandler.condition("%s's attack grazed[ and killed] %s.", result.isKill()),
+					getDisplayName(true, true), attacked.getDisplayName(true, false));
+			case DODGE -> out.printAt(this, "%s dodged %s's attack.",
+					attacked.getDisplayName(true, true), getDisplayName(true, false));
+		}
 	}
 	
 	public final AttackResult receiveAttack(float attackPower, int hitAgility) {
