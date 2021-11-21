@@ -75,7 +75,7 @@ public final class StoreCommands {
 			if (item.getPrice() >= 0) {
 				return context.action(out -> {
 					if (aftik.removeItem(item)) {
-						int points = item.getPrice() / 2;
+						int points = item.getPrice() * 3 / 4;
 						aftik.getCrew().addPoints(points);
 						
 						out.printFor(aftik, "%s sold a %s for %dp.", aftik.getName(), item.name(), points);
