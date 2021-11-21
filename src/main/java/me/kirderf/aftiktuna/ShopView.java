@@ -6,6 +6,7 @@ import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 
 import java.io.PrintWriter;
+import java.util.List;
 
 public final class ShopView extends GameView {
 	private final Shopkeeper shopkeeper;
@@ -21,8 +22,13 @@ public final class ShopView extends GameView {
 	
 	@Override
 	public void printView(PrintWriter out) {
+		List<ItemType> stock = shopkeeper.getItemsInStock();
+		
+		int maxLength = stock.stream().map(item -> item.capitalizedName().length()).max(Integer::compareTo).orElse(0);
 		for (ItemType item : shopkeeper.getItemsInStock()) {
-			out.printf("%s | %dp%n", item.capitalizedName(), item.getPrice());
+			String name = item.capitalizedName();
+			
+			out.printf("%s | %dp%n", name + " ".repeat(maxLength - name.length()), item.getPrice());
 		}
 	}
 }
