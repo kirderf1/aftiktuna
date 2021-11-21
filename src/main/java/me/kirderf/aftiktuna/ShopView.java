@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.action.InputActionContext;
+import me.kirderf.aftiktuna.action.StoreCommands;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 

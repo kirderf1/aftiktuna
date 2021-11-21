@@ -52,7 +52,7 @@ public final class ActionHandler {
 		return DISPATCHER.execute(input, context);
 	}
 	
-	private static int printStatus(InputActionContext context) {
+	static int printStatus(InputActionContext context) {
 		return context.noAction(out -> context.getGame().getStatusPrinter().printCrewStatus());
 	}
 	

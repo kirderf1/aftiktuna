@@ -1,10 +1,9 @@
-package me.kirderf.aftiktuna;
+package me.kirderf.aftiktuna.action;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectTypes;
@@ -21,6 +20,7 @@ public final class StoreCommands {
 						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item", ItemType.class)))));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
+		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("status").executes(context -> ActionHandler.printStatus(context.getSource().inputContext())));
 	}
 	
 	public static int handleInput(String input, StoreContext context) throws CommandSyntaxException {
