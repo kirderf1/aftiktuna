@@ -24,7 +24,7 @@ public final class CrewTestingLocations {
 		return builder.build(firstRoom.getPosAt(1));
 	}
 	
-	public static Location recruitment() {
+	public static Location recruitmentAndStore() {
 		LocationBuilder builder = new LocationBuilder();
 		Area room = builder.newTestRoom(4);
 		Area foeRoom = builder.newTestRoom(4);
@@ -34,6 +34,9 @@ public final class CrewTestingLocations {
 		
 		builder.markPath(room.getPosAt(1), foeRoom.getPosAt(1));
 		foeRoom.addCreature(ObjectTypes.AZURECLOPS, 3);
+		room.addItem(ObjectTypes.METEOR_CHUNK, 2);
+		room.addItem(ObjectTypes.METEOR_CHUNK, 2);
+		room.addItem(ObjectTypes.KEYCARD, 2);
 		
 		return builder.build(room.getPosAt(0));
 	}

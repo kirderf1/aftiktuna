@@ -82,7 +82,7 @@ public final class StoreCommands {
 					}
 				});
 			} else {
-				return context.printNoAction("A %s is not sellable.", item.name());
+				return context.printNoAction("The %s is not sellable.", item.name());
 			}
 		} else {
 			return context.printNoAction("%s does not have a %s.", aftik.getName(), item.name());

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
-	private static final Supplier<Location> DEBUG_LEVEL = CrewTestingLocations::recruitment;
+	private static final Supplier<Location> DEBUG_LEVEL = CrewTestingLocations::recruitmentAndStore;
 	
 	private final PrintWriter out;
 	private final BufferedReader in;
