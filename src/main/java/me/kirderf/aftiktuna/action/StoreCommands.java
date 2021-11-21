@@ -18,6 +18,9 @@ public final class StoreCommands {
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("buy")
 				.then(RequiredArgumentBuilder.<StoreContext, ItemType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item", ItemType.class)))));
+		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("sell")
+				.then(RequiredArgumentBuilder.<StoreContext, ItemType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+						.executes(context -> sellItem(context.getSource().inputContext(), ObjectArgument.getType(context, "item", ItemType.class)))));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("status").executes(context -> ActionHandler.printStatus(context.getSource().inputContext())));
@@ -62,6 +65,27 @@ public final class StoreCommands {
 			});
 		} else {
 			return context.printNoAction("A %s is not in stock.", item.name());
+		}
+	}
+	
+	private static int sellItem(InputActionContext context, ItemType item) {
+		Aftik aftik = context.getControlledAftik();
+		
+		if (aftik.hasItem(item)) {
+			if (item.getPrice() >= 0) {
+				return context.action(out -> {
+					if (aftik.removeItem(item)) {
+						int points = item.getPrice() / 2;
+						aftik.getCrew().addPoints(points);
+						
+						out.printFor(aftik, "%s sold a %s for %dp.", aftik.getName(), item.name(), points);
+					}
+				});
+			} else {
+				return context.printNoAction("A %s is not sellable.", item.name());
+			}
+		} else {
+			return context.printNoAction("%s does not have a %s.", aftik.getName(), item.name());
 		}
 	}
 }

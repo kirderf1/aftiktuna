@@ -102,4 +102,10 @@ public final class Crew {
 		} else
 			return false;
 	}
+	
+	public void addPoints(int points) {
+		if (points < 0)
+			throw new IllegalArgumentException("Negative points in argument.");
+		this.points += points;
+	}
 }
