@@ -28,8 +28,10 @@ public final class ActionHandler {
 	static {
 		ItemActions.register();
 		DoorActions.register();
-		DISPATCHER.register(literal("attack").then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
-				.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
+		DISPATCHER.register(literal("attack")
+				.executes(context -> attack(context.getSource()))
+				.then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
+						.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
 		DISPATCHER.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
 		DISPATCHER.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
@@ -65,6 +67,15 @@ public final class ActionHandler {
 			}
 			out.println();
 		});
+	}
+	
+	private static int attack(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
+		
+		Optional<Creature> optionalCreature = aftik.findNearest(Creature.CAST, false);
+		
+		return optionalCreature.map(creature -> context.action(out -> aftik.moveAndAttack(creature, out)))
+				.orElseGet(() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
 	private static int attack(InputActionContext context, ObjectType creatureType) {
