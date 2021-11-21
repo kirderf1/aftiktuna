@@ -31,20 +31,20 @@ public final class StoreCommands {
 	
 	private static int printCommands(StoreContext context) {
 		return context.inputContext().noAction(out -> {
-			out.printf("Commands:%n");
+			out.print("Commands:");
 			
 			for (String command : DISPATCHER.getSmartUsage(DISPATCHER.getRoot(), context).values()) {
-				out.printf("> %s%n", command);
+				out.print("> %s", command);
 			}
 			out.println();
 		});
 	}
 	
 	private static int exit(InputActionContext context) {
-		return context.noAction(out -> {
-			context.getGame().restoreViewAndPrintArea();
+		return context.noActionWithView(out -> {
+			context.getGame().restoreView();
 			
-			out.printf("%s stops trading with the shopkeeper.%n", context.getControlledAftik().getName());
+			out.print("%s stops trading with the shopkeeper.", context.getControlledAftik().getName());
 		});
 	}
 	
@@ -61,7 +61,7 @@ public final class StoreCommands {
 					out.print("%s does not have enough points to buy a %s.", aftik.getName(), item.name());
 			});
 		} else {
-			return context.printNoAction("A %s is not in stock.%n", item.name());
+			return context.printNoAction("A %s is not in stock.", item.name());
 		}
 	}
 }

@@ -58,7 +58,7 @@ public final class Crew {
 		return crewMembers.size() < MAX_SIZE;
 	}
 	
-	void setControllingAftik(Aftik aftik, ActionPrinter out) {
+	public void setControllingAftik(Aftik aftik, ActionPrinter out) {
 		if (!crewMembers.contains(aftik))
 			throw new IllegalArgumentException("Aftik must be part of the crew.");
 		this.aftik = aftik;

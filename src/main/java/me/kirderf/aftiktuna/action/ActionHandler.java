@@ -59,10 +59,10 @@ public final class ActionHandler {
 	
 	private static int printCommands(InputActionContext context) {
 		return context.noAction(out -> {
-			out.printf("Commands:%n");
+			out.print("Commands:");
 			
 			for (String command : DISPATCHER.getSmartUsage(DISPATCHER.getRoot(), context).values()) {
-				out.printf("> %s%n", command);
+				out.print("> %s", command);
 			}
 			out.println();
 		});
@@ -85,10 +85,10 @@ public final class ActionHandler {
 				
 				return context.action(aftik.getMind()::setLaunchShip);
 			} else {
-				return context.printNoAction("%s need to be near the ship in order to launch it.%n", aftik.getName());
+				return context.printNoAction("%s need to be near the ship in order to launch it.", aftik.getName());
 			}
 		} else {
-			return context.printNoAction("%s need a fuel can to launch the ship.%n", aftik.getName());
+			return context.printNoAction("%s need a fuel can to launch the ship.", aftik.getName());
 		}
 	}
 	
@@ -101,12 +101,12 @@ public final class ActionHandler {
 		if (aftikOptional.isPresent()) {
 			Aftik aftik = aftikOptional.get();
 			if (aftik != context.getControlledAftik()) {
-				return context.noAction(out -> context.getGame().setControllingAftik(aftik));
+				return context.noActionWithView(out -> context.getCrew().setControllingAftik(aftik, out));
 			} else {
-				return context.printNoAction("You're already in control of them.%n");
+				return context.printNoAction("You're already in control of them.");
 			}
 		} else {
-			return context.printNoAction("There is no crew member by that name.%n");
+			return context.printNoAction("There is no crew member by that name.");
 		}
 	}
 	
@@ -127,10 +127,10 @@ public final class ActionHandler {
 					}
 				}));
 			} else {
-				return context.printNoAction("There is not enough room for another crew member.%n");
+				return context.printNoAction("There is not enough room for another crew member.");
 			}
 		} else {
-			return context.printNoAction("There is no aftik here to recruit.%n");
+			return context.printNoAction("There is no aftik here to recruit.");
 		}
 	}
 	
@@ -145,7 +145,7 @@ public final class ActionHandler {
 						
 						out.print("%s starts trading with the shopkeeper.", aftik.getName());
 					}
-				}), () -> context.printNoAction("There is no shopkeeper here to trade with.%n"));
+				}), () -> context.printNoAction("There is no shopkeeper here to trade with."));
 	}
 	
 	static <T extends GameObject> int searchForAccessible(InputActionContext context, Aftik aftik,
@@ -166,7 +166,7 @@ public final class ActionHandler {
 		if (blocking.isEmpty()) {
 			return onSuccess.getAsInt();
 		} else {
-			return context.printNoAction(createBlockingMessage(blocking.get()) + "%n");
+			return context.printNoAction(createBlockingMessage(blocking.get()));
 		}
 	}
 	

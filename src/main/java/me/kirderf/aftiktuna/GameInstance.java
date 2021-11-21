@@ -62,6 +62,7 @@ public final class GameInstance {
 	}
 	
 	public void run(boolean debugLevel) {
+		out.println("Welcome to aftiktuna!");
 		initLocation(debugLevel);
 		actionOut.print("You're playing as the aftik %s.", crew.getAftik().getName());
 		
@@ -70,12 +71,10 @@ public final class GameInstance {
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
 					.filter(Entity::isAlive).forEach(Entity::prepare);
 			
-			printStatusAndMessages(false);
+			printPage(false);
 			
 			handleUserAction();
 			ActionHandler.handleEntities(this, actionOut);
-			
-			printSeparatorLine();
 			
 			handleCrewDeaths();
 			handleShipStatus(debugLevel);
@@ -89,29 +88,19 @@ public final class GameInstance {
 			crew.replaceLostControlCharacter(actionOut);
 			
 			if (noMoreLevels(debugLevel)) {
-				actionOut.flush(out);
+				printPage(false);
 				out.println("Congratulations, you won!");
 				return;
 			}
 		}
 	}
 	
-	public void setControllingAftik(Aftik aftik) {
-		crew.setControllingAftik(aftik, actionOut);
-		
-		printSeparatorLine();
-		printStatusAndMessages(true);
-	}
-	
 	public StatusPrinter getStatusPrinter() {
 		return statusPrinter;
 	}
 	
-	public void restoreViewAndPrintArea() {
+	public void restoreView() {
 		view = areaView;
-		printSeparatorLine();
-		view.printView(out);
-		out.println();
 	}
 	
 	public void setShopView(Shopkeeper shopkeeper) {
@@ -135,10 +124,9 @@ public final class GameInstance {
 	private void handleCrewDeaths() {
 		
 		if (crew.getAftik().isDead()) {
-			view = areaView;
-			printStatusAndMessages(true);
+			restoreView();
+			printPage(true);
 			sleep();
-			printSeparatorLine();
 		}
 		
 		for (Aftik aftik : crew.getCrewMembers()) {
@@ -183,32 +171,35 @@ public final class GameInstance {
 			sleep();
 			aftik.performAction(actionOut);
 		} else {
-			int result = 0;
+			int result;
 			do {
 				String input;
 				try {
 					prepareForInput.run();
 					input = in.readLine();
 				} catch(IOException e) {
-					e.printStackTrace();
-					continue;
+					throw new RuntimeException(e);
 				}
 				
-				InputActionContext context = new InputActionContext(this, out, actionOut);
+				InputActionContext context = new InputActionContext(this, actionOut);
 				try {
 					result = view.handleInput(input, context);
 				} catch(CommandSyntaxException e) {
-					result = context.printNoAction("Unexpected input \"%s\"%n", input);
+					result = context.printNoAction("Unexpected input \"%s\"", input);
+				}
+				
+				if (result <= 0) {
+					if (context.shouldShowView())
+						printPage(false);
+					else
+						actionOut.flush(out);
 				}
 			} while (result <= 0);
 		}
 	}
 	
-	private void printSeparatorLine() {
+	private void printPage(boolean fullStatus) {
 		out.println("-".repeat(Main.EXPECTED_LINE_LENGTH));
-	}
-	
-	private void printStatusAndMessages(boolean fullStatus) {
 		view.printView(out);
 		out.println();
 		actionOut.flush(out);

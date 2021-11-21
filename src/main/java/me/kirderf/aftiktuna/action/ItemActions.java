@@ -28,7 +28,7 @@ public final class ItemActions {
 		Aftik aftik = context.getControlledAftik();
 		return ActionHandler.searchForAccessible(context, aftik, Item.CAST.filter(type::matching),
 				item -> context.action(out -> aftik.moveAndTake(item, out)),
-				() -> context.printNoAction("There is no %s here to pick up.%n", type.name()));
+				() -> context.printNoAction("There is no %s here to pick up.", type.name()));
 	}
 	
 	private static int takeItems(InputActionContext context) {
@@ -37,7 +37,7 @@ public final class ItemActions {
 		if (aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)) {
 			return context.action(out -> aftik.getMind().setTakeItems(out));
 		} else {
-			return context.printNoAction("There are no nearby items to take.%n");
+			return context.printNoAction("There are no nearby items to take.");
 		}
 	}
 	
@@ -49,7 +49,7 @@ public final class ItemActions {
 		} else {
 			return ActionHandler.searchForAccessible(context, aftik, Item.CAST.filter(weaponType::matching),
 					item -> context.action(out -> aftik.moveAndWield(item, weaponType, out)),
-					() -> context.printNoAction("There is no %s that %s can wield.%n", weaponType.name(), aftik.getName()));
+					() -> context.printNoAction("There is no %s that %s can wield.", weaponType.name(), aftik.getName()));
 		}
 	}
 	
@@ -59,7 +59,7 @@ public final class ItemActions {
 		Optional<WeaponType> weaponType = WieldTask.findWieldableInventoryItem(aftik);
 		
 		return weaponType.map(type -> context.action(out -> aftik.wieldFromInventory(type, out)))
-				.orElseGet(() -> context.printNoAction("%s does not have a better item to wield.%n", aftik.getName()));
+				.orElseGet(() -> context.printNoAction("%s does not have a better item to wield.", aftik.getName()));
 	}
 	
 	private static int giveItem(InputActionContext context, String name, ItemType type) {
@@ -70,17 +70,17 @@ public final class ItemActions {
 			Aftik target = aftikOptional.get();
 			
 			if (aftik == target) {
-				return context.printNoAction("%s can't give an item to themselves.%n", aftik.getName());
+				return context.printNoAction("%s can't give an item to themselves.", aftik.getName());
 			}
 			
 			if (aftik.hasItem(type)) {
 				return ActionHandler.ifAccessible(context, aftik, target.getPosition(),
 						() -> context.action(out -> aftik.moveAndGive(target, type, out)));
 			} else {
-				return context.printNoAction("%s does not have that item.%n", aftik.getName());
+				return context.printNoAction("%s does not have that item.", aftik.getName());
 			}
 		} else {
-			return context.printNoAction("There is no such aftik in the area.%n");
+			return context.printNoAction("There is no such aftik in the area.");
 		}
 	}
 }

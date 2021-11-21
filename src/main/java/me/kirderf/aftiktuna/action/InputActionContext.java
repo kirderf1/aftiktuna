@@ -5,18 +5,16 @@ import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
-import java.io.PrintWriter;
 import java.util.function.Consumer;
 
 public final class InputActionContext {
-	private final PrintWriter out;
-	private final ActionPrinter actionOut;
+	private final ActionPrinter out;
 	private final GameInstance game;
+	private boolean showView = false;
 	
-	public InputActionContext(GameInstance game, PrintWriter out, ActionPrinter actionOut) {
+	public InputActionContext(GameInstance game, ActionPrinter out) {
 		this.game = game;
 		this.out = out;
-		this.actionOut = actionOut;
 	}
 	
 	public Aftik getControlledAftik() {
@@ -31,12 +29,23 @@ public final class InputActionContext {
 		return game.getCrew();
 	}
 	
-	public int printNoAction(String text, Object... args) {
-		return noAction(out -> out.printf(text, args));
+	public boolean shouldShowView() {
+		return showView;
 	}
 	
-	public int noAction(Consumer<PrintWriter> messages) {
+	public int printNoAction(String text, Object... args) {
+		return noAction(out -> out.print(text, args));
+	}
+	
+	public int noAction(Consumer<ActionPrinter> messages) {
 		messages.accept(out);
+		return 0;
+	}
+	
+	
+	public int noActionWithView(Consumer<ActionPrinter> messages) {
+		messages.accept(out);
+		showView = true;
 		return 0;
 	}
 	
@@ -45,7 +54,7 @@ public final class InputActionContext {
 	}
 	
 	public int action(Consumer<ActionPrinter> action) {
-		action.accept(actionOut);
+		action.accept(out);
 		return 1;
 	}
 }

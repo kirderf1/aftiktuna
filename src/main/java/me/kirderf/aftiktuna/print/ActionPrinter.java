@@ -17,6 +17,10 @@ public final class ActionPrinter {
 		this.crew = crew;
 	}
 	
+	public void println() {
+		messages.add("");
+	}
+	
 	public void print(String message, Object... args) {
 		messages.add(message.formatted(args));
 	}
