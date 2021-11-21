@@ -74,7 +74,8 @@ public final class ActionHandler {
 		
 		Optional<Creature> optionalCreature = aftik.findNearest(Creature.CAST, false);
 		
-		return optionalCreature.map(creature -> context.action(out -> aftik.moveAndAttack(creature, out)))
+		return optionalCreature.map(creature -> ifAccessible(context, aftik, creature.getPosition().getPosTowards(aftik.getCoord()),
+						() -> context.action(out -> aftik.moveAndAttack(creature, out))))
 				.orElseGet(() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
@@ -83,7 +84,8 @@ public final class ActionHandler {
 		
 		Optional<Creature> optionalCreature = aftik.findNearest(OptionalFunction.of(creatureType::matching).flatMap(Creature.CAST), false);
 		
-		return optionalCreature.map(creature -> context.action(out -> aftik.moveAndAttack(creature, out)))
+		return optionalCreature.map(creature -> ifAccessible(context, aftik, creature.getPosition().getPosTowards(aftik.getCoord()),
+						() -> context.action(out -> aftik.moveAndAttack(creature, out))))
 				.orElseGet(() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
