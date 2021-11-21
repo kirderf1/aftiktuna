@@ -34,7 +34,7 @@ public final class CrewTestingLocations {
 		
 		builder.markPath(room.getPosAt(1), foeRoom.getPosAt(1));
 		foeRoom.addCreature(ObjectTypes.AZURECLOPS, 3);
-		room.addItem(ObjectTypes.METEOR_CHUNK, 2);
+		room.addItem(ObjectTypes.ANCIENT_COIN, 2);
 		room.addItem(ObjectTypes.METEOR_CHUNK, 2);
 		room.addItem(ObjectTypes.KEYCARD, 2);
 		

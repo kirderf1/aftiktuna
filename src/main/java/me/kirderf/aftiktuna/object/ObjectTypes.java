@@ -22,6 +22,7 @@ public final class ObjectTypes {
 	public static final WeaponType BAT = new WeaponType('b', "bat", 4, 1000);
 	public static final WeaponType SWORD = new WeaponType('s', "sword", 5, 3000);
 	public static final ItemType METEOR_CHUNK = new ItemType('m', "meteor chunk", 2500);
+	public static final ItemType ANCIENT_COIN = new ItemType('a', "ancient coin", 500);
 	
 	public static final DoorType DOOR = new DoorType('^', "door");
 	public static final DoorType LEFT_DOOR = new DoorType('<', "left door", DOOR);
@@ -35,7 +36,7 @@ public final class ObjectTypes {
 	public static final DoorType MIDDLE_PATH = new DoorType('^', "Middle path", PATH);
 	
 	public static final Collection<CreatureType> CREATURES = List.of(EYESAUR, GOBLIN, AZURECLOPS);
-	public static final Collection<ItemType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD, KNIFE, BAT, SWORD, METEOR_CHUNK);
+	public static final Collection<ItemType> ITEMS = List.of(FUEL_CAN, CROWBAR, BLOWTORCH, KEYCARD, KNIFE, BAT, SWORD, METEOR_CHUNK, ANCIENT_COIN);
 	public static final Collection<WeaponType> WEAPONS = List.of(CROWBAR, KNIFE, BAT, SWORD);
 	public static final Collection<DoorType> DOORS = List.of(DOOR, LEFT_DOOR, RIGHT_DOOR, MIDDLE_DOOR,
 			SHIP_ENTRANCE, SHIP_EXIT, PATH, LEFT_PATH, RIGHT_PATH, MIDDLE_PATH);
