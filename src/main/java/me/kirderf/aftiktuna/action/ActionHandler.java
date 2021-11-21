@@ -13,7 +13,9 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
-import me.kirderf.aftiktuna.object.entity.*;
+import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.Creature;
+import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
@@ -28,6 +30,7 @@ public final class ActionHandler {
 	static {
 		ItemActions.register();
 		DoorActions.register();
+		NPCActions.register();
 		DISPATCHER.register(literal("attack")
 				.executes(context -> attack(context.getSource()))
 				.then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
@@ -35,8 +38,6 @@ public final class ActionHandler {
 		DISPATCHER.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
 		DISPATCHER.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
-		DISPATCHER.register(literal("recruit").then(literal("aftik").executes(context -> recruitAftik(context.getSource()))));
-		DISPATCHER.register(literal("trade").executes(context -> trade(context.getSource())));
 		DISPATCHER.register(literal("wait").executes(context -> context.getSource().action()));
 		DISPATCHER.register(literal("status").executes(context -> printStatus(context.getSource())));
 		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
@@ -115,43 +116,6 @@ public final class ActionHandler {
 			}
 		} else {
 			return context.printNoAction("There is no crew member by that name.");
-		}
-	}
-	
-	private static int recruitAftik(InputActionContext context) {
-		Aftik aftik = context.getControlledAftik();
-		
-		if (context.getCrew().hasCapacity()) {
-			return searchForAccessible(context, aftik, AftikNPC.CAST.filter(ObjectTypes.AFTIK::matching), false,
-					npc -> context.action(out -> recruitAftik(context, aftik, npc, out)),
-					() -> context.printNoAction("There is no aftik here to recruit."));
-		} else {
-			return context.printNoAction("There is not enough room for another crew member.");
-		}
-	}
-	
-	private static void recruitAftik(InputActionContext context, Aftik aftik, AftikNPC npc, ActionPrinter out) {
-		boolean success = aftik.tryMoveNextTo(npc.getPosition(), out);
-		
-		if (success) {
-			context.getCrew().addCrewMember(npc, out);
-		}
-	}
-	
-	private static int trade(InputActionContext context) {
-		Aftik aftik = context.getControlledAftik();
-		
-		return searchForAccessible(context, aftik, Shopkeeper.CAST, false,
-				shopkeeper -> context.action(out -> trade(context, aftik, shopkeeper, out)),
-				() -> context.printNoAction("There is no shopkeeper here to trade with."));
-	}
-	
-	private static void trade(InputActionContext context, Aftik aftik, Shopkeeper shopkeeper, ActionPrinter out) {
-		boolean success = aftik.tryMoveNextTo(shopkeeper.getPosition(), out);
-		if (success) {
-			context.getGame().setStoreView(shopkeeper);
-			
-			out.print("%s starts trading with the shopkeeper.", aftik.getName());
 		}
 	}
 	
