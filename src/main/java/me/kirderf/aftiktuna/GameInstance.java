@@ -16,7 +16,6 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Random;
 import java.util.function.Supplier;
@@ -28,8 +27,7 @@ public final class GameInstance {
 	private static final Supplier<Location> DEBUG_LEVEL = CrewTestingLocations::recruitmentAndStore;
 	
 	private final PrintWriter out;
-	private final BufferedReader in;
-	private final Runnable prepareForInput;
+	private final InputReader in;
 	private final ActionPrinter actionOut;
 	private final StatusPrinter statusPrinter;
 	
@@ -44,8 +42,7 @@ public final class GameInstance {
 	
 	public GameInstance(PrintWriter out, BufferedReader in, Runnable prepareForInput) {
 		this.out = out;
-		this.in = in;
-		this.prepareForInput = prepareForInput;
+		this.in = new InputReader(in, prepareForInput);
 		
 		crew = new Crew();
 		
@@ -176,13 +173,7 @@ public final class GameInstance {
 		} else {
 			int result;
 			do {
-				String input;
-				try {
-					prepareForInput.run();
-					input = in.readLine();
-				} catch(IOException e) {
-					throw new RuntimeException(e);
-				}
+				String input = in.readLine();
 				
 				InputActionContext context = new InputActionContext(this, actionOut);
 				try {
