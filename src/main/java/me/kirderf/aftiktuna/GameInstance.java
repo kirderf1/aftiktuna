@@ -8,6 +8,7 @@ import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
+import me.kirderf.aftiktuna.location.levels.LocationSelector;
 import me.kirderf.aftiktuna.location.levels.Locations;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Entity;
@@ -31,7 +32,7 @@ public final class GameInstance {
 	private final ActionPrinter actionOut;
 	private final StatusPrinter statusPrinter;
 	
-	private final Locations locations = new Locations();
+	private final LocationSelector locations = new LocationSelector();
 	
 	private int beatenLocations = 0;
 	private Location location;

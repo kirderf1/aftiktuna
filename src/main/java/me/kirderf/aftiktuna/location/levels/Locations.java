@@ -1,6 +1,5 @@
 package me.kirderf.aftiktuna.location.levels;
 
-import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
@@ -12,30 +11,16 @@ import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.object.entity.Stats;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class Locations {
-	private static final List<LocationCategory> categories = List.of(
+	static final List<LocationCategory> categories = List.of(
 			new LocationCategory(List.of(Locations::abandonedFacility, Locations::abandonedFacility2)),
 			new LocationCategory(List.of(Locations::goblinForest, Locations::eyesaurForest)),
 			new LocationCategory(List.of(Locations::village)));
 	
-	private final List<LocationCategory> remainingCategories = categories.stream()
-			.map(LocationCategory::mutableCopy).collect(Collectors.toCollection(ArrayList::new));
-	
 	public static void checkLocations() {
 		categories.forEach(LocationCategory::checkLocations);
-	}
-	
-	public Location getRandomLocation() {
-		int i = GameInstance.RANDOM.nextInt(remainingCategories.size());
-		LocationCategory category = remainingCategories.get(i);
-		Location location = category.createAndRemoveRandom(GameInstance.RANDOM);
-		if (category.isEmpty())
-			remainingCategories.remove(category);
-		return location;
 	}
 	
 	private static Location abandonedFacility() {
