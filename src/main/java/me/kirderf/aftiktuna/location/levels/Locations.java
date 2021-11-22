@@ -76,6 +76,7 @@ public final class Locations {
 		
 		builder.markDoors(entrance.getPosAt(0), corridor.getPosAt(0));
 		builder.markDoors(entrance.getPosAt(5), room1.getPosAt(0));
+		entrance.addItem(ObjectTypes.ANCIENT_COIN, 4);
 		room1.addItem(ObjectTypes.BLOWTORCH, 3);
 		room1.addItem(ObjectTypes.SWORD, 3);
 		entrance.addCreature(ObjectTypes.EYESAUR, 1);
@@ -84,6 +85,7 @@ public final class Locations {
 		builder.markDoors(corridor.getPosAt(3), sideEntrance.getPosAt(2));
 		builder.markDoors(corridor.getPosAt(5), room2.getPosAt(0));
 		corridor.addItem(ObjectTypes.KNIFE, 2);
+		room2.addItem(ObjectTypes.METEOR_CHUNK, 2);
 		room2.addItem(ObjectTypes.CROWBAR, 3);
 		corridor.addCreature(ObjectTypes.EYESAUR, 1);
 		
@@ -91,6 +93,9 @@ public final class Locations {
 		builder.markDoors(room3.getPosAt(3), storage.getPosAt(0), new DoorSealedProperty());
 		room3.addItem(ObjectTypes.FUEL_CAN, 2);
 		storage.addItem(ObjectTypes.FUEL_CAN, 2);
+		storage.addItem(ObjectTypes.ANCIENT_COIN, 1);
+		storage.addItem(ObjectTypes.ANCIENT_COIN, 1);
+		storage.addItem(ObjectTypes.ANCIENT_COIN, 2);
 		room3.addCreature(ObjectTypes.GOBLIN, 1);
 		
 		return builder.build(field.getPosAt(5));
@@ -121,6 +126,7 @@ public final class Locations {
 		builder.markPath(leftPath.getPosAt(2), leftPath2.getPosAt(0));
 		builder.markDoors(leftPath.getPosAt(0), shack.getPosAt(3), new DoorStuckProperty());
 		shack.addItem(ObjectTypes.FUEL_CAN, 0);
+		shack.addItem(ObjectTypes.ANCIENT_COIN, 0);
 		shack.addCreature(ObjectTypes.EYESAUR, 1);
 		leftPath2.addCreature(ObjectTypes.GOBLIN, 3);
 		
@@ -143,6 +149,7 @@ public final class Locations {
 		builder.markPath(leftEntrance.getPosAt(0), leftPath.getPosAt(2));
 		builder.markPath(leftPath.getPosAt(0), leftPath2.getPosAt(0));
 		leftPath.addItem(ObjectTypes.FUEL_CAN, 4);
+		leftPath2.addItem(ObjectTypes.ANCIENT_COIN, 2);
 		leftEntrance.addCreature(ObjectTypes.EYESAUR, 1);
 		leftPath2.addCreature(ObjectTypes.EYESAUR, 1);
 		
@@ -158,6 +165,7 @@ public final class Locations {
 		builder.markPath(rightEntrance.getPosAt(4), rightPath.getPosAt(4));
 		builder.markPath(rightPath.getPosAt(2), rightPath2.getPosAt(0));
 		rightEntrance.addItem(ObjectTypes.KNIFE, 3);
+		rightPath2.addItem(ObjectTypes.METEOR_CHUNK, 1);
 		rightPath2.addItem(ObjectTypes.BLOWTORCH, 4);
 		rightPath2.addItem(ObjectTypes.FUEL_CAN, 4);
 		rightPath.addCreature(ObjectTypes.EYESAUR, 1);
