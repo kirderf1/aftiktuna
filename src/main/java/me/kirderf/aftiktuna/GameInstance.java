@@ -63,7 +63,7 @@ public final class GameInstance {
 	
 	public void run(boolean debugLevel) {
 		out.println("Welcome to aftiktuna!");
-		actionOut.print("You're playing as the aftik %s.", crew.getAftik().getName());
+		out.printf("You're playing as the aftik %s.%n", crew.getAftik().getName());
 		
 		while (true) {
 			if (location == null)
@@ -78,18 +78,18 @@ public final class GameInstance {
 			ActionHandler.handleEntities(this, actionOut);
 			
 			handleCrewDeaths();
-			handleShipStatus();
 			
 			if (crew.isEmpty()) {
 				actionOut.flush(out);
 				out.println("You lost.");
 				return;
 			}
-			
 			crew.replaceLostControlCharacter(actionOut);
 			
+			handleShipStatus();
+			
 			if (noMoreLevels(debugLevel)) {
-				printPage(false);
+				actionOut.flush(out);
 				out.println("Congratulations, you won!");
 				return;
 			}
@@ -120,6 +120,8 @@ public final class GameInstance {
 		crew.getShip().createEntrance(location.getEntryPos());
 		
 		crew.placeCrewAtLocation(location);
+		
+		actionOut.print("The ship arrives at a new location, and the crew exit the ship.");
 	}
 	
 	private void handleCrewDeaths() {
@@ -146,7 +148,9 @@ public final class GameInstance {
 		if (ship.getAndClearIsLaunching()) {
 			beatenLocations++;
 			
-			actionOut.print("The ship moves on to the next location.");
+			actionOut.print("The ship leaves for the next planet.");
+			printPage(false);
+			sleep();
 			
 			ship.separateFromLocation();
 			for (Aftik aftik : crew.getCrewMembers()) {

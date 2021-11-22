@@ -28,7 +28,7 @@ public final class Ship {
 		if (!isShipLaunching && aftik.getArea() == this.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
 			isShipLaunching = true;
 			
-			out.printAt(getRoom(), "%s got fuel to the ship.", aftik.getName());
+			out.printAt(getRoom(), "%s refueled the ship, and set it to launch.", aftik.getName());
 		} else
 			out.printFor(aftik, "The ship can't be launched at this time.");
 	}
