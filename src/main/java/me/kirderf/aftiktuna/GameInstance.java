@@ -63,10 +63,11 @@ public final class GameInstance {
 	
 	public void run(boolean debugLevel) {
 		out.println("Welcome to aftiktuna!");
-		initLocation(debugLevel);
 		actionOut.print("You're playing as the aftik %s.", crew.getAftik().getName());
 		
 		while (true) {
+			if (location == null)
+				initLocation(debugLevel);
 			
 			getGameObjectStream().flatMap(Entity.CAST.toStream())
 					.filter(Entity::isAlive).forEach(Entity::prepare);
@@ -77,7 +78,7 @@ public final class GameInstance {
 			ActionHandler.handleEntities(this, actionOut);
 			
 			handleCrewDeaths();
-			handleShipStatus(debugLevel);
+			handleShipStatus();
 			
 			if (crew.isEmpty()) {
 				actionOut.flush(out);
@@ -140,24 +141,22 @@ public final class GameInstance {
 		}
 	}
 	
-	private void handleShipStatus(boolean debugLevel) {
+	private void handleShipStatus() {
 		Ship ship = crew.getShip();
 		if (ship.getAndClearIsLaunching()) {
 			beatenLocations++;
 			
-			if (!noMoreLevels(debugLevel)) {
-				actionOut.print("The ship moves on to the next location.");
-				
-				ship.separateFromLocation();
-				for (Aftik aftik : crew.getCrewMembers()) {
-					if (aftik.getArea() != ship.getRoom())
-						crew.removeCrewMember(aftik);
-					else
-						aftik.restoreStatus();
-				}
-				
-				initLocation(false);
+			actionOut.print("The ship moves on to the next location.");
+			
+			ship.separateFromLocation();
+			for (Aftik aftik : crew.getCrewMembers()) {
+				if (aftik.getArea() != ship.getRoom())
+					crew.removeCrewMember(aftik);
+				else
+					aftik.restoreStatus();
 			}
+			
+			location = null;
 		}
 	}
 	
