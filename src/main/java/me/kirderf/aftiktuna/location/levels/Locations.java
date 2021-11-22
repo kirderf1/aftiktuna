@@ -14,23 +14,28 @@ import me.kirderf.aftiktuna.object.entity.Stats;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public final class Locations {
-	private static final List<Supplier<Location>> levels = List.of(
-			Locations::abandonedFacility, Locations::abandonedFacility2, Locations::goblinForest, Locations::eyesaurForest, Locations::village);
+	private static final List<LocationCategory> categories = List.of(
+			new LocationCategory(List.of(Locations::abandonedFacility, Locations::abandonedFacility2)),
+			new LocationCategory(List.of(Locations::goblinForest, Locations::eyesaurForest)),
+			new LocationCategory(List.of(Locations::village)));
 	
-	private final List<Supplier<Location>> unusedLevels = new ArrayList<>(levels);
+	private final List<LocationCategory> remainingCategories = categories.stream()
+			.map(LocationCategory::mutableCopy).collect(Collectors.toCollection(ArrayList::new));
 	
 	public static void checkLocations() {
-		for (Supplier<Location> level : levels) {
-			level.get();
-		}
+		categories.forEach(LocationCategory::checkLocations);
 	}
 	
 	public Location getRandomLocation() {
-		int i = GameInstance.RANDOM.nextInt(unusedLevels.size());
-		return unusedLevels.remove(i).get();
+		int i = GameInstance.RANDOM.nextInt(remainingCategories.size());
+		LocationCategory category = remainingCategories.get(i);
+		Location location = category.createAndRemoveRandom(GameInstance.RANDOM);
+		if (category.isEmpty())
+			remainingCategories.remove(category);
+		return location;
 	}
 	
 	private static Location abandonedFacility() {
