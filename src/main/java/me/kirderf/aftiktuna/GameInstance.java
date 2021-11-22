@@ -112,7 +112,7 @@ public final class GameInstance {
 			
 			location = DEBUG_LEVEL.get();
 		} else {
-			location = locations.getRandomLocation();
+			location = locations.getRandomLocation(out, in);
 		}
 		
 		crew.getShip().createEntrance(location.getEntryPos());

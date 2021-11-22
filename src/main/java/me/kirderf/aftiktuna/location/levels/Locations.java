@@ -15,9 +15,9 @@ import java.util.List;
 
 public final class Locations {
 	static final List<LocationCategory> categories = List.of(
-			new LocationCategory(List.of(Locations::abandonedFacility, Locations::abandonedFacility2)),
-			new LocationCategory(List.of(Locations::goblinForest, Locations::eyesaurForest)),
-			new LocationCategory(List.of(Locations::village)));
+			new LocationCategory("abandoned facility", List.of(Locations::abandonedFacility, Locations::abandonedFacility2)),
+			new LocationCategory("forest", List.of(Locations::goblinForest, Locations::eyesaurForest)),
+			new LocationCategory("village", List.of(Locations::village)));
 	
 	public static void checkLocations() {
 		categories.forEach(LocationCategory::checkLocations);
