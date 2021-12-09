@@ -5,15 +5,17 @@ import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
-import java.util.stream.Collectors;
-
 public final class Ship {
 	private final Area room = new Area("Ship", 4);
 	private final Position entrancePos = room.getPosAt(3);
 	private boolean isShipLaunching = false;
 	
+	public Ship() {
+		room.addItem(ObjectTypes.MEDKIT, 1);
+	}
+	
 	public void separateFromLocation() {
-		room.objectStream().filter(ObjectTypes.SHIP_EXIT::matching).collect(Collectors.toList()).forEach(GameObject::remove);
+		room.objectStream().filter(ObjectTypes.SHIP_EXIT::matching).toList().forEach(GameObject::remove);
 	}
 	
 	public void createEntrance(Position destination) {

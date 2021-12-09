@@ -64,6 +64,10 @@ public abstract class Entity extends GameObject {
 		return health;
 	}
 	
+	public final void restoreHealth(float fractionRecovered) {
+		health = Math.min(getMaxHealth(), health + getMaxHealth() * fractionRecovered);
+	}
+	
 	public final void restoreStatus() {
 		this.health = getMaxHealth();
 		dodgingStamina = getMaxStamina();

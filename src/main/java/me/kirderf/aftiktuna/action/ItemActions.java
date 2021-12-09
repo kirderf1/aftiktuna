@@ -93,6 +93,8 @@ public final class ItemActions {
 			
 			if (type == ObjectTypes.FUEL_CAN) {
 				return launchShip(context);
+			} else if (type == ObjectTypes.MEDKIT) {
+				return useMedKit(context, aftik);
 			} else if (type instanceof WeaponType weapon) {
 				return context.action(out -> aftik.wieldFromInventory(weapon, out));
 			} else {
@@ -100,6 +102,19 @@ public final class ItemActions {
 			}
 		} else {
 			return context.printNoAction("%s does not have that item.", aftik.getName());
+		}
+	}
+	
+	private static int useMedKit(InputActionContext context, Aftik aftik) {
+		if (aftik.getHealth() < aftik.getMaxHealth()) {
+			return context.action(out -> {
+				if (aftik.removeItem(ObjectTypes.MEDKIT)) {
+					aftik.restoreHealth(0.5F);
+					out.print("%s used a medkit and recovered some health.", aftik.getName());
+				}
+			});
+		} else {
+			return context.printNoAction("%s is not hurt, and does not need to use the medkit.", aftik.getName());
 		}
 	}
 }
