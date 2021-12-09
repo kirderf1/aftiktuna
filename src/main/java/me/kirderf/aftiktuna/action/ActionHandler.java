@@ -16,6 +16,7 @@ import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.object.entity.ai.RestCommand;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
@@ -122,13 +123,17 @@ public final class ActionHandler {
 	private static int rest(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
-		if (aftik.getArea().objectStream().flatMap(Aftik.CAST.toStream()).allMatch(Entity::isRested)) {
-			return context.printNoAction("All crew in the area is already rested.");
+		if (RestCommand.isAreaSafe(aftik)) {
+			if (RestCommand.isAllRested(aftik)) {
+				return context.printNoAction("All crew in the area is already rested.");
+			} else {
+				return context.action(out -> {
+					aftik.getMind().setRest(out);
+					out.print("%s takes some time to rest up.", aftik.getName());
+				});
+			}
 		} else {
-			return context.action(out -> {
-				aftik.getMind().setRest(out);
-				out.print("%s takes some time to rest up.", aftik.getName());
-			});
+			return context.printNoAction("This area is not safe to rest in.");
 		}
 	}
 	
