@@ -8,6 +8,7 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 public final class Ship {
 	private final Area room = new Area("Ship", 4);
 	private final Position entrancePos = room.getPosAt(3);
+	private boolean oneFuelDeposited = false;
 	private boolean isShipLaunching = false;
 	
 	public Ship() {
@@ -27,10 +28,24 @@ public final class Ship {
 	}
 	
 	public void tryLaunchShip(Aftik aftik, ActionPrinter out) {
-		if (!isShipLaunching && aftik.getArea() == this.getRoom() && aftik.removeItem(ObjectTypes.FUEL_CAN)) {
-			isShipLaunching = true;
-			
-			out.printAt(getRoom(), "%s refueled the ship, and set it to launch.", aftik.getName());
+		if (!isShipLaunching && aftik.getArea() == this.getRoom()) {
+			if (!oneFuelDeposited) {
+				if (aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+					oneFuelDeposited = true;
+				} else {
+					out.printFor(aftik, "Two fuel cans are needed to launch the ship.");
+				}
+			}
+			if (oneFuelDeposited) {
+				if (aftik.removeItem(ObjectTypes.FUEL_CAN)) {
+					isShipLaunching = true;
+					oneFuelDeposited = false;
+					
+					out.printAt(getRoom(), "%s refueled the ship, and set it to launch.", aftik.getName());
+				} else {
+					out.printFor(aftik, "%s still need one more fuel can to launch the ship.", aftik.getName());
+				}
+			}
 		} else
 			out.printFor(aftik, "The ship can't be launched at this time.");
 	}

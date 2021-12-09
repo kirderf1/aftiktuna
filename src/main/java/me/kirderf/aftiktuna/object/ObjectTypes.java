@@ -14,7 +14,7 @@ public final class ObjectTypes {
 	public static final CreatureType GOBLIN = new CreatureType('G', "Goblin", new Stats(2, 4, 10));
 	public static final CreatureType AZURECLOPS = new CreatureType('Z', "Azureclops", new Stats(15, 10, 4));
 	
-	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 7000);
+	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 3500);
 	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1);
 	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1);
 	public static final ItemType KEYCARD = new ItemType('k', "keycard", -1);

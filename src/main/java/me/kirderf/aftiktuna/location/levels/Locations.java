@@ -50,7 +50,7 @@ public final class Locations {
 		room2.addItem(ObjectTypes.BLOWTORCH, 0);
 		room3.addItem(ObjectTypes.FUEL_CAN, 3);
 		room3.addCreature(ObjectTypes.EYESAUR, 1);
-		room3.addCreature(ObjectTypes.EYESAUR, 2);
+		sealedRoom.addItem(ObjectTypes.FUEL_CAN, 0);
 		sealedRoom.addItem(ObjectTypes.FUEL_CAN, 0);
 		sealedRoom.addItem(ObjectTypes.SWORD, 3);
 		sealedRoom.addCreature(ObjectTypes.AZURECLOPS, 1);
@@ -93,6 +93,7 @@ public final class Locations {
 		builder.markDoors(room3.getPosAt(3), storage.getPosAt(0), new DoorSealedProperty());
 		room3.addItem(ObjectTypes.FUEL_CAN, 2);
 		storage.addItem(ObjectTypes.FUEL_CAN, 2);
+		storage.addItem(ObjectTypes.FUEL_CAN, 2);
 		storage.addItem(ObjectTypes.ANCIENT_COIN, 1);
 		storage.addItem(ObjectTypes.ANCIENT_COIN, 1);
 		storage.addItem(ObjectTypes.ANCIENT_COIN, 2);
@@ -125,8 +126,9 @@ public final class Locations {
 		
 		builder.markPath(leftPath.getPosAt(2), leftPath2.getPosAt(0));
 		builder.markDoors(leftPath.getPosAt(0), shack.getPosAt(3), new DoorStuckProperty());
-		shack.addItem(ObjectTypes.FUEL_CAN, 0);
 		shack.addItem(ObjectTypes.ANCIENT_COIN, 0);
+		shack.addItem(ObjectTypes.FUEL_CAN, 0);
+		shack.addItem(ObjectTypes.FUEL_CAN, 1);
 		shack.addCreature(ObjectTypes.EYESAUR, 1);
 		leftPath2.addCreature(ObjectTypes.GOBLIN, 3);
 		
@@ -165,6 +167,7 @@ public final class Locations {
 		builder.markPath(rightEntrance.getPosAt(4), rightPath.getPosAt(4));
 		builder.markPath(rightPath.getPosAt(2), rightPath2.getPosAt(0));
 		rightEntrance.addItem(ObjectTypes.KNIFE, 3);
+		rightPath.addItem(ObjectTypes.FUEL_CAN, 1);
 		rightPath2.addItem(ObjectTypes.METEOR_CHUNK, 1);
 		rightPath2.addItem(ObjectTypes.BLOWTORCH, 4);
 		rightPath2.addItem(ObjectTypes.FUEL_CAN, 4);
