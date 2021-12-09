@@ -73,6 +73,10 @@ public abstract class Entity extends GameObject {
 		dodgingStamina = getMaxStamina();
 	}
 	
+	public final boolean isRested() {
+		return dodgingStamina >= getMaxStamina();
+	}
+	
 	public final boolean isDead() {
 		return !isAlive();
 	}

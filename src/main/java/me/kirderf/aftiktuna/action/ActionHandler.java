@@ -22,7 +22,6 @@ import me.kirderf.aftiktuna.util.OptionalFunction;
 import java.util.Optional;
 import java.util.function.IntSupplier;
 import java.util.function.ToIntFunction;
-import java.util.stream.Collectors;
 
 public final class ActionHandler {
 	static final CommandDispatcher<InputActionContext> DISPATCHER = new CommandDispatcher<>();
@@ -39,6 +38,7 @@ public final class ActionHandler {
 		DISPATCHER.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
 		DISPATCHER.register(literal("wait").executes(context -> context.getSource().action()));
+		DISPATCHER.register(literal("rest").executes(context -> rest(context.getSource())));
 		DISPATCHER.register(literal("status").executes(context -> printStatus(context.getSource())));
 		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
 	}
@@ -119,6 +119,19 @@ public final class ActionHandler {
 		}
 	}
 	
+	private static int rest(InputActionContext context) {
+		Aftik aftik = context.getControlledAftik();
+		
+		if (aftik.getArea().objectStream().flatMap(Aftik.CAST.toStream()).allMatch(Entity::isRested)) {
+			return context.printNoAction("All crew in the area is already rested.");
+		} else {
+			return context.action(out -> {
+				aftik.getMind().setRest(out);
+				out.print("%s takes some time to rest up.", aftik.getName());
+			});
+		}
+	}
+	
 	static <T extends GameObject> int searchForAccessible(InputActionContext context, Aftik aftik,
 														  OptionalFunction<GameObject, T> mapper, boolean exactPos,
 														  ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
@@ -149,7 +162,7 @@ public final class ActionHandler {
 	
 	public static void handleEntities(GameInstance game, ActionPrinter out) {
 		
-		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).collect(Collectors.toList())) {
+		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).toList()) {
 			if (entity.isAlive() && entity != game.getCrew().getAftik()) {
 				entity.performAction(out);
 			}

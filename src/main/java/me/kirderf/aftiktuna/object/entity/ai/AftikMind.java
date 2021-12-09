@@ -37,6 +37,11 @@ public final class AftikMind {
 		performCommandAction(out);
 	}
 	
+	public void setRest(ActionPrinter out) {
+		command = new RestCommand(aftik);
+		performCommandAction(out);
+	}
+	
 	public void prepare() {
 		if (command != null) {
 			Command.Status status = command.prepare();
