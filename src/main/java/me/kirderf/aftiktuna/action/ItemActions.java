@@ -22,6 +22,9 @@ public final class ItemActions {
 		DISPATCHER.register(literal("give").then(argument("name", StringArgumentType.string())
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS)).executes(context -> giveItem(context.getSource(),
 						StringArgumentType.getString(context, "name"), ObjectArgument.getType(context, "item", ItemType.class))))));
+		DISPATCHER.register(literal("use")
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+						.executes(context -> useItem(context.getSource(), ObjectArgument.getType(context, "item", ItemType.class)))));
 	}
 	
 	private static int takeItem(InputActionContext context, ObjectType type) {
@@ -81,6 +84,22 @@ public final class ItemActions {
 			}
 		} else {
 			return context.printNoAction("There is no such aftik in the area.");
+		}
+	}
+	
+	private static int useItem(InputActionContext context, ItemType type) {
+		Aftik aftik = context.getControlledAftik();
+		if (aftik.hasItem(type)) {
+			
+			if (type == ObjectTypes.FUEL_CAN) {
+				return launchShip(context);
+			} else if (type instanceof WeaponType weapon) {
+				return context.action(out -> aftik.wieldFromInventory(weapon, out));
+			} else {
+				return context.printNoAction("The item cannot be used in a meaningful way.");
+			}
+		} else {
+			return context.printNoAction("%s does not have that item.", aftik.getName());
 		}
 	}
 }

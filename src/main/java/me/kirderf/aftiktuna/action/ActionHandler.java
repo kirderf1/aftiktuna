@@ -86,7 +86,7 @@ public final class ActionHandler {
 				() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
-	private static int launchShip(InputActionContext context) {
+	static int launchShip(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
