@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
+import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
@@ -47,7 +48,7 @@ public final class LaunchShipCommand extends Command {
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			
-			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(door, out);
+			EnterDoorAction.Result result = EnterDoorAction.moveAndEnter(aftik, door, out);
 			
 			return result.success() ? Status.KEEP : Status.REMOVE;
 		} else {

@@ -1,9 +1,7 @@
 package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.Crew;
-import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
-import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.door.Door;
@@ -111,62 +109,12 @@ public final class Aftik extends Entity {
 		}
 	}
 	
-	public MoveAndEnterResult moveAndEnter(Door door, ActionPrinter out) {
-		return moveAndEnter(door, null, out);
-	}
-	
-	public MoveAndEnterResult moveAndEnter(Door door, Aftik followTarget, ActionPrinter out) {
-		boolean success = tryMoveTo(door.getPosition(), out);
-		if (success) {
-			Area originalArea = this.getArea();
-			
-			EnterResult result = door.enter(this);
-			
-			originalArea.objectStream().flatMap(Aftik.CAST.toStream())
-					.forEach(other -> other.getMind().observeEnteredDoor(this, door, result));
-			
-			if (followTarget != null) {
-				out.printAt(this, "%s follows %s into the area.", this.getName(), followTarget.getName());
-			} else {
-				printEnterResult(out, this, door, result);
-			}
-			
-			return new MoveAndEnterResult(result);
-		} else
-			return new MoveAndEnterResult();
-	}
-	
-	public record MoveAndEnterResult(Optional<EnterResult> optional) {
-		public MoveAndEnterResult(EnterResult result) {
-			this(Optional.of(result));
-		}
-		
-		public MoveAndEnterResult() {
-			this(Optional.empty());
-		}
-		
-		public boolean success() {
-			return optional.map(EnterResult::success).orElse(false);
-		}
-	}
-	
 	public void moveAndForce(Door door, ActionPrinter out) {
 		boolean success = tryMoveTo(door.getPosition(), out);
 		if (success) {
 			ForceResult result = door.force(this);
 			printForceResult(out, this, door, result);
 		}
-	}
-	
-	private static void printEnterResult(ActionPrinter out, Aftik aftik, Door door, EnterResult result) {
-		result.either().run(success -> printEnterSuccess(out, aftik, door, success),
-				failureType -> out.printFor(aftik, "The %s is %s.", door.getType().getCategoryName(), failureType.adjective()));
-	}
-	
-	private static void printEnterSuccess(ActionPrinter out, Aftik aftik, Door door, EnterResult.Success result) {
-		result.usedItem().ifPresentOrElse(
-				item -> out.printFor(aftik, "Using their %s, %s entered the %s into a new area.", item.name(), aftik.getName(), door.getType().getCategoryName()),
-				() -> out.printFor(aftik, "%s entered the %s into a new area.", aftik.getName(), door.getType().getCategoryName()));
 	}
 	
 	private static void printForceResult(ActionPrinter out, Aftik aftik, Door door, ForceResult result) {

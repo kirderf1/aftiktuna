@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
+import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
@@ -15,7 +16,7 @@ public final class FollowTask extends Task {
 	private FollowTarget followTarget;
 	private ForceDoorTaskFragment forceFragment;
 	
-	private static record FollowTarget(Door door, Aftik aftik) {}
+	private record FollowTarget(Door door, Aftik aftik) {}
 	
 	public FollowTask(Aftik aftik) {
 		this.aftik = aftik;
@@ -41,7 +42,7 @@ public final class FollowTask extends Task {
 			}
 		} else if (followTarget != null) {
 			
-			Aftik.MoveAndEnterResult result = aftik.moveAndEnter(followTarget.door, followTarget.aftik, out);
+			EnterDoorAction.Result result = EnterDoorAction.moveAndEnter(aftik, followTarget.door, followTarget.aftik, out);
 			
 			result.optional().flatMap(enterResult -> enterResult.either().getRight())
 					.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(followTarget.door, failureType),

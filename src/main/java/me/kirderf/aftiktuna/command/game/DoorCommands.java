@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.command.game;
 
+import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.object.ObjectArgument;
@@ -23,7 +24,7 @@ public final class DoorCommands {
 	private static int enterDoor(CommandContext context, DoorType doorType) {
 		Aftik aftik = context.getControlledAftik();
 		return CommandUtil.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching), true,
-				door -> context.action(out -> aftik.moveAndEnter(door, out)),
+				door -> context.action(out -> EnterDoorAction.moveAndEnter(aftik, door, out)),
 				() -> context.printNoAction("There is no such %s here to go through.", doorType.getCategoryName()));
 	}
 	
