@@ -13,6 +13,7 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.print.ActionPrinter;
+import me.kirderf.aftiktuna.print.HealthTracker;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.BufferedReader;
@@ -30,6 +31,7 @@ public final class GameInstance {
 	private final InputReader in;
 	private final ActionPrinter actionOut;
 	private final StatusPrinter statusPrinter;
+	private final HealthTracker healthTracker = new HealthTracker();
 	
 	private final LocationSelector locations = new LocationSelector();
 	
@@ -72,12 +74,12 @@ public final class GameInstance {
 			printPage(false);
 			
 			handleUserAction();
-			
 			for (Entity entity : getGameObjectStream().flatMap(Entity.CAST.toStream()).toList()) {
 				if (entity.isAlive() && entity != getCrew().getAftik()) {
 					entity.performAction(actionOut);
 				}
 			}
+			healthTracker.tick(crew.getAftik(), actionOut);
 			
 			handleCrewDeaths();
 			
