@@ -14,16 +14,16 @@ public final class ObjectTypes {
 	public static final CreatureType GOBLIN = new CreatureType('G', "Goblin", new Stats(2, 4, 10));
 	public static final CreatureType AZURECLOPS = new CreatureType('Z', "Azureclops", new Stats(15, 10, 4));
 	
-	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 3500);
-	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1);
-	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1);
-	public static final ItemType KEYCARD = new ItemType('k', "keycard", -1);
-	public static final WeaponType KNIFE = new WeaponType('K', "knife", 3, 300);
-	public static final WeaponType BAT = new WeaponType('B', "bat", 4, 1000);
-	public static final WeaponType SWORD = new WeaponType('s', "sword", 5, 3000);
-	public static final ItemType METEOR_CHUNK = new ItemType('m', "meteor chunk", 2500);
-	public static final ItemType ANCIENT_COIN = new ItemType('a', "ancient coin", 500);
-	public static final ItemType MEDKIT = new ItemType('+', "medkit", -1);
+	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 3500, "Needed in order to travel to your next location.");
+	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1, "Can be used to force open certain doors. Can also be used as an improvised weapon.");
+	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1, "Can be used to cut open doors.");
+	public static final ItemType KEYCARD = new ItemType('k', "keycard", -1, "Can be used to enter certain doors.");
+	public static final WeaponType KNIFE = new WeaponType('K', "knife", 3, 300, "Can be used as an improvised weapon.");
+	public static final WeaponType BAT = new WeaponType('B', "bat", 4, 1000, "Can be used as a weapon.");
+	public static final WeaponType SWORD = new WeaponType('s', "sword", 5, 3000, "Can be used as a decent weapon.");
+	public static final ItemType METEOR_CHUNK = new ItemType('m', "meteor chunk", 2500, "Not useful beyond being sold for points.");
+	public static final ItemType ANCIENT_COIN = new ItemType('a', "ancient coin", 500, "Not useful beyond being sold for points.");
+	public static final ItemType MEDKIT = new ItemType('+', "medkit", -1, "Can be used to recover some health.");
 	
 	public static final DoorType DOOR = new DoorType('^', "door");
 	public static final DoorType LEFT_DOOR = new DoorType('<', "left door", DOOR);

@@ -28,6 +28,9 @@ public final class ItemCommands {
 		DISPATCHER.register(literal("use")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> useItem(context.getSource(), ObjectArgument.getType(context, "item", ItemType.class)))));
+		DISPATCHER.register(literal("examine")
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+						.executes(context -> examineItem(context.getSource(), ObjectArgument.getType(context, "item", ItemType.class)))));
 	}
 	
 	private static int takeItem(CommandContext context, ObjectType type) {
@@ -118,6 +121,15 @@ public final class ItemCommands {
 			});
 		} else {
 			return context.printNoAction("%s is not hurt, and does not need to use the medkit.", aftik.getName());
+		}
+	}
+	
+	private static int examineItem(CommandContext context, ItemType type) {
+		Aftik aftik = context.getControlledAftik();
+		if (aftik.hasItem(type) || aftik.isAnyNear(type::matching)) {
+			return context.printNoAction(type.getExamineText());
+		} else {
+			return context.printNoAction("There is no such item here.");
 		}
 	}
 }

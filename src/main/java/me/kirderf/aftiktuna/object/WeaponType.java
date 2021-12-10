@@ -3,8 +3,8 @@ package me.kirderf.aftiktuna.object;
 public final class WeaponType extends ItemType {
 	private final int damageValue;
 	
-	public WeaponType(char symbol, String name, int damageValue, int price) {
-		super(symbol, name, price);
+	public WeaponType(char symbol, String name, int damageValue, int price, String examineText) {
+		super(symbol, name, price, examineText);
 		this.damageValue = damageValue;
 	}
 	
