@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.command.store;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -17,15 +18,26 @@ public final class StoreCommands {
 	private static final CommandDispatcher<StoreContext> DISPATCHER = new CommandDispatcher<>();
 	
 	static {
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("buy")
-				.then(RequiredArgumentBuilder.<StoreContext, ItemType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+		DISPATCHER.register(literal("buy")
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item", ItemType.class)))));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("sell")
-				.then(RequiredArgumentBuilder.<StoreContext, ItemType>argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+		DISPATCHER.register(literal("sell")
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> sellItem(context.getSource().inputContext(), ObjectArgument.getType(context, "item", ItemType.class)))));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource().inputContext)));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("status").executes(context -> GameCommands.printStatus(context.getSource().inputContext())));
+		DISPATCHER.register(literal("exit").executes(context -> exit(context.getSource().inputContext)));
+		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
+		DISPATCHER.register(literal("status").executes(context -> GameCommands.printStatus(context.getSource().inputContext())));
+		DISPATCHER.register(literal("examine")
+				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+						.executes(context -> examineItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item", ItemType.class)))));
+	}
+	
+	static LiteralArgumentBuilder<StoreContext> literal(String str) {
+		return LiteralArgumentBuilder.literal(str);
+	}
+	
+	static <T> RequiredArgumentBuilder<StoreContext, T> argument(String name, ArgumentType<T> argumentType) {
+		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
 	public static int handleInput(String input, StoreContext context) throws CommandSyntaxException {
@@ -88,6 +100,15 @@ public final class StoreCommands {
 			}
 		} else {
 			return context.printNoAction("%s does not have a %s.", aftik.getName(), item.name());
+		}
+	}
+	
+	private static int examineItem(CommandContext context, Shopkeeper shopkeeper, ItemType type) {
+		
+		if (shopkeeper.getItemsInStock().contains(type)) {
+			return context.printNoAction(type.getExamineText());
+		} else {
+			return context.printNoAction("There is no such item here.");
 		}
 	}
 }
