@@ -5,10 +5,10 @@ import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
-public final class RestCommand extends Command {
+public final class RestTask extends Task {
 	private final Aftik aftik;
 	
-	public RestCommand(Aftik aftik) {
+	public RestTask(Aftik aftik) {
 		this.aftik = aftik;
 	}
 	

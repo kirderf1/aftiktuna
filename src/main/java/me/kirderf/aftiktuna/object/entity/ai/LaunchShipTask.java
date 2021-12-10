@@ -15,11 +15,11 @@ import java.util.Optional;
  * or if the move-and-enter action fails in some way.
  * Command is finished after attempting to launch the ship, independently of the result.
  */
-public final class LaunchShipCommand extends Command {
+public final class LaunchShipTask extends Task {
 	private final Aftik aftik;
 	private final Ship ship;
 	
-	public LaunchShipCommand(Aftik aftik, Ship ship) {
+	public LaunchShipTask(Aftik aftik, Ship ship) {
 		this.aftik = aftik;
 		this.ship = ship;
 	}

@@ -10,10 +10,10 @@ import java.util.Optional;
  * A command that has the character try to pick up all items in the area.
  * Command is finished when there are no more items left.
  */
-public final class TakeItemsCommand extends Command {
+public final class TakeItemsTask extends Task {
 	private final Aftik aftik;
 	
-	public TakeItemsCommand(Aftik aftik) {
+	public TakeItemsTask(Aftik aftik) {
 		this.aftik = aftik;
 	}
 	

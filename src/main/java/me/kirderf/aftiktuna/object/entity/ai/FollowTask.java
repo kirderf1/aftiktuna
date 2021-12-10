@@ -10,7 +10,7 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
  * A task where the character follows the controlled character through doors.
  * If the door cannot be entered, an attempt might be made to force the door.
  */
-public final class FollowTask extends Task {
+public final class FollowTask extends StaticTask {
 	private final Aftik aftik;
 	
 	private FollowTarget followTarget;

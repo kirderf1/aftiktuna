@@ -10,60 +10,60 @@ import java.util.List;
 public final class AftikMind {
 	private final Aftik aftik;
 	
-	private final List<Task> tasks;
-	private Command command;
+	private final List<StaticTask> staticTasks;
+	private Task playerTask;
 	
 	public AftikMind(Aftik aftik) {
 		this.aftik = aftik;
-		tasks = List.of(new FollowTask(aftik), new ForceDoorTask(aftik),
+		staticTasks = List.of(new FollowTask(aftik), new ForceDoorTask(aftik),
 				new WieldTask(aftik), new FightTask(aftik));
 	}
 	
 	public boolean overridesPlayerInput() {
-		return command != null;
+		return playerTask != null;
 	}
 	
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		tasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
+		staticTasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
 	}
 	
 	public void setLaunchShip(ActionPrinter out) {
-		command = new LaunchShipCommand(aftik, aftik.getCrew().getShip());
-		performCommandAction(out);
+		playerTask = new LaunchShipTask(aftik, aftik.getCrew().getShip());
+		performPlayerAction(out);
 	}
 	
 	public void setTakeItems(ActionPrinter out) {
-		command = new TakeItemsCommand(aftik);
-		performCommandAction(out);
+		playerTask = new TakeItemsTask(aftik);
+		performPlayerAction(out);
 	}
 	
 	public void setRest(ActionPrinter out) {
-		command = new RestCommand(aftik);
-		performCommandAction(out);
+		playerTask = new RestTask(aftik);
+		performPlayerAction(out);
 	}
 	
 	public void prepare() {
-		if (command != null) {
-			Command.Status status = command.prepare();
-			if (status == Command.Status.REMOVE)
-				command = null;
+		if (playerTask != null) {
+			Task.Status status = playerTask.prepare();
+			if (status == Task.Status.REMOVE)
+				playerTask = null;
 		}
 	}
 	
 	public void performAction(ActionPrinter out) {
-		if (command != null) {
-			performCommandAction(out);
+		if (playerTask != null) {
+			performPlayerAction(out);
 		} else {
-			for (Task task : tasks) {
+			for (StaticTask task : staticTasks) {
 				if (task.performAction(out))
 					return;
 			}
 		}
 	}
 	
-	private void performCommandAction(ActionPrinter out) {
-		Command.Status status = command.performAction(out);
-		if (status == Command.Status.REMOVE)
-			command = null;
+	private void performPlayerAction(ActionPrinter out) {
+		Task.Status status = playerTask.performAction(out);
+		if (status == Task.Status.REMOVE)
+			playerTask = null;
 	}
 }

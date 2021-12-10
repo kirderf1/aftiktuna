@@ -14,7 +14,7 @@ import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
-import me.kirderf.aftiktuna.object.entity.ai.RestCommand;
+import me.kirderf.aftiktuna.object.entity.ai.RestTask;
 
 import java.util.Optional;
 
@@ -117,8 +117,8 @@ public final class GameCommands {
 	private static int rest(CommandContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
-		if (RestCommand.isAreaSafe(aftik)) {
-			if (RestCommand.isAllRested(aftik)) {
+		if (RestTask.isAreaSafe(aftik)) {
+			if (RestTask.isAllRested(aftik)) {
 				return context.printNoAction("All crew in the area is already rested.");
 			} else {
 				return context.action(out -> {

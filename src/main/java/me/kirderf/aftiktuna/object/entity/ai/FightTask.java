@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * A task where the character attacks a nearby creature.
  */
-public final class FightTask extends Task {
+public final class FightTask extends StaticTask {
 	private final Aftik aftik;
 	
 	public FightTask(Aftik aftik) {

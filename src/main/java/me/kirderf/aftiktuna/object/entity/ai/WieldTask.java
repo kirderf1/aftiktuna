@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * A task where the character wields their best weapon in their inventory.
  */
-public final class WieldTask extends Task {
+public final class WieldTask extends StaticTask {
 	private final Aftik aftik;
 	
 	public WieldTask(Aftik aftik) {

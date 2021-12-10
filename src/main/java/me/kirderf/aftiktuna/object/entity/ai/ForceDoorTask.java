@@ -8,7 +8,7 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 /**
  * A task where the character assists in forcing open a door that someone failed to enter.
  */
-public final class ForceDoorTask extends Task {
+public final class ForceDoorTask extends StaticTask {
 	private final Aftik aftik;
 	private ForceDoorTaskFragment forceFragment;
 	
