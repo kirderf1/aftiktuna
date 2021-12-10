@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
+import me.kirderf.aftiktuna.action.ForceDoorAction;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
@@ -17,7 +18,7 @@ public final class ForceDoorTaskFragment {
 	
 	public boolean performAction(Aftik aftik, ActionPrinter out) {
 		if (aftik.getArea() == door.getArea() && canForceDoor(aftik)) {
-			aftik.moveAndForce(door, out);
+			ForceDoorAction.moveAndForce(aftik, door, out);
 			return true;
 		} else
 			return false;
