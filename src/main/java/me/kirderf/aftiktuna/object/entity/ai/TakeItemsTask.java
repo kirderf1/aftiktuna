@@ -7,24 +7,18 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 import java.util.Optional;
 
 /**
- * A command that has the character try to pick up all items in the area.
- * Command is finished when there are no more items left.
+ * A task that has the character try to pick up all items in the area.
+ * The task is finished when there are no more items left.
  */
 public final class TakeItemsTask extends Task {
-	private final Aftik aftik;
-	
-	public TakeItemsTask(Aftik aftik) {
-		this.aftik = aftik;
-	}
-	
 	@Override
-	public Status prepare() {
+	public Status prepare(Aftik aftik) {
 		return aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)
 				? Status.KEEP : Status.REMOVE;
 	}
 	
 	@Override
-	public Status performAction(ActionPrinter out) {
+	public Status performAction(Aftik aftik, ActionPrinter out) {
 		Optional<Item> optionalItem = aftik.findNearestAccessible(Item.CAST, true);
 		
 		if (optionalItem.isPresent()) {

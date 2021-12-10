@@ -6,14 +6,9 @@ import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 public final class RestTask extends Task {
-	private final Aftik aftik;
-	
-	public RestTask(Aftik aftik) {
-		this.aftik = aftik;
-	}
 	
 	@Override
-	public Status prepare() {
+	public Status prepare(Aftik aftik) {
 		if (isAllRested(aftik) || !isAreaSafe(aftik)) {
 			return Status.REMOVE;
 		} else {
@@ -22,7 +17,7 @@ public final class RestTask extends Task {
 	}
 	
 	@Override
-	public Status performAction(ActionPrinter out) {
+	public Status performAction(Aftik aftik, ActionPrinter out) {
 		return Status.KEEP;
 	}
 	

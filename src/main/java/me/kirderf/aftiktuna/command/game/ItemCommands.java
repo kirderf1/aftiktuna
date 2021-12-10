@@ -5,6 +5,7 @@ import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.entity.ai.TakeItemsTask;
 import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
 
 import java.util.Optional;
@@ -40,7 +41,7 @@ public final class ItemCommands {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)) {
-			return context.action(out -> aftik.getMind().setTakeItems(out));
+			return context.action(out -> aftik.getMind().setAndPerformPlayerTask(new TakeItemsTask(), out));
 		} else {
 			return context.printNoAction("There are no nearby items to take.");
 		}

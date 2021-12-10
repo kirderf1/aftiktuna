@@ -10,41 +10,39 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 import java.util.Optional;
 
 /**
- * A command that has the character try to enter the ship, and when in the ship, launch it.
- * The command is cancelled if there is no accessible ship entrance in the area,
+ * A task that has the character try to enter the ship, and when in the ship, launch it.
+ * The task is cancelled if there is no accessible ship entrance in the area,
  * or if the move-and-enter action fails in some way.
- * Command is finished after attempting to launch the ship, independently of the result.
+ * The task is finished after attempting to launch the ship, independently of the result.
  */
 public final class LaunchShipTask extends Task {
-	private final Aftik aftik;
 	private final Ship ship;
 	
-	public LaunchShipTask(Aftik aftik, Ship ship) {
-		this.aftik = aftik;
+	public LaunchShipTask(Ship ship) {
 		this.ship = ship;
 	}
 	
 	@Override
-	public Status prepare() {
+	public Status prepare(Aftik aftik) {
 		if (aftik.getArea() != ship.getRoom()) {
-			if (findPathTowardsShip().map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
+			if (findPathTowardsShip(aftik).map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
 				return Status.REMOVE;
 		}
 		return Status.KEEP;
 	}
 	
 	@Override
-	public Status performAction(ActionPrinter out) {
+	public Status performAction(Aftik aftik, ActionPrinter out) {
 		if (aftik.getArea() != ship.getRoom()) {
-			return tryGoToShip(out);
+			return tryGoToShip(aftik, out);
 		} else {
 			ship.tryLaunchShip(aftik, out);
 			return Status.REMOVE;
 		}
 	}
 	
-	private Status tryGoToShip(ActionPrinter out) {
-		Optional<Door> optional = findPathTowardsShip();
+	private Status tryGoToShip(Aftik aftik, ActionPrinter out) {
+		Optional<Door> optional = findPathTowardsShip(aftik);
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			
@@ -57,7 +55,7 @@ public final class LaunchShipTask extends Task {
 		}
 	}
 	
-	private Optional<Door> findPathTowardsShip() {
+	private Optional<Door> findPathTowardsShip(Aftik aftik) {
 		return aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
 	}
 }

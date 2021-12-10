@@ -27,24 +27,14 @@ public final class AftikMind {
 		staticTasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
 	}
 	
-	public void setLaunchShip(ActionPrinter out) {
-		playerTask = new LaunchShipTask(aftik, aftik.getCrew().getShip());
-		performPlayerAction(out);
-	}
-	
-	public void setTakeItems(ActionPrinter out) {
-		playerTask = new TakeItemsTask(aftik);
-		performPlayerAction(out);
-	}
-	
-	public void setRest(ActionPrinter out) {
-		playerTask = new RestTask(aftik);
+	public void setAndPerformPlayerTask(Task task, ActionPrinter out) {
+		playerTask = task;
 		performPlayerAction(out);
 	}
 	
 	public void prepare() {
 		if (playerTask != null) {
-			Task.Status status = playerTask.prepare();
+			Task.Status status = playerTask.prepare(aftik);
 			if (status == Task.Status.REMOVE)
 				playerTask = null;
 		}
@@ -62,7 +52,7 @@ public final class AftikMind {
 	}
 	
 	private void performPlayerAction(ActionPrinter out) {
-		Task.Status status = playerTask.performAction(out);
+		Task.Status status = playerTask.performAction(aftik, out);
 		if (status == Task.Status.REMOVE)
 			playerTask = null;
 	}

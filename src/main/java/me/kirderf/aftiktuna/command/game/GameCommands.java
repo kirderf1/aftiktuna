@@ -14,6 +14,7 @@ import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
+import me.kirderf.aftiktuna.object.entity.ai.LaunchShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.RestTask;
 
 import java.util.Optional;
@@ -87,7 +88,9 @@ public final class GameCommands {
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
 			if (isNearShip(aftik, context.getCrew().getShip())) {
 				
-				return context.action(aftik.getMind()::setLaunchShip);
+				return context.action(out -> {
+					aftik.getMind().setAndPerformPlayerTask(new LaunchShipTask(context.getCrew().getShip()), out);
+				});
 			} else {
 				return context.printNoAction("%s need to be near the ship in order to launch it.", aftik.getName());
 			}
@@ -122,7 +125,7 @@ public final class GameCommands {
 				return context.printNoAction("All crew in the area is already rested.");
 			} else {
 				return context.action(out -> {
-					aftik.getMind().setRest(out);
+					aftik.getMind().setAndPerformPlayerTask(new RestTask(), out);
 					out.print("%s takes some time to rest up.", aftik.getName());
 				});
 			}
