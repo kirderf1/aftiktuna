@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.action.ActionHandler;
 import me.kirderf.aftiktuna.action.InputActionContext;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
@@ -73,7 +72,12 @@ public final class GameInstance {
 			printPage(false);
 			
 			handleUserAction();
-			ActionHandler.handleEntities(this, actionOut);
+			
+			for (Entity entity : getGameObjectStream().flatMap(Entity.CAST.toStream()).toList()) {
+				if (entity.isAlive() && entity != getCrew().getAftik()) {
+					entity.performAction(actionOut);
+				}
+			}
 			
 			handleCrewDeaths();
 			

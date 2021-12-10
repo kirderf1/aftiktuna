@@ -6,23 +6,15 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
-import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.object.entity.ai.RestCommand;
-import me.kirderf.aftiktuna.print.ActionPrinter;
-import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.Optional;
-import java.util.function.IntSupplier;
-import java.util.function.ToIntFunction;
 
 public final class ActionHandler {
 	static final CommandDispatcher<InputActionContext> DISPATCHER = new CommandDispatcher<>();
@@ -74,7 +66,7 @@ public final class ActionHandler {
 	private static int attack(InputActionContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
-		return searchForAccessible(context, aftik, Creature.CAST, false,
+		return ActionUtil.searchForAccessible(context, aftik, Creature.CAST, false,
 				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
 				() -> context.printNoAction("There is no such creature to attack."));
 	}
@@ -82,7 +74,7 @@ public final class ActionHandler {
 	private static int attack(InputActionContext context, ObjectType creatureType) {
 		Aftik aftik = context.getControlledAftik();
 		
-		return searchForAccessible(context, aftik, Creature.CAST.filter(creatureType::matching), false,
+		return ActionUtil.searchForAccessible(context, aftik, Creature.CAST.filter(creatureType::matching), false,
 				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
 				() -> context.printNoAction("There is no such creature to attack."));
 	}
@@ -135,48 +127,5 @@ public final class ActionHandler {
 		} else {
 			return context.printNoAction("This area is not safe to rest in.");
 		}
-	}
-	
-	static <T extends GameObject> int searchForAccessible(InputActionContext context, Aftik aftik,
-														  OptionalFunction<GameObject, T> mapper, boolean exactPos,
-														  ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
-		Optional<T> optionalDoor = aftik.findNearest(mapper, exactPos);
-		if (optionalDoor.isPresent()) {
-			T object = optionalDoor.get();
-			Position pos = exactPos ? object.getPosition()
-					: object.getPosition().getPosTowards(aftik.getCoord());
-			
-			return ifAccessible(context, aftik, pos, () -> onSuccess.applyAsInt(object));
-		} else {
-			return onNoMatch.getAsInt();
-		}
-	}
-	
-	static int ifAccessible(InputActionContext context, Aftik aftik, Position pos, IntSupplier onSuccess) {
-		Optional<GameObject> blocking = aftik.findBlockingTo(pos.coord());
-		if (blocking.isEmpty()) {
-			return onSuccess.getAsInt();
-		} else {
-			return context.printNoAction(createBlockingMessage(blocking.get()));
-		}
-	}
-	
-	public static String createBlockingMessage(GameObject blocking) {
-		return "%s is blocking the way.".formatted(blocking.getDisplayName(true, true));
-	}
-	
-	public static void handleEntities(GameInstance game, ActionPrinter out) {
-		
-		for (Entity entity : game.getGameObjectStream().flatMap(Entity.CAST.toStream()).toList()) {
-			if (entity.isAlive() && entity != game.getCrew().getAftik()) {
-				entity.performAction(out);
-			}
-		}
-	}
-	
-	public static String condition(String text, boolean b) {
-		if (b)
-			return text.replaceAll("[\\[\\]]", "");
-		else return text.replaceAll("\\[.*]", "");
 	}
 }

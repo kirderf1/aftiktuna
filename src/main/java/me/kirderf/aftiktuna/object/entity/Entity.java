@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.GameInstance;
-import me.kirderf.aftiktuna.action.ActionHandler;
+import me.kirderf.aftiktuna.action.ActionUtil;
 import me.kirderf.aftiktuna.action.result.AttackResult;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
@@ -103,7 +103,7 @@ public abstract class Entity extends GameObject {
 			}
 			
 			blocking.ifPresent(blockingObject ->
-					out.printFor(this, ActionHandler.createBlockingMessage(blockingObject)));
+					out.printFor(this, ActionUtil.createBlockingMessage(blockingObject)));
 			
 			return blocking.isEmpty();
 		} else
@@ -147,9 +147,9 @@ public abstract class Entity extends GameObject {
 		
 		Entity attacked = result.attacked();
 		switch(result.type()) {
-			case DIRECT_HIT -> out.printAt(this, ActionHandler.condition("%s got a direct hit on[ and killed] %s.", result.isKill()),
+			case DIRECT_HIT -> out.printAt(this, ActionUtil.condition("%s got a direct hit on[ and killed] %s.", result.isKill()),
 					getDisplayName(true, true), attacked.getDisplayName(true, false));
-			case GRAZING_HIT -> out.printAt(this, ActionHandler.condition("%s's attack grazed[ and killed] %s.", result.isKill()),
+			case GRAZING_HIT -> out.printAt(this, ActionUtil.condition("%s's attack grazed[ and killed] %s.", result.isKill()),
 					getDisplayName(true, true), attacked.getDisplayName(true, false));
 			case DODGE -> out.printAt(this, "%s dodged %s's attack.",
 					attacked.getDisplayName(true, true), getDisplayName(true, false));
