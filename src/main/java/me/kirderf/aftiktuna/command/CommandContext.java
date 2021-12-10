@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.command;
 
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.GameInstance;
@@ -7,13 +7,13 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.function.Consumer;
 
-public final class InputActionContext {
+public final class CommandContext {
 	private final ActionPrinter out;
 	private final GameInstance game;
 	private boolean showView = false;
 	private boolean isUsed = false;
 	
-	public InputActionContext(GameInstance game, ActionPrinter out) {
+	public CommandContext(GameInstance game, ActionPrinter out) {
 		this.game = game;
 		this.out = out;
 	}

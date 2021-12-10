@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.command.game;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -6,6 +6,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectType;
@@ -16,13 +18,13 @@ import me.kirderf.aftiktuna.object.entity.ai.RestCommand;
 
 import java.util.Optional;
 
-public final class ActionHandler {
-	static final CommandDispatcher<InputActionContext> DISPATCHER = new CommandDispatcher<>();
+public final class GameCommands {
+	static final CommandDispatcher<CommandContext> DISPATCHER = new CommandDispatcher<>();
 	
 	static {
-		ItemActions.register();
-		DoorActions.register();
-		NPCActions.register();
+		ItemCommands.register();
+		DoorCommands.register();
+		NPCCommands.register();
 		DISPATCHER.register(literal("attack")
 				.executes(context -> attack(context.getSource()))
 				.then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
@@ -36,23 +38,23 @@ public final class ActionHandler {
 		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
 	}
 	
-	static LiteralArgumentBuilder<InputActionContext> literal(String str) {
+	static LiteralArgumentBuilder<CommandContext> literal(String str) {
 		return LiteralArgumentBuilder.literal(str);
 	}
 	
-	static <T> RequiredArgumentBuilder<InputActionContext, T> argument(String name, ArgumentType<T> argumentType) {
+	static <T> RequiredArgumentBuilder<CommandContext, T> argument(String name, ArgumentType<T> argumentType) {
 		return RequiredArgumentBuilder.argument(name, argumentType);
 	}
 	
-	public static int handleInput(InputActionContext context, String input) throws CommandSyntaxException {
+	public static int handleInput(CommandContext context, String input) throws CommandSyntaxException {
 		return DISPATCHER.execute(input, context);
 	}
 	
-	static int printStatus(InputActionContext context) {
+	public static int printStatus(CommandContext context) {
 		return context.noAction(out -> context.getGame().getStatusPrinter().printCrewStatus());
 	}
 	
-	private static int printCommands(InputActionContext context) {
+	private static int printCommands(CommandContext context) {
 		return context.noAction(out -> {
 			out.print("Commands:");
 			
@@ -63,23 +65,23 @@ public final class ActionHandler {
 		});
 	}
 	
-	private static int attack(InputActionContext context) {
+	private static int attack(CommandContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
-		return ActionUtil.searchForAccessible(context, aftik, Creature.CAST, false,
+		return CommandUtil.searchForAccessible(context, aftik, Creature.CAST, false,
 				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
 				() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
-	private static int attack(InputActionContext context, ObjectType creatureType) {
+	private static int attack(CommandContext context, ObjectType creatureType) {
 		Aftik aftik = context.getControlledAftik();
 		
-		return ActionUtil.searchForAccessible(context, aftik, Creature.CAST.filter(creatureType::matching), false,
+		return CommandUtil.searchForAccessible(context, aftik, Creature.CAST.filter(creatureType::matching), false,
 				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
 				() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
-	static int launchShip(InputActionContext context) {
+	static int launchShip(CommandContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
@@ -98,7 +100,7 @@ public final class ActionHandler {
 		return aftik.getArea() == ship.getRoom() || aftik.isAnyNear(ObjectTypes.SHIP_ENTRANCE::matching);
 	}
 	
-	private static int controlAftik(InputActionContext context, String name) {
+	private static int controlAftik(CommandContext context, String name) {
 		Optional<Aftik> aftikOptional = context.getCrew().findByName(name);
 		if (aftikOptional.isPresent()) {
 			Aftik aftik = aftikOptional.get();
@@ -112,7 +114,7 @@ public final class ActionHandler {
 		}
 	}
 	
-	private static int rest(InputActionContext context) {
+	private static int rest(CommandContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (RestCommand.isAreaSafe(aftik)) {

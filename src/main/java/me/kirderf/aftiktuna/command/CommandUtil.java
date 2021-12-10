@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.command;
 
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.function.IntSupplier;
 import java.util.function.ToIntFunction;
 
-public final class ActionUtil {
-	static <T extends GameObject> int searchForAccessible(InputActionContext context, Aftik aftik,
+public final class CommandUtil {
+	public static <T extends GameObject> int searchForAccessible(CommandContext context, Aftik aftik,
 														  OptionalFunction<GameObject, T> mapper, boolean exactPos,
 														  ToIntFunction<T> onSuccess, IntSupplier onNoMatch) {
 		Optional<T> optionalDoor = aftik.findNearest(mapper, exactPos);
@@ -25,7 +25,7 @@ public final class ActionUtil {
 		}
 	}
 	
-	static int ifAccessible(InputActionContext context, Aftik aftik, Position pos, IntSupplier onSuccess) {
+	public static int ifAccessible(CommandContext context, Aftik aftik, Position pos, IntSupplier onSuccess) {
 		Optional<GameObject> blocking = aftik.findBlockingTo(pos.coord());
 		if (blocking.isEmpty()) {
 			return onSuccess.getAsInt();

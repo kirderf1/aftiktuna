@@ -1,7 +1,7 @@
 package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.action.InputActionContext;
+import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
@@ -180,7 +180,7 @@ public final class GameInstance {
 			do {
 				String input = in.readLine();
 				
-				InputActionContext context = new InputActionContext(this, actionOut);
+				CommandContext context = new CommandContext(this, actionOut);
 				try {
 					result = view.handleInput(input, context);
 				} catch(CommandSyntaxException e) {

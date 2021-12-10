@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.action.InputActionContext;
-import me.kirderf.aftiktuna.action.StoreCommands;
+import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.store.StoreCommands;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.print.StatusPrinter;
@@ -20,7 +20,7 @@ public final class StoreView extends GameView {
 	}
 	
 	@Override
-	public int handleInput(String input, InputActionContext context) throws CommandSyntaxException {
+	public int handleInput(String input, CommandContext context) throws CommandSyntaxException {
 		return StoreCommands.handleInput(input, new StoreCommands.StoreContext(context, shopkeeper));
 	}
 	

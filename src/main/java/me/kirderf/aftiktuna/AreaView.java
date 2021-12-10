@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import me.kirderf.aftiktuna.action.ActionHandler;
-import me.kirderf.aftiktuna.action.InputActionContext;
+import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.game.GameCommands;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 
@@ -18,8 +18,8 @@ public final class AreaView extends GameView {
 	}
 	
 	@Override
-	public int handleInput(String input, InputActionContext context) throws CommandSyntaxException {
-		return ActionHandler.handleInput(context, input);
+	public int handleInput(String input, CommandContext context) throws CommandSyntaxException {
+		return GameCommands.handleInput(context, input);
 	}
 	
 	@Override

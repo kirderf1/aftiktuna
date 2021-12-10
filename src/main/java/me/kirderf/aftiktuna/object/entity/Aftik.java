@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.Crew;
-import me.kirderf.aftiktuna.action.DoorActions;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
+import me.kirderf.aftiktuna.command.game.DoorCommands;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.object.*;
@@ -128,7 +128,7 @@ public final class Aftik extends Entity {
 			if (followTarget != null) {
 				out.printAt(this, "%s follows %s into the area.", this.getName(), followTarget.getName());
 			} else {
-				DoorActions.printEnterResult(out, this, door, result);
+				DoorCommands.printEnterResult(out, this, door, result);
 			}
 			
 			return new MoveAndEnterResult(result);
@@ -154,7 +154,7 @@ public final class Aftik extends Entity {
 		boolean success = tryMoveTo(door.getPosition(), out);
 		if (success) {
 			ForceResult result = door.force(this);
-			DoorActions.printForceResult(out, this, door, result);
+			DoorCommands.printForceResult(out, this, door, result);
 		}
 	}
 	

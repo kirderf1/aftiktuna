@@ -1,9 +1,11 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.command.store;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.game.GameCommands;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectTypes;
@@ -23,14 +25,14 @@ public final class StoreCommands {
 						.executes(context -> sellItem(context.getSource().inputContext(), ObjectArgument.getType(context, "item", ItemType.class)))));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("help").executes(context -> printCommands(context.getSource())));
-		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("status").executes(context -> ActionHandler.printStatus(context.getSource().inputContext())));
+		DISPATCHER.register(LiteralArgumentBuilder.<StoreContext>literal("status").executes(context -> GameCommands.printStatus(context.getSource().inputContext())));
 	}
 	
 	public static int handleInput(String input, StoreContext context) throws CommandSyntaxException {
 		return DISPATCHER.execute(input, context);
 	}
 	
-	public static record StoreContext(InputActionContext inputContext, Shopkeeper shopkeeper) {}
+	public record StoreContext(CommandContext inputContext, Shopkeeper shopkeeper) {}
 	
 	private static int printCommands(StoreContext context) {
 		return context.inputContext().noAction(out -> {
@@ -43,7 +45,7 @@ public final class StoreCommands {
 		});
 	}
 	
-	private static int exit(InputActionContext context) {
+	private static int exit(CommandContext context) {
 		return context.noActionWithView(out -> {
 			context.getGame().restoreView();
 			
@@ -51,7 +53,7 @@ public final class StoreCommands {
 		});
 	}
 	
-	private static int buyItem(InputActionContext context, Shopkeeper shopkeeper, ItemType item) {
+	private static int buyItem(CommandContext context, Shopkeeper shopkeeper, ItemType item) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (shopkeeper.getItemsInStock().contains(item)) {
@@ -68,7 +70,7 @@ public final class StoreCommands {
 		}
 	}
 	
-	private static int sellItem(InputActionContext context, ItemType item) {
+	private static int sellItem(CommandContext context, ItemType item) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.hasItem(item)) {

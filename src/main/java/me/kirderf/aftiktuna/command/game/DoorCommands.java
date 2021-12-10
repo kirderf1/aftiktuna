@@ -1,7 +1,9 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.command.game;
 
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
+import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
@@ -10,30 +12,28 @@ import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
-import static me.kirderf.aftiktuna.action.ActionHandler.*;
-
-public final class DoorActions {
+public final class DoorCommands {
 	static void register() {
-		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
+		GameCommands.DISPATCHER.register(GameCommands.literal("enter").then(GameCommands.argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		DISPATCHER.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
+		GameCommands.DISPATCHER.register(GameCommands.literal("force").then(GameCommands.argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		DISPATCHER.register(literal("enter").then(literal("ship")
+		GameCommands.DISPATCHER.register(GameCommands.literal("enter").then(GameCommands.literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_ENTRANCE))));
-		DISPATCHER.register(literal("exit").then(literal("ship")
+		GameCommands.DISPATCHER.register(GameCommands.literal("exit").then(GameCommands.literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_EXIT))));
 	}
 	
-	private static int enterDoor(InputActionContext context, DoorType doorType) {
+	private static int enterDoor(CommandContext context, DoorType doorType) {
 		Aftik aftik = context.getControlledAftik();
-		return ActionUtil.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching), true,
+		return CommandUtil.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching), true,
 				door -> context.action(out -> aftik.moveAndEnter(door, out)),
 				() -> context.printNoAction("There is no such %s here to go through.", doorType.getCategoryName()));
 	}
 	
-	private static int forceDoor(InputActionContext context, DoorType doorType) {
+	private static int forceDoor(CommandContext context, DoorType doorType) {
 		Aftik aftik = context.getControlledAftik();
-		return ActionUtil.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching), true,
+		return CommandUtil.searchForAccessible(context, aftik, Door.CAST.filter(doorType::matching), true,
 				door -> context.action(out -> aftik.moveAndForce(door, out)),
 				() -> context.printNoAction("There is no such %s here.", doorType.getCategoryName()));
 	}

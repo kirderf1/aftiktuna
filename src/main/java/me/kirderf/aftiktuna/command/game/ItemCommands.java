@@ -1,15 +1,17 @@
-package me.kirderf.aftiktuna.action;
+package me.kirderf.aftiktuna.command.game;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.object.*;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
 
 import java.util.Optional;
 
-import static me.kirderf.aftiktuna.action.ActionHandler.*;
+import static me.kirderf.aftiktuna.command.game.GameCommands.*;
 
-public final class ItemActions {
+public final class ItemCommands {
 	static void register() {
 		DISPATCHER.register(literal("take")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
@@ -27,14 +29,14 @@ public final class ItemActions {
 						.executes(context -> useItem(context.getSource(), ObjectArgument.getType(context, "item", ItemType.class)))));
 	}
 	
-	private static int takeItem(InputActionContext context, ObjectType type) {
+	private static int takeItem(CommandContext context, ObjectType type) {
 		Aftik aftik = context.getControlledAftik();
-		return ActionUtil.searchForAccessible(context, aftik, Item.CAST.filter(type::matching), true,
+		return CommandUtil.searchForAccessible(context, aftik, Item.CAST.filter(type::matching), true,
 				item -> context.action(out -> aftik.moveAndTake(item, out)),
 				() -> context.printNoAction("There is no %s here to pick up.", type.name()));
 	}
 	
-	private static int takeItems(InputActionContext context) {
+	private static int takeItems(CommandContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.isAnyNearAccessible(Item.CAST.toPredicate(), true)) {
@@ -44,19 +46,19 @@ public final class ItemActions {
 		}
 	}
 	
-	private static int wieldItem(InputActionContext context, WeaponType weaponType) {
+	private static int wieldItem(CommandContext context, WeaponType weaponType) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (aftik.hasItem(weaponType)) {
 			return context.action(out -> aftik.wieldFromInventory(weaponType, out));
 		} else {
-			return ActionUtil.searchForAccessible(context, aftik, Item.CAST.filter(weaponType::matching), true,
+			return CommandUtil.searchForAccessible(context, aftik, Item.CAST.filter(weaponType::matching), true,
 					item -> context.action(out -> aftik.moveAndWield(item, weaponType, out)),
 					() -> context.printNoAction("There is no %s that %s can wield.", weaponType.name(), aftik.getName()));
 		}
 	}
 	
-	private static int wieldBestWeapon(InputActionContext context) {
+	private static int wieldBestWeapon(CommandContext context) {
 		Aftik aftik = context.getControlledAftik();
 		
 		Optional<WeaponType> weaponType = WieldTask.findWieldableInventoryItem(aftik);
@@ -65,7 +67,7 @@ public final class ItemActions {
 				.orElseGet(() -> context.printNoAction("%s does not have a better item to wield.", aftik.getName()));
 	}
 	
-	private static int giveItem(InputActionContext context, String name, ItemType type) {
+	private static int giveItem(CommandContext context, String name, ItemType type) {
 		Aftik aftik = context.getControlledAftik();
 		Optional<Aftik> aftikOptional = context.getCrew().findByName(name);
 		
@@ -77,7 +79,7 @@ public final class ItemActions {
 			}
 			
 			if (aftik.hasItem(type)) {
-				return ActionUtil.ifAccessible(context, aftik, target.getPosition(),
+				return CommandUtil.ifAccessible(context, aftik, target.getPosition(),
 						() -> context.action(out -> aftik.moveAndGive(target, type, out)));
 			} else {
 				return context.printNoAction("%s does not have that item.", aftik.getName());
@@ -87,7 +89,7 @@ public final class ItemActions {
 		}
 	}
 	
-	private static int useItem(InputActionContext context, ItemType type) {
+	private static int useItem(CommandContext context, ItemType type) {
 		Aftik aftik = context.getControlledAftik();
 		if (aftik.hasItem(type)) {
 			
@@ -105,7 +107,7 @@ public final class ItemActions {
 		}
 	}
 	
-	private static int useMedKit(InputActionContext context, Aftik aftik) {
+	private static int useMedKit(CommandContext context, Aftik aftik) {
 		if (aftik.getHealth() < aftik.getMaxHealth()) {
 			return context.action(out -> {
 				if (aftik.removeItem(ObjectTypes.MEDKIT)) {
