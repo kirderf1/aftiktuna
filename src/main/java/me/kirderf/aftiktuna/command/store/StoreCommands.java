@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.command.store;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,6 +13,7 @@ import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
+import me.kirderf.aftiktuna.print.ActionPrinter;
 
 public final class StoreCommands {
 	
@@ -20,10 +22,16 @@ public final class StoreCommands {
 	static {
 		DISPATCHER.register(literal("buy")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
-						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper, ObjectArgument.getType(context, "item", ItemType.class)))));
+						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper,
+								ObjectArgument.getType(context, "item", ItemType.class)))));
 		DISPATCHER.register(literal("sell")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
-						.executes(context -> sellItem(context.getSource().inputContext(), ObjectArgument.getType(context, "item", ItemType.class)))));
+						.executes(context -> sellItem(context.getSource().inputContext(), 1, ObjectArgument.getType(context, "item", ItemType.class))))
+				.then(argument("count", IntegerArgumentType.integer(1))
+						.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+								.executes(context -> sellItem(context.getSource().inputContext(),
+										IntegerArgumentType.getInteger(context, "count"),
+										ObjectArgument.getType(context, "item", ItemType.class))))));
 		DISPATCHER.register(literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
 		DISPATCHER.register(literal("status").executes(context -> GameCommands.printStatus(context.getSource().inputContext())));
@@ -82,24 +90,38 @@ public final class StoreCommands {
 		}
 	}
 	
-	private static int sellItem(CommandContext context, ItemType item) {
+	private static int sellItem(CommandContext context, int count, ItemType item) {
 		Aftik aftik = context.getControlledAftik();
 		
-		if (aftik.hasItem(item)) {
+		if (aftik.getItemCount(item) >= count) {
 			if (item.getPrice() >= 0) {
-				return context.action(out -> {
-					if (aftik.removeItem(item)) {
-						int points = item.getPrice() * 3 / 4;
-						aftik.getCrew().addPoints(points);
-						
-						out.printFor(aftik, "%s sold a %s for %dp.", aftik.getName(), item.name(), points);
-					}
-				});
+				return context.action(out -> sellItems(aftik, count, item, out));
 			} else {
 				return context.printNoAction("The %s is not sellable.", item.name());
 			}
 		} else {
-			return context.printNoAction("%s does not have a %s.", aftik.getName(), item.name());
+			if (count == 1)
+				return context.printNoAction("%s does not have a %s.", aftik.getName(), item.name());
+			else
+				return context.printNoAction("%s does not have that many %ss.", aftik.getName(), item.name());
+		}
+	}
+	
+	private static void sellItems(Aftik aftik, int count, ItemType item, ActionPrinter out) {
+		int soldCount = 0;
+		int points = item.getPrice() * 3 / 4;
+		for (int i = 0; i < count; i++) {
+			if (aftik.removeItem(item)) {
+				aftik.getCrew().addPoints(points);
+				soldCount++;
+			}
+		}
+		// soldCount should match count, but due to limitations of the inventory interface, this method is used for the sake of robustness
+		if (soldCount > 0) {
+			if (soldCount == 1)
+				out.printFor(aftik, "%s sold a %s for %dp.", aftik.getName(), item.name(), points);
+			else
+				out.printFor(aftik, "%s sold %d %ss for %dp.", aftik.getName(), soldCount, item.name(), soldCount*points);
 		}
 	}
 	

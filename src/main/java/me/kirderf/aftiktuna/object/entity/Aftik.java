@@ -124,6 +124,14 @@ public final class Aftik extends Entity {
 		return type != null && (wielded == type || inventory.contains(type));
 	}
 	
+	public int getItemCount(ItemType item) {
+		int count = (int) inventory.stream().filter(invItem -> invItem == item).count();
+		if (item != null && wielded == item)
+			return count + 1;
+		else
+			return count;
+	}
+	
 	public void wieldFromInventory(WeaponType type, ActionPrinter out) {
 		if (type == wielded) {
 			out.printFor(this, "%s is already wielding a %s.", this.getName(), type.name());
