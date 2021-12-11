@@ -31,6 +31,10 @@ public final class StoreCommands {
 						.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 								.executes(context -> sellItem(context.getSource().inputContext(),
 										IntegerArgumentType.getInteger(context, "count"),
+										ObjectArgument.getType(context, "item", ItemType.class)))))
+				.then(literal("all")
+						.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+								.executes(context -> sellAll(context.getSource().inputContext(),
 										ObjectArgument.getType(context, "item", ItemType.class))))));
 		DISPATCHER.register(literal("exit").executes(context -> exit(context.getSource().inputContext)));
 		DISPATCHER.register(literal("help").executes(context -> printCommands(context.getSource())));
@@ -87,6 +91,15 @@ public final class StoreCommands {
 			});
 		} else {
 			return context.printNoAction("A %s is not in stock.", item.name());
+		}
+	}
+	
+	private static int sellAll(CommandContext context, ItemType item) {
+		int count = context.getControlledAftik().getItemCount(item);
+		if (count > 0) {
+			return sellItem(context, count, item);
+		} else {
+			return context.printNoAction("%s does not have a %s.", context.getControlledAftik().getName(), item.name());
 		}
 	}
 	
