@@ -14,5 +14,11 @@ public final class StreamUtils {
 				.map(Entry::element);
 	}
 	
-	private static record Entry<T>(T element, float randValue) {}
+	public static <T> Stream<T> sortedWithRandomTiebreaker(Stream<T> stream, Comparator<? super T> comparator) {
+		return stream.map(t -> new Entry<>(t, GameInstance.RANDOM.nextFloat()))
+				.sorted(Comparator.<Entry<T>, T>comparing(Entry::element, comparator).thenComparing(Entry::randValue, Float::compare))
+				.map(Entry::element);
+	}
+	
+	private record Entry<T>(T element, float randValue) {}
 }

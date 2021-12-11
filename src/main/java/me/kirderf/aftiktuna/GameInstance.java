@@ -15,6 +15,7 @@ import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.HealthTracker;
 import me.kirderf.aftiktuna.print.StatusPrinter;
+import me.kirderf.aftiktuna.util.StreamUtils;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
@@ -74,7 +75,9 @@ public final class GameInstance {
 			printPage(false);
 			
 			handleUserAction();
-			for (Entity entity : getGameObjectStream().flatMap(Entity.CAST.toStream()).toList()) {
+			for (Entity entity : StreamUtils.sortedWithRandomTiebreaker(
+					getGameObjectStream().flatMap(Entity.CAST.toStream()),
+					Entity.TURN_ORDER_COMPARATOR).toList()) {
 				if (entity.isAlive() && entity != getCrew().getAftik()) {
 					entity.performAction(actionOut);
 				}

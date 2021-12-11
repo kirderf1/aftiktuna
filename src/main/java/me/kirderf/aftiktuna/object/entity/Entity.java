@@ -23,6 +23,8 @@ import java.util.stream.Stream;
  */
 public abstract class Entity extends GameObject {
 	public static final OptionalFunction<GameObject, Entity> CAST = OptionalFunction.cast(Entity.class);
+	public static final Comparator<Entity> TURN_ORDER_COMPARATOR = Comparator.<Entity>comparingInt(entity -> entity.getStats().agility())
+			.thenComparing(entity -> entity.dodgingStamina).reversed();
 	
 	private final Stats stats;
 	private float health;
