@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.location;
 
 import me.kirderf.aftiktuna.object.Identifier;
-import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.object.type.ObjectType;
 
 public abstract class GameObject {
 	private final Identifier id = Identifier.newId();

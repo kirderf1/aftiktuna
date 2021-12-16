@@ -6,7 +6,7 @@ import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
-import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.type.ObjectType;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 import me.kirderf.aftiktuna.util.StreamUtils;

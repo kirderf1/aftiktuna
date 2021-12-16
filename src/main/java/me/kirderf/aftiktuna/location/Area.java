@@ -1,10 +1,10 @@
 package me.kirderf.aftiktuna.location;
 
-import me.kirderf.aftiktuna.object.CreatureType;
 import me.kirderf.aftiktuna.object.Item;
-import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
+import me.kirderf.aftiktuna.object.type.CreatureType;
+import me.kirderf.aftiktuna.object.type.ItemType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,8 +13,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class Area {
-	final String label;
-	final int length;
+	private final String label;
+	private final int length;
 	private final List<GameObject> objects = new ArrayList<>();
 	
 	Area(String label, int length) {

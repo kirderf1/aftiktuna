@@ -2,8 +2,8 @@ package me.kirderf.aftiktuna.object.door;
 
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 public final class DoorLockedProperty extends DoorProperty {
 	

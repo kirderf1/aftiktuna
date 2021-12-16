@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.action.result;
 
-import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.door.DoorPair;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
+import me.kirderf.aftiktuna.object.type.ObjectType;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;

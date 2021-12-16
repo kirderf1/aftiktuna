@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.location;
 
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 public final class Ship {

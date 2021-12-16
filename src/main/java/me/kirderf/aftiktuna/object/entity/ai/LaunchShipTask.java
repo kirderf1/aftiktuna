@@ -2,9 +2,9 @@ package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.location.Ship;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.object;
+package me.kirderf.aftiktuna.object.type;
 
 import me.kirderf.aftiktuna.location.GameObject;
 

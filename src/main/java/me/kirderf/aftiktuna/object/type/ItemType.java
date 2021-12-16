@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.object;
+package me.kirderf.aftiktuna.object.type;
 
 public class ItemType extends ObjectType {
 	private final int price;

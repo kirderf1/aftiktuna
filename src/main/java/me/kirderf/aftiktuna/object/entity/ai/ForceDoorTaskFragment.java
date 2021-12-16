@@ -2,10 +2,10 @@ package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.action.ForceDoorAction;
 import me.kirderf.aftiktuna.action.result.EnterResult;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.Reference;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;

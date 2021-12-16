@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.location;
 
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.door.DoorType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;

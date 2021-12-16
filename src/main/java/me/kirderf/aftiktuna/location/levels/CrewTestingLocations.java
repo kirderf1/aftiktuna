@@ -3,11 +3,11 @@ package me.kirderf.aftiktuna.location.levels;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.object.entity.Stats;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 @SuppressWarnings("unused")
 public final class CrewTestingLocations {

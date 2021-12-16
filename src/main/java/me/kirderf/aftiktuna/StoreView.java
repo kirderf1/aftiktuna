@@ -3,8 +3,8 @@ package me.kirderf.aftiktuna;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.store.StoreCommands;
-import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
+import me.kirderf.aftiktuna.object.type.ItemType;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 
 import java.io.PrintWriter;

@@ -1,6 +1,6 @@
 package me.kirderf.aftiktuna.object.door;
 
-import me.kirderf.aftiktuna.object.ObjectType;
+import me.kirderf.aftiktuna.object.type.ObjectType;
 
 public class DoorType extends ObjectType {
 	private final String categoryName;

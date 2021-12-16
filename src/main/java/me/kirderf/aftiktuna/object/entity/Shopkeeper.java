@@ -2,8 +2,8 @@ package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.object.ItemType;
-import me.kirderf.aftiktuna.object.ObjectTypes;
+import me.kirderf.aftiktuna.object.type.ItemType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.object;
+package me.kirderf.aftiktuna.object.type;
 
 import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Stats;

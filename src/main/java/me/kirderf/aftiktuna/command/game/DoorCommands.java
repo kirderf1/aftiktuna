@@ -5,10 +5,10 @@ import me.kirderf.aftiktuna.action.ForceDoorAction;
 import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.object.ObjectArgument;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 public final class DoorCommands {
 	static void register() {

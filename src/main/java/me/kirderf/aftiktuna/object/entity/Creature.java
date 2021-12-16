@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.object.CreatureType;
-import me.kirderf.aftiktuna.object.ObjectTypes;
+import me.kirderf.aftiktuna.object.type.CreatureType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 

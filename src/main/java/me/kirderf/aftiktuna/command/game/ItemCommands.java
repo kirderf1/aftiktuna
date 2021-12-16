@@ -3,10 +3,15 @@ package me.kirderf.aftiktuna.command.game;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
-import me.kirderf.aftiktuna.object.*;
+import me.kirderf.aftiktuna.object.Item;
+import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.ai.TakeItemsTask;
 import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
+import me.kirderf.aftiktuna.object.type.ItemType;
+import me.kirderf.aftiktuna.object.type.ObjectType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
+import me.kirderf.aftiktuna.object.type.WeaponType;
 
 import java.util.Optional;
 

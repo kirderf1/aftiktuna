@@ -2,8 +2,12 @@ package me.kirderf.aftiktuna.object.entity;
 
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.location.GameObject;
-import me.kirderf.aftiktuna.object.*;
+import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.entity.ai.AftikMind;
+import me.kirderf.aftiktuna.object.type.ItemType;
+import me.kirderf.aftiktuna.object.type.ObjectType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
+import me.kirderf.aftiktuna.object.type.WeaponType;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 

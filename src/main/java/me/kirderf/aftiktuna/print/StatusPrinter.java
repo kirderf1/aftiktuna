@@ -1,10 +1,10 @@
 package me.kirderf.aftiktuna.print;
 
 import me.kirderf.aftiktuna.Crew;
-import me.kirderf.aftiktuna.object.ObjectType;
-import me.kirderf.aftiktuna.object.WeaponType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Stats;
+import me.kirderf.aftiktuna.object.type.ObjectType;
+import me.kirderf.aftiktuna.object.type.WeaponType;
 
 import java.io.PrintWriter;
 import java.util.List;

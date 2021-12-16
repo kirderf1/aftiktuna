@@ -1,4 +1,4 @@
-package me.kirderf.aftiktuna.object;
+package me.kirderf.aftiktuna.object.type;
 
 public final class WeaponType extends ItemType {
 	private final int damageValue;

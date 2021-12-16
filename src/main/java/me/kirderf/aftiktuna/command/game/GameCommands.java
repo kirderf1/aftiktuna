@@ -10,12 +10,12 @@ import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
-import me.kirderf.aftiktuna.object.ObjectType;
-import me.kirderf.aftiktuna.object.ObjectTypes;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.ai.LaunchShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.RestTask;
+import me.kirderf.aftiktuna.object.type.ObjectType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 import java.util.Optional;
 

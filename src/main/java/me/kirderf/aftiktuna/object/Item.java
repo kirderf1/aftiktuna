@@ -1,6 +1,8 @@
 package me.kirderf.aftiktuna.object;
 
 import me.kirderf.aftiktuna.location.GameObject;
+import me.kirderf.aftiktuna.object.type.ItemType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 public final class Item extends GameObject {
