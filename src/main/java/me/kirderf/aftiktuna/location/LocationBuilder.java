@@ -1,12 +1,12 @@
 package me.kirderf.aftiktuna.location;
 
 import me.kirderf.aftiktuna.object.door.Door;
+import me.kirderf.aftiktuna.object.door.DoorPairInfo;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public final class LocationBuilder {
 	private final List<Area> areas = new ArrayList<>();
@@ -30,18 +30,18 @@ public final class LocationBuilder {
 	}
 	
 	public void markDoors(Position pos1, Position pos2, DoorProperty property) {
-		AtomicReference<DoorProperty> reference = new AtomicReference<>(property);
-		doorMap.get(pos1.area()).add(new DoorMark(pos1.coord(), pos2, reference));
-		doorMap.get(pos2.area()).add(new DoorMark(pos2.coord(), pos1, reference));
+		DoorPairInfo info = new DoorPairInfo(property);
+		doorMap.get(pos1.area()).add(new DoorMark(pos1.coord(), pos2, info));
+		doorMap.get(pos2.area()).add(new DoorMark(pos2.coord(), pos1, info));
 	}
 	
 	public void markPath(Position pos1, Position pos2) {
-		AtomicReference<DoorProperty> reference = new AtomicReference<>(DoorProperty.EMPTY);
-		pathMap.get(pos1.area()).add(new DoorMark(pos1.coord(), pos2, reference));
-		pathMap.get(pos2.area()).add(new DoorMark(pos2.coord(), pos1, reference));
+		DoorPairInfo info = new DoorPairInfo(DoorProperty.EMPTY);
+		pathMap.get(pos1.area()).add(new DoorMark(pos1.coord(), pos2, info));
+		pathMap.get(pos2.area()).add(new DoorMark(pos2.coord(), pos1, info));
 	}
 	
-	private static record DoorMark(int coord, Position destination, AtomicReference<DoorProperty> property) {}
+	private static record DoorMark(int coord, Position destination, DoorPairInfo info) {}
 	
 	public void createDoors(DoorType type1, Position pos1, DoorType type2, Position pos2) {
 		createDoors(type1, pos1, type2, pos2, DoorProperty.EMPTY);
@@ -93,7 +93,7 @@ public final class LocationBuilder {
 	}
 	
 	private static void addMarkedDoor(Area area, DoorType type, DoorMark rightPath) {
-		area.addObject(new Door(type, rightPath.destination, rightPath.property), rightPath.coord);
+		area.addObject(new Door(type, rightPath.destination, rightPath.info), rightPath.coord);
 	}
 	
 	private void verifyPosition(Position pos) {
