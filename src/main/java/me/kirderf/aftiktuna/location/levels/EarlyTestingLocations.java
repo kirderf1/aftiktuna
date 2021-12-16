@@ -4,8 +4,7 @@ import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
-import me.kirderf.aftiktuna.object.door.DoorSealedProperty;
-import me.kirderf.aftiktuna.object.door.DoorStuckProperty;
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
@@ -65,8 +64,8 @@ public final class EarlyTestingLocations {
 		Area sideRoom = builder.newTestRoom(3);
 		firstRoom.addItem(ObjectTypes.CROWBAR, 2);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 2);
-		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(1), DoorStuckProperty.INSTANCE);
-		builder.markDoors(firstRoom.getPosAt(3), sideRoom.getPosAt(0), DoorSealedProperty.INSTANCE);
+		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(1), DoorProperty.STUCK);
+		builder.markDoors(firstRoom.getPosAt(3), sideRoom.getPosAt(0), DoorProperty.SEALED);
 		secondRoom.addItem(ObjectTypes.BLOWTORCH, 0);
 		builder.markDoors(secondRoom.getPosAt(0), thirdRoom.getPosAt(0), DoorLockedProperty.INSTANCE);
 		thirdRoom.addItem(ObjectTypes.FUEL_CAN, 2);

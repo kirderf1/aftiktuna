@@ -4,8 +4,7 @@ import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
 import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
-import me.kirderf.aftiktuna.object.door.DoorSealedProperty;
-import me.kirderf.aftiktuna.object.door.DoorStuckProperty;
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.object.entity.Stats;
@@ -39,11 +38,11 @@ public final class Locations {
 		builder.createDoors(ObjectTypes.RIGHT_PATH, field.getPosAt(5), ObjectTypes.PATH, rightField.getPosAt(0));
 		rightField.addItem(ObjectTypes.KEYCARD, 3);
 		
-		builder.markDoors(entrance.getPosAt(1), sealedRoom.getPosAt(2), DoorSealedProperty.INSTANCE);
+		builder.markDoors(entrance.getPosAt(1), sealedRoom.getPosAt(2), DoorProperty.SEALED);
 		builder.markDoors(entrance.getPosAt(3), corridor1.getPosAt(0));
 		builder.markDoors(corridor1.getPosAt(2), room1.getPosAt(3));
 		builder.markDoors(corridor1.getPosAt(4), corridor2.getPosAt(0));
-		builder.markDoors(corridor2.getPosAt(2), room2.getPosAt(3), DoorStuckProperty.INSTANCE);
+		builder.markDoors(corridor2.getPosAt(2), room2.getPosAt(3), DoorProperty.STUCK);
 		builder.markDoors(corridor2.getPosAt(4), room3.getPosAt(0));
 		room1.addItem(ObjectTypes.CROWBAR, 1);
 		corridor1.addCreature(ObjectTypes.EYESAUR, 3);
@@ -72,7 +71,7 @@ public final class Locations {
 		
 		builder.markDoors(field.getPosAt(3), entrance.getPosAt(3));
 		builder.createDoors(ObjectTypes.LEFT_PATH, field.getPosAt(0), ObjectTypes.RIGHT_PATH, leftField.getPosAt(4));
-		builder.markDoors(leftField.getPosAt(0), sideEntrance.getPosAt(0), DoorStuckProperty.INSTANCE);
+		builder.markDoors(leftField.getPosAt(0), sideEntrance.getPosAt(0), DoorProperty.STUCK);
 		
 		builder.markDoors(entrance.getPosAt(0), corridor.getPosAt(0));
 		builder.markDoors(entrance.getPosAt(5), room1.getPosAt(0));
@@ -90,7 +89,7 @@ public final class Locations {
 		corridor.addCreature(ObjectTypes.EYESAUR, 1);
 		
 		builder.markDoors(sideEntrance.getPosAt(4), room3.getPosAt(0));
-		builder.markDoors(room3.getPosAt(3), storage.getPosAt(0), DoorSealedProperty.INSTANCE);
+		builder.markDoors(room3.getPosAt(3), storage.getPosAt(0), DoorProperty.SEALED);
 		room3.addItem(ObjectTypes.FUEL_CAN, 2);
 		storage.addItem(ObjectTypes.FUEL_CAN, 2);
 		storage.addItem(ObjectTypes.FUEL_CAN, 2);
@@ -125,7 +124,7 @@ public final class Locations {
 		rightPath2.addCreature(ObjectTypes.GOBLIN, 3);
 		
 		builder.markPath(leftPath.getPosAt(2), leftPath2.getPosAt(0));
-		builder.markDoors(leftPath.getPosAt(0), shack.getPosAt(3), DoorStuckProperty.INSTANCE);
+		builder.markDoors(leftPath.getPosAt(0), shack.getPosAt(3), DoorProperty.STUCK);
 		shack.addItem(ObjectTypes.ANCIENT_COIN, 0);
 		shack.addItem(ObjectTypes.FUEL_CAN, 0);
 		shack.addItem(ObjectTypes.FUEL_CAN, 1);
@@ -195,7 +194,7 @@ public final class Locations {
 		store.addObject(new Shopkeeper(ObjectTypes.FUEL_CAN, ObjectTypes.BAT, ObjectTypes.SWORD), 2);
 		
 		builder.createDoors(ObjectTypes.LEFT_PATH, villageRoad2.getPosAt(1), ObjectTypes.LEFT_PATH, sidePath.getPosAt(1));
-		builder.markDoors(villageRoad2.getPosAt(8), stuckHouse.getPosAt(0), DoorStuckProperty.INSTANCE);
+		builder.markDoors(villageRoad2.getPosAt(8), stuckHouse.getPosAt(0), DoorProperty.STUCK);
 		builder.markDoors(sidePath.getPosAt(7), guardedHouse.getPosAt(0));
 		stuckHouse.addItem(ObjectTypes.METEOR_CHUNK, 2);
 		stuckHouse.addItem(ObjectTypes.ANCIENT_COIN, 3);

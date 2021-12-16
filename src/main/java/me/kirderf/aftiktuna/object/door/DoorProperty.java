@@ -4,21 +4,25 @@ import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 
-public abstract class DoorProperty {
-	public static final DoorProperty EMPTY = new DoorProperty(ForceResult.Status.NOT_STUCK) {
-		@Override
-		public EnterResult checkEntry(Aftik aftik) {
-			return new EnterResult();
-		}
-	};
+public class DoorProperty {
+	public static final DoorProperty STUCK = new DoorProperty(EnterResult.FailureType.STUCK, ForceResult.Status.NEED_TOOL);
+	public static final DoorProperty SEALED = new DoorProperty(EnterResult.FailureType.SEALED, ForceResult.Status.NEED_BREAK_TOOL);
+	public static final DoorProperty EMPTY = new DoorProperty(null, ForceResult.Status.NOT_STUCK);
 	
+	private final EnterResult.FailureType entryFailure;
 	private final ForceResult.Status forceStatus;
 	
-	protected DoorProperty(ForceResult.Status forceStatus) {
+	protected DoorProperty(EnterResult.FailureType entryFailure, ForceResult.Status forceStatus) {
+		this.entryFailure = entryFailure;
 		this.forceStatus = forceStatus;
 	}
 	
-	public abstract EnterResult checkEntry(Aftik aftik);
+	public EnterResult checkEntry(Aftik aftik) {
+		if (entryFailure == null)
+			return new EnterResult();
+		else
+			return new EnterResult(entryFailure);
+	}
 	
 	public final ForceResult.PropertyResult tryForce(Aftik aftik) {
 		for (ForceResult.Method method : forceStatus.getAvailableMethods()) {
