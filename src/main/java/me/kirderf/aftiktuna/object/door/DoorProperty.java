@@ -8,15 +8,16 @@ import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 import java.util.List;
 
-public class DoorProperty {
+public final class DoorProperty {
 	public static final DoorProperty STUCK = new DoorProperty(FailureType.STUCK, Status.NEED_TOOL);
 	public static final DoorProperty SEALED = new DoorProperty(FailureType.SEALED, Status.NEED_BREAK_TOOL);
+	public static final DoorProperty LOCKED = new DoorProperty(FailureType.LOCKED, Status.NEED_BREAK_TOOL);
 	public static final DoorProperty EMPTY = new DoorProperty(null, Status.NOT_STUCK);
 	
 	private final FailureType entryFailure;
 	private final Status forceStatus;
 	
-	protected DoorProperty(FailureType entryFailure, Status forceStatus) {
+	private DoorProperty(FailureType entryFailure, Status forceStatus) {
 		this.entryFailure = entryFailure;
 		this.forceStatus = forceStatus;
 	}
@@ -24,11 +25,16 @@ public class DoorProperty {
 	public EnterResult checkEntry(Aftik aftik) {
 		if (entryFailure == null)
 			return new EnterResult();
-		else
-			return new EnterResult(entryFailure);
+		else {
+			if (aftik.hasItem(entryFailure.itemToPass)) {
+				return new EnterResult(entryFailure.itemToPass);
+			} else {
+				return new EnterResult(entryFailure);
+			}
+		}
 	}
 	
-	public final ForceResult.PropertyResult tryForce(Aftik aftik) {
+	public ForceResult.PropertyResult tryForce(Aftik aftik) {
 		for (Method method : forceStatus.getAvailableMethods()) {
 			if(aftik.hasItem(method.tool())) {
 				return ForceResult.success(method);
@@ -37,10 +43,14 @@ public class DoorProperty {
 		return ForceResult.status(forceStatus);
 	}
 	
-	public record FailureType(String adjective) {
+	public record FailureType(String adjective, ItemType itemToPass) {
 		public static final FailureType STUCK = new FailureType("stuck");
-		public static final FailureType LOCKED = new FailureType("locked");
+		public static final FailureType LOCKED = new FailureType("locked", ObjectTypes.KEYCARD);
 		public static final FailureType SEALED = new FailureType("sealed shut");
+		
+		public FailureType(String adjective) {
+			this(adjective, null);
+		}
 	}
 	
 	public record Method(ItemType tool, String text) {

@@ -3,7 +3,6 @@ package me.kirderf.aftiktuna.location.levels;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
-import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
@@ -34,7 +33,7 @@ public final class Locations {
 		Area room3 = builder.newArea("Room", 4);
 		Area sealedRoom = builder.newArea("Room", 4);
 		
-		builder.markDoors(field.getPosAt(2), entrance.getPosAt(5), DoorLockedProperty.INSTANCE);
+		builder.markDoors(field.getPosAt(2), entrance.getPosAt(5), DoorProperty.LOCKED);
 		builder.createDoors(ObjectTypes.RIGHT_PATH, field.getPosAt(5), ObjectTypes.PATH, rightField.getPosAt(0));
 		rightField.addItem(ObjectTypes.KEYCARD, 3);
 		

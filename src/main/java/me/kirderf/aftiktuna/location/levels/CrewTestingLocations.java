@@ -3,7 +3,7 @@ package me.kirderf.aftiktuna.location.levels;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
-import me.kirderf.aftiktuna.object.door.DoorLockedProperty;
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.object.entity.Stats;
@@ -15,7 +15,7 @@ public final class CrewTestingLocations {
 		LocationBuilder builder = new LocationBuilder();
 		Area firstRoom = builder.newTestRoom(4);
 		Area secondRoom = builder.newTestRoom(4);
-		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), DoorLockedProperty.INSTANCE);
+		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), DoorProperty.LOCKED);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 0);
 		firstRoom.addItem(ObjectTypes.BLOWTORCH, 0);
 		firstRoom.addCreature(ObjectTypes.EYESAUR, 3);
