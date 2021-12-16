@@ -1,9 +1,11 @@
 package me.kirderf.aftiktuna.location;
 
+import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.ObjectType;
 import me.kirderf.aftiktuna.object.entity.Entity;
 
 public abstract class GameObject {
+	private final Identifier id = Identifier.newId();
 	private final ObjectType type;
 	private final int weight;
 	
@@ -12,6 +14,10 @@ public abstract class GameObject {
 	public GameObject(ObjectType type, int weight) {
 		this.type = type;
 		this.weight = weight;
+	}
+	
+	public final Identifier getId() {
+		return id;
 	}
 	
 	public ObjectType getType() {

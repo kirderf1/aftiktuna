@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.location;
 
 import me.kirderf.aftiktuna.object.CreatureType;
+import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.ItemType;
 import me.kirderf.aftiktuna.object.entity.Creature;
@@ -66,6 +67,10 @@ public final class Area {
 		int start = Math.min(from, to), end = Math.max(from, to);
 		return objects.stream().sorted(byProximity(from)).filter(object -> object.isBlocking(entity))
 				.filter(object -> start <= object.getCoord() && object.getCoord() <= end).findFirst();
+	}
+	
+	public Optional<GameObject> findById(Identifier id) {
+		return objects.stream().filter(obj -> obj.getId().equals(id)).findAny();
 	}
 	
 	public void removeObject(GameObject object) {
