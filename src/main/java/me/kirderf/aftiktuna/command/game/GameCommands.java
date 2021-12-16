@@ -12,6 +12,7 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
+import me.kirderf.aftiktuna.object.entity.ai.EnterShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.LaunchShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.RestTask;
 import me.kirderf.aftiktuna.object.type.ObjectType;
@@ -100,7 +101,7 @@ public final class GameCommands {
 	}
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
-		return aftik.getArea() == ship.getRoom() || LaunchShipTask.findPathTowardsShip(aftik, ship).isPresent();
+		return aftik.getArea() == ship.getRoom() || EnterShipTask.findPathTowardsShip(aftik, ship).isPresent();
 	}
 	
 	private static int controlAftik(CommandContext context, String name) {
