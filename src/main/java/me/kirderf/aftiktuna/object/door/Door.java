@@ -41,11 +41,9 @@ public final class Door extends GameObject {
 	public String getViewLabel(Aftik aftik) {
 		String name = super.getViewLabel(aftik);
 		
-		DoorProperty.FailureType entryType = aftik.getMind().getMemory().getObservedProperty(this).getEntryFailure();
-		if (entryType != null)
-			return name + " (%s)".formatted(entryType.adjective());
-		else
-			return name;
+		return aftik.getMind().getMemory().getObservedProperty(this).getAdjective()
+				.map(adjective -> name + " (%s)".formatted(adjective))
+				.orElse(name);
 	}
 	
 	public EnterResult enter(Aftik aftik) {

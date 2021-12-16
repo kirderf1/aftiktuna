@@ -7,23 +7,28 @@ import me.kirderf.aftiktuna.object.type.ItemType;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 import java.util.List;
+import java.util.Optional;
 
 public final class DoorProperty {
-	public static final DoorProperty STUCK = new DoorProperty(FailureType.STUCK, Status.NEED_TOOL);
-	public static final DoorProperty SEALED = new DoorProperty(FailureType.SEALED, Status.NEED_BREAK_TOOL);
-	public static final DoorProperty LOCKED = new DoorProperty(FailureType.LOCKED, Status.NEED_BREAK_TOOL);
+	public static final DoorProperty STUCK = new DoorProperty(new EntryBlockingInfo("stuck"), Status.NEED_TOOL);
+	public static final DoorProperty SEALED = new DoorProperty(new EntryBlockingInfo("sealed shut"), Status.NEED_BREAK_TOOL);
+	public static final DoorProperty LOCKED = new DoorProperty(new EntryBlockingInfo("locked", ObjectTypes.KEYCARD), Status.NEED_BREAK_TOOL);
 	public static final DoorProperty EMPTY = new DoorProperty(null, Status.NOT_STUCK);
 	
-	private final FailureType entryFailure;
+	private final EntryBlockingInfo entryFailure;
 	private final Status forceStatus;
 	
-	private DoorProperty(FailureType entryFailure, Status forceStatus) {
+	private DoorProperty(EntryBlockingInfo entryFailure, Status forceStatus) {
 		this.entryFailure = entryFailure;
 		this.forceStatus = forceStatus;
 	}
 	
-	public FailureType getEntryFailure() {
-		return entryFailure;
+	public Optional<String> getAdjective() {
+		return Optional.ofNullable(entryFailure).map(EntryBlockingInfo::adjective);
+	}
+	
+	public List<Method> relevantForceMethods() {
+		return forceStatus.getAvailableMethods();
 	}
 	
 	public EnterResult checkEntry(Aftik aftik) {
@@ -47,12 +52,8 @@ public final class DoorProperty {
 		return ForceResult.status(forceStatus);
 	}
 	
-	public record FailureType(String adjective, ItemType itemToPass) {
-		public static final FailureType STUCK = new FailureType("stuck");
-		public static final FailureType LOCKED = new FailureType("locked", ObjectTypes.KEYCARD);
-		public static final FailureType SEALED = new FailureType("sealed shut");
-		
-		public FailureType(String adjective) {
+	private record EntryBlockingInfo(String adjective, ItemType itemToPass) {
+		private EntryBlockingInfo(String adjective) {
 			this(adjective, null);
 		}
 	}
