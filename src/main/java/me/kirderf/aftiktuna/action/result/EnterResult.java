@@ -1,11 +1,12 @@
 package me.kirderf.aftiktuna.action.result;
 
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.type.ObjectType;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 
-public record EnterResult(Either<Success, FailureType> either) {
+public record EnterResult(Either<Success, DoorProperty.FailureType> either) {
 	public EnterResult(ObjectType usedItem) {
 		this(Either.left(new Success(Optional.of(usedItem))));
 	}
@@ -14,7 +15,7 @@ public record EnterResult(Either<Success, FailureType> either) {
 		this(Either.left(new Success(Optional.empty())));
 	}
 	
-	public EnterResult(FailureType failure) {
+	public EnterResult(DoorProperty.FailureType failure) {
 		this(Either.right(failure));
 	}
 	
@@ -22,11 +23,6 @@ public record EnterResult(Either<Success, FailureType> either) {
 		return either.isLeft();
 	}
 	
-	public static record Success(Optional<ObjectType> usedItem) {}
+	public record Success(Optional<ObjectType> usedItem) {}
 	
-	public record FailureType(String adjective) {
-		public static final EnterResult.FailureType STUCK = new EnterResult.FailureType("stuck");
-		public static final EnterResult.FailureType LOCKED = new EnterResult.FailureType("locked");
-		public static final EnterResult.FailureType SEALED = new EnterResult.FailureType("sealed shut");
-	}
 }

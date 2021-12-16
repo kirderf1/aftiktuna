@@ -1,9 +1,9 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.action.ForceDoorAction;
-import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.object.Reference;
 import me.kirderf.aftiktuna.object.door.Door;
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
@@ -27,8 +27,8 @@ public final class ForceDoorTaskFragment {
 	}
 	
 	private boolean canForceDoor(Aftik aftik, Door door) {
-		EnterResult.FailureType failureType = aftik.getMind().getMemory().getObservedFailureType(door);
-		if (failureType == EnterResult.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
+		DoorProperty.FailureType failureType = aftik.getMind().getMemory().getObservedFailureType(door);
+		if (failureType == DoorProperty.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
 			return true;
 		else
 			return aftik.hasItem(ObjectTypes.BLOWTORCH);

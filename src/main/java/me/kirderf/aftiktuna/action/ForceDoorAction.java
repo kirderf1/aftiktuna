@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna.action;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorPair;
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
@@ -29,7 +30,7 @@ public final class ForceDoorAction {
 		out.printAt(pair.destination(), "A %s was %s from the other side.", pair.targetDoor().getType().getCategoryName(), result.method().text());
 	}
 	
-	private static void printForceStatus(ActionPrinter out, Aftik aftik, Door door, ForceResult.Status status) {
+	private static void printForceStatus(ActionPrinter out, Aftik aftik, Door door, DoorProperty.Status status) {
 		switch(status) {
 			case NOT_STUCK -> out.printFor(aftik, "The %s does not seem to be stuck.", door.getType().getCategoryName());
 			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the %s open.", aftik.getName(), door.getType().getCategoryName());

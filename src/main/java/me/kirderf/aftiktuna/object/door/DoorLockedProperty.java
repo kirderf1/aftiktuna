@@ -1,7 +1,6 @@
 package me.kirderf.aftiktuna.object.door;
 
 import me.kirderf.aftiktuna.action.result.EnterResult;
-import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
@@ -9,7 +8,7 @@ public final class DoorLockedProperty extends DoorProperty {
 	public static final DoorProperty INSTANCE = new DoorLockedProperty();
 	
 	private DoorLockedProperty() {
-		super(EnterResult.FailureType.LOCKED, ForceResult.Status.NEED_BREAK_TOOL);
+		super(DoorProperty.FailureType.LOCKED, DoorProperty.Status.NEED_BREAK_TOOL);
 	}
 	
 	@Override

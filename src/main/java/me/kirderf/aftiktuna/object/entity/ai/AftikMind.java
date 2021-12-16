@@ -3,6 +3,7 @@ package me.kirderf.aftiktuna.object.entity.ai;
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.door.Door;
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
@@ -39,7 +40,7 @@ public final class AftikMind {
 		result.propertyResult().either().run(
 				success -> memory.observeDoorForceSuccess(door),
 				status -> {
-					if (status == ForceResult.Status.NOT_STUCK)
+					if (status == DoorProperty.Status.NOT_STUCK)
 						memory.observeDoorForceSuccess(door);
 				});
 	}
