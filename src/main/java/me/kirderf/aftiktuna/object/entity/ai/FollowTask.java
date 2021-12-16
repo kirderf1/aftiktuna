@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.action.result.EnterResult;
+import me.kirderf.aftiktuna.object.Reference;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
@@ -16,7 +17,7 @@ public final class FollowTask extends StaticTask {
 	private FollowTarget followTarget;
 	private ForceDoorTaskFragment forceFragment;
 	
-	private record FollowTarget(Door door, Aftik aftik) {}
+	private record FollowTarget(Reference<Door> door, Reference<Aftik> aftik) {}
 	
 	public FollowTask(Aftik aftik) {
 		this.aftik = aftik;
@@ -25,7 +26,7 @@ public final class FollowTask extends StaticTask {
 	@Override
 	public boolean performAction(ActionPrinter out) {
 		if (followTarget != null &&
-				(followTarget.door.getArea() != this.aftik.getArea() || followTarget.aftik.getArea() == this.aftik.getArea())) {
+				(!followTarget.door.isIn(this.aftik.getArea()) || followTarget.aftik.isIn(this.aftik.getArea()))) {
 			followTarget = null;
 			forceFragment = null;
 			return false;
@@ -41,11 +42,11 @@ public final class FollowTask extends StaticTask {
 				return false;
 			}
 		} else if (followTarget != null) {
-			
-			EnterDoorAction.Result result = EnterDoorAction.moveAndEnter(aftik, followTarget.door, followTarget.aftik, out);
+			Door door = followTarget.door.getOrThrow(aftik.getArea());
+			EnterDoorAction.Result result = EnterDoorAction.moveAndEnter(aftik, door, followTarget.aftik.getOrThrow(aftik.getArea()), out);
 			
 			result.optional().flatMap(enterResult -> enterResult.either().getRight())
-					.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(followTarget.door, failureType),
+					.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(door, failureType),
 							() -> followTarget = null);
 			
 			return true;
@@ -57,7 +58,7 @@ public final class FollowTask extends StaticTask {
 	@Override
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
 		if (aftik == aftik.getCrew().getAftik() && result.success()) {
-			this.followTarget = new FollowTarget(door, aftik);
+			this.followTarget = new FollowTarget(new Reference<>(door, Door.class), new Reference<>(aftik, Aftik.class));
 		}
 	}
 }
