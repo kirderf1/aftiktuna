@@ -9,6 +9,7 @@ public final class DoorLockedProperty extends DoorProperty {
 	public static final DoorProperty INSTANCE = new DoorLockedProperty();
 	
 	private DoorLockedProperty() {
+		super(ForceResult.Status.NEED_BREAK_TOOL);
 	}
 	
 	@Override
@@ -17,15 +18,6 @@ public final class DoorLockedProperty extends DoorProperty {
 			return new EnterResult(ObjectTypes.KEYCARD);
 		} else {
 			return new EnterResult(EnterResult.FailureType.LOCKED);
-		}
-	}
-	
-	@Override
-	public ForceResult.PropertyResult tryForce(Aftik aftik) {
-		if(aftik.hasItem(ForceResult.Method.CUT.tool())) {
-			return ForceResult.success(ForceResult.Method.CUT);
-		} else {
-			return ForceResult.status(ForceResult.Status.NEED_BREAK_TOOL);
 		}
 	}
 }

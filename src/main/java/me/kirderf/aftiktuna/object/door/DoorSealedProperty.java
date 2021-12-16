@@ -8,19 +8,11 @@ public final class DoorSealedProperty extends DoorProperty {
 	public static final DoorProperty INSTANCE = new DoorSealedProperty();
 	
 	private DoorSealedProperty() {
+		super(ForceResult.Status.NEED_BREAK_TOOL);
 	}
 	
 	@Override
 	public EnterResult checkEntry(Aftik aftik) {
 		return new EnterResult(EnterResult.FailureType.SEALED);
-	}
-	
-	@Override
-	public ForceResult.PropertyResult tryForce(Aftik aftik) {
-		if(aftik.hasItem(ForceResult.Method.CUT.tool())) {
-			return ForceResult.success(ForceResult.Method.CUT);
-		} else {
-			return ForceResult.status(ForceResult.Status.NEED_BREAK_TOOL);
-		}
 	}
 }

@@ -6,6 +6,7 @@ import me.kirderf.aftiktuna.object.type.ItemType;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.util.Either;
 
+import java.util.List;
 import java.util.Optional;
 
 public record ForceResult(DoorPair pair, PropertyResult propertyResult) {
@@ -33,8 +34,18 @@ public record ForceResult(DoorPair pair, PropertyResult propertyResult) {
 	}
 	
 	public enum Status {
-		NEED_TOOL,
-		NEED_BREAK_TOOL,
-		NOT_STUCK
+		NEED_TOOL(Method.FORCE, Method.CUT),
+		NEED_BREAK_TOOL(Method.CUT),
+		NOT_STUCK;
+		
+		private final List<Method> availableMethods;
+		
+		Status(Method... availableMethods) {
+			this.availableMethods = List.of(availableMethods);
+		}
+		
+		public List<Method> getAvailableMethods() {
+			return availableMethods;
+		}
 	}
 }

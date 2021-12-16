@@ -8,19 +8,10 @@ public final class DoorStuckProperty extends DoorProperty {
 	public static final DoorProperty INSTANCE = new DoorStuckProperty();
 	
 	private DoorStuckProperty() {
+		super(ForceResult.Status.NEED_TOOL);
 	}
 	
 	public EnterResult checkEntry(Aftik aftik) {
 		return new EnterResult(EnterResult.FailureType.STUCK);
-	}
-	
-	public ForceResult.PropertyResult tryForce(Aftik aftik) {
-		if(aftik.hasItem(ForceResult.Method.FORCE.tool())) {
-			return ForceResult.success(ForceResult.Method.FORCE);
-		} else if(aftik.hasItem(ForceResult.Method.CUT.tool())) {
-			return ForceResult.success(ForceResult.Method.CUT);
-		} else {
-			return ForceResult.status(ForceResult.Status.NEED_TOOL);
-		}
 	}
 }
