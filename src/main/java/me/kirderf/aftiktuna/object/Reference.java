@@ -1,9 +1,11 @@
 package me.kirderf.aftiktuna.object;
 
+import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public final class Reference<T extends GameObject> {
 	
@@ -16,7 +18,11 @@ public final class Reference<T extends GameObject> {
 	}
 	
 	public Optional<T> find(Area area) {
-		return area.objectStream().filter(obj -> obj.getId().equals(id)).findAny().map(clazz::cast);
+		return find(area.objectStream());
+	}
+	
+	public Optional<T> find(Stream<? extends GameObject> stream) {
+		return stream.filter(obj -> obj.getId().equals(id)).findAny().map(clazz::cast);
 	}
 	
 	public boolean isIn(Area area) {
@@ -25,5 +31,9 @@ public final class Reference<T extends GameObject> {
 	
 	public T getOrThrow(Area area) {
 		return find(area).orElseThrow();
+	}
+	
+	public T getOrThrow(Crew crew) {
+		return find(crew.getCrewMembers().stream()).orElseThrow();
 	}
 }
