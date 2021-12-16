@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.location;
 
 import me.kirderf.aftiktuna.object.Identifier;
+import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.object.type.ObjectType;
 
@@ -26,6 +27,10 @@ public abstract class GameObject {
 	
 	public boolean hasCustomName() {
 		return false;
+	}
+	
+	public String getViewLabel(Aftik aftik) {
+		return getDisplayName(false, true);
 	}
 	
 	public char getDisplaySymbol() {

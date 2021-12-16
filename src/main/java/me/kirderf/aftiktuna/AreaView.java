@@ -5,10 +5,10 @@ import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.game.GameCommands;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
+import me.kirderf.aftiktuna.object.entity.Aftik;
 
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class AreaView extends GameView {
 	private final GameInstance game;
@@ -24,25 +24,25 @@ public final class AreaView extends GameView {
 	
 	@Override
 	public void printView(PrintWriter out) {
-		Area area = game.getCrew().getAftik().getArea();
+		Aftik aftik = game.getCrew().getAftik();
+		Area area = aftik.getArea();
 		
 		Map<GameObject, Character> symbolTable = new HashMap<>();
 		Map<Character, String> nameTable = new HashMap<>();
 		
-		buildTables(area, symbolTable, nameTable);
+		buildTables(aftik, area, symbolTable, nameTable);
 		
 		printAreaMap(area, symbolTable, out);
 		printObjectLabels(nameTable, out);
 	}
 	
-	private static void buildTables(Area area, Map<GameObject, Character> symbolTable, Map<Character, String> nameTable) {
+	private static void buildTables(Aftik aftik, Area area, Map<GameObject, Character> symbolTable, Map<Character, String> nameTable) {
 		
 		char spareSymbol = '0';
 		for (GameObject object : area.objectStream()
-				.sorted(Comparator.comparing(GameObject::hasCustomName, Boolean::compareTo))	//Let objects without a custom name get chars first
-				.collect(Collectors.toList())) {
+				.sorted(Comparator.comparing(GameObject::hasCustomName, Boolean::compareTo)).toList()) {	//Let objects without a custom name get chars first
 			char symbol = object.getDisplaySymbol();
-			String name = object.getDisplayName(false, true);
+			String name = object.getViewLabel(aftik);
 			if (nameTable.containsKey(symbol) && !name.equals(nameTable.get(symbol)))
 				symbol = spareSymbol++;
 			
