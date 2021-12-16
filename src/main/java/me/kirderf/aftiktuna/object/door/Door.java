@@ -26,7 +26,7 @@ public final class Door extends GameObject {
 			throw new IllegalArgumentException("Invalid door type %s".formatted(type.name()));
 	}
 	
-	public Identifier getPairId() {
+	public Identifier<DoorPairInfo> getPairId() {
 		return pairInfo.getId();
 	}
 	

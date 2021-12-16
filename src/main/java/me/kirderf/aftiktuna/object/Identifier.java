@@ -2,11 +2,11 @@ package me.kirderf.aftiktuna.object;
 
 import java.util.Objects;
 
-public final class Identifier {
+public final class Identifier<T> {
 	private static int nextId;
 	
-	public static Identifier newId() {
-		return new Identifier(nextId++);
+	public static <T> Identifier<T> newId() {
+		return new Identifier<>(nextId++);
 	}
 	
 	private final int id;
@@ -24,7 +24,7 @@ public final class Identifier {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Identifier identifier = (Identifier) o;
+		Identifier<?> identifier = (Identifier<?>) o;
 		return id == identifier.id;
 	}
 	

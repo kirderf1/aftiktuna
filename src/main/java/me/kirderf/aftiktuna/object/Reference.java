@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 public final class Reference<T extends GameObject> {
 	
-	private final Identifier id;
+	private final Identifier<GameObject> id;
 	private final Class<T> clazz;
 	
 	public Reference(T object, Class<T> clazz) {

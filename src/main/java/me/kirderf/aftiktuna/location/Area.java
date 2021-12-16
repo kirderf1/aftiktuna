@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class Area {
-	private final Identifier id = Identifier.newId();
+	private final Identifier<Area> id = Identifier.newId();
 	private final String label;
 	private final int length;
 	private final List<GameObject> objects = new ArrayList<>();
@@ -24,7 +24,7 @@ public final class Area {
 		this.length = length;
 	}
 	
-	public Identifier getId() {
+	public Identifier<Area> getId() {
 		return id;
 	}
 	

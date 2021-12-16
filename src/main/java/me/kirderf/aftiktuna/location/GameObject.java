@@ -6,7 +6,7 @@ import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.object.type.ObjectType;
 
 public abstract class GameObject {
-	private final Identifier id = Identifier.newId();
+	private final Identifier<GameObject> id = Identifier.newId();
 	private final ObjectType type;
 	private final int weight;
 	
@@ -17,7 +17,7 @@ public abstract class GameObject {
 		this.weight = weight;
 	}
 	
-	public final Identifier getId() {
+	public final Identifier<GameObject> getId() {
 		return id;
 	}
 	

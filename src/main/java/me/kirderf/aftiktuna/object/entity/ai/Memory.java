@@ -4,6 +4,7 @@ import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.Reference;
 import me.kirderf.aftiktuna.object.door.Door;
+import me.kirderf.aftiktuna.object.door.DoorPairInfo;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 
 import java.util.HashMap;
@@ -11,8 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class Memory {
-	private final Map<Identifier, AreaMemory> areaMap = new HashMap<>();
-	private final Map<Identifier, DoorProperty> observedDoorProperties = new HashMap<>();
+	private final Map<Identifier<Area>, AreaMemory> areaMap = new HashMap<>();
+	private final Map<Identifier<DoorPairInfo>, DoorProperty> observedDoorProperties = new HashMap<>();
 	
 	private AreaMemory getOrCreateMemory(Area area) {
 		return areaMap.computeIfAbsent(area.getId(), AreaMemory::new);
@@ -22,7 +23,7 @@ public final class Memory {
 		observedDoorProperties.put(door.getPairId(), property);
 	}
 	
-	public void observeNewConnection(Area area1, Area area2, Identifier doorPairId) {
+	public void observeNewConnection(Area area1, Area area2, Identifier<DoorPairInfo> doorPairId) {
 		registerPath(area1, area2, doorPairId);
 		registerPath(area2, area1, doorPairId);
 	}
@@ -31,12 +32,12 @@ public final class Memory {
 		return observedDoorProperties.getOrDefault(door.getPairId(), DoorProperty.EMPTY);
 	}
 	
-	public Optional<Door> findDoorTowards(Area fromArea, Identifier toArea) {
+	public Optional<Door> findDoorTowards(Area fromArea, Identifier<Area> toArea) {
 		return getOrCreateMemory(fromArea).getDirectionTo(toArea)
 				.map(AreaDirection::doorRef).flatMap(ref -> ref.find(fromArea));
 	}
 	
-	public void registerPath(Area areaFrom, Area areaTo, Identifier doorPairId) {
+	public void registerPath(Area areaFrom, Area areaTo, Identifier<DoorPairInfo> doorPairId) {
 		AreaMemory fromMemory = getOrCreateMemory(areaFrom);
 		AreaMemory destMemory = getOrCreateMemory(areaTo);
 		Door door = areaFrom.objectStream().flatMap(Door.CAST.toStream()).filter(door_ -> door_.getPairId().equals(doorPairId)).findAny().orElseThrow();
@@ -45,7 +46,7 @@ public final class Memory {
 		for (AreaMemory areaMemory : areaMap.values()) {
 			areaMemory.replicatePath(areaTo.getId(), areaFrom.getId(), 1);
 		}
-		for (Map.Entry<Identifier, AreaDirection> entry : destMemory.directionMap.entrySet()) {
+		for (Map.Entry<Identifier<Area>, AreaDirection> entry : destMemory.directionMap.entrySet()) {
 			fromMemory.replicatePath(entry.getKey(), areaTo.getId(), entry.getValue().distance());
 			for (AreaMemory areaMemory : areaMap.values()) {
 				areaMemory.replicatePath(entry.getKey(), areaFrom.getId(), entry.getValue().distance() + 1);
@@ -54,21 +55,21 @@ public final class Memory {
 	}
 	
 	private static final class AreaMemory {
-		private final Identifier areaId;
-		private final Map<Identifier, AreaDirection> directionMap = new HashMap<>();
+		private final Identifier<Area> areaId;
+		private final Map<Identifier<Area>, AreaDirection> directionMap = new HashMap<>();
 		
-		private AreaMemory(Identifier areaId) {
+		private AreaMemory(Identifier<Area> areaId) {
 			this.areaId = areaId;
 		}
 		
-		private void replicatePath(Identifier newArea, Identifier replicatedArea, int extraDistance) {
+		private void replicatePath(Identifier<Area> newArea, Identifier<Area> replicatedArea, int extraDistance) {
 			if (directionMap.containsKey(replicatedArea)) {
 				AreaDirection direction = directionMap.get(replicatedArea);
 				update(newArea, new AreaDirection(direction.doorRef, direction.distance + extraDistance));
 			}
 		}
 		
-		private void update(Identifier area, AreaDirection direction) {
+		private void update(Identifier<Area> area, AreaDirection direction) {
 			if (area.equals(this.areaId))
 				return;
 			
@@ -77,7 +78,7 @@ public final class Memory {
 				directionMap.put(area, direction);
 		}
 		
-		private Optional<AreaDirection> getDirectionTo(Identifier targetArea) {
+		private Optional<AreaDirection> getDirectionTo(Identifier<Area> targetArea) {
 			return Optional.ofNullable(directionMap.get(targetArea));
 		}
 		
