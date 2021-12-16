@@ -22,14 +22,18 @@ public final class DoorProperty {
 		this.forceStatus = forceStatus;
 	}
 	
+	public FailureType getEntryFailure() {
+		return entryFailure;
+	}
+	
 	public EnterResult checkEntry(Aftik aftik) {
 		if (entryFailure == null)
-			return new EnterResult();
+			return EnterResult.success(this);
 		else {
 			if (aftik.hasItem(entryFailure.itemToPass)) {
-				return new EnterResult(entryFailure.itemToPass);
+				return EnterResult.success(this, entryFailure.itemToPass);
 			} else {
-				return new EnterResult(entryFailure);
+				return EnterResult.failure(this, entryFailure.adjective);
 			}
 		}
 	}

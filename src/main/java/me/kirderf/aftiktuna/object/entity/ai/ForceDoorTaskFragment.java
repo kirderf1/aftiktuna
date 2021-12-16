@@ -27,7 +27,7 @@ public final class ForceDoorTaskFragment {
 	}
 	
 	private boolean canForceDoor(Aftik aftik, Door door) {
-		DoorProperty.FailureType failureType = aftik.getMind().getMemory().getObservedFailureType(door);
+		DoorProperty.FailureType failureType = aftik.getMind().getMemory().getObservedProperty(door).getEntryFailure();
 		if (failureType == DoorProperty.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
 			return true;
 		else

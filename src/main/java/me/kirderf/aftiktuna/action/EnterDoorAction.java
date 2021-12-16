@@ -37,7 +37,7 @@ public final class EnterDoorAction {
 	
 	private static void printEnterResult(ActionPrinter out, Aftik aftik, Door door, EnterResult result) {
 		result.either().run(success -> printEnterSuccess(out, aftik, door, success),
-				failureType -> out.printFor(aftik, "The %s is %s.", door.getType().getCategoryName(), failureType.adjective()));
+				adjective -> out.printFor(aftik, "The %s is %s.", door.getType().getCategoryName(), adjective));
 	}
 	
 	private static void printEnterSuccess(ActionPrinter out, Aftik aftik, Door door, EnterResult.Success result) {

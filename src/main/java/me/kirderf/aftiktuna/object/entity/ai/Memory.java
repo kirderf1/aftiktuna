@@ -15,19 +15,15 @@ public final class Memory {
 		return areaMap.computeIfAbsent(area.getId(), id -> new AreaMemory());
 	}
 	
-	public void observeDoorEntryFailure(Door door, DoorProperty.FailureType failure) {
-		getOrCreateMemory(door.getArea()).observedDoorFailures.put(door.getId(), failure);
+	public void observeDoorProperty(Door door, DoorProperty property) {
+		getOrCreateMemory(door.getArea()).observedDoorProperties.put(door.getId(), property);
 	}
 	
-	public void observeDoorForceSuccess(Door door) {
-		getOrCreateMemory(door.getArea()).observedDoorFailures.remove(door.getId());
-	}
-	
-	public DoorProperty.FailureType getObservedFailureType(Door door) {
-		return getOrCreateMemory(door.getArea()).observedDoorFailures.get(door.getId());
+	public DoorProperty getObservedProperty(Door door) {
+		return getOrCreateMemory(door.getArea()).observedDoorProperties.get(door.getId());
 	}
 	
 	private static final class AreaMemory {
-		private final Map<Identifier, DoorProperty.FailureType> observedDoorFailures = new HashMap<>();
+		private final Map<Identifier, DoorProperty> observedDoorProperties = new HashMap<>();
 	}
 }

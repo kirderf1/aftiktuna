@@ -31,17 +31,17 @@ public final class AftikMind {
 	}
 	
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		result.either().getRight().ifPresent(failureType -> memory.observeDoorEntryFailure(door, failureType));
+		memory.observeDoorProperty(door, result.property());
 		
 		staticTasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
 	}
 	
 	public void observeForcedDoor(Door door, ForceResult result) {
 		result.propertyResult().either().run(
-				success -> memory.observeDoorForceSuccess(door),
+				success -> memory.observeDoorProperty(door, success.newProperty()),
 				status -> {
 					if (status == DoorProperty.Status.NOT_STUCK)
-						memory.observeDoorForceSuccess(door);
+						memory.observeDoorProperty(door, DoorProperty.EMPTY);
 				});
 	}
 	
