@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.location;
 
+import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.Entity;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public final class Area {
+	private final Identifier id = Identifier.newId();
 	private final String label;
 	private final int length;
 	private final List<GameObject> objects = new ArrayList<>();
@@ -20,6 +22,10 @@ public final class Area {
 	Area(String label, int length) {
 		this.label = label;
 		this.length = length;
+	}
+	
+	public Identifier getId() {
+		return id;
 	}
 	
 	public int getLength() {

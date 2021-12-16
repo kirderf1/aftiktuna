@@ -12,24 +12,23 @@ import java.util.Optional;
 
 public final class ForceDoorTaskFragment {
 	private final Reference<Door> doorRef;
-	private final EnterResult.FailureType failure;
 	
-	public ForceDoorTaskFragment(Door door, EnterResult.FailureType failure) {
+	public ForceDoorTaskFragment(Door door) {
 		this.doorRef = new Reference<>(door, Door.class);
-		this.failure = failure;
 	}
 	
 	public boolean performAction(Aftik aftik, ActionPrinter out) {
 		Optional<Door> doorOptional = doorRef.find(aftik.getArea());
-		if (doorOptional.isPresent() && canForceDoor(aftik)) {
+		if (doorOptional.isPresent() && canForceDoor(aftik, doorOptional.get())) {
 			ForceDoorAction.moveAndForce(aftik, doorOptional.get(), out);
 			return true;
 		} else
 			return false;
 	}
 	
-	private boolean canForceDoor(Aftik aftik) {
-		if (failure == EnterResult.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
+	private boolean canForceDoor(Aftik aftik, Door door) {
+		EnterResult.FailureType failureType = aftik.getMind().getMemory().getObservedFailureType(door);
+		if (failureType == EnterResult.FailureType.STUCK && aftik.hasItem(ObjectTypes.CROWBAR))
 			return true;
 		else
 			return aftik.hasItem(ObjectTypes.BLOWTORCH);

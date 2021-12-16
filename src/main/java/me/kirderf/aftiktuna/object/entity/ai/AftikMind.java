@@ -1,6 +1,7 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.action.result.EnterResult;
+import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public final class AftikMind {
 	private final Aftik aftik;
+	private final Memory memory = new Memory();
 	
 	private final List<StaticTask> staticTasks;
 	private Task playerTask;
@@ -23,8 +25,23 @@ public final class AftikMind {
 		return playerTask != null;
 	}
 	
+	public Memory getMemory() {
+		return memory;
+	}
+	
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
+		result.either().getRight().ifPresent(failureType -> memory.observeDoorEntryFailure(door, failureType));
+		
 		staticTasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
+	}
+	
+	public void observeForcedDoor(Door door, ForceResult result) {
+		result.propertyResult().either().run(
+				success -> memory.observeDoorForceSuccess(door),
+				status -> {
+					if (status == ForceResult.Status.NOT_STUCK)
+						memory.observeDoorForceSuccess(door);
+				});
 	}
 	
 	public void setAndPerformPlayerTask(Task task, ActionPrinter out) {

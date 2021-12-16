@@ -28,6 +28,6 @@ public final class ForceDoorTask extends StaticTask {
 	
 	@Override
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		result.either().getRight().ifPresent(failureType -> forceFragment = new ForceDoorTaskFragment(door, failureType));
+		result.either().getRight().ifPresent(failureType -> forceFragment = new ForceDoorTaskFragment(door));
 	}
 }

@@ -12,6 +12,10 @@ public final class ForceDoorAction {
 		boolean success = aftik.tryMoveTo(door.getPosition(), out);
 		if (success) {
 			ForceResult result = door.force(aftik);
+			
+			door.getArea().objectStream().flatMap(Aftik.CAST.toStream())
+					.forEach(other -> other.getMind().observeForcedDoor(door, result));
+			
 			printForceResult(out, aftik, door, result);
 		}
 	}
