@@ -2,15 +2,16 @@ package me.kirderf.aftiktuna.action.result;
 
 import me.kirderf.aftiktuna.object.door.DoorPair;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
-import me.kirderf.aftiktuna.object.type.ObjectType;
+import me.kirderf.aftiktuna.object.type.ItemType;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.util.Either;
 
 import java.util.Optional;
 
 public record ForceResult(DoorPair pair, PropertyResult propertyResult) {
 	
-	public static PropertyResult success(ObjectType item, Method method) {
-		return new PropertyResult(Either.left(new Success(DoorProperty.EMPTY, item, method)));
+	public static PropertyResult success(Method method) {
+		return new PropertyResult(Either.left(new Success(DoorProperty.EMPTY, method.tool(), method)));
 	}
 	
 	public static PropertyResult status(Status status) {
@@ -23,12 +24,12 @@ public record ForceResult(DoorPair pair, PropertyResult propertyResult) {
 		}
 	}
 	
-	public static record Success(DoorProperty newProperty, ObjectType item, Method method) {}
+	public record Success(DoorProperty newProperty, ItemType item, Method method) {}
 	
 	
-	public final record Method(String text) {
-		public static final Method FORCE = new Method("forced open");
-		public static final Method CUT = new Method("cut open");
+	public record Method(ItemType tool, String text) {
+		public static final Method FORCE = new Method(ObjectTypes.CROWBAR, "forced open");
+		public static final Method CUT = new Method(ObjectTypes.BLOWTORCH, "cut open");
 	}
 	
 	public enum Status {

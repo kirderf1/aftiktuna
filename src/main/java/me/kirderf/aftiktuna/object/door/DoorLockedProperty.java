@@ -22,8 +22,8 @@ public final class DoorLockedProperty extends DoorProperty {
 	
 	@Override
 	public ForceResult.PropertyResult tryForce(Aftik aftik) {
-		if(aftik.hasItem(ObjectTypes.BLOWTORCH)) {
-			return ForceResult.success(ObjectTypes.BLOWTORCH, ForceResult.Method.CUT);
+		if(aftik.hasItem(ForceResult.Method.CUT.tool())) {
+			return ForceResult.success(ForceResult.Method.CUT);
 		} else {
 			return ForceResult.status(ForceResult.Status.NEED_BREAK_TOOL);
 		}
