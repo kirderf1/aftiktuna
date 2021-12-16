@@ -6,6 +6,10 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 public final class DoorStuckProperty extends DoorProperty {
+	public static final DoorProperty INSTANCE = new DoorStuckProperty();
+	
+	private DoorStuckProperty() {
+	}
 	
 	public EnterResult checkEntry(Aftik aftik) {
 		return new EnterResult(EnterResult.FailureType.STUCK);

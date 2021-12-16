@@ -15,7 +15,7 @@ public final class CrewTestingLocations {
 		LocationBuilder builder = new LocationBuilder();
 		Area firstRoom = builder.newTestRoom(4);
 		Area secondRoom = builder.newTestRoom(4);
-		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), new DoorLockedProperty());
+		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), DoorLockedProperty.INSTANCE);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 0);
 		firstRoom.addItem(ObjectTypes.BLOWTORCH, 0);
 		firstRoom.addCreature(ObjectTypes.EYESAUR, 3);

@@ -65,10 +65,10 @@ public final class EarlyTestingLocations {
 		Area sideRoom = builder.newTestRoom(3);
 		firstRoom.addItem(ObjectTypes.CROWBAR, 2);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 2);
-		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(1), new DoorStuckProperty());
-		builder.markDoors(firstRoom.getPosAt(3), sideRoom.getPosAt(0), new DoorSealedProperty());
+		builder.markDoors(firstRoom.getPosAt(1), secondRoom.getPosAt(1), DoorStuckProperty.INSTANCE);
+		builder.markDoors(firstRoom.getPosAt(3), sideRoom.getPosAt(0), DoorSealedProperty.INSTANCE);
 		secondRoom.addItem(ObjectTypes.BLOWTORCH, 0);
-		builder.markDoors(secondRoom.getPosAt(0), thirdRoom.getPosAt(0), new DoorLockedProperty());
+		builder.markDoors(secondRoom.getPosAt(0), thirdRoom.getPosAt(0), DoorLockedProperty.INSTANCE);
 		thirdRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		sideRoom.addItem(ObjectTypes.FUEL_CAN, 2);
 		return builder.build(firstRoom.getPosAt(0));

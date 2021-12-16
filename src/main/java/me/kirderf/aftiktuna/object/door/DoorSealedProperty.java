@@ -6,6 +6,11 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 public final class DoorSealedProperty extends DoorProperty {
+	public static final DoorProperty INSTANCE = new DoorSealedProperty();
+	
+	private DoorSealedProperty() {
+	}
+	
 	@Override
 	public EnterResult checkEntry(Aftik aftik) {
 		return new EnterResult(EnterResult.FailureType.SEALED);
