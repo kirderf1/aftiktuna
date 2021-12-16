@@ -21,7 +21,7 @@ public final class Memory {
 	}
 	
 	public DoorProperty getObservedProperty(Door door) {
-		return observedDoorProperties.get(door.getPairId());
+		return observedDoorProperties.getOrDefault(door.getPairId(), DoorProperty.EMPTY);
 	}
 	
 	private static final class AreaMemory {
