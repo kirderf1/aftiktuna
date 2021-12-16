@@ -1,8 +1,8 @@
 package me.kirderf.aftiktuna.action;
 
 import me.kirderf.aftiktuna.action.result.ForceResult;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.object.door.Door;
-import me.kirderf.aftiktuna.object.door.DoorPair;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
@@ -22,12 +22,12 @@ public final class ForceDoorAction {
 	}
 	
 	private static void printForceResult(ActionPrinter out, Aftik aftik, Door door, ForceResult result) {
-		result.propertyResult().either().run(success -> printForceSuccess(out, aftik, result.pair(), success), status -> printForceStatus(out, aftik, door, status));
+		result.propertyResult().either().run(success -> printForceSuccess(out, aftik, result.door(), result.destination(), success), status -> printForceStatus(out, aftik, door, status));
 	}
 	
-	private static void printForceSuccess(ActionPrinter out, Aftik aftik, DoorPair pair, ForceResult.Success result) {
-		out.printAt(pair.targetDoor(), "%s used their %s and %s the %s.", aftik.getName(), result.item().name(), result.method().text(), pair.targetDoor().getType().getCategoryName());
-		out.printAt(pair.destination(), "A %s was %s from the other side.", pair.targetDoor().getType().getCategoryName(), result.method().text());
+	private static void printForceSuccess(ActionPrinter out, Aftik aftik, Door door, Area destination, ForceResult.Success result) {
+		out.printAt(door, "%s used their %s and %s the %s.", aftik.getName(), result.item().name(), result.method().text(), door.getType().getCategoryName());
+		out.printAt(destination, "A %s was %s from the other side.", door.getType().getCategoryName(), result.method().text());
 	}
 	
 	private static void printForceStatus(ActionPrinter out, Aftik aftik, Door door, DoorProperty.Status status) {
