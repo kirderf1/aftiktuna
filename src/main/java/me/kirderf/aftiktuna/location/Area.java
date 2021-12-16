@@ -81,4 +81,9 @@ public final class Area {
 	public static Comparator<GameObject> byProximity(int position) {
 		return Comparator.comparingInt(object -> Math.abs(position - object.getCoord()));
 	}
+	
+	@Override
+	public String toString() {
+		return "Area{'" + label + "'," + id + '}';
+	}
 }

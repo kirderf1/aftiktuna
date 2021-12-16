@@ -2,9 +2,11 @@ package me.kirderf.aftiktuna;
 
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.Ship;
+import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Stats;
+import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.ArrayList;
@@ -66,9 +68,13 @@ public final class Crew {
 	}
 	
 	void placeCrewAtLocation(Location location) {
+		Door shipEntrance = location.getEntryPos().area().objectStream().flatMap(Door.CAST.toStream())
+				.filter(ObjectTypes.SHIP_ENTRANCE::matching).findAny().orElseThrow();
+		
 		for (Aftik aftik : crewMembers) {
 			aftik.remove();
 			location.addAtEntry(aftik);
+			aftik.getMind().getMemory().observeNewConnection(ship.getRoom(), shipEntrance.getArea(), shipEntrance.getPairId());
 		}
 	}
 	

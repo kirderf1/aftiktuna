@@ -24,7 +24,10 @@ public final class EnterDoorAction {
 			originalArea.objectStream().flatMap(Aftik.CAST.toStream())
 					.forEach(other -> other.getMind().observeEnteredDoor(aftik, door, result));
 			
-			if (followTarget != null) {
+			if (result.success())
+				aftik.getMind().getMemory().observeNewConnection(originalArea, aftik.getArea(), door.getPairId());
+			
+			if (followTarget != null && result.success()) {
 				out.printAt(aftik, "%s follows %s into the area.", aftik.getName(), followTarget.getName());
 			} else {
 				printEnterResult(out, aftik, door, result);

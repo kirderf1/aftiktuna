@@ -4,7 +4,6 @@ import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;
@@ -25,7 +24,7 @@ public final class LaunchShipTask extends Task {
 	@Override
 	public Status prepare(Aftik aftik) {
 		if (aftik.getArea() != ship.getRoom()) {
-			if (findPathTowardsShip(aftik).map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
+			if (findPathTowardsShip(aftik, ship).map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
 				return Status.REMOVE;
 		}
 		return Status.KEEP;
@@ -42,7 +41,7 @@ public final class LaunchShipTask extends Task {
 	}
 	
 	private Status tryGoToShip(Aftik aftik, ActionPrinter out) {
-		Optional<Door> optional = findPathTowardsShip(aftik);
+		Optional<Door> optional = findPathTowardsShip(aftik, ship);
 		if (optional.isPresent()) {
 			Door door = optional.get();
 			
@@ -55,7 +54,7 @@ public final class LaunchShipTask extends Task {
 		}
 	}
 	
-	private Optional<Door> findPathTowardsShip(Aftik aftik) {
-		return aftik.findNearest(Door.CAST.filter(ObjectTypes.SHIP_ENTRANCE::matching), true);
+	public static Optional<Door> findPathTowardsShip(Aftik aftik, Ship ship) {
+		return aftik.getMind().getMemory().findDoorTowards(aftik.getArea(), ship.getRoom().getId());
 	}
 }

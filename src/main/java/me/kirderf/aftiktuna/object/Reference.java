@@ -36,4 +36,9 @@ public final class Reference<T extends GameObject> {
 	public T getOrThrow(Crew crew) {
 		return find(crew.getCrewMembers().stream()).orElseThrow();
 	}
+	
+	@Override
+	public String toString() {
+		return "Reference{" + id + '}';
+	}
 }

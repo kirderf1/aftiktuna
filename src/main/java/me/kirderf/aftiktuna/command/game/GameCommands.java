@@ -100,7 +100,7 @@ public final class GameCommands {
 	}
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
-		return aftik.getArea() == ship.getRoom() || aftik.isAnyNear(ObjectTypes.SHIP_ENTRANCE::matching);
+		return aftik.getArea() == ship.getRoom() || LaunchShipTask.findPathTowardsShip(aftik, ship).isPresent();
 	}
 	
 	private static int controlAftik(CommandContext context, String name) {
