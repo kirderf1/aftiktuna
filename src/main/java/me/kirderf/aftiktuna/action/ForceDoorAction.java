@@ -7,6 +7,8 @@ import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
+import java.util.stream.Stream;
+
 public final class ForceDoorAction {
 	
 	public static void moveAndForce(Aftik aftik, Door door, ActionPrinter out) {
@@ -14,7 +16,8 @@ public final class ForceDoorAction {
 		if (success) {
 			ForceResult result = door.force(aftik);
 			
-			door.getArea().objectStream().flatMap(Aftik.CAST.toStream())
+			Stream.concat(door.getArea().objectStream(), door.getDestinationArea().objectStream())
+					.flatMap(Aftik.CAST.toStream())
 					.forEach(other -> other.getMind().observeForcedDoor(door, result));
 			
 			printForceResult(out, aftik, door, result);

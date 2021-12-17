@@ -18,8 +18,6 @@ public final class CrewTestingLocations {
 		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), DoorProperty.LOCKED);
 		firstRoom.addItem(ObjectTypes.KEYCARD, 0);
 		firstRoom.addItem(ObjectTypes.BLOWTORCH, 0);
-		firstRoom.addCreature(ObjectTypes.EYESAUR, 3);
-		secondRoom.addCreature(ObjectTypes.AZURECLOPS, 3);
 		
 		return builder.build(firstRoom.getPosAt(1));
 	}

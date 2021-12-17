@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna.object.door;
 
 import me.kirderf.aftiktuna.action.result.EnterResult;
 import me.kirderf.aftiktuna.action.result.ForceResult;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.object.Identifier;
@@ -62,5 +63,9 @@ public final class Door extends GameObject {
 		
 		result.getNewProperty().ifPresent(pairInfo::setProperty);
 		return new ForceResult(this, destination.area(), result);
+	}
+	
+	public Area getDestinationArea() {
+		return destination.area();
 	}
 }
