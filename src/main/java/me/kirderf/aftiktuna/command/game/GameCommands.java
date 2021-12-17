@@ -15,7 +15,7 @@ import me.kirderf.aftiktuna.object.entity.Creature;
 import me.kirderf.aftiktuna.object.entity.ai.EnterShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.LaunchShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.RestTask;
-import me.kirderf.aftiktuna.object.type.ObjectType;
+import me.kirderf.aftiktuna.object.type.CreatureType;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 import java.util.Optional;
@@ -30,7 +30,10 @@ public final class GameCommands {
 		DISPATCHER.register(literal("attack")
 				.executes(context -> attack(context.getSource()))
 				.then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
-						.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature")))));
+						.executes(context -> attack(context.getSource(), ObjectArgument.getType(context, "creature", CreatureType.class)))));
+		DISPATCHER.register(literal("examine")
+				.then(argument("creature", ObjectArgument.create(ObjectTypes.CREATURES))
+						.executes(context -> examine(context.getSource(), ObjectArgument.getType(context, "creature", CreatureType.class)))));
 		DISPATCHER.register(literal("launch").then(literal("ship").executes(context -> launchShip(context.getSource()))));
 		DISPATCHER.register(literal("control").then(argument("name", StringArgumentType.string())
 				.executes(context -> controlAftik(context.getSource(), StringArgumentType.getString(context, "name")))));
@@ -75,12 +78,25 @@ public final class GameCommands {
 				() -> context.printNoAction("There is no such creature to attack."));
 	}
 	
-	private static int attack(CommandContext context, ObjectType creatureType) {
+	private static int attack(CommandContext context, CreatureType creatureType) {
 		Aftik aftik = context.getControlledAftik();
 		
 		return CommandUtil.searchForAccessible(context, aftik, Creature.CAST.filter(creatureType::matching), false,
 				creature -> context.action(out -> aftik.moveAndAttack(creature, out)),
 				() -> context.printNoAction("There is no such creature to attack."));
+	}
+	
+	private static int examine(CommandContext context, CreatureType creatureType) {
+		Aftik aftik = context.getControlledAftik();
+		
+		if (aftik.isAnyNear(creatureType::matching)) {
+			return context.noAction(out -> {
+				out.print(creatureType.getExamineText());
+				out.print(creatureType.getStats().displayText());
+			});
+		} else {
+			return context.printNoAction("There is no such creature here.");
+		}
 	}
 	
 	static int launchShip(CommandContext context) {

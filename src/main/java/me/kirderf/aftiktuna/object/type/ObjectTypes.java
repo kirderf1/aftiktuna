@@ -10,9 +10,9 @@ public final class ObjectTypes {
 	public static final ObjectType AFTIK = new ObjectType('A', "aftik");
 	public static final ObjectType SHOPKEEPER = new ObjectType('S', "shopkeeper");
 	
-	public static final CreatureType EYESAUR = new CreatureType('E', "Eyesaur", new Stats(7, 7, 4));
-	public static final CreatureType GOBLIN = new CreatureType('G', "Goblin", new Stats(2, 4, 10));
-	public static final CreatureType AZURECLOPS = new CreatureType('Z', "Azureclops", new Stats(15, 10, 4));
+	public static final CreatureType EYESAUR = new CreatureType('E', "Eyesaur", new Stats(7, 7, 4), "A quadruped that has their one eye on the side of their tail. Dangerous.");
+	public static final CreatureType GOBLIN = new CreatureType('G', "Goblin", new Stats(2, 4, 10), "A bat-like creature that uses their arms to move. Dangerous in packs.");
+	public static final CreatureType AZURECLOPS = new CreatureType('Z', "Azureclops", new Stats(15, 10, 4), "A large hulking blue cyclops. Very dangerous.");
 	
 	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 3500, "Needed in order to travel to your next location.");
 	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1, "Can be used to force open certain doors. Can also be used as an improvised weapon.");

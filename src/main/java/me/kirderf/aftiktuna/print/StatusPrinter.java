@@ -79,7 +79,7 @@ public final class StatusPrinter {
 		
 		private void printStats() {
 			Stats stats = aftik.getStats();
-			out.printf("Strength: %d   Endurance: %d   Agility: %d%n", stats.strength(), stats.endurance(), stats.agility());
+			out.printf("%s%n", stats.displayText());
 		}
 		
 		private void printHealth(boolean forcePrint) {
