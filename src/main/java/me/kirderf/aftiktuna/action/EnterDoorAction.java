@@ -7,6 +7,7 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public final class EnterDoorAction {
 	
@@ -21,7 +22,8 @@ public final class EnterDoorAction {
 			
 			EnterResult result = door.enter(aftik);
 			
-			originalArea.objectStream().flatMap(Aftik.CAST.toStream())
+			Stream.concat(originalArea.objectStream(), aftik.getArea().objectStream())
+					.flatMap(Aftik.CAST.toStream()).distinct()
 					.forEach(other -> other.getMind().observeEnteredDoor(aftik, door, result));
 			
 			if (result.success())
