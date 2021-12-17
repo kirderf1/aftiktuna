@@ -1,5 +1,6 @@
 package me.kirderf.aftiktuna.object.type;
 
+import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Stats;
 
@@ -15,8 +16,8 @@ public final class ObjectTypes {
 	public static final CreatureType AZURECLOPS = new CreatureType('Z', "Azureclops", new Stats(15, 10, 4), "A large hulking blue cyclops. Very dangerous.");
 	
 	public static final ItemType FUEL_CAN = new ItemType('f', "fuel can", 3500, "Needed in order to travel to your next location.");
-	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1, "Can be used to force open certain doors. Can also be used as an improvised weapon.");
-	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1, "Can be used to cut open doors.");
+	public static final WeaponType CROWBAR = new WeaponType('c', "crowbar", 3, -1, DoorProperty.Method.FORCE, "Can be used to force open certain doors. Can also be used as an improvised weapon.");
+	public static final ItemType BLOWTORCH = new ItemType('b', "blowtorch", -1, DoorProperty.Method.CUT, "Can be used to cut open doors.");
 	public static final ItemType KEYCARD = new ItemType('k', "keycard", -1, "Can be used to enter certain doors.");
 	public static final WeaponType KNIFE = new WeaponType('K', "knife", 3, 300, "Can be used as an improvised weapon.");
 	public static final WeaponType BAT = new WeaponType('B', "bat", 4, 1000, "Can be used as a weapon.");

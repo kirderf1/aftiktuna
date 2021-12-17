@@ -12,6 +12,7 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public final class Aftik extends Entity {
 	public static final OptionalFunction<GameObject, Aftik> CAST = OptionalFunction.cast(Aftik.class);
@@ -126,6 +127,13 @@ public final class Aftik extends Entity {
 	
 	public boolean hasItem(ItemType type) {
 		return type != null && (wielded == type || inventory.contains(type));
+	}
+	
+	public Optional<ItemType> findItem(Predicate<ItemType> predicate) {
+		if (wielded != null && predicate.test(wielded))
+			return Optional.of(wielded);
+		else
+			return inventory.stream().filter(predicate).findAny();
 	}
 	
 	public int getItemCount(ItemType item) {

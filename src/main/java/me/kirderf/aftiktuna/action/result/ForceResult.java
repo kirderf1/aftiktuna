@@ -6,12 +6,15 @@ import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.type.ItemType;
 import me.kirderf.aftiktuna.util.Either;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public record ForceResult(Door door, Area destination, PropertyResult propertyResult) {
 	
-	public static PropertyResult success(DoorProperty.Method method) {
-		return new PropertyResult(Either.left(new Success(DoorProperty.EMPTY, method.tool(), method)));
+	public static PropertyResult success(ItemType tool) {
+		return new PropertyResult(Either.left(
+				new Success(DoorProperty.EMPTY, tool, Objects.requireNonNull(tool.getForceMethod()))
+		));
 	}
 	
 	public static PropertyResult status(DoorProperty.Status status) {

@@ -45,8 +45,9 @@ public final class DoorProperty {
 	
 	public ForceResult.PropertyResult tryForce(Aftik aftik) {
 		for (Method method : forceStatus.getAvailableMethods()) {
-			if(aftik.hasItem(method.tool())) {
-				return ForceResult.success(method);
+			Optional<ItemType> toolOptional = aftik.findItem(method::canBeUsedBy);
+			if(toolOptional.isPresent()) {
+				return ForceResult.success(toolOptional.get());
 			}
 		}
 		return ForceResult.status(forceStatus);
@@ -58,9 +59,13 @@ public final class DoorProperty {
 		}
 	}
 	
-	public record Method(ItemType tool, String text) {
-		public static final Method FORCE = new Method(ObjectTypes.CROWBAR, "forced open");
-		public static final Method CUT = new Method(ObjectTypes.BLOWTORCH, "cut open");
+	public record Method(String text) {
+		public static final Method FORCE = new Method("forced open");
+		public static final Method CUT = new Method("cut open");
+		
+		public boolean canBeUsedBy(ItemType item) {
+			return item.getForceMethod() == this;
+		}
 	}
 	
 	public enum Status {

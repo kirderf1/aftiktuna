@@ -27,7 +27,7 @@ public final class ForceDoorTaskFragment {
 	
 	private boolean canForceDoor(Aftik aftik, Door door) {
 		for(DoorProperty.Method method : aftik.getMind().getMemory().getObservedProperty(door).relevantForceMethods()) {
-			if (aftik.hasItem(method.tool()))
+			if (aftik.findItem(method::canBeUsedBy).isPresent())
 				return true;
 		}
 		return false;
