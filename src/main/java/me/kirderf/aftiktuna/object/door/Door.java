@@ -32,6 +32,10 @@ public final class Door extends GameObject {
 		return pairInfo.getId();
 	}
 	
+	public DoorProperty getProperty() {
+		return pairInfo.getProperty();
+	}
+	
 	@Override
 	public DoorType getType() {
 		return type;
@@ -46,7 +50,7 @@ public final class Door extends GameObject {
 	public String getViewLabel(Aftik aftik) {
 		String name = super.getViewLabel(aftik);
 		
-		return aftik.getMind().getMemory().getObservedProperty(this).getAdjective()
+		return getProperty().getAdjective()
 				.map(adjective -> name + " (%s)".formatted(adjective))
 				.orElse(name);
 	}

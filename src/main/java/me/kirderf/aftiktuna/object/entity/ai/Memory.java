@@ -5,7 +5,6 @@ import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.Reference;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorPairInfo;
-import me.kirderf.aftiktuna.object.door.DoorProperty;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,27 +12,14 @@ import java.util.Optional;
 
 public final class Memory {
 	private final Map<Identifier<Area>, AreaMemory> areaMap = new HashMap<>();
-	private final Map<Identifier<DoorPairInfo>, DoorProperty> observedDoorProperties = new HashMap<>();
 	
 	private AreaMemory getOrCreateMemory(Area area) {
 		return areaMap.computeIfAbsent(area.getId(), AreaMemory::new);
 	}
 	
-	public void observeDoorProperty(Door door, DoorProperty property) {
-		observedDoorProperties.put(door.getPairId(), property);
-	}
-	
 	public void observeNewConnection(Area area1, Area area2, Identifier<DoorPairInfo> doorPairId) {
 		registerPath(area1, area2, doorPairId);
 		registerPath(area2, area1, doorPairId);
-	}
-	
-	public DoorProperty getObservedProperty(Door door) {
-		return observedDoorProperties.getOrDefault(door.getPairId(), DoorProperty.EMPTY);
-	}
-	
-	public boolean hasObservedProperty(Door door) {
-		return observedDoorProperties.containsKey(door.getPairId());
 	}
 	
 	public Optional<Door> findDoorTowards(Area fromArea, Identifier<Area> toArea) {

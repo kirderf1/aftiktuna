@@ -1,9 +1,7 @@
 package me.kirderf.aftiktuna.object.entity.ai;
 
 import me.kirderf.aftiktuna.action.result.EnterResult;
-import me.kirderf.aftiktuna.action.result.ForceResult;
 import me.kirderf.aftiktuna.object.door.Door;
-import me.kirderf.aftiktuna.object.door.DoorProperty;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
@@ -31,18 +29,7 @@ public final class AftikMind {
 	}
 	
 	public void observeEnteredDoor(Aftik aftik, Door door, EnterResult result) {
-		memory.observeDoorProperty(door, result.property());
-		
 		staticTasks.forEach(task -> task.observeEnteredDoor(aftik, door, result));
-	}
-	
-	public void observeForcedDoor(Door door, ForceResult result) {
-		result.propertyResult().either().run(
-				success -> memory.observeDoorProperty(door, success.newProperty()),
-				status -> {
-					if (status == DoorProperty.Status.NOT_STUCK)
-						memory.observeDoorProperty(door, DoorProperty.EMPTY);
-				});
 	}
 	
 	public void setAndPerformPlayerTask(Task task, ActionPrinter out) {

@@ -9,7 +9,6 @@ import me.kirderf.aftiktuna.object.type.ItemType;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public final class ForceDoorAction {
 	
@@ -22,28 +21,16 @@ public final class ForceDoorAction {
 		if (success) {
 			ForceResult result = door.force(aftik, item);
 			
-			Stream.concat(door.getArea().objectStream(), door.getDestinationArea().objectStream())
-					.flatMap(Aftik.CAST.toStream())
-					.forEach(other -> other.getMind().observeForcedDoor(door, result));
-			
 			printForceResult(out, aftik, door, result);
 		}
 	}
 	
 	public static Optional<Door> findForceTargetForTool(Aftik aftik, ItemType item) {
-		Optional<Door> doorOptional = aftik.findNearestAccessible(Door.CAST.filter(door -> isToolForDoor(aftik, door, item)), true);
-		if (doorOptional.isPresent())
-			return doorOptional;
-		else
-			return aftik.findNearestAccessible(Door.CAST.filter(door -> hasUnknownProperty(aftik, door)), true);
+		return aftik.findNearestAccessible(Door.CAST.filter(door -> isToolForDoor(door, item)), true);
 	}
 	
-	private static boolean isToolForDoor(Aftik aftik, Door door, ItemType item) {
-		return aftik.getMind().getMemory().getObservedProperty(door).canBeForcedWith(item.getForceMethod());
-	}
-	
-	private static boolean hasUnknownProperty(Aftik aftik, Door door) {
-		return !aftik.getMind().getMemory().hasObservedProperty(door);
+	private static boolean isToolForDoor(Door door, ItemType item) {
+		return door.getProperty().canBeForcedWith(item.getForceMethod());
 	}
 	
 	private static void printForceResult(ActionPrinter out, Aftik aftik, Door door, ForceResult result) {
