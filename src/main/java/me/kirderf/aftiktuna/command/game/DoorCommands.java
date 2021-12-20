@@ -9,7 +9,7 @@ import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.door.DoorType;
 import me.kirderf.aftiktuna.object.entity.Aftik;
-import me.kirderf.aftiktuna.object.entity.ai.EnterShipTask;
+import me.kirderf.aftiktuna.object.entity.ai.MoveToAreaTask;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
 public final class DoorCommands {
@@ -43,13 +43,13 @@ public final class DoorCommands {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (isNearShip(aftik, context.getCrew().getShip())) {
-			return context.action(out -> aftik.getMind().setAndPerformPlayerTask(new EnterShipTask(context.getCrew().getShip()), out));
+			return context.action(out -> aftik.getMind().setAndPerformPlayerTask(new MoveToAreaTask(context.getCrew().getShip().getRoom()), out));
 		} else {
 			return context.printNoAction("%s need to be near the ship in order to launch it.", aftik.getName());
 		}
 	}
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
-		return aftik.getArea() == ship.getRoom() || EnterShipTask.findPathTowardsShip(aftik, ship).isPresent();
+		return aftik.getArea() == ship.getRoom() || MoveToAreaTask.findPathTowardsArea(aftik, ship.getRoom()).isPresent();
 	}
 }

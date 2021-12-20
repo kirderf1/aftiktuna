@@ -20,7 +20,7 @@ public final class LaunchShipTask extends Task {
 	@Override
 	public Status prepare(Aftik aftik) {
 		if (aftik.getArea() != ship.getRoom()) {
-			if (EnterShipTask.findPathTowardsShip(aftik, ship).map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
+			if (MoveToAreaTask.findPathTowardsArea(aftik, ship.getRoom()).map(door -> !aftik.isAccessible(door.getPosition(), true)).orElse(true))
 				return Status.REMOVE;
 		}
 		return Status.KEEP;
@@ -29,7 +29,7 @@ public final class LaunchShipTask extends Task {
 	@Override
 	public Status performAction(Aftik aftik, ActionPrinter out) {
 		if (aftik.getArea() != ship.getRoom()) {
-			return EnterShipTask.tryGoToShip(aftik, ship, out);
+			return MoveToAreaTask.tryGoToArea(aftik, ship.getRoom().getId(), out);
 		} else {
 			ship.tryLaunchShip(aftik, out);
 			return Status.REMOVE;

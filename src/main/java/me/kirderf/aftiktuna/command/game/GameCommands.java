@@ -12,8 +12,8 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Creature;
-import me.kirderf.aftiktuna.object.entity.ai.EnterShipTask;
 import me.kirderf.aftiktuna.object.entity.ai.LaunchShipTask;
+import me.kirderf.aftiktuna.object.entity.ai.MoveToAreaTask;
 import me.kirderf.aftiktuna.object.entity.ai.RestTask;
 import me.kirderf.aftiktuna.object.type.CreatureType;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
@@ -105,9 +105,8 @@ public final class GameCommands {
 		if (aftik.hasItem(ObjectTypes.FUEL_CAN)) {
 			if (isNearShip(aftik, context.getCrew().getShip())) {
 				
-				return context.action(out -> {
-					aftik.getMind().setAndPerformPlayerTask(new LaunchShipTask(context.getCrew().getShip()), out);
-				});
+				return context.action(out -> aftik.getMind().setAndPerformPlayerTask(
+						new LaunchShipTask(context.getCrew().getShip()), out));
 			} else {
 				return context.printNoAction("%s need to be near the ship in order to launch it.", aftik.getName());
 			}
@@ -117,7 +116,7 @@ public final class GameCommands {
 	}
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
-		return aftik.getArea() == ship.getRoom() || EnterShipTask.findPathTowardsShip(aftik, ship).isPresent();
+		return aftik.getArea() == ship.getRoom() || MoveToAreaTask.findPathTowardsArea(aftik, ship.getRoom()).isPresent();
 	}
 	
 	private static int controlAftik(CommandContext context, String name) {
