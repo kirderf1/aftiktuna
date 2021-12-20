@@ -2,19 +2,23 @@ package me.kirderf.aftiktuna.command;
 
 import me.kirderf.aftiktuna.Crew;
 import me.kirderf.aftiktuna.GameInstance;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public final class CommandContext {
 	private final ActionPrinter out;
 	private final GameInstance game;
+	private final CommandState state;
 	private boolean showView = false;
 	private boolean isUsed = false;
 	
-	public CommandContext(GameInstance game, ActionPrinter out) {
+	public CommandContext(GameInstance game, CommandState state, ActionPrinter out) {
 		this.game = game;
+		this.state = state;
 		this.out = out;
 	}
 	
@@ -28,6 +32,10 @@ public final class CommandContext {
 	
 	public Crew getCrew() {
 		return game.getCrew();
+	}
+	
+	public Optional<Area> getPreviousArea() {
+		return game.lookupArea(state.getPreviousArea());
 	}
 	
 	public boolean shouldShowView() {

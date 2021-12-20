@@ -4,6 +4,7 @@ import me.kirderf.aftiktuna.action.EnterDoorAction;
 import me.kirderf.aftiktuna.action.ForceDoorAction;
 import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
+import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.object.ObjectArgument;
 import me.kirderf.aftiktuna.object.door.Door;
@@ -12,16 +13,22 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.ai.MoveToAreaTask;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 
+import java.util.Optional;
+
+import static me.kirderf.aftiktuna.command.game.GameCommands.*;
+
 public final class DoorCommands {
 	static void register() {
-		GameCommands.DISPATCHER.register(GameCommands.literal("enter").then(GameCommands.argument("door", ObjectArgument.create(ObjectTypes.DOORS))
+		DISPATCHER.register(literal("enter").then(argument("door", ObjectArgument.create(ObjectTypes.DOORS))
 				.executes(context -> enterDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		GameCommands.DISPATCHER.register(GameCommands.literal("force").then(GameCommands.argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
+		DISPATCHER.register(literal("force").then(argument("door", ObjectArgument.create(ObjectTypes.FORCEABLE))
 				.executes(context -> forceDoor(context.getSource(), ObjectArgument.getType(context, "door", DoorType.class)))));
-		GameCommands.DISPATCHER.register(GameCommands.literal("enter").then(GameCommands.literal("ship")
+		DISPATCHER.register(literal("enter").then(literal("ship")
 				.executes(context -> enterShip(context.getSource()))));
-		GameCommands.DISPATCHER.register(GameCommands.literal("exit").then(GameCommands.literal("ship")
+		DISPATCHER.register(literal("exit").then(literal("ship")
 				.executes(context -> enterDoor(context.getSource(), ObjectTypes.SHIP_EXIT))));
+		DISPATCHER.register(literal("go").then(literal("back")
+				.executes(context -> goBack(context.getSource()))));
 	}
 	
 	private static int enterDoor(CommandContext context, DoorType doorType) {
@@ -51,5 +58,17 @@ public final class DoorCommands {
 	
 	private static boolean isNearShip(Aftik aftik, Ship ship) {
 		return aftik.getArea() == ship.getRoom() || MoveToAreaTask.findPathTowardsArea(aftik, ship.getRoom()).isPresent();
+	}
+	
+	private static int goBack(CommandContext context) {
+		Aftik aftik = context.getControlledAftik();
+		
+		Optional<Area> optionalPrevious = context.getPreviousArea();
+		if (optionalPrevious.isPresent()) {
+			Area previousArea = optionalPrevious.get();
+			return context.action(out -> aftik.getMind().setAndPerformPlayerTask(new MoveToAreaTask(previousArea), out));
+		} else {
+			return context.printNoAction("There is nowhere to go back to at this time.");
+		}
 	}
 }

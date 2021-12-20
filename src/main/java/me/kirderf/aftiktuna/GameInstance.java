@@ -2,6 +2,7 @@ package me.kirderf.aftiktuna;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import me.kirderf.aftiktuna.command.CommandContext;
+import me.kirderf.aftiktuna.command.CommandState;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Location;
@@ -9,6 +10,7 @@ import me.kirderf.aftiktuna.location.Ship;
 import me.kirderf.aftiktuna.location.levels.CrewTestingLocations;
 import me.kirderf.aftiktuna.location.levels.LocationSelector;
 import me.kirderf.aftiktuna.location.levels.Locations;
+import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
@@ -19,6 +21,7 @@ import me.kirderf.aftiktuna.util.StreamUtils;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -32,7 +35,9 @@ public final class GameInstance {
 	private final InputReader in;
 	private final ActionPrinter actionOut;
 	private final StatusPrinter statusPrinter;
+	
 	private final HealthTracker healthTracker = new HealthTracker();
+	private final CommandState commandState = new CommandState();
 	
 	private final LocationSelector locations = new LocationSelector();
 	
@@ -59,6 +64,10 @@ public final class GameInstance {
 	
 	public Stream<GameObject> getGameObjectStream() {
 		return Stream.concat(Stream.of(crew.getShip().getRoom()), location.getAreas().stream()).flatMap(Area::objectStream);
+	}
+	
+	public Optional<Area> lookupArea(Identifier<Area> id) {
+		return location.getAreas().stream().filter(area -> area.getId().equals(id)).findAny();
 	}
 	
 	public void run(boolean debugLevel) {
@@ -181,11 +190,12 @@ public final class GameInstance {
 			sleep();
 			aftik.performAction(actionOut);
 		} else {
+			commandState.inputPrepare(aftik);
 			int result;
 			do {
 				String input = in.readLine();
 				
-				CommandContext context = new CommandContext(this, actionOut);
+				CommandContext context = new CommandContext(this, commandState, actionOut);
 				try {
 					result = view.handleInput(input, context);
 				} catch(CommandSyntaxException e) {
