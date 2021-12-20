@@ -7,6 +7,7 @@ import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.location.Position;
 import me.kirderf.aftiktuna.object.Identifier;
 import me.kirderf.aftiktuna.object.entity.Aftik;
+import me.kirderf.aftiktuna.object.type.ItemType;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import me.kirderf.aftiktuna.util.OptionalFunction;
 
@@ -58,8 +59,8 @@ public final class Door extends GameObject {
 		return result;
 	}
 	
-	public ForceResult force(Aftik aftik) {
-		ForceResult.PropertyResult result = pairInfo.getProperty().tryForce(aftik);
+	public ForceResult force(Aftik aftik, ItemType item) {
+		ForceResult.PropertyResult result = pairInfo.getProperty().tryForce(aftik, item);
 		
 		result.getNewProperty().ifPresent(pairInfo::setProperty);
 		return new ForceResult(this, destination.area(), result);

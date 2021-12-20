@@ -1,10 +1,12 @@
 package me.kirderf.aftiktuna.command.game;
 
 import com.mojang.brigadier.arguments.StringArgumentType;
+import me.kirderf.aftiktuna.action.ForceDoorAction;
 import me.kirderf.aftiktuna.command.CommandContext;
 import me.kirderf.aftiktuna.command.CommandUtil;
 import me.kirderf.aftiktuna.object.Item;
 import me.kirderf.aftiktuna.object.ObjectArgument;
+import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.ai.TakeItemsTask;
 import me.kirderf.aftiktuna.object.entity.ai.WieldTask;
@@ -106,6 +108,8 @@ public final class ItemCommands {
 				return launchShip(context);
 			} else if (type == ObjectTypes.MEDKIT) {
 				return useMedKit(context, aftik);
+			} else if (type.getForceMethod() != null) {
+				return useTool(context, aftik, type);
 			} else if (type instanceof WeaponType weapon) {
 				return context.action(out -> aftik.wieldFromInventory(weapon, out));
 			} else {
@@ -126,6 +130,16 @@ public final class ItemCommands {
 			});
 		} else {
 			return context.printNoAction("%s is not hurt, and does not need to use the medkit.", aftik.getName());
+		}
+	}
+	
+	private static int useTool(CommandContext context, Aftik aftik, ItemType item) {
+		Optional<Door> doorOptional = ForceDoorAction.findForceTargetForTool(aftik, item);
+		if (doorOptional.isPresent()) {
+			Door door = doorOptional.get();
+			return context.action(out -> ForceDoorAction.moveAndForce(aftik, door, item, out));
+		} else {
+			return context.printNoAction("There is no accessible door here which a %s might force open.", item.name());
 		}
 	}
 	

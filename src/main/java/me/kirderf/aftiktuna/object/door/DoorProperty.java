@@ -43,14 +43,24 @@ public final class DoorProperty {
 		}
 	}
 	
-	public ForceResult.PropertyResult tryForce(Aftik aftik) {
-		for (Method method : forceStatus.getAvailableMethods()) {
-			Optional<ItemType> toolOptional = aftik.findItem(method::canBeUsedBy);
-			if(toolOptional.isPresent()) {
-				return ForceResult.success(toolOptional.get());
+	public ForceResult.PropertyResult tryForce(Aftik aftik, ItemType item) {
+		if (item != null) {
+			if(canBeForcedWith(item.getForceMethod())) {
+				return ForceResult.success(item);
+			}
+		} else {
+			for (Method method : forceStatus.getAvailableMethods()) {
+				Optional<ItemType> toolOptional = aftik.findItem(method::canBeUsedBy);
+				if (toolOptional.isPresent()) {
+					return ForceResult.success(toolOptional.get());
+				}
 			}
 		}
 		return ForceResult.status(forceStatus);
+	}
+	
+	public boolean canBeForcedWith(Method method) {
+		return forceStatus.getAvailableMethods().contains(method);
 	}
 	
 	private record EntryBlockingInfo(String adjective, ItemType itemToPass) {

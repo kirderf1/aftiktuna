@@ -32,6 +32,10 @@ public final class Memory {
 		return observedDoorProperties.getOrDefault(door.getPairId(), DoorProperty.EMPTY);
 	}
 	
+	public boolean hasObservedProperty(Door door) {
+		return observedDoorProperties.containsKey(door.getPairId());
+	}
+	
 	public Optional<Door> findDoorTowards(Area fromArea, Identifier<Area> toArea) {
 		return getOrCreateMemory(fromArea).getDirectionTo(toArea)
 				.map(AreaDirection::doorRef).flatMap(ref -> ref.find(fromArea));
