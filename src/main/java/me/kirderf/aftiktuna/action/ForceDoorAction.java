@@ -42,7 +42,7 @@ public final class ForceDoorAction {
 		out.printAt(destination, "A %s was %s from the other side.", door.getType().getCategoryName(), result.method().text());
 	}
 	
-	private static void printForceStatus(ActionPrinter out, Aftik aftik, Door door, DoorProperty.Status status) {
+	private static void printForceStatus(ActionPrinter out, Aftik aftik, Door door, DoorProperty.ForceStatus status) {
 		switch(status) {
 			case NOT_STUCK -> out.printFor(aftik, "The %s does not seem to be stuck.", door.getType().getCategoryName());
 			case NEED_TOOL -> out.printFor(aftik, "%s need some sort of tool to force the %s open.", aftik.getName(), door.getType().getCategoryName());

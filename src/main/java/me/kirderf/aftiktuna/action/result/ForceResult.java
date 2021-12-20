@@ -17,11 +17,11 @@ public record ForceResult(Door door, Area destination, PropertyResult propertyRe
 		));
 	}
 	
-	public static PropertyResult status(DoorProperty.Status status) {
+	public static PropertyResult status(DoorProperty.ForceStatus status) {
 		return new PropertyResult(Either.right(status));
 	}
 	
-	public record PropertyResult(Either<Success, DoorProperty.Status> either) {
+	public record PropertyResult(Either<Success, DoorProperty.ForceStatus> either) {
 		public Optional<DoorProperty> getNewProperty() {
 			return either.getLeft().map(Success::newProperty);
 		}

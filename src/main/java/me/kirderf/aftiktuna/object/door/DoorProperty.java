@@ -9,22 +9,27 @@ import me.kirderf.aftiktuna.object.type.ObjectTypes;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * A property held by {@link DoorPairInfo} which determine the success of entry through the door,
+ * and behaviors related to forcing the door.
+ */
 public final class DoorProperty {
-	public static final DoorProperty STUCK = new DoorProperty(new EntryBlockingInfo("stuck"), Status.NEED_TOOL);
-	public static final DoorProperty SEALED = new DoorProperty(new EntryBlockingInfo("sealed shut"), Status.NEED_BREAK_TOOL);
-	public static final DoorProperty LOCKED = new DoorProperty(new EntryBlockingInfo("locked", ObjectTypes.KEYCARD), Status.NEED_BREAK_TOOL);
-	public static final DoorProperty EMPTY = new DoorProperty(null, Status.NOT_STUCK);
+	public static final DoorProperty STUCK = new DoorProperty(new EntryBlockingInfo("stuck"), ForceStatus.NEED_TOOL);
+	public static final DoorProperty SEALED = new DoorProperty(new EntryBlockingInfo("sealed shut"), ForceStatus.NEED_BREAK_TOOL);
+	public static final DoorProperty LOCKED = new DoorProperty(new EntryBlockingInfo("locked", ObjectTypes.KEYCARD), ForceStatus.NEED_BREAK_TOOL);
+	public static final DoorProperty EMPTY = new DoorProperty(null, ForceStatus.NOT_STUCK);
 	
-	private final EntryBlockingInfo entryFailure;
-	private final Status forceStatus;
+	// If null, this property does not block entry. Otherwise, entry might be blocked depending on circumstances.
+	private final EntryBlockingInfo entryInfo;
+	private final ForceStatus forceStatus;
 	
-	private DoorProperty(EntryBlockingInfo entryFailure, Status forceStatus) {
-		this.entryFailure = entryFailure;
+	private DoorProperty(EntryBlockingInfo entryInfo, ForceStatus forceStatus) {
+		this.entryInfo = entryInfo;
 		this.forceStatus = forceStatus;
 	}
 	
 	public Optional<String> getAdjective() {
-		return Optional.ofNullable(entryFailure).map(EntryBlockingInfo::adjective);
+		return Optional.ofNullable(entryInfo).map(EntryBlockingInfo::adjective);
 	}
 	
 	public List<Method> relevantForceMethods() {
@@ -32,13 +37,13 @@ public final class DoorProperty {
 	}
 	
 	public EnterResult checkEntry(Aftik aftik) {
-		if (entryFailure == null)
+		if (entryInfo == null)
 			return EnterResult.success(this);
 		else {
-			if (aftik.hasItem(entryFailure.itemToPass)) {
-				return EnterResult.success(this, entryFailure.itemToPass);
+			if (aftik.hasItem(entryInfo.itemToPass)) {
+				return EnterResult.success(this, entryInfo.itemToPass);
 			} else {
-				return EnterResult.failure(this, entryFailure.adjective);
+				return EnterResult.failure(this, entryInfo.adjective);
 			}
 		}
 	}
@@ -78,14 +83,14 @@ public final class DoorProperty {
 		}
 	}
 	
-	public enum Status {
+	public enum ForceStatus {
 		NEED_TOOL(Method.FORCE, Method.CUT),
 		NEED_BREAK_TOOL(Method.CUT),
 		NOT_STUCK;
 		
 		private final List<Method> availableMethods;
 		
-		Status(Method... availableMethods) {
+		ForceStatus(Method... availableMethods) {
 			this.availableMethods = List.of(availableMethods);
 		}
 		
