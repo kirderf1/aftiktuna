@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -87,9 +88,10 @@ public final class GameInstance {
 			
 			printPage(false);
 			
+			Consumer<ActionPrinter> userAction = handleUserInput();
 			ActionPrinter actionOut = new ActionPrinter(messageBuffer, crew);
+			userAction.accept(actionOut);
 			
-			handleUserAction(actionOut);
 			for (Entity entity : StreamUtils.sortedWithRandomTiebreaker(
 					getGameObjectStream().flatMap(Entity.CAST.toStream()),
 					Entity.TURN_ORDER_COMPARATOR).toList()) {
@@ -190,18 +192,18 @@ public final class GameInstance {
 		return beatenLocations >= (debugLevel ? 1 : 3);
 	}
 	
-	private void handleUserAction(ActionPrinter actionOut) {
+	private Consumer<ActionPrinter> handleUserInput() {
 		Aftik aftik = crew.getAftik();
 		if (aftik.getMind().overridesPlayerInput()) {
 			sleep();
-			aftik.performAction(actionOut);
+			return aftik::performAction;
 		} else {
 			commandState.inputPrepare(aftik);
 			int result;
 			do {
 				String input = in.readLine();
 				
-				CommandContext context = new CommandContext(this, commandState, actionOut);
+				CommandContext context = new CommandContext(this, commandState, messageBuffer);
 				try {
 					result = view.handleInput(input, context);
 				} catch(CommandSyntaxException e) {
@@ -214,11 +216,11 @@ public final class GameInstance {
 					else
 						messageBuffer.flush(out);
 				} else {
-					var optionalAction = context.getAction();
-					optionalAction.ifPresentOrElse(action -> action.accept(actionOut),
-							() -> System.out.printf("[Warning] Inconsistency in command handling for input \"%s\". Got action result without action.%n", input));
+					
+					return context.getAction().orElse(out ->
+							System.out.printf("[Warning] Inconsistency in command handling for input \"%s\". Got action result without action.%n", input));
 				}
-			} while (result <= 0);
+			} while (true);
 		}
 	}
 	

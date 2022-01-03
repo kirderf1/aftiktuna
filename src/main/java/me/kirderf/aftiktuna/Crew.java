@@ -7,7 +7,7 @@ import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.object.entity.AftikNPC;
 import me.kirderf.aftiktuna.object.entity.Stats;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
-import me.kirderf.aftiktuna.print.ActionPrinter;
+import me.kirderf.aftiktuna.print.SimplePrinter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,7 @@ public final class Crew {
 		return crewMembers.size() < MAX_SIZE;
 	}
 	
-	public void setControllingAftik(Aftik aftik, ActionPrinter out) {
+	public void setControllingAftik(Aftik aftik, SimplePrinter out) {
 		if (!crewMembers.contains(aftik))
 			throw new IllegalArgumentException("Aftik must be part of the crew.");
 		this.aftik = aftik;
@@ -78,7 +78,7 @@ public final class Crew {
 		}
 	}
 	
-	public void addCrewMember(AftikNPC npc, ActionPrinter out) {
+	public void addCrewMember(AftikNPC npc, SimplePrinter out) {
 		if (hasCapacity()) {
 			Aftik aftik = npc.createAftikForCrew(this);
 			crewMembers.add(aftik);
@@ -91,7 +91,7 @@ public final class Crew {
 		crewMembers.remove(aftik);
 	}
 	
-	void replaceLostControlCharacter(ActionPrinter out) {
+	void replaceLostControlCharacter(SimplePrinter out) {
 		if (!crewMembers.contains(aftik)) {
 			setControllingAftik(crewMembers.get(0), out);
 		}

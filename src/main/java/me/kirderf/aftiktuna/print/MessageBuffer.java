@@ -7,13 +7,15 @@ import java.util.List;
 /**
  * Collects action messages to be flushed to the view.
  */
-public final class MessageBuffer {
+public final class MessageBuffer implements SimplePrinter {
 	private final List<String> messages = new ArrayList<>();
 	
+	@Override
 	public void println() {
 		messages.add("");
 	}
 	
+	@Override
 	public void print(String message, Object... args) {
 		messages.add(message.formatted(args));
 	}

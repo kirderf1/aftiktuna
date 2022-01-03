@@ -5,6 +5,7 @@ import me.kirderf.aftiktuna.GameInstance;
 import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
+import me.kirderf.aftiktuna.print.SimplePrinter;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -16,14 +17,14 @@ import java.util.function.Consumer;
  * Non-action is usually a preparation failure where the user command does not work in the current context, but this is not strictly the case.
  */
 public final class CommandContext {
-	private final ActionPrinter out;
+	private final SimplePrinter out;
 	private final GameInstance game;
 	private final CommandState state;
 	private boolean showView = false;
 	private boolean isUsed = false;
 	private Consumer<ActionPrinter> action;
 	
-	public CommandContext(GameInstance game, CommandState state, ActionPrinter out) {
+	public CommandContext(GameInstance game, CommandState state, SimplePrinter out) {
 		this.game = game;
 		this.state = state;
 		this.out = out;
@@ -57,13 +58,13 @@ public final class CommandContext {
 		return noAction(out -> out.print(text, args));
 	}
 	
-	public int noAction(Consumer<ActionPrinter> messages) {
+	public int noAction(Consumer<SimplePrinter> messages) {
 		onUse();
 		messages.accept(out);
 		return 0;
 	}
 	
-	public int noActionWithView(Consumer<ActionPrinter> messages) {
+	public int noActionWithView(Consumer<SimplePrinter> messages) {
 		showView = true;
 		return noAction(messages);
 	}
