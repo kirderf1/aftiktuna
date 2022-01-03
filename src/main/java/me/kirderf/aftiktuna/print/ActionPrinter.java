@@ -5,24 +5,24 @@ import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.GameObject;
 import me.kirderf.aftiktuna.object.entity.Entity;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
-
+/**
+ * Interface for sending action messages. Checks if the message should be seen before passing it over to the MessageBuffer.
+ */
 public final class ActionPrinter {
+	private final MessageBuffer buffer;
 	private final Crew crew;
-	private final List<String> messages = new ArrayList<>();
 	
-	public ActionPrinter(Crew crew) {
+	public ActionPrinter(MessageBuffer buffer, Crew crew) {
+		this.buffer = buffer;
 		this.crew = crew;
 	}
 	
 	public void println() {
-		messages.add("");
+		buffer.println();
 	}
 	
 	public void print(String message, Object... args) {
-		messages.add(message.formatted(args));
+		buffer.print(message, args);
 	}
 	
 	// Print message if the player is controlling the aftik
@@ -39,12 +39,5 @@ public final class ActionPrinter {
 	
 	public void printAt(GameObject object, String message, Object... args) {
 		printAt(object.getArea(), message, args);
-	}
-	
-	public void flush(PrintWriter out) {
-		for (String message : messages) {
-			out.println(message);
-		}
-		messages.clear();
 	}
 }

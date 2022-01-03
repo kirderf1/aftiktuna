@@ -16,6 +16,7 @@ import me.kirderf.aftiktuna.object.entity.Entity;
 import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.print.ActionPrinter;
 import me.kirderf.aftiktuna.print.HealthTracker;
+import me.kirderf.aftiktuna.print.MessageBuffer;
 import me.kirderf.aftiktuna.print.StatusPrinter;
 import me.kirderf.aftiktuna.util.StreamUtils;
 
@@ -26,6 +27,9 @@ import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+/**
+ * The central class of the game, which contains the main game loop.
+ */
 public final class GameInstance {
 	public static final Random RANDOM = new Random();
 	
@@ -33,7 +37,7 @@ public final class GameInstance {
 	
 	private final PrintWriter out;
 	private final InputReader in;
-	private final ActionPrinter actionOut;
+	private final MessageBuffer messageBuffer;
 	private final StatusPrinter statusPrinter;
 	
 	private final HealthTracker healthTracker = new HealthTracker();
@@ -55,7 +59,7 @@ public final class GameInstance {
 		crew = new Crew();
 		
 		statusPrinter = new StatusPrinter(out, crew);
-		actionOut = new ActionPrinter(crew);
+		messageBuffer = new MessageBuffer();
 	}
 	
 	public Crew getCrew() {
@@ -83,7 +87,9 @@ public final class GameInstance {
 			
 			printPage(false);
 			
-			handleUserAction();
+			ActionPrinter actionOut = new ActionPrinter(messageBuffer, crew);
+			
+			handleUserAction(actionOut);
 			for (Entity entity : StreamUtils.sortedWithRandomTiebreaker(
 					getGameObjectStream().flatMap(Entity.CAST.toStream()),
 					Entity.TURN_ORDER_COMPARATOR).toList()) {
@@ -96,7 +102,7 @@ public final class GameInstance {
 			handleCrewDeaths();
 			
 			if (crew.isEmpty()) {
-				actionOut.flush(out);
+				messageBuffer.flush(out);
 				out.println("You lost.");
 				return;
 			}
@@ -105,7 +111,7 @@ public final class GameInstance {
 			handleShipStatus();
 			
 			if (noMoreLevels(debugLevel)) {
-				actionOut.flush(out);
+				messageBuffer.flush(out);
 				out.println("Congratulations, you won!");
 				return;
 			}
@@ -137,7 +143,7 @@ public final class GameInstance {
 		
 		crew.placeCrewAtLocation(location);
 		
-		actionOut.print("The ship arrives at a new location, and the crew exit the ship.");
+		messageBuffer.print("The ship arrives at a new location, and the crew exit the ship.");
 	}
 	
 	private void handleCrewDeaths() {
@@ -150,7 +156,7 @@ public final class GameInstance {
 		
 		for (Aftik aftik : crew.getCrewMembers()) {
 			if (aftik.isDead()) {
-				actionOut.print("%s is dead.", aftik.getName());
+				messageBuffer.print("%s is dead.", aftik.getName());
 				
 				aftik.dropItems();
 				aftik.remove();
@@ -164,7 +170,7 @@ public final class GameInstance {
 		if (ship.getAndClearIsLaunching()) {
 			beatenLocations++;
 			
-			actionOut.print("The ship leaves for the next planet.");
+			messageBuffer.print("The ship leaves for the next planet.");
 			printPage(false);
 			sleep();
 			
@@ -184,7 +190,7 @@ public final class GameInstance {
 		return beatenLocations >= (debugLevel ? 1 : 3);
 	}
 	
-	private void handleUserAction() {
+	private void handleUserAction(ActionPrinter actionOut) {
 		Aftik aftik = crew.getAftik();
 		if (aftik.getMind().overridesPlayerInput()) {
 			sleep();
@@ -206,7 +212,7 @@ public final class GameInstance {
 					if (context.shouldShowView())
 						printPage(false);
 					else
-						actionOut.flush(out);
+						messageBuffer.flush(out);
 				}
 			} while (result <= 0);
 		}
@@ -216,7 +222,7 @@ public final class GameInstance {
 		out.println("-".repeat(Main.EXPECTED_LINE_LENGTH));
 		view.printView(out);
 		out.println();
-		actionOut.flush(out);
+		messageBuffer.flush(out);
 		statusPrinter.printStatus(fullStatus);
 	}
 	
