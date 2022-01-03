@@ -22,8 +22,8 @@ public final class Shopkeeper extends GameObject {
 		return stock;
 	}
 	
-	public boolean buyItem(Crew crew, ItemType item) {
+	public boolean buyItem(Crew crew, ItemType item, int count) {
 		return getItemsInStock().contains(item) &&
-				crew.trySpendPoints(item.getPrice());
+				crew.trySpendPoints(item.getPrice() * count);
 	}
 }

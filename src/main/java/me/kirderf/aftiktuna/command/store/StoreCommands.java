@@ -23,7 +23,12 @@ public final class StoreCommands {
 		DISPATCHER.register(literal("buy")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper,
-								ObjectArgument.getType(context, "item", ItemType.class)))));
+								1, ObjectArgument.getType(context, "item", ItemType.class))))
+				.then(argument("count", IntegerArgumentType.integer(1))
+						.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
+								.executes(context -> buyItem(context.getSource().inputContext, context.getSource().shopkeeper,
+										IntegerArgumentType.getInteger(context, "count"),
+										ObjectArgument.getType(context, "item", ItemType.class))))));
 		DISPATCHER.register(literal("sell")
 				.then(argument("item", ObjectArgument.create(ObjectTypes.ITEMS))
 						.executes(context -> sellItem(context.getSource().inputContext(), 1, ObjectArgument.getType(context, "item", ItemType.class))))
@@ -77,21 +82,28 @@ public final class StoreCommands {
 		});
 	}
 	
-	private static int buyItem(CommandContext context, Shopkeeper shopkeeper, ItemType item) {
+	private static int buyItem(CommandContext context, Shopkeeper shopkeeper, int count, ItemType item) {
 		Aftik aftik = context.getControlledAftik();
 		
 		if (shopkeeper.getItemsInStock().contains(item)) {
-			return context.action(out -> {
-				boolean success = shopkeeper.buyItem(aftik.getCrew(), item);
-				if (success) {
-					aftik.addItem(item);
-					out.print("%s bought a %s.", aftik.getName(), item.name());
-				} else
-					out.print("%s does not have enough points to buy a %s.", aftik.getName(), item.name());
-			});
+			return context.action(out -> buyItems(shopkeeper, count, item, aftik, out));
 		} else {
-			return context.printNoAction("A %s is not in stock.", item.name());
+			return context.printNoAction("There are no %s in stock.", item.pluralName());
 		}
+	}
+	
+	private static void buyItems(Shopkeeper shopkeeper, int count, ItemType item, Aftik aftik, ActionPrinter out) {
+		boolean success = shopkeeper.buyItem(aftik.getCrew(), item, count);
+		if (success) {
+			for (int i = 0; i < count; i++)
+				aftik.addItem(item);
+			out.print("%s bought %s.", aftik.getName(), getCountAndName(count, item));
+		} else
+			out.print("%s does not have enough points to buy %s.", aftik.getName(), getCountAndName(count, item));
+	}
+	
+	private static String getCountAndName(int count, ItemType item) {
+		return count + " " + (count == 1 ? item.name() : item.pluralName());
 	}
 	
 	private static int sellAll(CommandContext context, ItemType item) {
