@@ -213,6 +213,10 @@ public final class GameInstance {
 						printPage(false);
 					else
 						messageBuffer.flush(out);
+				} else {
+					var optionalAction = context.getAction();
+					optionalAction.ifPresentOrElse(action -> action.accept(actionOut),
+							() -> System.out.printf("[Warning] Inconsistency in command handling for input \"%s\". Got action result without action.%n", input));
 				}
 			} while (result <= 0);
 		}

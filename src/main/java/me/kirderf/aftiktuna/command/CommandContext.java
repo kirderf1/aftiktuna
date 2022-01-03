@@ -9,12 +9,19 @@ import me.kirderf.aftiktuna.print.ActionPrinter;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+/**
+ * Context for handling user commands. A user command should either generate a user action (with action())
+ * or a non-action (with a function with "noAction" in the name).
+ * A user action will let the game tick proceed, while a non-action will immediately go back to take another user command.
+ * Non-action is usually a preparation failure where the user command does not work in the current context, but this is not strictly the case.
+ */
 public final class CommandContext {
 	private final ActionPrinter out;
 	private final GameInstance game;
 	private final CommandState state;
 	private boolean showView = false;
 	private boolean isUsed = false;
+	private Consumer<ActionPrinter> action;
 	
 	public CommandContext(GameInstance game, CommandState state, ActionPrinter out) {
 		this.game = game;
@@ -42,6 +49,10 @@ public final class CommandContext {
 		return showView;
 	}
 	
+	public Optional<Consumer<ActionPrinter>> getAction() {
+		return Optional.of(action);
+	}
+	
 	public int printNoAction(String text, Object... args) {
 		return noAction(out -> out.print(text, args));
 	}
@@ -58,13 +69,12 @@ public final class CommandContext {
 	}
 	
 	public int action() {
-		onUse();
-		return 1;
+		return action(out -> {});
 	}
 	
 	public int action(Consumer<ActionPrinter> action) {
 		onUse();
-		action.accept(out);
+		this.action = action;
 		return 1;
 	}
 	
