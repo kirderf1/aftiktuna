@@ -5,6 +5,7 @@ import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.object.door.Door;
 import me.kirderf.aftiktuna.object.entity.Aftik;
 import me.kirderf.aftiktuna.print.ActionPrinter;
+import me.kirderf.aftiktuna.print.EnterMessage;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -40,7 +41,7 @@ public final class EnterDoorAction {
 	private static void printEnterSuccess(ActionPrinter out, Aftik aftik, Door door, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
 				item -> out.printFrom(door.getArea(), "Using their %s, %s entered the %s into a new area.", item.name(), aftik.getName(), door.getType().getCategoryName()),
-				() -> out.printFrom(door.getArea(), "%s entered the %s into a new area.", aftik.getName(), door.getType().getCategoryName()));
+				() -> out.printFrom(door.getArea(), new EnterMessage(aftik, door)));
 		out.printFrom(aftik.getArea(), "%s enters the area.", aftik.getName());
 	}
 	

@@ -30,6 +30,11 @@ public final class ActionPrinter implements SimplePrinter {
 		buffer.print(message, args);
 	}
 	
+	@Override
+	public void print(Message message) {
+		buffer.print(message);
+	}
+	
 	// Print message if the player is controlling the aftik
 	public void printFor(Entity entity, String message, Object... args) {
 		if (entity == aftik)
@@ -50,5 +55,10 @@ public final class ActionPrinter implements SimplePrinter {
 	public void printFrom(Area area, String message, Object... args) {
 		if (area == originalArea)
 			print(message, args);
+	}
+	
+	public void printFrom(Area area, Message message) {
+		if (area == originalArea)
+			print(message);
 	}
 }

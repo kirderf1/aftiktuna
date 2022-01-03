@@ -4,4 +4,6 @@ public interface SimplePrinter {
 	void println();
 	
 	void print(String message, Object... args);
+	
+	void print(Message message);
 }
