@@ -12,10 +12,12 @@ import me.kirderf.aftiktuna.object.entity.Entity;
 public final class ActionPrinter implements SimplePrinter {
 	private final MessageBuffer buffer;
 	private final Aftik aftik;
+	private final Area originalArea;
 	
 	public ActionPrinter(MessageBuffer buffer, Crew crew) {
 		this.buffer = buffer;
 		this.aftik = crew.getAftik();
+		this.originalArea = aftik.getArea();
 	}
 	
 	@Override
@@ -42,5 +44,11 @@ public final class ActionPrinter implements SimplePrinter {
 	
 	public void printAt(GameObject object, String message, Object... args) {
 		printAt(object.getArea(), message, args);
+	}
+	
+	// Print message if the aftik was in the area at the start of the tick. Used for movement messages.
+	public void printFrom(Area area, String message, Object... args) {
+		if (area == originalArea)
+			print(message, args);
 	}
 }

@@ -12,10 +12,6 @@ import java.util.stream.Stream;
 public final class EnterDoorAction {
 	
 	public static Result moveAndEnter(Aftik aftik, Door door, ActionPrinter out) {
-		return moveAndEnter(aftik, door, null, out);
-	}
-	
-	public static Result moveAndEnter(Aftik aftik, Door door, Aftik followTarget, ActionPrinter out) {
 		boolean success = aftik.tryMoveTo(door.getPosition(), out);
 		if (success) {
 			Area originalArea = aftik.getArea();
@@ -29,11 +25,7 @@ public final class EnterDoorAction {
 			if (result.success())
 				aftik.getMind().getMemory().observeNewConnection(originalArea, aftik.getArea(), door.getPairId());
 			
-			if (followTarget != null && result.success()) {
-				out.printAt(aftik, "%s follows %s into the area.", aftik.getName(), followTarget.getName());
-			} else {
-				printEnterResult(out, aftik, door, result);
-			}
+			printEnterResult(out, aftik, door, result);
 			
 			return new Result(result);
 		} else
@@ -47,8 +39,9 @@ public final class EnterDoorAction {
 	
 	private static void printEnterSuccess(ActionPrinter out, Aftik aftik, Door door, EnterResult.Success result) {
 		result.usedItem().ifPresentOrElse(
-				item -> out.printFor(aftik, "Using their %s, %s entered the %s into a new area.", item.name(), aftik.getName(), door.getType().getCategoryName()),
-				() -> out.printFor(aftik, "%s entered the %s into a new area.", aftik.getName(), door.getType().getCategoryName()));
+				item -> out.printFrom(door.getArea(), "Using their %s, %s entered the %s into a new area.", item.name(), aftik.getName(), door.getType().getCategoryName()),
+				() -> out.printFrom(door.getArea(), "%s entered the %s into a new area.", aftik.getName(), door.getType().getCategoryName()));
+		out.printFrom(aftik.getArea(), "%s enters the area.", aftik.getName());
 	}
 	
 	public record Result(Optional<EnterResult> optional) {

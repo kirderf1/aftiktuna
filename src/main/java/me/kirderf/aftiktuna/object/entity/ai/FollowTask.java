@@ -43,7 +43,7 @@ public final class FollowTask extends StaticTask {
 			}
 		} else if (followTarget != null) {
 			Door door = followTarget.door.getOrThrow(aftik.getArea());
-			EnterDoorAction.Result result = EnterDoorAction.moveAndEnter(aftik, door, followTarget.aftik.getOrThrow(aftik.getCrew()), out);
+			EnterDoorAction.Result result = EnterDoorAction.moveAndEnter(aftik, door, out);
 			
 			result.optional().flatMap(enterResult -> enterResult.either().getRight())
 					.ifPresentOrElse(failureType -> forceFragment = new ForceDoorTaskFragment(door),
