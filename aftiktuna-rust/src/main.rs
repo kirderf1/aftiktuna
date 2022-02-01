@@ -7,9 +7,9 @@ fn main() {
 
     let aftik = GOType::new('A', "Aftik");
     let fuel_can = GOType::new('f', "Fuel can");
-    let mut area = Area::new(5);
+    let mut area = Area::new();
     area.add(1, aftik);
     area.add(4, fuel_can);
 
-    area.print_area();
+    game::print_area(&area);
 }
