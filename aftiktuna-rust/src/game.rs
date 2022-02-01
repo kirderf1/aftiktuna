@@ -14,6 +14,22 @@ impl GOType {
     }
 }
 
+pub struct Position {
+    coord: usize,
+}
+
+impl Position {
+    pub fn new(coord: usize) -> Position {
+        if coord >= AREA_SIZE {
+            panic!(
+                "Position {} is out of bounds for room with size {}.",
+                coord, AREA_SIZE
+            );
+        }
+        Position { coord }
+    }
+}
+
 pub struct Area {
     objects: Vec<GameObject>,
 }
@@ -26,23 +42,17 @@ impl Area {
     }
 
     pub fn add(&mut self, pos: usize, obj_type: GOType) {
-        if pos >= AREA_SIZE {
-            panic!(
-                "Position {} is out of bounds for room with size {}.",
-                pos, AREA_SIZE
-            );
-        }
-        self.objects.push(GameObject::new(obj_type, pos))
+        self.objects.push(GameObject::new(obj_type, Position::new(pos)))
     }
 }
 
 struct GameObject {
     obj_type: GOType,
-    pos: usize,
+    pos: Position,
 }
 
 impl GameObject {
-    pub fn new(obj_type: GOType, pos: usize) -> GameObject {
+    pub fn new(obj_type: GOType, pos: Position) -> GameObject {
         GameObject { obj_type, pos }
     }
 }
@@ -50,7 +60,7 @@ impl GameObject {
 pub fn print_area(area: &Area) {
     let mut symbols = init_symbol_vector(AREA_SIZE);
     for obj in &area.objects {
-        symbols[obj.pos] = obj.obj_type.symbol;
+        symbols[obj.pos.coord] = obj.obj_type.symbol;
     }
     println!("{}", String::from_iter(symbols.iter()));
     for obj in &area.objects {
