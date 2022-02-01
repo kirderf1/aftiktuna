@@ -1,5 +1,10 @@
+use specs::{Component, storage::BTreeStorage};
+use specs::prelude::*;
+
 const AREA_SIZE: usize = 5;
 
+#[derive(Component, Debug)]
+#[storage(BTreeStorage)]
 pub struct GOType {
     symbol: char,
     name: String,
@@ -14,6 +19,8 @@ impl GOType {
     }
 }
 
+#[derive(Component, Debug)]
+#[storage(BTreeStorage)]
 pub struct Position {
     coord: usize,
 }
@@ -30,29 +37,23 @@ impl Position {
     }
 }
 
-pub struct GameObject {
-    obj_type: GOType,
-    pos: Position,
-}
+pub struct AreaView;
 
-impl GameObject {
-    pub fn new(obj_type: GOType, coord: usize) -> GameObject {
-        GameObject {
-            obj_type,
-            pos: Position::new(coord),
+impl<'a> System<'a> for AreaView {
+    type SystemData = (ReadStorage<'a, Position>, ReadStorage<'a, GOType>);
+
+    fn run(&mut self, (pos, obj_type): Self::SystemData) {
+        let mut symbols = init_symbol_vector(AREA_SIZE);
+        let mut labels = Vec::new();
+
+        for (pos, obj_type) in (&pos, &obj_type).join() {
+            symbols[pos.coord] = obj_type.symbol;
+            labels.push(format!("{}: {}", obj_type.symbol, obj_type.name));
         }
-    }
-}
-
-pub fn print_area(area: &[GameObject]) {
-    let mut symbols = init_symbol_vector(AREA_SIZE);
-    for obj in area {
-        symbols[obj.pos.coord] = obj.obj_type.symbol;
-    }
-    println!("{}", String::from_iter(symbols.iter()));
-    for obj in area {
-        let t = &obj.obj_type;
-        println!("{}: {}", t.symbol, t.name);
+        println!("{}", String::from_iter(symbols.iter()));
+        for label in labels {
+            println!("{}", label);
+        }
     }
 }
 
