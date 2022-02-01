@@ -30,40 +30,27 @@ impl Position {
     }
 }
 
-pub struct Area {
-    objects: Vec<GameObject>,
-}
-
-impl Area {
-    pub fn new() -> Area {
-        Area {
-            objects: Vec::new(),
-        }
-    }
-
-    pub fn add(&mut self, pos: usize, obj_type: GOType) {
-        self.objects.push(GameObject::new(obj_type, Position::new(pos)))
-    }
-}
-
-struct GameObject {
+pub struct GameObject {
     obj_type: GOType,
     pos: Position,
 }
 
 impl GameObject {
-    pub fn new(obj_type: GOType, pos: Position) -> GameObject {
-        GameObject { obj_type, pos }
+    pub fn new(obj_type: GOType, coord: usize) -> GameObject {
+        GameObject {
+            obj_type,
+            pos: Position::new(coord),
+        }
     }
 }
 
-pub fn print_area(area: &Area) {
+pub fn print_area(area: &[GameObject]) {
     let mut symbols = init_symbol_vector(AREA_SIZE);
-    for obj in &area.objects {
+    for obj in area {
         symbols[obj.pos.coord] = obj.obj_type.symbol;
     }
     println!("{}", String::from_iter(symbols.iter()));
-    for obj in &area.objects {
+    for obj in area {
         let t = &obj.obj_type;
         println!("{}: {}", t.symbol, t.name);
     }

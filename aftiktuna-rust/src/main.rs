@@ -1,4 +1,4 @@
-use game::{Area, GOType};
+use game::{GameObject, GOType};
 
 mod game;
 
@@ -7,9 +7,9 @@ fn main() {
 
     let aftik = GOType::new('A', "Aftik");
     let fuel_can = GOType::new('f', "Fuel can");
-    let mut area = Area::new();
-    area.add(1, aftik);
-    area.add(4, fuel_can);
+    let mut area = Vec::new();
+    area.push(GameObject::new(aftik, 1));
+    area.push(GameObject::new(fuel_can, 4));
 
     game::print_area(&area);
 }
