@@ -27,13 +27,26 @@ pub struct Position {
 
 impl Position {
     pub fn new(coord: usize) -> Position {
-        if coord >= AREA_SIZE {
-            panic!(
-                "Position {} is out of bounds for room with size {}.",
-                coord, AREA_SIZE
-            );
-        }
+        assert_valid_coord(coord);
         Position { coord }
+    }
+
+    pub fn get_pos(&self) -> usize {
+        self.coord
+    }
+
+    pub fn move_to(&mut self, new_coord: usize) {
+        assert_valid_coord(new_coord);
+        self.coord = new_coord;
+    }
+}
+
+fn assert_valid_coord(coord: usize) {
+    if coord >= AREA_SIZE {
+        panic!(
+            "Position {} is out of bounds for room with size {}.",
+            coord, AREA_SIZE
+        );
     }
 }
 
