@@ -63,10 +63,14 @@ impl<'a> System<'a> for AreaView {
             symbols[pos.coord] = obj_type.symbol;
             labels.push(format!("{}: {}", obj_type.symbol, obj_type.name));
         }
+
+        println!("-----------");
+        println!("Room:");
         println!("{}", String::from_iter(symbols.iter()));
         for label in labels {
             println!("{}", label);
         }
+        println!();
     }
 }
 

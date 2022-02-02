@@ -31,6 +31,9 @@ fn main() {
     AreaView.run_now(&world);
 
     loop {
+        print!("> ");
+        io::stdout().flush().expect("Failed to flush stdout");
+
         let mut input = String::new();
         io::stdin()
             .read_line(&mut input)
