@@ -15,20 +15,7 @@ fn main() {
     world.register::<Position>();
     world.register::<FuelCan>();
 
-    let aftik = GOType::new('A', "Aftik");
-    let fuel_can = GOType::new('f', "Fuel can");
-
-    let aftik = world
-        .create_entity()
-        .with(aftik)
-        .with(Position::new(1))
-        .build();
-    world
-        .create_entity()
-        .with(fuel_can)
-        .with(Position::new(4))
-        .with(FuelCan)
-        .build();
+    let aftik = init_area(&mut world);
 
     AreaView.run_now(&world);
 
@@ -60,6 +47,24 @@ fn main() {
             println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
         }
     }
+}
+
+fn init_area(world: &mut World) -> Entity {
+    let aftik = GOType::new('A', "Aftik");
+    let fuel_can = GOType::new('f', "Fuel can");
+
+    let aftik = world
+        .create_entity()
+        .with(aftik)
+        .with(Position::new(1))
+        .build();
+    world
+        .create_entity()
+        .with(fuel_can)
+        .with(Position::new(4))
+        .with(FuelCan)
+        .build();
+    aftik
 }
 
 fn find_fuel_can(
