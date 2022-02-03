@@ -1,9 +1,10 @@
-use specs::{Component, storage::BTreeStorage};
-use specs::prelude::*;
+use specs::{Component, prelude::*, storage::BTreeStorage};
+
+pub use position::{Coord, Position};
+
+mod position;
 
 const AREA_SIZE: Coord = 5;
-
-pub type Coord = usize;
 
 #[derive(Component, Debug)]
 #[storage(BTreeStorage)]
@@ -21,37 +22,6 @@ impl GOType {
     }
 }
 
-#[derive(Component, Debug)]
-#[storage(BTreeStorage)]
-pub struct Position {
-    coord: Coord,
-}
-
-impl Position {
-    pub fn new(coord: Coord) -> Position {
-        assert_valid_coord(coord);
-        Position { coord }
-    }
-
-    pub fn get_pos(&self) -> Coord {
-        self.coord
-    }
-
-    pub fn move_to(&mut self, new_coord: Coord) {
-        assert_valid_coord(new_coord);
-        self.coord = new_coord;
-    }
-}
-
-fn assert_valid_coord(coord: Coord) {
-    if coord >= AREA_SIZE {
-        panic!(
-            "Position {} is out of bounds for room with size {}.",
-            coord, AREA_SIZE
-        );
-    }
-}
-
 #[derive(Component, Debug, Default)]
 #[storage(NullStorage)]
 pub struct FuelCan;
@@ -66,7 +36,7 @@ impl<'a> System<'a> for AreaView {
         let mut labels = Vec::new();
 
         for (pos, obj_type) in (&pos, &obj_type).join() {
-            symbols[pos.coord] = obj_type.symbol;
+            symbols[pos.get_coord()] = obj_type.symbol;
             labels.push(format!("{}: {}", obj_type.symbol, obj_type.name));
         }
 
