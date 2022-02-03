@@ -1,7 +1,9 @@
 use specs::{Component, storage::BTreeStorage};
 use specs::prelude::*;
 
-const AREA_SIZE: usize = 5;
+const AREA_SIZE: Coord = 5;
+
+pub type Coord = usize;
 
 #[derive(Component, Debug)]
 #[storage(BTreeStorage)]
@@ -22,30 +24,26 @@ impl GOType {
 #[derive(Component, Debug)]
 #[storage(BTreeStorage)]
 pub struct Position {
-    coord: usize,
+    coord: Coord,
 }
 
 impl Position {
-    pub fn new(coord: usize) -> Position {
+    pub fn new(coord: Coord) -> Position {
         assert_valid_coord(coord);
         Position { coord }
     }
 
-    pub fn get_pos(&self) -> usize {
+    pub fn get_pos(&self) -> Coord {
         self.coord
     }
 
-    pub fn move_to(&mut self, new_coord: usize) {
+    pub fn move_to(&mut self, new_coord: Coord) {
         assert_valid_coord(new_coord);
         self.coord = new_coord;
     }
 }
 
-#[derive(Component, Debug, Default)]
-#[storage(NullStorage)]
-pub struct FuelCan;
-
-fn assert_valid_coord(coord: usize) {
+fn assert_valid_coord(coord: Coord) {
     if coord >= AREA_SIZE {
         panic!(
             "Position {} is out of bounds for room with size {}.",
@@ -53,6 +51,10 @@ fn assert_valid_coord(coord: usize) {
         );
     }
 }
+
+#[derive(Component, Debug, Default)]
+#[storage(NullStorage)]
+pub struct FuelCan;
 
 pub struct AreaView;
 

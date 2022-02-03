@@ -60,7 +60,7 @@ fn main() {
     }
 }
 
-fn find_fuel_can(entities : Entities, pos : ReadStorage<Position>, fuel_markers : ReadStorage<FuelCan>) -> Option<(Entity, usize)> {
+fn find_fuel_can(entities : Entities, pos : ReadStorage<Position>, fuel_markers : ReadStorage<FuelCan>) -> Option<(Entity, Coord)> {
     // Return any entity with the "fuel can" marker
     (&entities, &pos, &fuel_markers).join().next().map(|pair| (pair.0, pair.1.get_pos()))
 }
