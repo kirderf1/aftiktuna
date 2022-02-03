@@ -43,9 +43,8 @@ fn main() {
         let input = input.trim();
 
         if input.eq_ignore_ascii_case("take fuel can") {
-            let fuel_can = find_fuel_can(&world).expect("Expected a fuel can to exist");
+            let (fuel_can, item_pos) = find_fuel_can(world.entities(), world.read_storage(), world.read_storage()).expect("Expected a fuel can to exist");
             let mut pos = world.write_storage::<Position>();
-            let item_pos = pos.get(fuel_can).unwrap().get_pos();
             pos.get_mut(aftik).unwrap().move_to(item_pos);
             drop(pos);
             world.delete_entity(fuel_can).unwrap();
@@ -61,9 +60,7 @@ fn main() {
     }
 }
 
-fn find_fuel_can(world :&World) -> Option<Entity> {
-    let fuel_cans = world.read_storage::<FuelCan>();
-    let entities = world.entities();
+fn find_fuel_can(entities : Entities, pos : ReadStorage<Position>, fuel_markers : ReadStorage<FuelCan>) -> Option<(Entity, usize)> {
     // Return any entity with the "fuel can" marker
-    (&entities, &fuel_cans).join().next().map(|pair| pair.0)
+    (&entities, &pos, &fuel_markers).join().next().map(|pair| (pair.0, pair.1.get_pos()))
 }
