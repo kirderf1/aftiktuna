@@ -41,6 +41,10 @@ impl Position {
     }
 }
 
+#[derive(Component, Debug, Default)]
+#[storage(NullStorage)]
+pub struct FuelCan;
+
 fn assert_valid_coord(coord: usize) {
     if coord >= AREA_SIZE {
         panic!(
