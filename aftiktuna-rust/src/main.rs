@@ -51,8 +51,8 @@ fn init_area(world: &mut World) -> Entity {
         .with(GOType::new('A', "Aftik"))
         .with(Position::new(1))
         .build();
-    place_fuel(world, 3);
-    place_fuel(world, 4);
+    //place_fuel(world, 3);
+    //place_fuel(world, 4);
     aftik
 }
 
@@ -77,19 +77,28 @@ fn read_input() -> String {
 }
 
 fn take_fuel_can(world: &mut World, aftik: Entity) {
-    let (fuel_can, item_pos) =
-        find_fuel_can(world.entities(), world.read_storage(), world.read_storage())
-            .expect("Expected a fuel can to exist");
-    let mut pos = world.write_storage::<Position>();
-    pos.get_mut(aftik).unwrap().move_to(item_pos);
-    drop(pos);
-    world.delete_entity(fuel_can).unwrap();
-    world.fetch_mut::<GameState>().has_won = true;
+    let optional = find_fuel_can(world.entities(), world.read_storage(), world.read_storage());
 
-    world
-        .fetch_mut::<Messages>()
-        .0
-        .push("You picked up the fuel can.".to_string());
+    match optional {
+        Some((fuel_can, item_pos)) => {
+            let mut pos = world.write_storage::<Position>();
+            pos.get_mut(aftik).unwrap().move_to(item_pos);
+            drop(pos);
+            world.delete_entity(fuel_can).unwrap();
+            world.fetch_mut::<GameState>().has_won = true;
+
+            world
+                .fetch_mut::<Messages>()
+                .0
+                .push("You picked up the fuel can.".to_string());
+        }
+        None => {
+            world
+                .fetch_mut::<Messages>()
+                .0
+                .push("There is no fuel can here to pick up.".to_string());
+        }
+    }
 }
 
 fn find_fuel_can(
