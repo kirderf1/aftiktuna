@@ -35,21 +35,23 @@ fn main() {
 }
 
 fn init_area(world: &mut World) -> Entity {
-    let aftik = GOType::new('A', "Aftik");
-    let fuel_can = GOType::new('f', "Fuel can");
-
     let aftik = world
         .create_entity()
-        .with(aftik)
+        .with(GOType::new('A', "Aftik"))
         .with(Position::new(1))
         .build();
+    place_fuel(world, 3);
+    place_fuel(world, 4);
+    aftik
+}
+
+fn place_fuel(world: &mut World, pos: Coord) {
     world
         .create_entity()
-        .with(fuel_can)
-        .with(Position::new(4))
+        .with(GOType::new('f', "Fuel can"))
+        .with(Position::new(pos))
         .with(FuelCan)
         .build();
-    aftik
 }
 
 fn read_input() -> String {
