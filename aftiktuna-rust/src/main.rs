@@ -14,6 +14,8 @@ fn main() {
     world.register::<GOType>();
     world.register::<Position>();
     world.register::<FuelCan>();
+    world.insert(GameState { has_won: false });
+    world.insert(Messages(Vec::new()));
 
     let aftik = init_area(&mut world);
 
@@ -25,14 +27,23 @@ fn main() {
         if input.eq_ignore_ascii_case("take fuel can") {
             take_fuel_can(&mut world, aftik);
 
-            println!("Congratulations, you won!");
+            AreaView.run_now(&world);
 
-            return;
+            if world.fetch::<GameState>().has_won {
+                println!("Congratulations, you won!");
+                return;
+            }
         } else {
             println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
         }
     }
 }
+
+struct GameState {
+    has_won: bool,
+}
+
+pub struct Messages(Vec<String>);
 
 fn init_area(world: &mut World) -> Entity {
     let aftik = world
@@ -73,9 +84,12 @@ fn take_fuel_can(world: &mut World, aftik: Entity) {
     pos.get_mut(aftik).unwrap().move_to(item_pos);
     drop(pos);
     world.delete_entity(fuel_can).unwrap();
+    world.fetch_mut::<GameState>().has_won = true;
 
-    AreaView.run_now(&world);
-    println!("You picked up the fuel can.");
+    world
+        .fetch_mut::<Messages>()
+        .0
+        .push("You picked up the fuel can.".to_string());
 }
 
 fn find_fuel_can(

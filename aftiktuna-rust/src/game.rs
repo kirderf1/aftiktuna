@@ -2,6 +2,8 @@ use specs::{Component, prelude::*, storage::BTreeStorage};
 
 pub use position::{Coord, Position};
 
+use crate::Messages;
+
 mod position;
 
 const AREA_SIZE: Coord = 5;
@@ -29,9 +31,13 @@ pub struct FuelCan;
 pub struct AreaView;
 
 impl<'a> System<'a> for AreaView {
-    type SystemData = (ReadStorage<'a, Position>, ReadStorage<'a, GOType>);
+    type SystemData = (
+        ReadStorage<'a, Position>,
+        ReadStorage<'a, GOType>,
+        WriteExpect<'a, Messages>,
+    );
 
-    fn run(&mut self, (pos, obj_type): Self::SystemData) {
+    fn run(&mut self, (pos, obj_type, mut messages): Self::SystemData) {
         let mut symbols = init_symbol_vector(AREA_SIZE);
         let mut labels = Vec::new();
 
@@ -47,6 +53,10 @@ impl<'a> System<'a> for AreaView {
             println!("{}", label);
         }
         println!();
+        if !messages.0.is_empty() {
+            println!("{}", messages.0.join(" "));
+            messages.0.clear();
+        }
     }
 }
 
