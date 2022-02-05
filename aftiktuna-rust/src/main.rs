@@ -20,26 +20,11 @@ fn main() {
     AreaView.run_now(&world);
 
     loop {
-        print!("> ");
-        io::stdout().flush().expect("Failed to flush stdout");
-
-        let mut input = String::new();
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read input");
-        let input = input.trim();
+        let input = read_input();
 
         if input.eq_ignore_ascii_case("take fuel can") {
-            let (fuel_can, item_pos) =
-                find_fuel_can(world.entities(), world.read_storage(), world.read_storage())
-                    .expect("Expected a fuel can to exist");
-            let mut pos = world.write_storage::<Position>();
-            pos.get_mut(aftik).unwrap().move_to(item_pos);
-            drop(pos);
-            world.delete_entity(fuel_can).unwrap();
+            take_fuel_can(&mut world, aftik);
 
-            AreaView.run_now(&world);
-            println!("You picked up the fuel can.");
             println!("Congratulations, you won!");
 
             return;
@@ -65,6 +50,30 @@ fn init_area(world: &mut World) -> Entity {
         .with(FuelCan)
         .build();
     aftik
+}
+
+fn read_input() -> String {
+    print!("> ");
+    io::stdout().flush().expect("Failed to flush stdout");
+
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read input");
+    String::from(input.trim())
+}
+
+fn take_fuel_can(world: &mut World, aftik: Entity) {
+    let (fuel_can, item_pos) =
+        find_fuel_can(world.entities(), world.read_storage(), world.read_storage())
+            .expect("Expected a fuel can to exist");
+    let mut pos = world.write_storage::<Position>();
+    pos.get_mut(aftik).unwrap().move_to(item_pos);
+    drop(pos);
+    world.delete_entity(fuel_can).unwrap();
+
+    AreaView.run_now(&world);
+    println!("You picked up the fuel can.");
 }
 
 fn find_fuel_can(
