@@ -14,10 +14,14 @@ fn main() {
     world.register::<GOType>();
     world.register::<Position>();
     world.register::<FuelCan>();
-    world.insert(GameState { has_won: false });
+    world.insert(GameState {
+        has_won: false,
+        aftik: None,
+    });
     world.insert(Messages(Vec::new()));
 
     let aftik = init_area(&mut world);
+    world.fetch_mut::<GameState>().aftik = Some(aftik);
 
     AreaView.run_now(&world);
 
@@ -25,7 +29,7 @@ fn main() {
         let input = read_input();
 
         if input.eq_ignore_ascii_case("take fuel can") {
-            take_fuel_can(&mut world, aftik);
+            take_fuel_can(&mut world);
 
             AreaView.run_now(&world);
 
@@ -41,6 +45,7 @@ fn main() {
 
 struct GameState {
     has_won: bool,
+    aftik: Option<Entity>,
 }
 
 pub struct Messages(Vec<String>);
@@ -76,12 +81,16 @@ fn read_input() -> String {
     String::from(input.trim())
 }
 
-fn take_fuel_can(world: &mut World, aftik: Entity) {
+fn take_fuel_can(world: &mut World) {
     let optional = find_fuel_can(world.entities(), world.read_storage(), world.read_storage());
 
     match optional {
         Some((fuel_can, item_pos)) => {
             let mut pos = world.write_storage::<Position>();
+            let aftik = world
+                .fetch::<GameState>()
+                .aftik
+                .expect("Expected aftik to be initialized");
             pos.get_mut(aftik).unwrap().move_to(item_pos);
             drop(pos);
             world.delete_entity(fuel_can).unwrap();
