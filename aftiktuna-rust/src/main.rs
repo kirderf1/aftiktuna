@@ -3,7 +3,6 @@ use std::io::Write;
 use std::ops::Deref;
 
 use specs::prelude::*;
-use specs::shred::FetchMut;
 use specs::storage::MaskedStorage;
 
 use game::*;
@@ -26,23 +25,25 @@ fn main() {
     let aftik = init_area(&mut world);
     world.fetch_mut::<GameState>().aftik = Some(aftik);
 
-    AreaView.run_now(&world);
-
     loop {
-        let input = read_input();
+        AreaView.run_now(&world);
 
-        if input.eq_ignore_ascii_case("take fuel can") {
-            TakeFuelCan.run_now(&world);
-            world.maintain();
+        if world.fetch::<GameState>().has_won {
+            println!("Congratulations, you won!");
+            break;
+        }
 
-            AreaView.run_now(&world);
+        loop {
+            let input = read_input();
 
-            if world.fetch::<GameState>().has_won {
-                println!("Congratulations, you won!");
-                return;
+            if input.eq_ignore_ascii_case("take fuel can") {
+                TakeFuelCan.run_now(&world);
+                world.maintain();
+
+                break;
+            } else {
+                println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
             }
-        } else {
-            println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
         }
     }
 }
@@ -61,7 +62,7 @@ fn init_area(world: &mut World) -> Entity {
         .with(Position::new(1))
         .build();
     //place_fuel(world, 3);
-    //place_fuel(world, 4);
+    place_fuel(world, 4);
     aftik
 }
 
