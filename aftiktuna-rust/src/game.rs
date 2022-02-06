@@ -1,91 +1,87 @@
-use specs::{prelude::*, storage::BTreeStorage, Component};
-use std::cmp::max;
+use specs::{prelude::*, Component};
 
 pub use position::{Coord, Position};
+use specs::storage::MaskedStorage;
+use std::ops::Deref;
+use view::{GOType, Messages};
 
-use crate::Messages;
+use crate::GameState;
 
 mod position;
+pub mod view;
 
 const AREA_SIZE: Coord = 5;
-
-#[derive(Component, Debug)]
-#[storage(BTreeStorage)]
-pub struct GOType {
-    symbol: char,
-    name: String,
-}
-
-impl GOType {
-    pub fn new(symbol: char, name: &str) -> GOType {
-        GOType {
-            symbol,
-            name: String::from(name),
-        }
-    }
-}
 
 #[derive(Component, Debug, Default)]
 #[storage(NullStorage)]
 pub struct FuelCan;
 
-pub struct AreaView;
+pub fn init_area(world: &mut World) -> Entity {
+    let aftik = world
+        .create_entity()
+        .with(GOType::new('A', "Aftik"))
+        .with(Position::new(1))
+        .build();
+    place_fuel(world, 4);
+    place_fuel(world, 4);
+    aftik
+}
 
-impl<'a> System<'a> for AreaView {
+fn place_fuel(world: &mut World, pos: Coord) {
+    world
+        .create_entity()
+        .with(GOType::new('f', "Fuel can"))
+        .with(Position::new(pos))
+        .with(FuelCan)
+        .build();
+}
+
+pub struct TakeFuelCan;
+
+impl<'a> System<'a> for TakeFuelCan {
     type SystemData = (
-        ReadStorage<'a, Position>,
-        ReadStorage<'a, GOType>,
+        Entities<'a>,
+        WriteStorage<'a, Position>,
+        ReadStorage<'a, FuelCan>,
+        WriteExpect<'a, GameState>,
         WriteExpect<'a, Messages>,
     );
 
-    fn run(&mut self, (pos, obj_type, mut messages): Self::SystemData) {
-        let mut symbols_by_pos = init_symbol_vectors(AREA_SIZE);
-        let mut labels = Vec::new();
+    fn run(
+        &mut self,
+        (entities, mut pos, fuel_markers, mut game_state, mut messages): Self::SystemData,
+    ) {
+        let optional = find_fuel_can(&entities, &pos, &fuel_markers);
 
-        for (pos, obj_type) in (&pos, &obj_type).join() {
-            symbols_by_pos[pos.get_coord()].push(obj_type.symbol);
-            let label = format!("{}: {}", obj_type.symbol, obj_type.name);
-            if !labels.contains(&label) {
-                labels.push(label);
-            }
-        }
+        match optional {
+            Some((fuel_can, item_pos)) => {
+                let aftik = game_state.aftik.expect("Expected aftik to be initialized");
+                pos.get_mut(aftik).unwrap().move_to(item_pos);
+                entities.delete(fuel_can).unwrap();
+                game_state.has_won = true;
 
-        println!("-----------");
-        println!("Room:");
-        let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
-        for row in (0..rows).rev() {
-            let base_symbol = if row == 0 { '_' } else { ' ' };
-            let mut symbols = init_symbol_vector(AREA_SIZE, base_symbol);
-            for pos in 0..AREA_SIZE {
-                if let Some(symbol) = symbols_by_pos[pos].get(row) {
-                    symbols[pos] = *symbol;
-                }
+                messages.0.push("You picked up the fuel can.".to_string());
             }
-            println!("{}", String::from_iter(symbols.iter()));
-        }
-        for label in labels {
-            println!("{}", label);
-        }
-        println!();
-        if !messages.0.is_empty() {
-            println!("{}", messages.0.join(" "));
-            messages.0.clear();
+            None => {
+                messages
+                    .0
+                    .push("There is no fuel can here to pick up.".to_string());
+            }
         }
     }
 }
 
-fn init_symbol_vectors(size: usize) -> Vec<Vec<char>> {
-    let mut symbols = Vec::with_capacity(size);
-    for _ in 0..size {
-        symbols.push(Vec::new());
-    }
-    symbols
-}
-
-fn init_symbol_vector(size: usize, symbol: char) -> Vec<char> {
-    let mut symbols = Vec::with_capacity(size);
-    for _ in 0..size {
-        symbols.push(symbol);
-    }
-    symbols
+pub fn find_fuel_can<'a, P>(
+    entities: &Entities,
+    pos: &Storage<'a, Position, P>, //Any kind of position storage, could be either a WriteStorage<> or a ReadStorage<>
+    fuel_markers: &ReadStorage<FuelCan>,
+) -> Option<(Entity, Coord)>
+where
+    P: Deref<Target = MaskedStorage<Position>>,
+{
+    // Return any entity with the "fuel can" marker
+    (entities, pos, fuel_markers)
+        .join()
+        .next()
+        .map(|pair| (pair.0, pair.1.get_coord()))
 }
