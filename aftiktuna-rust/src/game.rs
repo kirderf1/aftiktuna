@@ -44,7 +44,10 @@ impl<'a> System<'a> for AreaView {
 
         for (pos, obj_type) in (&pos, &obj_type).join() {
             symbols_by_pos[pos.get_coord()].push(obj_type.symbol);
-            labels.push(format!("{}: {}", obj_type.symbol, obj_type.name));
+            let label = format!("{}: {}", obj_type.symbol, obj_type.name);
+            if !labels.contains(&label) {
+                labels.push(label);
+            }
         }
 
         println!("-----------");
