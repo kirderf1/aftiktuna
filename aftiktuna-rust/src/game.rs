@@ -1,4 +1,5 @@
-use specs::{Component, prelude::*, storage::BTreeStorage};
+use specs::{prelude::*, storage::BTreeStorage, Component};
+use std::cmp::max;
 
 pub use position::{Coord, Position};
 
@@ -38,17 +39,27 @@ impl<'a> System<'a> for AreaView {
     );
 
     fn run(&mut self, (pos, obj_type, mut messages): Self::SystemData) {
-        let mut symbols = init_symbol_vector(AREA_SIZE);
+        let mut symbols_by_pos = init_symbol_vectors(AREA_SIZE);
         let mut labels = Vec::new();
 
         for (pos, obj_type) in (&pos, &obj_type).join() {
-            symbols[pos.get_coord()] = obj_type.symbol;
+            symbols_by_pos[pos.get_coord()].push(obj_type.symbol);
             labels.push(format!("{}: {}", obj_type.symbol, obj_type.name));
         }
 
         println!("-----------");
         println!("Room:");
-        println!("{}", String::from_iter(symbols.iter()));
+        let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
+        for row in (0..rows).rev() {
+            let base_symbol = if row == 0 { '_' } else { ' ' };
+            let mut symbols = init_symbol_vector(AREA_SIZE, base_symbol);
+            for pos in 0..AREA_SIZE {
+                if let Some(symbol) = symbols_by_pos[pos].get(row) {
+                    symbols[pos] = *symbol;
+                }
+            }
+            println!("{}", String::from_iter(symbols.iter()));
+        }
         for label in labels {
             println!("{}", label);
         }
@@ -60,10 +71,18 @@ impl<'a> System<'a> for AreaView {
     }
 }
 
-fn init_symbol_vector(size: usize) -> Vec<char> {
+fn init_symbol_vectors(size: usize) -> Vec<Vec<char>> {
     let mut symbols = Vec::with_capacity(size);
     for _ in 0..size {
-        symbols.push('_');
+        symbols.push(Vec::new());
+    }
+    symbols
+}
+
+fn init_symbol_vector(size: usize, symbol: char) -> Vec<char> {
+    let mut symbols = Vec::with_capacity(size);
+    for _ in 0..size {
+        symbols.push(symbol);
     }
     symbols
 }

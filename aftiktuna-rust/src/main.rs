@@ -61,7 +61,7 @@ fn init_area(world: &mut World) -> Entity {
         .with(GOType::new('A', "Aftik"))
         .with(Position::new(1))
         .build();
-    //place_fuel(world, 3);
+    place_fuel(world, 4);
     place_fuel(world, 4);
     aftik
 }
