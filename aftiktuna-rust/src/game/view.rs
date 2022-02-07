@@ -1,7 +1,7 @@
-use crate::game::AREA_SIZE;
-use crate::{Position, System, WriteExpect};
-use specs::{storage::BTreeStorage, Component, Join, ReadStorage};
+use crate::{Area, GameState, Position, ReadExpect, System, WriteExpect};
+use specs::{storage::BTreeStorage, Component, Entity, Join, ReadStorage};
 use std::cmp::max;
+use std::ops::Deref;
 
 #[derive(Default)]
 pub struct Messages(pub Vec<String>);
@@ -28,11 +28,17 @@ impl<'a> System<'a> for AreaView {
     type SystemData = (
         ReadStorage<'a, Position>,
         ReadStorage<'a, GOType>,
+        ReadStorage<'a, Area>,
+        ReadExpect<'a, GameState>,
         WriteExpect<'a, Messages>,
     );
 
-    fn run(&mut self, (pos, obj_type, mut messages): Self::SystemData) {
-        let mut symbols_by_pos = init_symbol_vectors(AREA_SIZE);
+    fn run(&mut self, (pos, obj_type, areas, game_state, mut messages): Self::SystemData) {
+        let area = get_viewed_area(game_state.deref(), &pos);
+        let area_info = areas.get(area).unwrap();
+        let area_size = area_info.size;
+
+        let mut symbols_by_pos = init_symbol_vectors(area_size);
         let mut labels = Vec::new();
 
         for (pos, obj_type) in (&pos, &obj_type).join() {
@@ -44,12 +50,12 @@ impl<'a> System<'a> for AreaView {
         }
 
         println!("-----------");
-        println!("Room:");
+        println!("{}:", area_info.label);
         let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
         for row in (0..rows).rev() {
             let base_symbol = if row == 0 { '_' } else { ' ' };
-            let mut symbols = init_symbol_vector(AREA_SIZE, base_symbol);
-            for pos in 0..AREA_SIZE {
+            let mut symbols = init_symbol_vector(area_size, base_symbol);
+            for pos in 0..area_size {
                 if let Some(symbol) = symbols_by_pos[pos].get(row) {
                     symbols[pos] = *symbol;
                 }
@@ -65,6 +71,11 @@ impl<'a> System<'a> for AreaView {
             messages.0.clear();
         }
     }
+}
+
+fn get_viewed_area(game_state: &GameState, pos: &ReadStorage<Position>) -> Entity {
+    let aftik = game_state.aftik.unwrap();
+    pos.get(aftik).unwrap().get_area()
 }
 
 fn init_symbol_vectors(size: usize) -> Vec<Vec<char>> {

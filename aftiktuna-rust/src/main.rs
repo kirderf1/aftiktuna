@@ -12,6 +12,7 @@ fn main() {
     println!("Hello universe!");
 
     let mut world = World::new();
+    world.register::<Area>();
     world.register::<GOType>();
     world.register::<Position>();
     world.register::<FuelCan>();

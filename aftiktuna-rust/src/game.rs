@@ -1,4 +1,4 @@
-use specs::{prelude::*, Component};
+use specs::{prelude::*, storage::BTreeStorage, Component};
 
 pub use position::{Coord, Position};
 use specs::storage::MaskedStorage;
@@ -10,28 +10,43 @@ use crate::GameState;
 mod position;
 pub mod view;
 
-const AREA_SIZE: Coord = 5;
+#[derive(Component, Debug)]
+#[storage(BTreeStorage)]
+pub struct Area {
+    pub size: Coord,
+    pub label: String,
+}
 
 #[derive(Component, Debug, Default)]
 #[storage(NullStorage)]
 pub struct FuelCan;
 
 pub fn init_area(world: &mut World) -> Entity {
+    let room = world
+        .create_entity()
+        .with(Area {
+            size: 5,
+            label: "Room".to_string(),
+        })
+        .build();
+
+    let pos = Position::new(room, 1, &world.read_storage());
     let aftik = world
         .create_entity()
         .with(GOType::new('A', "Aftik"))
-        .with(Position::new(1))
+        .with(pos)
         .build();
-    place_fuel(world, 4);
-    place_fuel(world, 4);
+    place_fuel(world, room, 4);
+    place_fuel(world, room, 4);
     aftik
 }
 
-fn place_fuel(world: &mut World, pos: Coord) {
+fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Position::new(area, coord, &world.read_storage());
     world
         .create_entity()
         .with(GOType::new('f', "Fuel can"))
-        .with(Position::new(pos))
+        .with(pos)
         .with(FuelCan)
         .build();
 }
@@ -43,20 +58,21 @@ impl<'a> System<'a> for TakeFuelCan {
         Entities<'a>,
         WriteStorage<'a, Position>,
         ReadStorage<'a, FuelCan>,
+        ReadStorage<'a, Area>,
         WriteExpect<'a, GameState>,
         WriteExpect<'a, Messages>,
     );
 
     fn run(
         &mut self,
-        (entities, mut pos, fuel_markers, mut game_state, mut messages): Self::SystemData,
+        (entities, mut pos, fuel_markers, areas, mut game_state, mut messages): Self::SystemData,
     ) {
         let optional = find_fuel_can(&entities, &pos, &fuel_markers);
 
         match optional {
             Some((fuel_can, item_pos)) => {
                 let aftik = game_state.aftik.expect("Expected aftik to be initialized");
-                pos.get_mut(aftik).unwrap().move_to(item_pos);
+                pos.get_mut(aftik).unwrap().move_to(item_pos, &areas);
                 entities.delete(fuel_can).unwrap();
                 game_state.has_won = true;
 
