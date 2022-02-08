@@ -1,7 +1,46 @@
-use crate::Area;
-use specs::{storage::BTreeStorage, Component, Entity, ReadStorage};
+use specs::{prelude::*, storage::BTreeStorage, Component};
+
+use crate::view::GOType;
+use crate::FuelCan;
 
 pub type Coord = usize;
+
+#[derive(Component, Debug)]
+#[storage(BTreeStorage)]
+pub struct Area {
+    pub size: Coord,
+    pub label: String,
+}
+
+pub fn init_area(world: &mut World) -> Entity {
+    let room = world
+        .create_entity()
+        .with(Area {
+            size: 5,
+            label: "Room".to_string(),
+        })
+        .build();
+
+    let pos = Position::new(room, 1, &world.read_storage());
+    let aftik = world
+        .create_entity()
+        .with(GOType::new('A', "Aftik"))
+        .with(pos)
+        .build();
+    place_fuel(world, room, 4);
+    place_fuel(world, room, 4);
+    aftik
+}
+
+fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Position::new(area, coord, &world.read_storage());
+    world
+        .create_entity()
+        .with(GOType::new('f', "Fuel can"))
+        .with(pos)
+        .with(FuelCan)
+        .build();
+}
 
 #[derive(Component, Debug, Clone)]
 #[storage(BTreeStorage)]

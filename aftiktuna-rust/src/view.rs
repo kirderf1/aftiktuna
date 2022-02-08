@@ -1,5 +1,6 @@
-use crate::{Area, GameState, Position, ReadExpect, System, WriteExpect};
-use specs::{storage::BTreeStorage, Component, Entity, Join, ReadStorage};
+use crate::area::Position;
+use crate::{Area, GameState};
+use specs::{prelude::*, storage::BTreeStorage, Component};
 use std::cmp::max;
 use std::ops::Deref;
 

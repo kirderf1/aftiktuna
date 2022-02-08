@@ -1,55 +1,12 @@
-use specs::{prelude::*, storage::BTreeStorage, Component};
-
-pub use position::{Coord, Position};
+use crate::area::{Coord, Position};
+use crate::{Area, GameState, Messages};
 use specs::storage::MaskedStorage;
+use specs::{prelude::*, Component, Entities, Entity, Join, ReadStorage, Storage, WriteStorage};
 use std::ops::Deref;
-use view::{GOType, Messages};
-
-use crate::GameState;
-
-mod position;
-pub mod view;
-
-#[derive(Component, Debug)]
-#[storage(BTreeStorage)]
-pub struct Area {
-    pub size: Coord,
-    pub label: String,
-}
 
 #[derive(Component, Debug, Default)]
 #[storage(NullStorage)]
 pub struct FuelCan;
-
-pub fn init_area(world: &mut World) -> Entity {
-    let room = world
-        .create_entity()
-        .with(Area {
-            size: 5,
-            label: "Room".to_string(),
-        })
-        .build();
-
-    let pos = Position::new(room, 1, &world.read_storage());
-    let aftik = world
-        .create_entity()
-        .with(GOType::new('A', "Aftik"))
-        .with(pos)
-        .build();
-    place_fuel(world, room, 4);
-    place_fuel(world, room, 4);
-    aftik
-}
-
-fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
-    let pos = Position::new(area, coord, &world.read_storage());
-    world
-        .create_entity()
-        .with(GOType::new('f', "Fuel can"))
-        .with(pos)
-        .with(FuelCan)
-        .build();
-}
 
 pub struct TakeFuelCan;
 
@@ -87,7 +44,7 @@ impl<'a> System<'a> for TakeFuelCan {
     }
 }
 
-pub fn find_fuel_can<'a, P>(
+fn find_fuel_can<'a, P>(
     entities: &Entities,
     pos: &Storage<'a, Position, P>, //Any kind of position storage, could be either a WriteStorage<> or a ReadStorage<>
     fuel_markers: &ReadStorage<FuelCan>,

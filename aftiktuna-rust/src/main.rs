@@ -3,10 +3,19 @@ use std::io::Write;
 
 use specs::prelude::*;
 
-use game::view::{AreaView, GOType, Messages};
-use game::*;
+use action::*;
+use area::*;
+use view::*;
 
-mod game;
+mod action;
+mod area;
+mod view;
+
+#[derive(Default)]
+pub struct GameState {
+    has_won: bool,
+    aftik: Option<Entity>,
+}
 
 fn main() {
     println!("Hello universe!");
@@ -43,12 +52,6 @@ fn main() {
             }
         }
     }
-}
-
-#[derive(Default)]
-pub struct GameState {
-    has_won: bool,
-    aftik: Option<Entity>,
 }
 
 fn read_input() -> String {
