@@ -21,38 +21,41 @@ pub fn init_area(world: &mut World) -> Entity {
         })
         .build();
 
-    let pos = Position::new(room, 1, &world.read_storage());
-    let aftik = world
-        .create_entity()
-        .with(GOType::new('A', "Aftik"))
-        .with(pos)
-        .build();
+    let aftik = place_aftik(world, room, 1);
     place_fuel(world, room, 4);
     place_fuel(world, room, 4);
     aftik
 }
 
+fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
+    let pos = Pos::new(area, coord, &world.read_storage());
+    world
+        .create_entity()
+        .with(GOType::new('A', "Aftik"))
+        .with(Position(pos))
+        .build()
+}
+
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
-    let pos = Position::new(area, coord, &world.read_storage());
+    let pos = Pos::new(area, coord, &world.read_storage());
     world
         .create_entity()
         .with(GOType::new('f', "Fuel can"))
-        .with(pos)
+        .with(Position(pos))
         .with(FuelCan)
         .build();
 }
 
-#[derive(Component, Debug, Clone)]
-#[storage(BTreeStorage)]
-pub struct Position {
+#[derive(Clone, Debug)]
+pub struct Pos {
     area: Entity,
     coord: Coord,
 }
 
-impl Position {
-    pub fn new(area: Entity, coord: Coord, storage: &ReadStorage<Area>) -> Position {
+impl Pos {
+    pub fn new(area: Entity, coord: Coord, storage: &ReadStorage<Area>) -> Pos {
         assert_valid_coord(area, coord, storage);
-        Position { coord, area }
+        Pos { coord, area }
     }
 
     pub fn get_coord(&self) -> Coord {
@@ -62,10 +65,23 @@ impl Position {
     pub fn get_area(&self) -> Entity {
         self.area
     }
+}
 
+#[derive(Component, Debug)]
+#[storage(BTreeStorage)]
+pub struct Position(Pos);
+
+impl Position {
     pub fn move_to(&mut self, new_coord: Coord, storage: &ReadStorage<Area>) {
-        assert_valid_coord(self.area, new_coord, storage);
-        self.coord = new_coord;
+        self.0 = Pos::new(self.0.get_area(), new_coord, storage);
+    }
+
+    pub fn get_coord(&self) -> Coord {
+        self.0.get_coord()
+    }
+
+    pub fn get_area(&self) -> Entity {
+        self.0.get_area()
     }
 }
 
