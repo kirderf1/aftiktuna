@@ -1,7 +1,7 @@
 use specs::{prelude::*, storage::BTreeStorage, Component};
 
 use crate::view::GOType;
-use crate::FuelCan;
+use crate::{Door, FuelCan};
 
 pub type Coord = usize;
 
@@ -16,14 +16,22 @@ pub fn init_area(world: &mut World) -> Entity {
     let room = world
         .create_entity()
         .with(Area {
-            size: 5,
+            size: 3,
             label: "Room".to_string(),
+        })
+        .build();
+    let side_room = world
+        .create_entity()
+        .with(Area {
+            size: 5,
+            label: "Side Room".to_string(),
         })
         .build();
 
     let aftik = place_aftik(world, room, 1);
-    place_fuel(world, room, 4);
-    place_fuel(world, room, 4);
+    place_doors(world, room, 0, side_room, 1);
+    place_fuel(world, side_room, 4);
+    place_fuel(world, side_room, 4);
     aftik
 }
 
@@ -34,6 +42,22 @@ fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
         .with(GOType::new('A', "Aftik"))
         .with(Position(pos))
         .build()
+}
+
+fn place_doors(world: &mut World, area1: Entity, coord1: Coord, area2: Entity, coord2: Coord) {
+    place_door(world, area1, coord1, area2, coord2);
+    place_door(world, area2, coord2, area1, coord1);
+}
+
+fn place_door(world: &mut World, area: Entity, coord: Coord, dest_area: Entity, dest_coord: Coord) {
+    let pos = Pos::new(area, coord, &world.read_storage());
+    let dest = Pos::new(dest_area, dest_coord, &world.read_storage());
+    world
+        .create_entity()
+        .with(GOType::new('^', "Door"))
+        .with(Position(pos))
+        .with(Door { destination: dest })
+        .build();
 }
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
@@ -69,7 +93,7 @@ impl Pos {
 
 #[derive(Component, Debug)]
 #[storage(BTreeStorage)]
-pub struct Position(Pos);
+pub struct Position(pub(crate) Pos);
 
 impl Position {
     pub fn move_to(&mut self, new_coord: Coord, storage: &ReadStorage<Area>) {

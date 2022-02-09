@@ -25,6 +25,7 @@ fn main() {
     world.register::<GOType>();
     world.register::<Position>();
     world.register::<FuelCan>();
+    world.register::<Door>();
     world.insert(GameState::default());
     world.insert(Messages::default());
 
@@ -45,7 +46,10 @@ fn main() {
             if input.eq_ignore_ascii_case("take fuel can") {
                 TakeFuelCan.run_now(&world);
                 world.maintain();
-
+                break;
+            } else if input.eq_ignore_ascii_case("enter door") {
+                EnterDoor.run_now(&world);
+                world.maintain();
                 break;
             } else {
                 println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
