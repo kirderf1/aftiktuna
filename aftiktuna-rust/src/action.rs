@@ -24,11 +24,12 @@ impl<'a> System<'a> for TakeFuelCan {
         &mut self,
         (entities, mut pos, fuel_markers, areas, mut game_state, mut messages): Self::SystemData,
     ) {
-        let optional = find_fuel_can(&entities, &pos, &fuel_markers);
+        let aftik = game_state.aftik.expect("Expected aftik to be initialized");
+        let area = pos.get(aftik).unwrap().get_area();
+        let optional = find_fuel_can(area, &entities, &pos, &fuel_markers);
 
         match optional {
             Some((fuel_can, item_pos)) => {
-                let aftik = game_state.aftik.expect("Expected aftik to be initialized");
                 pos.get_mut(aftik).unwrap().move_to(item_pos, &areas);
                 entities.delete(fuel_can).unwrap();
                 game_state.has_won = true;
@@ -45,6 +46,7 @@ impl<'a> System<'a> for TakeFuelCan {
 }
 
 fn find_fuel_can<'a, P>(
+    area: Entity,
     entities: &Entities,
     pos: &Storage<'a, Position, P>, //Any kind of position storage, could be either a WriteStorage<> or a ReadStorage<>
     fuel_markers: &ReadStorage<FuelCan>,
@@ -55,6 +57,7 @@ where
     // Return any entity with the "fuel can" marker
     (entities, pos, fuel_markers)
         .join()
+        .filter(|(_, pos, _)| pos.get_area().eq(&area))
         .next()
-        .map(|pair| (pair.0, pair.1.get_coord()))
+        .map(|(entity, pos, _)| (entity, pos.get_coord()))
 }

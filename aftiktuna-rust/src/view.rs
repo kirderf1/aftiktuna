@@ -43,10 +43,12 @@ impl<'a> System<'a> for AreaView {
         let mut labels = Vec::new();
 
         for (pos, obj_type) in (&pos, &obj_type).join() {
-            symbols_by_pos[pos.get_coord()].push(obj_type.symbol);
-            let label = format!("{}: {}", obj_type.symbol, obj_type.name);
-            if !labels.contains(&label) {
-                labels.push(label);
+            if pos.get_area() == area {
+                symbols_by_pos[pos.get_coord()].push(obj_type.symbol);
+                let label = format!("{}: {}", obj_type.symbol, obj_type.name);
+                if !labels.contains(&label) {
+                    labels.push(label);
+                }
             }
         }
 
