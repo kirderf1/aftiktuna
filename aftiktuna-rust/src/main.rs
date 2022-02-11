@@ -1,7 +1,6 @@
+use hecs::{Entity, World};
 use std::io;
 use std::io::Write;
-
-use specs::prelude::*;
 
 use action::*;
 use area::*;
@@ -21,21 +20,16 @@ fn main() {
     println!("Hello universe!");
 
     let mut world = World::new();
-    world.register::<Area>();
-    world.register::<DisplayInfo>();
-    world.register::<Position>();
-    world.register::<FuelCan>();
-    world.register::<Door>();
-    world.insert(GameState::default());
-    world.insert(Messages::default());
+    let mut game_state = GameState::default();
+    let mut messages = Messages::default();
 
     let aftik = init_area(&mut world);
-    world.fetch_mut::<GameState>().aftik = Some(aftik);
+    game_state.aftik = Some(aftik);
 
     loop {
-        AreaView.run_now(&world);
+        print_area_view(&world, &game_state, &mut messages);
 
-        if world.fetch::<GameState>().has_won {
+        if game_state.has_won {
             println!("Congratulations, you won!");
             break;
         }
@@ -44,12 +38,10 @@ fn main() {
             let input = read_input();
 
             if input.eq_ignore_ascii_case("take fuel can") {
-                TakeFuelCan.run_now(&world);
-                world.maintain();
+                take_fuel_can(&mut world, &mut game_state, &mut messages);
                 break;
             } else if input.eq_ignore_ascii_case("enter door") {
-                EnterDoor.run_now(&world);
-                world.maintain();
+                enter_door(&mut world, &game_state, &mut messages);
                 break;
             } else {
                 println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);

@@ -1,14 +1,12 @@
 use crate::area::Position;
 use crate::{Area, GameState};
-use specs::{prelude::*, storage::BTreeStorage, Component};
+use hecs::{Entity, World};
 use std::cmp::max;
-use std::ops::Deref;
 
 #[derive(Default)]
 pub struct Messages(pub Vec<String>);
 
-#[derive(Component, Debug)]
-#[storage(BTreeStorage)]
+#[derive(Debug)]
 pub struct DisplayInfo {
     symbol: char,
     name: String,
@@ -25,66 +23,54 @@ impl DisplayInfo {
     }
 }
 
-pub struct AreaView;
+pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Messages) {
+    let area = get_viewed_area(game_state, world);
+    let area_info = world.get::<Area>(area).unwrap();
+    let area_size = area_info.size;
 
-impl<'a> System<'a> for AreaView {
-    type SystemData = (
-        ReadStorage<'a, Position>,
-        ReadStorage<'a, DisplayInfo>,
-        ReadStorage<'a, Area>,
-        ReadExpect<'a, GameState>,
-        WriteExpect<'a, Messages>,
-    );
+    let mut symbols_by_pos = init_symbol_vectors(area_size);
+    let mut labels = Vec::new();
 
-    fn run(&mut self, (pos, obj_type, areas, game_state, mut messages): Self::SystemData) {
-        let area = get_viewed_area(game_state.deref(), &pos);
-        let area_info = areas.get(area).unwrap();
-        let area_size = area_info.size;
-
-        let mut symbols_by_pos = init_symbol_vectors(area_size);
-        let mut labels = Vec::new();
-
-        for (pos, obj_type) in (&pos, &obj_type).join() {
-            if pos.get_area() == area {
-                symbols_by_pos[pos.get_coord()].push((obj_type.symbol, obj_type.weight));
-                let label = format!("{}: {}", obj_type.symbol, obj_type.name);
-                if !labels.contains(&label) {
-                    labels.push(label);
-                }
+    for (_, (pos, obj_type)) in world.query::<(&Position, &DisplayInfo)>().iter() {
+        if pos.get_area() == area {
+            symbols_by_pos[pos.get_coord()].push((obj_type.symbol, obj_type.weight));
+            let label = format!("{}: {}", obj_type.symbol, obj_type.name);
+            if !labels.contains(&label) {
+                labels.push(label);
             }
         }
+    }
 
-        for symbol_column in &mut symbols_by_pos {
-            symbol_column.sort_by(|a, b| b.1.cmp(&a.1));
-        }
+    for symbol_column in &mut symbols_by_pos {
+        symbol_column.sort_by(|a, b| b.1.cmp(&a.1));
+    }
 
-        println!("-----------");
-        println!("{}:", area_info.label);
-        let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
-        for row in (0..rows).rev() {
-            let base_symbol = if row == 0 { '_' } else { ' ' };
-            let mut symbols = init_symbol_vector(area_size, base_symbol);
-            for pos in 0..area_size {
-                if let Some(symbol) = symbols_by_pos[pos].get(row) {
-                    symbols[pos] = symbol.0;
-                }
+    println!("-----------");
+    println!("{}:", area_info.label);
+    let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
+    for row in (0..rows).rev() {
+        let base_symbol = if row == 0 { '_' } else { ' ' };
+        let mut symbols = init_symbol_vector(area_size, base_symbol);
+        for pos in 0..area_size {
+            if let Some(symbol) = symbols_by_pos[pos].get(row) {
+                symbols[pos] = symbol.0;
             }
-            println!("{}", String::from_iter(symbols.iter()));
         }
-        for label in labels {
-            println!("{}", label);
-        }
-        println!();
-        if !messages.0.is_empty() {
-            println!("{}", messages.0.join(" "));
-            messages.0.clear();
-        }
+        println!("{}", String::from_iter(symbols.iter()));
+    }
+    for label in labels {
+        println!("{}", label);
+    }
+    println!();
+    if !messages.0.is_empty() {
+        println!("{}", messages.0.join(" "));
+        messages.0.clear();
     }
 }
 
-fn get_viewed_area(game_state: &GameState, pos: &ReadStorage<Position>) -> Entity {
+fn get_viewed_area(game_state: &GameState, world: &World) -> Entity {
     let aftik = game_state.aftik.unwrap();
-    pos.get(aftik).unwrap().get_area()
+    world.get::<Position>(aftik).unwrap().get_area()
 }
 
 fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {

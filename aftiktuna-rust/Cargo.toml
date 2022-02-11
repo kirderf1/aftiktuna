@@ -6,4 +6,4 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-specs = { version = "0.17.0", features = ["specs-derive"] }
+hecs = "0.7.5"

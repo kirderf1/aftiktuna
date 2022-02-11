@@ -1,32 +1,23 @@
-use specs::{prelude::*, storage::BTreeStorage, Component};
-
 use crate::view::DisplayInfo;
 use crate::{Door, FuelCan};
+use hecs::{Entity, World};
 
 pub type Coord = usize;
 
-#[derive(Component, Debug)]
-#[storage(BTreeStorage)]
 pub struct Area {
     pub size: Coord,
     pub label: String,
 }
 
 pub fn init_area(world: &mut World) -> Entity {
-    let room = world
-        .create_entity()
-        .with(Area {
-            size: 3,
-            label: "Room".to_string(),
-        })
-        .build();
-    let side_room = world
-        .create_entity()
-        .with(Area {
-            size: 5,
-            label: "Side Room".to_string(),
-        })
-        .build();
+    let room = world.spawn((Area {
+        size: 3,
+        label: "Room".to_string(),
+    },));
+    let side_room = world.spawn((Area {
+        size: 5,
+        label: "Side Room".to_string(),
+    },));
 
     let aftik = place_aftik(world, room, 1);
     place_doors(world, room, 0, side_room, 1);
@@ -36,12 +27,8 @@ pub fn init_area(world: &mut World) -> Entity {
 }
 
 fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
-    let pos = Pos::new(area, coord, &world.read_storage());
-    world
-        .create_entity()
-        .with(DisplayInfo::new('A', "Aftik", 10))
-        .with(Position(pos))
-        .build()
+    let pos = Pos::new(area, coord, world);
+    world.spawn((DisplayInfo::new('A', "Aftik", 10), Position(pos)))
 }
 
 fn place_doors(world: &mut World, area1: Entity, coord1: Coord, area2: Entity, coord2: Coord) {
@@ -50,24 +37,18 @@ fn place_doors(world: &mut World, area1: Entity, coord1: Coord, area2: Entity, c
 }
 
 fn place_door(world: &mut World, area: Entity, coord: Coord, dest_area: Entity, dest_coord: Coord) {
-    let pos = Pos::new(area, coord, &world.read_storage());
-    let dest = Pos::new(dest_area, dest_coord, &world.read_storage());
-    world
-        .create_entity()
-        .with(DisplayInfo::new('^', "Door", 20))
-        .with(Position(pos))
-        .with(Door { destination: dest })
-        .build();
+    let pos = Pos::new(area, coord, world);
+    let dest = Pos::new(dest_area, dest_coord, world);
+    world.spawn((
+        DisplayInfo::new('^', "Door", 20),
+        Position(pos),
+        Door { destination: dest },
+    ));
 }
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
-    let pos = Pos::new(area, coord, &world.read_storage());
-    world
-        .create_entity()
-        .with(DisplayInfo::new('f', "Fuel can", 1))
-        .with(Position(pos))
-        .with(FuelCan)
-        .build();
+    let pos = Pos::new(area, coord, &world);
+    world.spawn((DisplayInfo::new('f', "Fuel can", 1), Position(pos), FuelCan));
 }
 
 #[derive(Clone, Debug)]
@@ -77,8 +58,8 @@ pub struct Pos {
 }
 
 impl Pos {
-    pub fn new(area: Entity, coord: Coord, storage: &ReadStorage<Area>) -> Pos {
-        assert_valid_coord(area, coord, storage);
+    pub fn new(area: Entity, coord: Coord, world: &World) -> Pos {
+        assert_valid_coord(area, coord, world);
         Pos { coord, area }
     }
 
@@ -91,13 +72,12 @@ impl Pos {
     }
 }
 
-#[derive(Component, Debug)]
-#[storage(BTreeStorage)]
+#[derive(Debug)]
 pub struct Position(pub(crate) Pos);
 
 impl Position {
-    pub fn move_to(&mut self, new_coord: Coord, storage: &ReadStorage<Area>) {
-        self.0 = Pos::new(self.0.get_area(), new_coord, storage);
+    pub fn move_to(&mut self, new_coord: Coord, world: &World) {
+        self.0 = Pos::new(self.0.get_area(), new_coord, world);
     }
 
     pub fn get_coord(&self) -> Coord {
@@ -109,9 +89,9 @@ impl Position {
     }
 }
 
-fn assert_valid_coord(area: Entity, coord: Coord, storage: &ReadStorage<Area>) {
-    let area_size = storage
-        .get(area)
+fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
+    let area_size = world
+        .get::<Area>(area)
         .expect("Expected given area to have an area component")
         .size;
     if coord >= area_size {
