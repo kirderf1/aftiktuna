@@ -1,6 +1,6 @@
 use specs::{prelude::*, storage::BTreeStorage, Component};
 
-use crate::view::GOType;
+use crate::view::DisplayInfo;
 use crate::{Door, FuelCan};
 
 pub type Coord = usize;
@@ -39,7 +39,7 @@ fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
     let pos = Pos::new(area, coord, &world.read_storage());
     world
         .create_entity()
-        .with(GOType::new('A', "Aftik"))
+        .with(DisplayInfo::new('A', "Aftik", 10))
         .with(Position(pos))
         .build()
 }
@@ -54,7 +54,7 @@ fn place_door(world: &mut World, area: Entity, coord: Coord, dest_area: Entity, 
     let dest = Pos::new(dest_area, dest_coord, &world.read_storage());
     world
         .create_entity()
-        .with(GOType::new('^', "Door"))
+        .with(DisplayInfo::new('^', "Door", 20))
         .with(Position(pos))
         .with(Door { destination: dest })
         .build();
@@ -64,7 +64,7 @@ fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, &world.read_storage());
     world
         .create_entity()
-        .with(GOType::new('f', "Fuel can"))
+        .with(DisplayInfo::new('f', "Fuel can", 1))
         .with(Position(pos))
         .with(FuelCan)
         .build();

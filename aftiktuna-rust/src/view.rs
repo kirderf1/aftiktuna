@@ -9,16 +9,18 @@ pub struct Messages(pub Vec<String>);
 
 #[derive(Component, Debug)]
 #[storage(BTreeStorage)]
-pub struct GOType {
+pub struct DisplayInfo {
     symbol: char,
     name: String,
+    weight: u32,
 }
 
-impl GOType {
-    pub fn new(symbol: char, name: &str) -> GOType {
-        GOType {
+impl DisplayInfo {
+    pub fn new(symbol: char, name: &str, weight: u32) -> DisplayInfo {
+        DisplayInfo {
             symbol,
             name: String::from(name),
+            weight,
         }
     }
 }
@@ -28,7 +30,7 @@ pub struct AreaView;
 impl<'a> System<'a> for AreaView {
     type SystemData = (
         ReadStorage<'a, Position>,
-        ReadStorage<'a, GOType>,
+        ReadStorage<'a, DisplayInfo>,
         ReadStorage<'a, Area>,
         ReadExpect<'a, GameState>,
         WriteExpect<'a, Messages>,
@@ -44,12 +46,16 @@ impl<'a> System<'a> for AreaView {
 
         for (pos, obj_type) in (&pos, &obj_type).join() {
             if pos.get_area() == area {
-                symbols_by_pos[pos.get_coord()].push(obj_type.symbol);
+                symbols_by_pos[pos.get_coord()].push((obj_type.symbol, obj_type.weight));
                 let label = format!("{}: {}", obj_type.symbol, obj_type.name);
                 if !labels.contains(&label) {
                     labels.push(label);
                 }
             }
+        }
+
+        for symbol_column in &mut symbols_by_pos {
+            symbol_column.sort_by(|a, b| b.1.cmp(&a.1));
         }
 
         println!("-----------");
@@ -60,7 +66,7 @@ impl<'a> System<'a> for AreaView {
             let mut symbols = init_symbol_vector(area_size, base_symbol);
             for pos in 0..area_size {
                 if let Some(symbol) = symbols_by_pos[pos].get(row) {
-                    symbols[pos] = *symbol;
+                    symbols[pos] = symbol.0;
                 }
             }
             println!("{}", String::from_iter(symbols.iter()));
@@ -81,7 +87,7 @@ fn get_viewed_area(game_state: &GameState, pos: &ReadStorage<Position>) -> Entit
     pos.get(aftik).unwrap().get_area()
 }
 
-fn init_symbol_vectors(size: usize) -> Vec<Vec<char>> {
+fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
     let mut symbols = Vec::with_capacity(size);
     for _ in 0..size {
         symbols.push(Vec::new());

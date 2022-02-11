@@ -22,7 +22,7 @@ fn main() {
 
     let mut world = World::new();
     world.register::<Area>();
-    world.register::<GOType>();
+    world.register::<DisplayInfo>();
     world.register::<Position>();
     world.register::<FuelCan>();
     world.register::<Door>();
