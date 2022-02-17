@@ -6,14 +6,13 @@ use hecs::{Entity, World};
 pub struct FuelCan;
 
 pub fn take_fuel_can(world: &mut World, game_state: &mut GameState, messages: &mut Messages) {
-    let aftik = game_state.aftik.expect("Expected aftik to be initialized");
-    let area = world.get::<Position>(aftik).unwrap().get_area();
+    let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
     let option = find_fuel_can(area, world);
 
     match option {
         Some((fuel_can, item_pos)) => {
             world
-                .get_mut::<Position>(aftik)
+                .get_mut::<Position>(game_state.aftik)
                 .unwrap()
                 .move_to(item_pos, world);
             world.despawn(fuel_can).unwrap();
@@ -44,13 +43,12 @@ pub struct Door {
 }
 
 pub fn enter_door(world: &mut World, game_state: &GameState, messages: &mut Messages) {
-    let aftik = game_state.aftik.expect("Expected aftik to be initialized");
-    let area = world.get::<Position>(aftik).unwrap().get_area();
+    let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
     let option = find_door(area, world);
 
     match option {
         Some((_, destination)) => {
-            world.get_mut::<Position>(aftik).unwrap().0 = destination;
+            world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
 
             messages
                 .0

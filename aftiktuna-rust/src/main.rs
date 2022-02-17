@@ -10,21 +10,22 @@ mod action;
 mod area;
 mod view;
 
-#[derive(Default)]
 pub struct GameState {
     has_won: bool,
-    aftik: Option<Entity>,
+    aftik: Entity,
 }
 
 fn main() {
     println!("Hello universe!");
 
     let mut world = World::new();
-    let mut game_state = GameState::default();
     let mut messages = Messages::default();
 
     let aftik = init_area(&mut world);
-    game_state.aftik = Some(aftik);
+    let mut game_state = GameState {
+        has_won: false,
+        aftik,
+    };
 
     loop {
         print_area_view(&world, &game_state, &mut messages);
