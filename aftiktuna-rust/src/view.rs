@@ -50,7 +50,7 @@ pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Mes
     let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
     for row in (0..rows).rev() {
         let base_symbol = if row == 0 { '_' } else { ' ' };
-        let mut symbols = init_symbol_vector(area_size, base_symbol);
+        let mut symbols = vec![base_symbol; area_size];
         for pos in 0..area_size {
             if let Some(symbol) = symbols_by_pos[pos].get(row) {
                 symbols[pos] = symbol.0;
@@ -69,22 +69,13 @@ pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Mes
 }
 
 fn get_viewed_area(game_state: &GameState, world: &World) -> Entity {
-    let aftik = game_state.aftik.unwrap();
-    world.get::<Position>(aftik).unwrap().get_area()
+    world.get::<Position>(game_state.aftik).unwrap().get_area()
 }
 
 fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
     let mut symbols = Vec::with_capacity(size);
     for _ in 0..size {
         symbols.push(Vec::new());
-    }
-    symbols
-}
-
-fn init_symbol_vector(size: usize, symbol: char) -> Vec<char> {
-    let mut symbols = Vec::with_capacity(size);
-    for _ in 0..size {
-        symbols.push(symbol);
     }
     symbols
 }
