@@ -23,16 +23,19 @@ pub fn run_action(
     }
 }
 
-pub fn parse_take_fuel_can(world: &World, game_state: &GameState) -> Result<Action, String> {
-    let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
-    let option = find_fuel_can(area, world);
+pub fn parse_take_fuel_can(world: &World, aftik: Entity) -> Result<Action, String> {
+    let area = world.get::<Position>(aftik).unwrap().get_area();
+    find_fuel_can(area, world).map(|fuel_can| TakeFuelCan(fuel_can))
+}
 
-    match option {
-        Some(fuel_can) => Ok(TakeFuelCan(fuel_can)),
-        None => {
-            Err("There is no fuel can here to pick up.".to_string())
-        }
-    }
+fn find_fuel_can(area: Entity, world: &World) -> Result<Entity, String> {
+    world
+        .query::<(&Position, &FuelCan)>()
+        .iter()
+        .filter(|(_, (pos, _))| pos.get_area().eq(&area))
+        .next()
+        .map(|(entity, _)| entity)
+        .ok_or_else(|| "There is no fuel can here to pick up.".to_string())
 }
 
 fn take_fuel_can(
@@ -52,30 +55,24 @@ fn take_fuel_can(
     messages.0.push("You picked up the fuel can.".to_string());
 }
 
-fn find_fuel_can(area: Entity, world: &World) -> Option<Entity> {
-    world
-        .query::<(&Position, &FuelCan)>()
-        .iter()
-        .filter(|(_, (pos, _))| pos.get_area().eq(&area))
-        .next()
-        .map(|(entity, _)| entity)
-}
-
 #[derive(Debug)]
 pub struct Door {
     pub destination: Pos,
 }
 
-pub fn parse_enter_door(world: &World, game_state: &GameState) -> Result<Action, String> {
-    let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
-    let option = find_door(area, world);
+pub fn parse_enter_door(world: &World, aftik: Entity) -> Result<Action, String> {
+    let area = world.get::<Position>(aftik).unwrap().get_area();
+    find_door(area, world).map(|door| EnterDoor(door))
+}
 
-    match option {
-        Some(door) => Ok(EnterDoor(door)),
-        None => {
-            Err("There is no door to go through.".to_string())
-        }
-    }
+fn find_door(area: Entity, world: &World) -> Result<Entity, String> {
+    world
+        .query::<(&Position, &Door)>()
+        .iter()
+        .filter(|(_, (pos, _))| pos.get_area().eq(&area))
+        .next()
+        .map(|(entity, _)| entity)
+        .ok_or_else(|| "There is no door to go through.".to_string())
 }
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState, messages: &mut Messages) {
@@ -85,13 +82,4 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState, messages:
     messages
         .0
         .push("You entered the door into a new location.".to_string());
-}
-
-fn find_door(area: Entity, world: &World) -> Option<Entity> {
-    world
-        .query::<(&Position, &Door)>()
-        .iter()
-        .filter(|(_, (pos, _))| pos.get_area().eq(&area))
-        .next()
-        .map(|(entity, _)| entity)
 }
