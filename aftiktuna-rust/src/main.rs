@@ -39,10 +39,10 @@ fn main() {
             let input = read_input();
 
             if input.eq_ignore_ascii_case("take fuel can") {
-                take_fuel_can(&mut world, &mut game_state, &mut messages);
+                try_take_fuel_can(&mut world, &mut game_state, &mut messages);
                 break;
             } else if input.eq_ignore_ascii_case("enter door") {
-                enter_door(&mut world, &game_state, &mut messages);
+                try_enter_door(&mut world, &game_state, &mut messages);
                 break;
             } else {
                 println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
