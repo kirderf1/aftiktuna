@@ -17,9 +17,13 @@ pub fn run_action(
     game_state: &mut GameState,
     messages: &mut Messages,
 ) {
-    match action {
-        TakeFuelCan(fuel_can) => take_fuel_can(fuel_can, world, game_state, messages),
-        EnterDoor(door) => enter_door(door, world, game_state, messages),
+    let result = match action {
+        TakeFuelCan(fuel_can) => take_fuel_can(fuel_can, world, game_state),
+        EnterDoor(door) => enter_door(door, world, game_state),
+    };
+    match result {
+        Ok(message) => messages.0.push(message),
+        Err(message) => messages.0.push(message),
     }
 }
 
@@ -42,9 +46,11 @@ fn take_fuel_can(
     fuel_can: Entity,
     world: &mut World,
     game_state: &mut GameState,
-    messages: &mut Messages,
-) {
-    let item_pos = world.get::<Position>(fuel_can).unwrap().get_coord();
+) -> Result<String, String> {
+    let item_pos = world
+        .get::<Position>(fuel_can)
+        .map_err(|_| "You lost track of the fuel can.".to_string())?
+        .get_coord();
     world
         .get_mut::<Position>(game_state.aftik)
         .unwrap()
@@ -52,7 +58,7 @@ fn take_fuel_can(
     world.despawn(fuel_can).unwrap();
     game_state.has_won = true;
 
-    messages.0.push("You picked up the fuel can.".to_string());
+    Ok("You picked up the fuel can.".to_string())
 }
 
 #[derive(Debug)]
@@ -75,11 +81,12 @@ fn find_door(area: Entity, world: &World) -> Result<Entity, String> {
         .ok_or_else(|| "There is no door to go through.".to_string())
 }
 
-fn enter_door(door: Entity, world: &mut World, game_state: &GameState, messages: &mut Messages) {
-    let destination = world.get::<Door>(door).unwrap().destination;
+fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
+    let destination = world
+        .get::<Door>(door)
+        .map_err(|_| "You lost track of the door.".to_string())?
+        .destination;
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
 
-    messages
-        .0
-        .push("You entered the door into a new location.".to_string());
+    Ok("You entered the door into a new location.".to_string())
 }
