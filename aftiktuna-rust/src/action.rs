@@ -1,22 +1,37 @@
 use crate::area::Position;
 use crate::{GameState, Messages, Pos};
 use hecs::{Entity, World};
+use Action::*;
+
+pub enum Action {
+    TakeFuelCan(Entity),
+    EnterDoor(Entity),
+}
 
 #[derive(Debug, Default)]
 pub struct FuelCan;
 
-pub fn try_take_fuel_can(world: &mut World, game_state: &mut GameState, messages: &mut Messages) {
+pub fn run_action(
+    action: Action,
+    world: &mut World,
+    game_state: &mut GameState,
+    messages: &mut Messages,
+) {
+    match action {
+        TakeFuelCan(fuel_can) => take_fuel_can(fuel_can, world, game_state, messages),
+        EnterDoor(door) => enter_door(door, world, game_state, messages),
+    }
+}
+
+pub fn parse_take_fuel_can(world: &World, game_state: &GameState) -> Option<Action> {
     let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
     let option = find_fuel_can(area, world);
 
     match option {
-        Some(fuel_can) => {
-            take_fuel_can(fuel_can, world, game_state, messages);
-        }
+        Some(fuel_can) => Some(TakeFuelCan(fuel_can)),
         None => {
-            messages
-                .0
-                .push("There is no fuel can here to pick up.".to_string());
+            println!("There is no fuel can here to pick up.");
+            None
         }
     }
 }
@@ -52,18 +67,15 @@ pub struct Door {
     pub destination: Pos,
 }
 
-pub fn try_enter_door(world: &mut World, game_state: &GameState, messages: &mut Messages) {
+pub fn parse_enter_door(world: &World, game_state: &GameState) -> Option<Action> {
     let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
     let option = find_door(area, world);
 
     match option {
-        Some(door) => {
-            enter_door(door, world, game_state, messages);
-        }
+        Some(door) => Some(EnterDoor(door)),
         None => {
-            messages
-                .0
-                .push("There is no door to go through.".to_string());
+            println!("There is no door to go through.");
+            None
         }
     }
 }

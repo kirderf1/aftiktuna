@@ -35,19 +35,29 @@ fn main() {
             break;
         }
 
-        loop {
-            let input = read_input();
+        let action = parse_user_action(&world, &game_state);
+        run_action(action, &mut world, &mut game_state, &mut messages);
+    }
+}
 
-            if input.eq_ignore_ascii_case("take fuel can") {
-                try_take_fuel_can(&mut world, &mut game_state, &mut messages);
-                break;
-            } else if input.eq_ignore_ascii_case("enter door") {
-                try_enter_door(&mut world, &game_state, &mut messages);
-                break;
-            } else {
-                println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
-            }
+fn parse_user_action(world: &World, game_state: &GameState) -> Action {
+    loop {
+        let input = read_input();
+
+        if let Some(action) = try_parse_input(input, world, game_state) {
+            return action;
         }
+    }
+}
+
+fn try_parse_input(input: String, world: &World, game_state: &GameState) -> Option<Action> {
+    if input.eq_ignore_ascii_case("take fuel can") {
+        parse_take_fuel_can(world, game_state)
+    } else if input.eq_ignore_ascii_case("enter door") {
+        parse_enter_door(world, game_state)
+    } else {
+        println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
+        None
     }
 }
 
