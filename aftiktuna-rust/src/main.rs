@@ -44,20 +44,20 @@ fn parse_user_action(world: &World, game_state: &GameState) -> Action {
     loop {
         let input = read_input();
 
-        if let Some(action) = try_parse_input(input, world, game_state) {
-            return action;
+        match try_parse_input(input, world, game_state) {
+            Ok(action) => return action,
+            Err(message) => println!("{}", message),
         }
     }
 }
 
-fn try_parse_input(input: String, world: &World, game_state: &GameState) -> Option<Action> {
+fn try_parse_input(input: String, world: &World, game_state: &GameState) -> Result<Action, String> {
     if input.eq_ignore_ascii_case("take fuel can") {
         parse_take_fuel_can(world, game_state)
     } else if input.eq_ignore_ascii_case("enter door") {
         parse_enter_door(world, game_state)
     } else {
-        println!("Unexpected input. \"{}\" is not \"take fuel can\"", input);
-        None
+        Err(format!("Unexpected input. \"{}\" is not \"take fuel can\"", input))
     }
 }
 

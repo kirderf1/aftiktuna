@@ -23,15 +23,14 @@ pub fn run_action(
     }
 }
 
-pub fn parse_take_fuel_can(world: &World, game_state: &GameState) -> Option<Action> {
+pub fn parse_take_fuel_can(world: &World, game_state: &GameState) -> Result<Action, String> {
     let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
     let option = find_fuel_can(area, world);
 
     match option {
-        Some(fuel_can) => Some(TakeFuelCan(fuel_can)),
+        Some(fuel_can) => Ok(TakeFuelCan(fuel_can)),
         None => {
-            println!("There is no fuel can here to pick up.");
-            None
+            Err("There is no fuel can here to pick up.".to_string())
         }
     }
 }
@@ -67,15 +66,14 @@ pub struct Door {
     pub destination: Pos,
 }
 
-pub fn parse_enter_door(world: &World, game_state: &GameState) -> Option<Action> {
+pub fn parse_enter_door(world: &World, game_state: &GameState) -> Result<Action, String> {
     let area = world.get::<Position>(game_state.aftik).unwrap().get_area();
     let option = find_door(area, world);
 
     match option {
-        Some(door) => Some(EnterDoor(door)),
+        Some(door) => Ok(EnterDoor(door)),
         None => {
-            println!("There is no door to go through.");
-            None
+            Err("There is no door to go through.".to_string())
         }
     }
 }
