@@ -47,7 +47,7 @@ fn place_door(world: &mut World, area: Entity, coord: Coord, dest_area: Entity, 
 }
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
-    let pos = Pos::new(area, coord, &world);
+    let pos = Pos::new(area, coord, world);
     world.spawn((DisplayInfo::new('f', "Fuel can", 1), Position(pos), FuelCan));
 }
 
@@ -94,10 +94,10 @@ fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
         .get::<Area>(area)
         .expect("Expected given area to have an area component")
         .size;
-    if coord >= area_size {
-        panic!(
-            "Position {} is out of bounds for room with size {}.",
-            coord, area_size
-        );
-    }
+    assert!(
+        coord < area_size,
+        "Position {} is out of bounds for room with size {}.",
+        coord,
+        area_size
+    );
 }
