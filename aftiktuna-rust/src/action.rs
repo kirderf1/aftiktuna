@@ -76,7 +76,7 @@ fn find_door(area: Entity, world: &World) -> Result<Entity, String> {
 }
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState, messages: &mut Messages) {
-    let destination = world.get::<Door>(door).unwrap().destination.clone();
+    let destination = world.get::<Door>(door).unwrap().destination;
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
 
     messages

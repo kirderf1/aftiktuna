@@ -51,7 +51,7 @@ fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
     world.spawn((DisplayInfo::new('f', "Fuel can", 1), Position(pos), FuelCan));
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Pos {
     area: Entity,
     coord: Coord,
