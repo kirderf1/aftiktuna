@@ -2,16 +2,19 @@ use crate::{parse_enter_door, parse_take_fuel_can, Action};
 use hecs::{Entity, World};
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
-    if input.eq("take fuel can") {
-        parse_take_fuel_can(world, aftik)
-    } else if let Some(result) = parse_enter(Parse::new(input), world, aftik) {
-        result
-    } else {
-        Err(format!("Unexpected input: \"{}\"", input))
-    }
+    let parse = Parse::new(input);
+    take(&parse, world, aftik)
+        .or_else(|| parse_enter(&parse, world, aftik))
+        .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
 }
 
-fn parse_enter(parse: Parse, world: &World, aftik: Entity) -> Option<Result<Action, String>> {
+fn take(parse: &Parse, world: &World, aftik: Entity) -> Option<Result<Action, String>> {
+    parse
+        .literal("take fuel can")?
+        .done(|| parse_take_fuel_can(world, aftik))
+}
+
+fn parse_enter(parse: &Parse, world: &World, aftik: Entity) -> Option<Result<Action, String>> {
     parse
         .literal("enter")?
         .match_remaining(&["door", "left door", "right door"], |door_type| {
