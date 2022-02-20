@@ -11,16 +11,21 @@ pub struct Area {
 
 pub fn init_area(world: &mut World) -> Entity {
     let room = world.spawn((Area {
-        size: 3,
+        size: 4,
         label: "Room".to_string(),
     },));
     let side_room = world.spawn((Area {
         size: 5,
         label: "Side Room".to_string(),
     },));
+    let side_room_2 = world.spawn((Area {
+        size: 12,
+        label: "Side Room".to_string(),
+    },));
 
     let aftik = place_aftik(world, room, 1);
-    place_doors(world, room, 0, side_room, 1);
+    place_doors(world, room, 0, left_door(), side_room, 1, door());
+    place_doors(world, room, 3, right_door(), side_room_2, 5, door());
     place_fuel(world, side_room, 4);
     place_fuel(world, side_room, 4);
     aftik
@@ -31,19 +36,42 @@ fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
     world.spawn((DisplayInfo::new('A', "Aftik", 10), Position(pos)))
 }
 
-fn place_doors(world: &mut World, area1: Entity, coord1: Coord, area2: Entity, coord2: Coord) {
-    place_door(world, area1, coord1, area2, coord2);
-    place_door(world, area2, coord2, area1, coord1);
+fn place_doors(
+    world: &mut World,
+    area1: Entity,
+    coord1: Coord,
+    disp1: DisplayInfo,
+    area2: Entity,
+    coord2: Coord,
+    disp2: DisplayInfo,
+) {
+    place_door(world, area1, coord1, disp1, area2, coord2);
+    place_door(world, area2, coord2, disp2, area1, coord1);
 }
 
-fn place_door(world: &mut World, area: Entity, coord: Coord, dest_area: Entity, dest_coord: Coord) {
+fn place_door(
+    world: &mut World,
+    area: Entity,
+    coord: Coord,
+    disp: DisplayInfo,
+    dest_area: Entity,
+    dest_coord: Coord,
+) {
     let pos = Pos::new(area, coord, world);
     let dest = Pos::new(dest_area, dest_coord, world);
-    world.spawn((
-        DisplayInfo::new('^', "Door", 20),
-        Position(pos),
-        Door { destination: dest },
-    ));
+    world.spawn((disp, Position(pos), Door { destination: dest }));
+}
+
+fn door() -> DisplayInfo {
+    DisplayInfo::new('^', "Door", 20)
+}
+
+fn left_door() -> DisplayInfo {
+    DisplayInfo::new('<', "Left door", 20)
+}
+
+fn right_door() -> DisplayInfo {
+    DisplayInfo::new('>', "Right door", 20)
 }
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {

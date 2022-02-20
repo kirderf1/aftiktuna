@@ -1,5 +1,5 @@
 use crate::area::Position;
-use crate::{GameState, Messages, Pos};
+use crate::{DisplayInfo, GameState, Messages, Pos};
 use hecs::{Entity, World};
 use Action::*;
 
@@ -64,18 +64,20 @@ pub struct Door {
     pub destination: Pos,
 }
 
-pub fn parse_enter_door(world: &World, aftik: Entity) -> Result<Action, String> {
+pub fn parse_enter_door(world: &World, door_type: &str, aftik: Entity) -> Result<Action, String> {
     let area = world.get::<Position>(aftik).unwrap().get_area();
-    find_door(area, world).map(EnterDoor)
+    find_door(area, door_type, world).map(EnterDoor)
 }
 
-fn find_door(area: Entity, world: &World) -> Result<Entity, String> {
+fn find_door(area: Entity, door_type: &str, world: &World) -> Result<Entity, String> {
     world
-        .query::<(&Position, &Door)>()
+        .query::<(&Position, &Door, &DisplayInfo)>()
         .iter()
-        .find(|(_, (pos, _))| pos.get_area().eq(&area))
+        .find(|(_, (pos, _, disp))| {
+            pos.get_area().eq(&area) && disp.name().eq_ignore_ascii_case(door_type)
+        })
         .map(|(entity, _)| entity)
-        .ok_or_else(|| "There is no door to go through.".to_string())
+        .ok_or_else(|| "There is no such door to go through.".to_string())
 }
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {

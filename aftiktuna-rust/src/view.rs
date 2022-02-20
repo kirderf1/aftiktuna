@@ -21,6 +21,10 @@ impl DisplayInfo {
             weight,
         }
     }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Messages) {

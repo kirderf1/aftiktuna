@@ -44,23 +44,24 @@ fn parse_user_action(world: &World, game_state: &GameState) -> Action {
     loop {
         let input = read_input();
 
-        match try_parse_input(input, world, game_state.aftik) {
+        match try_parse_input(&input, world, game_state.aftik) {
             Ok(action) => return action,
             Err(message) => println!("{}", message),
         }
     }
 }
 
-fn try_parse_input(input: String, world: &World, aftik: Entity) -> Result<Action, String> {
+fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
     if input.eq_ignore_ascii_case("take fuel can") {
         parse_take_fuel_can(world, aftik)
     } else if input.eq_ignore_ascii_case("enter door") {
-        parse_enter_door(world, aftik)
+        parse_enter_door(world, "door", aftik)
+    } else if input.eq_ignore_ascii_case("enter left door") {
+        parse_enter_door(world, "left door", aftik)
+    } else if input.eq_ignore_ascii_case("enter right door") {
+        parse_enter_door(world, "right door", aftik)
     } else {
-        Err(format!(
-            "Unexpected input. \"{}\" is not \"take fuel can\"",
-            input
-        ))
+        Err(format!("Unexpected input: \"{}\"", input))
     }
 }
 
