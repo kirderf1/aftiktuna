@@ -2,9 +2,8 @@ use hecs::{Entity, World};
 use std::io;
 use std::io::Write;
 
-use action::*;
-use area::*;
-use view::*;
+use action::Action;
+use view::Messages;
 
 mod action;
 mod area;
@@ -22,14 +21,14 @@ fn main() {
     let mut world = World::new();
     let mut messages = Messages::default();
 
-    let aftik = init_area(&mut world);
+    let aftik = area::init_area(&mut world);
     let mut game_state = GameState {
         has_won: false,
         aftik,
     };
 
     loop {
-        print_area_view(&world, &game_state, &mut messages);
+        view::print_area_view(&world, &game_state, &mut messages);
 
         if game_state.has_won {
             println!("Congratulations, you won!");
@@ -37,7 +36,7 @@ fn main() {
         }
 
         let action = parse_user_action(&world, &game_state);
-        run_action(action, &mut world, &mut game_state, &mut messages);
+        action::run_action(action, &mut world, &mut game_state, &mut messages);
     }
 }
 

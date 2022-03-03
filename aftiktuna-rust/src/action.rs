@@ -1,5 +1,8 @@
-use crate::area::Position;
-use crate::{DisplayInfo, GameState, Messages, Pos};
+use crate::{
+    area::{Pos, Position},
+    view::{DisplayInfo, Messages},
+    GameState,
+};
 use hecs::{Entity, World};
 use Action::*;
 

@@ -1,5 +1,5 @@
-use crate::area::Position;
-use crate::{Area, GameState};
+use crate::area::{Area, Position};
+use crate::GameState;
 use hecs::{Entity, World};
 use std::cmp::max;
 

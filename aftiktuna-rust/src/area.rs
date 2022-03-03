@@ -1,5 +1,5 @@
+use crate::action::{Door, FuelCan};
 use crate::view::DisplayInfo;
-use crate::{Door, FuelCan};
 use hecs::{Entity, World};
 
 pub type Coord = usize;
