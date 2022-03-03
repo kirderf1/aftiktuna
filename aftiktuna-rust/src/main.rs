@@ -11,7 +11,6 @@ mod parse;
 mod view;
 
 pub struct GameState {
-    has_won: bool,
     aftik: Entity,
 }
 
@@ -22,21 +21,18 @@ fn main() {
     let mut messages = Messages::default();
 
     let aftik = area::init_area(&mut world);
-    let mut game_state = GameState {
-        has_won: false,
-        aftik,
-    };
+    let game_state = GameState { aftik };
 
     loop {
         view::print_area_view(&world, &game_state, &mut messages);
 
-        if game_state.has_won {
+        if action::has_fuel_can(&world) {
             println!("Congratulations, you won!");
             break;
         }
 
         let action = parse_user_action(&world, &game_state);
-        action::run_action(action, &mut world, &mut game_state, &mut messages);
+        action::run_action(action, &mut world, &game_state, &mut messages);
     }
 }
 

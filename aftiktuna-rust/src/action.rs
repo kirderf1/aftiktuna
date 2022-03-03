@@ -14,10 +14,17 @@ pub enum Action {
 #[derive(Debug, Default)]
 pub struct FuelCan;
 
+#[derive(Debug)]
+pub struct InInventory;
+
+pub fn has_fuel_can(world: &World) -> bool {
+    world.query::<(&InInventory, &FuelCan)>().iter().len() > 0
+}
+
 pub fn run_action(
     action: Action,
     world: &mut World,
-    game_state: &mut GameState,
+    game_state: &GameState,
     messages: &mut Messages,
 ) {
     let result = match action {
@@ -46,7 +53,7 @@ fn find_fuel_can(area: Entity, world: &World) -> Result<Entity, String> {
 fn take_fuel_can(
     fuel_can: Entity,
     world: &mut World,
-    game_state: &mut GameState,
+    game_state: &GameState,
 ) -> Result<String, String> {
     let item_pos = world
         .get::<Position>(fuel_can)
@@ -56,8 +63,12 @@ fn take_fuel_can(
         .get_mut::<Position>(game_state.aftik)
         .unwrap()
         .move_to(item_pos, world);
-    world.despawn(fuel_can).unwrap();
-    game_state.has_won = true;
+    world
+        .remove_one::<Position>(fuel_can)
+        .expect("Tried removing position from item");
+    world
+        .insert_one(fuel_can, InInventory)
+        .expect("Tried adding inventory data to item");
 
     Ok("You picked up the fuel can.".to_string())
 }
