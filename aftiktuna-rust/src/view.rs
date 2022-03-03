@@ -1,3 +1,4 @@
+use crate::action::InInventory;
 use crate::area::{Area, Position};
 use crate::GameState;
 use hecs::{Entity, World};
@@ -69,6 +70,15 @@ pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Mes
     if !messages.0.is_empty() {
         println!("{}", messages.0.join(" "));
         messages.0.clear();
+    }
+    let inventory = world
+        .query::<(&DisplayInfo, &InInventory)>()
+        .iter()
+        .map(|(_, (info, _))| info.name.clone())
+        .collect::<Vec<String>>()
+        .join(", ");
+    if !inventory.is_empty() {
+        println!("Inventory: {}", inventory);
     }
 }
 
