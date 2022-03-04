@@ -1,4 +1,4 @@
-use crate::action::{Door, FuelCan};
+use crate::action::{Door, FuelCan, Item};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
@@ -76,7 +76,12 @@ fn right_door() -> DisplayInfo {
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('f', "Fuel can", 1), Position(pos), FuelCan));
+    world.spawn((
+        DisplayInfo::new('f', "Fuel can", 1),
+        Position(pos),
+        Item,
+        FuelCan,
+    ));
 }
 
 #[derive(Clone, Copy, Debug)]

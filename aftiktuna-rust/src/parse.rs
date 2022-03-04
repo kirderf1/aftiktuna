@@ -1,4 +1,4 @@
-use crate::action::{parse_enter_door, parse_take_fuel_can, Action};
+use crate::action::{parse_enter_door, parse_take_item, Action};
 use hecs::{Entity, World};
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
@@ -10,8 +10,10 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Acti
 
 fn take(parse: &Parse, world: &World, aftik: Entity) -> Option<Result<Action, String>> {
     parse
-        .literal("take fuel can")?
-        .done(|| parse_take_fuel_can(world, aftik))
+        .literal("take")?
+        .match_remaining(&["fuel can"], |item_name| {
+            parse_take_item(world, item_name, aftik)
+        })
 }
 
 fn parse_enter(parse: &Parse, world: &World, aftik: Entity) -> Option<Result<Action, String>> {

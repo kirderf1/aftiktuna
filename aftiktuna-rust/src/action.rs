@@ -7,9 +7,12 @@ use hecs::{Entity, World};
 use Action::*;
 
 pub enum Action {
-    TakeFuelCan(Entity),
+    TakeItem(Entity, String),
     EnterDoor(Entity),
 }
+
+#[derive(Debug, Default)]
+pub struct Item;
 
 #[derive(Debug, Default)]
 pub struct FuelCan;
@@ -28,7 +31,7 @@ pub fn run_action(
     messages: &mut Messages,
 ) {
     let result = match action {
-        TakeFuelCan(fuel_can) => take_fuel_can(fuel_can, world, game_state),
+        TakeItem(item, name) => take_item(item, name, world, game_state),
         EnterDoor(door) => enter_door(door, world, game_state),
     };
     match result {
@@ -36,41 +39,44 @@ pub fn run_action(
     }
 }
 
-pub fn parse_take_fuel_can(world: &World, aftik: Entity) -> Result<Action, String> {
+pub fn parse_take_item(world: &World, item_name: &str, aftik: Entity) -> Result<Action, String> {
     let area = world.get::<Position>(aftik).unwrap().get_area();
-    find_fuel_can(area, world).map(TakeFuelCan)
+    find_item(area, item_name, world).map(|item| TakeItem(item, item_name.to_string()))
 }
 
-fn find_fuel_can(area: Entity, world: &World) -> Result<Entity, String> {
+fn find_item(area: Entity, item_type: &str, world: &World) -> Result<Entity, String> {
     world
-        .query::<(&Position, &FuelCan)>()
+        .query::<(&Position, &Item, &DisplayInfo)>()
         .iter()
-        .find(|(_, (pos, _))| pos.get_area().eq(&area))
+        .find(|(_, (pos, _, disp))| {
+            pos.get_area().eq(&area) && disp.name().eq_ignore_ascii_case(item_type)
+        })
         .map(|(entity, _)| entity)
         .ok_or_else(|| "There is no fuel can here to pick up.".to_string())
 }
 
-fn take_fuel_can(
-    fuel_can: Entity,
+fn take_item(
+    item: Entity,
+    item_name: String,
     world: &mut World,
     game_state: &GameState,
 ) -> Result<String, String> {
     let item_pos = world
-        .get::<Position>(fuel_can)
-        .map_err(|_| "You lost track of the fuel can.".to_string())?
+        .get::<Position>(item)
+        .map_err(|_| format!("You lost track of the {}.", item_name))?
         .get_coord();
     world
         .get_mut::<Position>(game_state.aftik)
         .unwrap()
         .move_to(item_pos, world);
     world
-        .remove_one::<Position>(fuel_can)
+        .remove_one::<Position>(item)
         .expect("Tried removing position from item");
     world
-        .insert_one(fuel_can, InInventory)
+        .insert_one(item, InInventory)
         .expect("Tried adding inventory data to item");
 
-    Ok("You picked up the fuel can.".to_string())
+    Ok(format!("You picked up the {}.", item_name))
 }
 
 #[derive(Debug)]
