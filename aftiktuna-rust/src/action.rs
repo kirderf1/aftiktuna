@@ -1,6 +1,6 @@
 use crate::{
     area::{Pos, Position},
-    view::{DisplayInfo, Messages},
+    view::Messages,
     GameState,
 };
 use hecs::{Entity, World};
@@ -31,7 +31,7 @@ pub fn run_action(
     messages: &mut Messages,
 ) {
     let result = match action {
-        TakeItem(item, name) => take_item(item, name, world, game_state),
+        TakeItem(item, name) => take_item(item, &name, world, game_state),
         EnterDoor(door) => enter_door(door, world, game_state),
     };
     match result {
@@ -39,25 +39,14 @@ pub fn run_action(
     }
 }
 
-pub fn parse_take_item(world: &World, item_name: &str, aftik: Entity) -> Result<Action, String> {
-    let area = world.get::<Position>(aftik).unwrap().get_area();
-    find_item(area, item_name, world).map(|item| TakeItem(item, item_name.to_string()))
-}
-
-fn find_item(area: Entity, item_type: &str, world: &World) -> Result<Entity, String> {
-    world
-        .query::<(&Position, &Item, &DisplayInfo)>()
-        .iter()
-        .find(|(_, (pos, _, disp))| {
-            pos.get_area().eq(&area) && disp.name().eq_ignore_ascii_case(item_type)
-        })
-        .map(|(entity, _)| entity)
-        .ok_or_else(|| "There is no fuel can here to pick up.".to_string())
+pub fn take_item_action(item: Option<Entity>, item_name: &str) -> Result<Action, String> {
+    item.ok_or_else(|| format!("There is no {} here to pick up.", item_name))
+        .map(|item| TakeItem(item, item_name.to_string()))
 }
 
 fn take_item(
     item: Entity,
-    item_name: String,
+    item_name: &str,
     world: &mut World,
     game_state: &GameState,
 ) -> Result<String, String> {
@@ -84,20 +73,9 @@ pub struct Door {
     pub destination: Pos,
 }
 
-pub fn parse_enter_door(world: &World, door_type: &str, aftik: Entity) -> Result<Action, String> {
-    let area = world.get::<Position>(aftik).unwrap().get_area();
-    find_door(area, door_type, world).map(EnterDoor)
-}
-
-fn find_door(area: Entity, door_type: &str, world: &World) -> Result<Entity, String> {
-    world
-        .query::<(&Position, &Door, &DisplayInfo)>()
-        .iter()
-        .find(|(_, (pos, _, disp))| {
-            pos.get_area().eq(&area) && disp.name().eq_ignore_ascii_case(door_type)
-        })
-        .map(|(entity, _)| entity)
-        .ok_or_else(|| "There is no such door to go through.".to_string())
+pub fn enter_door_action(door: Option<Entity>) -> Result<Action, String> {
+    door.ok_or_else(|| "There is no such door to go through.".to_string())
+        .map(EnterDoor)
 }
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
