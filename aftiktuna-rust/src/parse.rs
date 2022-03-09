@@ -2,7 +2,7 @@ use crate::action;
 use crate::action::Action;
 use crate::area::Position;
 use crate::view::DisplayInfo;
-use hecs::{Entity, Query, World};
+use hecs::{Entity, Fetch, Query, World};
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
     let parse = Parse::new(input);
@@ -18,24 +18,40 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Acti
 }
 
 fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&action::Item, _, _>(world, aftik, action::take_item_action)
+    parse.entity_from_remaining::<&action::Item, _, _, _>(
+        world,
+        aftik,
+        |item, _query, name| Ok(Action::TakeItem(item, name.to_string())),
+        |name| Err(format!("There is no {} here to pick up.", name)),
+    )
 }
 
 fn parse_enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&action::Door, _, _>(world, aftik, |door, _name| {
-        action::enter_door_action(door)
-    })
+    parse.entity_from_remaining::<&action::Door, _, _, _>(
+        world,
+        aftik,
+        |door, _query, _name| Ok(Action::EnterDoor(door)),
+        |_name| Err("There is no such door to go through.".to_string()),
+    )
 }
 
-fn query_entity<T: Query>(aftik: Entity, door_type: &str, world: &World) -> Option<Entity> {
+fn query_entity<Q: Query, F, T>(
+    aftik: Entity,
+    door_type: &str,
+    world: &World,
+    on_match: F,
+) -> Option<T>
+where
+    F: FnOnce(Entity, <<Q as Query>::Fetch as Fetch>::Item) -> T,
+{
     let area = world.get::<Position>(aftik).unwrap().get_area();
     world
-        .query::<(&Position, &DisplayInfo, T)>()
+        .query::<(&Position, &DisplayInfo, Q)>()
         .iter()
         .find(|(_, (pos, display_info, _))| {
             pos.get_area().eq(&area) && display_info.name().eq_ignore_ascii_case(door_type)
         })
-        .map(|(entity, _)| entity)
+        .map(|(entity, (_, _, query))| on_match(entity, query))
 }
 
 struct Parse<'a> {
@@ -57,34 +73,21 @@ impl<'a> Parse<'a> {
         }
     }
 
-    fn match_remaining<T, U>(&self, words: &[&str], closure: T) -> Option<U>
-    where
-        T: FnOnce(&str) -> U,
-    {
-        for word in words {
-            if self.input.eq(*word) {
-                return Some(closure(word));
-            }
-        }
-        None
-    }
-
-    fn entity_from_remaining<Q, T, U>(&self, world: &World, aftik: Entity, closure: T) -> U
+    fn entity_from_remaining<Q, F, G, T>(
+        &self,
+        world: &World,
+        aftik: Entity,
+        on_match: F,
+        on_none: G,
+    ) -> T
     where
         Q: Query,
-        T: FnOnce(Option<Entity>, &str) -> U,
+        F: FnOnce(Entity, <<Q as Query>::Fetch as Fetch>::Item, &str) -> T,
+        G: FnOnce(&str) -> T,
     {
-        closure(query_entity::<Q>(aftik, self.input, world), self.input)
-    }
-
-    fn done<T, U>(&self, closure: T) -> Option<U>
-    where
-        T: FnOnce() -> U,
-    {
-        if self.input.is_empty() {
-            Some(closure())
-        } else {
-            None
-        }
+        query_entity::<Q, _, T>(aftik, self.input, world, |entity, query| {
+            on_match(entity, query, self.input)
+        })
+        .unwrap_or_else(|| on_none(self.input))
     }
 }

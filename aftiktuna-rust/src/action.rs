@@ -39,11 +39,6 @@ pub fn run_action(
     }
 }
 
-pub fn take_item_action(item: Option<Entity>, item_name: &str) -> Result<Action, String> {
-    item.ok_or_else(|| format!("There is no {} here to pick up.", item_name))
-        .map(|item| TakeItem(item, item_name.to_string()))
-}
-
 fn take_item(
     item: Entity,
     item_name: &str,
@@ -71,11 +66,6 @@ fn take_item(
 #[derive(Debug)]
 pub struct Door {
     pub destination: Pos,
-}
-
-pub fn enter_door_action(door: Option<Entity>) -> Result<Action, String> {
-    door.ok_or_else(|| "There is no such door to go through.".to_string())
-        .map(EnterDoor)
 }
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
