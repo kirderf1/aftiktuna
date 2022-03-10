@@ -1,4 +1,4 @@
-use crate::action::{Door, FuelCan, Item};
+use crate::action::{Door, FuelCan, IsStuck, Item};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
@@ -24,8 +24,10 @@ pub fn init_area(world: &mut World) -> Entity {
     },));
 
     let aftik = place_aftik(world, room, 1);
-    place_doors(world, room, 0, left_door(), side_room, 1, door());
+    let (left_door, _) = place_doors(world, room, 0, left_door(), side_room, 1, door());
     place_doors(world, room, 3, right_door(), side_room_2, 5, door());
+    world.insert_one(left_door, IsStuck).unwrap();
+
     place_fuel(world, side_room, 4);
     place_fuel(world, side_room, 4);
     aftik
@@ -44,22 +46,17 @@ fn place_doors(
     area2: Entity,
     coord2: Coord,
     disp2: DisplayInfo,
-) {
-    place_door(world, area1, coord1, disp1, area2, coord2);
-    place_door(world, area2, coord2, disp2, area1, coord1);
+) -> (Entity, Entity) {
+    let pos1 = Pos::new(area1, coord1, world);
+    let pos2 = Pos::new(area2, coord2, world);
+    (
+        place_door(world, pos1, disp1, pos2),
+        place_door(world, pos2, disp2, pos1),
+    )
 }
 
-fn place_door(
-    world: &mut World,
-    area: Entity,
-    coord: Coord,
-    disp: DisplayInfo,
-    dest_area: Entity,
-    dest_coord: Coord,
-) {
-    let pos = Pos::new(area, coord, world);
-    let dest = Pos::new(dest_area, dest_coord, world);
-    world.spawn((disp, Position(pos), Door { destination: dest }));
+fn place_door(world: &mut World, pos: Pos, disp: DisplayInfo, dest: Pos) -> Entity {
+    world.spawn((disp, Position(pos), Door { destination: dest }))
 }
 
 fn door() -> DisplayInfo {

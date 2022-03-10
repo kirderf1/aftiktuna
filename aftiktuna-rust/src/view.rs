@@ -1,4 +1,4 @@
-use crate::action::InInventory;
+use crate::action::{InInventory, IsStuck};
 use crate::area::{Area, Position};
 use crate::GameState;
 use hecs::{Entity, World};
@@ -36,10 +36,15 @@ pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Mes
     let mut symbols_by_pos = init_symbol_vectors(area_size);
     let mut labels = Vec::new();
 
-    for (_, (pos, obj_type)) in world.query::<(&Position, &DisplayInfo)>().iter() {
+    for (entity, (pos, obj_type)) in world.query::<(&Position, &DisplayInfo)>().iter() {
         if pos.get_area() == area {
             symbols_by_pos[pos.get_coord()].push((obj_type.symbol, obj_type.weight));
-            let label = format!("{}: {}", obj_type.symbol, obj_type.name);
+
+            let label = format!(
+                "{}: {}",
+                obj_type.symbol,
+                get_name(world, entity, &obj_type.name)
+            );
             if !labels.contains(&label) {
                 labels.push(label);
             }
@@ -79,6 +84,14 @@ pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Mes
         .join(", ");
     if !inventory.is_empty() {
         println!("Inventory: {}", inventory);
+    }
+}
+
+fn get_name(world: &World, entity: Entity, name: &str) -> String {
+    if world.get::<IsStuck>(entity).is_ok() {
+        format!("{} (stuck)", name)
+    } else {
+        name.to_string()
     }
 }
 

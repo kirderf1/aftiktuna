@@ -68,12 +68,33 @@ pub struct Door {
     pub destination: Pos,
 }
 
+#[derive(Debug)]
+pub struct IsStuck;
+
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
+    let area = world
+        .get::<Position>(game_state.aftik)
+        .unwrap()
+        .0
+        .get_area();
+    let pos = world
+        .get::<Position>(door)
+        .ok()
+        .filter(|pos| pos.0.get_area() == area)
+        .ok_or_else(|| "You lost track of the door.".to_string())?
+        .0;
+
+    world.get_mut::<Position>(game_state.aftik).unwrap().0 = pos;
+
+    if world.get::<IsStuck>(door).is_ok() {
+        return Err("The door is stuck.".to_string());
+    }
+
     let destination = world
         .get::<Door>(door)
-        .map_err(|_| "You lost track of the door.".to_string())?
+        .map_err(|_| "The door ceased being a door.".to_string())?
         .destination;
-    world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
 
+    world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
     Ok("You entered the door into a new location.".to_string())
 }
