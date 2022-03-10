@@ -1,4 +1,4 @@
-use crate::action::{InInventory, IsStuck};
+use crate::action::{Door, InInventory, IsStuck};
 use crate::area::{Area, Position};
 use crate::GameState;
 use hecs::{Entity, World};
@@ -88,11 +88,12 @@ pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Mes
 }
 
 fn get_name(world: &World, entity: Entity, name: &str) -> String {
-    if world.get::<IsStuck>(entity).is_ok() {
-        format!("{} (stuck)", name)
-    } else {
-        name.to_string()
+    if let Ok(door_pair) = world.get::<Door>(entity).map(|door| door.door_pair) {
+        if world.get::<IsStuck>(door_pair).is_ok() {
+            return format!("{} (stuck)", name);
+        }
     }
+    name.to_string()
 }
 
 fn get_viewed_area(game_state: &GameState, world: &World) -> Entity {

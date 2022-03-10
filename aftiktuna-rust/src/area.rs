@@ -1,6 +1,6 @@
 use crate::action::{Crowbar, Door, FuelCan, IsStuck, Item};
 use crate::view::DisplayInfo;
-use hecs::{Entity, World};
+use hecs::{DynamicBundle, Entity, World};
 
 pub type Coord = usize;
 
@@ -24,9 +24,36 @@ pub fn init_area(world: &mut World) -> Entity {
     },));
 
     let aftik = place_aftik(world, room, 1);
-    let (left_door, _) = place_doors(world, room, 0, left_door(), side_room, 1, door());
-    place_doors(world, room, 3, right_door(), side_room_2, 5, door());
-    world.insert_one(left_door, IsStuck).unwrap();
+    place_doors(
+        world,
+        room,
+        0,
+        left_door(),
+        side_room,
+        1,
+        left_door(),
+        (IsStuck,),
+    );
+    place_doors(
+        world,
+        room,
+        3,
+        right_door(),
+        side_room_2,
+        5,
+        left_door(),
+        (),
+    );
+    place_doors(
+        world,
+        side_room,
+        2,
+        right_door(),
+        side_room_2,
+        8,
+        right_door(),
+        (),
+    );
 
     place_fuel(world, side_room, 4);
     place_fuel(world, side_room, 4);
@@ -47,17 +74,30 @@ fn place_doors(
     area2: Entity,
     coord2: Coord,
     disp2: DisplayInfo,
-) -> (Entity, Entity) {
+    pair_components: impl DynamicBundle,
+) {
     let pos1 = Pos::new(area1, coord1, world);
     let pos2 = Pos::new(area2, coord2, world);
-    (
-        place_door(world, pos1, disp1, pos2),
-        place_door(world, pos2, disp2, pos1),
-    )
+    let door_pair = world.spawn(pair_components);
+    place_door(world, pos1, disp1, pos2, door_pair);
+    place_door(world, pos2, disp2, pos1, door_pair);
 }
 
-fn place_door(world: &mut World, pos: Pos, disp: DisplayInfo, dest: Pos) -> Entity {
-    world.spawn((disp, Position(pos), Door { destination: dest }))
+fn place_door(
+    world: &mut World,
+    pos: Pos,
+    disp: DisplayInfo,
+    destination: Pos,
+    door_pair: Entity,
+) -> Entity {
+    world.spawn((
+        disp,
+        Position(pos),
+        Door {
+            destination,
+            door_pair,
+        },
+    ))
 }
 
 fn door() -> DisplayInfo {

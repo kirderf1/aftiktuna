@@ -68,6 +68,7 @@ fn take_item(
 #[derive(Debug)]
 pub struct Door {
     pub destination: Pos,
+    pub door_pair: Entity,
 }
 
 #[derive(Debug)]
@@ -91,14 +92,14 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
 
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = pos;
 
-    if world.get::<IsStuck>(door).is_ok() {
+    let (destination, door_pair) = world
+        .get::<Door>(door)
+        .map_err(|_| "The door ceased being a door.".to_string())
+        .map(|door| (door.destination, door.door_pair))?;
+
+    if world.get::<IsStuck>(door_pair).is_ok() {
         return Err("The door is stuck.".to_string());
     }
-
-    let destination = world
-        .get::<Door>(door)
-        .map_err(|_| "The door ceased being a door.".to_string())?
-        .destination;
 
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
     Ok("You entered the door into a new location.".to_string())
@@ -119,7 +120,12 @@ fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
 
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = pos;
 
-    if world.get::<IsStuck>(door).is_err() {
+    let door_pair = world
+        .get::<Door>(door)
+        .map_err(|_| "The door ceased being a door.".to_string())?
+        .door_pair;
+
+    if world.get::<IsStuck>(door_pair).is_err() {
         return Err("The door does not seem to be stuck.".to_string());
     }
 
@@ -127,7 +133,7 @@ fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         return Err("You need some sort of tool to force the door open.".to_string());
     }
 
-    world.remove_one::<IsStuck>(door).unwrap();
+    world.remove_one::<IsStuck>(door_pair).unwrap();
     Ok("You used your crowbar and forced open the door.".to_string())
 }
 
