@@ -6,15 +6,22 @@ use hecs::{Entity, Fetch, Query, World};
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
     let parse = Parse::new(input);
-    parse
-        .literal("take")
-        .map(|parse| take(&parse, world, aftik))
-        .or_else(|| {
-            parse
-                .literal("enter")
-                .map(|parse| parse_enter(&parse, world, aftik))
-        })
-        .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
+    None.or_else(|| {
+        parse
+            .literal("take")
+            .map(|parse| take(&parse, world, aftik))
+    })
+    .or_else(|| {
+        parse
+            .literal("enter")
+            .map(|parse| enter(&parse, world, aftik))
+    })
+    .or_else(|| {
+        parse
+            .literal("force")
+            .map(|parse| force(&parse, world, aftik))
+    })
+    .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
 }
 
 fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
@@ -26,12 +33,21 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     )
 }
 
-fn parse_enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     parse.entity_from_remaining::<&action::Door, _, _, _>(
         world,
         aftik,
         |door, _query, _name| Ok(Action::EnterDoor(door)),
-        |_name| Err("There is no such door to go through.".to_string()),
+        |_name| Err("There is no such door here to go through.".to_string()),
+    )
+}
+
+fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+    parse.entity_from_remaining::<&action::Door, _, _, _>(
+        world,
+        aftik,
+        |door, _query, _name| Ok(Action::ForceDoor(door)),
+        |_name| Err("There is no such door here.".to_string()),
     )
 }
 

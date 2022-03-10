@@ -1,4 +1,4 @@
-use crate::action::{Door, FuelCan, IsStuck, Item};
+use crate::action::{Crowbar, Door, FuelCan, IsStuck, Item};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
@@ -30,6 +30,7 @@ pub fn init_area(world: &mut World) -> Entity {
 
     place_fuel(world, side_room, 4);
     place_fuel(world, side_room, 4);
+    place_crowbar(world, room, 3);
     aftik
 }
 
@@ -78,6 +79,16 @@ fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
         Position(pos),
         Item,
         FuelCan,
+    ));
+}
+
+fn place_crowbar(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::new('c', "Crowbar", 1),
+        Position(pos),
+        Item,
+        Crowbar,
     ));
 }
 

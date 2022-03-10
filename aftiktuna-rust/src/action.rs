@@ -9,6 +9,7 @@ use Action::*;
 pub enum Action {
     TakeItem(Entity, String),
     EnterDoor(Entity),
+    ForceDoor(Entity),
 }
 
 #[derive(Debug, Default)]
@@ -33,6 +34,7 @@ pub fn run_action(
     let result = match action {
         TakeItem(item, name) => take_item(item, &name, world, game_state),
         EnterDoor(door) => enter_door(door, world, game_state),
+        ForceDoor(door) => force_door(door, world, game_state),
     };
     match result {
         Ok(message) | Err(message) => messages.0.push(message),
@@ -71,6 +73,9 @@ pub struct Door {
 #[derive(Debug)]
 pub struct IsStuck;
 
+#[derive(Debug)]
+pub struct Crowbar;
+
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
     let area = world
         .get::<Position>(game_state.aftik)
@@ -97,4 +102,35 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
 
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
     Ok("You entered the door into a new location.".to_string())
+}
+
+fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
+    let area = world
+        .get::<Position>(game_state.aftik)
+        .unwrap()
+        .0
+        .get_area();
+    let pos = world
+        .get::<Position>(door)
+        .ok()
+        .filter(|pos| pos.0.get_area() == area)
+        .ok_or_else(|| "You lost track of the door.".to_string())?
+        .0;
+
+    world.get_mut::<Position>(game_state.aftik).unwrap().0 = pos;
+
+    if world.get::<IsStuck>(door).is_err() {
+        return Err("The door does not seem to be stuck.".to_string());
+    }
+
+    if !has_crowbar(world) {
+        return Err("You need some sort of tool to force the door open.".to_string());
+    }
+
+    world.remove_one::<IsStuck>(door).unwrap();
+    Ok("You used your crowbar and forced open the door.".to_string())
+}
+
+fn has_crowbar(world: &World) -> bool {
+    world.query::<(&InInventory, &Crowbar)>().iter().len() > 0
 }
