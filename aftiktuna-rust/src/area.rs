@@ -1,4 +1,4 @@
-use crate::action::{Crowbar, Door, FuelCan, IsStuck, Item};
+use crate::action::{BlockType, Crowbar, Door, DoorBlocking, FuelCan, Item};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -32,7 +32,7 @@ pub fn init_area(world: &mut World) -> Entity {
         side_room,
         1,
         left_door(),
-        (IsStuck,),
+        (DoorBlocking(BlockType::Stuck),),
     );
     place_doors(
         world,
@@ -52,7 +52,7 @@ pub fn init_area(world: &mut World) -> Entity {
         side_room_2,
         8,
         right_door(),
-        (),
+        (DoorBlocking(BlockType::Sealed),),
     );
 
     place_fuel(world, side_room, 4);

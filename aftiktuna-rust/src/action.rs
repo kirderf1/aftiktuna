@@ -72,7 +72,13 @@ pub struct Door {
 }
 
 #[derive(Debug)]
-pub struct IsStuck;
+pub struct DoorBlocking(pub BlockType);
+
+#[derive(Debug, Copy, Clone)]
+pub enum BlockType {
+    Stuck,
+    Sealed,
+}
 
 #[derive(Debug)]
 pub struct Crowbar;
@@ -97,12 +103,19 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         .map_err(|_| "The door ceased being a door.".to_string())
         .map(|door| (door.destination, door.door_pair))?;
 
-    if world.get::<IsStuck>(door_pair).is_ok() {
-        return Err("The door is stuck.".to_string());
+    if let Ok(blocking) = world.get::<DoorBlocking>(door_pair) {
+        return Err(format!("The door is {}.", description(blocking.0)));
     }
 
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
     Ok("You entered the door into a new location.".to_string())
+}
+
+pub fn description(t: BlockType) -> &'static str {
+    match t {
+        BlockType::Stuck => "stuck",
+        BlockType::Sealed => "sealed shut",
+    }
 }
 
 fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
@@ -125,16 +138,26 @@ fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         .map_err(|_| "The door ceased being a door.".to_string())?
         .door_pair;
 
-    if world.get::<IsStuck>(door_pair).is_err() {
-        return Err("The door does not seem to be stuck.".to_string());
+    let block_type = world
+        .get::<DoorBlocking>(door_pair)
+        .map(|blocking| blocking.0);
+    if let Ok(block_type) = block_type {
+        match block_type {
+            BlockType::Stuck => {
+                if has_crowbar(world) {
+                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
+                    Ok("You used your crowbar and forced open the door.".to_string())
+                } else {
+                    Err("You need some sort of tool to force the door open.".to_string())
+                }
+            }
+            BlockType::Sealed => {
+                Err("You need some sort of tool to break the door open.".to_string())
+            }
+        }
+    } else {
+        Err("The door does not seem to be stuck.".to_string())
     }
-
-    if !has_crowbar(world) {
-        return Err("You need some sort of tool to force the door open.".to_string());
-    }
-
-    world.remove_one::<IsStuck>(door_pair).unwrap();
-    Ok("You used your crowbar and forced open the door.".to_string())
 }
 
 fn has_crowbar(world: &World) -> bool {
