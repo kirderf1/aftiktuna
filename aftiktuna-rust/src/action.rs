@@ -74,10 +74,11 @@ pub struct Door {
 #[derive(Debug)]
 pub struct DoorBlocking(pub BlockType);
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum BlockType {
     Stuck,
     Sealed,
+    Locked,
 }
 
 #[derive(Debug)]
@@ -85,6 +86,9 @@ pub struct Crowbar;
 
 #[derive(Debug)]
 pub struct Blowtorch;
+
+#[derive(Debug)]
+pub struct Keycard;
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
     let area = world
@@ -106,18 +110,29 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         .map_err(|_| "The door ceased being a door.".to_string())
         .map(|door| (door.destination, door.door_pair))?;
 
-    if let Ok(blocking) = world.get::<DoorBlocking>(door_pair) {
-        return Err(format!("The door is {}.", description(blocking.0)));
-    }
+    let used_keycard = if let Ok(blocking) = world.get::<DoorBlocking>(door_pair) {
+        if blocking.0 == BlockType::Locked && has_item::<Keycard>(world) {
+            true
+        } else {
+            return Err(format!("The door is {}.", description(blocking.0)));
+        }
+    } else {
+        false
+    };
 
     world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
-    Ok("You entered the door into a new location.".to_string())
+    if used_keycard {
+        Ok("Using your keycard, you entered the door into a new area.".to_string())
+    } else {
+        Ok("You entered the door into a new area.".to_string())
+    }
 }
 
 pub fn description(t: BlockType) -> &'static str {
     match t {
         BlockType::Stuck => "stuck",
         BlockType::Sealed => "sealed shut",
+        BlockType::Locked => "locked",
     }
 }
 
@@ -158,6 +173,14 @@ fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
                 }
             }
             BlockType::Sealed => {
+                if has_item::<Blowtorch>(world) {
+                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
+                    Ok("You used your blowtorch and cut open the door.".to_string())
+                } else {
+                    Err("You need some sort of tool to break the door open.".to_string())
+                }
+            }
+            BlockType::Locked => {
                 if has_item::<Blowtorch>(world) {
                     world.remove_one::<DoorBlocking>(door_pair).unwrap();
                     Ok("You used your blowtorch and cut open the door.".to_string())

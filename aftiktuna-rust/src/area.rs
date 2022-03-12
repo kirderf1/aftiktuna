@@ -1,4 +1,4 @@
-use crate::action::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, FuelCan, Item};
+use crate::action::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, FuelCan, Item, Keycard};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -22,8 +22,11 @@ pub fn init_area(world: &mut World) -> Entity {
         size: 12,
         label: "Side Room".to_string(),
     },));
+    let mid_room = world.spawn((Area {
+        size: 5,
+        label: "Room".to_string(),
+    },));
 
-    let aftik = place_aftik(world, room, 1);
     place_doors(
         world,
         room,
@@ -54,12 +57,23 @@ pub fn init_area(world: &mut World) -> Entity {
         right_door(),
         (DoorBlocking(BlockType::Sealed),),
     );
+    place_doors(
+        world,
+        room,
+        2,
+        door(),
+        mid_room,
+        1,
+        door(),
+        (DoorBlocking(BlockType::Locked),),
+    );
 
     place_fuel(world, side_room, 4);
     place_fuel(world, side_room, 4);
     place_crowbar(world, room, 3);
     place_blowtorch(world, side_room_2, 0);
-    aftik
+    place_keycard(world, room, 0);
+    place_aftik(world, room, 1)
 }
 
 fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
@@ -140,6 +154,16 @@ fn place_blowtorch(world: &mut World, area: Entity, coord: Coord) {
         Position(pos),
         Item,
         Blowtorch,
+    ));
+}
+
+fn place_keycard(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::new('k', "Keycard", 1),
+        Position(pos),
+        Item,
+        Keycard,
     ));
 }
 
