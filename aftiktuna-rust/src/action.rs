@@ -1,7 +1,6 @@
 use crate::{
     area::{Pos, Position},
     view::Messages,
-    GameState,
 };
 use hecs::{Component, Entity, World};
 use Action::*;
@@ -25,16 +24,11 @@ pub fn has_item<C: Component>(world: &World) -> bool {
     world.query::<(&InInventory, &C)>().iter().len() > 0
 }
 
-pub fn run_action(
-    action: Action,
-    world: &mut World,
-    game_state: &GameState,
-    messages: &mut Messages,
-) {
+pub fn run_action(action: Action, world: &mut World, aftik: Entity, messages: &mut Messages) {
     let result = match action {
-        TakeItem(item, name) => take_item(item, &name, world, game_state),
-        EnterDoor(door) => enter_door(door, world, game_state),
-        ForceDoor(door) => force_door(door, world, game_state),
+        TakeItem(item, name) => take_item(item, &name, world, aftik),
+        EnterDoor(door) => enter_door(door, world, aftik),
+        ForceDoor(door) => force_door(door, world, aftik),
     };
     match result {
         Ok(message) | Err(message) => messages.0.push(message),
@@ -45,14 +39,14 @@ fn take_item(
     item: Entity,
     item_name: &str,
     world: &mut World,
-    game_state: &GameState,
+    aftik: Entity,
 ) -> Result<String, String> {
     let item_pos = world
         .get::<Position>(item)
         .map_err(|_| format!("You lost track of the {}.", item_name))?
         .get_coord();
     world
-        .get_mut::<Position>(game_state.aftik)
+        .get_mut::<Position>(aftik)
         .unwrap()
         .move_to(item_pos, world);
     world
@@ -90,12 +84,8 @@ pub struct Blowtorch;
 #[derive(Debug)]
 pub struct Keycard;
 
-fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
-    let area = world
-        .get::<Position>(game_state.aftik)
-        .unwrap()
-        .0
-        .get_area();
+fn enter_door(door: Entity, world: &mut World, aftik: Entity) -> Result<String, String> {
+    let area = world.get::<Position>(aftik).unwrap().0.get_area();
     let pos = world
         .get::<Position>(door)
         .ok()
@@ -103,7 +93,7 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         .ok_or_else(|| "You lost track of the door.".to_string())?
         .0;
 
-    world.get_mut::<Position>(game_state.aftik).unwrap().0 = pos;
+    world.get_mut::<Position>(aftik).unwrap().0 = pos;
 
     let (destination, door_pair) = world
         .get::<Door>(door)
@@ -120,7 +110,7 @@ fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         false
     };
 
-    world.get_mut::<Position>(game_state.aftik).unwrap().0 = destination;
+    world.get_mut::<Position>(aftik).unwrap().0 = destination;
     if used_keycard {
         Ok("Using your keycard, you entered the door into a new area.".to_string())
     } else {
@@ -136,12 +126,8 @@ pub fn description(t: BlockType) -> &'static str {
     }
 }
 
-fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
-    let area = world
-        .get::<Position>(game_state.aftik)
-        .unwrap()
-        .0
-        .get_area();
+fn force_door(door: Entity, world: &mut World, aftik: Entity) -> Result<String, String> {
+    let area = world.get::<Position>(aftik).unwrap().0.get_area();
     let pos = world
         .get::<Position>(door)
         .ok()
@@ -149,7 +135,7 @@ fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
         .ok_or_else(|| "You lost track of the door.".to_string())?
         .0;
 
-    world.get_mut::<Position>(game_state.aftik).unwrap().0 = pos;
+    world.get_mut::<Position>(aftik).unwrap().0 = pos;
 
     let door_pair = world
         .get::<Door>(door)

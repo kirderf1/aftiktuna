@@ -1,6 +1,5 @@
 use crate::action::{description, Door, DoorBlocking, InInventory};
 use crate::area::{Area, Position};
-use crate::GameState;
 use hecs::{Entity, World};
 use std::cmp::max;
 
@@ -28,8 +27,8 @@ impl DisplayInfo {
     }
 }
 
-pub fn print_area_view(world: &World, game_state: &GameState, messages: &mut Messages) {
-    let area = get_viewed_area(game_state, world);
+pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {
+    let area = get_viewed_area(aftik, world);
     let area_info = world.get::<Area>(area).unwrap();
     let area_size = area_info.size;
 
@@ -96,8 +95,8 @@ fn get_name(world: &World, entity: Entity, name: &str) -> String {
     name.to_string()
 }
 
-fn get_viewed_area(game_state: &GameState, world: &World) -> Entity {
-    world.get::<Position>(game_state.aftik).unwrap().get_area()
+fn get_viewed_area(aftik: Entity, world: &World) -> Entity {
+    world.get::<Position>(aftik).unwrap().get_area()
 }
 
 fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {

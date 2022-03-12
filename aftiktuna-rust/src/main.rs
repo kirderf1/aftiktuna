@@ -11,10 +11,6 @@ mod area;
 mod parse;
 mod view;
 
-pub struct GameState {
-    aftik: Entity,
-}
-
 fn main() {
     println!("Hello universe!");
 
@@ -22,26 +18,25 @@ fn main() {
     let mut messages = Messages::default();
 
     let aftik = area::init_area(&mut world);
-    let game_state = GameState { aftik };
 
     loop {
-        view::print_area_view(&world, &game_state, &mut messages);
+        view::print_area_view(&world, aftik, &mut messages);
 
         if action::has_item::<FuelCan>(&world) {
             println!("Congratulations, you won!");
             break;
         }
 
-        let action = parse_user_action(&world, &game_state);
-        action::run_action(action, &mut world, &game_state, &mut messages);
+        let action = parse_user_action(&world, aftik);
+        action::run_action(action, &mut world, aftik, &mut messages);
     }
 }
 
-fn parse_user_action(world: &World, game_state: &GameState) -> Action {
+fn parse_user_action(world: &World, aftik: Entity) -> Action {
     loop {
         let input = read_input().to_lowercase();
 
-        match parse::try_parse_input(&input, world, game_state.aftik) {
+        match parse::try_parse_input(&input, world, aftik) {
             Ok(action) => return action,
             Err(message) => println!("{}", message),
         }
