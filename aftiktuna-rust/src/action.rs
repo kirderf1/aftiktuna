@@ -24,14 +24,16 @@ pub fn has_item<C: Component>(world: &World) -> bool {
     world.query::<(&InInventory, &C)>().iter().len() > 0
 }
 
-pub fn run_action(action: Action, world: &mut World, aftik: Entity, messages: &mut Messages) {
-    let result = match action {
-        TakeItem(item, name) => take_item(item, &name, world, aftik),
-        EnterDoor(door) => enter_door(door, world, aftik),
-        ForceDoor(door) => force_door(door, world, aftik),
-    };
-    match result {
-        Ok(message) | Err(message) => messages.0.push(message),
+pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {
+    if let Ok(action) = world.remove_one::<Action>(aftik) {
+        let result = match action {
+            TakeItem(item, name) => take_item(item, &name, world, aftik),
+            EnterDoor(door) => enter_door(door, world, aftik),
+            ForceDoor(door) => force_door(door, world, aftik),
+        };
+        match result {
+            Ok(message) | Err(message) => messages.0.push(message),
+        }
     }
 }
 

@@ -27,8 +27,12 @@ fn main() {
             break;
         }
 
-        let action = parse_user_action(&world, aftik);
-        action::run_action(action, &mut world, aftik, &mut messages);
+        if world.get::<Action>(aftik).is_err() {
+            let action = parse_user_action(&world, aftik);
+            world.insert_one(aftik, action).unwrap();
+        }
+
+        action::run_action(&mut world, aftik, &mut messages);
     }
 }
 
