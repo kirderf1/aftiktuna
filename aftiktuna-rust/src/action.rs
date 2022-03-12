@@ -1,3 +1,4 @@
+use crate::view::DisplayInfo;
 use crate::{
     area::{Pos, Position},
     view::Messages,
@@ -7,6 +8,7 @@ use Action::*;
 
 pub enum Action {
     TakeItem(Entity, String),
+    TakeAll,
     EnterDoor(Entity),
     ForceDoor(Entity),
 }
@@ -28,6 +30,7 @@ pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {
     if let Ok(action) = world.remove_one::<Action>(aftik) {
         let result = match action {
             TakeItem(item, name) => take_item(item, &name, world, aftik),
+            TakeAll => take_all(world, aftik),
             EnterDoor(door) => enter_door(door, world, aftik),
             ForceDoor(door) => force_door(door, world, aftik),
         };
@@ -35,6 +38,27 @@ pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {
             Ok(message) | Err(message) => messages.0.push(message),
         }
     }
+}
+
+fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
+    let area = world.get::<Position>(aftik).unwrap().get_area();
+    let (item, name) = world
+        .query::<(&Position, &DisplayInfo, &Item)>()
+        .iter()
+        .find(|(_, (pos, _, _))| pos.get_area().eq(&area))
+        .map(|(item, (_, display_info, _))| (item, display_info.name().to_string()))
+        .ok_or_else(|| "There are no items to take here.")?;
+
+    let result = take_item(item, &name, world, aftik)?;
+    if world
+        .query::<(&Position, &DisplayInfo, &Item)>()
+        .iter()
+        .find(|(_, (pos, _, _))| pos.get_area().eq(&area))
+        .is_some()
+    {
+        world.insert_one(aftik, Action::TakeAll).unwrap();
+    }
+    Ok(result)
 }
 
 fn take_item(

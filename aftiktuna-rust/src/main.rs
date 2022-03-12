@@ -1,5 +1,5 @@
 use hecs::{Entity, World};
-use std::io;
+use std::{io, thread, time};
 use std::io::Write;
 
 use crate::action::FuelCan;
@@ -30,6 +30,8 @@ fn main() {
         if world.get::<Action>(aftik).is_err() {
             let action = parse_user_action(&world, aftik);
             world.insert_one(aftik, action).unwrap();
+        } else {
+            thread::sleep(time::Duration::from_secs(2));
         }
 
         action::run_action(&mut world, aftik, &mut messages);

@@ -25,12 +25,19 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Acti
 }
 
 fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&action::Item, _, _, _>(
-        world,
-        aftik,
-        |item, _query, name| Ok(Action::TakeItem(item, name.to_string())),
-        |name| Err(format!("There is no {} here to pick up.", name)),
-    )
+    None.or_else(|| {
+        parse
+            .literal("all")
+            .and_then(|parse| parse.done(|| Ok(Action::TakeAll)))
+    })
+    .unwrap_or_else(|| {
+        parse.entity_from_remaining::<&action::Item, _, _, _>(
+            world,
+            aftik,
+            |item, _query, name| Ok(Action::TakeItem(item, name.to_string())),
+            |name| Err(format!("There is no {} here to pick up.", name)),
+        )
+    })
 }
 
 fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
@@ -84,6 +91,17 @@ impl<'a> Parse<'a> {
             Some(Parse {
                 input: self.input.split_at(word.len()).1.trim_start(),
             })
+        } else {
+            None
+        }
+    }
+
+    fn done<T, U>(&self, closure: T) -> Option<U>
+    where
+        T: FnOnce() -> U,
+    {
+        if self.input.is_empty() {
+            Some(closure())
         } else {
             None
         }
