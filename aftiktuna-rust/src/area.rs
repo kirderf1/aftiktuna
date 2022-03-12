@@ -1,4 +1,4 @@
-use crate::action::{BlockType, Crowbar, Door, DoorBlocking, FuelCan, Item};
+use crate::action::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, FuelCan, Item};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -58,6 +58,7 @@ pub fn init_area(world: &mut World) -> Entity {
     place_fuel(world, side_room, 4);
     place_fuel(world, side_room, 4);
     place_crowbar(world, room, 3);
+    place_blowtorch(world, side_room_2, 0);
     aftik
 }
 
@@ -129,6 +130,16 @@ fn place_crowbar(world: &mut World, area: Entity, coord: Coord) {
         Position(pos),
         Item,
         Crowbar,
+    ));
+}
+
+fn place_blowtorch(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::new('b', "Blowtorch", 1),
+        Position(pos),
+        Item,
+        Blowtorch,
     ));
 }
 

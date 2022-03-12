@@ -3,7 +3,7 @@ use crate::{
     view::Messages,
     GameState,
 };
-use hecs::{Entity, World};
+use hecs::{Component, Entity, World};
 use Action::*;
 
 pub enum Action {
@@ -21,8 +21,8 @@ pub struct FuelCan;
 #[derive(Debug)]
 pub struct InInventory;
 
-pub fn has_fuel_can(world: &World) -> bool {
-    world.query::<(&InInventory, &FuelCan)>().iter().len() > 0
+pub fn has_item<C: Component>(world: &World) -> bool {
+    world.query::<(&InInventory, &C)>().iter().len() > 0
 }
 
 pub fn run_action(
@@ -82,6 +82,9 @@ pub enum BlockType {
 
 #[derive(Debug)]
 pub struct Crowbar;
+
+#[derive(Debug)]
+pub struct Blowtorch;
 
 fn enter_door(door: Entity, world: &mut World, game_state: &GameState) -> Result<String, String> {
     let area = world
@@ -144,22 +147,26 @@ fn force_door(door: Entity, world: &mut World, game_state: &GameState) -> Result
     if let Ok(block_type) = block_type {
         match block_type {
             BlockType::Stuck => {
-                if has_crowbar(world) {
+                if has_item::<Crowbar>(world) {
                     world.remove_one::<DoorBlocking>(door_pair).unwrap();
                     Ok("You used your crowbar and forced open the door.".to_string())
+                } else if has_item::<Blowtorch>(world) {
+                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
+                    Ok("You used your blowtorch and cut open the door.".to_string())
                 } else {
                     Err("You need some sort of tool to force the door open.".to_string())
                 }
             }
             BlockType::Sealed => {
-                Err("You need some sort of tool to break the door open.".to_string())
+                if has_item::<Blowtorch>(world) {
+                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
+                    Ok("You used your blowtorch and cut open the door.".to_string())
+                } else {
+                    Err("You need some sort of tool to break the door open.".to_string())
+                }
             }
         }
     } else {
         Err("The door does not seem to be stuck.".to_string())
     }
-}
-
-fn has_crowbar(world: &World) -> bool {
-    world.query::<(&InInventory, &Crowbar)>().iter().len() > 0
 }

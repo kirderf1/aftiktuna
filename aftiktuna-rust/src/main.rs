@@ -2,6 +2,7 @@ use hecs::{Entity, World};
 use std::io;
 use std::io::Write;
 
+use crate::action::FuelCan;
 use action::Action;
 use view::Messages;
 
@@ -26,7 +27,7 @@ fn main() {
     loop {
         view::print_area_view(&world, &game_state, &mut messages);
 
-        if action::has_fuel_can(&world) {
+        if action::has_item::<FuelCan>(&world) {
             println!("Congratulations, you won!");
             break;
         }
