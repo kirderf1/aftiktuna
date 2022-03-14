@@ -1,9 +1,8 @@
 use hecs::{Entity, World};
-use std::{io, thread, time};
 use std::io::Write;
+use std::{io, thread, time};
 
-use crate::action::FuelCan;
-use action::Action;
+use action::{item, Action};
 use view::Messages;
 
 mod action;
@@ -22,7 +21,7 @@ fn main() {
     loop {
         view::print_area_view(&world, aftik, &mut messages);
 
-        if action::has_item::<FuelCan>(&world) {
+        if item::has_item::<item::FuelCan>(&world) {
             println!("Congratulations, you won!");
             break;
         }

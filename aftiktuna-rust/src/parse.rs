@@ -1,5 +1,4 @@
-use crate::action;
-use crate::action::Action;
+use crate::action::{door, item, Action};
 use crate::area::Position;
 use crate::view::DisplayInfo;
 use hecs::{Entity, Fetch, Query, World};
@@ -31,7 +30,7 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
             .and_then(|parse| parse.done(|| Ok(Action::TakeAll)))
     })
     .unwrap_or_else(|| {
-        parse.entity_from_remaining::<&action::Item, _, _, _>(
+        parse.entity_from_remaining::<&item::Item, _, _, _>(
             world,
             aftik,
             |item, _query, name| Ok(Action::TakeItem(item, name.to_string())),
@@ -41,7 +40,7 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
 }
 
 fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&action::Door, _, _, _>(
+    parse.entity_from_remaining::<&door::Door, _, _, _>(
         world,
         aftik,
         |door, _query, _name| Ok(Action::EnterDoor(door)),
@@ -50,7 +49,7 @@ fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> 
 }
 
 fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&action::Door, _, _, _>(
+    parse.entity_from_remaining::<&door::Door, _, _, _>(
         world,
         aftik,
         |door, _query, _name| Ok(Action::ForceDoor(door)),

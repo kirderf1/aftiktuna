@@ -1,4 +1,5 @@
-use crate::action::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, FuelCan, Item, Keycard};
+use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
+use crate::action::item::{FuelCan, Item};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -192,10 +193,6 @@ impl Pos {
 pub struct Position(pub(crate) Pos);
 
 impl Position {
-    pub fn move_to(&mut self, new_coord: Coord, world: &World) {
-        self.0 = Pos::new(self.0.get_area(), new_coord, world);
-    }
-
     pub fn get_coord(&self) -> Coord {
         self.0.get_coord()
     }

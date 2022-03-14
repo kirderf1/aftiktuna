@@ -1,4 +1,5 @@
-use crate::action::{description, Door, DoorBlocking, InInventory};
+use crate::action::door::{description, Door, DoorBlocking};
+use crate::action::item::InInventory;
 use crate::area::{Area, Position};
 use hecs::{Entity, World};
 use std::cmp::max;
