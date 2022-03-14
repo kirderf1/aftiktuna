@@ -3,6 +3,7 @@ use crate::{
     view::Messages,
 };
 use hecs::{Entity, World};
+use std::cmp::{max, min};
 use Action::*;
 
 pub mod door;
@@ -15,16 +16,33 @@ pub enum Action {
     ForceDoor(Entity),
 }
 
+#[derive(Debug, Default)]
+pub struct MovementBlocking;
+
 fn try_move_aftik(world: &mut World, aftik: Entity, pos: Pos) -> Result<(), String> {
-    let mut position = world.get_mut::<Position>(aftik).unwrap();
+    let aftik_pos = world.get::<Position>(aftik).unwrap().0;
     assert_eq!(
         pos.get_area(),
-        position.get_area(),
+        aftik_pos.get_area(),
         "Areas should be equal when called."
     );
 
-    position.0 = pos;
-    Ok(())
+    let min = min(aftik_pos.get_coord() + 1, pos.get_coord());
+    let max = max(aftik_pos.get_coord() - 1, pos.get_coord());
+    if world
+        .query::<(&Position, &MovementBlocking)>()
+        .iter()
+        .any(|(_, (pos, _))| {
+            pos.get_area() == aftik_pos.get_area()
+                && min <= pos.get_coord()
+                && pos.get_coord() <= max
+        })
+    {
+        Err("Something is in the way.".to_string())
+    } else {
+        world.get_mut::<Position>(aftik).unwrap().0 = pos;
+        Ok(())
+    }
 }
 
 pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {

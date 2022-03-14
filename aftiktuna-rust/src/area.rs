@@ -2,6 +2,7 @@ use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Key
 use crate::action::item::{FuelCan, Item};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
+use crate::action::MovementBlocking;
 
 pub type Coord = usize;
 
@@ -74,12 +75,18 @@ pub fn init_area(world: &mut World) -> Entity {
     place_crowbar(world, room, 3);
     place_blowtorch(world, side_room_2, 0);
     place_keycard(world, room, 0);
+    place_goblin(world, side_room_2, 4);
     place_aftik(world, room, 1)
 }
 
 fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
     let pos = Pos::new(area, coord, world);
     world.spawn((DisplayInfo::new('A', "Aftik", 10), Position(pos)))
+}
+
+fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((DisplayInfo::new('G', "Goblin", 10), Position(pos), MovementBlocking))
 }
 
 fn place_doors(
