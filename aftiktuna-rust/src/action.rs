@@ -1,7 +1,6 @@
-use crate::view::DisplayInfo;
 use crate::{
     area::{Pos, Position},
-    view::Messages,
+    view::{DisplayInfo, Messages},
 };
 use hecs::{Component, Entity, World};
 use Action::*;
@@ -11,6 +10,18 @@ pub enum Action {
     TakeAll,
     EnterDoor(Entity),
     ForceDoor(Entity),
+}
+
+fn try_move_aftik(world: &mut World, aftik: Entity, pos: Pos) -> Result<(), String> {
+    let mut position = world.get_mut::<Position>(aftik).unwrap();
+    assert_eq!(
+        pos.get_area(),
+        position.get_area(),
+        "Areas should be equal when called."
+    );
+
+    position.0 = pos;
+    Ok(())
 }
 
 #[derive(Debug, Default)]
@@ -53,8 +64,7 @@ fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
     if world
         .query::<(&Position, &DisplayInfo, &Item)>()
         .iter()
-        .find(|(_, (pos, _, _))| pos.get_area().eq(&area))
-        .is_some()
+        .any(|(_, (pos, _, _))| pos.get_area().eq(&area))
     {
         world.insert_one(aftik, Action::TakeAll).unwrap();
     }
@@ -70,11 +80,9 @@ fn take_item(
     let item_pos = world
         .get::<Position>(item)
         .map_err(|_| format!("You lost track of the {}.", item_name))?
-        .get_coord();
-    world
-        .get_mut::<Position>(aftik)
-        .unwrap()
-        .move_to(item_pos, world);
+        .0;
+
+    try_move_aftik(world, aftik, item_pos)?;
     world
         .remove_one::<Position>(item)
         .expect("Tried removing position from item");
@@ -119,7 +127,7 @@ fn enter_door(door: Entity, world: &mut World, aftik: Entity) -> Result<String, 
         .ok_or_else(|| "You lost track of the door.".to_string())?
         .0;
 
-    world.get_mut::<Position>(aftik).unwrap().0 = pos;
+    try_move_aftik(world, aftik, pos)?;
 
     let (destination, door_pair) = world
         .get::<Door>(door)
@@ -161,7 +169,7 @@ fn force_door(door: Entity, world: &mut World, aftik: Entity) -> Result<String, 
         .ok_or_else(|| "You lost track of the door.".to_string())?
         .0;
 
-    world.get_mut::<Position>(aftik).unwrap().0 = pos;
+    try_move_aftik(world, aftik, pos)?;
 
     let door_pair = world
         .get::<Door>(door)
