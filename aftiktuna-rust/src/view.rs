@@ -1,7 +1,7 @@
 use crate::action::door::{description, Door, DoorBlocking};
 use crate::action::item::InInventory;
 use crate::area::{Area, Position};
-use hecs::{Entity, World};
+use hecs::{Entity, With, World};
 use std::cmp::max;
 
 #[derive(Default)]
@@ -81,9 +81,9 @@ pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {
         messages.0.clear();
     }
     let inventory = world
-        .query::<(&DisplayInfo, &InInventory)>()
+        .query::<With<InInventory, &DisplayInfo>>()
         .iter()
-        .map(|(_, (info, _))| info.name.clone())
+        .map(|(_, info)| info.name.clone())
         .collect::<Vec<String>>()
         .join(", ");
     if !inventory.is_empty() {

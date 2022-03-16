@@ -1,7 +1,7 @@
 use crate::action::{door, item, Action};
 use crate::area::Position;
 use crate::view::DisplayInfo;
-use hecs::{Entity, World};
+use hecs::{Entity, With, World};
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
     let parse = Parse::new(input);
@@ -33,13 +33,13 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
         parse.take_remaining(|name| {
             let aftik_pos = world.get::<Position>(aftik).unwrap().0;
             world
-                .query::<(&Position, &DisplayInfo, &item::Item)>()
+                .query::<With<item::Item, (&Position, &DisplayInfo)>>()
                 .iter()
-                .filter(|(_, (pos, display_info, _))| {
+                .filter(|(_, (pos, display_info))| {
                     pos.is_in(pos.get_area()) && display_info.matches(name)
                 })
-                .min_by_key(|(_, (pos, _, _))| pos.distance_to(aftik_pos))
-                .map(|(item, (_, _, _query))| Ok(Action::TakeItem(item, name.to_string())))
+                .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
+                .map(|(item, _)| Ok(Action::TakeItem(item, name.to_string())))
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
         })
     })
@@ -49,9 +49,9 @@ fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> 
     parse.take_remaining(|name| {
         let area = world.get::<Position>(aftik).unwrap().get_area();
         world
-            .query::<(&Position, &DisplayInfo, &door::Door)>()
+            .query::<With<door::Door, (&Position, &DisplayInfo)>>()
             .iter()
-            .find(|(_, (pos, display_info, _))| pos.is_in(area) && display_info.matches(name))
+            .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
             .map(|(door, _)| Ok(Action::EnterDoor(door)))
             .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
     })
@@ -61,9 +61,9 @@ fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> 
     parse.take_remaining(|name| {
         let area = world.get::<Position>(aftik).unwrap().get_area();
         world
-            .query::<(&Position, &DisplayInfo, &door::Door)>()
+            .query::<With<door::Door, (&Position, &DisplayInfo)>>()
             .iter()
-            .find(|(_, (pos, display_info, _))| pos.is_in(area) && display_info.matches(name))
+            .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
             .map(|(door, _)| Ok(Action::ForceDoor(door)))
             .unwrap_or_else(|| Err("There is no such door here.".to_string()))
     })

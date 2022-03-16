@@ -2,7 +2,7 @@ use crate::{
     area::{Pos, Position},
     view::Messages,
 };
-use hecs::{Entity, World};
+use hecs::{Entity, With, World};
 use std::cmp::{max, min};
 use Action::*;
 
@@ -47,9 +47,9 @@ pub fn is_blocked_for_aftik(world: &World, aftik_pos: Pos, target_pos: Pos) -> b
         target_pos.get_coord()
     };
     world
-        .query::<(&Position, &MovementBlocking)>()
+        .query::<With<MovementBlocking, &Position>>()
         .iter()
-        .any(|(_, (pos, _))| {
+        .any(|(_, pos)| {
             pos.is_in(aftik_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
         })
 }

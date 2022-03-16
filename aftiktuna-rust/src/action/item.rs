@@ -1,7 +1,7 @@
 use crate::area::Position;
 use crate::view::DisplayInfo;
 use crate::{action, Action};
-use hecs::{Component, Entity, World};
+use hecs::{Component, Entity, With, World};
 
 #[derive(Debug, Default)]
 pub struct Item;
@@ -13,24 +13,24 @@ pub struct FuelCan;
 pub struct InInventory;
 
 pub fn has_item<C: Component>(world: &World) -> bool {
-    world.query::<(&InInventory, &C)>().iter().len() > 0
+    world.query::<With<C, With<InInventory, ()>>>().iter().len() > 0
 }
 
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
     let aftik_pos = world.get::<Position>(aftik).unwrap().0;
     let (item, name) = world
-        .query::<(&Position, &DisplayInfo, &Item)>()
+        .query::<With<Item, (&Position, &DisplayInfo)>>()
         .iter()
-        .filter(|(_, (pos, _, _))| pos.is_in(aftik_pos.get_area()))
-        .min_by_key(|(_, (pos, _, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, display_info, _))| (item, display_info.name().to_string()))
+        .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
+        .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
+        .map(|(item, (_, display_info))| (item, display_info.name().to_string()))
         .ok_or("There are no items to take here.")?;
 
     let result = take_item(item, &name, world, aftik)?;
     if world
-        .query::<(&Position, &DisplayInfo, &Item)>()
+        .query::<With<Item, (&Position, &DisplayInfo)>>()
         .iter()
-        .any(|(_, (pos, _, _))| pos.is_in(aftik_pos.get_area()))
+        .any(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
     {
         world.insert_one(aftik, Action::TakeAll).unwrap();
     }
