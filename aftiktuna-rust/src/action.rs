@@ -27,22 +27,31 @@ fn try_move_aftik(world: &mut World, aftik: Entity, pos: Pos) -> Result<(), Stri
         "Areas should be equal when called."
     );
 
-    let min = min(aftik_pos.get_coord() + 1, pos.get_coord());
-    let max = max(aftik_pos.get_coord() - 1, pos.get_coord());
-    if world
-        .query::<(&Position, &MovementBlocking)>()
-        .iter()
-        .any(|(_, (pos, _))| {
-            pos.get_area() == aftik_pos.get_area()
-                && min <= pos.get_coord()
-                && pos.get_coord() <= max
-        })
-    {
+    if is_blocked_for_aftik(world, aftik_pos, pos) {
         Err("Something is in the way.".to_string())
     } else {
         world.get_mut::<Position>(aftik).unwrap().0 = pos;
         Ok(())
     }
+}
+
+pub fn is_blocked_for_aftik(world: &World, aftik_pos: Pos, target_pos: Pos) -> bool {
+    if aftik_pos.get_coord() == target_pos.get_coord() {
+        return false;
+    }
+
+    let min = min(aftik_pos.get_coord() + 1, target_pos.get_coord());
+    let max = if aftik_pos.get_coord() != 0 {
+        max(aftik_pos.get_coord() - 1, target_pos.get_coord())
+    } else {
+        target_pos.get_coord()
+    };
+    world
+        .query::<(&Position, &MovementBlocking)>()
+        .iter()
+        .any(|(_, (pos, _))| {
+            pos.is_in(aftik_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
+        })
 }
 
 pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {
