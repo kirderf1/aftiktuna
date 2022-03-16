@@ -17,11 +17,12 @@ pub fn has_item<C: Component>(world: &World) -> bool {
 }
 
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
-    let area = world.get::<Position>(aftik).unwrap().get_area();
+    let aftik_pos = world.get::<Position>(aftik).unwrap().0;
     let (item, name) = world
         .query::<(&Position, &DisplayInfo, &Item)>()
         .iter()
-        .find(|(_, (pos, _, _))| pos.get_area().eq(&area))
+        .filter(|(_, (pos, _, _))| pos.is_in(aftik_pos.get_area()))
+        .min_by_key(|(_, (pos, _, _))| pos.distance_to(aftik_pos))
         .map(|(item, (_, display_info, _))| (item, display_info.name().to_string()))
         .ok_or("There are no items to take here.")?;
 
@@ -29,7 +30,7 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
     if world
         .query::<(&Position, &DisplayInfo, &Item)>()
         .iter()
-        .any(|(_, (pos, _, _))| pos.get_area().eq(&area))
+        .any(|(_, (pos, _, _))| pos.is_in(aftik_pos.get_area()))
     {
         world.insert_one(aftik, Action::TakeAll).unwrap();
     }

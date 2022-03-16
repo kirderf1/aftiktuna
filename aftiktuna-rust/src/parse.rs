@@ -31,11 +31,14 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     })
     .unwrap_or_else(|| {
         parse.take_remaining(|name| {
-            let area = world.get::<Position>(aftik).unwrap().get_area();
+            let aftik_pos = world.get::<Position>(aftik).unwrap().0;
             world
                 .query::<(&Position, &DisplayInfo, &item::Item)>()
                 .iter()
-                .find(|(_, (pos, display_info, _))| pos.is_in(area) && display_info.matches(name))
+                .filter(|(_, (pos, display_info, _))| {
+                    pos.is_in(pos.get_area()) && display_info.matches(name)
+                })
+                .min_by_key(|(_, (pos, _, _))| pos.distance_to(aftik_pos))
                 .map(|(item, (_, _, _query))| Ok(Action::TakeItem(item, name.to_string())))
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
         })

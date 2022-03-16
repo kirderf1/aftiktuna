@@ -1,8 +1,8 @@
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
+use crate::action::MovementBlocking;
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
-use crate::action::MovementBlocking;
 
 pub type Coord = usize;
 
@@ -71,7 +71,7 @@ pub fn init_area(world: &mut World) -> Entity {
     );
 
     place_fuel(world, side_room, 4);
-    place_fuel(world, side_room, 4);
+    place_fuel(world, side_room, 3);
     place_crowbar(world, room, 3);
     place_blowtorch(world, side_room_2, 0);
     place_keycard(world, room, 0);
@@ -86,7 +86,11 @@ fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
 
 fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('G', "Goblin", 10), Position(pos), MovementBlocking))
+    world.spawn((
+        DisplayInfo::new('G', "Goblin", 10),
+        Position(pos),
+        MovementBlocking,
+    ))
 }
 
 fn place_doors(
@@ -210,6 +214,14 @@ impl Position {
 
     pub fn is_in(&self, area: Entity) -> bool {
         self.get_area().eq(&area)
+    }
+
+    pub fn distance_to(&self, pos: Pos) -> usize {
+        if self.get_coord() > pos.get_coord() {
+            self.get_coord() - pos.get_coord()
+        } else {
+            pos.get_coord() - self.get_coord()
+        }
     }
 }
 
