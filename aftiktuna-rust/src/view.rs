@@ -26,6 +26,10 @@ impl DisplayInfo {
     pub fn name(&self) -> &str {
         &self.name
     }
+
+    pub fn matches(&self, string: &str) -> bool {
+        self.name.eq_ignore_ascii_case(string)
+    }
 }
 
 pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {

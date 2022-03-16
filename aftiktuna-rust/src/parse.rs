@@ -1,7 +1,7 @@
 use crate::action::{door, item, Action};
 use crate::area::Position;
 use crate::view::DisplayInfo;
-use hecs::{Entity, Fetch, Query, World};
+use hecs::{Entity, World};
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
     let parse = Parse::new(input);
@@ -30,50 +30,40 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
             .and_then(|parse| parse.done(|| Ok(Action::TakeAll)))
     })
     .unwrap_or_else(|| {
-        parse.entity_from_remaining::<&item::Item, _, _, _>(
-            world,
-            aftik,
-            |item, _query, name| Ok(Action::TakeItem(item, name.to_string())),
-            |name| Err(format!("There is no {} here to pick up.", name)),
-        )
+        parse.take_remaining(|name| {
+            let area = world.get::<Position>(aftik).unwrap().get_area();
+            world
+                .query::<(&Position, &DisplayInfo, &item::Item)>()
+                .iter()
+                .find(|(_, (pos, display_info, _))| pos.is_in(area) && display_info.matches(name))
+                .map(|(item, (_, _, _query))| Ok(Action::TakeItem(item, name.to_string())))
+                .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
+        })
     })
 }
 
 fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&door::Door, _, _, _>(
-        world,
-        aftik,
-        |door, _query, _name| Ok(Action::EnterDoor(door)),
-        |_name| Err("There is no such door here to go through.".to_string()),
-    )
+    parse.take_remaining(|name| {
+        let area = world.get::<Position>(aftik).unwrap().get_area();
+        world
+            .query::<(&Position, &DisplayInfo, &door::Door)>()
+            .iter()
+            .find(|(_, (pos, display_info, _))| pos.is_in(area) && display_info.matches(name))
+            .map(|(door, _)| Ok(Action::EnterDoor(door)))
+            .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
+    })
 }
 
 fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
-    parse.entity_from_remaining::<&door::Door, _, _, _>(
-        world,
-        aftik,
-        |door, _query, _name| Ok(Action::ForceDoor(door)),
-        |_name| Err("There is no such door here.".to_string()),
-    )
-}
-
-fn query_entity<Q: Query, F, T>(
-    aftik: Entity,
-    door_type: &str,
-    world: &World,
-    on_match: F,
-) -> Option<T>
-where
-    F: FnOnce(Entity, <<Q as Query>::Fetch as Fetch>::Item) -> T,
-{
-    let area = world.get::<Position>(aftik).unwrap().get_area();
-    world
-        .query::<(&Position, &DisplayInfo, Q)>()
-        .iter()
-        .find(|(_, (pos, display_info, _))| {
-            pos.get_area().eq(&area) && display_info.name().eq_ignore_ascii_case(door_type)
-        })
-        .map(|(entity, (_, _, query))| on_match(entity, query))
+    parse.take_remaining(|name| {
+        let area = world.get::<Position>(aftik).unwrap().get_area();
+        world
+            .query::<(&Position, &DisplayInfo, &door::Door)>()
+            .iter()
+            .find(|(_, (pos, display_info, _))| pos.is_in(area) && display_info.matches(name))
+            .map(|(door, _)| Ok(Action::ForceDoor(door)))
+            .unwrap_or_else(|| Err("There is no such door here.".to_string()))
+    })
 }
 
 struct Parse<'a> {
@@ -106,21 +96,10 @@ impl<'a> Parse<'a> {
         }
     }
 
-    fn entity_from_remaining<Q, F, G, T>(
-        &self,
-        world: &World,
-        aftik: Entity,
-        on_match: F,
-        on_none: G,
-    ) -> T
+    fn take_remaining<F, T>(&self, closure: F) -> T
     where
-        Q: Query,
-        F: FnOnce(Entity, <<Q as Query>::Fetch as Fetch>::Item, &str) -> T,
-        G: FnOnce(&str) -> T,
+        F: FnOnce(&str) -> T,
     {
-        query_entity::<Q, _, T>(aftik, self.input, world, |entity, query| {
-            on_match(entity, query, self.input)
-        })
-        .unwrap_or_else(|| on_none(self.input))
+        closure(self.input)
     }
 }

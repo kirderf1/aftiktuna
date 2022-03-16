@@ -207,6 +207,10 @@ impl Position {
     pub fn get_area(&self) -> Entity {
         self.0.get_area()
     }
+
+    pub fn is_in(&self, area: Entity) -> bool {
+        self.get_area().eq(&area)
+    }
 }
 
 fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
