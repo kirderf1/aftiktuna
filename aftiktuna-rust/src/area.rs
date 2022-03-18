@@ -1,8 +1,10 @@
+use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
 use crate::action::MovementBlocking;
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
+use std::cmp::Ordering;
 
 pub type Coord = usize;
 
@@ -90,6 +92,7 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
         DisplayInfo::new('G', "Goblin", 10),
         Position(pos),
         MovementBlocking,
+        IsFoe,
     ))
 }
 
@@ -197,6 +200,25 @@ impl Pos {
 
     pub fn get_area(&self) -> Entity {
         self.area
+    }
+
+    pub fn get_adjacent_towards(&self, pos: Pos) -> Pos {
+        assert_eq!(
+            self.get_area(),
+            pos.get_area(),
+            "Positions must be in the same area."
+        );
+        match self.get_coord().cmp(&pos.get_coord()) {
+            Ordering::Less => Pos {
+                coord: self.coord + 1,
+                area: self.area,
+            },
+            Ordering::Greater => Pos {
+                coord: self.coord - 1,
+                area: self.area,
+            },
+            Ordering::Equal => *self,
+        }
     }
 }
 

@@ -26,7 +26,7 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
         .map(|(item, (_, display_info))| (item, display_info.name().to_string()))
         .ok_or("There are no items to take here.")?;
 
-    let result = take_item(item, &name, world, aftik)?;
+    let result = take_item(world, aftik, item, &name)?;
     if world
         .query::<With<Item, (&Position, &DisplayInfo)>>()
         .iter()
@@ -38,10 +38,10 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
 }
 
 pub fn take_item(
-    item: Entity,
-    item_name: &str,
     world: &mut World,
     aftik: Entity,
+    item: Entity,
+    item_name: &str,
 ) -> Result<String, String> {
     let item_pos = world
         .get::<Position>(item)

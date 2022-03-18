@@ -6,6 +6,7 @@ use hecs::{Entity, With, World};
 use std::cmp::{max, min};
 use Action::*;
 
+pub mod combat;
 pub mod door;
 pub mod item;
 
@@ -14,6 +15,7 @@ pub enum Action {
     TakeAll,
     EnterDoor(Entity),
     ForceDoor(Entity),
+    Attack(Entity),
 }
 
 #[derive(Debug, Default)]
@@ -40,12 +42,9 @@ pub fn is_blocked_for_aftik(world: &World, aftik_pos: Pos, target_pos: Pos) -> b
         return false;
     }
 
-    let min = min(aftik_pos.get_coord() + 1, target_pos.get_coord());
-    let max = if aftik_pos.get_coord() != 0 {
-        max(aftik_pos.get_coord() - 1, target_pos.get_coord())
-    } else {
-        target_pos.get_coord()
-    };
+    let adjacent_pos = aftik_pos.get_adjacent_towards(target_pos);
+    let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
+    let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
     world
         .query::<With<MovementBlocking, &Position>>()
         .iter()
@@ -57,10 +56,11 @@ pub fn is_blocked_for_aftik(world: &World, aftik_pos: Pos, target_pos: Pos) -> b
 pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {
     if let Ok(action) = world.remove_one::<Action>(aftik) {
         let result = match action {
-            TakeItem(item, name) => item::take_item(item, &name, world, aftik),
+            TakeItem(item, name) => item::take_item(world, aftik, item, &name),
             TakeAll => item::take_all(world, aftik),
-            EnterDoor(door) => door::enter_door(door, world, aftik),
-            ForceDoor(door) => door::force_door(door, world, aftik),
+            EnterDoor(door) => door::enter_door(world, aftik, door),
+            ForceDoor(door) => door::force_door(world, aftik, door),
+            Attack(target) => combat::attack(world, aftik, target),
         };
         match result {
             Ok(message) | Err(message) => messages.0.push(message),

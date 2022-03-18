@@ -1,4 +1,4 @@
-use crate::action::{door, item, Action};
+use crate::action::{combat, door, item, Action};
 use crate::area::Position;
 use crate::view::DisplayInfo;
 use hecs::{Entity, With, World};
@@ -19,6 +19,11 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Acti
         parse
             .literal("force")
             .map(|parse| force(&parse, world, aftik))
+    })
+    .or_else(|| {
+        parse
+            .literal("attack")
+            .map(|parse| attack(&parse, world, aftik))
     })
     .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
 }
@@ -66,6 +71,18 @@ fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> 
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
             .map(|(door, _)| Ok(Action::ForceDoor(door)))
             .unwrap_or_else(|| Err("There is no such door here.".to_string()))
+    })
+}
+
+fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+    parse.take_remaining(|name| {
+        let area = world.get::<Position>(aftik).unwrap().get_area();
+        world
+            .query::<With<combat::IsFoe, (&Position, &DisplayInfo)>>()
+            .iter()
+            .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
+            .map(|(target, _)| Ok(Action::Attack(target)))
+            .unwrap_or_else(|| Err("There is no such target here.".to_string()))
     })
 }
 
