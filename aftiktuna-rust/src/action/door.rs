@@ -1,6 +1,6 @@
-use crate::action;
 use crate::action::item;
-use crate::area::{Pos, Position};
+use crate::position;
+use crate::position::{Pos, Position};
 use hecs::{Entity, World};
 
 #[derive(Debug)]
@@ -37,7 +37,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .ok_or_else(|| "You lost track of the door.".to_string())?
         .0;
 
-    action::try_move_aftik(world, aftik, pos)?;
+    position::try_move_aftik(world, aftik, pos)?;
 
     let (destination, door_pair) = world
         .get::<Door>(door)
@@ -79,7 +79,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .ok_or_else(|| "You lost track of the door.".to_string())?
         .0;
 
-    action::try_move_aftik(world, aftik, pos)?;
+    position::try_move_aftik(world, aftik, pos)?;
 
     let door_pair = world
         .get::<Door>(door)
@@ -102,15 +102,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
                     Err("You need some sort of tool to force the door open.".to_string())
                 }
             }
-            BlockType::Sealed => {
-                if item::has_item::<Blowtorch>(world) {
-                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok("You used your blowtorch and cut open the door.".to_string())
-                } else {
-                    Err("You need some sort of tool to break the door open.".to_string())
-                }
-            }
-            BlockType::Locked => {
+            BlockType::Sealed | BlockType::Locked => {
                 if item::has_item::<Blowtorch>(world) {
                     world.remove_one::<DoorBlocking>(door_pair).unwrap();
                     Ok("You used your blowtorch and cut open the door.".to_string())

@@ -1,5 +1,4 @@
-use crate::action::try_move_aftik;
-use crate::area::Position;
+use crate::position::{try_move_aftik, Position};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 

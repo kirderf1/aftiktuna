@@ -8,6 +8,7 @@ use view::Messages;
 mod action;
 mod area;
 mod parse;
+mod position;
 mod view;
 
 fn main() {

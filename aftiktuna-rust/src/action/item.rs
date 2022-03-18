@@ -1,6 +1,6 @@
-use crate::area::Position;
+use crate::position::Position;
 use crate::view::DisplayInfo;
-use crate::{action, Action};
+use crate::{position, Action};
 use hecs::{Component, Entity, With, World};
 
 #[derive(Debug, Default)]
@@ -48,7 +48,7 @@ pub fn take_item(
         .map_err(|_| format!("You lost track of the {}.", item_name))?
         .0;
 
-    action::try_move_aftik(world, aftik, item_pos)?;
+    position::try_move_aftik(world, aftik, item_pos)?;
     world
         .remove_one::<Position>(item)
         .expect("Tried removing position from item");

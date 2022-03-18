@@ -1,12 +1,10 @@
 use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
-use crate::action::MovementBlocking;
+use crate::position::MovementBlocking;
+use crate::position::{Coord, Pos, Position};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
-use std::cmp::Ordering;
-
-pub type Coord = usize;
 
 pub struct Area {
     pub size: Coord,
@@ -180,82 +178,4 @@ fn place_keycard(world: &mut World, area: Entity, coord: Coord) {
         Item,
         Keycard,
     ));
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Pos {
-    area: Entity,
-    coord: Coord,
-}
-
-impl Pos {
-    pub fn new(area: Entity, coord: Coord, world: &World) -> Pos {
-        assert_valid_coord(area, coord, world);
-        Pos { coord, area }
-    }
-
-    pub fn get_coord(&self) -> Coord {
-        self.coord
-    }
-
-    pub fn get_area(&self) -> Entity {
-        self.area
-    }
-
-    pub fn get_adjacent_towards(&self, pos: Pos) -> Pos {
-        assert_eq!(
-            self.get_area(),
-            pos.get_area(),
-            "Positions must be in the same area."
-        );
-        match self.get_coord().cmp(&pos.get_coord()) {
-            Ordering::Less => Pos {
-                coord: self.coord + 1,
-                area: self.area,
-            },
-            Ordering::Greater => Pos {
-                coord: self.coord - 1,
-                area: self.area,
-            },
-            Ordering::Equal => *self,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct Position(pub(crate) Pos);
-
-impl Position {
-    pub fn get_coord(&self) -> Coord {
-        self.0.get_coord()
-    }
-
-    pub fn get_area(&self) -> Entity {
-        self.0.get_area()
-    }
-
-    pub fn is_in(&self, area: Entity) -> bool {
-        self.get_area().eq(&area)
-    }
-
-    pub fn distance_to(&self, pos: Pos) -> usize {
-        if self.get_coord() > pos.get_coord() {
-            self.get_coord() - pos.get_coord()
-        } else {
-            pos.get_coord() - self.get_coord()
-        }
-    }
-}
-
-fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
-    let area_size = world
-        .get::<Area>(area)
-        .expect("Expected given area to have an area component")
-        .size;
-    assert!(
-        coord < area_size,
-        "Position {} is out of bounds for room with size {}.",
-        coord,
-        area_size
-    );
 }

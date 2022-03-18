@@ -1,5 +1,5 @@
 use crate::action::{combat, door, item, Action};
-use crate::area::Position;
+use crate::position::Position;
 use crate::view::DisplayInfo;
 use hecs::{Entity, With, World};
 
