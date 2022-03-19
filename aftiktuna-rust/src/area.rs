@@ -1,4 +1,4 @@
-use crate::action::combat::IsFoe;
+use crate::action::combat::{Health, IsFoe};
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
 use crate::position::MovementBlocking;
@@ -91,6 +91,7 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
         Position(pos),
         MovementBlocking,
         IsFoe,
+        Health(3),
     ))
 }
 
