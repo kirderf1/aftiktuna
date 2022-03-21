@@ -6,7 +6,17 @@ use hecs::{Entity, World};
 pub struct IsFoe;
 
 #[derive(Debug)]
-pub struct Health(pub i32);
+pub struct Health(pub f32);
+
+pub struct Stats {
+    strength: i32,
+}
+
+impl Stats {
+    pub fn new(strength: i32) -> Stats {
+        Stats { strength }
+    }
+}
 
 pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String, String> {
     let name = world.get::<DisplayInfo>(target).unwrap().name().to_string();
@@ -15,7 +25,7 @@ pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String
 
     try_move_aftik(world, aftik, target_pos.get_adjacent_towards(aftik_pos))?;
 
-    let killed = hit(world, target, 1);
+    let killed = hit(world, target, get_attack_damage(world, aftik));
 
     if killed {
         world.despawn(target).unwrap();
@@ -25,11 +35,17 @@ pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String
     }
 }
 
-pub fn hit(world: &mut World, target: Entity, damage: i32) -> bool {
+pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
     if let Ok(mut health) = world.get_mut::<Health>(target) {
         health.0 -= damage;
-        health.0 <= 0
+        health.0 <= 0.0
     } else {
         false
     }
+}
+
+fn get_attack_damage(world: &World, aftik: Entity) -> f32 {
+    let strength = world.get::<Stats>(aftik).unwrap().strength;
+    let strength_mod = (strength + 2) as f32 / 6.0;
+    2.0 * strength_mod
 }

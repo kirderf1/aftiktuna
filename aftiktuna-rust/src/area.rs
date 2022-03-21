@@ -1,4 +1,4 @@
-use crate::action::combat::{Health, IsFoe};
+use crate::action::combat::{Health, IsFoe, Stats};
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
 use crate::position::MovementBlocking;
@@ -76,12 +76,12 @@ pub fn init_area(world: &mut World) -> Entity {
     place_blowtorch(world, side_room_2, 0);
     place_keycard(world, room, 0);
     place_goblin(world, side_room_2, 4);
-    place_aftik(world, room, 1)
+    place_aftik(world, room, 1, Stats::new(10))
 }
 
-fn place_aftik(world: &mut World, area: Entity, coord: Coord) -> Entity {
+fn place_aftik(world: &mut World, area: Entity, coord: Coord, stats: Stats) -> Entity {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('A', "Aftik", 10), Position(pos)))
+    world.spawn((DisplayInfo::new('A', "Aftik", 10), Position(pos), stats))
 }
 
 fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
@@ -91,7 +91,7 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
         Position(pos),
         MovementBlocking,
         IsFoe,
-        Health(3),
+        Health(12.0),
     ))
 }
 
