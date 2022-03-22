@@ -6,15 +6,25 @@ use hecs::{Entity, World};
 pub struct IsFoe;
 
 #[derive(Debug)]
-pub struct Health(pub f32);
+pub struct Health(f32);
+
+impl Health {
+    pub fn with_max(stats: &Stats) -> Health {
+        Health((4 + stats.endurance * 2) as f32)
+    }
+}
 
 pub struct Stats {
-    strength: i32,
+    pub strength: i32,
+    pub endurance: i32,
 }
 
 impl Stats {
-    pub fn new(strength: i32) -> Stats {
-        Stats { strength }
+    pub fn new(strength: i32, endurance: i32) -> Stats {
+        Stats {
+            strength,
+            endurance,
+        }
     }
 }
 
