@@ -1,7 +1,7 @@
 use crate::action::door::{description, Door, DoorBlocking};
 use crate::action::item::InInventory;
 use crate::area::Area;
-use crate::position::Pos;
+use crate::position::{Coord, Pos};
 use hecs::{Entity, With, World};
 use std::cmp::max;
 
@@ -33,11 +33,24 @@ impl DisplayInfo {
     }
 }
 
-pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {
+pub fn print(world: &World, aftik: Entity, messages: &mut Messages) {
     let area = get_viewed_area(aftik, world);
     let area_info = world.get::<Area>(area).unwrap();
     let area_size = area_info.size;
 
+    println!("-----------");
+    println!("{}:", area_info.label);
+    print_area(world, area, area_size);
+
+    println!();
+    if !messages.0.is_empty() {
+        println!("{}", messages.0.join(" "));
+        messages.0.clear();
+    }
+    print_inventory(world);
+}
+
+fn print_area(world: &World, area: Entity, area_size: Coord) {
     let mut symbols_by_pos = init_symbol_vectors(area_size);
     let mut labels = Vec::new();
 
@@ -60,9 +73,7 @@ pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {
         symbol_column.sort_by(|a, b| b.1.cmp(&a.1));
     }
 
-    println!("-----------");
-    println!("{}:", area_info.label);
-    let rows: usize = max(1, symbols_by_pos.iter().map(|vec| vec.len()).max().unwrap());
+    let rows: usize = max(1, symbols_by_pos.iter().map(Vec::len).max().unwrap());
     for row in (0..rows).rev() {
         let base_symbol = if row == 0 { '_' } else { ' ' };
         let mut symbols = vec![base_symbol; area_size];
@@ -71,16 +82,14 @@ pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {
                 symbols[pos] = symbol.0;
             }
         }
-        println!("{}", String::from_iter(symbols.iter()));
+        println!("{}", symbols.iter().collect::<String>());
     }
     for label in labels {
         println!("{}", label);
     }
-    println!();
-    if !messages.0.is_empty() {
-        println!("{}", messages.0.join(" "));
-        messages.0.clear();
-    }
+}
+
+fn print_inventory(world: &World) {
     let inventory = world
         .query::<With<InInventory, &DisplayInfo>>()
         .iter()

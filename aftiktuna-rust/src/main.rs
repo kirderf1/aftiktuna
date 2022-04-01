@@ -20,7 +20,7 @@ fn main() {
     let aftik = area::init_area(&mut world);
 
     loop {
-        view::print_area_view(&world, aftik, &mut messages);
+        view::print(&world, aftik, &mut messages);
 
         if item::has_item::<item::FuelCan>(&world) {
             println!("Congratulations, you won!");
