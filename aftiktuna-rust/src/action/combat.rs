@@ -1,4 +1,4 @@
-use crate::position::{try_move_aftik, Position};
+use crate::position::{try_move_aftik, Pos};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
@@ -30,8 +30,8 @@ impl Stats {
 
 pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String, String> {
     let name = world.get::<DisplayInfo>(target).unwrap().name().to_string();
-    let target_pos = world.get::<Position>(target).unwrap().0;
-    let aftik_pos = world.get::<Position>(aftik).unwrap().0;
+    let target_pos = *world.get::<Pos>(target).unwrap();
+    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
 
     try_move_aftik(world, aftik, target_pos.get_adjacent_towards(aftik_pos))?;
 

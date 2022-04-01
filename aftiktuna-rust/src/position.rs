@@ -42,19 +42,6 @@ impl Pos {
             Ordering::Equal => *self,
         }
     }
-}
-
-#[derive(Debug)]
-pub struct Position(pub(crate) Pos);
-
-impl Position {
-    pub fn get_coord(&self) -> Coord {
-        self.0.get_coord()
-    }
-
-    pub fn get_area(&self) -> Entity {
-        self.0.get_area()
-    }
 
     pub fn is_in(&self, area: Entity) -> bool {
         self.get_area().eq(&area)
@@ -86,7 +73,7 @@ fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
 pub struct MovementBlocking;
 
 pub fn try_move_aftik(world: &mut World, aftik: Entity, pos: Pos) -> Result<(), String> {
-    let aftik_pos = world.get::<Position>(aftik).unwrap().0;
+    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
     assert_eq!(
         pos.get_area(),
         aftik_pos.get_area(),
@@ -96,7 +83,7 @@ pub fn try_move_aftik(world: &mut World, aftik: Entity, pos: Pos) -> Result<(), 
     if is_blocked_for_aftik(world, aftik_pos, pos) {
         Err("Something is in the way.".to_string())
     } else {
-        world.get_mut::<Position>(aftik).unwrap().0 = pos;
+        world.insert_one(aftik, pos).unwrap();
         Ok(())
     }
 }
@@ -110,7 +97,7 @@ pub fn is_blocked_for_aftik(world: &World, aftik_pos: Pos, target_pos: Pos) -> b
     let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
     let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
     world
-        .query::<With<MovementBlocking, &Position>>()
+        .query::<With<MovementBlocking, &Pos>>()
         .iter()
         .any(|(_, pos)| {
             pos.is_in(aftik_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max

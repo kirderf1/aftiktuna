@@ -1,6 +1,6 @@
 use crate::action::item;
 use crate::position;
-use crate::position::{Pos, Position};
+use crate::position::Pos;
 use hecs::{Entity, World};
 
 #[derive(Debug)]
@@ -29,13 +29,12 @@ pub struct Blowtorch;
 pub struct Keycard;
 
 pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
-    let area = world.get::<Position>(aftik).unwrap().0.get_area();
-    let pos = world
-        .get::<Position>(door)
+    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let pos = *world
+        .get::<Pos>(door)
         .ok()
-        .filter(|pos| pos.0.get_area() == area)
-        .ok_or_else(|| "You lost track of the door.".to_string())?
-        .0;
+        .filter(|pos| pos.get_area() == area)
+        .ok_or_else(|| "You lost track of the door.".to_string())?;
 
     position::try_move_aftik(world, aftik, pos)?;
 
@@ -54,7 +53,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         false
     };
 
-    world.get_mut::<Position>(aftik).unwrap().0 = destination;
+    world.insert_one(aftik, destination).unwrap();
     if used_keycard {
         Ok("Using your keycard, you entered the door into a new area.".to_string())
     } else {
@@ -71,13 +70,12 @@ pub fn description(t: BlockType) -> &'static str {
 }
 
 pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
-    let area = world.get::<Position>(aftik).unwrap().0.get_area();
-    let pos = world
-        .get::<Position>(door)
+    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let pos = *world
+        .get::<Pos>(door)
         .ok()
-        .filter(|pos| pos.0.get_area() == area)
-        .ok_or_else(|| "You lost track of the door.".to_string())?
-        .0;
+        .filter(|pos| pos.get_area() == area)
+        .ok_or_else(|| "You lost track of the door.".to_string())?;
 
     position::try_move_aftik(world, aftik, pos)?;
 

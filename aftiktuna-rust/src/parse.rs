@@ -1,5 +1,5 @@
 use crate::action::{combat, door, item, Action};
-use crate::position::Position;
+use crate::position::Pos;
 use crate::view::DisplayInfo;
 use hecs::{Entity, With, World};
 
@@ -36,9 +36,9 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     })
     .unwrap_or_else(|| {
         parse.take_remaining(|name| {
-            let aftik_pos = world.get::<Position>(aftik).unwrap().0;
+            let aftik_pos = *world.get::<Pos>(aftik).unwrap();
             world
-                .query::<With<item::Item, (&Position, &DisplayInfo)>>()
+                .query::<With<item::Item, (&Pos, &DisplayInfo)>>()
                 .iter()
                 .filter(|(_, (pos, display_info))| {
                     pos.is_in(pos.get_area()) && display_info.matches(name)
@@ -52,9 +52,9 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
 
 fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     parse.take_remaining(|name| {
-        let area = world.get::<Position>(aftik).unwrap().get_area();
+        let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
-            .query::<With<door::Door, (&Position, &DisplayInfo)>>()
+            .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
             .map(|(door, _)| Ok(Action::EnterDoor(door)))
@@ -64,9 +64,9 @@ fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> 
 
 fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     parse.take_remaining(|name| {
-        let area = world.get::<Position>(aftik).unwrap().get_area();
+        let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
-            .query::<With<door::Door, (&Position, &DisplayInfo)>>()
+            .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
             .map(|(door, _)| Ok(Action::ForceDoor(door)))
@@ -76,9 +76,9 @@ fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> 
 
 fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
     parse.take_remaining(|name| {
-        let area = world.get::<Position>(aftik).unwrap().get_area();
+        let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
-            .query::<With<combat::IsFoe, (&Position, &DisplayInfo)>>()
+            .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
             .map(|(target, _)| Ok(Action::Attack(target)))

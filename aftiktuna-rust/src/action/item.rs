@@ -1,4 +1,4 @@
-use crate::position::Position;
+use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{position, Action};
 use hecs::{Component, Entity, With, World};
@@ -17,9 +17,9 @@ pub fn has_item<C: Component>(world: &World) -> bool {
 }
 
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
-    let aftik_pos = world.get::<Position>(aftik).unwrap().0;
+    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
     let (item, name) = world
-        .query::<With<Item, (&Position, &DisplayInfo)>>()
+        .query::<With<Item, (&Pos, &DisplayInfo)>>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
@@ -28,7 +28,7 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
 
     let result = take_item(world, aftik, item, &name)?;
     if world
-        .query::<With<Item, (&Position, &DisplayInfo)>>()
+        .query::<With<Item, (&Pos, &DisplayInfo)>>()
         .iter()
         .any(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
     {
@@ -43,14 +43,13 @@ pub fn take_item(
     item: Entity,
     item_name: &str,
 ) -> Result<String, String> {
-    let item_pos = world
-        .get::<Position>(item)
-        .map_err(|_| format!("You lost track of the {}.", item_name))?
-        .0;
+    let item_pos = *world
+        .get::<Pos>(item)
+        .map_err(|_| format!("You lost track of the {}.", item_name))?;
 
     position::try_move_aftik(world, aftik, item_pos)?;
     world
-        .remove_one::<Position>(item)
+        .remove_one::<Pos>(item)
         .expect("Tried removing position from item");
     world
         .insert_one(item, InInventory)

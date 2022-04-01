@@ -1,7 +1,7 @@
 use crate::action::door::{description, Door, DoorBlocking};
 use crate::action::item::InInventory;
 use crate::area::Area;
-use crate::position::Position;
+use crate::position::Pos;
 use hecs::{Entity, With, World};
 use std::cmp::max;
 
@@ -41,7 +41,7 @@ pub fn print_area_view(world: &World, aftik: Entity, messages: &mut Messages) {
     let mut symbols_by_pos = init_symbol_vectors(area_size);
     let mut labels = Vec::new();
 
-    for (entity, (pos, obj_type)) in world.query::<(&Position, &DisplayInfo)>().iter() {
+    for (entity, (pos, obj_type)) in world.query::<(&Pos, &DisplayInfo)>().iter() {
         if pos.get_area() == area {
             symbols_by_pos[pos.get_coord()].push((obj_type.symbol, obj_type.weight));
 
@@ -102,7 +102,7 @@ fn get_name(world: &World, entity: Entity, name: &str) -> String {
 }
 
 fn get_viewed_area(aftik: Entity, world: &World) -> Entity {
-    world.get::<Position>(aftik).unwrap().get_area()
+    world.get::<Pos>(aftik).unwrap().get_area()
 }
 
 fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
