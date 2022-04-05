@@ -6,11 +6,19 @@ use hecs::{Entity, World};
 pub struct IsFoe;
 
 #[derive(Debug)]
-pub struct Health(f32);
+pub struct Health {
+    value: f32,
+    max: f32,
+}
 
 impl Health {
     pub fn with_max(stats: &Stats) -> Health {
-        Health((4 + stats.endurance * 2) as f32)
+        let max = (4 + stats.endurance * 2) as f32;
+        Health { max, value: max }
+    }
+
+    pub fn as_fraction(&self) -> f32 {
+        self.value / self.max
     }
 }
 
@@ -47,8 +55,8 @@ pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String
 
 pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
     if let Ok(mut health) = world.get_mut::<Health>(target) {
-        health.0 -= damage;
-        health.0 <= 0.0
+        health.value -= damage;
+        health.value <= 0.0
     } else {
         false
     }

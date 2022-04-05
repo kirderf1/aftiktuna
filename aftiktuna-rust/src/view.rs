@@ -1,3 +1,4 @@
+use crate::action::combat::Health;
 use crate::action::door::{description, Door, DoorBlocking};
 use crate::action::item::InInventory;
 use crate::area::Area;
@@ -47,7 +48,8 @@ pub fn print(world: &World, aftik: Entity, messages: &mut Messages) {
         println!("{}", messages.0.join(" "));
         messages.0.clear();
     }
-    print_inventory(world);
+    print_health(world, aftik);
+    print_inventory(world, aftik);
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {
@@ -89,7 +91,23 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
     }
 }
 
-fn print_inventory(world: &World) {
+const BAR_LENGTH: i32 = 10;
+
+fn print_health(world: &World, aftik: Entity) {
+    let health = world.get::<Health>(aftik).unwrap().as_fraction();
+    let bar = (0..BAR_LENGTH)
+        .map(|i| {
+            if (i as f32) < (BAR_LENGTH as f32) * health {
+                '#'
+            } else {
+                '.'
+            }
+        })
+        .collect::<String>();
+    println!("Health: {}", bar)
+}
+
+fn print_inventory(world: &World, _aftik: Entity) {
     let inventory = world
         .query::<With<InInventory, &DisplayInfo>>()
         .iter()
