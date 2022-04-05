@@ -16,11 +16,12 @@ fn main() {
 
     let mut world = World::new();
     let mut messages = Messages::default();
+    let mut cache = view::StatusCache::new();
 
     let aftik = area::init_area(&mut world);
 
     loop {
-        view::print(&world, aftik, &mut messages);
+        view::print(&world, aftik, &mut messages, &mut cache);
 
         if item::has_item::<item::FuelCan>(&world) {
             println!("Congratulations, you won!");
