@@ -16,7 +16,7 @@ fn main() {
 
     let mut world = World::new();
     let mut messages = Messages::default();
-    let mut cache = view::StatusCache::new();
+    let mut cache = None;
 
     let aftik = area::init_area(&mut world);
 

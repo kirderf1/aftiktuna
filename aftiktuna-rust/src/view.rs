@@ -21,15 +21,6 @@ pub struct StatusCache {
     inventory: Vec<Entity>,
 }
 
-impl StatusCache {
-    pub fn new() -> StatusCache {
-        StatusCache {
-            health: 1.0,
-            inventory: Vec::new(),
-        }
-    }
-}
-
 impl DisplayInfo {
     pub fn new(symbol: char, name: &str, weight: u32) -> DisplayInfo {
         DisplayInfo {
@@ -48,7 +39,7 @@ impl DisplayInfo {
     }
 }
 
-pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut StatusCache) {
+pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut Option<StatusCache>) {
     let area = get_viewed_area(aftik, world);
     let area_info = world.get::<Area>(area).unwrap();
     let area_size = area_info.size;
@@ -62,8 +53,17 @@ pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut 
         println!("{}", messages.0.join(" "));
         messages.0.clear();
     }
-    print_health(world, aftik, &mut cache.health);
-    print_inventory(world, aftik, &mut cache.inventory);
+    if let Some(cache) = cache {
+        cache.health = print_health(world, aftik, Some(cache.health));
+        cache.inventory = print_inventory(world, aftik, Some(&cache.inventory));
+    } else {
+        let health = print_health(world, aftik, None);
+        let inventory = print_inventory(world, aftik, None);
+        *cache = Some(StatusCache {
+            health,
+            inventory,
+        });
+    }
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {
@@ -107,11 +107,11 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
 
 const BAR_LENGTH: i32 = 10;
 
-fn print_health(world: &World, aftik: Entity, prev_health: &mut f32) {
+fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
     let health = world.get::<Health>(aftik).unwrap().as_fraction();
 
-    if health == *prev_health {
-        return;
+    if Some(health) == prev_health {
+        return health;
     }
 
     let bar = (0..BAR_LENGTH)
@@ -124,17 +124,17 @@ fn print_health(world: &World, aftik: Entity, prev_health: &mut f32) {
         })
         .collect::<String>();
     println!("Health: {}", bar);
-    *prev_health = health;
+    health
 }
 
-fn print_inventory(world: &World, _aftik: Entity, prev_inv: &mut Vec<Entity>) {
+fn print_inventory(world: &World, _aftik: Entity, prev_inv: Option<&Vec<Entity>>) -> Vec<Entity> {
     let mut query = world.query::<With<InInventory, &DisplayInfo>>();
 
     let mut inventory = query.iter().map(|(entity, _)| entity).collect::<Vec<_>>();
     inventory.sort();
 
-    if inventory == *prev_inv {
-        return;
+    if Some(&inventory) == prev_inv {
+        return inventory;
     }
 
     if inventory.is_empty() {
@@ -149,7 +149,7 @@ fn print_inventory(world: &World, _aftik: Entity, prev_inv: &mut Vec<Entity>) {
                 .join(", ")
         );
     }
-    *prev_inv = inventory;
+    inventory
 }
 
 fn get_name(world: &World, entity: Entity, name: &str) -> String {
