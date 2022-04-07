@@ -1,9 +1,14 @@
 use crate::action::{combat, door, item, Action};
 use crate::position::Pos;
+use crate::view;
 use crate::view::DisplayInfo;
 use hecs::{Entity, With, World};
 
-pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Action, String> {
+pub fn try_parse_input(
+    input: &str,
+    world: &World,
+    aftik: Entity,
+) -> Result<Option<Action>, String> {
     let parse = Parse::new(input);
     None.or_else(|| {
         parse
@@ -25,14 +30,19 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Acti
             .literal("attack")
             .map(|parse| attack(&parse, world, aftik))
     })
+    .or_else(|| {
+        parse
+            .literal("status")
+            .map(|parse| status(&parse, world, aftik))
+    })
     .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
 }
 
-fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
     None.or_else(|| {
         parse
             .literal("all")
-            .and_then(|parse| parse.done(|| Ok(Action::TakeAll)))
+            .and_then(|parse| parse.done(|| Ok(Some(Action::TakeAll))))
     })
     .unwrap_or_else(|| {
         parse.take_remaining(|name| {
@@ -44,46 +54,55 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
                     pos.is_in(pos.get_area()) && display_info.matches(name)
                 })
                 .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-                .map(|(item, _)| Ok(Action::TakeItem(item, name.to_string())))
+                .map(|(item, _)| Ok(Some(Action::TakeItem(item, name.to_string()))))
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
         })
     })
 }
 
-fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
             .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(door, _)| Ok(Action::EnterDoor(door)))
+            .map(|(door, _)| Ok(Some(Action::EnterDoor(door))))
             .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
     })
 }
 
-fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
             .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(door, _)| Ok(Action::ForceDoor(door)))
+            .map(|(door, _)| Ok(Some(Action::ForceDoor(door))))
             .unwrap_or_else(|| Err("There is no such door here.".to_string()))
     })
 }
 
-fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Action, String> {
+fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
             .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(target, _)| Ok(Action::Attack(target)))
+            .map(|(target, _)| Ok(Some(Action::Attack(target))))
             .unwrap_or_else(|| Err("There is no such target here.".to_string()))
     })
+}
+
+fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+    parse
+        .done(|| {
+            view::print_status(world, aftik, &mut None);
+            Ok(None)
+        })
+        .unwrap_or_else(|| Err("Unexpected argument after \"status\"".to_string()))
 }
 
 struct Parse<'a> {

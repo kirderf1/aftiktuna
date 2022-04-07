@@ -44,7 +44,8 @@ fn parse_user_action(world: &World, aftik: Entity) -> Action {
         let input = read_input().to_lowercase();
 
         match parse::try_parse_input(&input, world, aftik) {
-            Ok(action) => return action,
+            Ok(Some(action)) => return action,
+            Ok(None) => {},
             Err(message) => println!("{}", message),
         }
     }

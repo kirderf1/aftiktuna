@@ -53,17 +53,7 @@ pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut 
         println!("{}", messages.0.join(" "));
         messages.0.clear();
     }
-    if let Some(cache) = cache {
-        cache.health = print_health(world, aftik, Some(cache.health));
-        cache.inventory = print_inventory(world, aftik, Some(&cache.inventory));
-    } else {
-        let health = print_health(world, aftik, None);
-        let inventory = print_inventory(world, aftik, None);
-        *cache = Some(StatusCache {
-            health,
-            inventory,
-        });
-    }
+    print_status(world, aftik, cache);
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {
@@ -102,6 +92,17 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
     }
     for label in labels {
         println!("{}", label);
+    }
+}
+
+pub fn print_status(world: &World, aftik: Entity, cache: &mut Option<StatusCache>) {
+    if let Some(cache) = cache {
+        cache.health = print_health(world, aftik, Some(cache.health));
+        cache.inventory = print_inventory(world, aftik, Some(&cache.inventory));
+    } else {
+        let health = print_health(world, aftik, None);
+        let inventory = print_inventory(world, aftik, None);
+        *cache = Some(StatusCache { health, inventory });
     }
 }
 
