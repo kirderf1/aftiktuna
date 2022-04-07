@@ -1,4 +1,4 @@
-use crate::action::combat::Health;
+use crate::action::combat::{Health, Stats};
 use crate::action::door::{description, Door, DoorBlocking};
 use crate::action::item::InInventory;
 use crate::area::Area;
@@ -95,7 +95,12 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
     }
 }
 
-pub fn print_status(world: &World, aftik: Entity, cache: &mut Option<StatusCache>) {
+pub fn print_full_status(world: &World, aftik: Entity) {
+    print_stats(world, aftik);
+    print_status(world, aftik, &mut None);
+}
+
+fn print_status(world: &World, aftik: Entity, cache: &mut Option<StatusCache>) {
     if let Some(cache) = cache {
         cache.health = print_health(world, aftik, Some(cache.health));
         cache.inventory = print_inventory(world, aftik, Some(&cache.inventory));
@@ -106,6 +111,13 @@ pub fn print_status(world: &World, aftik: Entity, cache: &mut Option<StatusCache
     }
 }
 
+fn print_stats(world: &World, aftik: Entity) {
+    let stats = world.get::<Stats>(aftik).unwrap();
+    println!(
+        "Strength: {}   Endurance: {}",
+        stats.strength, stats.endurance
+    );
+}
 const BAR_LENGTH: i32 = 10;
 
 fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {

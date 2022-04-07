@@ -99,7 +99,7 @@ fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
 fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
     parse
         .done(|| {
-            view::print_status(world, aftik, &mut None);
+            view::print_full_status(world, aftik);
             Ok(None)
         })
         .unwrap_or_else(|| Err("Unexpected argument after \"status\"".to_string()))
