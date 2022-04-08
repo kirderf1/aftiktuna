@@ -50,7 +50,15 @@ pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut 
 
     println!();
     if !messages.0.is_empty() {
-        println!("{}", messages.0.join(" "));
+        println!(
+            "{}",
+            messages
+                .0
+                .iter()
+                .map(|line| capitalize(line))
+                .collect::<Vec<_>>()
+                .join(" ")
+        );
         messages.0.clear();
     }
     print_status(world, aftik, cache);
@@ -67,7 +75,7 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
             let label = format!(
                 "{}: {}",
                 obj_type.symbol,
-                get_name(world, entity, &obj_type.name)
+                get_name(world, entity, &capitalize(&obj_type.name))
             );
             if !labels.contains(&label) {
                 labels.push(label);
@@ -157,7 +165,7 @@ fn print_inventory(world: &World, _aftik: Entity, prev_inv: Option<&Vec<Entity>>
             "Inventory: {}",
             query
                 .iter()
-                .map(|(_, info)| info.name.clone())
+                .map(|(_, info)| capitalize(&info.name))
                 .collect::<Vec<String>>()
                 .join(", ")
         );
@@ -184,4 +192,12 @@ fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
         symbols.push(Vec::new());
     }
     symbols
+}
+
+fn capitalize(text: &str) -> String {
+    let mut chars = text.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),
+    }
 }

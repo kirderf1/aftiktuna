@@ -94,7 +94,7 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
     let stats = Stats::new(2, 4);
     let pos = Pos::new(area, coord, world);
     world.spawn((
-        DisplayInfo::new('G', "Goblin", 10),
+        DisplayInfo::new('G', "goblin", 10),
         pos,
         MovementBlocking,
         IsFoe,
@@ -138,33 +138,33 @@ fn place_door(
 }
 
 fn door() -> DisplayInfo {
-    DisplayInfo::new('^', "Door", 20)
+    DisplayInfo::new('^', "door", 20)
 }
 
 fn left_door() -> DisplayInfo {
-    DisplayInfo::new('<', "Left door", 20)
+    DisplayInfo::new('<', "left door", 20)
 }
 
 fn right_door() -> DisplayInfo {
-    DisplayInfo::new('>', "Right door", 20)
+    DisplayInfo::new('>', "right door", 20)
 }
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('f', "Fuel can", 1), pos, Item, FuelCan));
+    world.spawn((DisplayInfo::new('f', "fuel can", 1), pos, Item, FuelCan));
 }
 
 fn place_crowbar(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('c', "Crowbar", 1), pos, Item, Crowbar));
+    world.spawn((DisplayInfo::new('c', "crowbar", 1), pos, Item, Crowbar));
 }
 
 fn place_blowtorch(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('b', "Blowtorch", 1), pos, Item, Blowtorch));
+    world.spawn((DisplayInfo::new('b', "blowtorch", 1), pos, Item, Blowtorch));
 }
 
 fn place_keycard(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('k', "Keycard", 1), pos, Item, Keycard));
+    world.spawn((DisplayInfo::new('k', "keycard", 1), pos, Item, Keycard));
 }
