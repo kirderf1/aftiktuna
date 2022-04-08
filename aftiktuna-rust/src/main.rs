@@ -2,6 +2,7 @@ use hecs::{Entity, World};
 use std::io::Write;
 use std::{io, thread, time};
 
+use crate::view::DisplayInfo;
 use action::{item, Action};
 use view::Messages;
 
@@ -12,13 +13,18 @@ mod position;
 mod view;
 
 fn main() {
-    println!("Hello universe!");
+    println!("Welcome to aftiktuna!");
 
     let mut world = World::new();
     let mut messages = Messages::default();
     let mut cache = None;
 
     let aftik = area::init_area(&mut world);
+
+    println!(
+        "You're playing as the aftik {}.",
+        world.get::<DisplayInfo>(aftik).unwrap().name()
+    );
 
     loop {
         view::print(&world, aftik, &mut messages, &mut cache);

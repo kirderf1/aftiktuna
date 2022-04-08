@@ -76,13 +76,13 @@ pub fn init_area(world: &mut World) -> Entity {
     place_blowtorch(world, side_room_2, 0);
     place_keycard(world, room, 0);
     place_goblin(world, side_room_2, 4);
-    place_aftik(world, room, 1, Stats::new(10, 3))
+    place_aftik(world, room, 1, "Mint", Stats::new(10, 3))
 }
 
-fn place_aftik(world: &mut World, area: Entity, coord: Coord, stats: Stats) -> Entity {
+fn place_aftik(world: &mut World, area: Entity, coord: Coord, name: &str, stats: Stats) -> Entity {
     let pos = Pos::new(area, coord, world);
     world.spawn((
-        DisplayInfo::new('A', "Aftik", 10),
+        DisplayInfo::new(name.chars().next().unwrap(), name, 10),
         pos,
         Aftik,
         Health::with_max(&stats),
