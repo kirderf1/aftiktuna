@@ -43,9 +43,10 @@ pub fn take_item(
     item: Entity,
     item_name: &str,
 ) -> Result<String, String> {
+    let aftik_name = world.get::<DisplayInfo>(aftik).unwrap().name().to_string();
     let item_pos = *world
         .get::<Pos>(item)
-        .map_err(|_| format!("You lost track of the {}.", item_name))?;
+        .map_err(|_| format!("{} lost track of the {}.", aftik_name, item_name))?;
 
     position::try_move(world, aftik, item_pos)?;
     world
@@ -55,5 +56,5 @@ pub fn take_item(
         .insert_one(item, InInventory)
         .expect("Tried adding inventory data to item");
 
-    Ok(format!("You picked up the {}.", item_name))
+    Ok(format!("{} picked up the {}.", aftik_name, item_name))
 }

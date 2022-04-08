@@ -37,6 +37,7 @@ impl Stats {
 }
 
 pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String, String> {
+    let aftik_name = world.get::<DisplayInfo>(aftik).unwrap().name().to_string();
     let name = world.get::<DisplayInfo>(target).unwrap().name().to_string();
     let target_pos = *world.get::<Pos>(target).unwrap();
     let aftik_pos = *world.get::<Pos>(aftik).unwrap();
@@ -47,9 +48,9 @@ pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String
 
     if killed {
         world.despawn(target).unwrap();
-        Ok(format!("You attacked and killed the {}.", name))
+        Ok(format!("{} attacked and killed the {}.", aftik_name, name))
     } else {
-        Ok(format!("You attacked the {}.", name))
+        Ok(format!("{} attacked the {}.", aftik_name, name))
     }
 }
 

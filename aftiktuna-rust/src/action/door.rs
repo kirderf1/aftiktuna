@@ -1,6 +1,7 @@
 use crate::action::item;
 use crate::position;
 use crate::position::Pos;
+use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
 #[derive(Debug)]
@@ -29,12 +30,13 @@ pub struct Blowtorch;
 pub struct Keycard;
 
 pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
+    let aftik_name = world.get::<DisplayInfo>(aftik).unwrap().name().to_string();
     let area = world.get::<Pos>(aftik).unwrap().get_area();
     let pos = *world
         .get::<Pos>(door)
         .ok()
         .filter(|pos| pos.get_area() == area)
-        .ok_or_else(|| "You lost track of the door.".to_string())?;
+        .ok_or_else(|| format!("{} lost track of the door.", aftik_name))?;
 
     position::try_move(world, aftik, pos)?;
 
@@ -55,9 +57,12 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
 
     world.insert_one(aftik, destination).unwrap();
     if used_keycard {
-        Ok("Using your keycard, you entered the door into a new area.".to_string())
+        Ok(format!(
+            "Using their keycard, {} entered the door into a new area.",
+            aftik_name
+        ))
     } else {
-        Ok("You entered the door into a new area.".to_string())
+        Ok(format!("{} entered the door into a new area.", aftik_name))
     }
 }
 
@@ -70,12 +75,13 @@ pub fn description(t: BlockType) -> &'static str {
 }
 
 pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
+    let aftik_name = world.get::<DisplayInfo>(aftik).unwrap().name().to_string();
     let area = world.get::<Pos>(aftik).unwrap().get_area();
     let pos = *world
         .get::<Pos>(door)
         .ok()
         .filter(|pos| pos.get_area() == area)
-        .ok_or_else(|| "You lost track of the door.".to_string())?;
+        .ok_or_else(|| format!("{} lost track of the door.", aftik_name))?;
 
     position::try_move(world, aftik, pos)?;
 
@@ -92,20 +98,35 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
             BlockType::Stuck => {
                 if item::has_item::<Crowbar>(world) {
                     world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok("You used your crowbar and forced open the door.".to_string())
+                    Ok(format!(
+                        "{} used their crowbar and forced open the door.",
+                        aftik_name
+                    ))
                 } else if item::has_item::<Blowtorch>(world) {
                     world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok("You used your blowtorch and cut open the door.".to_string())
+                    Ok(format!(
+                        "{} used their blowtorch and cut open the door.",
+                        aftik_name
+                    ))
                 } else {
-                    Err("You need some sort of tool to force the door open.".to_string())
+                    Err(format!(
+                        "{} needs some sort of tool to force the door open.",
+                        aftik_name
+                    ))
                 }
             }
             BlockType::Sealed | BlockType::Locked => {
                 if item::has_item::<Blowtorch>(world) {
                     world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok("You used your blowtorch and cut open the door.".to_string())
+                    Ok(format!(
+                        "{} used their blowtorch and cut open the door.",
+                        aftik_name
+                    ))
                 } else {
-                    Err("You need some sort of tool to break the door open.".to_string())
+                    Err(format!(
+                        "{} needs some sort of tool to break the door open.",
+                        aftik_name
+                    ))
                 }
             }
         }
