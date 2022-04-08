@@ -1,4 +1,4 @@
-use crate::position::{try_move_aftik, Pos};
+use crate::position::{try_move, Pos};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
@@ -41,7 +41,7 @@ pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String
     let target_pos = *world.get::<Pos>(target).unwrap();
     let aftik_pos = *world.get::<Pos>(aftik).unwrap();
 
-    try_move_aftik(world, aftik, target_pos.get_adjacent_towards(aftik_pos))?;
+    try_move(world, aftik, target_pos.get_adjacent_towards(aftik_pos))?;
 
     let killed = hit(world, target, get_attack_damage(world, aftik));
 

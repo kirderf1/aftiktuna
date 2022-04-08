@@ -6,6 +6,9 @@ pub mod combat;
 pub mod door;
 pub mod item;
 
+#[derive(Debug, Default)]
+pub struct Aftik;
+
 pub enum Action {
     TakeItem(Entity, String),
     TakeAll,

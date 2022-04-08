@@ -36,7 +36,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .filter(|pos| pos.get_area() == area)
         .ok_or_else(|| "You lost track of the door.".to_string())?;
 
-    position::try_move_aftik(world, aftik, pos)?;
+    position::try_move(world, aftik, pos)?;
 
     let (destination, door_pair) = world
         .get::<Door>(door)
@@ -77,7 +77,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .filter(|pos| pos.get_area() == area)
         .ok_or_else(|| "You lost track of the door.".to_string())?;
 
-    position::try_move_aftik(world, aftik, pos)?;
+    position::try_move(world, aftik, pos)?;
 
     let door_pair = world
         .get::<Door>(door)

@@ -1,8 +1,8 @@
 use crate::action::combat::{Health, IsFoe, Stats};
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
-use crate::position::MovementBlocking;
-use crate::position::{Coord, Pos};
+use crate::action::Aftik;
+use crate::position::{Coord, MovementBlocking, Pos};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -84,6 +84,7 @@ fn place_aftik(world: &mut World, area: Entity, coord: Coord, stats: Stats) -> E
     world.spawn((
         DisplayInfo::new('A', "Aftik", 10),
         pos,
+        Aftik,
         Health::with_max(&stats),
         stats,
     ))

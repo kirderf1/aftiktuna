@@ -1,3 +1,4 @@
+use crate::action::Aftik;
 use crate::area::Area;
 use hecs::{Entity, With, World};
 use std::cmp::{max, min, Ordering};
@@ -72,34 +73,38 @@ fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
 #[derive(Debug, Default)]
 pub struct MovementBlocking;
 
-pub fn try_move_aftik(world: &mut World, aftik: Entity, pos: Pos) -> Result<(), String> {
-    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
+pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
+    let position = *world.get::<Pos>(entity).unwrap();
     assert_eq!(
-        pos.get_area(),
-        aftik_pos.get_area(),
+        destination.get_area(),
+        position.get_area(),
         "Areas should be equal when called."
     );
 
-    if is_blocked_for_aftik(world, aftik_pos, pos) {
+    if is_blocked(world, entity, position, destination) {
         Err("Something is in the way.".to_string())
     } else {
-        world.insert_one(aftik, pos).unwrap();
+        world.insert_one(entity, destination).unwrap();
         Ok(())
     }
 }
 
-pub fn is_blocked_for_aftik(world: &World, aftik_pos: Pos, target_pos: Pos) -> bool {
-    if aftik_pos.get_coord() == target_pos.get_coord() {
+pub fn is_blocked(world: &World, entity: Entity, entity_pos: Pos, target_pos: Pos) -> bool {
+    if world.get::<Aftik>(entity).is_err() {
+        return false; //Only aftiks are blocked.
+    }
+
+    if entity_pos.get_coord() == target_pos.get_coord() {
         return false;
     }
 
-    let adjacent_pos = aftik_pos.get_adjacent_towards(target_pos);
+    let adjacent_pos = entity_pos.get_adjacent_towards(target_pos);
     let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
     let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
     world
         .query::<With<MovementBlocking, &Pos>>()
         .iter()
         .any(|(_, pos)| {
-            pos.is_in(aftik_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
+            pos.is_in(entity_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
         })
 }

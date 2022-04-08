@@ -47,7 +47,7 @@ pub fn take_item(
         .get::<Pos>(item)
         .map_err(|_| format!("You lost track of the {}.", item_name))?;
 
-    position::try_move_aftik(world, aftik, item_pos)?;
+    position::try_move(world, aftik, item_pos)?;
     world
         .remove_one::<Pos>(item)
         .expect("Tried removing position from item");
