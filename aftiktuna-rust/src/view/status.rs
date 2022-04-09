@@ -1,10 +1,14 @@
 use crate::action::combat::Stats;
 use crate::item::InInventory;
-use crate::view::StatusCache;
+use crate::view::{capitalize, StatusCache};
 use crate::{view, DisplayInfo, Health};
 use hecs::{Entity, With, World};
 
 pub fn print_full_status(world: &World, aftik: Entity) {
+    println!(
+        "{} (Aftik):",
+        capitalize(DisplayInfo::find_definite_name(world, aftik).as_str())
+    );
     print_stats(world, aftik);
     print_status(world, aftik, &mut None);
 }
@@ -28,7 +32,7 @@ fn print_stats(world: &World, aftik: Entity) {
     );
 }
 
-const BAR_LENGTH: i32 = 10;
+const BAR_LENGTH: u16 = 10;
 
 fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
     let health = world.get::<Health>(aftik).unwrap().as_fraction();
@@ -39,7 +43,7 @@ fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
 
     let bar = (0..BAR_LENGTH)
         .map(|i| {
-            if (i as f32) < (BAR_LENGTH as f32) * health {
+            if f32::from(i) < f32::from(BAR_LENGTH) * health {
                 '#'
             } else {
                 '.'
