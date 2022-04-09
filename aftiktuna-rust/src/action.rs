@@ -17,17 +17,26 @@ pub enum Action {
     Attack(Entity),
 }
 
-pub fn run_action(world: &mut World, aftik: Entity, messages: &mut Messages) {
-    if let Ok(action) = world.remove_one::<Action>(aftik) {
-        let result = match action {
-            TakeItem(item, name) => item::take_item(world, aftik, item, &name),
-            TakeAll => item::take_all(world, aftik),
-            EnterDoor(door) => door::enter_door(world, aftik, door),
-            ForceDoor(door) => door::force_door(world, aftik, door),
-            Attack(target) => combat::attack(world, aftik, target),
-        };
-        match result {
-            Ok(message) | Err(message) => messages.0.push(message),
+pub fn run_action(
+    world: &mut World,
+    performer: Entity,
+    action: Action,
+    controlled: Entity,
+    messages: &mut Messages,
+) {
+    let result = match action {
+        TakeItem(item, name) => item::take_item(world, performer, item, &name),
+        TakeAll => item::take_all(world, performer),
+        EnterDoor(door) => door::enter_door(world, performer, door),
+        ForceDoor(door) => door::force_door(world, performer, door),
+        Attack(target) => combat::attack(world, performer, target),
+    };
+    match result {
+        Ok(message) => messages.0.push(message),
+        Err(message) => {
+            if performer == controlled {
+                messages.0.push(message)
+            }
         }
     }
 }

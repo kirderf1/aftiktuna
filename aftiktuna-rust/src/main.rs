@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::{Entity, With, World};
 use std::io::Write;
 use std::{io, thread, time};
 
@@ -41,7 +41,16 @@ fn main() {
             thread::sleep(time::Duration::from_secs(2));
         }
 
-        action::run_action(&mut world, aftik, &mut messages);
+        let entities = world
+            .query::<With<Action, ()>>()
+            .iter()
+            .map(|(entity, ())| entity)
+            .collect::<Vec<_>>();
+        for entity in entities {
+            if let Ok(action) = world.remove_one::<Action>(entity) {
+                action::run_action(&mut world, entity, action, aftik, &mut messages);
+            }
+        }
     }
 }
 
