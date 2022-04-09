@@ -30,7 +30,11 @@ pub struct Blowtorch;
 pub struct Keycard;
 
 pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
-    let aftik_name = world.get::<DisplayInfo>(aftik).unwrap().name().to_string();
+    let aftik_name = world
+        .get::<DisplayInfo>(aftik)
+        .unwrap()
+        .definite_name()
+        .to_string();
     let area = world.get::<Pos>(aftik).unwrap().get_area();
     let pos = *world
         .get::<Pos>(door)
@@ -75,7 +79,11 @@ pub fn description(t: BlockType) -> &'static str {
 }
 
 pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
-    let aftik_name = world.get::<DisplayInfo>(aftik).unwrap().name().to_string();
+    let aftik_name = world
+        .get::<DisplayInfo>(aftik)
+        .unwrap()
+        .definite_name()
+        .to_string();
     let area = world.get::<Pos>(aftik).unwrap().get_area();
     let pos = *world
         .get::<Pos>(door)

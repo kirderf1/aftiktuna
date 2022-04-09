@@ -13,6 +13,7 @@ pub struct Messages(pub Vec<String>);
 pub struct DisplayInfo {
     symbol: char,
     name: String,
+    definite_name: String,
     weight: u32,
 }
 
@@ -22,16 +23,30 @@ pub struct StatusCache {
 }
 
 impl DisplayInfo {
-    pub fn new(symbol: char, name: &str, weight: u32) -> DisplayInfo {
+    pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
         DisplayInfo {
             symbol,
             name: String::from(name),
+            definite_name: String::from(name),
+            weight,
+        }
+    }
+
+    pub fn from_noun(symbol: char, noun: &str, weight: u32) -> DisplayInfo {
+        DisplayInfo {
+            symbol,
+            name: String::from(noun),
+            definite_name: "the ".to_owned() + noun,
             weight,
         }
     }
 
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    pub fn definite_name(&self) -> &str {
+        &self.definite_name
     }
 
     pub fn matches(&self, string: &str) -> bool {
@@ -75,7 +90,7 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
             let label = format!(
                 "{}: {}",
                 obj_type.symbol,
-                get_name(world, entity, &capitalize(&obj_type.name))
+                get_name(world, entity, &capitalize(obj_type.name()))
             );
             if !labels.contains(&label) {
                 labels.push(label);
@@ -165,7 +180,7 @@ fn print_inventory(world: &World, _aftik: Entity, prev_inv: Option<&Vec<Entity>>
             "Inventory: {}",
             query
                 .iter()
-                .map(|(_, info)| capitalize(&info.name))
+                .map(|(_, info)| capitalize(info.name()))
                 .collect::<Vec<String>>()
                 .join(", ")
         );

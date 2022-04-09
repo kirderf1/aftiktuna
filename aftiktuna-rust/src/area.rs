@@ -82,7 +82,7 @@ pub fn init_area(world: &mut World) -> Entity {
 fn place_aftik(world: &mut World, area: Entity, coord: Coord, name: &str, stats: Stats) -> Entity {
     let pos = Pos::new(area, coord, world);
     world.spawn((
-        DisplayInfo::new(name.chars().next().unwrap(), name, 10),
+        DisplayInfo::from_name(name.chars().next().unwrap(), name, 10),
         pos,
         Aftik,
         Health::with_max(&stats),
@@ -94,7 +94,7 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
     let stats = Stats::new(2, 4);
     let pos = Pos::new(area, coord, world);
     world.spawn((
-        DisplayInfo::new('G', "goblin", 10),
+        DisplayInfo::from_noun('G', "goblin", 10),
         pos,
         MovementBlocking,
         IsFoe,
@@ -138,33 +138,33 @@ fn place_door(
 }
 
 fn door() -> DisplayInfo {
-    DisplayInfo::new('^', "door", 20)
+    DisplayInfo::from_noun('^', "door", 20)
 }
 
 fn left_door() -> DisplayInfo {
-    DisplayInfo::new('<', "left door", 20)
+    DisplayInfo::from_noun('<', "left door", 20)
 }
 
 fn right_door() -> DisplayInfo {
-    DisplayInfo::new('>', "right door", 20)
+    DisplayInfo::from_noun('>', "right door", 20)
 }
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('f', "fuel can", 1), pos, Item, FuelCan));
+    world.spawn((DisplayInfo::from_noun('f', "fuel can", 1), pos, Item, FuelCan));
 }
 
 fn place_crowbar(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('c', "crowbar", 1), pos, Item, Crowbar));
+    world.spawn((DisplayInfo::from_noun('c', "crowbar", 1), pos, Item, Crowbar));
 }
 
 fn place_blowtorch(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('b', "blowtorch", 1), pos, Item, Blowtorch));
+    world.spawn((DisplayInfo::from_noun('b', "blowtorch", 1), pos, Item, Blowtorch));
 }
 
 fn place_keycard(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::new('k', "keycard", 1), pos, Item, Keycard));
+    world.spawn((DisplayInfo::from_noun('k', "keycard", 1), pos, Item, Keycard));
 }

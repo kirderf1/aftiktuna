@@ -54,7 +54,12 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
                     pos.is_in(pos.get_area()) && display_info.matches(name)
                 })
                 .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-                .map(|(item, _)| Ok(Some(Action::TakeItem(item, name.to_string()))))
+                .map(|(item, (_, display_info))| {
+                    Ok(Some(Action::TakeItem(
+                        item,
+                        display_info.definite_name().to_string(),
+                    )))
+                })
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
         })
     })
