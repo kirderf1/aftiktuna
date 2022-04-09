@@ -27,8 +27,8 @@ pub fn print_status(world: &World, aftik: Entity, cache: &mut Option<StatusCache
 fn print_stats(world: &World, aftik: Entity) {
     let stats = world.get::<Stats>(aftik).unwrap();
     println!(
-        "Strength: {}   Endurance: {}",
-        stats.strength, stats.endurance
+        "Strength: {}   Endurance: {}   Agility: {}",
+        stats.strength, stats.endurance, stats.agility
     );
 }
 

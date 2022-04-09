@@ -14,7 +14,7 @@ pub struct Health {
 
 impl Health {
     pub fn with_max(stats: &Stats) -> Health {
-        let max = (4 + stats.endurance * 2) as f32;
+        let max = f32::from(4 + stats.endurance * 2);
         Health { max, value: max }
     }
 
@@ -24,15 +24,17 @@ impl Health {
 }
 
 pub struct Stats {
-    pub strength: i32,
-    pub endurance: i32,
+    pub strength: i16,
+    pub endurance: i16,
+    pub agility: i16,
 }
 
 impl Stats {
-    pub fn new(strength: i32, endurance: i32) -> Stats {
+    pub fn new(strength: i16, endurance: i16, agility: i16) -> Stats {
         Stats {
             strength,
             endurance,
+            agility,
         }
     }
 }
@@ -75,6 +77,6 @@ pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
 
 fn get_attack_damage(world: &World, aftik: Entity) -> f32 {
     let strength = world.get::<Stats>(aftik).unwrap().strength;
-    let strength_mod = (strength + 2) as f32 / 6.0;
+    let strength_mod = f32::from(strength + 2) / 6.0;
     2.0 * strength_mod
 }
