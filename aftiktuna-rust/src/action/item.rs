@@ -43,11 +43,7 @@ pub fn take_item(
     item: Entity,
     item_name: &str,
 ) -> Result<String, String> {
-    let aftik_name = world
-        .get::<DisplayInfo>(aftik)
-        .unwrap()
-        .definite_name()
-        .to_string();
+    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
     let item_pos = *world
         .get::<Pos>(item)
         .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;

@@ -151,20 +151,40 @@ fn right_door() -> DisplayInfo {
 
 fn place_fuel(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::from_noun('f', "fuel can", 1), pos, Item, FuelCan));
+    world.spawn((
+        DisplayInfo::from_noun('f', "fuel can", 1),
+        pos,
+        Item,
+        FuelCan,
+    ));
 }
 
 fn place_crowbar(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::from_noun('c', "crowbar", 1), pos, Item, Crowbar));
+    world.spawn((
+        DisplayInfo::from_noun('c', "crowbar", 1),
+        pos,
+        Item,
+        Crowbar,
+    ));
 }
 
 fn place_blowtorch(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::from_noun('b', "blowtorch", 1), pos, Item, Blowtorch));
+    world.spawn((
+        DisplayInfo::from_noun('b', "blowtorch", 1),
+        pos,
+        Item,
+        Blowtorch,
+    ));
 }
 
 fn place_keycard(world: &mut World, area: Entity, coord: Coord) {
     let pos = Pos::new(area, coord, world);
-    world.spawn((DisplayInfo::from_noun('k', "keycard", 1), pos, Item, Keycard));
+    world.spawn((
+        DisplayInfo::from_noun('k', "keycard", 1),
+        pos,
+        Item,
+        Keycard,
+    ));
 }

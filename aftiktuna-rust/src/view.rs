@@ -52,6 +52,13 @@ impl DisplayInfo {
     pub fn matches(&self, string: &str) -> bool {
         self.name.eq_ignore_ascii_case(string)
     }
+
+    pub fn find_definite_name(world: &World, entity: Entity) -> String {
+        world.get::<DisplayInfo>(entity).map_or_else(
+            |_| "???".to_string(),
+            |info| info.definite_name().to_string(),
+        )
+    }
 }
 
 pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut Option<StatusCache>) {
