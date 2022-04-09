@@ -1,3 +1,4 @@
+use crate::action::Aftik;
 use crate::position::{try_move, Pos};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
@@ -36,21 +37,30 @@ impl Stats {
     }
 }
 
-pub fn attack(world: &mut World, aftik: Entity, target: Entity) -> Result<String, String> {
-    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
-    let name = DisplayInfo::find_definite_name(world, target);
+pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<String, String> {
+    let attacker_name = DisplayInfo::find_definite_name(world, attacker);
+    let target_name = DisplayInfo::find_definite_name(world, target);
+    let attacker_pos = *world.get::<Pos>(attacker).unwrap();
     let target_pos = *world.get::<Pos>(target).unwrap();
-    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
 
-    try_move(world, aftik, target_pos.get_adjacent_towards(aftik_pos))?;
+    try_move(
+        world,
+        attacker,
+        target_pos.get_adjacent_towards(attacker_pos),
+    )?;
 
-    let killed = hit(world, target, get_attack_damage(world, aftik));
+    let killed = hit(world, target, get_attack_damage(world, attacker));
 
     if killed {
-        world.despawn(target).unwrap();
-        Ok(format!("{} attacked and killed {}.", aftik_name, name))
+        if world.get::<Aftik>(target).is_err() {
+            world.despawn(target).unwrap();
+        }
+        Ok(format!(
+            "{} attacked and killed {}.",
+            attacker_name, target_name
+        ))
     } else {
-        Ok(format!("{} attacked {}.", aftik_name, name))
+        Ok(format!("{} attacked {}.", attacker_name, target_name))
     }
 }
 

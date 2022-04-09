@@ -2,6 +2,7 @@ use hecs::{Entity, With, World};
 use std::io::Write;
 use std::{io, thread, time};
 
+use crate::action::combat::Health;
 use crate::view::DisplayInfo;
 use action::{item, Action};
 use view::Messages;
@@ -28,6 +29,17 @@ fn main() {
 
     loop {
         view::print(&world, aftik, &mut messages, &mut cache);
+
+        if let Ok(health) = world.get::<Health>(aftik) {
+            if health.as_fraction() <= 0.0 {
+                println!(
+                    "{} is dead.",
+                    DisplayInfo::find_definite_name(&world, aftik)
+                );
+                thread::sleep(time::Duration::from_secs(2));
+                println!("You lost.");
+            }
+        }
 
         if item::has_item::<item::FuelCan>(&world) {
             println!("Congratulations, you won!");
