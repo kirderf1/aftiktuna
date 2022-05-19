@@ -1,51 +1,11 @@
 use crate::action::Aftik;
 use crate::position::{try_move, Pos};
+use crate::status::{Health, Stats};
 use crate::view::DisplayInfo;
-use hecs::{ComponentError, Entity, World};
+use hecs::{Entity, World};
 
 #[derive(Debug)]
 pub struct IsFoe;
-
-#[derive(Debug)]
-pub struct Health {
-    value: f32,
-    max: f32,
-}
-
-impl Health {
-    pub fn with_max(stats: &Stats) -> Health {
-        let max = f32::from(4 + stats.endurance * 2);
-        Health { max, value: max }
-    }
-
-    pub fn as_fraction(&self) -> f32 {
-        self.value / self.max
-    }
-}
-
-pub fn is_alive(entity: Entity, world: &World) -> bool {
-    match world.get::<Health>(entity) {
-        Ok(health) => health.value > 0.0,
-        Err(ComponentError::MissingComponent(_)) => true,
-        Err(ComponentError::NoSuchEntity) => false,
-    }
-}
-
-pub struct Stats {
-    pub strength: i16,
-    pub endurance: i16,
-    pub agility: i16,
-}
-
-impl Stats {
-    pub fn new(strength: i16, endurance: i16, agility: i16) -> Stats {
-        Stats {
-            strength,
-            endurance,
-            agility,
-        }
-    }
-}
 
 pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<String, String> {
     let attacker_name = DisplayInfo::find_definite_name(world, attacker);
@@ -83,8 +43,7 @@ pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<Str
 
 pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
     if let Ok(mut health) = world.get_mut::<Health>(target) {
-        health.value -= damage;
-        health.value <= 0.0
+        health.take_damage(damage)
     } else {
         false
     }

@@ -2,14 +2,14 @@ use hecs::{Entity, With, World};
 use std::io::Write;
 use std::{io, thread, time};
 
-use crate::view::DisplayInfo;
 use action::{combat, item, Action};
-use view::Messages;
+use view::{DisplayInfo, Messages};
 
 mod action;
 mod area;
 mod parse;
 mod position;
+mod status;
 mod view;
 
 fn main() {
@@ -29,7 +29,7 @@ fn main() {
     loop {
         view::print(&world, aftik, &mut messages, &mut cache);
 
-        if !combat::is_alive(aftik, &world) {
+        if !status::is_alive(aftik, &world) {
             println!(
                 "{} is dead.",
                 DisplayInfo::find_definite_name(&world, aftik)
@@ -93,7 +93,7 @@ fn read_input() -> String {
 
 fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
     let mut entities = world
-        .query::<With<Action, &combat::Stats>>()
+        .query::<With<Action, &status::Stats>>()
         .iter()
         .map(|(entity, stats)| (entity, stats.agility))
         .collect::<Vec<_>>();
@@ -104,7 +104,7 @@ fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
         .collect::<Vec<_>>();
 
     for entity in entities {
-        if !combat::is_alive(entity, world) {
+        if !status::is_alive(entity, world) {
             continue;
         }
 

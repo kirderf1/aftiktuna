@@ -1,7 +1,6 @@
-use crate::action::combat::Stats;
 use crate::item::InInventory;
-use crate::view::{capitalize, StatusCache};
-use crate::{view, DisplayInfo, Health};
+use crate::status::{Health, Stats};
+use crate::view::{capitalize, DisplayInfo, StatusCache};
 use hecs::{Entity, With, World};
 
 pub fn print_full_status(world: &World, aftik: Entity) {
@@ -71,7 +70,7 @@ fn print_inventory(world: &World, _aftik: Entity, prev_inv: Option<&Vec<Entity>>
             "Inventory: {}",
             query
                 .iter()
-                .map(|(_, info)| view::capitalize(info.name()))
+                .map(|(_, info)| capitalize(info.name()))
                 .collect::<Vec<String>>()
                 .join(", ")
         );

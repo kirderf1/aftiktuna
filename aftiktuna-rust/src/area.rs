@@ -1,8 +1,9 @@
-use crate::action::combat::{Health, IsFoe, Stats};
+use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
 use crate::action::item::{FuelCan, Item};
 use crate::action::Aftik;
 use crate::position::{Coord, MovementBlocking, Pos};
+use crate::status::{Health, Stats};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -75,7 +76,7 @@ pub fn init_area(world: &mut World) -> Entity {
     place_crowbar(world, room, 3);
     place_blowtorch(world, side_room_2, 0);
     place_keycard(world, room, 0);
-    place_goblin(world, side_room_2, 4);
+    place_goblin(world, side_room_2, 3);
     place_aftik(world, room, 1, "Mint", Stats::new(10, 3, 8))
 }
 
