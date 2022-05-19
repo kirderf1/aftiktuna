@@ -30,15 +30,14 @@ fn main() {
     loop {
         view::print(&world, aftik, &mut messages, &mut cache);
 
-        if let Ok(health) = world.get::<Health>(aftik) {
-            if health.as_fraction() <= 0.0 {
-                println!(
-                    "{} is dead.",
-                    DisplayInfo::find_definite_name(&world, aftik)
-                );
-                thread::sleep(time::Duration::from_secs(2));
-                println!("You lost.");
-            }
+        if !Health::is_alive(aftik, &world) {
+            println!(
+                "{} is dead.",
+                DisplayInfo::find_definite_name(&world, aftik)
+            );
+            thread::sleep(time::Duration::from_secs(2));
+            println!("You lost.");
+            break;
         }
 
         if item::has_item::<item::FuelCan>(&world) {
@@ -46,23 +45,18 @@ fn main() {
             break;
         }
 
-        if world.get::<Action>(aftik).is_err() {
-            let action = parse_user_action(&world, aftik);
-            world.insert_one(aftik, action).unwrap();
-        } else {
-            thread::sleep(time::Duration::from_secs(2));
-        }
+        decision_phase(&mut world, aftik);
 
-        let entities = world
-            .query::<With<Action, ()>>()
-            .iter()
-            .map(|(entity, ())| entity)
-            .collect::<Vec<_>>();
-        for entity in entities {
-            if let Ok(action) = world.remove_one::<Action>(entity) {
-                action::run_action(&mut world, entity, action, aftik, &mut messages);
-            }
-        }
+        action_phase(&mut world, &mut messages, aftik);
+    }
+}
+
+fn decision_phase(world: &mut World, aftik: Entity) {
+    if world.get::<Action>(aftik).is_err() {
+        let action = parse_user_action(&world, aftik);
+        world.insert_one(aftik, action).unwrap();
+    } else {
+        thread::sleep(time::Duration::from_secs(2));
     }
 }
 
@@ -87,4 +81,17 @@ fn read_input() -> String {
         .read_line(&mut input)
         .expect("Failed to read input");
     String::from(input.trim())
+}
+
+fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
+    let entities = world
+        .query::<With<Action, ()>>()
+        .iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        if let Ok(action) = world.remove_one::<Action>(entity) {
+            action::run_action(world, entity, action, aftik, messages);
+        }
+    }
 }

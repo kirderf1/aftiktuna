@@ -21,6 +21,14 @@ impl Health {
     pub fn as_fraction(&self) -> f32 {
         self.value / self.max
     }
+
+    pub fn is_alive(entity: Entity, world: &World) -> bool {
+        if let Ok(health) = world.get::<Health>(entity) {
+            health.value > 0.0
+        } else {
+            true
+        }
+    }
 }
 
 pub struct Stats {
