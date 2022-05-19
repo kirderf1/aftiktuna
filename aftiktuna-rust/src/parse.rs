@@ -51,7 +51,7 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
                 .query::<With<item::Item, (&Pos, &DisplayInfo)>>()
                 .iter()
                 .filter(|(_, (pos, display_info))| {
-                    pos.is_in(pos.get_area()) && display_info.matches(name)
+                    pos.is_in(aftik_pos.get_area()) && display_info.matches(name)
                 })
                 .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
                 .map(|(item, (_, display_info))| {
