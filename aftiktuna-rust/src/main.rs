@@ -105,6 +105,10 @@ fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
         .collect::<Vec<_>>();
 
     for entity in entities {
+        if !Health::is_alive(entity, world) {
+            continue;
+        }
+
         if let Ok(action) = world.remove_one::<Action>(entity) {
             action::run_action(world, entity, action, aftik, messages);
         }
