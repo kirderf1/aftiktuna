@@ -1,6 +1,5 @@
 use crate::position::Pos;
 use crate::view::Messages;
-use combat::Health;
 use hecs::{Entity, With, World};
 use Action::*;
 
@@ -20,7 +19,7 @@ pub enum Action {
 }
 
 pub fn foe_ai(world: &mut World, foe: Entity) {
-    if Health::is_alive(foe, world) && world.get::<Action>(foe).is_err() {
+    if combat::is_alive(foe, world) && world.get::<Action>(foe).is_err() {
         if let Some(action) = pick_foe_action(world, foe) {
             world.insert_one(foe, action).unwrap();
         }

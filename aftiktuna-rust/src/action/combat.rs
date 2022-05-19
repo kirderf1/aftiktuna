@@ -1,7 +1,7 @@
 use crate::action::Aftik;
 use crate::position::{try_move, Pos};
 use crate::view::DisplayInfo;
-use hecs::{Entity, World};
+use hecs::{ComponentError, Entity, World};
 
 #[derive(Debug)]
 pub struct IsFoe;
@@ -21,13 +21,13 @@ impl Health {
     pub fn as_fraction(&self) -> f32 {
         self.value / self.max
     }
+}
 
-    pub fn is_alive(entity: Entity, world: &World) -> bool {
-        if let Ok(health) = world.get::<Health>(entity) {
-            health.value > 0.0
-        } else {
-            true
-        }
+pub fn is_alive(entity: Entity, world: &World) -> bool {
+    match world.get::<Health>(entity) {
+        Ok(health) => health.value > 0.0,
+        Err(ComponentError::MissingComponent(_)) => true,
+        Err(ComponentError::NoSuchEntity) => false,
     }
 }
 
