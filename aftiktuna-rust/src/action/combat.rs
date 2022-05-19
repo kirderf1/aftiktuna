@@ -10,8 +10,15 @@ pub struct IsFoe;
 pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<String, String> {
     let attacker_name = DisplayInfo::find_definite_name(world, attacker);
     let target_name = DisplayInfo::find_definite_name(world, target);
-    let attacker_pos = *world.get::<Pos>(attacker).unwrap();
-    let target_pos = *world.get::<Pos>(target).unwrap();
+    let attacker_pos = *world
+        .get::<Pos>(attacker)
+        .expect("Expected attacker to have a position");
+    let target_pos = *world.get::<Pos>(target).map_err(|_| {
+        format!(
+            "{} disappeared before {} could attack.",
+            target_name, attacker_name
+        )
+    })?;
 
     if attacker_pos.get_area() != target_pos.get_area() {
         return Err(format!(
@@ -49,8 +56,11 @@ pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
     }
 }
 
-fn get_attack_damage(world: &World, aftik: Entity) -> f32 {
-    let strength = world.get::<Stats>(aftik).unwrap().strength;
+fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
+    let strength = world
+        .get::<Stats>(attacker)
+        .expect("Expected attacker to have stats attached")
+        .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
     2.0 * strength_mod
 }
