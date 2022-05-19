@@ -1,5 +1,7 @@
+use crate::position::Pos;
 use crate::view::Messages;
-use hecs::{Entity, World};
+use combat::Health;
+use hecs::{Entity, With, World};
 use Action::*;
 
 pub mod combat;
@@ -15,6 +17,25 @@ pub enum Action {
     EnterDoor(Entity),
     ForceDoor(Entity),
     Attack(Entity),
+}
+
+pub fn foe_ai(world: &mut World, foe: Entity) {
+    if Health::is_alive(foe, world) && world.get::<Action>(foe).is_err() {
+        if let Some(action) = pick_foe_action(world, foe) {
+            world.insert_one(foe, action).unwrap();
+        }
+    }
+}
+
+fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
+    let pos = *world.get::<Pos>(foe).ok()?;
+    let target = world
+        .query::<With<Aftik, &Pos>>()
+        .iter()
+        .filter(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
+        .min_by_key(|(_, aftik_pos)| aftik_pos.distance_to(pos))
+        .map(|(aftik, _)| aftik);
+    target.map(Attack)
 }
 
 pub fn run_action(

@@ -4,7 +4,7 @@ use std::{io, thread, time};
 
 use crate::action::combat::Health;
 use crate::view::DisplayInfo;
-use action::{item, Action};
+use action::{combat, item, Action};
 use view::Messages;
 
 mod action;
@@ -52,6 +52,15 @@ fn main() {
 }
 
 fn decision_phase(world: &mut World, aftik: Entity) {
+    let foes = world
+        .query::<With<combat::IsFoe, ()>>()
+        .iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<_>>();
+    for foe in foes {
+        action::foe_ai(world, foe)
+    }
+
     if world.get::<Action>(aftik).is_err() {
         let action = parse_user_action(&world, aftik);
         world.insert_one(aftik, action).unwrap();
