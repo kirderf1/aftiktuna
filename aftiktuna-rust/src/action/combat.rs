@@ -53,6 +53,13 @@ pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<Str
     let attacker_pos = *world.get::<Pos>(attacker).unwrap();
     let target_pos = *world.get::<Pos>(target).unwrap();
 
+    if attacker_pos.get_area() != target_pos.get_area() {
+        return Err(format!(
+            "{} left before {} could attack.",
+            target_name, attacker_name
+        ));
+    }
+
     try_move(
         world,
         attacker,
