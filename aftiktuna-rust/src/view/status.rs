@@ -1,4 +1,4 @@
-use crate::item::InInventory;
+use crate::action::item::InInventory;
 use crate::status::{Health, Stats};
 use crate::view::{capitalize, DisplayInfo, StatusCache};
 use hecs::{Entity, With, World};
