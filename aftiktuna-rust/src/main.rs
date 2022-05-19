@@ -93,11 +93,17 @@ fn read_input() -> String {
 }
 
 fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
-    let entities = world
-        .query::<With<Action, ()>>()
+    let mut entities = world
+        .query::<With<Action, &combat::Stats>>()
         .iter()
-        .map(|(entity, ())| entity)
+        .map(|(entity, stats)| (entity, stats.agility))
         .collect::<Vec<_>>();
+    entities.sort_by(|(_, agility1), (_, agility2)| agility2.cmp(agility1));
+    let entities = entities
+        .iter()
+        .map(|(entity, _)| *entity)
+        .collect::<Vec<_>>();
+
     for entity in entities {
         if let Ok(action) = world.remove_one::<Action>(entity) {
             action::run_action(world, entity, action, aftik, messages);
