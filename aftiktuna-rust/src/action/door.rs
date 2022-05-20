@@ -20,6 +20,17 @@ pub enum BlockType {
     Locked,
 }
 
+impl BlockType {
+    pub fn description(&self) -> &'static str {
+        match self {
+            BlockType::Stuck => "stuck",
+            BlockType::Sealed => "sealed shut",
+            BlockType::Locked => "locked",
+        }
+    }
+
+}
+
 #[derive(Debug)]
 pub struct Crowbar;
 
@@ -49,7 +60,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         if blocking.0 == BlockType::Locked && item::has_item::<Keycard>(world) {
             true
         } else {
-            return Err(format!("The door is {}.", description(blocking.0)));
+            return Err(format!("The door is {}.", blocking.0.description()));
         }
     } else {
         false
@@ -63,14 +74,6 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         ))
     } else {
         Ok(format!("{} entered the door into a new area.", aftik_name))
-    }
-}
-
-pub fn description(t: BlockType) -> &'static str {
-    match t {
-        BlockType::Stuck => "stuck",
-        BlockType::Sealed => "sealed shut",
-        BlockType::Locked => "locked",
     }
 }
 
