@@ -42,14 +42,15 @@ pub struct Keycard;
 
 pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
     let aftik_name = DisplayInfo::find_definite_name(world, aftik);
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
-    let pos = *world
+    let door_pos = *world
         .get::<Pos>(door)
         .ok()
-        .filter(|pos| pos.get_area() == area)
         .ok_or_else(|| format!("{} lost track of the door.", aftik_name))?;
+    if Ok(door_pos.get_area()) != world.get::<Pos>(aftik).map(|pos| pos.get_area()) {
+        return Err(format!("{} cannot reach the door from here.", aftik_name));
+    }
 
-    position::try_move(world, aftik, pos)?;
+    position::try_move(world, aftik, door_pos)?;
 
     let (destination, door_pair) = world
         .get::<Door>(door)
@@ -79,14 +80,15 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
 
 pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
     let aftik_name = DisplayInfo::find_definite_name(world, aftik);
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
-    let pos = *world
+    let door_pos = *world
         .get::<Pos>(door)
         .ok()
-        .filter(|pos| pos.get_area() == area)
         .ok_or_else(|| format!("{} lost track of the door.", aftik_name))?;
+    if Ok(door_pos.get_area()) != world.get::<Pos>(aftik).map(|pos| pos.get_area()) {
+        return Err(format!("{} cannot reach the door from here.", aftik_name));
+    }
 
-    position::try_move(world, aftik, pos)?;
+    position::try_move(world, aftik, door_pos)?;
 
     let door_pair = world
         .get::<Door>(door)
