@@ -21,7 +21,7 @@ pub enum BlockType {
 }
 
 impl BlockType {
-    pub fn description(&self) -> &'static str {
+    pub fn description(self) -> &'static str {
         match self {
             BlockType::Stuck => "stuck",
             BlockType::Sealed => "sealed shut",
@@ -29,6 +29,41 @@ impl BlockType {
         }
     }
 
+    fn try_force(self, world: &mut World, aftik_name: String) -> Result<String, String> {
+        match self {
+            BlockType::Stuck => {
+                if item::has_item::<Crowbar>(world) {
+                    Ok(format!(
+                        "{} used their crowbar and forced open the door.",
+                        aftik_name
+                    ))
+                } else if item::has_item::<Blowtorch>(world) {
+                    Ok(format!(
+                        "{} used their blowtorch and cut open the door.",
+                        aftik_name
+                    ))
+                } else {
+                    Err(format!(
+                        "{} needs some sort of tool to force the door open.",
+                        aftik_name
+                    ))
+                }
+            }
+            BlockType::Sealed | BlockType::Locked => {
+                if item::has_item::<Blowtorch>(world) {
+                    Ok(format!(
+                        "{} used their blowtorch and cut open the door.",
+                        aftik_name
+                    ))
+                } else {
+                    Err(format!(
+                        "{} needs some sort of tool to break the door open.",
+                        aftik_name
+                    ))
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -99,42 +134,11 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .get::<DoorBlocking>(door_pair)
         .map(|blocking| blocking.0);
     if let Ok(block_type) = block_type {
-        match block_type {
-            BlockType::Stuck => {
-                if item::has_item::<Crowbar>(world) {
-                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok(format!(
-                        "{} used their crowbar and forced open the door.",
-                        aftik_name
-                    ))
-                } else if item::has_item::<Blowtorch>(world) {
-                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok(format!(
-                        "{} used their blowtorch and cut open the door.",
-                        aftik_name
-                    ))
-                } else {
-                    Err(format!(
-                        "{} needs some sort of tool to force the door open.",
-                        aftik_name
-                    ))
-                }
-            }
-            BlockType::Sealed | BlockType::Locked => {
-                if item::has_item::<Blowtorch>(world) {
-                    world.remove_one::<DoorBlocking>(door_pair).unwrap();
-                    Ok(format!(
-                        "{} used their blowtorch and cut open the door.",
-                        aftik_name
-                    ))
-                } else {
-                    Err(format!(
-                        "{} needs some sort of tool to break the door open.",
-                        aftik_name
-                    ))
-                }
-            }
+        let result = block_type.try_force(world, aftik_name);
+        if result.is_ok() {
+            world.remove_one::<DoorBlocking>(door_pair).unwrap();
         }
+        result
     } else {
         Err("The door does not seem to be stuck.".to_string())
     }
