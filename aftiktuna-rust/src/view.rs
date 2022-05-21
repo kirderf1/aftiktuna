@@ -21,6 +21,7 @@ pub struct DisplayInfo {
 
 pub struct StatusCache {
     health: f32,
+    wielded: Option<Entity>,
     inventory: Vec<Entity>,
 }
 
@@ -61,9 +62,20 @@ impl DisplayInfo {
             |info| info.definite_name().to_string(),
         )
     }
+
+    pub fn find_name(world: &World, entity: Entity) -> String {
+        world
+            .get::<DisplayInfo>(entity)
+            .map_or_else(|_| "???".to_string(), |info| info.name().to_string())
+    }
 }
 
-pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut Option<StatusCache>) {
+pub fn print(
+    world: &World,
+    aftik: Entity,
+    messages: &mut Messages,
+    cache: &mut Option<StatusCache>,
+) {
     let area = get_viewed_area(aftik, world);
     let area_info = world.get::<Area>(area).unwrap();
     let area_size = area_info.size;
@@ -85,7 +97,7 @@ pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut 
         );
         messages.0.clear();
     }
-    status::print_status(world, aftik, cache);
+    status::print(world, aftik, cache);
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {
