@@ -10,7 +10,8 @@ use hecs::{DynamicBundle, Entity, World};
 mod init;
 
 pub fn init(world: &mut World) -> Entity {
-    init::combat_test(world)
+    let (start_area, start_coord) = init::combat_test(world);
+    place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8))
 }
 
 pub struct Area {

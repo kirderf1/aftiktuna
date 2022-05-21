@@ -1,11 +1,11 @@
 use crate::action::door::{BlockType, DoorBlocking};
 use crate::area;
 use crate::area::Area;
-use crate::status::Stats;
 use hecs::{Entity, World};
+use crate::position::Coord;
 
 #[allow(dead_code)]
-pub fn misc_test(world: &mut World) -> Entity {
+pub fn misc_test(world: &mut World) -> (Entity, Coord) {
     let room = world.spawn((Area {
         size: 4,
         label: "Room".to_string(),
@@ -70,11 +70,11 @@ pub fn misc_test(world: &mut World) -> Entity {
     area::place_blowtorch(world, side_room_2, 0);
     area::place_keycard(world, room, 0);
     area::place_goblin(world, side_room_2, 3);
-    area::place_aftik(world, room, 1, "Mint", Stats::new(10, 3, 8))
+    (room, 1)
 }
 
 #[allow(dead_code)]
-pub fn combat_test(world: &mut World) -> Entity {
+pub fn combat_test(world: &mut World) -> (Entity, Coord) {
     let armory = world.spawn((Area {
         size: 6,
         label: "Armory".to_string(),
@@ -98,5 +98,5 @@ pub fn combat_test(world: &mut World) -> Entity {
     area::place_goblin(world, goblin_room, 0);
     area::place_goblin(world, goblin_room, 3);
     area::place_crowbar(world, armory, 5);
-    area::place_aftik(world, armory, 2, "Mint", Stats::new(10, 3, 8))
+    (armory, 2)
 }
