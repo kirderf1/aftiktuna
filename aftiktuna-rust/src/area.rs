@@ -69,21 +69,19 @@ fn place_azureclops(world: &mut World, area: Entity, coord: Coord) -> Entity {
     ))
 }
 
+struct DoorInfo(Entity, Coord, DisplayInfo);
+
 fn place_doors(
     world: &mut World,
-    area1: Entity,
-    coord1: Coord,
-    disp1: DisplayInfo,
-    area2: Entity,
-    coord2: Coord,
-    disp2: DisplayInfo,
+    door1: DoorInfo,
+    door2: DoorInfo,
     pair_components: impl DynamicBundle,
 ) {
-    let pos1 = Pos::new(area1, coord1, world);
-    let pos2 = Pos::new(area2, coord2, world);
+    let pos1 = Pos::new(door1.0, door1.1, world);
+    let pos2 = Pos::new(door2.0, door2.1, world);
     let door_pair = world.spawn(pair_components);
-    place_door(world, pos1, disp1, pos2, door_pair);
-    place_door(world, pos2, disp2, pos1, door_pair);
+    place_door(world, pos1, door1.2, pos2, door_pair);
+    place_door(world, pos2, door2.2, pos1, door_pair);
 }
 
 fn place_door(

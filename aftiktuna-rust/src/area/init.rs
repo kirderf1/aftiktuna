@@ -1,6 +1,6 @@
 use crate::action::door::{BlockType, DoorBlocking};
 use crate::area;
-use crate::area::Area;
+use crate::area::{Area, DoorInfo};
 use crate::position::Coord;
 use hecs::{Entity, World};
 
@@ -25,42 +25,26 @@ pub fn misc_test(world: &mut World) -> (Entity, Coord) {
 
     area::place_doors(
         world,
-        room,
-        0,
-        area::left_door(),
-        side_room,
-        1,
-        area::left_door(),
+        DoorInfo(room, 0, area::left_door()),
+        DoorInfo(side_room, 1, area::left_door()),
         (DoorBlocking(BlockType::Stuck),),
     );
     area::place_doors(
         world,
-        room,
-        3,
-        area::right_door(),
-        side_room_2,
-        5,
-        area::left_door(),
+        DoorInfo(room, 3, area::right_door()),
+        DoorInfo(side_room_2, 5, area::left_door()),
         (),
     );
     area::place_doors(
         world,
-        side_room,
-        2,
-        area::right_door(),
-        side_room_2,
-        8,
-        area::right_door(),
+        DoorInfo(side_room, 2, area::right_door()),
+        DoorInfo(side_room_2, 8, area::right_door()),
         (DoorBlocking(BlockType::Sealed),),
     );
     area::place_doors(
         world,
-        room,
-        2,
-        area::door(),
-        mid_room,
-        1,
-        area::door(),
+        DoorInfo(room, 2, area::door()),
+        DoorInfo(mid_room, 1, area::door()),
         (DoorBlocking(BlockType::Locked),),
     );
 
@@ -94,32 +78,20 @@ pub fn combat_test(world: &mut World) -> (Entity, Coord) {
 
     area::place_doors(
         world,
-        armory,
-        1,
-        area::left_door(),
-        goblin_room,
-        2,
-        area::door(),
+        DoorInfo(armory, 1, area::left_door()),
+        DoorInfo(goblin_room, 2, area::door()),
         (),
     );
     area::place_doors(
         world,
-        armory,
-        3,
-        area::door(),
-        eyesaur_room,
-        2,
-        area::door(),
+        DoorInfo(armory, 3, area::door()),
+        DoorInfo(eyesaur_room, 2, area::door()),
         (),
     );
     area::place_doors(
         world,
-        armory,
-        4,
-        area::right_door(),
-        azureclops_room,
-        2,
-        area::door(),
+        DoorInfo(armory, 4, area::right_door()),
+        DoorInfo(azureclops_room, 2, area::door()),
         (),
     );
 
