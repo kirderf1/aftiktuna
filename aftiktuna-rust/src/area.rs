@@ -1,5 +1,5 @@
 use crate::action::combat::{IsFoe, Weapon};
-use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
+use crate::action::door::{Blowtorch, Crowbar, Door, Keycard};
 use crate::action::item::{CanWield, FuelCan, Item};
 use crate::action::Aftik;
 use crate::position::{Coord, MovementBlocking, Pos};
@@ -7,77 +7,15 @@ use crate::status::{Health, Stats};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
+mod init;
+
+pub fn init(world: &mut World) -> Entity {
+    init::misc_test(world)
+}
+
 pub struct Area {
     pub size: Coord,
     pub label: String,
-}
-
-pub fn init_area(world: &mut World) -> Entity {
-    let room = world.spawn((Area {
-        size: 4,
-        label: "Room".to_string(),
-    },));
-    let side_room = world.spawn((Area {
-        size: 5,
-        label: "Side Room".to_string(),
-    },));
-    let side_room_2 = world.spawn((Area {
-        size: 12,
-        label: "Side Room".to_string(),
-    },));
-    let mid_room = world.spawn((Area {
-        size: 5,
-        label: "Room".to_string(),
-    },));
-
-    place_doors(
-        world,
-        room,
-        0,
-        left_door(),
-        side_room,
-        1,
-        left_door(),
-        (DoorBlocking(BlockType::Stuck),),
-    );
-    place_doors(
-        world,
-        room,
-        3,
-        right_door(),
-        side_room_2,
-        5,
-        left_door(),
-        (),
-    );
-    place_doors(
-        world,
-        side_room,
-        2,
-        right_door(),
-        side_room_2,
-        8,
-        right_door(),
-        (DoorBlocking(BlockType::Sealed),),
-    );
-    place_doors(
-        world,
-        room,
-        2,
-        door(),
-        mid_room,
-        1,
-        door(),
-        (DoorBlocking(BlockType::Locked),),
-    );
-
-    place_fuel(world, side_room, 4);
-    place_fuel(world, side_room, 3);
-    place_crowbar(world, room, 3);
-    place_blowtorch(world, side_room_2, 0);
-    place_keycard(world, room, 0);
-    place_goblin(world, side_room_2, 3);
-    place_aftik(world, room, 1, "Mint", Stats::new(10, 3, 8))
 }
 
 fn place_aftik(world: &mut World, area: Entity, coord: Coord, name: &str, stats: Stats) -> Entity {

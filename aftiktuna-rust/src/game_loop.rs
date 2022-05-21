@@ -10,7 +10,7 @@ pub fn run() {
     let mut messages = Messages::default();
     let mut cache = None;
 
-    let aftik = area::init_area(&mut world);
+    let aftik = area::init(&mut world);
 
     println!(
         "You're playing as the aftik {}.",
