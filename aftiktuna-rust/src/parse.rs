@@ -1,4 +1,3 @@
-use crate::action::item::InInventory;
 use crate::action::{combat, door, item, Action};
 use crate::position::Pos;
 use crate::view;
@@ -75,7 +74,10 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, 
     parse.take_remaining(|name| {
         None.or_else(|| {
             world
-                .query::<With<item::Item, With<InInventory, &DisplayInfo>>>()
+                .query::<&DisplayInfo>()
+                .with::<item::CanWield>()
+                .with::<item::Item>()
+                .with::<item::InInventory>()
                 .iter()
                 .find(|(_, display_info)| display_info.matches(name))
                 .map(|(item, display_info)| {
@@ -88,7 +90,9 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, 
         .or_else(|| {
             let aftik_pos = *world.get::<Pos>(aftik).unwrap();
             world
-                .query::<With<item::Item, (&Pos, &DisplayInfo)>>()
+                .query::<(&Pos, &DisplayInfo)>()
+                .with::<item::CanWield>()
+                .with::<item::Item>()
                 .iter()
                 .filter(|(_, (pos, display_info))| {
                     pos.is_in(aftik_pos.get_area()) && display_info.matches(name)

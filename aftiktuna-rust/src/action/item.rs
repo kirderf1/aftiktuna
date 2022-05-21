@@ -64,6 +64,9 @@ pub fn take_item(
     Ok(format!("{} picked up {}.", aftik_name, item_name))
 }
 
+#[derive(Debug, Default)]
+pub struct CanWield;
+
 #[derive(Debug)]
 struct Wielded;
 

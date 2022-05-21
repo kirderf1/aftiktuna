@@ -1,6 +1,6 @@
 use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Blowtorch, Crowbar, Door, DoorBlocking, Keycard};
-use crate::action::item::{FuelCan, Item};
+use crate::action::item::{CanWield, FuelCan, Item};
 use crate::action::Aftik;
 use crate::position::{Coord, MovementBlocking, Pos};
 use crate::status::{Health, Stats};
@@ -167,6 +167,7 @@ fn place_crowbar(world: &mut World, area: Entity, coord: Coord) {
         pos,
         Item,
         Crowbar,
+        CanWield,
     ));
 }
 
