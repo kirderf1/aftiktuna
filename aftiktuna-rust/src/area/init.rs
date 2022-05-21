@@ -98,5 +98,8 @@ pub fn combat_test(world: &mut World) -> (Entity, Coord) {
     area::place_goblin(world, goblin_room, 0);
     area::place_goblin(world, goblin_room, 3);
     area::place_crowbar(world, armory, 5);
+    area::place_bat(world, armory, 5);
+    area::place_knife(world, armory, 0);
+    area::place_sword(world, armory, 0);
     (armory, 2)
 }

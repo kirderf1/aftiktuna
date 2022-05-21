@@ -130,3 +130,36 @@ fn place_keycard(world: &mut World, area: Entity, coord: Coord) {
         Keycard,
     ));
 }
+
+fn place_knife(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::from_noun('K', "knife", 1),
+        pos,
+        Item,
+        CanWield,
+        Weapon(3.0),
+    ));
+}
+
+fn place_bat(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::from_noun('B', "bat", 1),
+        pos,
+        Item,
+        CanWield,
+        Weapon(4.0),
+    ));
+}
+
+fn place_sword(world: &mut World, area: Entity, coord: Coord) {
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::from_noun('s', "sword", 1),
+        pos,
+        Item,
+        CanWield,
+        Weapon(5.0),
+    ));
+}
