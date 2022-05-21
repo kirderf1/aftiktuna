@@ -14,6 +14,7 @@ pub struct Aftik;
 pub enum Action {
     TakeItem(Entity, String),
     TakeAll,
+    Wield(Entity, String),
     EnterDoor(Entity),
     ForceDoor(Entity),
     Attack(Entity),
@@ -48,6 +49,7 @@ pub fn run_action(
     let result = match action {
         TakeItem(item, name) => item::take_item(world, performer, item, &name),
         TakeAll => item::take_all(world, performer),
+        Wield(item, name) => item::wield(world, performer, item, &name),
         EnterDoor(door) => door::enter_door(world, performer, door),
         ForceDoor(door) => door::force_door(world, performer, door),
         Attack(target) => combat::attack(world, performer, target),

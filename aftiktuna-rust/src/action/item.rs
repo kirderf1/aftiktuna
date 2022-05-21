@@ -58,3 +58,56 @@ pub fn take_item(
 
     Ok(format!("{} picked up {}.", aftik_name, item_name))
 }
+
+#[derive(Debug)]
+struct Wielded;
+
+pub fn get_wielded(world: &World) -> Option<Entity> {
+    world
+        .query::<With<Wielded, ()>>()
+        .iter()
+        .next()
+        .map(|(item, _)| item)
+}
+
+pub fn wield(
+    world: &mut World,
+    aftik: Entity,
+    item: Entity,
+    item_name: &str,
+) -> Result<String, String> {
+    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
+
+    if world.get::<InInventory>(item).is_ok() {
+        unwield_if_needed(world);
+        world.remove_one::<InInventory>(item).unwrap();
+        world.insert_one(item, Wielded).unwrap();
+
+        Ok(format!("{} wielded a {}.", aftik_name, item_name))
+    } else {
+        let item_pos = *world
+            .get::<Pos>(item)
+            .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;
+        try_move(world, aftik, item_pos)?;
+
+        unwield_if_needed(world);
+        world
+            .remove_one::<Pos>(item)
+            .expect("Tried removing position from item");
+        world
+            .insert_one(item, Wielded)
+            .expect("Tried adding inventory data to item");
+
+        Ok(format!(
+            "{} picked up and wielded the {}.",
+            aftik_name, item_name
+        ))
+    }
+}
+
+fn unwield_if_needed(world: &mut World) {
+    if let Some(item) = get_wielded(world) {
+        world.remove_one::<Wielded>(item).unwrap();
+        world.insert_one(item, InInventory).unwrap();
+    }
+}

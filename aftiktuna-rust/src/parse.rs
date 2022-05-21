@@ -1,3 +1,4 @@
+use crate::action::item::InInventory;
 use crate::action::{combat, door, item, Action};
 use crate::position::Pos;
 use crate::view;
@@ -14,6 +15,11 @@ pub fn try_parse_input(
         parse
             .literal("take")
             .map(|parse| take(&parse, world, aftik))
+    })
+    .or_else(|| {
+        parse
+            .literal("wield")
+            .map(|parse| wield(&parse, world, aftik))
     })
     .or_else(|| {
         parse
@@ -61,6 +67,46 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
                     )))
                 })
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
+        })
+    })
+}
+
+fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+    parse.take_remaining(|name| {
+        None.or_else(|| {
+            world
+                .query::<With<item::Item, With<InInventory, &DisplayInfo>>>()
+                .iter()
+                .find(|(_, display_info)| display_info.matches(name))
+                .map(|(item, display_info)| {
+                    Ok(Some(Action::Wield(
+                        item,
+                        display_info.definite_name().to_string(),
+                    )))
+                })
+        })
+        .or_else(|| {
+            let aftik_pos = *world.get::<Pos>(aftik).unwrap();
+            world
+                .query::<With<item::Item, (&Pos, &DisplayInfo)>>()
+                .iter()
+                .filter(|(_, (pos, display_info))| {
+                    pos.is_in(aftik_pos.get_area()) && display_info.matches(name)
+                })
+                .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
+                .map(|(item, (_, display_info))| {
+                    Ok(Some(Action::Wield(
+                        item,
+                        display_info.definite_name().to_string(),
+                    )))
+                })
+        })
+        .unwrap_or_else(|| {
+            Err(format!(
+                "There is no {} that {} can wield.",
+                name,
+                DisplayInfo::find_definite_name(world, aftik)
+            ))
         })
     })
 }
