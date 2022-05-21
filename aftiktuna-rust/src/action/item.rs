@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::position::{try_move, Pos};
 use crate::view::DisplayInfo;
-use hecs::{Component, Entity, With, World};
+use hecs::{Component, Entity, Or, With, World};
 
 #[derive(Debug, Default)]
 pub struct Item;
@@ -12,8 +12,13 @@ pub struct FuelCan;
 #[derive(Debug)]
 pub struct InInventory;
 
-pub fn has_item<C: Component>(world: &World) -> bool {
-    world.query::<With<C, With<InInventory, ()>>>().iter().len() > 0
+pub fn is_holding<C: Component>(world: &World) -> bool {
+    world
+        .query::<Or<With<InInventory, ()>, With<Wielded, ()>>>()
+        .with::<C>()
+        .iter()
+        .len()
+        > 0
 }
 
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {

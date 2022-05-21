@@ -30,7 +30,7 @@ pub fn run() {
             break;
         }
 
-        if item::has_item::<item::FuelCan>(&world) {
+        if item::is_holding::<item::FuelCan>(&world) {
             println!("Congratulations, you won!");
             break;
         }

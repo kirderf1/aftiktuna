@@ -32,12 +32,12 @@ impl BlockType {
     fn try_force(self, world: &mut World, aftik_name: String) -> Result<String, String> {
         match self {
             BlockType::Stuck => {
-                if item::has_item::<Crowbar>(world) {
+                if item::is_holding::<Crowbar>(world) {
                     Ok(format!(
                         "{} used their crowbar and forced open the door.",
                         aftik_name
                     ))
-                } else if item::has_item::<Blowtorch>(world) {
+                } else if item::is_holding::<Blowtorch>(world) {
                     Ok(format!(
                         "{} used their blowtorch and cut open the door.",
                         aftik_name
@@ -50,7 +50,7 @@ impl BlockType {
                 }
             }
             BlockType::Sealed | BlockType::Locked => {
-                if item::has_item::<Blowtorch>(world) {
+                if item::is_holding::<Blowtorch>(world) {
                     Ok(format!(
                         "{} used their blowtorch and cut open the door.",
                         aftik_name
@@ -93,7 +93,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .map(|door| (door.destination, door.door_pair))?;
 
     let used_keycard = if let Ok(blocking) = world.get::<DoorBlocking>(door_pair) {
-        if blocking.0 == BlockType::Locked && item::has_item::<Keycard>(world) {
+        if blocking.0 == BlockType::Locked && item::is_holding::<Keycard>(world) {
             true
         } else {
             return Err(format!("The door is {}.", blocking.0.description()));
