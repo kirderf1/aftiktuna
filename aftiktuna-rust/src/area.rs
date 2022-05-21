@@ -10,7 +10,7 @@ use hecs::{DynamicBundle, Entity, World};
 mod init;
 
 pub fn init(world: &mut World) -> Entity {
-    init::misc_test(world)
+    init::combat_test(world)
 }
 
 pub struct Area {
