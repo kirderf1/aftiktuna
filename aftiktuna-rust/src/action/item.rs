@@ -1,4 +1,4 @@
-use crate::action::Action;
+use crate::action::{Action, Aftik};
 use crate::position::{try_move, Pos};
 use crate::view::DisplayInfo;
 use hecs::{Component, Entity, Or, With, World};
@@ -70,7 +70,8 @@ pub struct CanWield;
 #[derive(Debug)]
 struct Wielded;
 
-pub fn get_wielded(world: &World) -> Option<Entity> {
+pub fn get_wielded(world: &World, entity: Entity) -> Option<Entity> {
+    world.get::<Aftik>(entity).ok()?;
     world
         .query::<With<Wielded, ()>>()
         .iter()
@@ -87,7 +88,7 @@ pub fn wield(
     let aftik_name = DisplayInfo::find_definite_name(world, aftik);
 
     if world.get::<InInventory>(item).is_ok() {
-        unwield_if_needed(world);
+        unwield_if_needed(world, aftik);
         world.remove_one::<InInventory>(item).unwrap();
         world.insert_one(item, Wielded).unwrap();
 
@@ -98,7 +99,7 @@ pub fn wield(
             .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;
         try_move(world, aftik, item_pos)?;
 
-        unwield_if_needed(world);
+        unwield_if_needed(world, aftik);
         world
             .remove_one::<Pos>(item)
             .expect("Tried removing position from item");
@@ -113,8 +114,8 @@ pub fn wield(
     }
 }
 
-fn unwield_if_needed(world: &mut World) {
-    if let Some(item) = get_wielded(world) {
+fn unwield_if_needed(world: &mut World, entity: Entity) {
+    if let Some(item) = get_wielded(world, entity) {
         world.remove_one::<Wielded>(item).unwrap();
         world.insert_one(item, InInventory).unwrap();
     }

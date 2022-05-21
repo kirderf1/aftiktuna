@@ -62,10 +62,10 @@ fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
 
 fn print_wielded(
     world: &World,
-    _aftik: Entity,
+    aftik: Entity,
     prev_wielded: Option<Option<Entity>>,
 ) -> Option<Entity> {
-    let wielded = item::get_wielded(world);
+    let wielded = item::get_wielded(world, aftik);
 
     if Some(wielded) == prev_wielded {
         return wielded;

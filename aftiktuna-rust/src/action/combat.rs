@@ -65,11 +65,11 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .expect("Expected attacker to have stats attached")
         .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
-    get_weapon_damage(world) * strength_mod
+    get_weapon_damage(world, attacker) * strength_mod
 }
 
-fn get_weapon_damage(world: &World) -> f32 {
-    item::get_wielded(world)
+fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
+    item::get_wielded(world, attacker)
         .and_then(|item| world.get::<Weapon>(item).map(|weapon| weapon.0).ok())
         .unwrap_or(2.0)
 }
