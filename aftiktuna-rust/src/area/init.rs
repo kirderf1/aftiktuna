@@ -1,8 +1,8 @@
 use crate::action::door::{BlockType, DoorBlocking};
 use crate::area;
 use crate::area::Area;
-use hecs::{Entity, World};
 use crate::position::Coord;
+use hecs::{Entity, World};
 
 #[allow(dead_code)]
 pub fn misc_test(world: &mut World) -> (Entity, Coord) {
@@ -83,13 +83,41 @@ pub fn combat_test(world: &mut World) -> (Entity, Coord) {
         size: 5,
         label: "Goblin Room".to_string(),
     },));
+    let eyesaur_room = world.spawn((Area {
+        size: 5,
+        label: "Eyesaur Room".to_string(),
+    },));
+    let azureclops_room = world.spawn((Area {
+        size: 5,
+        label: "Azureclops Room".to_string(),
+    },));
 
     area::place_doors(
         world,
         armory,
         1,
-        area::door(),
+        area::left_door(),
         goblin_room,
+        2,
+        area::door(),
+        (),
+    );
+    area::place_doors(
+        world,
+        armory,
+        3,
+        area::door(),
+        eyesaur_room,
+        2,
+        area::door(),
+        (),
+    );
+    area::place_doors(
+        world,
+        armory,
+        4,
+        area::right_door(),
+        azureclops_room,
         2,
         area::door(),
         (),
@@ -97,6 +125,8 @@ pub fn combat_test(world: &mut World) -> (Entity, Coord) {
 
     area::place_goblin(world, goblin_room, 0);
     area::place_goblin(world, goblin_room, 3);
+    area::place_eyesaur(world, eyesaur_room, 4);
+    area::place_azureclops(world, azureclops_room, 4);
     area::place_crowbar(world, armory, 5);
     area::place_bat(world, armory, 5);
     area::place_knife(world, armory, 0);

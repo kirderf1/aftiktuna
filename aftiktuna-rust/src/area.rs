@@ -43,6 +43,32 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
     ))
 }
 
+fn place_eyesaur(world: &mut World, area: Entity, coord: Coord) -> Entity {
+    let stats = Stats::new(7, 7, 4);
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::from_noun('E', "eyesaur", 10),
+        pos,
+        MovementBlocking,
+        IsFoe,
+        Health::with_max(&stats),
+        stats,
+    ))
+}
+
+fn place_azureclops(world: &mut World, area: Entity, coord: Coord) -> Entity {
+    let stats = Stats::new(15, 10, 4);
+    let pos = Pos::new(area, coord, world);
+    world.spawn((
+        DisplayInfo::from_noun('Z', "Azureclops", 10),
+        pos,
+        MovementBlocking,
+        IsFoe,
+        Health::with_max(&stats),
+        stats,
+    ))
+}
+
 fn place_doors(
     world: &mut World,
     area1: Entity,
