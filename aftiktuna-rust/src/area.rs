@@ -3,7 +3,7 @@ use crate::action::door::{Blowtorch, Crowbar, Door, Keycard};
 use crate::action::item::{CanWield, FuelCan, Item};
 use crate::action::Aftik;
 use crate::position::{Coord, MovementBlocking, Pos};
-use crate::status::{Health, Stats};
+use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
@@ -26,6 +26,7 @@ fn place_aftik(world: &mut World, area: Entity, coord: Coord, name: &str, stats:
         pos,
         Aftik,
         Health::with_max(&stats),
+        Stamina::with_max(&stats),
         stats,
     ))
 }
@@ -39,6 +40,7 @@ fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
+        Stamina::with_max(&stats),
         stats,
     ))
 }
@@ -52,6 +54,7 @@ fn place_eyesaur(world: &mut World, area: Entity, coord: Coord) -> Entity {
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
+        Stamina::with_max(&stats),
         stats,
     ))
 }
@@ -65,6 +68,7 @@ fn place_azureclops(world: &mut World, area: Entity, coord: Coord) -> Entity {
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
+        Stamina::with_max(&stats),
         stats,
     ))
 }

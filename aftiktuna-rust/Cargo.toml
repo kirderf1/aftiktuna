@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 hecs = "0.7.6"
+fastrand = "1.7.0"

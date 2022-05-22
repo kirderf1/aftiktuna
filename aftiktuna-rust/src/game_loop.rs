@@ -1,4 +1,5 @@
 use crate::action::{combat, item, Action};
+use crate::status::Stamina;
 use crate::view::{DisplayInfo, Messages};
 use crate::{action, area, parse, status, view};
 use hecs::{Entity, With, World};
@@ -18,6 +19,10 @@ pub fn run() {
     );
 
     loop {
+        for (_, stamina) in world.query_mut::<&mut Stamina>() {
+            stamina.tick();
+        }
+
         view::print(&world, aftik, &mut messages, &mut cache);
 
         if !status::is_alive(aftik, &world) {

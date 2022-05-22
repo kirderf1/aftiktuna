@@ -1,7 +1,8 @@
 use crate::action::{item, Aftik};
 use crate::position::{try_move, Pos};
-use crate::status::{Health, Stats};
+use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
+use fastrand::Rng;
 use hecs::{Entity, World};
 
 #[derive(Debug)]
@@ -33,18 +34,53 @@ pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<Str
         target_pos.get_adjacent_towards(attacker_pos),
     )?;
 
-    let killed = hit(world, target, get_attack_damage(world, attacker));
+    let hit_type = roll_hit(world, attacker, target, &mut Rng::new());
+
+    if hit_type == HitType::Dodge {
+        return Ok(format!(
+            "{} dodged {}'s attack.",
+            target_name, attacker_name
+        ));
+    }
+
+    let damage_factor = if hit_type == HitType::GrazingHit {
+        0.5
+    } else {
+        1.0
+    };
+
+    let killed = hit(
+        world,
+        target,
+        damage_factor * get_attack_damage(world, attacker),
+    );
 
     if killed {
         if world.get::<Aftik>(target).is_err() {
             world.despawn(target).unwrap();
         }
+
+        if hit_type == HitType::GrazingHit {
+            Ok(format!(
+                "{}'s attack grazed and killed {}.",
+                attacker_name, target_name
+            ))
+        } else {
+            Ok(format!(
+                "{} got a direct hit on and killed {}.",
+                attacker_name, target_name
+            ))
+        }
+    } else if hit_type == HitType::GrazingHit {
         Ok(format!(
-            "{} attacked and killed {}.",
+            "{}'s attack grazed {}.",
             attacker_name, target_name
         ))
     } else {
-        Ok(format!("{} attacked {}.", attacker_name, target_name))
+        Ok(format!(
+            "{} got a direct hit on {}.",
+            attacker_name, target_name
+        ))
     }
 }
 
@@ -72,4 +108,39 @@ fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
     item::get_wielded(world, attacker)
         .and_then(|item| world.get::<Weapon>(item).map(|weapon| weapon.0).ok())
         .unwrap_or(2.0)
+}
+
+fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut Rng) -> HitType {
+    let mut stamina = world.get_mut::<Stamina>(defender).unwrap();
+    let stamina_factor = stamina.as_fraction();
+    if stamina_factor > 0.0 {
+        stamina.on_dodge_attempt();
+        let dodge_factor = stamina_factor * get_dodge_factor(world, attacker, defender);
+        // Yes, this looks slightly odd. This is meant to act as a d20 integer roll,
+        // which is converted to a float only to be compared against the float factor.
+        let hit_roll = f32::from(rng.i16(1..=20));
+
+        if dodge_factor > hit_roll + 5.0 {
+            HitType::Dodge
+        } else if dodge_factor > hit_roll {
+            HitType::GrazingHit
+        } else {
+            HitType::DirectHit
+        }
+    } else {
+        HitType::DirectHit
+    }
+}
+
+fn get_dodge_factor(world: &World, attacker: Entity, defender: Entity) -> f32 {
+    let hit_agility = world.get::<Stats>(attacker).unwrap().agility;
+    let dodge_agility = world.get::<Stats>(defender).unwrap().agility;
+    f32::from(2 * dodge_agility - hit_agility)
+}
+
+#[derive(Debug, Eq, PartialEq)]
+enum HitType {
+    DirectHit,
+    GrazingHit,
+    Dodge,
 }
