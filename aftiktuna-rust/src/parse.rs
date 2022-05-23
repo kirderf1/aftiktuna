@@ -37,6 +37,11 @@ pub fn try_parse_input(
     })
     .or_else(|| {
         parse
+            .literal("wait")
+            .map(|parse| wait(&parse))
+    })
+    .or_else(|| {
+        parse
             .literal("status")
             .map(|parse| status(&parse, world, aftik))
     })
@@ -149,6 +154,12 @@ fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
             .map(|(target, _)| Ok(Some(Action::Attack(target))))
             .unwrap_or_else(|| Err("There is no such target here.".to_string()))
     })
+}
+
+fn wait(parse: &Parse) -> Result<Option<Action>, String> {
+    parse
+        .done(|| Ok(Some(Action::Wait)))
+        .unwrap_or_else(|| Err("Unexpected argument after \"wait\"".to_string()))
 }
 
 fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {

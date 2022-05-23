@@ -18,6 +18,7 @@ pub enum Action {
     EnterDoor(Entity),
     ForceDoor(Entity),
     Attack(Entity),
+    Wait,
 }
 
 pub fn foe_ai(world: &mut World, foe: Entity) {
@@ -39,7 +40,7 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     target.map(Attack)
 }
 
-pub fn run_action(
+pub fn perform(
     world: &mut World,
     performer: Entity,
     action: Action,
@@ -47,18 +48,20 @@ pub fn run_action(
     messages: &mut Messages,
 ) {
     let result = match action {
-        TakeItem(item, name) => item::take_item(world, performer, item, &name),
-        TakeAll => item::take_all(world, performer),
-        Wield(item, name) => item::wield(world, performer, item, &name),
-        EnterDoor(door) => door::enter_door(world, performer, door),
-        ForceDoor(door) => door::force_door(world, performer, door),
-        Attack(target) => combat::attack(world, performer, target),
+        TakeItem(item, name) => item::take_item(world, performer, item, &name).map(Some),
+        TakeAll => item::take_all(world, performer).map(Some),
+        Wield(item, name) => item::wield(world, performer, item, &name).map(Some),
+        EnterDoor(door) => door::enter_door(world, performer, door).map(Some),
+        ForceDoor(door) => door::force_door(world, performer, door).map(Some),
+        Attack(target) => combat::attack(world, performer, target).map(Some),
+        Wait => Ok(None),
     };
     match result {
-        Ok(message) => messages.0.push(message),
+        Ok(Some(message)) => messages.0.push(message),
+        Ok(None) => {}
         Err(message) => {
             if performer == controlled {
-                messages.0.push(message)
+                messages.0.push(message);
             }
         }
     }
