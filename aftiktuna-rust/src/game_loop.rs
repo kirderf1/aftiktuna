@@ -1,4 +1,5 @@
 use crate::action::{combat, item, Action};
+use crate::position::Pos;
 use crate::status::Stamina;
 use crate::view::{DisplayInfo, Messages};
 use crate::{action, area, parse, status, view};
@@ -11,7 +12,7 @@ pub fn run() {
     let mut messages = Messages::default();
     let mut cache = None;
 
-    let aftik = area::init(&mut world);
+    let (ship, aftik) = area::init(&mut world);
 
     println!(
         "You're playing as the aftik {}.",
@@ -35,7 +36,7 @@ pub fn run() {
             break;
         }
 
-        if item::is_holding::<item::FuelCan>(&world) {
+        if has_won(&world, ship, aftik) {
             println!("Congratulations, you won!");
             break;
         }
@@ -43,6 +44,14 @@ pub fn run() {
         decision_phase(&mut world, aftik);
 
         action_phase(&mut world, &mut messages, aftik);
+    }
+}
+
+fn has_won(world: &World, ship: Entity, aftik: Entity) -> bool {
+    if let Ok(pos) = world.get::<Pos>(aftik) {
+        pos.is_in(ship) && item::is_holding::<item::FuelCan>(world)
+    } else {
+        false
     }
 }
 

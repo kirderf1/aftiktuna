@@ -35,11 +35,7 @@ pub fn try_parse_input(
             .literal("attack")
             .map(|parse| attack(&parse, world, aftik))
     })
-    .or_else(|| {
-        parse
-            .literal("wait")
-            .map(|parse| wait(&parse))
-    })
+    .or_else(|| parse.literal("wait").map(|parse| wait(&parse)))
     .or_else(|| {
         parse
             .literal("status")

@@ -9,9 +9,25 @@ use hecs::{DynamicBundle, Entity, World};
 
 mod init;
 
-pub fn init(world: &mut World) -> Entity {
-    let (start_area, start_coord) = init::combat_test(world);
-    place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8))
+pub fn init(world: &mut World) -> (Entity, Entity) {
+    let (start_area, start_coord) = init::misc_test(world);
+    let ship = world.spawn((Area {
+        label: "Ship".to_string(),
+        size: 4,
+    },));
+    place_doors(
+        world,
+        DoorInfo(
+            start_area,
+            start_coord,
+            DisplayInfo::from_noun('v', "ship entrance", 20),
+        ),
+        DoorInfo(ship, 3, DisplayInfo::from_noun('^', "ship exit", 20)),
+        (),
+    );
+
+    let aftik = place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8));
+    (ship, aftik)
 }
 
 pub struct Area {
