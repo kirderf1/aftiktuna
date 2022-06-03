@@ -1,7 +1,7 @@
 use crate::action::{combat, door, item, Action};
 use crate::position::Pos;
-use crate::view;
 use crate::view::DisplayInfo;
+use crate::{status, view};
 use hecs::{Entity, With, World};
 
 pub fn try_parse_input(
@@ -36,6 +36,11 @@ pub fn try_parse_input(
             .map(|parse| attack(&parse, world, aftik))
     })
     .or_else(|| parse.literal("wait").map(|parse| wait(&parse)))
+    .or_else(|| {
+        parse
+            .literal("rest")
+            .map(|parse| rest(&parse, world, aftik))
+    })
     .or_else(|| {
         parse
             .literal("status")
@@ -156,6 +161,35 @@ fn wait(parse: &Parse) -> Result<Option<Action>, String> {
     parse
         .done(|| Ok(Some(Action::Wait)))
         .unwrap_or_else(|| Err("Unexpected argument after \"wait\"".to_string()))
+}
+
+fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+    parse
+        .done(|| {
+            let area = world.get::<Pos>(aftik).unwrap().get_area();
+            if world
+                .query::<With<combat::IsFoe, &Pos>>()
+                .iter()
+                .any(|(_, pos)| pos.is_in(area))
+            {
+                Err("This area is not safe to rest in.".to_string())
+            } else {
+                let need_rest = world
+                    .get::<status::Stamina>(aftik)
+                    .map(|stamina| stamina.need_rest())
+                    .unwrap_or(false);
+
+                if need_rest {
+                    Ok(Some(Action::Rest(true)))
+                } else {
+                    Err(format!(
+                        "{} is already rested.",
+                        DisplayInfo::find_definite_name(world, aftik)
+                    ))
+                }
+            }
+        })
+        .unwrap_or_else(|| Err("Unexpected argument after \"rest\"".to_string()))
 }
 
 fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {

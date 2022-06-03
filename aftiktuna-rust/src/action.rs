@@ -1,6 +1,6 @@
 use crate::position::Pos;
 use crate::status;
-use crate::view::Messages;
+use crate::view::{DisplayInfo, Messages};
 use hecs::{Entity, With, World};
 use Action::*;
 
@@ -19,6 +19,7 @@ pub enum Action {
     ForceDoor(Entity),
     Attack(Entity),
     Wait,
+    Rest(bool),
 }
 
 pub fn foe_ai(world: &mut World, foe: Entity) {
@@ -55,6 +56,7 @@ pub fn perform(
         ForceDoor(door) => door::force_door(world, performer, door).map(Some),
         Attack(target) => combat::attack(world, performer, target).map(Some),
         Wait => Ok(None),
+        Rest(first) => Ok(rest(world, performer, first)),
     };
     match result {
         Ok(Some(message)) => messages.0.push(message),
@@ -64,5 +66,25 @@ pub fn perform(
                 messages.0.push(message);
             }
         }
+    }
+}
+
+fn rest(world: &mut World, performer: Entity, first: bool) -> Option<String> {
+    let need_more_rest = world
+        .get::<status::Stamina>(performer)
+        .map(|stamina| stamina.need_more_rest())
+        .unwrap_or(false);
+
+    if need_more_rest {
+        world.insert_one(performer, Rest(false)).unwrap();
+    }
+
+    if first {
+        Some(format!(
+            "{} takes some time to rest up.",
+            DisplayInfo::find_definite_name(world, performer)
+        ))
+    } else {
+        None
     }
 }

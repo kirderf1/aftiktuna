@@ -26,6 +26,14 @@ impl Stamina {
         self.dodge_stamina = min(self.dodge_stamina + 1, self.max);
     }
 
+    pub fn need_rest(&self) -> bool {
+        self.dodge_stamina < self.max
+    }
+
+    pub fn need_more_rest(&self) -> bool {
+        self.dodge_stamina + 1 < self.max
+    }
+
     pub fn as_fraction(&self) -> f32 {
         f32::from(self.dodge_stamina) / f32::from(self.max)
     }
