@@ -165,14 +165,12 @@ fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
 }
 
 fn wait(parse: &Parse) -> Result<Option<Action>, String> {
-    parse
-        .done(|| Ok(Some(Action::Wait)))
-        .unwrap_or_else(|| Err("Unexpected argument after \"wait\"".to_string()))
+    parse.done_or_err(|| Ok(Some(Action::Wait)), "wait")
 }
 
 fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
-    parse
-        .done(|| {
+    parse.done_or_err(
+        || {
             let area = world.get::<Pos>(aftik).unwrap().get_area();
             if world
                 .query::<With<combat::IsFoe, &Pos>>()
@@ -195,8 +193,9 @@ fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
                     ))
                 }
             }
-        })
-        .unwrap_or_else(|| Err("Unexpected argument after \"rest\"".to_string()))
+        },
+        "rest",
+    )
 }
 
 fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
@@ -207,8 +206,8 @@ fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
 }
 
 fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
-    parse
-        .done(|| {
+    parse.done_or_err(
+        || {
             let area = world.get::<Pos>(aftik).unwrap().get_area();
             if !item::is_holding::<FuelCan>(world) {
                 return Err(format!(
@@ -223,17 +222,19 @@ fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Act
                 )
             })?;
             Ok(Some(Action::Launch))
-        })
-        .unwrap_or_else(|| Err(format!("Unexpected argument after \"launch ship\"")))
+        },
+        "launch ship",
+    )
 }
 
 fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
-    parse
-        .done(|| {
+    parse.done_or_err(
+        || {
             view::print_full_status(world, aftik);
             Ok(None)
-        })
-        .unwrap_or_else(|| Err("Unexpected argument after \"status\"".to_string()))
+        },
+        "status",
+    )
 }
 
 struct Parse<'a> {
@@ -264,6 +265,14 @@ impl<'a> Parse<'a> {
         } else {
             None
         }
+    }
+
+    fn done_or_err<T, U>(&self, done: T, command: &str) -> Result<U, String>
+    where
+        T: FnOnce() -> Result<U, String>,
+    {
+        self.done(done)
+            .unwrap_or_else(|| Err(format!("Unexpected argument after \"{}\"", command)))
     }
 
     fn take_remaining<F, T>(&self, closure: F) -> T
