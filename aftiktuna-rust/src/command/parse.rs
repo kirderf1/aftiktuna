@@ -9,9 +9,14 @@ impl<'a> Parse<'a> {
 
     pub fn literal(&self, word: &str) -> Option<Parse<'a>> {
         if self.input.starts_with(word) {
-            Some(Parse {
-                input: self.input.split_at(word.len()).1.trim_start(),
-            })
+            let remainder = self.input.split_at(word.len()).1;
+            if remainder.is_empty() || remainder.starts_with(" ") {
+                Some(Parse {
+                    input: remainder.trim_start(),
+                })
+            } else {
+                None
+            }
         } else {
             None
         }
