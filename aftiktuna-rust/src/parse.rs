@@ -1,4 +1,6 @@
+use crate::action::item::FuelCan;
 use crate::action::{combat, door, item, Action};
+use crate::area::Ship;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
@@ -40,6 +42,11 @@ pub fn try_parse_input(
         parse
             .literal("rest")
             .map(|parse| rest(&parse, world, aftik))
+    })
+    .or_else(|| {
+        parse
+            .literal("launch")
+            .map(|parse| launch(&parse, world, aftik))
     })
     .or_else(|| {
         parse
@@ -190,6 +197,34 @@ fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
             }
         })
         .unwrap_or_else(|| Err("Unexpected argument after \"rest\"".to_string()))
+}
+
+fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+    parse
+        .literal("ship")
+        .map(|parse| launch_ship(&parse, world, aftik))
+        .unwrap_or_else(|| Err(format!("Unexpected argument after \"launch\"")))
+}
+
+fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+    parse
+        .done(|| {
+            let area = world.get::<Pos>(aftik).unwrap().get_area();
+            if !item::is_holding::<FuelCan>(world) {
+                return Err(format!(
+                    "{} needs a fuel can to launch the ship.",
+                    DisplayInfo::find_definite_name(world, aftik)
+                ));
+            }
+            world.get::<Ship>(area).map_err(|_| {
+                format!(
+                    "{} needs to be near the ship in order to launch it.",
+                    DisplayInfo::find_definite_name(world, aftik)
+                )
+            })?;
+            Ok(Some(Action::Launch))
+        })
+        .unwrap_or_else(|| Err(format!("Unexpected argument after \"launch ship\"")))
 }
 
 fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {

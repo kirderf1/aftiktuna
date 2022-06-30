@@ -7,6 +7,7 @@ use Action::*;
 pub mod combat;
 pub mod door;
 pub mod item;
+mod launch;
 
 #[derive(Debug, Default)]
 pub struct Aftik;
@@ -20,6 +21,7 @@ pub enum Action {
     Attack(Entity),
     Wait,
     Rest(bool),
+    Launch,
 }
 
 pub fn foe_ai(world: &mut World, foe: Entity) {
@@ -57,6 +59,7 @@ pub fn perform(
         Attack(target) => combat::attack(world, performer, target).map(Some),
         Wait => Ok(None),
         Rest(first) => Ok(rest(world, performer, first)),
+        Launch => Ok(launch::perform(world, performer)),
     };
     match result {
         Ok(Some(message)) => messages.0.push(message),

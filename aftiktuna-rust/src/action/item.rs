@@ -21,6 +21,16 @@ pub fn is_holding<C: Component>(world: &World) -> bool {
         > 0
 }
 
+pub fn consume_one<C: Component>(world: &mut World) -> Option<()> {
+    let (item, _) = world
+        .query::<()>()
+        .with::<InInventory>()
+        .with::<C>()
+        .iter()
+        .next()?;
+    world.despawn(item).ok()
+}
+
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
     let aftik_pos = *world.get::<Pos>(aftik).unwrap();
     let (item, name) = world

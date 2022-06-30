@@ -1,5 +1,5 @@
-use crate::action::{combat, item, Action};
-use crate::area::Ship;
+use crate::action::{combat, Action};
+use crate::area::{Ship, ShipStatus};
 use crate::position::Pos;
 use crate::status::Stamina;
 use crate::view::{DisplayInfo, Messages};
@@ -50,7 +50,10 @@ pub fn run() {
 
 fn has_won(world: &World, aftik: Entity) -> bool {
     if let Ok(pos) = world.get::<Pos>(aftik) {
-        world.get::<Ship>(pos.get_area()).is_ok() && item::is_holding::<item::FuelCan>(world)
+        world
+            .get::<Ship>(pos.get_area())
+            .map(|ship| ship.0 == ShipStatus::Launching)
+            .unwrap_or(false)
     } else {
         false
     }

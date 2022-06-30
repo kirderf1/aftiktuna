@@ -16,7 +16,7 @@ pub fn init(world: &mut World) -> Entity {
             label: "Ship".to_string(),
             size: 4,
         },
-        Ship,
+        Ship(ShipStatus::NeedTwoCans),
     ));
     place_doors(
         world,
@@ -37,7 +37,15 @@ pub struct Area {
     pub label: String,
 }
 
-pub struct Ship;
+#[derive(Clone, Debug)]
+pub struct Ship(pub ShipStatus);
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ShipStatus {
+    NeedTwoCans,
+    NeedOneCan,
+    Launching,
+}
 
 fn place_aftik(world: &mut World, area: Entity, coord: Coord, name: &str, stats: Stats) -> Entity {
     let pos = Pos::new(area, coord, world);
