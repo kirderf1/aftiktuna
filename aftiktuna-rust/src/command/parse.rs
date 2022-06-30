@@ -1,18 +1,26 @@
 pub struct Parse<'a> {
     input: &'a str,
+    start: usize,
 }
 
 impl<'a> Parse<'a> {
     pub fn new(input: &str) -> Parse {
-        Parse { input }
+        Parse { input, start: 0 }
     }
 
     pub fn literal(&self, word: &str) -> Option<Parse<'a>> {
-        if self.input.starts_with(word) {
-            let remainder = self.input.split_at(word.len()).1;
-            if remainder.is_empty() || remainder.starts_with(" ") {
+        let input = self.active_input();
+        if input.starts_with(word) {
+            let remainder = input.split_at(word.len()).1;
+            if remainder.is_empty() {
                 Some(Parse {
-                    input: remainder.trim_start(),
+                    input: self.input,
+                    start: self.start + word.len(),
+                })
+            } else if remainder.starts_with(" ") {
+                Some(Parse {
+                    input: self.input,
+                    start: self.start + word.len() + " ".len(),
                 })
             } else {
                 None
@@ -26,7 +34,7 @@ impl<'a> Parse<'a> {
     where
         T: FnOnce() -> U,
     {
-        if self.input.is_empty() {
+        if self.active_input().is_empty() {
             Some(closure())
         } else {
             None
@@ -45,6 +53,10 @@ impl<'a> Parse<'a> {
     where
         F: FnOnce(&str) -> T,
     {
-        closure(self.input)
+        closure(self.active_input())
+    }
+
+    fn active_input(&self) -> &'a str {
+        self.input.split_at(self.start).1
     }
 }
