@@ -3,7 +3,7 @@ use crate::area::{Ship, ShipStatus};
 use crate::position::Pos;
 use crate::status::Stamina;
 use crate::view::{DisplayInfo, Messages};
-use crate::{action, area, parse, status, view};
+use crate::{action, area, command, status, view};
 use hecs::{Entity, With, World};
 use std::io::Write;
 use std::{io, thread, time};
@@ -81,7 +81,7 @@ fn parse_user_action(world: &World, aftik: Entity) -> Action {
     loop {
         let input = read_input().to_lowercase();
 
-        match parse::try_parse_input(&input, world, aftik) {
+        match command::try_parse_input(&input, world, aftik) {
             Ok(Some(action)) => return action,
             Ok(None) => {}
             Err(message) => println!("{}", message),

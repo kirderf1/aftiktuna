@@ -1,10 +1,13 @@
 use crate::action::item::FuelCan;
-use crate::action::{combat, door, item, Action};
+use crate::action::{Action, combat, door, item};
 use crate::area::Ship;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
 use hecs::{Entity, With, World};
+use parse::Parse;
+
+mod parse;
 
 pub fn try_parse_input(
     input: &str,
@@ -235,50 +238,4 @@ fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
         },
         "status",
     )
-}
-
-struct Parse<'a> {
-    input: &'a str,
-}
-
-impl<'a> Parse<'a> {
-    fn new(input: &str) -> Parse {
-        Parse { input }
-    }
-
-    fn literal(&self, word: &str) -> Option<Parse<'a>> {
-        if self.input.starts_with(word) {
-            Some(Parse {
-                input: self.input.split_at(word.len()).1.trim_start(),
-            })
-        } else {
-            None
-        }
-    }
-
-    fn done<T, U>(&self, closure: T) -> Option<U>
-    where
-        T: FnOnce() -> U,
-    {
-        if self.input.is_empty() {
-            Some(closure())
-        } else {
-            None
-        }
-    }
-
-    fn done_or_err<T, U>(&self, done: T, command: &str) -> Result<U, String>
-    where
-        T: FnOnce() -> Result<U, String>,
-    {
-        self.done(done)
-            .unwrap_or_else(|| Err(format!("Unexpected argument after \"{}\"", command)))
-    }
-
-    fn take_remaining<F, T>(&self, closure: F) -> T
-    where
-        F: FnOnce(&str) -> T,
-    {
-        closure(self.input)
-    }
 }

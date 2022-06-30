@@ -1,7 +1,7 @@
 mod action;
 mod area;
 mod game_loop;
-mod parse;
+mod command;
 mod position;
 mod status;
 mod view;
