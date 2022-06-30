@@ -168,37 +168,34 @@ fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
 }
 
 fn wait(parse: &Parse) -> Result<Option<Action>, String> {
-    parse.done_or_err(|| Ok(Some(Action::Wait)), "wait")
+    parse.done_or_err(|| Ok(Some(Action::Wait)))
 }
 
 fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
-    parse.done_or_err(
-        || {
-            let area = world.get::<Pos>(aftik).unwrap().get_area();
-            if world
-                .query::<With<combat::IsFoe, &Pos>>()
-                .iter()
-                .any(|(_, pos)| pos.is_in(area))
-            {
-                Err("This area is not safe to rest in.".to_string())
-            } else {
-                let need_rest = world
-                    .get::<status::Stamina>(aftik)
-                    .map(|stamina| stamina.need_rest())
-                    .unwrap_or(false);
+    parse.done_or_err(|| {
+        let area = world.get::<Pos>(aftik).unwrap().get_area();
+        if world
+            .query::<With<combat::IsFoe, &Pos>>()
+            .iter()
+            .any(|(_, pos)| pos.is_in(area))
+        {
+            Err("This area is not safe to rest in.".to_string())
+        } else {
+            let need_rest = world
+                .get::<status::Stamina>(aftik)
+                .map(|stamina| stamina.need_rest())
+                .unwrap_or(false);
 
-                if need_rest {
-                    Ok(Some(Action::Rest(true)))
-                } else {
-                    Err(format!(
-                        "{} is already rested.",
-                        DisplayInfo::find_definite_name(world, aftik)
-                    ))
-                }
+            if need_rest {
+                Ok(Some(Action::Rest(true)))
+            } else {
+                Err(format!(
+                    "{} is already rested.",
+                    DisplayInfo::find_definite_name(world, aftik)
+                ))
             }
-        },
-        "rest",
-    )
+        }
+    })
 }
 
 fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
@@ -209,33 +206,27 @@ fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
 }
 
 fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
-    parse.done_or_err(
-        || {
-            let area = world.get::<Pos>(aftik).unwrap().get_area();
-            if !item::is_holding::<FuelCan>(world) {
-                return Err(format!(
-                    "{} needs a fuel can to launch the ship.",
-                    DisplayInfo::find_definite_name(world, aftik)
-                ));
-            }
-            world.get::<Ship>(area).map_err(|_| {
-                format!(
-                    "{} needs to be near the ship in order to launch it.",
-                    DisplayInfo::find_definite_name(world, aftik)
-                )
-            })?;
-            Ok(Some(Action::Launch))
-        },
-        "launch ship",
-    )
+    parse.done_or_err(|| {
+        let area = world.get::<Pos>(aftik).unwrap().get_area();
+        if !item::is_holding::<FuelCan>(world) {
+            return Err(format!(
+                "{} needs a fuel can to launch the ship.",
+                DisplayInfo::find_definite_name(world, aftik)
+            ));
+        }
+        world.get::<Ship>(area).map_err(|_| {
+            format!(
+                "{} needs to be near the ship in order to launch it.",
+                DisplayInfo::find_definite_name(world, aftik)
+            )
+        })?;
+        Ok(Some(Action::Launch))
+    })
 }
 
 fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
-    parse.done_or_err(
-        || {
-            view::print_full_status(world, aftik);
-            Ok(None)
-        },
-        "status",
-    )
+    parse.done_or_err(|| {
+        view::print_full_status(world, aftik);
+        Ok(None)
+    })
 }

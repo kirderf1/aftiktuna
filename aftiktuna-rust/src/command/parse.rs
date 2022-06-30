@@ -41,12 +41,16 @@ impl<'a> Parse<'a> {
         }
     }
 
-    pub fn done_or_err<T, U>(&self, done: T, command: &str) -> Result<U, String>
+    pub fn done_or_err<T, U>(&self, done: T) -> Result<U, String>
     where
         T: FnOnce() -> Result<U, String>,
     {
-        self.done(done)
-            .unwrap_or_else(|| Err(format!("Unexpected argument after \"{}\"", command)))
+        self.done(done).unwrap_or_else(|| {
+            Err(format!(
+                "Unexpected argument after \"{}\"",
+                self.consumed_input()
+            ))
+        })
     }
 
     pub fn take_remaining<F, T>(&self, closure: F) -> T
@@ -58,5 +62,9 @@ impl<'a> Parse<'a> {
 
     fn active_input(&self) -> &'a str {
         self.input.split_at(self.start).1
+    }
+
+    fn consumed_input(&self) -> &'a str {
+        self.input.split_at(self.start).0.trim_end()
     }
 }
