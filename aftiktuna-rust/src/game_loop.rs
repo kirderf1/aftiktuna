@@ -1,4 +1,4 @@
-use crate::action::{combat, Action};
+use crate::action::{combat, item, Action, Aftik};
 use crate::area::{Ship, ShipStatus};
 use crate::position::Pos;
 use crate::status::Stamina;
@@ -13,11 +13,11 @@ pub fn run() {
     let mut messages = Messages::default();
     let mut cache = None;
 
-    let aftik = area::init(&mut world);
+    let mut aftik = area::init(&mut world);
 
     println!(
         "You're playing as the aftik {}.",
-        world.get::<DisplayInfo>(aftik).unwrap().name()
+        DisplayInfo::find_name(&world, aftik)
     );
 
     loop {
@@ -27,16 +27,6 @@ pub fn run() {
 
         view::print(&world, aftik, &mut messages, &mut cache);
 
-        if !status::is_alive(aftik, &world) {
-            println!(
-                "{} is dead.",
-                DisplayInfo::find_definite_name(&world, aftik)
-            );
-            thread::sleep(time::Duration::from_secs(2));
-            println!("You lost.");
-            break;
-        }
-
         if has_won(&world, aftik) {
             println!("Congratulations, you won!");
             break;
@@ -45,6 +35,31 @@ pub fn run() {
         decision_phase(&mut world, aftik);
 
         action_phase(&mut world, &mut messages, aftik);
+
+        if !status::is_alive(aftik, &world) {
+            view::print(&world, aftik, &mut messages, &mut None);
+            thread::sleep(time::Duration::from_secs(2));
+            println!(
+                "{} is dead.",
+                DisplayInfo::find_definite_name(&world, aftik)
+            );
+            item::drop_all_items(&mut world, aftik);
+            world.despawn(aftik).unwrap();
+        }
+
+        if world.get::<Aftik>(aftik).is_err() {
+            if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
+                aftik = next_aftik;
+                cache = None;
+                println!(
+                    "You're now playing as the aftik {}.",
+                    DisplayInfo::find_name(&world, aftik)
+                );
+            } else {
+                println!("You lost.");
+                break;
+            }
+        }
     }
 }
 

@@ -130,3 +130,22 @@ fn unwield_if_needed(world: &mut World, entity: Entity) {
         world.insert_one(item, InInventory).unwrap();
     }
 }
+
+pub fn drop_all_items(world: &mut World, entity: Entity) {
+    let pos = *world.get::<Pos>(entity).unwrap();
+    let items = world
+        .query::<()>()
+        .with::<InInventory>()
+        .iter()
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    for item in items {
+        world.remove_one::<InInventory>(item).unwrap();
+        world.insert_one(item, pos).unwrap();
+    }
+    let wielded = get_wielded(world, entity);
+    if let Some(item) = wielded {
+        world.remove_one::<Wielded>(item).unwrap();
+        world.insert_one(item, pos).unwrap();
+    }
+}

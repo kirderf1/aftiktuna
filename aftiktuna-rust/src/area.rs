@@ -10,7 +10,7 @@ use hecs::{DynamicBundle, Entity, World};
 mod init;
 
 pub fn init(world: &mut World) -> Entity {
-    let (start_area, start_coord) = init::misc_test(world);
+    let (start_area, start_coord) = init::combat_test(world);
     let ship = world.spawn((
         Area {
             label: "Ship".to_string(),
@@ -29,6 +29,13 @@ pub fn init(world: &mut World) -> Entity {
         (),
     );
 
+    place_aftik(
+        world,
+        start_area,
+        start_coord,
+        "Cerulean",
+        Stats::new(9, 2, 10),
+    );
     place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8))
 }
 
