@@ -1,5 +1,5 @@
 use crate::action::item::FuelCan;
-use crate::action::{combat, door, item, Action};
+use crate::action::{combat, door, item, Action, Aftik};
 use crate::area::Ship;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
@@ -11,6 +11,7 @@ mod parse;
 
 pub enum CommandResult {
     Action(Action),
+    ChangeControlled(Entity),
     None,
 }
 
@@ -60,6 +61,11 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
         parse
             .literal("status")
             .map(|parse| status(&parse, world, aftik))
+    })
+    .or_else(|| {
+        parse
+            .literal("control")
+            .map(|parse| control(&parse, world, aftik))
     })
     .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
 }
@@ -234,5 +240,22 @@ fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, 
     parse.done_or_err(|| {
         view::print_full_status(world, aftik);
         Ok(CommandResult::None)
+    })
+}
+
+fn control(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+    parse.take_remaining(|name| {
+        let (new_aftik, _) = world
+            .query::<&DisplayInfo>()
+            .with::<Aftik>()
+            .iter()
+            .find(|(_, display_info)| display_info.matches(name))
+            .ok_or_else(|| "There is no crew member by that name.".to_string())?;
+
+        if new_aftik == aftik {
+            Err("You're already in control of them.".to_string())
+        } else {
+            Ok(CommandResult::ChangeControlled(new_aftik))
+        }
     })
 }

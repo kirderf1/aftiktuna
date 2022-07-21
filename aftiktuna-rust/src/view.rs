@@ -11,6 +11,14 @@ mod status;
 #[derive(Default)]
 pub struct Messages(pub Vec<String>);
 
+impl Messages {
+    pub fn simple(message: String) -> Messages {
+        let mut messages = Messages::default();
+        messages.0.push(message);
+        messages
+    }
+}
+
 #[derive(Debug)]
 pub struct DisplayInfo {
     symbol: char,

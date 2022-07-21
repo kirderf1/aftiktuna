@@ -47,7 +47,7 @@ pub fn run() {
             break;
         }
 
-        decision_phase(&mut world, aftik.entity);
+        decision_phase(&mut world, &mut aftik);
 
         action_phase(&mut world, &mut messages, aftik.entity);
 
@@ -88,7 +88,7 @@ fn has_won(world: &World, aftik: Entity) -> bool {
     }
 }
 
-fn decision_phase(world: &mut World, aftik: Entity) {
+fn decision_phase(world: &mut World, aftik: &mut PlayerControlled) {
     let foes = world
         .query::<With<combat::IsFoe, ()>>()
         .iter()
@@ -98,20 +98,34 @@ fn decision_phase(world: &mut World, aftik: Entity) {
         action::foe_ai(world, foe);
     }
 
-    if world.get::<Action>(aftik).is_err() {
+    if world.get::<Action>(aftik.entity).is_err() {
         let action = parse_user_action(world, aftik);
-        world.insert_one(aftik, action).unwrap();
+        world.insert_one(aftik.entity, action).unwrap();
     } else {
         thread::sleep(time::Duration::from_secs(2));
     }
 }
 
-fn parse_user_action(world: &World, aftik: Entity) -> Action {
+fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> Action {
     loop {
         let input = read_input().to_lowercase();
 
-        match command::try_parse_input(&input, world, aftik) {
+        match command::try_parse_input(&input, world, aftik.entity) {
             Ok(CommandResult::Action(action)) => return action,
+            Ok(CommandResult::ChangeControlled(new_aftik)) => {
+                *aftik = PlayerControlled::new(new_aftik);
+
+                let message = format!(
+                    "You're now playing as the aftik {}.",
+                    DisplayInfo::find_definite_name(world, aftik.entity)
+                );
+                view::print(
+                    world,
+                    aftik.entity,
+                    &mut Messages::simple(message),
+                    &mut aftik.cache,
+                );
+            }
             Ok(CommandResult::None) => {}
             Err(message) => println!("{}", message),
         }
