@@ -9,16 +9,30 @@ use hecs::{Entity, With, World};
 use std::io::Write;
 use std::{io, thread, time};
 
+struct PlayerControlled {
+    entity: Entity,
+    cache: Option<view::StatusCache>,
+}
+
+impl PlayerControlled {
+    fn new(entity: Entity) -> PlayerControlled {
+        PlayerControlled {
+            entity,
+            cache: None,
+        }
+    }
+}
+
 pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
-    let mut cache = None;
 
-    let mut aftik = area::init(&mut world);
+    let aftik = area::init(&mut world);
+    let mut aftik = PlayerControlled::new(aftik);
 
     println!(
         "You're playing as the aftik {}.",
-        DisplayInfo::find_name(&world, aftik)
+        DisplayInfo::find_name(&world, aftik.entity)
     );
 
     loop {
@@ -26,35 +40,34 @@ pub fn run() {
             stamina.tick();
         }
 
-        view::print(&world, aftik, &mut messages, &mut cache);
+        view::print(&world, aftik.entity, &mut messages, &mut aftik.cache);
 
-        if has_won(&world, aftik) {
+        if has_won(&world, aftik.entity) {
             println!("Congratulations, you won!");
             break;
         }
 
-        decision_phase(&mut world, aftik);
+        decision_phase(&mut world, aftik.entity);
 
-        action_phase(&mut world, &mut messages, aftik);
+        action_phase(&mut world, &mut messages, aftik.entity);
 
-        if !status::is_alive(aftik, &world) {
-            view::print(&world, aftik, &mut messages, &mut None);
+        if !status::is_alive(aftik.entity, &world) {
+            view::print(&world, aftik.entity, &mut messages, &mut None);
             thread::sleep(time::Duration::from_secs(2));
             println!(
                 "{} is dead.",
-                DisplayInfo::find_definite_name(&world, aftik)
+                DisplayInfo::find_definite_name(&world, aftik.entity)
             );
-            item::drop_all_items(&mut world, aftik);
-            world.despawn(aftik).unwrap();
+            item::drop_all_items(&mut world, aftik.entity);
+            world.despawn(aftik.entity).unwrap();
         }
 
-        if world.get::<Aftik>(aftik).is_err() {
+        if world.get::<Aftik>(aftik.entity).is_err() {
             if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
-                aftik = next_aftik;
-                cache = None;
+                aftik = PlayerControlled::new(next_aftik);
                 println!(
                     "You're now playing as the aftik {}.",
-                    DisplayInfo::find_name(&world, aftik)
+                    DisplayInfo::find_name(&world, aftik.entity)
                 );
             } else {
                 println!("You lost.");
