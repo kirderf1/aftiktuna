@@ -9,11 +9,16 @@ use parse::Parse;
 
 mod parse;
 
-pub fn try_parse_input(
-    input: &str,
-    world: &World,
-    aftik: Entity,
-) -> Result<Option<Action>, String> {
+pub enum CommandResult {
+    Action(Action),
+    None,
+}
+
+fn action_result(action: Action) -> Result<CommandResult, String> {
+    Ok(CommandResult::Action(action))
+}
+
+pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     let parse = Parse::new(input);
     None.or_else(|| {
         parse
@@ -59,11 +64,11 @@ pub fn try_parse_input(
     .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
 }
 
-fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     None.or_else(|| {
         parse
             .literal("all")
-            .and_then(|parse| parse.done(|| Ok(Some(Action::TakeAll))))
+            .and_then(|parse| parse.done(|| action_result(Action::TakeAll)))
     })
     .unwrap_or_else(|| {
         parse.take_remaining(|name| {
@@ -76,17 +81,17 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
                 })
                 .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
                 .map(|(item, (_, display_info))| {
-                    Ok(Some(Action::TakeItem(
+                    action_result(Action::TakeItem(
                         item,
                         display_info.definite_name().to_string(),
-                    )))
+                    ))
                 })
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
         })
     })
 }
 
-fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         None.or_else(|| {
             world
@@ -98,10 +103,10 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, 
                     display_info.matches(name) && in_inventory.held_by(aftik)
                 })
                 .map(|(item, (display_info, _))| {
-                    Ok(Some(Action::Wield(
+                    action_result(Action::Wield(
                         item,
                         display_info.definite_name().to_string(),
-                    )))
+                    ))
                 })
         })
         .or_else(|| {
@@ -116,10 +121,10 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, 
                 })
                 .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
                 .map(|(item, (_, display_info))| {
-                    Ok(Some(Action::Wield(
+                    action_result(Action::Wield(
                         item,
                         display_info.definite_name().to_string(),
-                    )))
+                    ))
                 })
         })
         .unwrap_or_else(|| {
@@ -132,47 +137,47 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, 
     })
 }
 
-fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
             .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(door, _)| Ok(Some(Action::EnterDoor(door))))
+            .map(|(door, _)| action_result(Action::EnterDoor(door)))
             .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
     })
 }
 
-fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
             .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(door, _)| Ok(Some(Action::ForceDoor(door))))
+            .map(|(door, _)| action_result(Action::ForceDoor(door)))
             .unwrap_or_else(|| Err("There is no such door here.".to_string()))
     })
 }
 
-fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
             .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(target, _)| Ok(Some(Action::Attack(target))))
+            .map(|(target, _)| action_result(Action::Attack(target)))
             .unwrap_or_else(|| Err("There is no such target here.".to_string()))
     })
 }
 
-fn wait(parse: &Parse) -> Result<Option<Action>, String> {
-    parse.done_or_err(|| Ok(Some(Action::Wait)))
+fn wait(parse: &Parse) -> Result<CommandResult, String> {
+    parse.done_or_err(|| action_result(Action::Wait))
 }
 
-fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         if world
@@ -188,7 +193,7 @@ fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
                 .unwrap_or(false);
 
             if need_rest {
-                Ok(Some(Action::Rest(true)))
+                action_result(Action::Rest(true))
             } else {
                 Err(format!(
                     "{} is already rested.",
@@ -199,14 +204,14 @@ fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, S
     })
 }
 
-fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse
         .literal("ship")
         .map(|parse| launch_ship(&parse, world, aftik))
         .unwrap_or_else(|| Err(format!("Unexpected argument after \"launch\"")))
 }
 
-fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         if !item::is_holding::<FuelCan>(world, aftik) {
@@ -221,13 +226,13 @@ fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Act
                 DisplayInfo::find_definite_name(world, aftik)
             )
         })?;
-        Ok(Some(Action::Launch))
+        action_result(Action::Launch)
     })
 }
 
-fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
+fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
         view::print_full_status(world, aftik);
-        Ok(None)
+        Ok(CommandResult::None)
     })
 }

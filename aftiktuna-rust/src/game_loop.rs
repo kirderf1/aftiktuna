@@ -1,5 +1,6 @@
 use crate::action::{combat, item, Action, Aftik};
 use crate::area::{Ship, ShipStatus};
+use crate::command::CommandResult;
 use crate::position::Pos;
 use crate::status::Stamina;
 use crate::view::{DisplayInfo, Messages};
@@ -97,8 +98,8 @@ fn parse_user_action(world: &World, aftik: Entity) -> Action {
         let input = read_input().to_lowercase();
 
         match command::try_parse_input(&input, world, aftik) {
-            Ok(Some(action)) => return action,
-            Ok(None) => {}
+            Ok(CommandResult::Action(action)) => return action,
+            Ok(CommandResult::None) => {}
             Err(message) => println!("{}", message),
         }
     }
