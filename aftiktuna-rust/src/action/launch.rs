@@ -12,8 +12,8 @@ pub fn perform(world: &mut World, performer: Entity) -> Option<String> {
     let status = world.get::<Ship>(area).ok()?.0;
 
     let (new_status, message) = match status {
-        ShipStatus::NeedTwoCans => on_need_two_cans(world, &name),
-        ShipStatus::NeedOneCan => on_need_one_can(world, &name),
+        ShipStatus::NeedTwoCans => on_need_two_cans(world, performer, &name),
+        ShipStatus::NeedOneCan => on_need_one_can(world, performer, &name),
         ShipStatus::Launching => (
             ShipStatus::Launching,
             "The ship is already launching".to_string(),
@@ -27,20 +27,20 @@ pub fn perform(world: &mut World, performer: Entity) -> Option<String> {
     Some(message)
 }
 
-fn on_need_two_cans(world: &mut World, name: &str) -> (ShipStatus, String) {
-    item::consume_one::<FuelCan>(world).map_or_else(
+fn on_need_two_cans(world: &mut World, aftik: Entity, name: &str) -> (ShipStatus, String) {
+    item::consume_one::<FuelCan>(world, aftik).map_or_else(
         || {
             (
                 ShipStatus::NeedTwoCans,
                 format!("Two fuel cans are needed to launch the ship."),
             )
         },
-        |_| on_need_one_can(world, name),
+        |_| on_need_one_can(world, aftik, name),
     )
 }
 
-fn on_need_one_can(world: &mut World, name: &str) -> (ShipStatus, String) {
-    item::consume_one::<FuelCan>(world).map_or_else(
+fn on_need_one_can(world: &mut World, aftik: Entity, name: &str) -> (ShipStatus, String) {
+    item::consume_one::<FuelCan>(world, aftik).map_or_else(
         || {
             (
                 ShipStatus::NeedOneCan,

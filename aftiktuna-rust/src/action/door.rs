@@ -29,15 +29,20 @@ impl BlockType {
         }
     }
 
-    fn try_force(self, world: &mut World, aftik_name: String) -> Result<String, String> {
+    fn try_force(
+        self,
+        world: &mut World,
+        aftik: Entity,
+        aftik_name: String,
+    ) -> Result<String, String> {
         match self {
             BlockType::Stuck => {
-                if item::is_holding::<Crowbar>(world) {
+                if item::is_holding::<Crowbar>(world, aftik) {
                     Ok(format!(
                         "{} used their crowbar and forced open the door.",
                         aftik_name
                     ))
-                } else if item::is_holding::<Blowtorch>(world) {
+                } else if item::is_holding::<Blowtorch>(world, aftik) {
                     Ok(format!(
                         "{} used their blowtorch and cut open the door.",
                         aftik_name
@@ -50,7 +55,7 @@ impl BlockType {
                 }
             }
             BlockType::Sealed | BlockType::Locked => {
-                if item::is_holding::<Blowtorch>(world) {
+                if item::is_holding::<Blowtorch>(world, aftik) {
                     Ok(format!(
                         "{} used their blowtorch and cut open the door.",
                         aftik_name
@@ -93,7 +98,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .map(|door| (door.destination, door.door_pair))?;
 
     let used_keycard = if let Ok(blocking) = world.get::<DoorBlocking>(door_pair) {
-        if blocking.0 == BlockType::Locked && item::is_holding::<Keycard>(world) {
+        if blocking.0 == BlockType::Locked && item::is_holding::<Keycard>(world, aftik) {
             true
         } else {
             return Err(format!("The door is {}.", blocking.0.description()));
@@ -134,7 +139,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
         .get::<DoorBlocking>(door_pair)
         .map(|blocking| blocking.0);
     if let Ok(block_type) = block_type {
-        let result = block_type.try_force(world, aftik_name);
+        let result = block_type.try_force(world, aftik, aftik_name);
         if result.is_ok() {
             world.remove_one::<DoorBlocking>(door_pair).unwrap();
         }

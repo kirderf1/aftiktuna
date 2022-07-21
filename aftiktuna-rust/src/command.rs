@@ -1,5 +1,5 @@
 use crate::action::item::FuelCan;
-use crate::action::{Action, combat, door, item};
+use crate::action::{combat, door, item, Action};
 use crate::area::Ship;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
@@ -90,13 +90,14 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, 
     parse.take_remaining(|name| {
         None.or_else(|| {
             world
-                .query::<&DisplayInfo>()
+                .query::<(&DisplayInfo, &item::InInventory)>()
                 .with::<item::CanWield>()
                 .with::<item::Item>()
-                .with::<item::InInventory>()
                 .iter()
-                .find(|(_, display_info)| display_info.matches(name))
-                .map(|(item, display_info)| {
+                .find(|(_, (display_info, in_inventory))| {
+                    display_info.matches(name) && in_inventory.held_by(aftik)
+                })
+                .map(|(item, (display_info, _))| {
                     Ok(Some(Action::Wield(
                         item,
                         display_info.definite_name().to_string(),
@@ -208,7 +209,7 @@ fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>,
 fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<Option<Action>, String> {
     parse.done_or_err(|| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
-        if !item::is_holding::<FuelCan>(world) {
+        if !item::is_holding::<FuelCan>(world, aftik) {
             return Err(format!(
                 "{} needs a fuel can to launch the ship.",
                 DisplayInfo::find_definite_name(world, aftik)

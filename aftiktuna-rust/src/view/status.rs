@@ -1,8 +1,7 @@
 use crate::action::item;
-use crate::action::item::InInventory;
 use crate::status::{Health, Stats};
 use crate::view::{capitalize, DisplayInfo, StatusCache};
-use hecs::{Entity, With, World};
+use hecs::{Entity, World};
 
 pub fn print_full_status(world: &World, aftik: Entity) {
     println!(
@@ -81,10 +80,8 @@ fn print_wielded(
     wielded
 }
 
-fn print_inventory(world: &World, _aftik: Entity, prev_inv: Option<&Vec<Entity>>) -> Vec<Entity> {
-    let mut query = world.query::<With<InInventory, &DisplayInfo>>();
-
-    let mut inventory = query.iter().map(|(entity, _)| entity).collect::<Vec<_>>();
+fn print_inventory(world: &World, aftik: Entity, prev_inv: Option<&Vec<Entity>>) -> Vec<Entity> {
+    let mut inventory = item::get_inventory(world, aftik);
     inventory.sort();
 
     if Some(&inventory) == prev_inv {
@@ -96,9 +93,9 @@ fn print_inventory(world: &World, _aftik: Entity, prev_inv: Option<&Vec<Entity>>
     } else {
         println!(
             "Inventory: {}",
-            query
+            inventory
                 .iter()
-                .map(|(_, info)| capitalize(info.name()))
+                .map(|item| capitalize(&DisplayInfo::find_name(world, *item)))
                 .collect::<Vec<String>>()
                 .join(", ")
         );

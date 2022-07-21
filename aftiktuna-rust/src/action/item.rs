@@ -1,7 +1,7 @@
 use crate::action::{Action, Aftik};
 use crate::position::{try_move, Pos};
 use crate::view::DisplayInfo;
-use hecs::{Component, Entity, Or, With, World};
+use hecs::{Component, Entity, With, World};
 
 #[derive(Debug, Default)]
 pub struct Item;
@@ -10,24 +10,49 @@ pub struct Item;
 pub struct FuelCan;
 
 #[derive(Debug)]
-pub struct InInventory;
+pub struct InInventory(Entity);
 
-pub fn is_holding<C: Component>(world: &World) -> bool {
-    world
-        .query::<Or<With<InInventory, ()>, With<Wielded, ()>>>()
-        .with::<C>()
-        .iter()
-        .len()
-        > 0
+impl InInventory {
+    pub fn held_by(&self, holder: Entity) -> bool {
+        self.0 == holder
+    }
 }
 
-pub fn consume_one<C: Component>(world: &mut World) -> Option<()> {
-    let (item, _) = world
-        .query::<()>()
-        .with::<InInventory>()
+pub fn is_holding<C: Component>(world: &World, entity: Entity) -> bool {
+    world
+        .query::<&Wielded>()
         .with::<C>()
         .iter()
-        .next()?;
+        .any(|(_, wielded)| wielded.0 == entity)
+        || world
+            .query::<&InInventory>()
+            .with::<C>()
+            .iter()
+            .any(|(_, in_inventory)| in_inventory.held_by(entity))
+}
+
+pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
+    world
+        .get::<InInventory>(item)
+        .ok()
+        .map_or(false, |in_inventory| in_inventory.held_by(holder))
+}
+
+pub fn get_inventory(world: &World, holder: Entity) -> Vec<Entity> {
+    world
+        .query::<&InInventory>()
+        .iter()
+        .filter(|(_, in_inventory)| in_inventory.held_by(holder))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>()
+}
+
+pub fn consume_one<C: Component>(world: &mut World, entity: Entity) -> Option<()> {
+    let (item, _) = world
+        .query::<&InInventory>()
+        .with::<C>()
+        .iter()
+        .find(|(_, in_inventory)| in_inventory.held_by(entity))?;
     world.despawn(item).ok()
 }
 
@@ -68,7 +93,7 @@ pub fn take_item(
         .remove_one::<Pos>(item)
         .expect("Tried removing position from item");
     world
-        .insert_one(item, InInventory)
+        .insert_one(item, InInventory(aftik))
         .expect("Tried adding inventory data to item");
 
     Ok(format!("{} picked up {}.", aftik_name, item_name))
@@ -78,14 +103,14 @@ pub fn take_item(
 pub struct CanWield;
 
 #[derive(Debug)]
-struct Wielded;
+struct Wielded(Entity);
 
 pub fn get_wielded(world: &World, entity: Entity) -> Option<Entity> {
     world.get::<Aftik>(entity).ok()?;
     world
-        .query::<With<Wielded, ()>>()
+        .query::<&Wielded>()
         .iter()
-        .next()
+        .find(|(_, wielded)| wielded.0 == entity)
         .map(|(item, _)| item)
 }
 
@@ -97,10 +122,10 @@ pub fn wield(
 ) -> Result<String, String> {
     let aftik_name = DisplayInfo::find_definite_name(world, aftik);
 
-    if world.get::<InInventory>(item).is_ok() {
+    if is_in_inventory(world, item, aftik) {
         unwield_if_needed(world, aftik);
         world.remove_one::<InInventory>(item).unwrap();
-        world.insert_one(item, Wielded).unwrap();
+        world.insert_one(item, Wielded(aftik)).unwrap();
 
         Ok(format!("{} wielded a {}.", aftik_name, item_name))
     } else {
@@ -114,7 +139,7 @@ pub fn wield(
             .remove_one::<Pos>(item)
             .expect("Tried removing position from item");
         world
-            .insert_one(item, Wielded)
+            .insert_one(item, Wielded(aftik))
             .expect("Tried adding inventory data to item");
 
         Ok(format!(
@@ -124,21 +149,16 @@ pub fn wield(
     }
 }
 
-fn unwield_if_needed(world: &mut World, entity: Entity) {
-    if let Some(item) = get_wielded(world, entity) {
+fn unwield_if_needed(world: &mut World, holder: Entity) {
+    if let Some(item) = get_wielded(world, holder) {
         world.remove_one::<Wielded>(item).unwrap();
-        world.insert_one(item, InInventory).unwrap();
+        world.insert_one(item, InInventory(holder)).unwrap();
     }
 }
 
 pub fn drop_all_items(world: &mut World, entity: Entity) {
     let pos = *world.get::<Pos>(entity).unwrap();
-    let items = world
-        .query::<()>()
-        .with::<InInventory>()
-        .iter()
-        .map(|(entity, _)| entity)
-        .collect::<Vec<_>>();
+    let items = get_inventory(world, entity);
     for item in items {
         world.remove_one::<InInventory>(item).unwrap();
         world.insert_one(item, pos).unwrap();
