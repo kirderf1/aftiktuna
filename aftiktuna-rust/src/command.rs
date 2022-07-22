@@ -57,11 +57,7 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
             .literal("launch")
             .map(|parse| launch(&parse, world, aftik))
     })
-    .or_else(|| {
-        parse
-            .literal("status")
-            .map(|parse| status(&parse, world, aftik))
-    })
+    .or_else(|| parse.literal("status").map(|parse| status(&parse, world)))
     .or_else(|| {
         parse
             .literal("control")
@@ -236,9 +232,12 @@ fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandRes
     })
 }
 
-fn status(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn status(parse: &Parse, world: &World) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
-        view::print_full_status(world, aftik);
+        println!("Crew:");
+        for (aftik, _) in world.query::<()>().with::<Aftik>().iter() {
+            view::print_full_status(world, aftik);
+        }
         Ok(CommandResult::None)
     })
 }
