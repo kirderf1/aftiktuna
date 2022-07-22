@@ -51,25 +51,17 @@ pub fn run() {
 
         action_phase(&mut world, &mut messages, aftik.entity);
 
-        if !status::is_alive(aftik.entity, &world) {
-            view::print(&world, aftik.entity, &mut messages, &mut None);
-            thread::sleep(time::Duration::from_secs(2));
-            println!(
-                "{} is dead.",
-                DisplayInfo::find_definite_name(&world, aftik.entity)
-            );
-            item::drop_all_items(&mut world, aftik.entity);
-            world.despawn(aftik.entity).unwrap();
-        }
+        handle_aftik_deaths(&mut world, &mut messages, aftik.entity);
 
         if world.get::<Aftik>(aftik.entity).is_err() {
             if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
                 aftik = PlayerControlled::new(next_aftik);
-                println!(
+                messages.add(format!(
                     "You're now playing as the aftik {}.",
                     DisplayInfo::find_name(&world, aftik.entity)
-                );
+                ));
             } else {
+                messages.print_and_clear();
                 println!("You lost.");
                 break;
             }
@@ -162,6 +154,33 @@ fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
 
         if let Ok(action) = world.remove_one::<Action>(entity) {
             action::perform(world, entity, action, aftik, messages);
+        }
+    }
+}
+
+fn handle_aftik_deaths(
+    world: &mut World,
+    messages: &mut Messages,
+    controlled_aftik: Entity,
+) {
+    if !status::is_alive(controlled_aftik, world) {
+        view::print(world, controlled_aftik, messages, &mut None);
+        thread::sleep(time::Duration::from_secs(2));
+    }
+    let aftiks = world
+        .query::<()>()
+        .with::<Aftik>()
+        .iter()
+        .map(|(aftik, _)| aftik)
+        .collect::<Vec<_>>();
+    for aftik in aftiks {
+        if !status::is_alive(aftik, world) {
+            messages.add(format!(
+                "{} is dead.",
+                DisplayInfo::find_definite_name(world, aftik)
+            ));
+            item::drop_all_items(world, aftik);
+            world.despawn(aftik).unwrap();
         }
     }
 }

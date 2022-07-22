@@ -9,13 +9,31 @@ use std::cmp::max;
 mod status;
 
 #[derive(Default)]
-pub struct Messages(pub Vec<String>);
+pub struct Messages(Vec<String>);
 
 impl Messages {
     pub fn simple(message: String) -> Messages {
         let mut messages = Messages::default();
-        messages.0.push(message);
+        messages.add(message);
         messages
+    }
+
+    pub fn add(&mut self, message: String) {
+        self.0.push(message);
+    }
+
+    pub fn print_and_clear(&mut self) {
+        if !self.0.is_empty() {
+            println!(
+                "{}",
+                self.0
+                    .iter()
+                    .map(|line| capitalize(line))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            );
+            self.0.clear();
+        }
     }
 }
 
@@ -93,18 +111,7 @@ pub fn print(
     print_area(world, area, area_size);
 
     println!();
-    if !messages.0.is_empty() {
-        println!(
-            "{}",
-            messages
-                .0
-                .iter()
-                .map(|line| capitalize(line))
-                .collect::<Vec<_>>()
-                .join(" ")
-        );
-        messages.0.clear();
-    }
+    messages.print_and_clear();
     status::print(world, aftik, cache);
 }
 

@@ -62,11 +62,11 @@ pub fn perform(
         Launch => Ok(launch::perform(world, performer)),
     };
     match result {
-        Ok(Some(message)) => messages.0.push(message),
+        Ok(Some(message)) => messages.add(message),
         Ok(None) => {}
         Err(message) => {
             if performer == controlled {
-                messages.0.push(message);
+                messages.add(message);
             }
         }
     }
