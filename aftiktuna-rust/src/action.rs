@@ -62,7 +62,13 @@ pub fn perform(
         Launch => Ok(launch::perform(world, performer)),
     };
     match result {
-        Ok(Some(message)) => messages.add(message),
+        Ok(Some(message)) => {
+            let performer_pos = *world.get::<Pos>(performer).unwrap();
+            let player_pos = *world.get::<Pos>(controlled).unwrap();
+            if player_pos.is_in(performer_pos.get_area()) {
+                messages.add(message);
+            }
+        }
         Ok(None) => {}
         Err(message) => {
             if performer == controlled {
