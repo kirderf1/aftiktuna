@@ -104,7 +104,7 @@ public final class GameInstance {
 			handleCrewDeaths();
 			
 			if (crew.isEmpty()) {
-				messageBuffer.flush(out);
+				out.println();
 				out.println("You lost.");
 				return;
 			}
@@ -149,6 +149,11 @@ public final class GameInstance {
 	}
 	
 	private void handleCrewDeaths() {
+		for (Aftik aftik : crew.getCrewMembers()) {
+			if (aftik.isDead()) {
+				messageBuffer.print("%s is dead.", aftik.getName());
+			}
+		}
 		
 		if (crew.getAftik().isDead()) {
 			restoreView();
@@ -158,8 +163,6 @@ public final class GameInstance {
 		
 		for (Aftik aftik : crew.getCrewMembers()) {
 			if (aftik.isDead()) {
-				messageBuffer.print("%s is dead.", aftik.getName());
-				
 				aftik.dropItems();
 				aftik.remove();
 				crew.removeCrewMember(aftik);

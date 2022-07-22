@@ -61,7 +61,7 @@ pub fn run() {
                     DisplayInfo::find_name(&world, aftik.entity)
                 ));
             } else {
-                messages.print_and_clear();
+                println!();
                 println!("You lost.");
                 break;
             }
@@ -159,10 +159,6 @@ fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
 }
 
 fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
-    if !status::is_alive(controlled_aftik, world) {
-        view::print(world, controlled_aftik, messages, &mut None);
-        thread::sleep(time::Duration::from_secs(2));
-    }
     let dead_crew = world
         .query::<&Health>()
         .with::<Aftik>()
@@ -170,11 +166,20 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
         .filter(|(_, health)| health.is_dead())
         .map(|(aftik, _)| aftik)
         .collect::<Vec<_>>();
-    for aftik in dead_crew {
+
+    for &aftik in &dead_crew {
         messages.add(format!(
             "{} is dead.",
             DisplayInfo::find_definite_name(world, aftik)
         ));
+    }
+
+    if !status::is_alive(controlled_aftik, world) {
+        view::print(world, controlled_aftik, messages, &mut None);
+        thread::sleep(time::Duration::from_secs(2));
+    }
+
+    for aftik in dead_crew {
         item::drop_all_items(world, aftik);
         world.despawn(aftik).unwrap();
     }
