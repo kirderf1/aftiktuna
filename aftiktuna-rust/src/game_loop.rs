@@ -2,7 +2,7 @@ use crate::action::{combat, item, Action, Aftik};
 use crate::area::{Ship, ShipStatus};
 use crate::command::CommandResult;
 use crate::position::Pos;
-use crate::status::Stamina;
+use crate::status::{Health, Stamina};
 use crate::view::{DisplayInfo, Messages};
 use crate::{action, area, command, status, view};
 use hecs::{Entity, With, World};
@@ -158,29 +158,24 @@ fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
     }
 }
 
-fn handle_aftik_deaths(
-    world: &mut World,
-    messages: &mut Messages,
-    controlled_aftik: Entity,
-) {
+fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
     if !status::is_alive(controlled_aftik, world) {
         view::print(world, controlled_aftik, messages, &mut None);
         thread::sleep(time::Duration::from_secs(2));
     }
-    let aftiks = world
-        .query::<()>()
+    let dead_crew = world
+        .query::<&Health>()
         .with::<Aftik>()
         .iter()
+        .filter(|(_, health)| health.is_dead())
         .map(|(aftik, _)| aftik)
         .collect::<Vec<_>>();
-    for aftik in aftiks {
-        if !status::is_alive(aftik, world) {
-            messages.add(format!(
-                "{} is dead.",
-                DisplayInfo::find_definite_name(world, aftik)
-            ));
-            item::drop_all_items(world, aftik);
-            world.despawn(aftik).unwrap();
-        }
+    for aftik in dead_crew {
+        messages.add(format!(
+            "{} is dead.",
+            DisplayInfo::find_definite_name(world, aftik)
+        ));
+        item::drop_all_items(world, aftik);
+        world.despawn(aftik).unwrap();
     }
 }
