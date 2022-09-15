@@ -1,12 +1,10 @@
-use crate::action::combat::{IsFoe, Weapon};
-use crate::action::door::{Blowtorch, Crowbar, Door, Keycard};
-use crate::action::item::{CanWield, FuelCan, Item};
-use crate::action::Aftik;
-use crate::position::{Coord, MovementBlocking, Pos};
-use crate::status::{Health, Stamina, Stats};
+use crate::action::door::Door;
+use crate::position::{Coord, Pos};
+use crate::status::Stats;
 use crate::view::DisplayInfo;
 use hecs::{DynamicBundle, Entity, World};
 
+mod creature;
 mod init;
 mod item;
 
@@ -30,14 +28,14 @@ pub fn init(world: &mut World) -> Entity {
         (),
     );
 
-    place_aftik(
+    creature::place_aftik(
         world,
         start_area,
         start_coord,
         "Cerulean",
         Stats::new(9, 2, 10),
     );
-    place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8))
+    creature::place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8))
 }
 
 pub struct Area {
@@ -53,60 +51,6 @@ pub enum ShipStatus {
     NeedTwoCans,
     NeedOneCan,
     Launching,
-}
-
-fn place_aftik(world: &mut World, area: Entity, coord: Coord, name: &str, stats: Stats) -> Entity {
-    let pos = Pos::new(area, coord, world);
-    world.spawn((
-        DisplayInfo::from_name(name.chars().next().unwrap(), name, 10),
-        pos,
-        Aftik,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ))
-}
-
-fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
-    let stats = Stats::new(2, 4, 10);
-    let pos = Pos::new(area, coord, world);
-    world.spawn((
-        DisplayInfo::from_noun('G', "goblin", 10),
-        pos,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ))
-}
-
-fn place_eyesaur(world: &mut World, area: Entity, coord: Coord) -> Entity {
-    let stats = Stats::new(7, 7, 4);
-    let pos = Pos::new(area, coord, world);
-    world.spawn((
-        DisplayInfo::from_noun('E', "eyesaur", 10),
-        pos,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ))
-}
-
-fn place_azureclops(world: &mut World, area: Entity, coord: Coord) -> Entity {
-    let stats = Stats::new(15, 10, 4);
-    let pos = Pos::new(area, coord, world);
-    world.spawn((
-        DisplayInfo::from_noun('Z', "Azureclops", 10),
-        pos,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ))
 }
 
 struct DoorInfo(Entity, Coord, DisplayInfo);

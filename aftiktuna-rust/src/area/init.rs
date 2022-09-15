@@ -1,6 +1,6 @@
 use crate::action::door::{BlockType, DoorBlocking};
 use crate::area;
-use crate::area::{Area, DoorInfo, item};
+use crate::area::{Area, creature, DoorInfo, item};
 use crate::position::Coord;
 use hecs::{Entity, World};
 
@@ -53,7 +53,7 @@ pub fn misc_test(world: &mut World) -> (Entity, Coord) {
     item::place_crowbar(world, room, 3);
     item::place_blowtorch(world, side_room_2, 0);
     item::place_keycard(world, room, 0);
-    area::place_goblin(world, side_room_2, 3);
+    creature::place_goblin(world, side_room_2, 3);
     (room, 1)
 }
 
@@ -95,10 +95,10 @@ pub fn combat_test(world: &mut World) -> (Entity, Coord) {
         (),
     );
 
-    area::place_goblin(world, goblin_room, 0);
-    area::place_goblin(world, goblin_room, 3);
-    area::place_eyesaur(world, eyesaur_room, 4);
-    area::place_azureclops(world, azureclops_room, 4);
+    creature::place_goblin(world, goblin_room, 0);
+    creature::place_goblin(world, goblin_room, 3);
+    creature::place_eyesaur(world, eyesaur_room, 4);
+    creature::place_azureclops(world, azureclops_room, 4);
     item::place_crowbar(world, armory, 5);
     item::place_bat(world, armory, 5);
     item::place_knife(world, armory, 0);
