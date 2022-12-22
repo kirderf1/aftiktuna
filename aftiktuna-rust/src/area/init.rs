@@ -1,27 +1,20 @@
 use crate::action::door::{BlockType, DoorBlocking};
 use crate::area;
-use crate::area::{Area, creature, DoorInfo, item};
+use crate::area::template::Room;
+use crate::area::{creature, item, DoorInfo};
 use crate::position::Coord;
 use hecs::{Entity, World};
 
 #[allow(dead_code)]
 pub fn misc_test(world: &mut World) -> (Entity, Coord) {
-    let room = world.spawn((Area {
-        size: 4,
-        label: "Room".to_string(),
-    },));
-    let side_room = world.spawn((Area {
-        size: 5,
-        label: "Side Room".to_string(),
-    },));
-    let side_room_2 = world.spawn((Area {
-        size: 12,
-        label: "Side Room".to_string(),
-    },));
-    let mid_room = world.spawn((Area {
-        size: 5,
-        label: "Room".to_string(),
-    },));
+    let room = Room::create("Room", vec!["", "", "", ""]).build(world);
+    let side_room = Room::create("Side Room", vec!["", "", "", "", ""]).build(world);
+    let side_room_2 = Room::create(
+        "Side Room",
+        vec!["", "", "", "", "", "", "", "", "", "", "", ""],
+    )
+    .build(world);
+    let mid_room = Room::create("Room", vec!["", "", "", "", ""]).build(world);
 
     area::place_doors(
         world,
@@ -59,22 +52,10 @@ pub fn misc_test(world: &mut World) -> (Entity, Coord) {
 
 #[allow(dead_code)]
 pub fn combat_test(world: &mut World) -> (Entity, Coord) {
-    let armory = world.spawn((Area {
-        size: 6,
-        label: "Armory".to_string(),
-    },));
-    let goblin_room = world.spawn((Area {
-        size: 5,
-        label: "Goblin Room".to_string(),
-    },));
-    let eyesaur_room = world.spawn((Area {
-        size: 5,
-        label: "Eyesaur Room".to_string(),
-    },));
-    let azureclops_room = world.spawn((Area {
-        size: 5,
-        label: "Azureclops Room".to_string(),
-    },));
+    let armory = Room::create("Armory", vec!["", "", "", "", "", ""]).build(world);
+    let goblin_room = Room::create("Goblin Room", vec!["", "", "", "", ""]).build(world);
+    let eyesaur_room = Room::create("Eyesaur Room", vec!["", "", "", "", ""]).build(world);
+    let azureclops_room = Room::create("Azureclops Room", vec!["", "", "", "", ""]).build(world);
 
     area::place_doors(
         world,

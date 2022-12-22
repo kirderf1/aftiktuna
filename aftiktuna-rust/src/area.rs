@@ -7,6 +7,7 @@ use hecs::{DynamicBundle, Entity, World};
 mod creature;
 mod init;
 mod item;
+mod template;
 
 pub fn init(world: &mut World) -> Entity {
     let (start_area, start_coord) = init::combat_test(world);
