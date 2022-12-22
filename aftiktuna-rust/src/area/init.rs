@@ -1,79 +1,55 @@
-use crate::action::door::{BlockType, DoorBlocking};
-use crate::area;
-use crate::area::template::{AreaData, Builder};
-use crate::area::DoorInfo;
-use crate::position::Pos;
-use hecs::World;
+use crate::action::door::BlockType;
+use crate::area::template::LocationData;
 
 #[allow(dead_code)]
-pub fn misc_test(world: &mut World) -> Pos {
-    let mut builder = Builder::new(world);
-    let room = AreaData::create("Room", &["k", "v", "", "c"]).build(&mut builder);
-    let side_room = AreaData::create("Side Room", &["", "", "", "f", "f"]).build(&mut builder);
-    let side_room_2 = AreaData::create(
+pub fn misc_test() -> LocationData {
+    let mut location = LocationData::new();
+
+    location.area(
+        "Room",
+        &["<k", "v", "^", ">c"],
+        &[('<', "left"), ('^', "mid"), ('>', "right")],
+    );
+    location.area(
         "Side Room",
-        &["b", "", "", "G", "", "", "", "", "", "", "", ""],
-    )
-    .build(&mut builder);
-    let mid_room = AreaData::create("Room", &["", "", "", "", ""]).build(&mut builder);
-    let entry = builder.get_entry();
+        &["", "<", ">", "f", "f"],
+        &[('<', "left"), ('>', "side")],
+    );
+    location.area(
+        "Side Room",
+        &["b", "", "", "G", "", "<", "", "", ">", "", "", ""],
+        &[('<', "main_right"), ('>', "side")],
+    );
+    location.area("Room", &["", "^", "", "", ""], &[('^', "mid")]);
 
-    area::place_doors(
-        world,
-        DoorInfo(room, 0, area::left_door()),
-        DoorInfo(side_room, 1, area::left_door()),
-        (DoorBlocking(BlockType::Stuck),),
-    );
-    area::place_doors(
-        world,
-        DoorInfo(room, 3, area::right_door()),
-        DoorInfo(side_room_2, 5, area::left_door()),
-        (),
-    );
-    area::place_doors(
-        world,
-        DoorInfo(side_room, 2, area::right_door()),
-        DoorInfo(side_room_2, 8, area::right_door()),
-        (DoorBlocking(BlockType::Sealed),),
-    );
-    area::place_doors(
-        world,
-        DoorInfo(room, 2, area::door()),
-        DoorInfo(mid_room, 1, area::door()),
-        (DoorBlocking(BlockType::Locked),),
-    );
+    location.blocked_door("left", BlockType::Stuck);
+    location.door("right");
+    location.blocked_door("side", BlockType::Sealed);
+    location.blocked_door("mid", BlockType::Locked);
 
-    entry
+    location
 }
 
 #[allow(dead_code)]
-pub fn combat_test(world: &mut World) -> Pos {
-    let mut builder = Builder::new(world);
-    let armory = AreaData::create("Armory", &["Ks", "", "v", "", "", "cB"]).build(&mut builder);
-    let goblin_room = AreaData::create("Goblin Room", &["G", "", "", "G", ""]).build(&mut builder);
-    let eyesaur_room = AreaData::create("Eyesaur Room", &["", "", "", "", "E"]).build(&mut builder);
-    let azureclops_room =
-        AreaData::create("Azureclops Room", &["", "", "", "", "Z"]).build(&mut builder);
-    let entry = builder.get_entry();
+pub fn combat_test() -> LocationData {
+    let mut location = LocationData::new();
 
-    area::place_doors(
-        world,
-        DoorInfo(armory, 1, area::left_door()),
-        DoorInfo(goblin_room, 2, area::door()),
-        (),
+    location.area(
+        "Armory",
+        &["Ks", "<", "v", "^", ">", "cB"],
+        &[('<', "goblin"), ('^', "eyesaur"), ('>', "azureclops")],
     );
-    area::place_doors(
-        world,
-        DoorInfo(armory, 3, area::door()),
-        DoorInfo(eyesaur_room, 2, area::door()),
-        (),
-    );
-    area::place_doors(
-        world,
-        DoorInfo(armory, 4, area::right_door()),
-        DoorInfo(azureclops_room, 2, area::door()),
-        (),
+    location.area("Goblin Room", &["G", "", "^", "G", ""], &[('^', "goblin")]);
+    location.area("Eyesaur Room", &["", "", "^", "", "E"], &[('^', "eyesaur")]);
+    location.area(
+        "Azureclops Room",
+        &["", "", "^", "", "Z"],
+        &[('^', "azureclops")],
     );
 
-    entry
+    location.door("goblin");
+    location.door("eyesaur");
+    location.door("azureclops");
+
+    location
 }

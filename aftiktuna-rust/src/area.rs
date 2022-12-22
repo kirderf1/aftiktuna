@@ -1,8 +1,8 @@
-use crate::action::door::Door;
+use crate::action::door::{BlockType, Door, DoorBlocking};
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::DisplayInfo;
-use hecs::{DynamicBundle, Entity, World};
+use hecs::{Entity, World};
 
 mod creature;
 mod init;
@@ -10,7 +10,7 @@ mod item;
 mod template;
 
 pub fn init(world: &mut World) -> Entity {
-    let start_pos = init::combat_test(world);
+    let start_pos = init::combat_test().build(world);
     let ship = world.spawn((
         Area {
             label: "Ship".to_string(),
@@ -20,13 +20,12 @@ pub fn init(world: &mut World) -> Entity {
     ));
     place_doors(
         world,
+        DoorInfo(start_pos, DisplayInfo::from_noun('v', "ship entrance", 20)),
         DoorInfo(
-            start_pos.get_area(),
-            start_pos.get_coord(),
-            DisplayInfo::from_noun('v', "ship entrance", 20),
+            Pos::new(ship, 3, world),
+            DisplayInfo::from_noun('^', "ship exit", 20),
         ),
-        DoorInfo(ship, 3, DisplayInfo::from_noun('^', "ship exit", 20)),
-        (),
+        None,
     );
 
     creature::place_aftik(world, start_pos, "Cerulean", Stats::new(9, 2, 10));
@@ -48,19 +47,16 @@ pub enum ShipStatus {
     Launching,
 }
 
-struct DoorInfo(Entity, Coord, DisplayInfo);
+#[derive(Clone)]
+struct DoorInfo(Pos, DisplayInfo);
 
-fn place_doors(
-    world: &mut World,
-    door1: DoorInfo,
-    door2: DoorInfo,
-    pair_components: impl DynamicBundle,
-) {
-    let pos1 = Pos::new(door1.0, door1.1, world);
-    let pos2 = Pos::new(door2.0, door2.1, world);
-    let door_pair = world.spawn(pair_components);
-    place_door(world, pos1, door1.2, pos2, door_pair);
-    place_door(world, pos2, door2.2, pos1, door_pair);
+fn place_doors(world: &mut World, door1: DoorInfo, door2: DoorInfo, block_type: Option<BlockType>) {
+    let door_pair = match block_type {
+        Some(block_type) => world.spawn((DoorBlocking(block_type),)),
+        None => world.spawn(()),
+    };
+    place_door(world, door1.0, door1.1, door2.0, door_pair);
+    place_door(world, door2.0, door2.1, door1.0, door_pair);
 }
 
 fn place_door(

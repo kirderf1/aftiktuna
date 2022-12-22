@@ -37,7 +37,7 @@ impl Messages {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DisplayInfo {
     symbol: char,
     name: String,
