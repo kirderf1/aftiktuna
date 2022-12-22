@@ -1,14 +1,14 @@
-use crate::area::Area;
+use crate::area::{creature, item, Area};
 use crate::position::Pos;
 use hecs::{Entity, World};
 
 pub struct Room {
-    pub name: String,
-    pub objects: Vec<String>,
+    name: String,
+    objects: Vec<String>,
 }
 
 impl Room {
-    pub fn create(name: &str, objects: Vec<&str>) -> Room {
+    pub fn create(name: &str, objects: &[&str]) -> Room {
         Room {
             name: name.to_string(),
             objects: objects.iter().map(ToString::to_string).collect(),
@@ -34,6 +34,16 @@ impl Room {
 
 fn place_object(world: &mut World, pos: Pos, symbol: char) {
     match symbol {
+        'f' => item::place_fuel(world, pos),
+        'c' => item::place_crowbar(world, pos),
+        'b' => item::place_blowtorch(world, pos),
+        'k' => item::place_keycard(world, pos),
+        'K' => item::place_knife(world, pos),
+        'B' => item::place_bat(world, pos),
+        's' => item::place_sword(world, pos),
+        'G' => creature::place_goblin(world, pos),
+        'E' => creature::place_eyesaur(world, pos),
+        'Z' => creature::place_azureclops(world, pos),
         _ => panic!("Unknown symbol: {}", symbol),
     }
 }

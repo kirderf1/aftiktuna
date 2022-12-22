@@ -23,9 +23,8 @@ pub fn place_aftik(
     ))
 }
 
-pub fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
+pub fn place_goblin(world: &mut World, pos: Pos) {
     let stats = Stats::new(2, 4, 10);
-    let pos = Pos::new(area, coord, world);
     world.spawn((
         DisplayInfo::from_noun('G', "goblin", 10),
         pos,
@@ -34,12 +33,11 @@ pub fn place_goblin(world: &mut World, area: Entity, coord: Coord) -> Entity {
         Health::with_max(&stats),
         Stamina::with_max(&stats),
         stats,
-    ))
+    ));
 }
 
-pub fn place_eyesaur(world: &mut World, area: Entity, coord: Coord) -> Entity {
+pub fn place_eyesaur(world: &mut World, pos: Pos) {
     let stats = Stats::new(7, 7, 4);
-    let pos = Pos::new(area, coord, world);
     world.spawn((
         DisplayInfo::from_noun('E', "eyesaur", 10),
         pos,
@@ -48,12 +46,11 @@ pub fn place_eyesaur(world: &mut World, area: Entity, coord: Coord) -> Entity {
         Health::with_max(&stats),
         Stamina::with_max(&stats),
         stats,
-    ))
+    ));
 }
 
-pub fn place_azureclops(world: &mut World, area: Entity, coord: Coord) -> Entity {
+pub fn place_azureclops(world: &mut World, pos: Pos) {
     let stats = Stats::new(15, 10, 4);
-    let pos = Pos::new(area, coord, world);
     world.spawn((
         DisplayInfo::from_noun('Z', "Azureclops", 10),
         pos,
@@ -62,5 +59,5 @@ pub fn place_azureclops(world: &mut World, area: Entity, coord: Coord) -> Entity
         Health::with_max(&stats),
         Stamina::with_max(&stats),
         stats,
-    ))
+    ));
 }
