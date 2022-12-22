@@ -1,18 +1,11 @@
 use crate::action::combat::IsFoe;
 use crate::action::Aftik;
-use crate::position::{Coord, MovementBlocking, Pos};
+use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
-pub fn place_aftik(
-    world: &mut World,
-    area: Entity,
-    coord: Coord,
-    name: &str,
-    stats: Stats,
-) -> Entity {
-    let pos = Pos::new(area, coord, world);
+pub fn place_aftik(world: &mut World, pos: Pos, name: &str, stats: Stats) -> Entity {
     world.spawn((
         DisplayInfo::from_name(name.chars().next().unwrap(), name, 10),
         pos,

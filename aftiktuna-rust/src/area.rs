@@ -10,7 +10,7 @@ mod item;
 mod template;
 
 pub fn init(world: &mut World) -> Entity {
-    let (start_area, start_coord) = init::combat_test(world);
+    let start_pos = init::combat_test(world);
     let ship = world.spawn((
         Area {
             label: "Ship".to_string(),
@@ -21,22 +21,16 @@ pub fn init(world: &mut World) -> Entity {
     place_doors(
         world,
         DoorInfo(
-            start_area,
-            start_coord,
+            start_pos.get_area(),
+            start_pos.get_coord(),
             DisplayInfo::from_noun('v', "ship entrance", 20),
         ),
         DoorInfo(ship, 3, DisplayInfo::from_noun('^', "ship exit", 20)),
         (),
     );
 
-    creature::place_aftik(
-        world,
-        start_area,
-        start_coord,
-        "Cerulean",
-        Stats::new(9, 2, 10),
-    );
-    creature::place_aftik(world, start_area, start_coord, "Mint", Stats::new(10, 3, 8))
+    creature::place_aftik(world, start_pos, "Cerulean", Stats::new(9, 2, 10));
+    creature::place_aftik(world, start_pos, "Mint", Stats::new(10, 3, 8))
 }
 
 pub struct Area {

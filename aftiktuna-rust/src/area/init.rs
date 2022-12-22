@@ -1,20 +1,22 @@
 use crate::action::door::{BlockType, DoorBlocking};
 use crate::area;
-use crate::area::template::Room;
+use crate::area::template::{AreaData, Builder};
 use crate::area::DoorInfo;
-use crate::position::Coord;
-use hecs::{Entity, World};
+use crate::position::Pos;
+use hecs::World;
 
 #[allow(dead_code)]
-pub fn misc_test(world: &mut World) -> (Entity, Coord) {
-    let room = Room::create("Room", &["k", "", "", "c"]).build(world);
-    let side_room = Room::create("Side Room", &["", "", "", "f", "f"]).build(world);
-    let side_room_2 = Room::create(
+pub fn misc_test(world: &mut World) -> Pos {
+    let mut builder = Builder::new(world);
+    let room = AreaData::create("Room", &["k", "v", "", "c"]).build(&mut builder);
+    let side_room = AreaData::create("Side Room", &["", "", "", "f", "f"]).build(&mut builder);
+    let side_room_2 = AreaData::create(
         "Side Room",
         &["b", "", "", "G", "", "", "", "", "", "", "", ""],
     )
-    .build(world);
-    let mid_room = Room::create("Room", &["", "", "", "", ""]).build(world);
+    .build(&mut builder);
+    let mid_room = AreaData::create("Room", &["", "", "", "", ""]).build(&mut builder);
+    let entry = builder.get_entry();
 
     area::place_doors(
         world,
@@ -41,15 +43,18 @@ pub fn misc_test(world: &mut World) -> (Entity, Coord) {
         (DoorBlocking(BlockType::Locked),),
     );
 
-    (room, 1)
+    entry
 }
 
 #[allow(dead_code)]
-pub fn combat_test(world: &mut World) -> (Entity, Coord) {
-    let armory = Room::create("Armory", &["Ks", "", "", "", "", "cB"]).build(world);
-    let goblin_room = Room::create("Goblin Room", &["G", "", "", "G", ""]).build(world);
-    let eyesaur_room = Room::create("Eyesaur Room", &["", "", "", "", "E"]).build(world);
-    let azureclops_room = Room::create("Azureclops Room", &["", "", "", "", "Z"]).build(world);
+pub fn combat_test(world: &mut World) -> Pos {
+    let mut builder = Builder::new(world);
+    let armory = AreaData::create("Armory", &["Ks", "", "v", "", "", "cB"]).build(&mut builder);
+    let goblin_room = AreaData::create("Goblin Room", &["G", "", "", "G", ""]).build(&mut builder);
+    let eyesaur_room = AreaData::create("Eyesaur Room", &["", "", "", "", "E"]).build(&mut builder);
+    let azureclops_room =
+        AreaData::create("Azureclops Room", &["", "", "", "", "Z"]).build(&mut builder);
+    let entry = builder.get_entry();
 
     area::place_doors(
         world,
@@ -70,5 +75,5 @@ pub fn combat_test(world: &mut World) -> (Entity, Coord) {
         (),
     );
 
-    (armory, 2)
+    entry
 }
