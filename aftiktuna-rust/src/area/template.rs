@@ -3,8 +3,10 @@ use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, item, Area};
 use crate::position::Pos;
 use hecs::World;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+#[derive(Serialize, Deserialize)]
 pub struct LocationData {
     areas: Vec<AreaData>,
     door_pairs: HashMap<String, DoorPairData>,
@@ -53,6 +55,7 @@ impl LocationData {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct AreaData {
     name: String,
     objects: Vec<String>,
@@ -95,11 +98,13 @@ impl AreaData {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 struct DoorData {
     pair_id: String,
     display_type: DoorType,
 }
 
+#[derive(Serialize, Deserialize)]
 struct DoorPairData {
     block_type: Option<BlockType>,
 }

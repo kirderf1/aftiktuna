@@ -1,0 +1,66 @@
+{
+  "areas": [
+    {
+      "name": "Room",
+      "objects": [ "<k", "v", "^", ">c" ],
+      "doors": {
+        "<": {
+          "pair_id": "left",
+          "display_type": "left_door"
+        },
+        "^": {
+          "pair_id": "mid",
+          "display_type": "mid_door"
+        },
+        ">": {
+          "pair_id": "right",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Side Room",
+      "objects": [ "", "<", ">", "f", "f" ],
+      "doors": {
+        "<": {
+          "pair_id": "left",
+          "display_type": "left_door"
+        },
+        ">": {
+          "pair_id": "side",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Side Room",
+      "objects": [ "b", "", "", "G", "", "<", "", "", ">", "", "", "" ],
+      "doors": {
+        "<": {
+          "pair_id": "right",
+          "display_type": "left_door"
+        },
+        ">": {
+          "pair_id": "side",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "objects": [ "", "^", "", "", "" ],
+      "doors": {
+        "^": {
+          "pair_id": "mid",
+          "display_type": "door"
+        }
+      }
+    }
+  ],
+  "door_pairs": {
+    "left": { "block_type": "stuck" },
+    "mid": { "block_type": "locked" },
+    "right": { "block_type": null },
+    "side": { "block_type": "sealed" }
+  }
+}

@@ -1,8 +1,10 @@
+use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::DisplayInfo;
 use door::DoorInfo;
 use hecs::{Entity, World};
+use std::fs::File;
 
 mod creature;
 mod door;
@@ -11,7 +13,8 @@ mod item;
 mod template;
 
 pub fn init(world: &mut World) -> Entity {
-    let location = init::abandoned_facility();
+    let location = load_location("location/abandoned_facility");
+
     let start_pos = location
         .build(world)
         .unwrap_or_else(|message| panic!("{}", message));
@@ -35,6 +38,11 @@ pub fn init(world: &mut World) -> Entity {
 
     creature::place_aftik(world, start_pos, "Cerulean", Stats::new(9, 2, 10));
     creature::place_aftik(world, start_pos, "Mint", Stats::new(10, 3, 8))
+}
+
+fn load_location(name: &str) -> LocationData {
+    let file = File::open(format!("assets/{}.json", name)).unwrap();
+    serde_json::from_reader(file).unwrap()
 }
 
 pub struct Area {

@@ -3,6 +3,7 @@ use crate::position;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct Door {
@@ -13,7 +14,8 @@ pub struct Door {
 #[derive(Debug)]
 pub struct DoorBlocking(pub BlockType);
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum BlockType {
     Stuck,
     Sealed,

@@ -1,0 +1,57 @@
+{
+  "areas": [
+    {
+      "name": "Armory",
+      "objects": [ "Ks", "<", "v", "^", ">", "cB" ],
+      "doors": {
+        "<": {
+          "pair_id": "goblin",
+          "display_type": "left_door"
+        },
+        "^": {
+          "pair_id": "eyesaur",
+          "display_type": "mid_door"
+        },
+        ">": {
+          "pair_id": "azureclops",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Goblin Room",
+      "objects": [ "G", "", "^", "G", "" ],
+      "doors": {
+        "^": {
+          "pair_id": "goblin",
+          "display_type": "door"
+        }
+      }
+    },
+    {
+      "name": "Eyesaur Room",
+      "objects": [ "", "", "^", "", "E" ],
+      "doors": {
+        "^": {
+          "pair_id": "eyesaur",
+          "display_type": "door"
+        }
+      }
+    },
+    {
+      "name": "Azureclops Room",
+      "objects": [ "", "", "^", "", "Z" ],
+      "doors": {
+        "^": {
+          "pair_id": "azureclops",
+          "display_type": "door"
+        }
+      }
+    }
+  ],
+  "door_pairs": {
+    "goblin": { "block_type": null },
+    "eyesaur": { "block_type": null },
+    "azureclops": { "block_type": null }
+  }
+}

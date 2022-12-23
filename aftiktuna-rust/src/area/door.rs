@@ -2,6 +2,7 @@ use crate::action::door::{BlockType, Door, DoorBlocking};
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 pub struct DoorInfo(pub Pos, pub DisplayInfo);
@@ -37,6 +38,8 @@ fn place(
     ))
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
     LeftDoor,

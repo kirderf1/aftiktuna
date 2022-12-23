@@ -1,0 +1,132 @@
+{
+  "areas": [
+    {
+      "name": "Field in front of a building",
+      "objects": [ "v", "", "^", "", "", ">" ],
+      "doors": {
+        "^": {
+          "pair_id": "entrance",
+          "display_type": "door"
+        },
+        ">": {
+          "pair_id": "path",
+          "display_type": "right_path"
+        }
+      }
+    },
+    {
+      "name": "Field",
+      "objects": [ "^", "", "", "k", "" ],
+      "doors": {
+        "^": {
+          "pair_id": "path",
+          "display_type": "path"
+        }
+      }
+    },
+    {
+      "name": "Entrance hall",
+      "objects": [ "", "<", "", "^", "", ">", "" ],
+      "doors": {
+        "<": {
+          "pair_id": "sealed",
+          "display_type": "left_door"
+        },
+        "^": {
+          "pair_id": "corridor1",
+          "display_type": "mid_door"
+        },
+        ">": {
+          "pair_id": "entrance",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Corridor",
+      "objects": [ "<", "", "^", "E", ">" ],
+      "doors": {
+        "<": {
+          "pair_id": "corridor1",
+          "display_type": "left_door"
+        },
+        "^": {
+          "pair_id": "room1",
+          "display_type": "mid_door"
+        },
+        ">": {
+          "pair_id": "corridor2",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Corridor",
+      "objects": [ "<", "", "^", "", ">" ],
+      "doors": {
+        "<": {
+          "pair_id": "corridor2",
+          "display_type": "left_door"
+        },
+        "^": {
+          "pair_id": "room2",
+          "display_type": "mid_door"
+        },
+        ">": {
+          "pair_id": "room3",
+          "display_type": "right_door"
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "objects": [ "", "c", "", "^" ],
+      "doors": {
+        "^": {
+          "pair_id": "room1",
+          "display_type": "door"
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "objects": [ "b", "", "", "^" ],
+      "doors": {
+        "^": {
+          "pair_id": "room2",
+          "display_type": "door"
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "objects": [ "^", "E", "", "f" ],
+      "doors": {
+        "^": {
+          "pair_id": "room3",
+          "display_type": "door"
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "objects": [ "ff", "Z", "^", "s" ],
+      "doors": {
+        "^": {
+          "pair_id": "sealed",
+          "display_type": "door"
+        }
+      }
+    }
+  ],
+  "door_pairs": {
+    "path": { "block_type": null },
+    "entrance": { "block_type": "locked" },
+    "sealed": { "block_type": "sealed" },
+    "corridor1": { "block_type": null },
+    "corridor2": { "block_type": null },
+    "room1": { "block_type": null },
+    "room2": { "block_type": "stuck" },
+    "room3": { "block_type": null }
+  }
+}
