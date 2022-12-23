@@ -2,6 +2,7 @@ use crate::action::door::BlockType;
 use crate::area;
 use crate::area::{creature, item, place_doors, Area, DoorInfo};
 use crate::position::Pos;
+use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 use std::collections::HashMap;
 
@@ -18,12 +19,13 @@ impl LocationData {
         }
     }
 
-    pub fn area(&mut self, name: &str, objects: &[&str], doors: &[(char, &str)]) {
+    pub fn area(&mut self, name: &str, objects: &[&str]) -> &mut AreaData {
         self.areas.push(AreaData {
             name: name.to_string(),
             objects: objects.iter().map(ToString::to_string).collect(),
-            doors: doors.iter().map(|(c, str)| (*c, str.to_string())).collect(),
+            doors: HashMap::new(),
         });
+        self.areas.last_mut().unwrap() //Should not be None since we just added to the vec
     }
 
     pub fn door(&mut self, key: &str) {
@@ -52,13 +54,29 @@ impl LocationData {
     }
 }
 
-struct AreaData {
+pub struct AreaData {
     name: String,
     objects: Vec<String>,
-    doors: HashMap<char, String>,
+    doors: HashMap<char, DoorData>,
 }
 
 impl AreaData {
+    pub fn door_symbol(
+        &mut self,
+        symbol: char,
+        display_type: DoorType,
+        pair_id: &str,
+    ) -> &mut Self {
+        self.doors.insert(
+            symbol,
+            DoorData {
+                pair_id: pair_id.to_string(),
+                display_type,
+            },
+        );
+        self
+    }
+
     fn build(self, builder: &mut Builder) -> Entity {
         let room = builder.world.spawn((Area {
             size: self.objects.len(),
@@ -69,7 +87,7 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match self.doors.get(&symbol) {
-                    Some(pair_id) => place_door(builder, door_info(pos, symbol), pair_id),
+                    Some(door_data) => place_door(builder, pos, door_data),
                     None => place_object(builder, pos, symbol),
                 }
             }
@@ -77,6 +95,17 @@ impl AreaData {
 
         room
     }
+}
+
+pub enum DoorType {
+    Door,
+    LeftDoor,
+    RightDoor,
+}
+
+struct DoorData {
+    pair_id: String,
+    display_type: DoorType,
 }
 
 struct DoorPairData {
@@ -123,21 +152,22 @@ enum DoorStatus<'a> {
     Placed,
 }
 
-fn door_info(pos: Pos, symbol: char) -> DoorInfo {
-    let display_info = match symbol {
-        '^' => area::door(),
-        '<' => area::left_door(),
-        '>' => area::right_door(),
-        _ => panic!("Unknown door symbol: {}", symbol),
-    };
-    DoorInfo(pos, display_info)
+fn door_display(door_type: &DoorType) -> DisplayInfo {
+    match door_type {
+        DoorType::Door => area::door(),
+        DoorType::LeftDoor => area::left_door(),
+        DoorType::RightDoor => area::right_door(),
+    }
 }
 
-fn place_door(builder: &mut Builder, door_info: DoorInfo, pair_id: &String) {
+fn place_door(builder: &mut Builder, pos: Pos, door_data: &DoorData) {
+    let pair_id = &door_data.pair_id;
     let status = builder
         .doors
         .get_mut(pair_id)
         .expect(&format!("Unknown door id: {}", pair_id));
+    let door_info = DoorInfo(pos, door_display(&door_data.display_type));
+
     *status = match status {
         DoorStatus::None(data) => DoorStatus::One(data, door_info),
         DoorStatus::One(data, other_door) => {
