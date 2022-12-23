@@ -1,0 +1,111 @@
+{
+  "areas": [
+    {
+      "name": "Field in front of a forest",
+      "objects": [ "", "v", "", "", "^", "", "" ],
+      "doors": {
+        "^": {
+          "pair_id": "entrance",
+          "display_type": "path"
+        }
+      }
+    },
+    {
+      "name": "Forest entrance",
+      "objects": [ "<", "", "^", "", ">" ],
+      "doors": {
+        "<": {
+          "pair_id": "path1",
+          "display_type": "left_path"
+        },
+        "^": {
+          "pair_id": "entrance",
+          "display_type": "mid_path"
+        },
+        ">": {
+          "pair_id": "path5",
+          "display_type": "right_path"
+        }
+      }
+    },
+    {
+      "name": "Forest path leading to a shack",
+      "objects": [ "^", "", "<", "", ">", "" ],
+      "doors": {
+        "^": {
+          "pair_id": "shack",
+          "display_type": "door"
+        },
+        "<": {
+          "pair_id": "path2",
+          "display_type": "left_path"
+        },
+        ">": {
+          "pair_id": "path1",
+          "display_type": "right_path"
+        }
+      }
+    },
+    {
+      "name": "Shack",
+      "objects": [ "af", "f", "E", "^" ],
+      "doors": {
+        "^": {
+          "pair_id": "shack",
+          "display_type": "door"
+        }
+      }
+    },
+    {
+      "name": "Forest path",
+      "objects": [ "<", "", "", "", ">" ],
+      "doors": {
+        "<": {
+          "pair_id": "path2",
+          "display_type": "left_path"
+        },
+        ">": {
+          "pair_id": "path3",
+          "display_type": "right_path"
+        }
+      }
+    },
+    {
+      "name": "Forest path",
+      "objects": [ "<", "B", "G", "G", "", ">" ],
+      "doors": {
+        "<": {
+          "pair_id": "path3",
+          "display_type": "left_path"
+        },
+        ">": {
+          "pair_id": "path4",
+          "display_type": "right_path"
+        }
+      }
+    },
+    {
+      "name": "Forest path",
+      "objects": [ "<", "", ">", "", "G", "c" ],
+      "doors": {
+        "<": {
+          "pair_id": "path4",
+          "display_type": "left_path"
+        },
+        ">": {
+          "pair_id": "path5",
+          "display_type": "right_path"
+        }
+      }
+    }
+  ],
+  "door_pairs": {
+    "entrance": { "block_type": null },
+    "path1": { "block_type": null },
+    "path2": { "block_type": null },
+    "path3": { "block_type": null },
+    "path4": { "block_type": null },
+    "path5": { "block_type": null },
+    "shack": { "block_type": "stuck" }
+  }
+}

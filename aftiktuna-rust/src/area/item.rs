@@ -72,3 +72,19 @@ pub fn place_sword(world: &mut World, pos: Pos) {
         Weapon(5.0),
     ));
 }
+
+pub fn place_meteor_chunk(world: &mut World, pos: Pos) {
+    world.spawn((
+        DisplayInfo::from_noun('m', "meteor chunk", 1),
+        pos,
+        Item,
+    ));
+}
+
+pub fn place_ancient_coin(world: &mut World, pos: Pos) {
+    world.spawn((
+        DisplayInfo::from_noun('a', "ancient coin", 1),
+        pos,
+        Item,
+    ));
+}

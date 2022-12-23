@@ -192,6 +192,8 @@ fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), Str
         'K' => item::place_knife(builder.world, pos),
         'B' => item::place_bat(builder.world, pos),
         's' => item::place_sword(builder.world, pos),
+        'm' => item::place_meteor_chunk(builder.world, pos),
+        'a' => item::place_ancient_coin(builder.world, pos),
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
