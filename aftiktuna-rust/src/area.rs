@@ -12,7 +12,7 @@ mod item;
 mod template;
 
 pub fn init(world: &mut World) -> Entity {
-    let start_pos = init::combat_test().build(world);
+    let start_pos = init::abandoned_facility().build(world);
     let ship = world.spawn((
         Area {
             label: "Ship".to_string(),

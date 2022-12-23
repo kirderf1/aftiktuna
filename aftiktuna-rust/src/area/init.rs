@@ -20,7 +20,7 @@ pub fn misc_test() -> LocationData {
             "Side Room",
             &["b", "", "", "G", "", "<", "", "", ">", "", "", ""],
         )
-        .door_symbol('<', DoorType::LeftDoor, "main_right")
+        .door_symbol('<', DoorType::LeftDoor, "right")
         .door_symbol('>', DoorType::RightDoor, "side");
     location
         .area("Room", &["", "^", "", "", ""])
@@ -56,6 +56,57 @@ pub fn combat_test() -> LocationData {
     location.door("goblin");
     location.door("eyesaur");
     location.door("azureclops");
+
+    location
+}
+
+#[allow(dead_code)]
+pub fn abandoned_facility() -> LocationData {
+    let mut location = LocationData::new();
+
+    location
+        .area("Field in front of a building", &["v", "", "^", "", "", ">"])
+        .door_symbol('^', DoorType::Door, "entrance")
+        .door_symbol('>', DoorType::RightPath, "path");
+    location
+        .area("Field", &["^", "", "", "k", ""])
+        .door_symbol('^', DoorType::Path, "path");
+    location
+        .area("Entrance hall", &["", "<", "", "^", "", ">", ""])
+        .door_symbol('<', DoorType::LeftDoor, "sealed")
+        .door_symbol('^', DoorType::MidDoor, "corridor1")
+        .door_symbol('>', DoorType::RightDoor, "entrance");
+    location
+        .area("Corridor", &["<", "", "^", "E", ">"])
+        .door_symbol('<', DoorType::LeftDoor, "corridor1")
+        .door_symbol('^', DoorType::MidDoor, "room1")
+        .door_symbol('>', DoorType::RightDoor, "corridor2");
+    location
+        .area("Corridor", &["<", "", "^", "", ">"])
+        .door_symbol('<', DoorType::LeftDoor, "corridor2")
+        .door_symbol('^', DoorType::MidDoor, "room2")
+        .door_symbol('>', DoorType::RightDoor, "room3");
+    location
+        .area("Room", &["", "c", "", "^"])
+        .door_symbol('^', DoorType::Door, "room1");
+    location
+        .area("Room", &["b", "", "", "^"])
+        .door_symbol('^', DoorType::Door, "room2");
+    location
+        .area("Room", &["^", "E", "", "f"])
+        .door_symbol('^', DoorType::Door, "room3");
+    location
+        .area("Room", &["ff", "Z", "^", "s"])
+        .door_symbol('^', DoorType::Door, "sealed");
+
+    location.door("path");
+    location.blocked_door("entrance", BlockType::Locked);
+    location.blocked_door("sealed", BlockType::Sealed);
+    location.door("corridor1");
+    location.door("corridor2");
+    location.door("room1");
+    location.blocked_door("room2", BlockType::Stuck);
+    location.door("room3");
 
     location
 }
