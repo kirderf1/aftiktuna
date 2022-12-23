@@ -1,8 +1,7 @@
 use crate::action::door::BlockType;
-use crate::area;
-use crate::area::{creature, item, place_doors, Area, DoorInfo};
+use crate::area::door::{place_pair, DoorInfo, DoorType};
+use crate::area::{creature, door, item, Area};
 use crate::position::Pos;
-use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 use std::collections::HashMap;
 
@@ -97,12 +96,6 @@ impl AreaData {
     }
 }
 
-pub enum DoorType {
-    Door,
-    LeftDoor,
-    RightDoor,
-}
-
 struct DoorData {
     pair_id: String,
     display_type: DoorType,
@@ -152,26 +145,18 @@ enum DoorStatus<'a> {
     Placed,
 }
 
-fn door_display(door_type: &DoorType) -> DisplayInfo {
-    match door_type {
-        DoorType::Door => area::door(),
-        DoorType::LeftDoor => area::left_door(),
-        DoorType::RightDoor => area::right_door(),
-    }
-}
-
 fn place_door(builder: &mut Builder, pos: Pos, door_data: &DoorData) {
     let pair_id = &door_data.pair_id;
     let status = builder
         .doors
         .get_mut(pair_id)
         .expect(&format!("Unknown door id: {}", pair_id));
-    let door_info = DoorInfo(pos, door_display(&door_data.display_type));
+    let door_info = DoorInfo(pos, door::door_display(&door_data.display_type));
 
     *status = match status {
         DoorStatus::None(data) => DoorStatus::One(data, door_info),
         DoorStatus::One(data, other_door) => {
-            place_doors(
+            place_pair(
                 builder.world,
                 door_info,
                 other_door.clone(),

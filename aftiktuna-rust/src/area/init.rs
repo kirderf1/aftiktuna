@@ -1,5 +1,6 @@
 use crate::action::door::BlockType;
-use crate::area::template::{DoorType, LocationData};
+use crate::area::door::DoorType;
+use crate::area::template::LocationData;
 
 #[allow(dead_code)]
 pub fn misc_test() -> LocationData {
