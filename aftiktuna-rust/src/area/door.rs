@@ -40,13 +40,23 @@ fn place(
 pub enum DoorType {
     Door,
     LeftDoor,
+    MidDoor,
     RightDoor,
+    Path,
+    LeftPath,
+    MidPath,
+    RightPath,
 }
 
 pub fn door_display(door_type: &DoorType) -> DisplayInfo {
     match door_type {
         DoorType::Door => DisplayInfo::from_noun('^', "door", 20),
         DoorType::LeftDoor => DisplayInfo::from_noun('<', "left door", 20),
+        DoorType::MidDoor => DisplayInfo::from_noun('^', "middle door", 20),
         DoorType::RightDoor => DisplayInfo::from_noun('>', "right door", 20),
+        DoorType::Path => DisplayInfo::from_noun('^', "path", 20),
+        DoorType::LeftPath => DisplayInfo::from_noun('<', "left path", 20),
+        DoorType::MidPath => DisplayInfo::from_noun('^', "middle path", 20),
+        DoorType::RightPath => DisplayInfo::from_noun('>', "right path", 20),
     }
 }
