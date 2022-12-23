@@ -1,4 +1,3 @@
-use crate::action::door::{BlockType, Door, DoorBlocking};
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::DisplayInfo;
@@ -12,7 +11,11 @@ mod item;
 mod template;
 
 pub fn init(world: &mut World) -> Entity {
-    let start_pos = init::abandoned_facility().build(world);
+    let location = init::abandoned_facility();
+    let start_pos = location
+        .build(world)
+        .unwrap_or_else(|message| panic!("{}", message));
+
     let ship = world.spawn((
         Area {
             label: "Ship".to_string(),

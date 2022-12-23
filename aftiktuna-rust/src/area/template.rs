@@ -2,7 +2,7 @@ use crate::action::door::BlockType;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, item, Area};
 use crate::position::Pos;
-use hecs::{Entity, World};
+use hecs::World;
 use std::collections::HashMap;
 
 pub struct LocationData {
@@ -40,14 +40,14 @@ impl LocationData {
         );
     }
 
-    pub fn build(self, world: &mut World) -> Pos {
+    pub fn build(self, world: &mut World) -> Result<Pos, String> {
         let mut builder = Builder::new(world, &self.door_pairs);
 
         for area in self.areas {
-            area.build(&mut builder);
+            area.build(&mut builder)?;
         }
 
-        verify_placed_doors(&builder);
+        verify_placed_doors(&builder)?;
 
         builder.get_entry()
     }
@@ -76,7 +76,7 @@ impl AreaData {
         self
     }
 
-    fn build(self, builder: &mut Builder) -> Entity {
+    fn build(self, builder: &mut Builder) -> Result<(), String> {
         let room = builder.world.spawn((Area {
             size: self.objects.len(),
             label: self.name,
@@ -86,13 +86,12 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match self.doors.get(&symbol) {
-                    Some(door_data) => place_door(builder, pos, door_data),
-                    None => place_object(builder, pos, symbol),
+                    Some(door_data) => place_door(builder, pos, door_data)?,
+                    None => place_object(builder, pos, symbol)?,
                 }
             }
         }
-
-        room
+        Ok(())
     }
 }
 
@@ -123,18 +122,17 @@ impl<'a> Builder<'a> {
         }
     }
 
-    fn get_entry(&self) -> Pos {
-        match self.entry {
-            None => panic!("No entry point was set!"),
-            Some(pos) => pos,
-        }
+    fn get_entry(&self) -> Result<Pos, String> {
+        self.entry
+            .ok_or_else(|| "No entry point was set!".to_string())
     }
 
-    fn set_entry(&mut self, pos: Pos) {
+    fn set_entry(&mut self, pos: Pos) -> Result<(), String> {
         if self.entry.is_some() {
-            panic!("Entry has already been set!");
+            Err("Entry has already been set!".to_string())
         } else {
             self.entry = Some(pos);
+            Ok(())
         }
     }
 }
@@ -145,12 +143,12 @@ enum DoorStatus<'a> {
     Placed,
 }
 
-fn place_door(builder: &mut Builder, pos: Pos, door_data: &DoorData) {
+fn place_door(builder: &mut Builder, pos: Pos, door_data: &DoorData) -> Result<(), String> {
     let pair_id = &door_data.pair_id;
     let status = builder
         .doors
         .get_mut(pair_id)
-        .expect(&format!("Unknown door id: {}", pair_id));
+        .ok_or_else(|| format!("Unknown door id: {}", pair_id))?;
     let door_info = DoorInfo(pos, door::door_display(&door_data.display_type));
 
     *status = match status {
@@ -164,22 +162,24 @@ fn place_door(builder: &mut Builder, pos: Pos, door_data: &DoorData) {
             );
             DoorStatus::Placed
         }
-        DoorStatus::Placed => panic!("Door placed more than twice: {}", pair_id),
-    }
+        DoorStatus::Placed => return Err(format!("Door placed more than twice: {}", pair_id)),
+    };
+    Ok(())
 }
 
-fn verify_placed_doors(builder: &Builder) {
-    for (pair_id, status) in builder.doors.iter() {
+fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
+    for (pair_id, status) in &builder.doors {
         match status {
             DoorStatus::Placed => {}
-            _ => panic!("Door pair was not fully placed: {}", pair_id),
+            _ => return Err(format!("Door pair was not fully placed: {}", pair_id)),
         }
     }
+    Ok(())
 }
 
-fn place_object(builder: &mut Builder, pos: Pos, symbol: char) {
+fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
     match symbol {
-        'v' => builder.set_entry(pos),
+        'v' => builder.set_entry(pos)?,
         'f' => item::place_fuel(builder.world, pos),
         'c' => item::place_crowbar(builder.world, pos),
         'b' => item::place_blowtorch(builder.world, pos),
@@ -190,6 +190,7 @@ fn place_object(builder: &mut Builder, pos: Pos, symbol: char) {
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
-        _ => panic!("Unknown symbol: {}", symbol),
+        _ => return Err(format!("Unknown symbol: {}", symbol)),
     }
+    Ok(())
 }
