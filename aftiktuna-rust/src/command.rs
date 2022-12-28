@@ -6,7 +6,7 @@ use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
 use hecs::{Entity, With, World};
-use parse::{Parse, Parser};
+use parse::Parse;
 
 mod parse;
 
@@ -25,22 +25,22 @@ fn crew_action(action: Action) -> Result<CommandResult, String> {
 }
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    Parser::new(Parse::new(input))
+    Parse::new(input)
         .literal("take", |parse| take(parse, world, aftik))
-        .literal("wield", |parse| wield(&parse, world, aftik))
-        .literal("enter", |parse| enter(&parse, world, aftik))
-        .literal("force", |parse| force(&parse, world, aftik))
-        .literal("attack", |parse| attack(&parse, world, aftik))
-        .literal("wait", |parse| wait(&parse))
-        .literal("rest", |parse| rest(&parse, world, aftik))
+        .literal("wield", |parse| wield(parse, world, aftik))
+        .literal("enter", |parse| enter(parse, world, aftik))
+        .literal("force", |parse| force(parse, world, aftik))
+        .literal("attack", |parse| attack(parse, world, aftik))
+        .literal("wait", wait)
+        .literal("rest", |parse| rest(parse, world, aftik))
         .literal("launch", |parse| launch(parse, world, aftik))
-        .literal("status", |parse| status(&parse, world))
-        .literal("control", |parse| control(&parse, world, aftik))
+        .literal("status", |parse| status(parse, world))
+        .literal("control", |parse| control(parse, world, aftik))
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
 fn take(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    Parser::new(parse)
+    parse
         .literal("all", |parse| {
             parse.done_or_err(|| action_result(Action::TakeAll))
         })
@@ -63,7 +63,7 @@ fn take(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, Str
         })
 }
 
-fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn wield(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         None.or_else(|| {
             world
@@ -109,7 +109,7 @@ fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, S
     })
 }
 
-fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn enter(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
@@ -121,7 +121,7 @@ fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, S
     })
 }
 
-fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn force(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         world
@@ -133,27 +133,25 @@ fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, S
     })
 }
 
-fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn attack(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse
         .done(|| action_result(Action::AttackNearest(combat::Target::Foe)))
-        .unwrap_or_else(|| {
-            parse.take_remaining(|name| {
-                let area = world.get::<Pos>(aftik).unwrap().get_area();
-                world
-                    .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
-                    .iter()
-                    .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-                    .map(|(target, _)| action_result(Action::Attack(target)))
-                    .unwrap_or_else(|| Err("There is no such target here.".to_string()))
-            })
+        .or_else_remaining(|name| {
+            let area = world.get::<Pos>(aftik).unwrap().get_area();
+            world
+                .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
+                .iter()
+                .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
+                .map(|(target, _)| action_result(Action::Attack(target)))
+                .unwrap_or_else(|| Err("There is no such target here.".to_string()))
         })
 }
 
-fn wait(parse: &Parse) -> Result<CommandResult, String> {
+fn wait(parse: Parse) -> Result<CommandResult, String> {
     parse.done_or_err(|| action_result(Action::Wait))
 }
 
-fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn rest(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         if world
@@ -181,12 +179,12 @@ fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, St
 }
 
 fn launch(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    Parser::new(parse)
-        .literal("ship", |parse| launch_ship(&parse, world, aftik))
+    parse
+        .literal("ship", |parse| launch_ship(parse, world, aftik))
         .or_else_err(|| "Unexpected argument after \"launch\"".to_string())
 }
 
-fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn launch_ship(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
         let area = world.get::<Pos>(aftik).unwrap().get_area();
         if !item::is_holding::<FuelCan>(world, aftik) {
@@ -205,7 +203,7 @@ fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandRes
     })
 }
 
-fn status(parse: &Parse, world: &World) -> Result<CommandResult, String> {
+fn status(parse: Parse, world: &World) -> Result<CommandResult, String> {
     parse.done_or_err(|| {
         println!("Crew:");
         for (aftik, _) in world.query::<()>().with::<Aftik>().iter() {
@@ -215,7 +213,7 @@ fn status(parse: &Parse, world: &World) -> Result<CommandResult, String> {
     })
 }
 
-fn control(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+fn control(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     parse.take_remaining(|name| {
         let (new_aftik, _) = world
             .query::<&DisplayInfo>()

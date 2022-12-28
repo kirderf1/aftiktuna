@@ -8,52 +8,55 @@ impl<'a> Parse<'a> {
         Parse { input, start: 0 }
     }
 
-    fn literal(&self, word: &str) -> Option<Parse<'a>> {
+    pub fn literal<R, F: FnOnce(Parse) -> R>(self, word: &str, closure: F) -> Partial<'a, R> {
         let input = self.active_input();
-        if input.starts_with(word) {
-            let remainder = input.split_at(word.len()).1;
-            if remainder.is_empty() {
-                Some(Parse {
-                    input: self.input,
-                    start: self.start + word.len(),
-                })
-            } else if remainder.starts_with(" ") {
-                Some(Parse {
-                    input: self.input,
-                    start: self.start + word.len() + " ".len(),
-                })
-            } else {
-                None
-            }
+
+        if !input.starts_with(word) {
+            return Partial::UnMatched(self);
+        }
+
+        let remainder = input.split_at(word.len()).1;
+        if remainder.is_empty() {
+            Partial::Matched(closure(Parse {
+                input: self.input,
+                start: self.start + word.len(),
+            }))
+        } else if remainder.starts_with(" ") {
+            Partial::Matched(closure(Parse {
+                input: self.input,
+                start: self.start + word.len() + " ".len(),
+            }))
         } else {
-            None
+            Partial::UnMatched(self)
         }
     }
 
-    pub fn done<T, U>(&self, closure: T) -> Option<U>
+    pub fn done<T, U>(self, closure: T) -> Partial<'a, U>
     where
         T: FnOnce() -> U,
     {
         if self.active_input().is_empty() {
-            Some(closure())
+            Partial::Matched(closure())
         } else {
-            None
+            Partial::UnMatched(self)
         }
     }
 
-    pub fn done_or_err<T, U>(&self, done: T) -> Result<U, String>
+    pub fn done_or_err<T, U>(self, done: T) -> Result<U, String>
     where
         T: FnOnce() -> Result<U, String>,
     {
-        self.done(done).unwrap_or_else(|| {
+        if self.active_input().is_empty() {
+            done()
+        } else {
             Err(format!(
                 "Unexpected argument after \"{}\"",
                 self.consumed_input()
             ))
-        })
+        }
     }
 
-    pub fn take_remaining<F, T>(&self, closure: F) -> T
+    pub fn take_remaining<F, T>(self, closure: F) -> T
     where
         F: FnOnce(&str) -> T,
     {
@@ -69,47 +72,32 @@ impl<'a> Parse<'a> {
     }
 }
 
-pub enum Parser<'a, R> {
+pub enum Partial<'a, R> {
     UnMatched(Parse<'a>),
     Matched(R),
 }
 
-impl<'a, R> Parser<'a, R> {
-    pub fn new(parse: Parse<'a>) -> Self {
-        Parser::UnMatched(parse)
-    }
-
+impl<'a, R> Partial<'a, R> {
     pub fn literal<F: FnOnce(Parse) -> R>(self, word: &str, closure: F) -> Self {
         match self {
-            Parser::UnMatched(parse) => parse
-                .literal(word)
-                .map(closure)
-                .map(Parser::Matched)
-                .unwrap_or(Parser::UnMatched(parse)),
-            Parser::Matched(r) => Parser::Matched(r),
-        }
-    }
-
-    pub fn or_else<F: FnOnce(Parse) -> R>(self, closure: F) -> R {
-        match self {
-            Parser::UnMatched(parse) => closure(parse),
-            Parser::Matched(r) => r,
+            Partial::UnMatched(parse) => parse.literal(word, closure),
+            Partial::Matched(r) => Partial::Matched(r),
         }
     }
 
     pub fn or_else_remaining<F: FnOnce(&str) -> R>(self, closure: F) -> R {
         match self {
-            Parser::UnMatched(parse) => parse.take_remaining(closure),
-            Parser::Matched(r) => r,
+            Partial::UnMatched(parse) => parse.take_remaining(closure),
+            Partial::Matched(r) => r,
         }
     }
 }
 
-impl<'a, T, E> Parser<'a, Result<T, E>> {
+impl<'a, T, E> Partial<'a, Result<T, E>> {
     pub fn or_else_err<F: FnOnce() -> E>(self, closure: F) -> Result<T, E> {
         match self {
-            Parser::UnMatched(_) => Err(closure()),
-            Parser::Matched(r) => r,
+            Partial::UnMatched(_) => Err(closure()),
+            Partial::Matched(r) => r,
         }
     }
 }
