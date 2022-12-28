@@ -83,7 +83,7 @@ pub fn perform(
         EnterDoor(door) => door::enter_door(world, performer, door).map(Some),
         ForceDoor(door) => door::force_door(world, performer, door).map(Some),
         Attack(target) => combat::attack(world, performer, target).map(Some),
-        AttackNearest(target) => combat::attack_nearest(world, performer, target).map(Some),
+        AttackNearest(target) => combat::attack_nearest(world, performer, target),
         Wait => Ok(None),
         Rest(first) => Ok(rest(world, performer, first)),
         Launch => Ok(launch::perform(world, performer)),

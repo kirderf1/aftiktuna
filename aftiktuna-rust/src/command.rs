@@ -44,7 +44,7 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
         })
         .literal("attack", |parse| {
             parse
-                .done(|| action_result(Action::AttackNearest(combat::Target::Foe)))
+                .done(|| attack_any(world, aftik))
                 .or_else_remaining(|target_name| attack(target_name, world, aftik))
         })
         .literal("wait", |parse| {
@@ -145,6 +145,18 @@ fn force(door_name: &str, world: &World, aftik: Entity) -> Result<CommandResult,
         .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(door_name))
         .map(|(door, _)| action_result(Action::ForceDoor(door)))
         .unwrap_or_else(|| Err("There is no such door here.".to_string()))
+}
+
+fn attack_any(world: &World, aftik: Entity) -> Result<CommandResult, String> {
+    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    if world.query::<&Pos>()
+        .with::<combat::IsFoe>()
+        .iter()
+        .any(|(_, pos)| pos.is_in(area)) {
+        action_result(Action::AttackNearest(combat::Target::Foe))
+    } else {
+        Err("There is no appropriate target to attack here.".to_string())
+    }
 }
 
 fn attack(target_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {

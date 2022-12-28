@@ -18,7 +18,7 @@ pub fn attack_nearest(
     world: &mut World,
     attacker: Entity,
     target: Target,
-) -> Result<String, String> {
+) -> Result<Option<String>, String> {
     let pos = *world.get::<Pos>(attacker).unwrap();
     let target = match target {
         Target::Aftik => find_closest::<Aftik>(world, pos),
@@ -26,8 +26,8 @@ pub fn attack_nearest(
     };
 
     match target {
-        Some(target) => attack(world, attacker, target),
-        None => Err("There is no appropriate target to attack here.".to_string()),
+        Some(target) => attack(world, attacker, target).map(Some),
+        None => Ok(None), // Silent failure to find a target
     }
 }
 
