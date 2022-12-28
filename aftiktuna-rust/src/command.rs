@@ -33,6 +33,15 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
                 })
                 .or_else_remaining(|item_name| take(item_name, world, aftik))
         })
+        .literal("give", |parse| {
+            parse.match_against(
+                aftik_targets(world),
+                |parse, receiver| {
+                    parse.take_remaining(|item_name| give(receiver, item_name, world, aftik))
+                },
+                |input| Err(format!("\"{}\" not a valid target", input)),
+            )
+        })
         .literal("wield", |parse| {
             parse.take_remaining(|item_name| wield(item_name, world, aftik))
         })
@@ -65,6 +74,15 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
+fn aftik_targets(world: &World) -> Vec<(String, Entity)> {
+    world
+        .query::<&DisplayInfo>()
+        .with::<Aftik>()
+        .iter()
+        .map(|(entity, display_info)| (display_info.name().to_lowercase(), entity))
+        .collect::<Vec<_>>()
+}
+
 fn take(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     let aftik_pos = *world.get::<Pos>(aftik).unwrap();
     world
@@ -81,6 +99,34 @@ fn take(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, 
             ))
         })
         .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", item_name)))
+}
+
+fn give(
+    receiver: Entity,
+    item_name: &str,
+    world: &World,
+    aftik: Entity,
+) -> Result<CommandResult, String> {
+    if aftik == receiver {
+        return Err(format!("{} can't give an item to themselves.",
+            DisplayInfo::find_definite_name(world, aftik)));
+    }
+
+    world
+        .query::<(&DisplayInfo, &item::InInventory)>()
+        .with::<item::Item>()
+        .iter()
+        .find(|(_, (display_info, in_inventory))| {
+            display_info.matches(item_name) && in_inventory.held_by(aftik)
+        })
+        .map(|(item, _)| action_result(Action::GiveItem(item, receiver)))
+        .unwrap_or_else(|| {
+            Err(format!(
+                "{} has no {} to give.",
+                DisplayInfo::find_definite_name(world, aftik),
+                item_name,
+            ))
+        })
 }
 
 fn wield(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {

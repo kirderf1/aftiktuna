@@ -1,5 +1,6 @@
 use crate::action::{Action, Aftik};
 use crate::position::{try_move, Pos};
+use crate::status;
 use crate::view::DisplayInfo;
 use hecs::{Component, Entity, With, World};
 
@@ -97,6 +98,67 @@ pub fn take_item(
         .expect("Tried adding inventory data to item");
 
     Ok(format!("{} picked up {}.", aftik_name, item_name))
+}
+
+pub fn give_item(
+    world: &mut World,
+    performer: Entity,
+    item: Entity,
+    receiver: Entity,
+) -> Result<String, String> {
+    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let receiver_name = DisplayInfo::find_definite_name(world, receiver);
+
+    if world
+        .get::<InInventory>(item)
+        .ok()
+        .filter(|in_inv| in_inv.held_by(performer))
+        .is_none()
+    {
+        return Err(format!(
+            "{} lost track of the item they were going to give.",
+            performer_name
+        ));
+    }
+
+    let performer_pos = *world
+        .get::<Pos>(performer)
+        .expect("Expected performer to have a position");
+    let receiver_pos = *world.get::<Pos>(receiver).map_err(|_| {
+        format!(
+            "{} disappeared before {} could interact with them.",
+            receiver_name, performer_name
+        )
+    })?;
+
+    if !performer_pos.is_in(receiver_pos.get_area()) {
+        return Err(format!(
+            "{} left before {} could interact with them.",
+            receiver_name, performer_name
+        ));
+    }
+
+    if !status::is_alive(receiver, world) {
+        return Err(format!(
+            "{} died before they could be given an item.",
+            receiver_name
+        ));
+    }
+
+    try_move(
+        world,
+        performer,
+        receiver_pos.get_adjacent_towards(performer_pos),
+    )?;
+
+    world.insert_one(item, InInventory(receiver)).unwrap();
+
+    Ok(format!(
+        "{} gave {} a {}.",
+        performer_name,
+        receiver_name,
+        DisplayInfo::find_name(world, item)
+    ))
 }
 
 #[derive(Debug, Default)]
