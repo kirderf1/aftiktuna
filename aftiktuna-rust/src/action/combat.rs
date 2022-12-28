@@ -4,6 +4,7 @@ use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use fastrand::Rng;
 use hecs::{Component, Entity, World};
+use std::cmp::Ordering;
 
 #[derive(Debug)]
 pub struct IsFoe;
@@ -21,8 +22,8 @@ pub fn attack_nearest(
 ) -> Result<Option<String>, String> {
     let pos = *world.get::<Pos>(attacker).unwrap();
     let target = match target {
-        Target::Aftik => find_closest::<Aftik>(world, pos),
-        Target::Foe => find_closest::<IsFoe>(world, pos),
+        Target::Aftik => find_closest::<Aftik>(world, pos, &mut Rng::new()),
+        Target::Foe => find_closest::<IsFoe>(world, pos, &mut Rng::new()),
     };
 
     match target {
@@ -31,14 +32,33 @@ pub fn attack_nearest(
     }
 }
 
-fn find_closest<T: Component>(world: &mut World, pos: Pos) -> Option<Entity> {
-    world
+fn find_closest<T: Component>(world: &mut World, pos: Pos, rng: &mut Rng) -> Option<Entity> {
+    let targets = world
         .query::<&Pos>()
         .with::<T>()
         .iter()
         .filter(|(_, other_pos)| other_pos.is_in(pos.get_area()))
-        .min_by_key(|(_, other_pos)| other_pos.distance_to(pos))
-        .map(|data| data.0)
+        // collects the closest targets and also maps them to just the entity in one
+        .fold(
+            (usize::MAX, Vec::new()),
+            |mut partial, (entity, other_pos)| {
+                let distance = other_pos.distance_to(pos);
+                match distance.cmp(&partial.0) {
+                    Ordering::Less => (distance, vec![entity]),
+                    Ordering::Equal => {
+                        partial.1.push(entity);
+                        partial
+                    }
+                    Ordering::Greater => partial,
+                }
+            },
+        )
+        .1;
+    if targets.is_empty() {
+        None
+    } else {
+        Some(targets[rng.usize(..targets.len())])
+    }
 }
 
 pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<String, String> {
