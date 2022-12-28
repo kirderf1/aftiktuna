@@ -8,7 +8,7 @@ impl<'a> Parse<'a> {
         Parse { input, start: 0 }
     }
 
-    pub fn literal(&self, word: &str) -> Option<Parse<'a>> {
+    fn literal(&self, word: &str) -> Option<Parse<'a>> {
         let input = self.active_input();
         if input.starts_with(word) {
             let remainder = input.split_at(word.len()).1;
@@ -66,5 +66,50 @@ impl<'a> Parse<'a> {
 
     fn consumed_input(&self) -> &'a str {
         self.input.split_at(self.start).0.trim_end()
+    }
+}
+
+pub enum Parser<'a, R> {
+    UnMatched(Parse<'a>),
+    Matched(R),
+}
+
+impl<'a, R> Parser<'a, R> {
+    pub fn new(parse: Parse<'a>) -> Self {
+        Parser::UnMatched(parse)
+    }
+
+    pub fn literal<F: FnOnce(Parse) -> R>(self, word: &str, closure: F) -> Self {
+        match self {
+            Parser::UnMatched(parse) => parse
+                .literal(word)
+                .map(closure)
+                .map(Parser::Matched)
+                .unwrap_or(Parser::UnMatched(parse)),
+            Parser::Matched(r) => Parser::Matched(r),
+        }
+    }
+
+    pub fn or_else<F: FnOnce(Parse) -> R>(self, closure: F) -> R {
+        match self {
+            Parser::UnMatched(parse) => closure(parse),
+            Parser::Matched(r) => r,
+        }
+    }
+
+    pub fn or_else_remaining<F: FnOnce(&str) -> R>(self, closure: F) -> R {
+        match self {
+            Parser::UnMatched(parse) => parse.take_remaining(closure),
+            Parser::Matched(r) => r,
+        }
+    }
+}
+
+impl<'a, T, E> Parser<'a, Result<T, E>> {
+    pub fn or_else_err<F: FnOnce() -> E>(self, closure: F) -> Result<T, E> {
+        match self {
+            Parser::UnMatched(_) => Err(closure()),
+            Parser::Matched(r) => r,
+        }
     }
 }

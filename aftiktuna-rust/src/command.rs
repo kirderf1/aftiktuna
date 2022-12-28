@@ -6,7 +6,7 @@ use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
 use hecs::{Entity, With, World};
-use parse::Parse;
+use parse::{Parse, Parser};
 
 mod parse;
 
@@ -25,60 +25,26 @@ fn crew_action(action: Action) -> Result<CommandResult, String> {
 }
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let parse = Parse::new(input);
-    None.or_else(|| {
-        parse
-            .literal("take")
-            .map(|parse| take(&parse, world, aftik))
-    })
-    .or_else(|| {
-        parse
-            .literal("wield")
-            .map(|parse| wield(&parse, world, aftik))
-    })
-    .or_else(|| {
-        parse
-            .literal("enter")
-            .map(|parse| enter(&parse, world, aftik))
-    })
-    .or_else(|| {
-        parse
-            .literal("force")
-            .map(|parse| force(&parse, world, aftik))
-    })
-    .or_else(|| {
-        parse
-            .literal("attack")
-            .map(|parse| attack(&parse, world, aftik))
-    })
-    .or_else(|| parse.literal("wait").map(|parse| wait(&parse)))
-    .or_else(|| {
-        parse
-            .literal("rest")
-            .map(|parse| rest(&parse, world, aftik))
-    })
-    .or_else(|| {
-        parse
-            .literal("launch")
-            .map(|parse| launch(&parse, world, aftik))
-    })
-    .or_else(|| parse.literal("status").map(|parse| status(&parse, world)))
-    .or_else(|| {
-        parse
-            .literal("control")
-            .map(|parse| control(&parse, world, aftik))
-    })
-    .unwrap_or_else(|| Err(format!("Unexpected input: \"{}\"", input)))
+    Parser::new(Parse::new(input))
+        .literal("take", |parse| take(parse, world, aftik))
+        .literal("wield", |parse| wield(&parse, world, aftik))
+        .literal("enter", |parse| enter(&parse, world, aftik))
+        .literal("force", |parse| force(&parse, world, aftik))
+        .literal("attack", |parse| attack(&parse, world, aftik))
+        .literal("wait", |parse| wait(&parse))
+        .literal("rest", |parse| rest(&parse, world, aftik))
+        .literal("launch", |parse| launch(parse, world, aftik))
+        .literal("status", |parse| status(&parse, world))
+        .literal("control", |parse| control(&parse, world, aftik))
+        .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
-fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    None.or_else(|| {
-        parse
-            .literal("all")
-            .and_then(|parse| parse.done(|| action_result(Action::TakeAll)))
-    })
-    .unwrap_or_else(|| {
-        parse.take_remaining(|name| {
+fn take(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+    Parser::new(parse)
+        .literal("all", |parse| {
+            parse.done_or_err(|| action_result(Action::TakeAll))
+        })
+        .or_else_remaining(|name| {
             let aftik_pos = *world.get::<Pos>(aftik).unwrap();
             world
                 .query::<With<item::Item, (&Pos, &DisplayInfo)>>()
@@ -95,7 +61,6 @@ fn take(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, St
                 })
                 .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", name)))
         })
-    })
 }
 
 fn wield(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
@@ -215,11 +180,10 @@ fn rest(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, St
     })
 }
 
-fn launch(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    parse
-        .literal("ship")
-        .map(|parse| launch_ship(&parse, world, aftik))
-        .unwrap_or_else(|| Err(format!("Unexpected argument after \"launch\"")))
+fn launch(parse: Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+    Parser::new(parse)
+        .literal("ship", |parse| launch_ship(&parse, world, aftik))
+        .or_else_err(|| "Unexpected argument after \"launch\"".to_string())
 }
 
 fn launch_ship(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
