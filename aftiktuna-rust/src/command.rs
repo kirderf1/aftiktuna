@@ -1,6 +1,7 @@
 use crate::action::item::FuelCan;
 use crate::action::{combat, door, item, Action, Aftik};
 use crate::area::Ship;
+use crate::game_loop::Target;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
@@ -10,13 +11,17 @@ use parse::Parse;
 mod parse;
 
 pub enum CommandResult {
-    Action(Action),
+    Action(Action, Target),
     ChangeControlled(Entity),
     None,
 }
 
 fn action_result(action: Action) -> Result<CommandResult, String> {
-    Ok(CommandResult::Action(action))
+    Ok(CommandResult::Action(action, Target::Controlled))
+}
+
+fn crew_action(action: Action) -> Result<CommandResult, String> {
+    Ok(CommandResult::Action(action, Target::Crew))
 }
 
 pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
@@ -146,7 +151,7 @@ fn enter(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, S
             .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
             .iter()
             .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(door, _)| action_result(Action::EnterDoor(door)))
+            .map(|(door, _)| crew_action(Action::EnterDoor(door)))
             .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
     })
 }

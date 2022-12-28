@@ -80,7 +80,7 @@ fn has_won(world: &World, aftik: Entity) -> bool {
     }
 }
 
-fn decision_phase(world: &mut World, aftik: &mut PlayerControlled) {
+fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
     let foes = world
         .query::<With<combat::IsFoe, ()>>()
         .iter()
@@ -90,20 +90,44 @@ fn decision_phase(world: &mut World, aftik: &mut PlayerControlled) {
         action::foe_ai(world, foe);
     }
 
-    if world.get::<Action>(aftik.entity).is_err() {
-        let action = parse_user_action(world, aftik);
-        world.insert_one(aftik.entity, action).unwrap();
+    if world.get::<Action>(player.entity).is_err() {
+        let (action, target) = parse_user_action(world, player);
+        match target {
+            Target::Controlled => world.insert_one(player.entity, action).unwrap(),
+            Target::Crew => {
+                let area = world.get::<Pos>(player.entity).unwrap().get_area();
+                insert_crew_action(world, area, action);
+            }
+        }
     } else {
         thread::sleep(time::Duration::from_secs(2));
     }
 }
 
-fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> Action {
+pub enum Target {
+    Controlled,
+    Crew,
+}
+
+fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
+    let aftiks = world
+        .query::<&Pos>()
+        .with::<Aftik>()
+        .iter()
+        .filter(|(_, pos)| pos.is_in(area))
+        .map(|(aftik, _)| aftik)
+        .collect::<Vec<_>>();
+    for aftik in aftiks {
+        world.insert_one(aftik, action.clone()).unwrap();
+    }
+}
+
+fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> (Action, Target) {
     loop {
         let input = read_input().to_lowercase();
 
         match command::try_parse_input(&input, world, aftik.entity) {
-            Ok(CommandResult::Action(action)) => return action,
+            Ok(CommandResult::Action(action, target)) => return (action, target),
             Ok(CommandResult::ChangeControlled(new_aftik)) => {
                 *aftik = PlayerControlled::new(new_aftik);
 

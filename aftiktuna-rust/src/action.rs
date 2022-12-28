@@ -12,6 +12,7 @@ mod launch;
 #[derive(Debug, Default)]
 pub struct Aftik;
 
+#[derive(Clone)]
 pub enum Action {
     TakeItem(Entity, String),
     TakeAll,
