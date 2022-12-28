@@ -44,6 +44,26 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     target.map(Attack)
 }
 
+pub fn aftik_ai(world: &mut World, aftik: Entity) {
+    if status::is_alive(aftik, world) && world.get::<Action>(aftik).is_err() {
+        if let Some(action) = pick_aftik_action(world, aftik) {
+            world.insert_one(aftik, action).unwrap();
+        }
+    }
+}
+
+fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
+    let pos = *world.get::<Pos>(aftik).ok()?;
+    let target = world
+        .query::<&Pos>()
+        .with::<combat::IsFoe>()
+        .iter()
+        .filter(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
+        .min_by_key(|(_, foe_pos)| foe_pos.distance_to(pos))
+        .map(|(foe, _)| foe);
+    target.map(Attack)
+}
+
 pub fn perform(
     world: &mut World,
     performer: Entity,

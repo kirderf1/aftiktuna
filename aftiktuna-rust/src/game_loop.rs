@@ -102,6 +102,14 @@ fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
     } else {
         thread::sleep(time::Duration::from_secs(2));
     }
+
+    let aftiks = world.query::<()>().with::<Aftik>()
+        .iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<_>>();
+    for aftik in aftiks {
+        action::aftik_ai(world, aftik);
+    }
 }
 
 pub enum Target {
