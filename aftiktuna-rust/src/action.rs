@@ -1,3 +1,4 @@
+use crate::action::combat::{IsFoe, Target};
 use crate::position::Pos;
 use crate::status;
 use crate::view::{DisplayInfo, Messages};
@@ -20,6 +21,7 @@ pub enum Action {
     EnterDoor(Entity),
     ForceDoor(Entity),
     Attack(Entity),
+    AttackNearest(Target),
     Wait,
     Rest(bool),
     Launch,
@@ -35,13 +37,15 @@ pub fn foe_ai(world: &mut World, foe: Entity) {
 
 fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     let pos = *world.get::<Pos>(foe).ok()?;
-    let target = world
+    if world
         .query::<With<Aftik, &Pos>>()
         .iter()
-        .filter(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
-        .min_by_key(|(_, aftik_pos)| aftik_pos.distance_to(pos))
-        .map(|(aftik, _)| aftik);
-    target.map(Attack)
+        .any(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
+    {
+        Some(AttackNearest(Target::Aftik))
+    } else {
+        None
+    }
 }
 
 pub fn aftik_ai(world: &mut World, aftik: Entity) {
@@ -54,14 +58,15 @@ pub fn aftik_ai(world: &mut World, aftik: Entity) {
 
 fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
     let pos = *world.get::<Pos>(aftik).ok()?;
-    let target = world
-        .query::<&Pos>()
-        .with::<combat::IsFoe>()
+    if world
+        .query::<With<IsFoe, &Pos>>()
         .iter()
-        .filter(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
-        .min_by_key(|(_, foe_pos)| foe_pos.distance_to(pos))
-        .map(|(foe, _)| foe);
-    target.map(Attack)
+        .any(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
+    {
+        Some(AttackNearest(Target::Foe))
+    } else {
+        None
+    }
 }
 
 pub fn perform(
@@ -78,6 +83,7 @@ pub fn perform(
         EnterDoor(door) => door::enter_door(world, performer, door).map(Some),
         ForceDoor(door) => door::force_door(world, performer, door).map(Some),
         Attack(target) => combat::attack(world, performer, target).map(Some),
+        AttackNearest(target) => combat::attack_nearest(world, performer, target).map(Some),
         Wait => Ok(None),
         Rest(first) => Ok(rest(world, performer, first)),
         Launch => Ok(launch::perform(world, performer)),

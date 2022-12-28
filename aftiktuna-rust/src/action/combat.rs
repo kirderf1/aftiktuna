@@ -3,10 +3,43 @@ use crate::position::{try_move, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use fastrand::Rng;
-use hecs::{Entity, World};
+use hecs::{Component, Entity, World};
 
 #[derive(Debug)]
 pub struct IsFoe;
+
+#[derive(Clone)]
+pub enum Target {
+    Aftik,
+    Foe,
+}
+
+pub fn attack_nearest(
+    world: &mut World,
+    attacker: Entity,
+    target: Target,
+) -> Result<String, String> {
+    let pos = *world.get::<Pos>(attacker).unwrap();
+    let target = match target {
+        Target::Aftik => find_closest::<Aftik>(world, pos),
+        Target::Foe => find_closest::<IsFoe>(world, pos),
+    };
+
+    match target {
+        Some(target) => attack(world, attacker, target),
+        None => Err("There is no appropriate target to attack here.".to_string()),
+    }
+}
+
+fn find_closest<T: Component>(world: &mut World, pos: Pos) -> Option<Entity> {
+    world
+        .query::<&Pos>()
+        .with::<T>()
+        .iter()
+        .filter(|(_, other_pos)| other_pos.is_in(pos.get_area()))
+        .min_by_key(|(_, other_pos)| other_pos.distance_to(pos))
+        .map(|data| data.0)
+}
 
 pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<String, String> {
     let attacker_name = DisplayInfo::find_definite_name(world, attacker);

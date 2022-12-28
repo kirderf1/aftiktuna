@@ -169,15 +169,19 @@ fn force(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, S
 }
 
 fn attack(parse: &Parse, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    parse.take_remaining(|name| {
-        let area = world.get::<Pos>(aftik).unwrap().get_area();
-        world
-            .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
-            .iter()
-            .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
-            .map(|(target, _)| action_result(Action::Attack(target)))
-            .unwrap_or_else(|| Err("There is no such target here.".to_string()))
-    })
+    parse
+        .done(|| action_result(Action::AttackNearest(combat::Target::Foe)))
+        .unwrap_or_else(|| {
+            parse.take_remaining(|name| {
+                let area = world.get::<Pos>(aftik).unwrap().get_area();
+                world
+                    .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
+                    .iter()
+                    .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(name))
+                    .map(|(target, _)| action_result(Action::Attack(target)))
+                    .unwrap_or_else(|| Err("There is no such target here.".to_string()))
+            })
+        })
 }
 
 fn wait(parse: &Parse) -> Result<CommandResult, String> {
