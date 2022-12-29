@@ -3,6 +3,7 @@ use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::DisplayInfo;
 use door::DoorInfo;
+use fastrand::Rng;
 use hecs::{Entity, World};
 use std::fs::File;
 
@@ -12,8 +13,18 @@ mod init;
 mod item;
 mod template;
 
-pub fn init(world: &mut World) -> Entity {
-    let location = load_location("location/abandoned_facility");
+pub fn pick_random(rng: &mut Rng) -> &'static str {
+    let locations = vec![
+        "location/goblin_forest",
+        "location/eyesaur_forest",
+        "location/abandoned_facility",
+        "location/abandoned_facility2",
+    ];
+    locations[rng.usize(..locations.len())]
+}
+
+pub fn init(world: &mut World, location_name: &str) -> Entity {
+    let location = load_location(location_name);
 
     let start_pos = location
         .build(world)
@@ -41,7 +52,8 @@ pub fn init(world: &mut World) -> Entity {
 }
 
 fn load_location(name: &str) -> LocationData {
-    let file = File::open(format!("assets/{}.json", name)).unwrap();
+    let file = File::open(format!("assets/{}.json", name))
+        .expect(&format!("Failed to load location: {}", name));
     serde_json::from_reader(file).unwrap()
 }
 

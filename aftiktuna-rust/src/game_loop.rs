@@ -5,6 +5,7 @@ use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{DisplayInfo, Messages};
 use crate::{action, area, command, status, view};
+use fastrand::Rng;
 use hecs::{Entity, With, World};
 use std::io::Write;
 use std::{io, thread, time};
@@ -27,7 +28,7 @@ pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
 
-    let aftik = area::init(&mut world);
+    let aftik = area::init(&mut world, area::pick_random(&mut Rng::new()));
     let mut aftik = PlayerControlled::new(aftik);
 
     println!(
