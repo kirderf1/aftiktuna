@@ -5,10 +5,9 @@ use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
-pub fn place_aftik(world: &mut World, pos: Pos, name: &str, stats: Stats) -> Entity {
+pub fn spawn_aftik(world: &mut World, name: &str, stats: Stats) -> Entity {
     world.spawn((
         DisplayInfo::from_name(name.chars().next().unwrap(), name, 10),
-        pos,
         Aftik,
         Health::with_max(&stats),
         Stamina::with_max(&stats),

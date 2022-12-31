@@ -1,3 +1,4 @@
+use crate::action::Aftik;
 use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
@@ -23,13 +24,7 @@ pub fn pick_random(rng: &mut Rng) -> &'static str {
     locations[rng.usize(..locations.len())]
 }
 
-pub fn init(world: &mut World, location_name: &str) -> Entity {
-    let location = load_location(location_name);
-
-    let start_pos = location
-        .build(world)
-        .unwrap_or_else(|message| panic!("{}", message));
-
+pub fn init(world: &mut World) -> (Entity, Pos) {
     let ship = world.spawn((
         Area {
             label: "Ship".to_string(),
@@ -37,21 +32,40 @@ pub fn init(world: &mut World, location_name: &str) -> Entity {
         },
         Ship(ShipStatus::NeedTwoCans),
     ));
+    let ship_exit = Pos::new(ship, 3, world);
+
+    creature::spawn_aftik(world, "Cerulean", Stats::new(9, 2, 10));
+    let mint = creature::spawn_aftik(world, "Mint", Stats::new(10, 3, 8));
+
+    (mint, ship_exit)
+}
+
+pub fn load_location(world: &mut World, ship_exit: Pos, location_name: &str) {
+    let location = load_data(location_name);
+
+    let start_pos = location
+        .build(world)
+        .unwrap_or_else(|message| panic!("{}", message));
+
     door::place_pair(
         world,
         DoorInfo(start_pos, DisplayInfo::from_noun('v', "ship entrance", 20)),
-        DoorInfo(
-            Pos::new(ship, 3, world),
-            DisplayInfo::from_noun('^', "ship exit", 20),
-        ),
+        DoorInfo(ship_exit, DisplayInfo::from_noun('^', "ship exit", 20)),
         None,
     );
 
-    creature::place_aftik(world, start_pos, "Cerulean", Stats::new(9, 2, 10));
-    creature::place_aftik(world, start_pos, "Mint", Stats::new(10, 3, 8))
+    let aftiks = world
+        .query::<()>()
+        .with::<Aftik>()
+        .iter()
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for aftik in aftiks {
+        world.insert_one(aftik, start_pos).unwrap();
+    }
 }
 
-fn load_location(name: &str) -> LocationData {
+fn load_data(name: &str) -> LocationData {
     let file = File::open(format!("assets/{}.json", name))
         .expect(&format!("Failed to load location: {}", name));
     serde_json::from_reader(file).unwrap()

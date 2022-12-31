@@ -28,7 +28,8 @@ pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
 
-    let aftik = area::init(&mut world, area::pick_random(&mut Rng::new()));
+    let (aftik, ship_exit) = area::init(&mut world);
+    area::load_location(&mut world, ship_exit, area::pick_random(&mut Rng::new()));
     let mut aftik = PlayerControlled::new(aftik);
 
     println!(
