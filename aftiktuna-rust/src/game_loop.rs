@@ -1,4 +1,4 @@
-use crate::action::{combat, item, Action, Aftik};
+use crate::action::{combat, door::Door, item, Action, Aftik};
 use crate::area::{Ship, ShipStatus};
 use crate::command::CommandResult;
 use crate::position::Pos;
@@ -31,6 +31,7 @@ pub fn run() {
     let (aftik, ship_exit) = area::init(&mut world);
     area::load_location(&mut world, ship_exit, area::pick_random(&mut Rng::new()));
     let mut aftik = PlayerControlled::new(aftik);
+    let mut locations_left = 2;
 
     println!(
         "You're playing as the aftik {}.",
@@ -43,11 +44,6 @@ pub fn run() {
         }
 
         view::print(&world, aftik.entity, &mut messages, &mut aftik.cache);
-
-        if has_won(&world, aftik.entity) {
-            println!("Congratulations, you won!");
-            break;
-        }
 
         decision_phase(&mut world, &mut aftik);
 
@@ -68,10 +64,69 @@ pub fn run() {
                 break;
             }
         }
+
+        if is_ship_launching(&world, aftik.entity) {
+            messages.add("The ship leaves for the next planet.".to_string());
+            view::print(&world, aftik.entity, &mut messages, &mut aftik.cache);
+            locations_left -= 1;
+
+            if locations_left > 0 {
+                despawn_all_except_ship(&mut world, ship_exit.get_area());
+                world
+                    .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
+                    .unwrap();
+                area::load_location(&mut world, ship_exit, area::pick_random(&mut Rng::new()));
+            } else {
+                println!("Congratulations, you won!");
+                break;
+            }
+        }
     }
 }
 
-fn has_won(world: &World, aftik: Entity) -> bool {
+struct Keep;
+
+fn despawn_all_except_ship(world: &mut World, ship: Entity) {
+    world.insert_one(ship, Keep).unwrap();
+    let entities = world
+        .query::<&Pos>()
+        .without::<Door>()
+        .iter()
+        .filter(|(_, pos)| pos.is_in(ship))
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        world.insert_one(entity, Keep).unwrap();
+        if let Some(item) = item::get_wielded(world, entity) {
+            world.insert_one(item, Keep).unwrap();
+        }
+        for item in item::get_inventory(world, entity) {
+            world.insert_one(item, Keep).unwrap();
+        }
+    }
+
+    let entities = world
+        .query::<()>()
+        .without::<Keep>()
+        .iter()
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        world.despawn(entity).unwrap();
+    }
+
+    let entities = world
+        .query::<()>()
+        .with::<Keep>()
+        .iter()
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        world.remove_one::<Keep>(entity).unwrap();
+    }
+}
+
+fn is_ship_launching(world: &World, aftik: Entity) -> bool {
     if let Ok(pos) = world.get::<Pos>(aftik) {
         world
             .get::<Ship>(pos.get_area())
