@@ -91,11 +91,8 @@ pub fn take_item(
 
     try_move(world, aftik, item_pos)?;
     world
-        .remove_one::<Pos>(item)
-        .expect("Tried removing position from item");
-    world
-        .insert_one(item, InInventory(aftik))
-        .expect("Tried adding inventory data to item");
+        .exchange_one::<Pos, _>(item, InInventory(aftik))
+        .expect("Tried moving item to inventory");
 
     Ok(format!("{} picked up {}.", aftik_name, item_name))
 }
@@ -198,11 +195,8 @@ pub fn wield(
 
         unwield_if_needed(world, aftik);
         world
-            .remove_one::<Pos>(item)
-            .expect("Tried removing position from item");
-        world
-            .insert_one(item, Wielded(aftik))
-            .expect("Tried adding inventory data to item");
+            .exchange_one::<Pos, _>(item, Wielded(aftik))
+            .expect("Tried moving item");
 
         Ok(format!(
             "{} picked up and wielded the {}.",
@@ -213,8 +207,9 @@ pub fn wield(
 
 fn unwield_if_needed(world: &mut World, holder: Entity) {
     if let Some(item) = get_wielded(world, holder) {
-        world.remove_one::<Wielded>(item).unwrap();
-        world.insert_one(item, InInventory(holder)).unwrap();
+        world
+            .exchange_one::<Wielded, _>(item, InInventory(holder))
+            .unwrap();
     }
 }
 
@@ -222,12 +217,10 @@ pub fn drop_all_items(world: &mut World, entity: Entity) {
     let pos = *world.get::<Pos>(entity).unwrap();
     let items = get_inventory(world, entity);
     for item in items {
-        world.remove_one::<InInventory>(item).unwrap();
-        world.insert_one(item, pos).unwrap();
+        world.exchange_one::<InInventory, _>(item, pos).unwrap();
     }
     let wielded = get_wielded(world, entity);
     if let Some(item) = wielded {
-        world.remove_one::<Wielded>(item).unwrap();
-        world.insert_one(item, pos).unwrap();
+        world.exchange_one::<Wielded, _>(item, pos).unwrap();
     }
 }
