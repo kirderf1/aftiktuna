@@ -1,3 +1,5 @@
+use crate::action;
+use crate::action::door::Door;
 use crate::action::Aftik;
 use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
@@ -84,4 +86,46 @@ pub enum ShipStatus {
     NeedTwoCans,
     NeedOneCan,
     Launching,
+}
+
+struct Keep;
+
+pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
+    world.insert_one(ship, Keep).unwrap();
+    let entities = world
+        .query::<&Pos>()
+        .without::<Door>()
+        .iter()
+        .filter(|(_, pos)| pos.is_in(ship))
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        world.insert_one(entity, Keep).unwrap();
+        if let Some(item) = action::item::get_wielded(world, entity) {
+            world.insert_one(item, Keep).unwrap();
+        }
+        for item in action::item::get_inventory(world, entity) {
+            world.insert_one(item, Keep).unwrap();
+        }
+    }
+
+    let entities = world
+        .query::<()>()
+        .without::<Keep>()
+        .iter()
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        world.despawn(entity).unwrap();
+    }
+
+    let entities = world
+        .query::<()>()
+        .with::<Keep>()
+        .iter()
+        .map(|pair| pair.0)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        world.remove_one::<Keep>(entity).unwrap();
+    }
 }

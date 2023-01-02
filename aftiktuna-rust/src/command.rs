@@ -1,7 +1,6 @@
 use crate::action::item::FuelCan;
 use crate::action::{combat, door, item, Action, Aftik};
 use crate::area::Ship;
-use crate::game_loop::Target;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
@@ -9,6 +8,11 @@ use hecs::{Entity, With, World};
 use parse::Parse;
 
 mod parse;
+
+pub enum Target {
+    Controlled,
+    Crew,
+}
 
 pub enum CommandResult {
     Action(Action, Target),

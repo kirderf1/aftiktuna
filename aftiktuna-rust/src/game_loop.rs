@@ -1,12 +1,12 @@
-use crate::action::{combat, door::Door, item, Action, Aftik};
+use crate::action::{item, Action, Aftik};
 use crate::area::{Ship, ShipStatus};
-use crate::command::CommandResult;
+use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{DisplayInfo, Messages};
 use crate::{action, area, command, status, view};
 use fastrand::Rng;
-use hecs::{Entity, With, World};
+use hecs::{Entity, World};
 use std::io::Write;
 use std::{io, thread, time};
 
@@ -48,106 +48,33 @@ pub fn run() {
 
         decision_phase(&mut world, &mut aftik);
 
-        action_phase(&mut world, &mut rng, &mut messages, aftik.entity);
+        action::ai_phase(&mut world);
+
+        action::action_phase(&mut world, &mut rng, &mut messages, aftik.entity);
 
         handle_aftik_deaths(&mut world, &mut messages, aftik.entity);
 
-        if world.get::<Aftik>(aftik.entity).is_err() {
-            if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
-                aftik = PlayerControlled::new(next_aftik);
-                messages.add(format!(
-                    "You're now playing as the aftik {}.",
-                    DisplayInfo::find_name(&world, aftik.entity)
-                ));
-            } else {
-                println!();
-                println!("You lost.");
-                break;
-            }
+        if check_player_state(&world, &mut messages, &mut aftik) {
+            println!();
+            println!("You lost.");
+            break;
         }
 
-        if is_ship_launching(&world, aftik.entity) {
-            messages.add("The ship leaves for the next planet.".to_string());
-            view::print(&world, aftik.entity, &mut messages, &mut aftik.cache);
-            locations_left -= 1;
-
-            if locations_left > 0 {
-                despawn_all_except_ship(&mut world, ship_exit.get_area());
-                world
-                    .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
-                    .unwrap();
-                area::load_location(&mut world, ship_exit, area::pick_random(&mut rng));
-            } else {
-                println!("Congratulations, you won!");
-                break;
-            }
+        if check_ship_state(
+            &mut world,
+            &mut messages,
+            &mut rng,
+            ship_exit,
+            &mut aftik,
+            &mut locations_left,
+        ) {
+            println!("Congratulations, you won!");
+            break;
         }
-    }
-}
-
-struct Keep;
-
-fn despawn_all_except_ship(world: &mut World, ship: Entity) {
-    world.insert_one(ship, Keep).unwrap();
-    let entities = world
-        .query::<&Pos>()
-        .without::<Door>()
-        .iter()
-        .filter(|(_, pos)| pos.is_in(ship))
-        .map(|pair| pair.0)
-        .collect::<Vec<_>>();
-    for entity in entities {
-        world.insert_one(entity, Keep).unwrap();
-        if let Some(item) = item::get_wielded(world, entity) {
-            world.insert_one(item, Keep).unwrap();
-        }
-        for item in item::get_inventory(world, entity) {
-            world.insert_one(item, Keep).unwrap();
-        }
-    }
-
-    let entities = world
-        .query::<()>()
-        .without::<Keep>()
-        .iter()
-        .map(|pair| pair.0)
-        .collect::<Vec<_>>();
-    for entity in entities {
-        world.despawn(entity).unwrap();
-    }
-
-    let entities = world
-        .query::<()>()
-        .with::<Keep>()
-        .iter()
-        .map(|pair| pair.0)
-        .collect::<Vec<_>>();
-    for entity in entities {
-        world.remove_one::<Keep>(entity).unwrap();
-    }
-}
-
-fn is_ship_launching(world: &World, aftik: Entity) -> bool {
-    if let Ok(pos) = world.get::<Pos>(aftik) {
-        world
-            .get::<Ship>(pos.get_area())
-            .map(|ship| ship.0 == ShipStatus::Launching)
-            .unwrap_or(false)
-    } else {
-        false
     }
 }
 
 fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
-    let foes = world
-        .query::<With<combat::IsFoe, ()>>()
-        .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for foe in foes {
-        action::foe_ai(world, foe);
-    }
-
     if world.get::<Action>(player.entity).is_err() {
         let (action, target) = parse_user_action(world, player);
         match target {
@@ -160,19 +87,6 @@ fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
     } else {
         thread::sleep(time::Duration::from_secs(2));
     }
-
-    let aftiks = world.query::<()>().with::<Aftik>()
-        .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for aftik in aftiks {
-        action::aftik_ai(world, aftik);
-    }
-}
-
-pub enum Target {
-    Controlled,
-    Crew,
 }
 
 fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
@@ -225,29 +139,6 @@ fn read_input() -> String {
     String::from(input.trim())
 }
 
-fn action_phase(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
-    let mut entities = world
-        .query::<With<Action, &status::Stats>>()
-        .iter()
-        .map(|(entity, stats)| (entity, stats.agility))
-        .collect::<Vec<_>>();
-    entities.sort_by(|(_, agility1), (_, agility2)| agility2.cmp(agility1));
-    let entities = entities
-        .iter()
-        .map(|(entity, _)| *entity)
-        .collect::<Vec<_>>();
-
-    for entity in entities {
-        if !status::is_alive(entity, world) {
-            continue;
-        }
-
-        if let Ok(action) = world.remove_one::<Action>(entity) {
-            action::perform(world, rng, entity, action, aftik, messages);
-        }
-    }
-}
-
 fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
     let dead_crew = world
         .query::<&Health>()
@@ -272,5 +163,61 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
     for aftik in dead_crew {
         item::drop_all_items(world, aftik);
         world.despawn(aftik).unwrap();
+    }
+}
+
+fn check_player_state(
+    world: &World,
+    messages: &mut Messages,
+    aftik: &mut PlayerControlled,
+) -> bool {
+    if world.get::<Aftik>(aftik.entity).is_err() {
+        if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
+            *aftik = PlayerControlled::new(next_aftik);
+            messages.add(format!(
+                "You're now playing as the aftik {}.",
+                DisplayInfo::find_name(world, aftik.entity)
+            ));
+        } else {
+            return true;
+        }
+    }
+    false
+}
+
+fn check_ship_state(
+    world: &mut World,
+    messages: &mut Messages,
+    rng: &mut Rng,
+    ship_exit: Pos,
+    aftik: &mut PlayerControlled,
+    locations_left: &mut i32,
+) -> bool {
+    if is_ship_launching(world, aftik.entity) {
+        messages.add("The ship leaves for the next planet.".to_string());
+        view::print(world, aftik.entity, messages, &mut aftik.cache);
+        *locations_left -= 1;
+
+        if *locations_left > 0 {
+            area::despawn_all_except_ship(world, ship_exit.get_area());
+            world
+                .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
+                .unwrap();
+            area::load_location(world, ship_exit, area::pick_random(rng));
+        } else {
+            return true;
+        }
+    }
+    false
+}
+
+fn is_ship_launching(world: &World, aftik: Entity) -> bool {
+    if let Ok(pos) = world.get::<Pos>(aftik) {
+        world
+            .get::<Ship>(pos.get_area())
+            .map(|ship| ship.0 == ShipStatus::Launching)
+            .unwrap_or(false)
+    } else {
+        false
     }
 }

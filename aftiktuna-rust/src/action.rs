@@ -29,7 +29,28 @@ pub enum Action {
     Launch,
 }
 
-pub fn foe_ai(world: &mut World, foe: Entity) {
+pub fn ai_phase(world: &mut World) {
+    let foes = world
+        .query::<With<IsFoe, ()>>()
+        .iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<_>>();
+    for foe in foes {
+        foe_ai(world, foe);
+    }
+
+    let aftiks = world
+        .query::<()>()
+        .with::<Aftik>()
+        .iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<_>>();
+    for aftik in aftiks {
+        aftik_ai(world, aftik);
+    }
+}
+
+fn foe_ai(world: &mut World, foe: Entity) {
     if status::is_alive(foe, world) && world.get::<Action>(foe).is_err() {
         if let Some(action) = pick_foe_action(world, foe) {
             world.insert_one(foe, action).unwrap();
@@ -50,7 +71,7 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     }
 }
 
-pub fn aftik_ai(world: &mut World, aftik: Entity) {
+fn aftik_ai(world: &mut World, aftik: Entity) {
     if status::is_alive(aftik, world) && world.get::<Action>(aftik).is_err() {
         if let Some(action) = pick_aftik_action(world, aftik) {
             world.insert_one(aftik, action).unwrap();
@@ -71,7 +92,30 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
     }
 }
 
-pub fn perform(
+pub fn action_phase(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
+    let mut entities = world
+        .query::<With<Action, &status::Stats>>()
+        .iter()
+        .map(|(entity, stats)| (entity, stats.agility))
+        .collect::<Vec<_>>();
+    entities.sort_by(|(_, agility1), (_, agility2)| agility2.cmp(agility1));
+    let entities = entities
+        .iter()
+        .map(|(entity, _)| *entity)
+        .collect::<Vec<_>>();
+
+    for entity in entities {
+        if !status::is_alive(entity, world) {
+            continue;
+        }
+
+        if let Ok(action) = world.remove_one::<Action>(entity) {
+            perform(world, rng, entity, action, aftik, messages);
+        }
+    }
+}
+
+fn perform(
     world: &mut World,
     rng: &mut Rng,
     performer: Entity,
