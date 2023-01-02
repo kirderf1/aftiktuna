@@ -40,27 +40,7 @@ pub fn run() {
     );
 
     loop {
-        for (_, stamina) in world.query_mut::<&mut Stamina>() {
-            stamina.tick();
-        }
-
-        view::print(&world, aftik.entity, &mut messages, &mut aftik.cache);
-
-        decision_phase(&mut world, &mut aftik);
-
-        action::ai_phase(&mut world);
-
-        action::action_phase(&mut world, &mut rng, &mut messages, aftik.entity);
-
-        handle_aftik_deaths(&mut world, &mut messages, aftik.entity);
-
-        if check_player_state(&world, &mut messages, &mut aftik) {
-            println!();
-            println!("You lost.");
-            break;
-        }
-
-        if check_ship_state(
+        if let Err(stop_type) = tick(
             &mut world,
             &mut messages,
             &mut rng,
@@ -68,10 +48,53 @@ pub fn run() {
             &mut aftik,
             &mut locations_left,
         ) {
-            println!("Congratulations, you won!");
+            match stop_type {
+                StopType::Lose => {
+                    println!();
+                    println!("You lost.");
+                }
+                StopType::Win => {
+                    println!();
+                    println!("Congratulations, you won!");
+                }
+            }
             break;
         }
     }
+}
+
+enum StopType {
+    Lose,
+    Win,
+}
+
+fn tick(
+    world: &mut World,
+    messages: &mut Messages,
+    rng: &mut Rng,
+    ship_exit: Pos,
+    aftik: &mut PlayerControlled,
+    locations_left: &mut i32,
+) -> Result<(), StopType> {
+    for (_, stamina) in world.query_mut::<&mut Stamina>() {
+        stamina.tick();
+    }
+
+    view::print(world, aftik.entity, messages, &mut aftik.cache);
+
+    decision_phase(world, aftik);
+
+    action::ai_phase(world);
+
+    action::action_phase(world, rng, messages, aftik.entity);
+
+    handle_aftik_deaths(world, messages, aftik.entity);
+
+    check_player_state(&world, messages, aftik)?;
+
+    check_ship_state(world, messages, rng, ship_exit, aftik, locations_left)?;
+
+    Ok(())
 }
 
 fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
@@ -170,7 +193,7 @@ fn check_player_state(
     world: &World,
     messages: &mut Messages,
     aftik: &mut PlayerControlled,
-) -> bool {
+) -> Result<(), StopType> {
     if world.get::<Aftik>(aftik.entity).is_err() {
         if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
             *aftik = PlayerControlled::new(next_aftik);
@@ -179,10 +202,10 @@ fn check_player_state(
                 DisplayInfo::find_name(world, aftik.entity)
             ));
         } else {
-            return true;
+            return Err(StopType::Lose);
         }
     }
-    false
+    Ok(())
 }
 
 fn check_ship_state(
@@ -192,7 +215,7 @@ fn check_ship_state(
     ship_exit: Pos,
     aftik: &mut PlayerControlled,
     locations_left: &mut i32,
-) -> bool {
+) -> Result<(), StopType> {
     if is_ship_launching(world, aftik.entity) {
         messages.add("The ship leaves for the next planet.".to_string());
         view::print(world, aftik.entity, messages, &mut aftik.cache);
@@ -205,10 +228,10 @@ fn check_ship_state(
                 .unwrap();
             area::load_location(world, ship_exit, area::pick_random(rng));
         } else {
-            return true;
+            return Err(StopType::Win);
         }
     }
-    false
+    Ok(())
 }
 
 fn is_ship_launching(world: &World, aftik: Entity) -> bool {
