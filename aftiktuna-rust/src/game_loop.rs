@@ -1,5 +1,5 @@
 use crate::action::{item, Action, Aftik};
-use crate::area::{Ship, ShipStatus};
+use crate::area::{Locations, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
@@ -29,10 +29,14 @@ pub fn run() {
     let mut messages = Messages::default();
     let mut rng = Rng::new();
 
+    let mut locations = Locations::new(2);
     let (aftik, ship_exit) = area::init(&mut world);
-    area::load_location(&mut world, ship_exit, area::pick_random(&mut rng));
+    area::load_location(
+        &mut world,
+        ship_exit,
+        locations.pick_random(&mut rng).unwrap(),
+    );
     let mut aftik = PlayerControlled::new(aftik);
-    let mut locations_left = 2;
 
     println!(
         "You're playing as the aftik {}.",
@@ -46,7 +50,7 @@ pub fn run() {
             &mut rng,
             ship_exit,
             &mut aftik,
-            &mut locations_left,
+            &mut locations,
         ) {
             match stop_type {
                 StopType::Lose => {
@@ -74,7 +78,7 @@ fn tick(
     rng: &mut Rng,
     ship_exit: Pos,
     aftik: &mut PlayerControlled,
-    locations_left: &mut i32,
+    locations: &mut Locations,
 ) -> Result<(), StopType> {
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
@@ -92,7 +96,7 @@ fn tick(
 
     check_player_state(world, messages, aftik)?;
 
-    check_ship_state(world, messages, rng, ship_exit, aftik, locations_left)?;
+    check_ship_state(world, messages, rng, ship_exit, aftik, locations)?;
 
     Ok(())
 }
@@ -214,19 +218,18 @@ fn check_ship_state(
     rng: &mut Rng,
     ship_exit: Pos,
     aftik: &mut PlayerControlled,
-    locations_left: &mut i32,
+    locations: &mut Locations,
 ) -> Result<(), StopType> {
     if is_ship_launching(world, aftik.entity) {
         messages.add("The ship leaves for the next planet.".to_string());
         view::print(world, aftik.entity, messages, &mut aftik.cache);
-        *locations_left -= 1;
 
-        if *locations_left > 0 {
+        if let Some(location_name) = locations.pick_random(rng) {
             area::despawn_all_except_ship(world, ship_exit.get_area());
             world
                 .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
                 .unwrap();
-            area::load_location(world, ship_exit, area::pick_random(rng));
+            area::load_location(world, ship_exit, location_name);
         } else {
             return Err(StopType::Win);
         }

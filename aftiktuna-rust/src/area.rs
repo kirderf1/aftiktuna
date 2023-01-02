@@ -16,14 +16,47 @@ mod init;
 mod item;
 mod template;
 
-pub fn pick_random(rng: &mut Rng) -> &'static str {
-    let locations = vec![
-        "location/goblin_forest",
-        "location/eyesaur_forest",
-        "location/abandoned_facility",
-        "location/abandoned_facility2",
-    ];
-    locations[rng.usize(..locations.len())]
+pub struct Area {
+    pub size: Coord,
+    pub label: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct Ship(pub ShipStatus);
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub enum ShipStatus {
+    NeedTwoCans,
+    NeedOneCan,
+    Launching,
+}
+
+pub struct Locations {
+    names: Vec<&'static str>,
+    count_until_win: i32,
+}
+
+impl Locations {
+    pub fn new(count_until_win: i32) -> Self {
+        Locations {
+            names: vec![
+                "location/goblin_forest",
+                "location/eyesaur_forest",
+                "location/abandoned_facility",
+                "location/abandoned_facility2",
+            ],
+            count_until_win,
+        }
+    }
+
+    pub fn pick_random(&mut self, rng: &mut Rng) -> Option<&'static str> {
+        if self.count_until_win <= 0 {
+            return None;
+        }
+
+        self.count_until_win -= 1;
+        Some(self.names.remove(rng.usize(..self.names.len())))
+    }
 }
 
 pub fn init(world: &mut World) -> (Entity, Pos) {
@@ -71,21 +104,6 @@ fn load_data(name: &str) -> LocationData {
     let file = File::open(format!("assets/{}.json", name))
         .expect(&format!("Failed to load location: {}", name));
     serde_json::from_reader(file).unwrap()
-}
-
-pub struct Area {
-    pub size: Coord,
-    pub label: String,
-}
-
-#[derive(Clone, Debug)]
-pub struct Ship(pub ShipStatus);
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum ShipStatus {
-    NeedTwoCans,
-    NeedOneCan,
-    Launching,
 }
 
 struct Keep;
