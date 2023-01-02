@@ -163,7 +163,7 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
     get_weapon_damage(world, attacker) * strength_mod
 }
 
-fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
+pub fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
     item::get_wielded(world, attacker)
         .and_then(|item| world.get::<&Weapon>(item).map(|weapon| weapon.0).ok())
         .unwrap_or(2.0)

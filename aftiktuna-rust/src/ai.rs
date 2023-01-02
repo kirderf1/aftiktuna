@@ -1,7 +1,8 @@
-use crate::action::combat::{IsFoe, Target};
-use crate::action::{Action, Aftik};
+use crate::action::combat::{IsFoe, Target, Weapon};
+use crate::action::{combat, item, Action, Aftik};
 use crate::position::Pos;
 use crate::status;
+use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
 pub fn tick(world: &mut World) {
@@ -64,8 +65,21 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
         .iter()
         .any(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
     {
-        Some(Action::AttackNearest(Target::Foe))
-    } else {
-        None
+        return Some(Action::AttackNearest(Target::Foe));
     }
+
+    let weapon_damage = combat::get_weapon_damage(world, aftik);
+
+    for item in item::get_inventory(world, aftik) {
+        if let Ok(weapon) = world.get::<&Weapon>(item) {
+            if weapon.0 > weapon_damage {
+                return Some(Action::Wield(
+                    item,
+                    DisplayInfo::find_definite_name(world, item),
+                ));
+            }
+        }
+    }
+
+    None
 }
