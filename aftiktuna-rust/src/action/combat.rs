@@ -17,17 +17,18 @@ pub enum Target {
 
 pub fn attack_nearest(
     world: &mut World,
+    rng: &mut Rng,
     attacker: Entity,
     target: Target,
 ) -> Result<Option<String>, String> {
     let pos = *world.get::<Pos>(attacker).unwrap();
     let target = match target {
-        Target::Aftik => find_closest::<Aftik>(world, pos, &mut Rng::new()),
-        Target::Foe => find_closest::<IsFoe>(world, pos, &mut Rng::new()),
+        Target::Aftik => find_closest::<Aftik>(world, pos, rng),
+        Target::Foe => find_closest::<IsFoe>(world, pos, rng),
     };
 
     match target {
-        Some(target) => attack(world, attacker, target).map(Some),
+        Some(target) => attack(world, rng, attacker, target).map(Some),
         None => Ok(None), // Silent failure to find a target
     }
 }
@@ -61,7 +62,12 @@ fn find_closest<T: Component>(world: &mut World, pos: Pos, rng: &mut Rng) -> Opt
     }
 }
 
-pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<String, String> {
+pub fn attack(
+    world: &mut World,
+    rng: &mut Rng,
+    attacker: Entity,
+    target: Entity,
+) -> Result<String, String> {
     let attacker_name = DisplayInfo::find_definite_name(world, attacker);
     let target_name = DisplayInfo::find_definite_name(world, target);
     let attacker_pos = *world
@@ -87,7 +93,7 @@ pub fn attack(world: &mut World, attacker: Entity, target: Entity) -> Result<Str
         target_pos.get_adjacent_towards(attacker_pos),
     )?;
 
-    let hit_type = roll_hit(world, attacker, target, &mut Rng::new());
+    let hit_type = roll_hit(world, attacker, target, rng);
 
     if hit_type == HitType::Dodge {
         return Ok(format!(

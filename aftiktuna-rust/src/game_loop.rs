@@ -27,9 +27,10 @@ impl PlayerControlled {
 pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
+    let mut rng = Rng::new();
 
     let (aftik, ship_exit) = area::init(&mut world);
-    area::load_location(&mut world, ship_exit, area::pick_random(&mut Rng::new()));
+    area::load_location(&mut world, ship_exit, area::pick_random(&mut rng));
     let mut aftik = PlayerControlled::new(aftik);
     let mut locations_left = 2;
 
@@ -47,7 +48,7 @@ pub fn run() {
 
         decision_phase(&mut world, &mut aftik);
 
-        action_phase(&mut world, &mut messages, aftik.entity);
+        action_phase(&mut world, &mut rng, &mut messages, aftik.entity);
 
         handle_aftik_deaths(&mut world, &mut messages, aftik.entity);
 
@@ -75,7 +76,7 @@ pub fn run() {
                 world
                     .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
                     .unwrap();
-                area::load_location(&mut world, ship_exit, area::pick_random(&mut Rng::new()));
+                area::load_location(&mut world, ship_exit, area::pick_random(&mut rng));
             } else {
                 println!("Congratulations, you won!");
                 break;
@@ -224,7 +225,7 @@ fn read_input() -> String {
     String::from(input.trim())
 }
 
-fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
+fn action_phase(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
     let mut entities = world
         .query::<With<Action, &status::Stats>>()
         .iter()
@@ -242,7 +243,7 @@ fn action_phase(world: &mut World, messages: &mut Messages, aftik: Entity) {
         }
 
         if let Ok(action) = world.remove_one::<Action>(entity) {
-            action::perform(world, entity, action, aftik, messages);
+            action::perform(world, rng, entity, action, aftik, messages);
         }
     }
 }

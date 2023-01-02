@@ -2,6 +2,7 @@ use crate::action::combat::{IsFoe, Target};
 use crate::position::Pos;
 use crate::status;
 use crate::view::{DisplayInfo, Messages};
+use fastrand::Rng;
 use hecs::{Entity, With, World};
 use Action::*;
 
@@ -72,6 +73,7 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
 
 pub fn perform(
     world: &mut World,
+    rng: &mut Rng,
     performer: Entity,
     action: Action,
     controlled: Entity,
@@ -84,8 +86,8 @@ pub fn perform(
         Wield(item, name) => item::wield(world, performer, item, &name).map(Some),
         EnterDoor(door) => door::enter_door(world, performer, door).map(Some),
         ForceDoor(door) => door::force_door(world, performer, door).map(Some),
-        Attack(target) => combat::attack(world, performer, target).map(Some),
-        AttackNearest(target) => combat::attack_nearest(world, performer, target),
+        Attack(target) => combat::attack(world, rng, performer, target).map(Some),
+        AttackNearest(target) => combat::attack_nearest(world, rng, performer, target),
         Wait => Ok(None),
         Rest(first) => Ok(rest(world, performer, first)),
         Launch => Ok(launch::perform(world, performer)),
