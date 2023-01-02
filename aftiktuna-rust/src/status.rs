@@ -68,7 +68,7 @@ impl Stamina {
 }
 
 pub fn is_alive(entity: Entity, world: &World) -> bool {
-    match world.get::<Health>(entity) {
+    match world.get::<&Health>(entity) {
         Ok(health) => health.is_alive(),
         Err(ComponentError::MissingComponent(_)) => true,
         Err(ComponentError::NoSuchEntity) => false,

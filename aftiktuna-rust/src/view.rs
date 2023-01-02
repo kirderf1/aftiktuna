@@ -83,7 +83,7 @@ impl DisplayInfo {
     }
 
     pub fn find_definite_name(world: &World, entity: Entity) -> String {
-        world.get::<DisplayInfo>(entity).map_or_else(
+        world.get::<&DisplayInfo>(entity).map_or_else(
             |_| "???".to_string(),
             |info| info.definite_name().to_string(),
         )
@@ -91,7 +91,7 @@ impl DisplayInfo {
 
     pub fn find_name(world: &World, entity: Entity) -> String {
         world
-            .get::<DisplayInfo>(entity)
+            .get::<&DisplayInfo>(entity)
             .map_or_else(|_| "???".to_string(), |info| info.name().to_string())
     }
 }
@@ -103,7 +103,7 @@ pub fn print(
     cache: &mut Option<StatusCache>,
 ) {
     let area = get_viewed_area(aftik, world);
-    let area_info = world.get::<Area>(area).unwrap();
+    let area_info = world.get::<&Area>(area).unwrap();
     let area_size = area_info.size;
 
     println!("-----------");
@@ -155,8 +155,8 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
 }
 
 fn get_name(world: &World, entity: Entity, name: &str) -> String {
-    if let Ok(door_pair) = world.get::<Door>(entity).map(|door| door.door_pair) {
-        if let Ok(blocking) = world.get::<DoorBlocking>(door_pair) {
+    if let Ok(door_pair) = world.get::<&Door>(entity).map(|door| door.door_pair) {
+        if let Ok(blocking) = world.get::<&DoorBlocking>(door_pair) {
             return format!("{} ({})", name, blocking.0.description());
         }
     }
@@ -164,7 +164,7 @@ fn get_name(world: &World, entity: Entity, name: &str) -> String {
 }
 
 fn get_viewed_area(aftik: Entity, world: &World) -> Entity {
-    world.get::<Pos>(aftik).unwrap().get_area()
+    world.get::<&Pos>(aftik).unwrap().get_area()
 }
 
 fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {

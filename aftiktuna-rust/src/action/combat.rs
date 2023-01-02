@@ -21,7 +21,7 @@ pub fn attack_nearest(
     attacker: Entity,
     target: Target,
 ) -> Result<Option<String>, String> {
-    let pos = *world.get::<Pos>(attacker).unwrap();
+    let pos = *world.get::<&Pos>(attacker).unwrap();
     let target = match target {
         Target::Aftik => find_closest::<Aftik>(world, pos, rng),
         Target::Foe => find_closest::<IsFoe>(world, pos, rng),
@@ -36,7 +36,7 @@ pub fn attack_nearest(
 fn find_closest<T: Component>(world: &mut World, pos: Pos, rng: &mut Rng) -> Option<Entity> {
     let targets = world
         .query::<&Pos>()
-        .with::<T>()
+        .with::<&T>()
         .iter()
         .filter(|(_, other_pos)| other_pos.is_in(pos.get_area()))
         // collects the closest targets and also maps them to just the entity in one
@@ -71,9 +71,9 @@ pub fn attack(
     let attacker_name = DisplayInfo::find_definite_name(world, attacker);
     let target_name = DisplayInfo::find_definite_name(world, target);
     let attacker_pos = *world
-        .get::<Pos>(attacker)
+        .get::<&Pos>(attacker)
         .expect("Expected attacker to have a position");
-    let target_pos = *world.get::<Pos>(target).map_err(|_| {
+    let target_pos = *world.get::<&Pos>(target).map_err(|_| {
         format!(
             "{} disappeared before {} could attack.",
             target_name, attacker_name
@@ -115,7 +115,7 @@ pub fn attack(
     );
 
     if killed {
-        if world.get::<Aftik>(target).is_err() {
+        if world.get::<&Aftik>(target).is_err() {
             world.despawn(target).unwrap();
         }
 
@@ -144,7 +144,7 @@ pub fn attack(
 }
 
 pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
-    if let Ok(mut health) = world.get_mut::<Health>(target) {
+    if let Ok(mut health) = world.get::<&mut Health>(target) {
         health.take_damage(damage)
     } else {
         false
@@ -156,7 +156,7 @@ pub struct Weapon(pub f32);
 
 fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
     let strength = world
-        .get::<Stats>(attacker)
+        .get::<&Stats>(attacker)
         .expect("Expected attacker to have stats attached")
         .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
@@ -165,12 +165,12 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
 
 fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
     item::get_wielded(world, attacker)
-        .and_then(|item| world.get::<Weapon>(item).map(|weapon| weapon.0).ok())
+        .and_then(|item| world.get::<&Weapon>(item).map(|weapon| weapon.0).ok())
         .unwrap_or(2.0)
 }
 
 fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut Rng) -> HitType {
-    let mut stamina = world.get_mut::<Stamina>(defender).unwrap();
+    let mut stamina = world.get::<&mut Stamina>(defender).unwrap();
     let stamina_factor = stamina.as_fraction();
     if stamina_factor > 0.0 {
         stamina.on_dodge_attempt();
@@ -192,8 +192,8 @@ fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut Rng
 }
 
 fn get_dodge_factor(world: &World, attacker: Entity, defender: Entity) -> f32 {
-    let hit_agility = world.get::<Stats>(attacker).unwrap().agility;
-    let dodge_agility = world.get::<Stats>(defender).unwrap().agility;
+    let hit_agility = world.get::<&Stats>(attacker).unwrap().agility;
+    let dodge_agility = world.get::<&Stats>(defender).unwrap().agility;
     f32::from(2 * dodge_agility - hit_agility)
 }
 

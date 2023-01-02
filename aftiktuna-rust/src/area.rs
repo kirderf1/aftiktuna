@@ -58,7 +58,7 @@ pub fn load_location(world: &mut World, ship_exit: Pos, location_name: &str) {
 
     let aftiks = world
         .query::<()>()
-        .with::<Aftik>()
+        .with::<&Aftik>()
         .iter()
         .map(|pair| pair.0)
         .collect::<Vec<_>>();
@@ -94,7 +94,7 @@ pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
     world.insert_one(ship, Keep).unwrap();
     let entities = world
         .query::<&Pos>()
-        .without::<Door>()
+        .without::<&Door>()
         .iter()
         .filter(|(_, pos)| pos.is_in(ship))
         .map(|pair| pair.0)
@@ -111,7 +111,7 @@ pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
 
     let entities = world
         .query::<()>()
-        .without::<Keep>()
+        .without::<&Keep>()
         .iter()
         .map(|pair| pair.0)
         .collect::<Vec<_>>();
@@ -121,7 +121,7 @@ pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
 
     let entities = world
         .query::<()>()
-        .with::<Keep>()
+        .with::<&Keep>()
         .iter()
         .map(|pair| pair.0)
         .collect::<Vec<_>>();

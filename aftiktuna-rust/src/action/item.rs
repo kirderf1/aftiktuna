@@ -2,7 +2,7 @@ use crate::action::{Action, Aftik};
 use crate::position::{try_move, Pos};
 use crate::status;
 use crate::view::DisplayInfo;
-use hecs::{Component, Entity, With, World};
+use hecs::{Component, Entity, World};
 
 #[derive(Debug, Default)]
 pub struct Item;
@@ -22,19 +22,19 @@ impl InInventory {
 pub fn is_holding<C: Component>(world: &World, entity: Entity) -> bool {
     world
         .query::<&Wielded>()
-        .with::<C>()
+        .with::<&C>()
         .iter()
         .any(|(_, wielded)| wielded.0 == entity)
         || world
             .query::<&InInventory>()
-            .with::<C>()
+            .with::<&C>()
             .iter()
             .any(|(_, in_inventory)| in_inventory.held_by(entity))
 }
 
 pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
     world
-        .get::<InInventory>(item)
+        .get::<&InInventory>(item)
         .ok()
         .map_or(false, |in_inventory| in_inventory.held_by(holder))
 }
@@ -51,16 +51,17 @@ pub fn get_inventory(world: &World, holder: Entity) -> Vec<Entity> {
 pub fn consume_one<C: Component>(world: &mut World, entity: Entity) -> Option<()> {
     let (item, _) = world
         .query::<&InInventory>()
-        .with::<C>()
+        .with::<&C>()
         .iter()
         .find(|(_, in_inventory)| in_inventory.held_by(entity))?;
     world.despawn(item).ok()
 }
 
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
-    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
+    let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
-        .query::<With<Item, (&Pos, &DisplayInfo)>>()
+        .query::<(&Pos, &DisplayInfo)>()
+        .with::<&Item>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
@@ -69,7 +70,8 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
 
     let result = take_item(world, aftik, item, &name)?;
     if world
-        .query::<With<Item, (&Pos, &DisplayInfo)>>()
+        .query::<(&Pos, &DisplayInfo)>()
+        .with::<&Item>()
         .iter()
         .any(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
     {
@@ -86,7 +88,7 @@ pub fn take_item(
 ) -> Result<String, String> {
     let aftik_name = DisplayInfo::find_definite_name(world, aftik);
     let item_pos = *world
-        .get::<Pos>(item)
+        .get::<&Pos>(item)
         .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;
 
     try_move(world, aftik, item_pos)?;
@@ -107,7 +109,7 @@ pub fn give_item(
     let receiver_name = DisplayInfo::find_definite_name(world, receiver);
 
     if world
-        .get::<InInventory>(item)
+        .get::<&InInventory>(item)
         .ok()
         .filter(|in_inv| in_inv.held_by(performer))
         .is_none()
@@ -119,9 +121,9 @@ pub fn give_item(
     }
 
     let performer_pos = *world
-        .get::<Pos>(performer)
+        .get::<&Pos>(performer)
         .expect("Expected performer to have a position");
-    let receiver_pos = *world.get::<Pos>(receiver).map_err(|_| {
+    let receiver_pos = *world.get::<&Pos>(receiver).map_err(|_| {
         format!(
             "{} disappeared before {} could interact with them.",
             receiver_name, performer_name
@@ -165,7 +167,7 @@ pub struct CanWield;
 struct Wielded(Entity);
 
 pub fn get_wielded(world: &World, entity: Entity) -> Option<Entity> {
-    world.get::<Aftik>(entity).ok()?;
+    world.get::<&Aftik>(entity).ok()?;
     world
         .query::<&Wielded>()
         .iter()
@@ -189,7 +191,7 @@ pub fn wield(
         Ok(format!("{} wielded a {}.", aftik_name, item_name))
     } else {
         let item_pos = *world
-            .get::<Pos>(item)
+            .get::<&Pos>(item)
             .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;
         try_move(world, aftik, item_pos)?;
 
@@ -214,7 +216,7 @@ fn unwield_if_needed(world: &mut World, holder: Entity) {
 }
 
 pub fn drop_all_items(world: &mut World, entity: Entity) {
-    let pos = *world.get::<Pos>(entity).unwrap();
+    let pos = *world.get::<&Pos>(entity).unwrap();
     let items = get_inventory(world, entity);
     for item in items {
         world.exchange_one::<InInventory, _>(item, pos).unwrap();

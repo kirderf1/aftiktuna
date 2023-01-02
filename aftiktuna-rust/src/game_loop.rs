@@ -90,7 +90,7 @@ fn tick(
 
     handle_aftik_deaths(world, messages, aftik.entity);
 
-    check_player_state(&world, messages, aftik)?;
+    check_player_state(world, messages, aftik)?;
 
     check_ship_state(world, messages, rng, ship_exit, aftik, locations_left)?;
 
@@ -98,12 +98,12 @@ fn tick(
 }
 
 fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
-    if world.get::<Action>(player.entity).is_err() {
+    if world.get::<&Action>(player.entity).is_err() {
         let (action, target) = parse_user_action(world, player);
         match target {
             Target::Controlled => world.insert_one(player.entity, action).unwrap(),
             Target::Crew => {
-                let area = world.get::<Pos>(player.entity).unwrap().get_area();
+                let area = world.get::<&Pos>(player.entity).unwrap().get_area();
                 insert_crew_action(world, area, action);
             }
         }
@@ -115,7 +115,7 @@ fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
 fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
     let aftiks = world
         .query::<&Pos>()
-        .with::<Aftik>()
+        .with::<&Aftik>()
         .iter()
         .filter(|(_, pos)| pos.is_in(area))
         .map(|(aftik, _)| aftik)
@@ -165,7 +165,7 @@ fn read_input() -> String {
 fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
     let dead_crew = world
         .query::<&Health>()
-        .with::<Aftik>()
+        .with::<&Aftik>()
         .iter()
         .filter(|(_, health)| health.is_dead())
         .map(|(aftik, _)| aftik)
@@ -194,8 +194,8 @@ fn check_player_state(
     messages: &mut Messages,
     aftik: &mut PlayerControlled,
 ) -> Result<(), StopType> {
-    if world.get::<Aftik>(aftik.entity).is_err() {
-        if let Some((next_aftik, _)) = world.query::<()>().with::<Aftik>().iter().next() {
+    if world.get::<&Aftik>(aftik.entity).is_err() {
+        if let Some((next_aftik, _)) = world.query::<()>().with::<&Aftik>().iter().next() {
             *aftik = PlayerControlled::new(next_aftik);
             messages.add(format!(
                 "You're now playing as the aftik {}.",
@@ -235,9 +235,9 @@ fn check_ship_state(
 }
 
 fn is_ship_launching(world: &World, aftik: Entity) -> bool {
-    if let Ok(pos) = world.get::<Pos>(aftik) {
+    if let Ok(pos) = world.get::<&Pos>(aftik) {
         world
-            .get::<Ship>(pos.get_area())
+            .get::<&Ship>(pos.get_area())
             .map(|ship| ship.0 == ShipStatus::Launching)
             .unwrap_or(false)
     } else {

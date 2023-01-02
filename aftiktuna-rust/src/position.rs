@@ -1,6 +1,6 @@
 use crate::action::Aftik;
 use crate::area::Area;
-use hecs::{Entity, With, World};
+use hecs::{Entity, World};
 use std::cmp::{max, min, Ordering};
 
 pub type Coord = usize;
@@ -59,7 +59,7 @@ impl Pos {
 
 fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
     let area_size = world
-        .get::<Area>(area)
+        .get::<&Area>(area)
         .expect("Expected given area to have an area component")
         .size;
     assert!(
@@ -74,7 +74,7 @@ fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
 pub struct MovementBlocking;
 
 pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
-    let position = *world.get::<Pos>(entity).unwrap();
+    let position = *world.get::<&Pos>(entity).unwrap();
     assert_eq!(
         destination.get_area(),
         position.get_area(),
@@ -90,7 +90,7 @@ pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(
 }
 
 pub fn is_blocked(world: &World, entity: Entity, entity_pos: Pos, target_pos: Pos) -> bool {
-    if world.get::<Aftik>(entity).is_err() {
+    if world.get::<&Aftik>(entity).is_err() {
         return false; //Only aftiks are blocked.
     }
 
@@ -102,7 +102,8 @@ pub fn is_blocked(world: &World, entity: Entity, entity_pos: Pos, target_pos: Po
     let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
     let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
     world
-        .query::<With<MovementBlocking, &Pos>>()
+        .query::<&Pos>()
+        .with::<&MovementBlocking>()
         .iter()
         .any(|(_, pos)| {
             pos.is_in(entity_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max

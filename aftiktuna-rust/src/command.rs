@@ -4,7 +4,7 @@ use crate::area::Ship;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{status, view};
-use hecs::{Entity, With, World};
+use hecs::{Entity, World};
 use parse::Parse;
 
 mod parse;
@@ -81,16 +81,17 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
 fn aftik_targets(world: &World) -> Vec<(String, Entity)> {
     world
         .query::<&DisplayInfo>()
-        .with::<Aftik>()
+        .with::<&Aftik>()
         .iter()
         .map(|(entity, display_info)| (display_info.name().to_lowercase(), entity))
         .collect::<Vec<_>>()
 }
 
 fn take(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let aftik_pos = *world.get::<Pos>(aftik).unwrap();
+    let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     world
-        .query::<With<item::Item, (&Pos, &DisplayInfo)>>()
+        .query::<(&Pos, &DisplayInfo)>()
+        .with::<&item::Item>()
         .iter()
         .filter(|(_, (pos, display_info))| {
             pos.is_in(aftik_pos.get_area()) && display_info.matches(item_name)
@@ -118,7 +119,7 @@ fn give(
 
     world
         .query::<(&DisplayInfo, &item::InInventory)>()
-        .with::<item::Item>()
+        .with::<&item::Item>()
         .iter()
         .find(|(_, (display_info, in_inventory))| {
             display_info.matches(item_name) && in_inventory.held_by(aftik)
@@ -137,8 +138,8 @@ fn wield(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult,
     None.or_else(|| {
         world
             .query::<(&DisplayInfo, &item::InInventory)>()
-            .with::<item::CanWield>()
-            .with::<item::Item>()
+            .with::<&item::CanWield>()
+            .with::<&item::Item>()
             .iter()
             .find(|(_, (display_info, in_inventory))| {
                 display_info.matches(item_name) && in_inventory.held_by(aftik)
@@ -151,11 +152,11 @@ fn wield(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult,
             })
     })
     .or_else(|| {
-        let aftik_pos = *world.get::<Pos>(aftik).unwrap();
+        let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
         world
             .query::<(&Pos, &DisplayInfo)>()
-            .with::<item::CanWield>()
-            .with::<item::Item>()
+            .with::<&item::CanWield>()
+            .with::<&item::Item>()
             .iter()
             .filter(|(_, (pos, display_info))| {
                 pos.is_in(aftik_pos.get_area()) && display_info.matches(item_name)
@@ -178,9 +179,10 @@ fn wield(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult,
 }
 
 fn enter(door_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
     world
-        .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
+        .query::<(&Pos, &DisplayInfo)>()
+        .with::<&door::Door>()
         .iter()
         .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(door_name))
         .map(|(door, _)| crew_action(Action::EnterDoor(door)))
@@ -188,9 +190,10 @@ fn enter(door_name: &str, world: &World, aftik: Entity) -> Result<CommandResult,
 }
 
 fn force(door_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
     world
-        .query::<With<door::Door, (&Pos, &DisplayInfo)>>()
+        .query::<(&Pos, &DisplayInfo)>()
+        .with::<&door::Door>()
         .iter()
         .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(door_name))
         .map(|(door, _)| action_result(Action::ForceDoor(door)))
@@ -198,11 +201,13 @@ fn force(door_name: &str, world: &World, aftik: Entity) -> Result<CommandResult,
 }
 
 fn attack_any(world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
-    if world.query::<&Pos>()
-        .with::<combat::IsFoe>()
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
+    if world
+        .query::<&Pos>()
+        .with::<&combat::IsFoe>()
         .iter()
-        .any(|(_, pos)| pos.is_in(area)) {
+        .any(|(_, pos)| pos.is_in(area))
+    {
         action_result(Action::AttackNearest(combat::Target::Foe))
     } else {
         Err("There is no appropriate target to attack here.".to_string())
@@ -210,9 +215,10 @@ fn attack_any(world: &World, aftik: Entity) -> Result<CommandResult, String> {
 }
 
 fn attack(target_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
     world
-        .query::<With<combat::IsFoe, (&Pos, &DisplayInfo)>>()
+        .query::<(&Pos, &DisplayInfo)>()
+        .with::<&combat::IsFoe>()
         .iter()
         .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(target_name))
         .map(|(target, _)| action_result(Action::Attack(target)))
@@ -220,16 +226,17 @@ fn attack(target_name: &str, world: &World, aftik: Entity) -> Result<CommandResu
 }
 
 fn rest(world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
     if world
-        .query::<With<combat::IsFoe, &Pos>>()
+        .query::<&Pos>()
+        .with::<&combat::IsFoe>()
         .iter()
         .any(|(_, pos)| pos.is_in(area))
     {
         Err("This area is not safe to rest in.".to_string())
     } else {
         let need_rest = world
-            .get::<status::Stamina>(aftik)
+            .get::<&status::Stamina>(aftik)
             .map(|stamina| stamina.need_rest())
             .unwrap_or(false);
 
@@ -245,14 +252,14 @@ fn rest(world: &World, aftik: Entity) -> Result<CommandResult, String> {
 }
 
 fn launch_ship(world: &World, aftik: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<Pos>(aftik).unwrap().get_area();
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
     if !item::is_holding::<FuelCan>(world, aftik) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             DisplayInfo::find_definite_name(world, aftik)
         ));
     }
-    world.get::<Ship>(area).map_err(|_| {
+    world.get::<&Ship>(area).map_err(|_| {
         format!(
             "{} needs to be near the ship in order to launch it.",
             DisplayInfo::find_definite_name(world, aftik)
@@ -263,7 +270,7 @@ fn launch_ship(world: &World, aftik: Entity) -> Result<CommandResult, String> {
 
 fn status(world: &World) -> Result<CommandResult, String> {
     println!("Crew:");
-    for (aftik, _) in world.query::<()>().with::<Aftik>().iter() {
+    for (aftik, _) in world.query::<()>().with::<&Aftik>().iter() {
         view::print_full_status(world, aftik);
     }
     Ok(CommandResult::None)
@@ -272,7 +279,7 @@ fn status(world: &World) -> Result<CommandResult, String> {
 fn control(world: &World, aftik: Entity, aftik_name: &str) -> Result<CommandResult, String> {
     let (new_aftik, _) = world
         .query::<&DisplayInfo>()
-        .with::<Aftik>()
+        .with::<&Aftik>()
         .iter()
         .find(|(_, display_info)| display_info.matches(aftik_name))
         .ok_or_else(|| "There is no crew member by that name.".to_string())?;

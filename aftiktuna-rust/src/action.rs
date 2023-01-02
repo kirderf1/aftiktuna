@@ -3,7 +3,7 @@ use crate::position::Pos;
 use crate::status;
 use crate::view::{DisplayInfo, Messages};
 use fastrand::Rng;
-use hecs::{Entity, With, World};
+use hecs::{Entity, World};
 use Action::*;
 
 pub mod combat;
@@ -31,7 +31,8 @@ pub enum Action {
 
 pub fn ai_phase(world: &mut World) {
     let foes = world
-        .query::<With<IsFoe, ()>>()
+        .query::<()>()
+        .with::<&IsFoe>()
         .iter()
         .map(|(entity, ())| entity)
         .collect::<Vec<_>>();
@@ -41,7 +42,7 @@ pub fn ai_phase(world: &mut World) {
 
     let aftiks = world
         .query::<()>()
-        .with::<Aftik>()
+        .with::<&Aftik>()
         .iter()
         .map(|(entity, ())| entity)
         .collect::<Vec<_>>();
@@ -51,7 +52,7 @@ pub fn ai_phase(world: &mut World) {
 }
 
 fn foe_ai(world: &mut World, foe: Entity) {
-    if status::is_alive(foe, world) && world.get::<Action>(foe).is_err() {
+    if status::is_alive(foe, world) && world.get::<&Action>(foe).is_err() {
         if let Some(action) = pick_foe_action(world, foe) {
             world.insert_one(foe, action).unwrap();
         }
@@ -59,9 +60,10 @@ fn foe_ai(world: &mut World, foe: Entity) {
 }
 
 fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
-    let pos = *world.get::<Pos>(foe).ok()?;
+    let pos = *world.get::<&Pos>(foe).ok()?;
     if world
-        .query::<With<Aftik, &Pos>>()
+        .query::<&Pos>()
+        .with::<&Aftik>()
         .iter()
         .any(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
     {
@@ -72,7 +74,7 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
 }
 
 fn aftik_ai(world: &mut World, aftik: Entity) {
-    if status::is_alive(aftik, world) && world.get::<Action>(aftik).is_err() {
+    if status::is_alive(aftik, world) && world.get::<&Action>(aftik).is_err() {
         if let Some(action) = pick_aftik_action(world, aftik) {
             world.insert_one(aftik, action).unwrap();
         }
@@ -80,9 +82,10 @@ fn aftik_ai(world: &mut World, aftik: Entity) {
 }
 
 fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
-    let pos = *world.get::<Pos>(aftik).ok()?;
+    let pos = *world.get::<&Pos>(aftik).ok()?;
     if world
-        .query::<With<IsFoe, &Pos>>()
+        .query::<&Pos>()
+        .with::<&IsFoe>()
         .iter()
         .any(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
     {
@@ -94,7 +97,8 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
 
 pub fn action_phase(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
     let mut entities = world
-        .query::<With<Action, &status::Stats>>()
+        .query::<&status::Stats>()
+        .with::<&Action>()
         .iter()
         .map(|(entity, stats)| (entity, stats.agility))
         .collect::<Vec<_>>();
@@ -138,8 +142,8 @@ fn perform(
     };
     match result {
         Ok(Some(message)) => {
-            let performer_pos = *world.get::<Pos>(performer).unwrap();
-            let player_pos = *world.get::<Pos>(controlled).unwrap();
+            let performer_pos = *world.get::<&Pos>(performer).unwrap();
+            let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if player_pos.is_in(performer_pos.get_area()) {
                 messages.add(message);
             }
@@ -155,7 +159,7 @@ fn perform(
 
 fn rest(world: &mut World, performer: Entity, first: bool) -> Option<String> {
     let need_more_rest = world
-        .get::<status::Stamina>(performer)
+        .get::<&status::Stamina>(performer)
         .map(|stamina| stamina.need_more_rest())
         .unwrap_or(false);
 

@@ -30,7 +30,7 @@ pub fn print(world: &World, aftik: Entity, cache: &mut Option<StatusCache>) {
 }
 
 fn print_stats(world: &World, aftik: Entity) {
-    let stats = world.get::<Stats>(aftik).unwrap();
+    let stats = world.get::<&Stats>(aftik).unwrap();
     println!(
         "Strength: {}   Endurance: {}   Agility: {}",
         stats.strength, stats.endurance, stats.agility
@@ -40,7 +40,7 @@ fn print_stats(world: &World, aftik: Entity) {
 const BAR_LENGTH: u16 = 10;
 
 fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
-    let health = world.get::<Health>(aftik).unwrap().as_fraction();
+    let health = world.get::<&Health>(aftik).unwrap().as_fraction();
 
     if Some(health) == prev_health {
         return health;
