@@ -4,7 +4,7 @@ use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{DisplayInfo, Messages};
-use crate::{action, area, command, status, view};
+use crate::{action, ai, area, command, status, view};
 use fastrand::Rng;
 use hecs::{Entity, World};
 use std::io::Write;
@@ -88,9 +88,9 @@ fn tick(
 
     decision_phase(world, aftik);
 
-    action::ai_phase(world);
+    ai::tick(world);
 
-    action::action_phase(world, rng, messages, aftik.entity);
+    action::tick(world, rng, messages, aftik.entity);
 
     handle_aftik_deaths(world, messages, aftik.entity);
 

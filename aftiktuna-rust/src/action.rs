@@ -1,4 +1,4 @@
-use crate::action::combat::{IsFoe, Target};
+use crate::action::combat::Target;
 use crate::position::Pos;
 use crate::status;
 use crate::view::{DisplayInfo, Messages};
@@ -29,73 +29,7 @@ pub enum Action {
     Launch,
 }
 
-pub fn ai_phase(world: &mut World) {
-    let foes = world
-        .query::<()>()
-        .with::<&IsFoe>()
-        .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for foe in foes {
-        foe_ai(world, foe);
-    }
-
-    let aftiks = world
-        .query::<()>()
-        .with::<&Aftik>()
-        .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for aftik in aftiks {
-        aftik_ai(world, aftik);
-    }
-}
-
-fn foe_ai(world: &mut World, foe: Entity) {
-    if status::is_alive(foe, world) && world.get::<&Action>(foe).is_err() {
-        if let Some(action) = pick_foe_action(world, foe) {
-            world.insert_one(foe, action).unwrap();
-        }
-    }
-}
-
-fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
-    let pos = *world.get::<&Pos>(foe).ok()?;
-    if world
-        .query::<&Pos>()
-        .with::<&Aftik>()
-        .iter()
-        .any(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
-    {
-        Some(AttackNearest(Target::Aftik))
-    } else {
-        None
-    }
-}
-
-fn aftik_ai(world: &mut World, aftik: Entity) {
-    if status::is_alive(aftik, world) && world.get::<&Action>(aftik).is_err() {
-        if let Some(action) = pick_aftik_action(world, aftik) {
-            world.insert_one(aftik, action).unwrap();
-        }
-    }
-}
-
-fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
-    let pos = *world.get::<&Pos>(aftik).ok()?;
-    if world
-        .query::<&Pos>()
-        .with::<&IsFoe>()
-        .iter()
-        .any(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
-    {
-        Some(AttackNearest(Target::Foe))
-    } else {
-        None
-    }
-}
-
-pub fn action_phase(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
+pub fn tick(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
     let mut entities = world
         .query::<&status::Stats>()
         .with::<&Action>()
