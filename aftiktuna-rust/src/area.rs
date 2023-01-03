@@ -32,31 +32,48 @@ pub enum ShipStatus {
 }
 
 pub struct Locations {
-    names: Vec<&'static str>,
+    categories: Vec<Category>,
     count_until_win: i32,
 }
 
 impl Locations {
     pub fn new(count_until_win: i32) -> Self {
         Locations {
-            names: vec![
-                "location/goblin_forest",
-                "location/eyesaur_forest",
-                "location/abandoned_facility",
-                "location/abandoned_facility2",
+            categories: vec![
+                Category {
+                    location_names: vec!["location/goblin_forest", "location/eyesaur_forest"],
+                },
+                Category {
+                    location_names: vec![
+                        "location/abandoned_facility",
+                        "location/abandoned_facility2",
+                    ],
+                },
             ],
             count_until_win,
         }
     }
 
     pub fn pick_random(&mut self, rng: &mut Rng) -> Option<&'static str> {
-        if self.count_until_win <= 0 {
+        if self.count_until_win <= 0 || self.categories.is_empty() {
             return None;
         }
 
         self.count_until_win -= 1;
-        Some(self.names.remove(rng.usize(..self.names.len())))
+        let category_index = rng.usize(..self.categories.len());
+        let category = self.categories.get_mut(category_index).unwrap();
+        let chosen_location = category
+            .location_names
+            .remove(rng.usize(..category.location_names.len()));
+        if category.location_names.is_empty() {
+            self.categories.remove(category_index);
+        }
+        Some(chosen_location)
     }
+}
+
+struct Category {
+    location_names: Vec<&'static str>,
 }
 
 pub fn init(world: &mut World) -> (Entity, Pos) {
