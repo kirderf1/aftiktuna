@@ -219,6 +219,10 @@ fn check_ship_state(
             world
                 .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
                 .unwrap();
+            for (_, health) in world.query_mut::<&mut Health>() {
+                health.restore_to_full();
+            }
+
             area::load_location(world, messages, ship_exit, location_name);
         } else {
             return Err(StopType::Win);

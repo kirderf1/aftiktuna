@@ -29,6 +29,10 @@ impl Health {
         self.value -= damage;
         self.value <= 0.0
     }
+
+    pub fn restore_to_full(&mut self) {
+        self.value = self.max
+    }
 }
 
 #[derive(Debug)]
