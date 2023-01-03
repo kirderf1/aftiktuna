@@ -4,9 +4,10 @@ use crate::action::Aftik;
 use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, Messages};
 use door::DoorInfo;
 use hecs::{Entity, World};
+use rand::seq::index;
 use rand::Rng;
 use std::fs::File;
 
@@ -41,9 +42,11 @@ impl Locations {
         Locations {
             categories: vec![
                 Category {
+                    name: "forest",
                     location_names: vec!["location/goblin_forest", "location/eyesaur_forest"],
                 },
                 Category {
+                    name: "abandoned facility",
                     location_names: vec![
                         "location/abandoned_facility",
                         "location/abandoned_facility2",
@@ -60,7 +63,7 @@ impl Locations {
         }
 
         self.count_until_win -= 1;
-        let category_index = rng.gen_range(0..self.categories.len());
+        let category_index = self.pick_category(rng);
         let category = self.categories.get_mut(category_index).unwrap();
         let chosen_location = category
             .location_names
@@ -70,9 +73,40 @@ impl Locations {
         }
         Some(chosen_location)
     }
+
+    fn pick_category(&self, rng: &mut impl Rng) -> usize {
+        if self.categories.len() == 1 {
+            return 0;
+        }
+
+        let alternatives = index::sample(rng, self.categories.len(), 2)
+            .into_iter()
+            .map(|index| (index, self.categories[index].name))
+            .collect::<Vec<_>>();
+
+        println!("-----------");
+        println!(
+            "There are two destination targets: {}, {}",
+            alternatives[0].1, alternatives[1].1
+        );
+        println!("Pick the location to travel to next.");
+        println!();
+
+        loop {
+            let input = crate::read_input().to_lowercase();
+
+            for (index, name) in &alternatives {
+                if name.eq(&input) {
+                    return *index;
+                }
+            }
+            println!("Unexpected input: \"{}\"", input);
+        }
+    }
 }
 
 struct Category {
+    name: &'static str,
     location_names: Vec<&'static str>,
 }
 
@@ -92,7 +126,12 @@ pub fn init(world: &mut World) -> (Entity, Pos) {
     (mint, ship_exit)
 }
 
-pub fn load_location(world: &mut World, ship_exit: Pos, location_name: &str) {
+pub fn load_location(
+    world: &mut World,
+    messages: &mut Messages,
+    ship_exit: Pos,
+    location_name: &str,
+) {
     let location = load_data(location_name);
 
     let start_pos = location
@@ -115,6 +154,8 @@ pub fn load_location(world: &mut World, ship_exit: Pos, location_name: &str) {
     for aftik in aftiks {
         world.insert_one(aftik, start_pos).unwrap();
     }
+
+    messages.add("The ship arrives at a new location, and the crew exit the ship.".to_string());
 }
 
 fn load_data(name: &str) -> LocationData {

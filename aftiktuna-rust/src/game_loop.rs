@@ -30,16 +30,18 @@ pub fn run() {
 
     let mut locations = Locations::new(2);
     let (aftik, ship_exit) = area::init(&mut world);
-    area::load_location(
-        &mut world,
-        ship_exit,
-        locations.pick_random(&mut rng).unwrap(),
-    );
     let mut aftik = PlayerControlled::new(aftik);
 
     println!(
         "You're playing as the aftik {}.",
         DisplayInfo::find_name(&world, aftik.entity)
+    );
+
+    area::load_location(
+        &mut world,
+        &mut messages,
+        ship_exit,
+        locations.pick_random(&mut rng).unwrap(),
     );
 
     loop {
@@ -217,7 +219,7 @@ fn check_ship_state(
             world
                 .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
                 .unwrap();
-            area::load_location(world, ship_exit, location_name);
+            area::load_location(world, messages, ship_exit, location_name);
         } else {
             return Err(StopType::Win);
         }
