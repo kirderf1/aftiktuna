@@ -2,8 +2,8 @@ use crate::action::combat::Target;
 use crate::position::Pos;
 use crate::status;
 use crate::view::{DisplayInfo, Messages};
-use fastrand::Rng;
 use hecs::{Entity, World};
+use rand::Rng;
 use Action::*;
 
 pub mod combat;
@@ -29,7 +29,7 @@ pub enum Action {
     Launch,
 }
 
-pub fn tick(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: Entity) {
+pub fn tick(world: &mut World, rng: &mut impl Rng, messages: &mut Messages, aftik: Entity) {
     let mut entities = world
         .query::<&status::Stats>()
         .with::<&Action>()
@@ -55,7 +55,7 @@ pub fn tick(world: &mut World, rng: &mut Rng, messages: &mut Messages, aftik: En
 
 fn perform(
     world: &mut World,
-    rng: &mut Rng,
+    rng: &mut impl Rng,
     performer: Entity,
     action: Action,
     controlled: Entity,

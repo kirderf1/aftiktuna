@@ -6,8 +6,8 @@ use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::DisplayInfo;
 use door::DoorInfo;
-use fastrand::Rng;
 use hecs::{Entity, World};
+use rand::Rng;
 use std::fs::File;
 
 mod creature;
@@ -54,17 +54,17 @@ impl Locations {
         }
     }
 
-    pub fn pick_random(&mut self, rng: &mut Rng) -> Option<&'static str> {
+    pub fn pick_random(&mut self, rng: &mut impl Rng) -> Option<&'static str> {
         if self.count_until_win <= 0 || self.categories.is_empty() {
             return None;
         }
 
         self.count_until_win -= 1;
-        let category_index = rng.usize(..self.categories.len());
+        let category_index = rng.gen_range(0..self.categories.len());
         let category = self.categories.get_mut(category_index).unwrap();
         let chosen_location = category
             .location_names
-            .remove(rng.usize(..category.location_names.len()));
+            .remove(rng.gen_range(0..category.location_names.len()));
         if category.location_names.is_empty() {
             self.categories.remove(category_index);
         }

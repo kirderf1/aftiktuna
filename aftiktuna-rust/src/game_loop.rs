@@ -5,10 +5,9 @@ use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{DisplayInfo, Messages};
 use crate::{action, ai, area, command, status, view};
-use fastrand::Rng;
 use hecs::{Entity, World};
-use std::io::Write;
-use std::{io, thread, time};
+use rand::{thread_rng, Rng};
+use std::{thread, time};
 
 struct PlayerControlled {
     entity: Entity,
@@ -27,7 +26,7 @@ impl PlayerControlled {
 pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
-    let mut rng = Rng::new();
+    let mut rng = thread_rng();
 
     let mut locations = Locations::new(2);
     let (aftik, ship_exit) = area::init(&mut world);
@@ -75,7 +74,7 @@ enum StopType {
 fn tick(
     world: &mut World,
     messages: &mut Messages,
-    rng: &mut Rng,
+    rng: &mut impl Rng,
     ship_exit: Pos,
     aftik: &mut PlayerControlled,
     locations: &mut Locations,
@@ -131,7 +130,7 @@ fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
 
 fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> (Action, Target) {
     loop {
-        let input = read_input().to_lowercase();
+        let input = crate::read_input().to_lowercase();
 
         match command::try_parse_input(&input, world, aftik.entity) {
             Ok(CommandResult::Action(action, target)) => return (action, target),
@@ -153,17 +152,6 @@ fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> (Action, Ta
             Err(message) => println!("{}", message),
         }
     }
-}
-
-fn read_input() -> String {
-    print!("> ");
-    io::stdout().flush().expect("Failed to flush stdout");
-
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read input");
-    String::from(input.trim())
 }
 
 fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
@@ -215,7 +203,7 @@ fn check_player_state(
 fn check_ship_state(
     world: &mut World,
     messages: &mut Messages,
-    rng: &mut Rng,
+    rng: &mut impl Rng,
     ship_exit: Pos,
     aftik: &mut PlayerControlled,
     locations: &mut Locations,

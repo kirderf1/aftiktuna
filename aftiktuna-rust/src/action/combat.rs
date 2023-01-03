@@ -2,8 +2,8 @@ use crate::action::{item, Aftik};
 use crate::position::{try_move, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
-use fastrand::Rng;
 use hecs::{Component, Entity, World};
+use rand::Rng;
 use std::cmp::Ordering;
 
 #[derive(Debug)]
@@ -17,14 +17,14 @@ pub enum Target {
 
 pub fn attack_nearest(
     world: &mut World,
-    rng: &mut Rng,
+    rng: &mut impl Rng,
     attacker: Entity,
     target: Target,
 ) -> Result<Option<String>, String> {
     let pos = *world.get::<&Pos>(attacker).unwrap();
     let target = match target {
-        Target::Aftik => find_closest::<Aftik>(world, pos, rng),
-        Target::Foe => find_closest::<IsFoe>(world, pos, rng),
+        Target::Aftik => find_closest::<Aftik, _>(world, pos, rng),
+        Target::Foe => find_closest::<IsFoe, _>(world, pos, rng),
     };
 
     match target {
@@ -33,7 +33,7 @@ pub fn attack_nearest(
     }
 }
 
-fn find_closest<T: Component>(world: &mut World, pos: Pos, rng: &mut Rng) -> Option<Entity> {
+fn find_closest<T: Component, R: Rng>(world: &mut World, pos: Pos, rng: &mut R) -> Option<Entity> {
     let targets = world
         .query::<&Pos>()
         .with::<&T>()
@@ -58,13 +58,13 @@ fn find_closest<T: Component>(world: &mut World, pos: Pos, rng: &mut Rng) -> Opt
     if targets.is_empty() {
         None
     } else {
-        Some(targets[rng.usize(..targets.len())])
+        Some(targets[rng.gen_range(0..targets.len())])
     }
 }
 
 pub fn attack(
     world: &mut World,
-    rng: &mut Rng,
+    rng: &mut impl Rng,
     attacker: Entity,
     target: Entity,
 ) -> Result<String, String> {
@@ -169,7 +169,7 @@ pub fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
         .unwrap_or(2.0)
 }
 
-fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut Rng) -> HitType {
+fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut impl Rng) -> HitType {
     let mut stamina = world.get::<&mut Stamina>(defender).unwrap();
     let stamina_factor = stamina.as_fraction();
     if stamina_factor > 0.0 {
@@ -177,7 +177,7 @@ fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut Rng
         let dodge_factor = stamina_factor * get_dodge_factor(world, attacker, defender);
         // Yes, this looks slightly odd. This is meant to act as a d20 integer roll,
         // which is converted to a float only to be compared against the float factor.
-        let hit_roll = f32::from(rng.i16(1..=20));
+        let hit_roll = f32::from(rng.gen_range::<i16, _>(1..=20));
 
         if dodge_factor > hit_roll + 5.0 {
             HitType::Dodge
