@@ -1,5 +1,5 @@
 use crate::action::combat::IsFoe;
-use crate::action::Aftik;
+use crate::action::CrewMember;
 use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
@@ -8,7 +8,7 @@ use hecs::{Entity, World};
 pub fn spawn_aftik(world: &mut World, name: &str, stats: Stats) -> Entity {
     world.spawn((
         DisplayInfo::from_name(name.chars().next().unwrap(), name, 10),
-        Aftik,
+        CrewMember,
         Health::with_max(&stats),
         Stamina::with_max(&stats),
         stats,

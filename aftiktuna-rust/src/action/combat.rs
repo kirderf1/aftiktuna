@@ -1,4 +1,4 @@
-use crate::action::{item, Aftik};
+use crate::action::{item, CrewMember};
 use crate::position::{try_move, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
@@ -23,7 +23,7 @@ pub fn attack_nearest(
 ) -> Result<Option<String>, String> {
     let pos = *world.get::<&Pos>(attacker).unwrap();
     let target = match target {
-        Target::Aftik => find_closest::<Aftik, _>(world, pos, rng),
+        Target::Aftik => find_closest::<CrewMember, _>(world, pos, rng),
         Target::Foe => find_closest::<IsFoe, _>(world, pos, rng),
     };
 
@@ -115,7 +115,7 @@ pub fn attack(
     );
 
     if killed {
-        if world.get::<&Aftik>(target).is_err() {
+        if world.get::<&CrewMember>(target).is_err() {
             world.despawn(target).unwrap();
         }
 

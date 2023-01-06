@@ -1,4 +1,4 @@
-use crate::action::Aftik;
+use crate::action::CrewMember;
 use crate::area::Area;
 use hecs::{Entity, World};
 use std::cmp::{max, min, Ordering};
@@ -90,7 +90,7 @@ pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(
 }
 
 pub fn is_blocked(world: &World, entity: Entity, entity_pos: Pos, target_pos: Pos) -> bool {
-    if world.get::<&Aftik>(entity).is_err() {
+    if world.get::<&CrewMember>(entity).is_err() {
         return false; //Only aftiks are blocked.
     }
 

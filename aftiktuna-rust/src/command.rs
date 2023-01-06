@@ -1,5 +1,5 @@
 use crate::action::item::FuelCan;
-use crate::action::{combat, door, item, Action, Aftik};
+use crate::action::{combat, door, item, Action, CrewMember};
 use crate::area::Ship;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
@@ -81,7 +81,7 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
 fn aftik_targets(world: &World) -> Vec<(String, Entity)> {
     world
         .query::<&DisplayInfo>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .map(|(entity, display_info)| (display_info.name().to_lowercase(), entity))
         .collect::<Vec<_>>()
@@ -270,7 +270,7 @@ fn launch_ship(world: &World, aftik: Entity) -> Result<CommandResult, String> {
 
 fn status(world: &World) -> Result<CommandResult, String> {
     println!("Crew:");
-    for (aftik, _) in world.query::<()>().with::<&Aftik>().iter() {
+    for (aftik, _) in world.query::<()>().with::<&CrewMember>().iter() {
         view::print_full_status(world, aftik);
     }
     Ok(CommandResult::None)
@@ -279,7 +279,7 @@ fn status(world: &World) -> Result<CommandResult, String> {
 fn control(world: &World, aftik: Entity, aftik_name: &str) -> Result<CommandResult, String> {
     let (new_aftik, _) = world
         .query::<&DisplayInfo>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .find(|(_, display_info)| display_info.matches(aftik_name))
         .ok_or_else(|| "There is no crew member by that name.".to_string())?;

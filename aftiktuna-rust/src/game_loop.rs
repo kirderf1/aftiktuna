@@ -1,4 +1,4 @@
-use crate::action::{item, Action, Aftik};
+use crate::action::{item, Action, CrewMember};
 use crate::area::{Locations, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
@@ -120,7 +120,7 @@ fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
 fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
     let aftiks = world
         .query::<&Pos>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .filter(|(_, pos)| pos.is_in(area))
         .map(|(aftik, _)| aftik)
@@ -159,7 +159,7 @@ fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> (Action, Ta
 fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
     let dead_crew = world
         .query::<&Health>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .filter(|(_, health)| health.is_dead())
         .map(|(aftik, _)| aftik)
@@ -188,8 +188,8 @@ fn check_player_state(
     messages: &mut Messages,
     aftik: &mut PlayerControlled,
 ) -> Result<(), StopType> {
-    if world.get::<&Aftik>(aftik.entity).is_err() {
-        if let Some((next_aftik, _)) = world.query::<()>().with::<&Aftik>().iter().next() {
+    if world.get::<&CrewMember>(aftik.entity).is_err() {
+        if let Some((next_aftik, _)) = world.query::<()>().with::<&CrewMember>().iter().next() {
             *aftik = PlayerControlled::new(next_aftik);
             messages.add(format!(
                 "You're now playing as the aftik {}.",

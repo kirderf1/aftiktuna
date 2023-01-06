@@ -1,5 +1,5 @@
 use crate::action::combat::{IsFoe, Target, Weapon};
-use crate::action::{combat, item, Action, Aftik};
+use crate::action::{combat, item, Action, CrewMember};
 use crate::position::Pos;
 use crate::status;
 use crate::view::DisplayInfo;
@@ -18,7 +18,7 @@ pub fn tick(world: &mut World) {
 
     let aftiks = world
         .query::<()>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .map(|(entity, ())| entity)
         .collect::<Vec<_>>();
@@ -39,7 +39,7 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     let pos = *world.get::<&Pos>(foe).ok()?;
     if world
         .query::<&Pos>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .any(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
     {

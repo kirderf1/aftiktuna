@@ -1,6 +1,6 @@
 use crate::action;
 use crate::action::door::Door;
-use crate::action::Aftik;
+use crate::action::CrewMember;
 use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
@@ -147,7 +147,7 @@ pub fn load_location(
 
     let aftiks = world
         .query::<()>()
-        .with::<&Aftik>()
+        .with::<&CrewMember>()
         .iter()
         .map(|pair| pair.0)
         .collect::<Vec<_>>();

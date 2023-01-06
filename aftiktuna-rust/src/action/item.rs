@@ -1,4 +1,4 @@
-use crate::action::{Action, Aftik};
+use crate::action::{Action, CrewMember};
 use crate::position::{try_move, Pos};
 use crate::status;
 use crate::view::DisplayInfo;
@@ -167,7 +167,7 @@ pub struct CanWield;
 struct Wielded(Entity);
 
 pub fn get_wielded(world: &World, entity: Entity) -> Option<Entity> {
-    world.get::<&Aftik>(entity).ok()?;
+    world.get::<&CrewMember>(entity).ok()?;
     world
         .query::<&Wielded>()
         .iter()

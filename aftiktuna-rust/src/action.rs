@@ -12,7 +12,7 @@ pub mod item;
 mod launch;
 
 #[derive(Debug, Default)]
-pub struct Aftik;
+pub struct CrewMember;
 
 #[derive(Clone)]
 pub enum Action {
