@@ -269,10 +269,7 @@ fn launch_ship(world: &World, aftik: Entity) -> Result<CommandResult, String> {
 }
 
 fn status(world: &World) -> Result<CommandResult, String> {
-    println!("Crew:");
-    for (aftik, _) in world.query::<()>().with::<&CrewMember>().iter() {
-        view::print_full_status(world, aftik);
-    }
+    view::print_full_status(world);
     Ok(CommandResult::None)
 }
 

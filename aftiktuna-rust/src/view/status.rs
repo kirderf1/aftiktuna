@@ -1,18 +1,28 @@
-use crate::action::item;
+use crate::action::{item, CrewMember};
 use crate::status::{Health, Stats};
-use crate::view::{capitalize, DisplayInfo, StatusCache};
+use crate::view::{capitalize, DisplayInfo};
 use hecs::{Entity, World};
 
-pub fn print_full_status(world: &World, aftik: Entity) {
-    println!(
-        "{} (Aftik):",
-        capitalize(DisplayInfo::find_definite_name(world, aftik).as_str())
-    );
-    print_stats(world, aftik);
-    print_without_cache(world, aftik);
+pub struct Cache {
+    character_id: Entity,
+    health: f32,
+    wielded: Option<Entity>,
+    inventory: Vec<Entity>,
 }
 
-pub fn print_with_cache(world: &World, aftik: Entity, cache: &mut StatusCache) {
+pub fn print_full_status(world: &World) {
+    println!("Crew:");
+    for (aftik, _) in world.query::<()>().with::<&CrewMember>().iter() {
+        println!(
+            "{} (Aftik):",
+            capitalize(DisplayInfo::find_definite_name(world, aftik).as_str())
+        );
+        print_stats(world, aftik);
+        print_without_cache(world, aftik);
+    }
+}
+
+pub fn print_with_cache(world: &World, aftik: Entity, cache: &mut Cache) {
     if cache.character_id == aftik {
         cache.health = print_health(world, aftik, Some(cache.health));
         cache.wielded = print_wielded(world, aftik, Some(cache.wielded));
@@ -22,11 +32,11 @@ pub fn print_with_cache(world: &World, aftik: Entity, cache: &mut StatusCache) {
     }
 }
 
-pub fn print_without_cache(world: &World, aftik: Entity) -> StatusCache {
+pub fn print_without_cache(world: &World, aftik: Entity) -> Cache {
     let health = print_health(world, aftik, None);
     let wielded = print_wielded(world, aftik, None);
     let inventory = print_inventory(world, aftik, None);
-    StatusCache {
+    Cache {
         character_id: aftik,
         health,
         wielded,

@@ -13,7 +13,7 @@ pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
     let mut rng = thread_rng();
-    let mut cache = None;
+    let mut cache = StatusCache::default();
 
     let mut locations = Locations::new(2);
     let (mut aftik, ship) = area::init(&mut world);
@@ -64,7 +64,7 @@ fn tick(
     messages: &mut Messages,
     rng: &mut impl Rng,
     aftik: &mut Entity,
-    cache: &mut Option<StatusCache>,
+    cache: &mut StatusCache,
     locations: &mut Locations,
 ) -> Result<(), StopType> {
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
@@ -88,7 +88,7 @@ fn tick(
     Ok(())
 }
 
-fn decision_phase(world: &mut World, player: &mut Entity, cache: &mut Option<StatusCache>) {
+fn decision_phase(world: &mut World, player: &mut Entity, cache: &mut StatusCache) {
     if world.get::<&Action>(*player).is_err() {
         let (action, target) = parse_user_action(world, player, cache);
         match target {
@@ -119,7 +119,7 @@ fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
 fn parse_user_action(
     world: &World,
     aftik: &mut Entity,
-    cache: &mut Option<StatusCache>,
+    cache: &mut StatusCache,
 ) -> (Action, Target) {
     loop {
         let input = crate::read_input().to_lowercase();
@@ -192,7 +192,7 @@ fn check_ship_state(
     messages: &mut Messages,
     rng: &mut impl Rng,
     aftik: Entity,
-    cache: &mut Option<StatusCache>,
+    cache: &mut StatusCache,
     locations: &mut Locations,
 ) -> Result<(), StopType> {
     let area = world.get::<&Pos>(aftik).unwrap().get_area();

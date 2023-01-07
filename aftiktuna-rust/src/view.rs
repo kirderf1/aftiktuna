@@ -45,12 +45,7 @@ pub struct DisplayInfo {
     weight: u32,
 }
 
-pub struct StatusCache {
-    character_id: Entity,
-    health: f32,
-    wielded: Option<Entity>,
-    inventory: Vec<Entity>,
-}
+pub type StatusCache = Option<status::Cache>;
 
 impl DisplayInfo {
     pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
@@ -97,12 +92,7 @@ impl DisplayInfo {
     }
 }
 
-pub fn print(
-    world: &World,
-    aftik: Entity,
-    messages: &mut Messages,
-    cache: &mut Option<StatusCache>,
-) {
+pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut StatusCache) {
     let area = get_viewed_area(aftik, world);
     let area_info = world.get::<&Area>(area).unwrap();
     let area_size = area_info.size;
