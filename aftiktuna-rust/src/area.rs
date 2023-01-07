@@ -56,6 +56,10 @@ impl Locations {
                         "location/abandoned_facility2",
                     ],
                 },
+                Category {
+                    name: "village",
+                    location_names: vec!["location/village"],
+                },
             ],
             count_until_win,
         }

@@ -48,7 +48,7 @@
     },
     {
       "name": "Shack",
-      "objects": [ "af", "f", "E", "^" ],
+      "objects": [ "af", "fE", "", "^" ],
       "doors": {
         "^": {
           "pair_id": "shack",
