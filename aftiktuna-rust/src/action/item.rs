@@ -1,14 +1,9 @@
 use crate::action::{Action, CrewMember};
+use crate::item::Item;
 use crate::position::{try_move, Pos};
 use crate::status;
 use crate::view::DisplayInfo;
 use hecs::{Component, Entity, World};
-
-#[derive(Debug, Default)]
-pub struct Item;
-
-#[derive(Debug, Default)]
-pub struct FuelCan;
 
 #[derive(Debug)]
 pub struct InInventory(pub Entity);
@@ -159,9 +154,6 @@ pub fn give_item(
         DisplayInfo::find_name(world, item)
     ))
 }
-
-#[derive(Debug, Default)]
-pub struct CanWield;
 
 #[derive(Debug)]
 struct Wielded(Entity);

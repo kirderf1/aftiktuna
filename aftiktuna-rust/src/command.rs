@@ -1,10 +1,11 @@
-use crate::action::item::FuelCan;
+use crate::action::item::{is_holding, InInventory};
 use crate::action::trade::Shopkeeper;
-use crate::action::{combat, door, item, Action, CrewMember};
+use crate::action::{combat, door, Action, CrewMember};
 use crate::area::Ship;
+use crate::item::FuelCan;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
-use crate::{status, view};
+use crate::{item, status, view};
 use hecs::{Entity, World};
 use parse::Parse;
 
@@ -122,7 +123,7 @@ fn give(
     }
 
     world
-        .query::<(&DisplayInfo, &item::InInventory)>()
+        .query::<(&DisplayInfo, &InInventory)>()
         .with::<&item::Item>()
         .iter()
         .find(|(_, (display_info, in_inventory))| {
@@ -141,7 +142,7 @@ fn give(
 fn wield(item_name: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     None.or_else(|| {
         world
-            .query::<(&DisplayInfo, &item::InInventory)>()
+            .query::<(&DisplayInfo, &InInventory)>()
             .with::<&item::CanWield>()
             .with::<&item::Item>()
             .iter()
@@ -257,7 +258,7 @@ fn rest(world: &World, aftik: Entity) -> Result<CommandResult, String> {
 
 fn launch_ship(world: &World, aftik: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(aftik).unwrap().get_area();
-    if !item::is_holding::<FuelCan>(world, aftik) {
+    if !is_holding::<FuelCan>(world, aftik) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             DisplayInfo::find_definite_name(world, aftik)

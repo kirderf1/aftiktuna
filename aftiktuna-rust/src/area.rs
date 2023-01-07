@@ -16,7 +16,6 @@ use std::fs::File;
 mod creature;
 mod door;
 mod init;
-mod item;
 mod template;
 
 pub struct Area {

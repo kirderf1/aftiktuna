@@ -1,5 +1,6 @@
-use crate::action::combat::{IsFoe, Target, Weapon};
+use crate::action::combat::{IsFoe, Target};
 use crate::action::{combat, item, Action, CrewMember};
+use crate::item::Weapon;
 use crate::position::Pos;
 use crate::status;
 use crate::view::DisplayInfo;

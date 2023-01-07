@@ -1,4 +1,5 @@
 use crate::action::{item, CrewMember};
+use crate::item::Weapon;
 use crate::position::{try_move, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
@@ -150,9 +151,6 @@ pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
         false
     }
 }
-
-#[derive(Debug)]
-pub struct Weapon(pub f32);
 
 fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
     let strength = world

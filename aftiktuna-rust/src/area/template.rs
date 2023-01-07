@@ -1,6 +1,7 @@
 use crate::action::door::BlockType;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
-use crate::area::{creature, door, item, Area};
+use crate::area::{creature, door, Area};
+use crate::item;
 use crate::position::Pos;
 use hecs::World;
 use serde::{Deserialize, Serialize};
@@ -185,15 +186,15 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
 fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
     match symbol {
         'v' => builder.set_entry(pos)?,
-        'f' => item::place_fuel(builder.world, pos),
-        'c' => item::place_crowbar(builder.world, pos),
-        'b' => item::place_blowtorch(builder.world, pos),
-        'k' => item::place_keycard(builder.world, pos),
-        'K' => item::place_knife(builder.world, pos),
-        'B' => item::place_bat(builder.world, pos),
-        's' => item::place_sword(builder.world, pos),
-        'm' => item::place_meteor_chunk(builder.world, pos),
-        'a' => item::place_ancient_coin(builder.world, pos),
+        'f' => item::spawn_fuel_can(builder.world, pos),
+        'c' => item::spawn_crowbar(builder.world, pos),
+        'b' => item::spawn_blowtorch(builder.world, pos),
+        'k' => item::spawn_keycard(builder.world, pos),
+        'K' => item::spawn_knife(builder.world, pos),
+        'B' => item::spawn_bat(builder.world, pos),
+        's' => item::spawn_sword(builder.world, pos),
+        'm' => item::spawn_meteor_chunk(builder.world, pos),
+        'a' => item::spawn_ancient_coin(builder.world, pos),
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),

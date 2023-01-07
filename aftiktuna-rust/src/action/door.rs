@@ -1,4 +1,5 @@
 use crate::action::item;
+use crate::item::{Blowtorch, Crowbar, Keycard};
 use crate::position;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
@@ -72,15 +73,6 @@ impl BlockType {
         }
     }
 }
-
-#[derive(Debug)]
-pub struct Crowbar;
-
-#[derive(Debug)]
-pub struct Blowtorch;
-
-#[derive(Debug)]
-pub struct Keycard;
 
 pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
     let aftik_name = DisplayInfo::find_definite_name(world, aftik);

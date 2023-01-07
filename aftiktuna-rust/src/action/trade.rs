@@ -1,8 +1,8 @@
-use crate::action::item::{FuelCan, InInventory, Item};
+use crate::action::item::InInventory;
 use crate::action::CrewMember;
-use crate::position;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
+use crate::{item, position};
 use hecs::{Entity, World};
 
 pub struct Points(pub i32);
@@ -26,12 +26,7 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result
 
     try_spend_points(world, crew, 3500)?;
 
-    world.spawn((
-        DisplayInfo::from_noun('f', "fuel can", 1),
-        InInventory(performer),
-        Item,
-        FuelCan,
-    ));
+    item::spawn_fuel_can(world, InInventory(performer));
 
     Ok(format!("{} bought 1 fuel can.", performer_name))
 }

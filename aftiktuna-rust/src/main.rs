@@ -6,6 +6,7 @@ mod ai;
 mod area;
 mod command;
 mod game_loop;
+mod item;
 mod position;
 mod status;
 mod view;
