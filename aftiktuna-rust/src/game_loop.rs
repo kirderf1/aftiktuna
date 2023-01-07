@@ -35,7 +35,6 @@ pub fn run() {
             &mut world,
             &mut messages,
             &mut rng,
-            ship,
             &mut aftik,
             &mut cache,
             &mut locations,
@@ -64,7 +63,6 @@ fn tick(
     world: &mut World,
     messages: &mut Messages,
     rng: &mut impl Rng,
-    ship: Entity,
     aftik: &mut Entity,
     cache: &mut Option<StatusCache>,
     locations: &mut Locations,
@@ -85,7 +83,7 @@ fn tick(
 
     check_player_state(world, messages, aftik)?;
 
-    check_ship_state(world, messages, rng, ship, *aftik, cache, locations)?;
+    check_ship_state(world, messages, rng, *aftik, cache, locations)?;
 
     Ok(())
 }
@@ -193,12 +191,13 @@ fn check_ship_state(
     world: &mut World,
     messages: &mut Messages,
     rng: &mut impl Rng,
-    ship: Entity,
     aftik: Entity,
     cache: &mut Option<StatusCache>,
     locations: &mut Locations,
 ) -> Result<(), StopType> {
-    if is_ship_launching(world, aftik) {
+    let area = world.get::<&Pos>(aftik).unwrap().get_area();
+    if is_ship_launching(world, area) {
+        let ship = area;
         messages.add("The ship leaves for the next planet.".to_string());
         view::print(world, aftik, messages, cache);
 
@@ -217,13 +216,9 @@ fn check_ship_state(
     Ok(())
 }
 
-fn is_ship_launching(world: &World, aftik: Entity) -> bool {
-    if let Ok(pos) = world.get::<&Pos>(aftik) {
-        world
-            .get::<&Ship>(pos.get_area())
-            .map(|ship| ship.status == ShipStatus::Launching)
-            .unwrap_or(false)
-    } else {
-        false
-    }
+fn is_ship_launching(world: &World, area: Entity) -> bool {
+    world
+        .get::<&Ship>(area)
+        .map(|ship| ship.status == ShipStatus::Launching)
+        .unwrap_or(false)
 }
