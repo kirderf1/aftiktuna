@@ -10,9 +10,10 @@ pub mod combat;
 pub mod door;
 pub mod item;
 mod launch;
+pub mod trade;
 
-#[derive(Debug, Default)]
-pub struct CrewMember;
+#[derive(Debug)]
+pub struct CrewMember(pub Entity);
 
 #[derive(Clone)]
 pub enum Action {

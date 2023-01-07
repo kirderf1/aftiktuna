@@ -1,51 +1,85 @@
+use crate::action::trade::Points;
 use crate::action::{item, CrewMember};
 use crate::status::{Health, Stats};
 use crate::view::{capitalize, DisplayInfo};
 use hecs::{Entity, World};
 
 pub struct Cache {
+    points: i32,
+    character_cache: CharacterCache,
+}
+struct CharacterCache {
     character_id: Entity,
     health: f32,
     wielded: Option<Entity>,
     inventory: Vec<Entity>,
 }
 
-pub fn print_full_status(world: &World) {
+pub fn print_full_status(world: &World, character: Entity) {
+    print_points(world, character, None);
+
     println!("Crew:");
-    for (aftik, _) in world.query::<()>().with::<&CrewMember>().iter() {
+    for (character, _) in world.query::<()>().with::<&CrewMember>().iter() {
         println!(
             "{} (Aftik):",
-            capitalize(DisplayInfo::find_definite_name(world, aftik).as_str())
+            capitalize(DisplayInfo::find_definite_name(world, character).as_str())
         );
-        print_stats(world, aftik);
-        print_without_cache(world, aftik);
+        print_stats(world, character);
+        print_character_without_cache(world, character);
     }
 }
 
-pub fn print_with_cache(world: &World, aftik: Entity, cache: &mut Cache) {
-    if cache.character_id == aftik {
-        cache.health = print_health(world, aftik, Some(cache.health));
-        cache.wielded = print_wielded(world, aftik, Some(cache.wielded));
-        cache.inventory = print_inventory(world, aftik, Some(&cache.inventory));
-    } else {
-        *cache = print_without_cache(world, aftik);
-    }
+pub fn print_with_cache(world: &World, character: Entity, cache: &mut Cache) {
+    cache.points = print_points(world, character, Some(cache.points));
+    print_character_with_cache(world, character, &mut cache.character_cache);
 }
 
-pub fn print_without_cache(world: &World, aftik: Entity) -> Cache {
-    let health = print_health(world, aftik, None);
-    let wielded = print_wielded(world, aftik, None);
-    let inventory = print_inventory(world, aftik, None);
+pub fn print_without_cache(world: &World, character: Entity) -> Cache {
+    let points = print_points(world, character, None);
+    let character_cache = print_character_without_cache(world, character);
     Cache {
-        character_id: aftik,
+        points,
+        character_cache,
+    }
+}
+
+fn print_points(world: &World, character: Entity, prev_points: Option<i32>) -> i32 {
+    let crew = world.get::<&CrewMember>(character).unwrap().0;
+    let points = world.get::<&Points>(crew).unwrap().0;
+
+    if Some(points) == prev_points {
+        return points;
+    }
+
+    println!("Crew points: {}p", points);
+
+    points
+}
+
+fn print_character_with_cache(world: &World, character: Entity, cache: &mut CharacterCache) {
+    if cache.character_id == character {
+        cache.health = print_health(world, character, Some(cache.health));
+        cache.wielded = print_wielded(world, character, Some(cache.wielded));
+        cache.inventory = print_inventory(world, character, Some(&cache.inventory));
+    } else {
+        *cache = print_character_without_cache(world, character);
+    }
+}
+
+fn print_character_without_cache(world: &World, character: Entity) -> CharacterCache {
+    let health = print_health(world, character, None);
+    let wielded = print_wielded(world, character, None);
+    let inventory = print_inventory(world, character, None);
+    CharacterCache {
+        character_id: character,
         health,
         wielded,
         inventory,
     }
 }
 
-fn print_stats(world: &World, aftik: Entity) {
-    let stats = world.get::<&Stats>(aftik).unwrap();
+fn print_stats(world: &World, character: Entity) {
+    let stats = world.get::<&Stats>(character).unwrap();
     println!(
         "Strength: {}   Endurance: {}   Agility: {}",
         stats.strength, stats.endurance, stats.agility
@@ -54,8 +88,8 @@ fn print_stats(world: &World, aftik: Entity) {
 
 const BAR_LENGTH: u16 = 10;
 
-fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
-    let health = world.get::<&Health>(aftik).unwrap().as_fraction();
+fn print_health(world: &World, character: Entity, prev_health: Option<f32>) -> f32 {
+    let health = world.get::<&Health>(character).unwrap().as_fraction();
 
     if Some(health) == prev_health {
         return health;
@@ -76,10 +110,10 @@ fn print_health(world: &World, aftik: Entity, prev_health: Option<f32>) -> f32 {
 
 fn print_wielded(
     world: &World,
-    aftik: Entity,
+    character: Entity,
     prev_wielded: Option<Option<Entity>>,
 ) -> Option<Entity> {
-    let wielded = item::get_wielded(world, aftik);
+    let wielded = item::get_wielded(world, character);
 
     if Some(wielded) == prev_wielded {
         return wielded;
@@ -95,8 +129,12 @@ fn print_wielded(
     wielded
 }
 
-fn print_inventory(world: &World, aftik: Entity, prev_inv: Option<&Vec<Entity>>) -> Vec<Entity> {
-    let mut inventory = item::get_inventory(world, aftik);
+fn print_inventory(
+    world: &World,
+    character: Entity,
+    prev_inv: Option<&Vec<Entity>>,
+) -> Vec<Entity> {
+    let mut inventory = item::get_inventory(world, character);
     inventory.sort();
 
     if Some(&inventory) == prev_inv {

@@ -71,7 +71,7 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
                 })
                 .or_else_err(|| "Unexpected argument after \"launch\"".to_string())
         })
-        .literal("status", |parse| parse.done_or_err(|| status(world)))
+        .literal("status", |parse| parse.done_or_err(|| status(world, aftik)))
         .literal("control", |parse| {
             parse.take_remaining(|aftik_name| control(world, aftik, aftik_name))
         })
@@ -268,8 +268,8 @@ fn launch_ship(world: &World, aftik: Entity) -> Result<CommandResult, String> {
     action_result(Action::Launch)
 }
 
-fn status(world: &World) -> Result<CommandResult, String> {
-    view::print_full_status(world);
+fn status(world: &World, character: Entity) -> Result<CommandResult, String> {
+    view::print_full_status(world, character);
     Ok(CommandResult::None)
 }
 

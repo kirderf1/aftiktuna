@@ -1,5 +1,6 @@
 use crate::action;
 use crate::action::door::Door;
+use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
@@ -128,8 +129,10 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         )
         .unwrap();
 
-    creature::spawn_aftik(world, "Cerulean", Stats::new(9, 2, 10));
-    let mint = creature::spawn_aftik(world, "Mint", Stats::new(10, 3, 8));
+    let crew = world.spawn((Points(10000),));
+
+    creature::spawn_aftik(world, crew, "Cerulean", Stats::new(9, 2, 10));
+    let mint = creature::spawn_aftik(world, crew, "Mint", Stats::new(10, 3, 8));
 
     (mint, ship)
 }
