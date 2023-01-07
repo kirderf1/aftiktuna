@@ -3,8 +3,9 @@
     {
       "name": "Field in front of a forest",
       "objects": [ "", "v", "", "", "^", "", "" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "entrance",
           "display_type": "path"
         }
@@ -13,16 +14,19 @@
     {
       "name": "Forest entrance",
       "objects": [ "<", "", "^", "", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "path1",
           "display_type": "left_path"
         },
         "^": {
+          "type": "door",
           "pair_id": "entrance",
           "display_type": "mid_path"
         },
         ">": {
+          "type": "door",
           "pair_id": "path5",
           "display_type": "right_path"
         }
@@ -31,16 +35,19 @@
     {
       "name": "Forest path leading to a shack",
       "objects": [ "^", "", "<", "", ">", "" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "shack",
           "display_type": "door"
         },
         "<": {
+          "type": "door",
           "pair_id": "path2",
           "display_type": "left_path"
         },
         ">": {
+          "type": "door",
           "pair_id": "path1",
           "display_type": "right_path"
         }
@@ -49,8 +56,9 @@
     {
       "name": "Shack",
       "objects": [ "af", "fE", "", "^" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "shack",
           "display_type": "door"
         }
@@ -59,12 +67,14 @@
     {
       "name": "Forest path",
       "objects": [ "<", "", "", "G", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "path2",
           "display_type": "left_path"
         },
         ">": {
+          "type": "door",
           "pair_id": "path3",
           "display_type": "right_path"
         }
@@ -73,12 +83,14 @@
     {
       "name": "Forest path",
       "objects": [ "<", "B", "G", "G", "", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "path3",
           "display_type": "left_path"
         },
         ">": {
+          "type": "door",
           "pair_id": "path4",
           "display_type": "right_path"
         }
@@ -87,12 +99,14 @@
     {
       "name": "Forest path",
       "objects": [ "<", "", ">", "", "G", "c" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "path4",
           "display_type": "left_path"
         },
         ">": {
+          "type": "door",
           "pair_id": "path5",
           "display_type": "right_path"
         }

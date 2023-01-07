@@ -3,16 +3,19 @@
     {
       "name": "Village road",
       "objects": [ "", "<", "", "v", "", "^", "", "", ">", "" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "aftik_house",
           "display_type": "left_door"
         },
         "^": {
+          "type": "door",
           "pair_id": "road",
           "display_type": "path"
         },
         ">": {
+          "type": "door",
           "pair_id": "store",
           "display_type": "right_door"
         }
@@ -21,16 +24,19 @@
     {
       "name": "Village road",
       "objects": [ "", "<", "", "", "", ">", "", "", "^", "" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "side",
           "display_type": "left_path"
         },
         ">": {
+          "type": "door",
           "pair_id": "road",
           "display_type": "right_path"
         },
         "^": {
+          "type": "door",
           "pair_id": "stuck_house",
           "display_type": "door"
         }
@@ -39,12 +45,14 @@
     {
       "name": "Side path",
       "objects": [ "a", "<", "", "G", "G", "", "G", "^", "" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "side",
           "display_type": "left_path"
         },
         "^": {
+          "type": "door",
           "pair_id": "side_house",
           "display_type": "door"
         }
@@ -53,8 +61,9 @@
     {
       "name": "House",
       "objects": [ "", "", "^", "" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "aftik_house",
           "display_type": "door"
         }
@@ -63,8 +72,9 @@
     {
       "name": "Store",
       "objects": [ "^", "", "S", "" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "store",
           "display_type": "door"
         }
@@ -73,8 +83,9 @@
     {
       "name": "House",
       "objects": [ "^", "", "m", "a" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "stuck_house",
           "display_type": "door"
         }
@@ -83,8 +94,9 @@
     {
       "name": "House",
       "objects": [ "^", "", "m", "B" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "side_house",
           "display_type": "door"
         }

@@ -25,7 +25,7 @@ impl LocationData {
         self.areas.push(AreaData {
             name: name.to_string(),
             objects: objects.iter().map(ToString::to_string).collect(),
-            doors: HashMap::new(),
+            symbols: HashMap::new(),
         });
         self.areas.last_mut().unwrap() //Should not be None since we just added to the vec
     }
@@ -60,7 +60,7 @@ impl LocationData {
 pub struct AreaData {
     name: String,
     objects: Vec<String>,
-    doors: HashMap<char, DoorData>,
+    symbols: HashMap<char, SymbolData>,
 }
 
 impl AreaData {
@@ -70,9 +70,9 @@ impl AreaData {
         display_type: DoorType,
         pair_id: &str,
     ) -> &mut Self {
-        self.doors.insert(
+        self.symbols.insert(
             symbol,
-            DoorData {
+            SymbolData::Door {
                 pair_id: pair_id.to_string(),
                 display_type,
             },
@@ -89,8 +89,11 @@ impl AreaData {
         for (coord, objects) in self.objects.iter().enumerate() {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
-                match self.doors.get(&symbol) {
-                    Some(door_data) => place_door(builder, pos, door_data)?,
+                match self.symbols.get(&symbol) {
+                    Some(SymbolData::Door {
+                        pair_id,
+                        display_type,
+                    }) => place_door(builder, pos, pair_id, display_type)?,
                     None => place_object(builder, pos, symbol)?,
                 }
             }
@@ -100,9 +103,12 @@ impl AreaData {
 }
 
 #[derive(Serialize, Deserialize)]
-struct DoorData {
-    pair_id: String,
-    display_type: DoorType,
+#[serde(tag = "type", rename_all = "snake_case")]
+enum SymbolData {
+    Door {
+        pair_id: String,
+        display_type: DoorType,
+    },
 }
 
 #[derive(Serialize, Deserialize)]
@@ -149,13 +155,17 @@ enum DoorStatus<'a> {
     Placed,
 }
 
-fn place_door(builder: &mut Builder, pos: Pos, door_data: &DoorData) -> Result<(), String> {
-    let pair_id = &door_data.pair_id;
+fn place_door(
+    builder: &mut Builder,
+    pos: Pos,
+    pair_id: &str,
+    display_type: &DoorType,
+) -> Result<(), String> {
     let status = builder
         .doors
         .get_mut(pair_id)
         .ok_or_else(|| format!("Unknown door id: {}", pair_id))?;
-    let door_info = DoorInfo(pos, door::door_display(&door_data.display_type));
+    let door_info = DoorInfo(pos, door::door_display(display_type));
 
     *status = match status {
         DoorStatus::None(data) => DoorStatus::One(data, door_info),

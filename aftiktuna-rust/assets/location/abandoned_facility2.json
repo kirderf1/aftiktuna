@@ -3,12 +3,14 @@
     {
       "name": "Field in front of a building",
       "objects": [ "<", "", "", "^", "", "v" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "path",
           "display_type": "left_path"
         },
         "^": {
+          "type": "door",
           "pair_id": "entrance",
           "display_type": "door"
         }
@@ -17,12 +19,14 @@
     {
       "name": "Field next to a building",
       "objects": [ "^", "", "", "", ">" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "side",
           "display_type": "door"
         },
         ">": {
+          "type": "door",
           "pair_id": "path",
           "display_type": "right_path"
         }
@@ -31,16 +35,19 @@
     {
       "name": "Entrance hall",
       "objects": [ "<", "E", "", "^", "a", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "corridor1",
           "display_type": "left_door"
         },
         "^": {
+          "type": "door",
           "pair_id": "entrance",
           "display_type": "mid_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "room1",
           "display_type": "right_door"
         }
@@ -49,16 +56,19 @@
     {
       "name": "Corridor",
       "objects": [ "<", "E", "K", "^", "", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "corridor1",
           "display_type": "left_door"
         },
         "^": {
+          "type": "door",
           "pair_id": "corridor2",
           "display_type": "mid_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "room2",
           "display_type": "right_door"
         }
@@ -67,16 +77,19 @@
     {
       "name": "Corridor",
       "objects": [ "<", "", "^", "", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "side",
           "display_type": "left_door"
         },
         "^": {
+          "type": "door",
           "pair_id": "corridor2",
           "display_type": "mid_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "room3",
           "display_type": "right_door"
         }
@@ -85,8 +98,9 @@
     {
       "name": "Room",
       "objects": [ "^", "", "Z", "bs" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "room1",
           "display_type": "door"
         }
@@ -95,8 +109,9 @@
     {
       "name": "Room",
       "objects": [ "^", "", "m", "c" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "room2",
           "display_type": "door"
         }
@@ -105,12 +120,14 @@
     {
       "name": "Room",
       "objects": [ "<", "G", "f", ">" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "room3",
           "display_type": "left_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "storage",
           "display_type": "right_door"
         }
@@ -119,8 +136,9 @@
     {
       "name": "Storage Room",
       "objects": [ "^", "aa", "ffa" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "storage",
           "display_type": "door"
         }
