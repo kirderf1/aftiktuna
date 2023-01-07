@@ -187,6 +187,12 @@ pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
         for item in action::item::get_inventory(world, entity) {
             world.insert_one(item, Keep).unwrap();
         }
+        if let Ok(crew) = world
+            .get::<&CrewMember>(entity)
+            .map(|crew_member| crew_member.0)
+        {
+            world.insert_one(crew, Keep).unwrap();
+        }
     }
 
     let entities = world
