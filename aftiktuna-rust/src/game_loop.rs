@@ -27,7 +27,7 @@ pub fn run() {
         &mut world,
         &mut messages,
         ship,
-        locations.pick_random(&mut rng).unwrap(),
+        &locations.pick_random(&mut rng).unwrap(),
     );
 
     loop {
@@ -208,7 +208,7 @@ fn check_ship_state(
                 health.restore_to_full();
             }
 
-            area::load_location(world, messages, ship, location_name);
+            area::load_location(world, messages, ship, &location_name);
         } else {
             return Err(StopType::Win);
         }

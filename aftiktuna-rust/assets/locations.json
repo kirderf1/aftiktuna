@@ -1,0 +1,22 @@
+[
+  {
+    "name": "forest",
+    "location_names": [
+      "location/goblin_forest",
+      "location/eyesaur_forest"
+    ]
+  },
+  {
+    "name": "abandoned facility",
+    "location_names": [
+      "location/abandoned_facility",
+      "location/abandoned_facility2"
+    ]
+  },
+  {
+    "name": "village",
+    "location_names": [
+      "location/village"
+    ]
+  }
+]

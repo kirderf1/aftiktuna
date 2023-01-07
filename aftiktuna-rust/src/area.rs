@@ -10,6 +10,7 @@ use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 
 mod creature;
@@ -43,29 +44,15 @@ pub struct Locations {
 
 impl Locations {
     pub fn new(count_until_win: i32) -> Self {
+        let file = File::open("assets/locations.json").expect("Failed to open locations.json");
+        let categories = serde_json::from_reader(file).expect("Failed to load locations.json");
         Locations {
-            categories: vec![
-                Category {
-                    name: "forest",
-                    location_names: vec!["location/goblin_forest", "location/eyesaur_forest"],
-                },
-                Category {
-                    name: "abandoned facility",
-                    location_names: vec![
-                        "location/abandoned_facility",
-                        "location/abandoned_facility2",
-                    ],
-                },
-                Category {
-                    name: "village",
-                    location_names: vec!["location/village"],
-                },
-            ],
+            categories,
             count_until_win,
         }
     }
 
-    pub fn pick_random(&mut self, rng: &mut impl Rng) -> Option<&'static str> {
+    pub fn pick_random(&mut self, rng: &mut impl Rng) -> Option<String> {
         if self.count_until_win <= 0 || self.categories.is_empty() {
             return None;
         }
@@ -89,7 +76,7 @@ impl Locations {
 
         let alternatives = index::sample(rng, self.categories.len(), 2)
             .into_iter()
-            .map(|index| (index, self.categories[index].name))
+            .map(|index| (index, &self.categories[index].name))
             .collect::<Vec<_>>();
 
         println!("-----------");
@@ -104,7 +91,7 @@ impl Locations {
             let input = crate::read_input().to_lowercase();
 
             for (index, name) in &alternatives {
-                if name.eq(&input) {
+                if input.eq(*name) {
                     return *index;
                 }
             }
@@ -113,9 +100,10 @@ impl Locations {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 struct Category {
-    name: &'static str,
-    location_names: Vec<&'static str>,
+    name: String,
+    location_names: Vec<String>,
 }
 
 pub fn init(world: &mut World) -> (Entity, Entity) {
@@ -176,8 +164,8 @@ pub fn load_location(
 
 fn load_data(name: &str) -> LocationData {
     let file = File::open(format!("assets/{}.json", name))
-        .expect(&format!("Failed to load location: {}", name));
-    serde_json::from_reader(file).unwrap()
+        .unwrap_or_else(|_| panic!("Failed to open location: {}", name));
+    serde_json::from_reader(file).unwrap_or_else(|_| panic!("Failed to load location: {}", name))
 }
 
 struct Keep;
