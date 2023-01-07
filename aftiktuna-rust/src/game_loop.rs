@@ -16,7 +16,7 @@ pub fn run() {
     let mut cache = None;
 
     let mut locations = Locations::new(2);
-    let (mut aftik, ship_exit) = area::init(&mut world);
+    let (mut aftik, ship) = area::init(&mut world);
 
     println!(
         "You're playing as the aftik {}.",
@@ -26,7 +26,7 @@ pub fn run() {
     area::load_location(
         &mut world,
         &mut messages,
-        ship_exit,
+        ship,
         locations.pick_random(&mut rng).unwrap(),
     );
 
@@ -35,7 +35,7 @@ pub fn run() {
             &mut world,
             &mut messages,
             &mut rng,
-            ship_exit,
+            ship,
             &mut aftik,
             &mut cache,
             &mut locations,
@@ -64,7 +64,7 @@ fn tick(
     world: &mut World,
     messages: &mut Messages,
     rng: &mut impl Rng,
-    ship_exit: Pos,
+    ship: Entity,
     aftik: &mut Entity,
     cache: &mut Option<StatusCache>,
     locations: &mut Locations,
@@ -85,7 +85,7 @@ fn tick(
 
     check_player_state(world, messages, aftik)?;
 
-    check_ship_state(world, messages, rng, ship_exit, *aftik, cache, locations)?;
+    check_ship_state(world, messages, rng, ship, *aftik, cache, locations)?;
 
     Ok(())
 }
@@ -193,7 +193,7 @@ fn check_ship_state(
     world: &mut World,
     messages: &mut Messages,
     rng: &mut impl Rng,
-    ship_exit: Pos,
+    ship: Entity,
     aftik: Entity,
     cache: &mut Option<StatusCache>,
     locations: &mut Locations,
@@ -203,15 +203,13 @@ fn check_ship_state(
         view::print(world, aftik, messages, cache);
 
         if let Some(location_name) = locations.pick_random(rng) {
-            area::despawn_all_except_ship(world, ship_exit.get_area());
-            world
-                .insert_one(ship_exit.get_area(), Ship(ShipStatus::NeedTwoCans))
-                .unwrap();
+            area::despawn_all_except_ship(world, ship);
+            world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
             for (_, health) in world.query_mut::<&mut Health>() {
                 health.restore_to_full();
             }
 
-            area::load_location(world, messages, ship_exit, location_name);
+            area::load_location(world, messages, ship, location_name);
         } else {
             return Err(StopType::Win);
         }
@@ -223,7 +221,7 @@ fn is_ship_launching(world: &World, aftik: Entity) -> bool {
     if let Ok(pos) = world.get::<&Pos>(aftik) {
         world
             .get::<&Ship>(pos.get_area())
-            .map(|ship| ship.0 == ShipStatus::Launching)
+            .map(|ship| ship.status == ShipStatus::Launching)
             .unwrap_or(false)
     } else {
         false

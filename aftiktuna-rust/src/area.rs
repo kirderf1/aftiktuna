@@ -23,7 +23,10 @@ pub struct Area {
 }
 
 #[derive(Clone, Debug)]
-pub struct Ship(pub ShipStatus);
+pub struct Ship {
+    pub status: ShipStatus,
+    pub exit_pos: Pos,
+}
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ShipStatus {
@@ -110,28 +113,34 @@ struct Category {
     location_names: Vec<&'static str>,
 }
 
-pub fn init(world: &mut World) -> (Entity, Pos) {
-    let ship = world.spawn((
-        Area {
-            label: "Ship".to_string(),
-            size: 4,
-        },
-        Ship(ShipStatus::NeedTwoCans),
-    ));
-    let ship_exit = Pos::new(ship, 3, world);
+pub fn init(world: &mut World) -> (Entity, Entity) {
+    let ship = world.spawn((Area {
+        label: "Ship".to_string(),
+        size: 4,
+    },));
+    world
+        .insert_one(
+            ship,
+            Ship {
+                status: ShipStatus::NeedTwoCans,
+                exit_pos: Pos::new(ship, 3, world),
+            },
+        )
+        .unwrap();
 
     creature::spawn_aftik(world, "Cerulean", Stats::new(9, 2, 10));
     let mint = creature::spawn_aftik(world, "Mint", Stats::new(10, 3, 8));
 
-    (mint, ship_exit)
+    (mint, ship)
 }
 
 pub fn load_location(
     world: &mut World,
     messages: &mut Messages,
-    ship_exit: Pos,
+    ship: Entity,
     location_name: &str,
 ) {
+    let ship_exit = world.get::<&Ship>(ship).unwrap().exit_pos;
     let location = load_data(location_name);
 
     let start_pos = location

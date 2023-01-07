@@ -9,7 +9,7 @@ pub fn perform(world: &mut World, performer: Entity) -> Option<String> {
     let area = world.get::<&Pos>(performer).ok()?.get_area();
     let name = DisplayInfo::find_definite_name(world, performer);
 
-    let status = world.get::<&Ship>(area).ok()?.0;
+    let status = world.get::<&Ship>(area).ok()?.status;
 
     let (new_status, message) = match status {
         ShipStatus::NeedTwoCans => on_need_two_cans(world, performer, &name),
@@ -21,7 +21,7 @@ pub fn perform(world: &mut World, performer: Entity) -> Option<String> {
     };
 
     if status != new_status {
-        world.get::<&mut Ship>(area).unwrap().0 = new_status; //The ship area should still exist since it existed before
+        world.get::<&mut Ship>(area).unwrap().status = new_status; //The ship area should still exist since it existed before
     }
 
     Some(message)
