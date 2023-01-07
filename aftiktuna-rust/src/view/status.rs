@@ -9,23 +9,28 @@ pub fn print_full_status(world: &World, aftik: Entity) {
         capitalize(DisplayInfo::find_definite_name(world, aftik).as_str())
     );
     print_stats(world, aftik);
-    print(world, aftik, &mut None);
+    print_without_cache(world, aftik);
 }
 
-pub fn print(world: &World, aftik: Entity, cache: &mut Option<StatusCache>) {
-    if let Some(cache) = cache {
+pub fn print_with_cache(world: &World, aftik: Entity, cache: &mut StatusCache) {
+    if cache.character_id == aftik {
         cache.health = print_health(world, aftik, Some(cache.health));
         cache.wielded = print_wielded(world, aftik, Some(cache.wielded));
         cache.inventory = print_inventory(world, aftik, Some(&cache.inventory));
     } else {
-        let health = print_health(world, aftik, None);
-        let wielded = print_wielded(world, aftik, None);
-        let inventory = print_inventory(world, aftik, None);
-        *cache = Some(StatusCache {
-            health,
-            wielded,
-            inventory,
-        });
+        *cache = print_without_cache(world, aftik);
+    }
+}
+
+pub fn print_without_cache(world: &World, aftik: Entity) -> StatusCache {
+    let health = print_health(world, aftik, None);
+    let wielded = print_wielded(world, aftik, None);
+    let inventory = print_inventory(world, aftik, None);
+    StatusCache {
+        character_id: aftik,
+        health,
+        wielded,
+        inventory,
     }
 }
 

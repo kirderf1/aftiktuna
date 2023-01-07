@@ -46,6 +46,7 @@ pub struct DisplayInfo {
 }
 
 pub struct StatusCache {
+    character_id: Entity,
     health: f32,
     wielded: Option<Entity>,
     inventory: Vec<Entity>,
@@ -112,7 +113,11 @@ pub fn print(
 
     println!();
     messages.print_and_clear();
-    status::print(world, aftik, cache);
+    if let Some(cache) = cache {
+        status::print_with_cache(world, aftik, cache);
+    } else {
+        *cache = Some(status::print_without_cache(world, aftik));
+    }
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {

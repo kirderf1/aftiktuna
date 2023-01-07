@@ -3,38 +3,24 @@ use crate::area::{Locations, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
-use crate::view::{DisplayInfo, Messages};
+use crate::view::{DisplayInfo, Messages, StatusCache};
 use crate::{action, ai, area, command, status, view};
 use hecs::{Entity, World};
 use rand::{thread_rng, Rng};
 use std::{thread, time};
 
-struct PlayerControlled {
-    entity: Entity,
-    cache: Option<view::StatusCache>,
-}
-
-impl PlayerControlled {
-    fn new(entity: Entity) -> PlayerControlled {
-        PlayerControlled {
-            entity,
-            cache: None,
-        }
-    }
-}
-
 pub fn run() {
     let mut world = World::new();
     let mut messages = Messages::default();
     let mut rng = thread_rng();
+    let mut cache = None;
 
     let mut locations = Locations::new(2);
-    let (aftik, ship_exit) = area::init(&mut world);
-    let mut aftik = PlayerControlled::new(aftik);
+    let (mut aftik, ship_exit) = area::init(&mut world);
 
     println!(
         "You're playing as the aftik {}.",
-        DisplayInfo::find_name(&world, aftik.entity)
+        DisplayInfo::find_name(&world, aftik)
     );
 
     area::load_location(
@@ -51,6 +37,7 @@ pub fn run() {
             &mut rng,
             ship_exit,
             &mut aftik,
+            &mut cache,
             &mut locations,
         ) {
             match stop_type {
@@ -78,37 +65,38 @@ fn tick(
     messages: &mut Messages,
     rng: &mut impl Rng,
     ship_exit: Pos,
-    aftik: &mut PlayerControlled,
+    aftik: &mut Entity,
+    cache: &mut Option<StatusCache>,
     locations: &mut Locations,
 ) -> Result<(), StopType> {
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
 
-    view::print(world, aftik.entity, messages, &mut aftik.cache);
+    view::print(world, *aftik, messages, cache);
 
-    decision_phase(world, aftik);
+    decision_phase(world, aftik, cache);
 
     ai::tick(world);
 
-    action::tick(world, rng, messages, aftik.entity);
+    action::tick(world, rng, messages, *aftik);
 
-    handle_aftik_deaths(world, messages, aftik.entity);
+    handle_aftik_deaths(world, messages, *aftik);
 
     check_player_state(world, messages, aftik)?;
 
-    check_ship_state(world, messages, rng, ship_exit, aftik, locations)?;
+    check_ship_state(world, messages, rng, ship_exit, *aftik, cache, locations)?;
 
     Ok(())
 }
 
-fn decision_phase(world: &mut World, player: &mut PlayerControlled) {
-    if world.get::<&Action>(player.entity).is_err() {
-        let (action, target) = parse_user_action(world, player);
+fn decision_phase(world: &mut World, player: &mut Entity, cache: &mut Option<StatusCache>) {
+    if world.get::<&Action>(*player).is_err() {
+        let (action, target) = parse_user_action(world, player, cache);
         match target {
-            Target::Controlled => world.insert_one(player.entity, action).unwrap(),
+            Target::Controlled => world.insert_one(*player, action).unwrap(),
             Target::Crew => {
-                let area = world.get::<&Pos>(player.entity).unwrap().get_area();
+                let area = world.get::<&Pos>(*player).unwrap().get_area();
                 insert_crew_action(world, area, action);
             }
         }
@@ -130,25 +118,24 @@ fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
     }
 }
 
-fn parse_user_action(world: &World, aftik: &mut PlayerControlled) -> (Action, Target) {
+fn parse_user_action(
+    world: &World,
+    aftik: &mut Entity,
+    cache: &mut Option<StatusCache>,
+) -> (Action, Target) {
     loop {
         let input = crate::read_input().to_lowercase();
 
-        match command::try_parse_input(&input, world, aftik.entity) {
+        match command::try_parse_input(&input, world, *aftik) {
             Ok(CommandResult::Action(action, target)) => return (action, target),
             Ok(CommandResult::ChangeControlled(new_aftik)) => {
-                *aftik = PlayerControlled::new(new_aftik);
+                *aftik = new_aftik;
 
                 let message = format!(
                     "You're now playing as the aftik {}.",
-                    DisplayInfo::find_definite_name(world, aftik.entity)
+                    DisplayInfo::find_definite_name(world, *aftik)
                 );
-                view::print(
-                    world,
-                    aftik.entity,
-                    &mut Messages::simple(message),
-                    &mut aftik.cache,
-                );
+                view::print(world, *aftik, &mut Messages::simple(message), cache);
             }
             Ok(CommandResult::None) => {}
             Err(message) => println!("{}", message),
@@ -186,14 +173,14 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
 fn check_player_state(
     world: &World,
     messages: &mut Messages,
-    aftik: &mut PlayerControlled,
+    aftik: &mut Entity,
 ) -> Result<(), StopType> {
-    if world.get::<&CrewMember>(aftik.entity).is_err() {
+    if world.get::<&CrewMember>(*aftik).is_err() {
         if let Some((next_aftik, _)) = world.query::<()>().with::<&CrewMember>().iter().next() {
-            *aftik = PlayerControlled::new(next_aftik);
+            *aftik = next_aftik;
             messages.add(format!(
                 "You're now playing as the aftik {}.",
-                DisplayInfo::find_name(world, aftik.entity)
+                DisplayInfo::find_name(world, *aftik)
             ));
         } else {
             return Err(StopType::Lose);
@@ -207,12 +194,13 @@ fn check_ship_state(
     messages: &mut Messages,
     rng: &mut impl Rng,
     ship_exit: Pos,
-    aftik: &mut PlayerControlled,
+    aftik: Entity,
+    cache: &mut Option<StatusCache>,
     locations: &mut Locations,
 ) -> Result<(), StopType> {
-    if is_ship_launching(world, aftik.entity) {
+    if is_ship_launching(world, aftik) {
         messages.add("The ship leaves for the next planet.".to_string());
-        view::print(world, aftik.entity, messages, &mut aftik.cache);
+        view::print(world, aftik, messages, cache);
 
         if let Some(location_name) = locations.pick_random(rng) {
             area::despawn_all_except_ship(world, ship_exit.get_area());
