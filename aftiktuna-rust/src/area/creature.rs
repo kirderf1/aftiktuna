@@ -1,6 +1,7 @@
 use crate::action::combat::IsFoe;
 use crate::action::trade::Shopkeeper;
 use crate::action::CrewMember;
+use crate::item;
 use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
@@ -59,6 +60,6 @@ pub fn place_shopkeeper(world: &mut World, pos: Pos) {
     world.spawn((
         DisplayInfo::from_noun('S', "shopkeeper", 15),
         pos,
-        Shopkeeper,
+        Shopkeeper(item::Type::FuelCan, 3500),
     ));
 }
