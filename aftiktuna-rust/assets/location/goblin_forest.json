@@ -58,7 +58,7 @@
     },
     {
       "name": "Forest path",
-      "objects": [ "<", "", "", "", ">" ],
+      "objects": [ "<", "", "", "G", ">" ],
       "doors": {
         "<": {
           "pair_id": "path2",

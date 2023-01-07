@@ -1,4 +1,5 @@
 use crate::action::item::FuelCan;
+use crate::action::trade::Shopkeeper;
 use crate::action::{combat, door, item, Action, CrewMember};
 use crate::area::Ship;
 use crate::position::Pos;
@@ -75,6 +76,7 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
         .literal("control", |parse| {
             parse.take_remaining(|aftik_name| control(world, aftik, aftik_name))
         })
+        .literal("trade", |parse| parse.done_or_err(|| trade(world, aftik)))
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
@@ -113,8 +115,10 @@ fn give(
     aftik: Entity,
 ) -> Result<CommandResult, String> {
     if aftik == receiver {
-        return Err(format!("{} can't give an item to themselves.",
-            DisplayInfo::find_definite_name(world, aftik)));
+        return Err(format!(
+            "{} can't give an item to themselves.",
+            DisplayInfo::find_definite_name(world, aftik)
+        ));
     }
 
     world
@@ -286,4 +290,17 @@ fn control(world: &World, aftik: Entity, aftik_name: &str) -> Result<CommandResu
     } else {
         Ok(CommandResult::ChangeControlled(new_aftik))
     }
+}
+
+fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+    let shopkeeper = world
+        .query::<&Pos>()
+        .with::<&Shopkeeper>()
+        .iter()
+        .filter(|(_, pos)| pos.is_in(area))
+        .map(|(id, _)| id)
+        .next()
+        .ok_or_else(|| "There is no shopkeeper to trade with here.".to_string())?;
+    action_result(Action::Trade(shopkeeper))
 }

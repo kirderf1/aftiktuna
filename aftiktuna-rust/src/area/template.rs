@@ -197,6 +197,7 @@ fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), Str
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
+        'S' => creature::place_shopkeeper(builder.world, pos),
         _ => return Err(format!("Unknown symbol: {}", symbol)),
     }
     Ok(())

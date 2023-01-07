@@ -62,7 +62,7 @@
     },
     {
       "name": "Store",
-      "objects": [ "^", "", "ff", "" ],
+      "objects": [ "^", "", "S", "" ],
       "doors": {
         "^": {
           "pair_id": "store",

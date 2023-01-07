@@ -11,7 +11,7 @@ pub struct Item;
 pub struct FuelCan;
 
 #[derive(Debug)]
-pub struct InInventory(Entity);
+pub struct InInventory(pub Entity);
 
 impl InInventory {
     pub fn held_by(&self, holder: Entity) -> bool {

@@ -1,4 +1,5 @@
 use crate::action::combat::IsFoe;
+use crate::action::trade::Shopkeeper;
 use crate::action::CrewMember;
 use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
@@ -44,12 +45,20 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
 pub fn place_azureclops(world: &mut World, pos: Pos) {
     let stats = Stats::new(15, 10, 4);
     world.spawn((
-        DisplayInfo::from_noun('Z', "Azureclops", 10),
+        DisplayInfo::from_noun('Z', "azureclops", 10),
         pos,
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
         Stamina::with_max(&stats),
         stats,
+    ));
+}
+
+pub fn place_shopkeeper(world: &mut World, pos: Pos) {
+    world.spawn((
+        DisplayInfo::from_noun('S', "shopkeeper", 15),
+        pos,
+        Shopkeeper,
     ));
 }
