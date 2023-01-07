@@ -77,6 +77,10 @@
           "type": "door",
           "pair_id": "store",
           "display_type": "door"
+        },
+        "S": {
+          "type": "shopkeeper",
+          "item": "fuel_can"
         }
       }
     },

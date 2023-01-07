@@ -1,4 +1,5 @@
 use crate::action::door::BlockType;
+use crate::area::creature::{place_shopkeeper, ShopItem};
 use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area};
 use crate::item;
@@ -94,6 +95,9 @@ impl AreaData {
                         pair_id,
                         display_type,
                     }) => place_door(builder, pos, pair_id, display_type)?,
+                    Some(SymbolData::Shopkeeper { item }) => {
+                        place_shopkeeper(builder.world, pos, *item)
+                    }
                     None => place_object(builder, pos, symbol)?,
                 }
             }
@@ -108,6 +112,9 @@ enum SymbolData {
     Door {
         pair_id: String,
         display_type: DoorType,
+    },
+    Shopkeeper {
+        item: ShopItem,
     },
 }
 
@@ -226,7 +233,6 @@ fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), Str
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
-        'S' => creature::place_shopkeeper(builder.world, pos),
         _ => return Err(format!("Unknown symbol: {}", symbol)),
     }
     Ok(())

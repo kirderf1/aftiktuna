@@ -6,6 +6,7 @@ use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 
 pub fn spawn_aftik(world: &mut World, crew: Entity, name: &str, stats: Stats) -> Entity {
     world.spawn((
@@ -56,10 +57,29 @@ pub fn place_azureclops(world: &mut World, pos: Pos) {
     ));
 }
 
-pub fn place_shopkeeper(world: &mut World, pos: Pos) {
+pub fn place_shopkeeper(world: &mut World, pos: Pos, shop_item: ShopItem) {
+    let shopkeeper = match shop_item {
+        ShopItem::FuelCan => Shopkeeper(item::Type::FuelCan, 3500),
+        ShopItem::Knife => Shopkeeper(item::Type::Knife, 300),
+        ShopItem::Bat => Shopkeeper(item::Type::Bat, 1000),
+        ShopItem::Sword => Shopkeeper(item::Type::Sword, 3000),
+        ShopItem::MeteorChunk => Shopkeeper(item::Type::MeteorChunk, 2500),
+        ShopItem::AncientCoin => Shopkeeper(item::Type::AncientCoin, 500),
+    };
     world.spawn((
         DisplayInfo::from_noun('S', "shopkeeper", 15),
         pos,
-        Shopkeeper(item::Type::FuelCan, 3500),
+        shopkeeper,
     ));
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ShopItem {
+    FuelCan,
+    Knife,
+    Bat,
+    Sword,
+    MeteorChunk,
+    AncientCoin,
 }
