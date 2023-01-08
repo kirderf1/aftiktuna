@@ -29,6 +29,8 @@ pub enum Action {
     Rest(bool),
     Launch,
     Trade(Entity),
+    Buy,
+    ExitTrade,
 }
 
 pub fn tick(world: &mut World, rng: &mut impl Rng, messages: &mut Messages, aftik: Entity) {
@@ -76,6 +78,8 @@ fn perform(
         Rest(first) => Ok(rest(world, performer, first)),
         Launch => Ok(launch::perform(world, performer)),
         Trade(shopkeeper) => trade::trade(world, performer, shopkeeper).map(Some),
+        Buy => trade::buy(world, performer).map(Some),
+        ExitTrade => trade::exit(world, performer).map(Some),
     };
     match result {
         Ok(Some(message)) => {

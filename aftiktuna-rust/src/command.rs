@@ -1,5 +1,5 @@
 use crate::action::item::{is_holding, InInventory};
-use crate::action::trade::Shopkeeper;
+use crate::action::trade::{IsTrading, Shopkeeper};
 use crate::action::{combat, door, Action, CrewMember};
 use crate::area::Ship;
 use crate::item::FuelCan;
@@ -30,7 +30,19 @@ fn crew_action(action: Action) -> Result<CommandResult, String> {
     Ok(CommandResult::Action(action, Target::Crew))
 }
 
-pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
+pub fn try_parse_input(
+    input: &str,
+    world: &World,
+    character: Entity,
+) -> Result<CommandResult, String> {
+    if world.get::<&IsTrading>(character).is_ok() {
+        parse_trade(input, world, character)
+    } else {
+        parse_game(input, world, character)
+    }
+}
+
+fn parse_game(input: &str, world: &World, aftik: Entity) -> Result<CommandResult, String> {
     Parse::new(input)
         .literal("take", |parse| {
             parse
@@ -78,6 +90,20 @@ pub fn try_parse_input(input: &str, world: &World, aftik: Entity) -> Result<Comm
             parse.take_remaining(|aftik_name| control(world, aftik, aftik_name))
         })
         .literal("trade", |parse| parse.done_or_err(|| trade(world, aftik)))
+        .or_else_err(|| format!("Unexpected input: \"{}\"", input))
+}
+
+fn parse_trade(input: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
+    Parse::new(input)
+        .literal("buy", |parse| {
+            parse.done_or_err(|| action_result(Action::Buy))
+        })
+        .literal("exit", |parse| {
+            parse.done_or_err(|| action_result(Action::ExitTrade))
+        })
+        .literal("status", |parse| {
+            parse.done_or_err(|| status(world, character))
+        })
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
