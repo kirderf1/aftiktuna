@@ -1,41 +1,38 @@
 package me.kirderf.aftiktuna.location.levels;
 
-import me.kirderf.aftiktuna.location.Area;
 import me.kirderf.aftiktuna.location.Location;
 import me.kirderf.aftiktuna.location.LocationBuilder;
+import me.kirderf.aftiktuna.location.SymbolType;
 import me.kirderf.aftiktuna.object.door.DoorProperty;
-import me.kirderf.aftiktuna.object.entity.AftikNPC;
-import me.kirderf.aftiktuna.object.entity.Shopkeeper;
 import me.kirderf.aftiktuna.object.entity.Stats;
 import me.kirderf.aftiktuna.object.type.ObjectTypes;
+
+import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public final class CrewTestingLocations {
 	public static Location separationTest() {
 		LocationBuilder builder = new LocationBuilder();
-		Area firstRoom = builder.newTestRoom(4);
-		Area secondRoom = builder.newTestRoom(4);
-		builder.markDoors(firstRoom.getPosAt(0), secondRoom.getPosAt(1), DoorProperty.LOCKED);
-		firstRoom.addItem(ObjectTypes.KEYCARD, 0);
-		firstRoom.addItem(ObjectTypes.BLOWTORCH, 0);
+		builder.doorPair("door", DoorProperty.LOCKED);
+		builder.newTestRoom(List.of("^kb", "v", "", ""),
+				Map.of('^', new SymbolType.Door("door", ObjectTypes.DOOR)));
+		builder.newTestRoom(List.of("", "^", "", ""),
+				Map.of('^', new SymbolType.Door("door", ObjectTypes.DOOR)));
 		
-		return builder.build(firstRoom.getPosAt(1));
+		return builder.build();
 	}
 	
 	public static Location recruitmentAndStore() {
 		LocationBuilder builder = new LocationBuilder();
-		Area room = builder.newTestRoom(4);
-		Area foeRoom = builder.newTestRoom(4);
+		builder.doorPairs("path");
+		builder.newTestRoom(List.of("v", "^", "amkS", "A"),
+				Map.of('^', new SymbolType.Door("path", ObjectTypes.PATH),
+						'A', new SymbolType.Recruitable("Plum", new Stats(10, 2, 9)),
+						'S', new SymbolType.Shop(ObjectTypes.FUEL_CAN, ObjectTypes.SWORD)));
+		builder.newTestRoom(List.of("", "^", "", "Z"),
+				Map.of('^', new SymbolType.Door("path", ObjectTypes.PATH)));
 		
-		room.addObject(new AftikNPC("Plum", new Stats(10, 2, 9)), 3);
-		room.addObject(new Shopkeeper(ObjectTypes.FUEL_CAN, ObjectTypes.SWORD), 2);
-		
-		builder.markPath(room.getPosAt(1), foeRoom.getPosAt(1));
-		foeRoom.addCreature(ObjectTypes.AZURECLOPS, 3);
-		room.addItem(ObjectTypes.ANCIENT_COIN, 2);
-		room.addItem(ObjectTypes.METEOR_CHUNK, 2);
-		room.addItem(ObjectTypes.KEYCARD, 2);
-		
-		return builder.build(room.getPosAt(0));
+		return builder.build();
 	}
 }
