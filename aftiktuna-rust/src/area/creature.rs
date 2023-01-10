@@ -57,15 +57,15 @@ pub fn place_azureclops(world: &mut World, pos: Pos) {
     ));
 }
 
-pub fn place_shopkeeper(world: &mut World, pos: Pos, shop_item: ShopItem) {
+pub fn place_shopkeeper(world: &mut World, pos: Pos, shop_items: &[ShopItem]) {
     world.spawn((
         DisplayInfo::from_noun('S', "shopkeeper", 15),
         pos,
-        Shopkeeper(to_priced_item(shop_item)),
+        Shopkeeper(shop_items.iter().map(to_priced_item).collect::<Vec<_>>()),
     ));
 }
 
-fn to_priced_item(shop_item: ShopItem) -> PricedItem {
+fn to_priced_item(shop_item: &ShopItem) -> PricedItem {
     match shop_item {
         ShopItem::FuelCan => PricedItem {
             item: item::Type::FuelCan,

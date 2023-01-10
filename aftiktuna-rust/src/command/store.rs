@@ -34,10 +34,16 @@ pub fn parse(
 }
 
 fn store_entries(shopkeeper: Ref<Shopkeeper>) -> Vec<(String, PricedItem)> {
-    vec![(
-        shopkeeper.0.item.display_info().name().to_string(),
-        shopkeeper.0.clone(),
-    )]
+    shopkeeper
+        .0
+        .iter()
+        .map(|priced| {
+            (
+                priced.item.display_info().name().to_string(),
+                priced.clone(),
+            )
+        })
+        .collect::<Vec<_>>()
 }
 
 fn buy(priced_item: PricedItem) -> Result<CommandResult, String> {

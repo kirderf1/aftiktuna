@@ -96,12 +96,20 @@ impl DisplayInfo {
 pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &mut StatusCache) {
     println!("-----------");
     if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-        let priced_item = &shopkeeper.0;
-        println!(
-            "{} | {}p",
-            capitalize(priced_item.item.display_info().name()),
-            priced_item.price
-        );
+        let items = shopkeeper
+            .0
+            .iter()
+            .map(|priced| (capitalize(priced.item.display_info().name()), priced.price))
+            .collect::<Vec<_>>();
+        let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
+        for (name, price) in items {
+            println!(
+                "{} {}| {}p",
+                name,
+                " ".repeat(max_length - name.len()),
+                price
+            );
+        }
         status::print_points(world, character, cache);
     } else {
         let area = get_viewed_area(character, world);

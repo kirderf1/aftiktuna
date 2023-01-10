@@ -95,8 +95,8 @@ impl AreaData {
                         pair_id,
                         display_type,
                     }) => place_door(builder, pos, pair_id, display_type)?,
-                    Some(SymbolData::Shopkeeper { item }) => {
-                        place_shopkeeper(builder.world, pos, *item)
+                    Some(SymbolData::Shopkeeper { items }) => {
+                        place_shopkeeper(builder.world, pos, items)
                     }
                     None => place_object(builder, pos, symbol)?,
                 }
@@ -114,7 +114,7 @@ enum SymbolData {
         display_type: DoorType,
     },
     Shopkeeper {
-        item: ShopItem,
+        items: Vec<ShopItem>,
     },
 }
 

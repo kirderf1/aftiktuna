@@ -80,7 +80,7 @@
         },
         "S": {
           "type": "shopkeeper",
-          "item": "fuel_can"
+          "items": [ "fuel_can", "bat", "sword" ]
         }
       }
     },

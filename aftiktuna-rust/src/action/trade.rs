@@ -8,7 +8,7 @@ use std::ops::Deref;
 
 pub struct Points(pub i32);
 
-pub struct Shopkeeper(pub PricedItem);
+pub struct Shopkeeper(pub Vec<PricedItem>);
 
 #[derive(Clone)]
 pub struct PricedItem {
@@ -72,11 +72,12 @@ pub fn buy(world: &mut World, performer: Entity, item_type: item::Type) -> Resul
 }
 
 fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<PricedItem> {
-    if shopkeeper.0.item == item_type {
-        Some(shopkeeper.0.clone())
-    } else {
-        None
-    }
+    shopkeeper
+        .0
+        .iter()
+        .filter(|priced| priced.item == item_type)
+        .map(PricedItem::clone)
+        .next()
 }
 
 pub fn exit(world: &mut World, performer: Entity) -> Result<String, String> {
