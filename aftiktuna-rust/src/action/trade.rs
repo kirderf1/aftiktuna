@@ -4,10 +4,17 @@ use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{item, position};
 use hecs::{Entity, Ref, World};
+use std::ops::Deref;
 
 pub struct Points(pub i32);
 
-pub struct Shopkeeper(pub item::Type, pub i32);
+pub struct Shopkeeper(pub PricedItem);
+
+#[derive(Clone)]
+pub struct PricedItem {
+    pub item: item::Type,
+    pub price: i32,
+}
 
 struct IsTrading(Entity);
 
@@ -39,7 +46,7 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result
     ))
 }
 
-pub fn buy(world: &mut World, performer: Entity) -> Result<String, String> {
+pub fn buy(world: &mut World, performer: Entity, item_type: item::Type) -> Result<String, String> {
     let performer_name = DisplayInfo::find_definite_name(world, performer);
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
@@ -47,20 +54,29 @@ pub fn buy(world: &mut World, performer: Entity) -> Result<String, String> {
         .map_err(|_| format!("{} is not currently trading.", performer_name))?
         .0;
 
-    let (item_type, cost) = world
+    let priced_item = world
         .get::<&Shopkeeper>(shopkeeper)
-        .map(|shopkeeper| (shopkeeper.0, shopkeeper.1))
-        .unwrap();
+        .ok()
+        .and_then(|shopkeeper| find_priced_item(shopkeeper.deref(), item_type))
+        .ok_or_else(|| "The item is not in stock.".to_string())?;
 
-    try_spend_points(world, crew, cost)?;
+    try_spend_points(world, crew, priced_item.price)?;
 
-    let item = item::spawn(world, item_type, InInventory(performer));
+    let item = item::spawn(world, priced_item.item, InInventory(performer));
 
     Ok(format!(
         "{} bought 1 {}.",
         performer_name,
         DisplayInfo::find_name(world, item)
     ))
+}
+
+fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<PricedItem> {
+    if shopkeeper.0.item == item_type {
+        Some(shopkeeper.0.clone())
+    } else {
+        None
+    }
 }
 
 pub fn exit(world: &mut World, performer: Entity) -> Result<String, String> {

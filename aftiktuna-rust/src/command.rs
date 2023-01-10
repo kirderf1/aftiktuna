@@ -30,8 +30,8 @@ pub fn try_parse_input(
     world: &World,
     character: Entity,
 ) -> Result<CommandResult, String> {
-    if trade::get_shop_info(world, character).is_some() {
-        store::parse(input, world, character)
+    if let Some(shopkeeper) = trade::get_shop_info(world, character) {
+        store::parse(input, world, character, shopkeeper)
     } else {
         game::parse(input, world, character)
     }

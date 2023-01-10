@@ -96,10 +96,11 @@ impl DisplayInfo {
 pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &mut StatusCache) {
     println!("-----------");
     if let Some(shopkeeper) = trade::get_shop_info(world, character) {
+        let priced_item = &shopkeeper.0;
         println!(
             "{} | {}p",
-            capitalize(shopkeeper.0.display_info().name()),
-            shopkeeper.1
+            capitalize(priced_item.item.display_info().name()),
+            priced_item.price
         );
         status::print_points(world, character, cache);
     } else {

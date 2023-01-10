@@ -24,7 +24,7 @@ pub struct CanWield;
 pub struct Weapon(pub f32);
 
 // A type handy for spawning a variable type of item
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     FuelCan,

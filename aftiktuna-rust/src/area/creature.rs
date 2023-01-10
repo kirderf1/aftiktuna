@@ -1,5 +1,5 @@
 use crate::action::combat::IsFoe;
-use crate::action::trade::Shopkeeper;
+use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::CrewMember;
 use crate::item;
 use crate::position::{MovementBlocking, Pos};
@@ -58,19 +58,40 @@ pub fn place_azureclops(world: &mut World, pos: Pos) {
 }
 
 pub fn place_shopkeeper(world: &mut World, pos: Pos, shop_item: ShopItem) {
-    let shopkeeper = match shop_item {
-        ShopItem::FuelCan => Shopkeeper(item::Type::FuelCan, 3500),
-        ShopItem::Knife => Shopkeeper(item::Type::Knife, 300),
-        ShopItem::Bat => Shopkeeper(item::Type::Bat, 1000),
-        ShopItem::Sword => Shopkeeper(item::Type::Sword, 3000),
-        ShopItem::MeteorChunk => Shopkeeper(item::Type::MeteorChunk, 2500),
-        ShopItem::AncientCoin => Shopkeeper(item::Type::AncientCoin, 500),
-    };
     world.spawn((
         DisplayInfo::from_noun('S', "shopkeeper", 15),
         pos,
-        shopkeeper,
+        Shopkeeper(to_priced_item(shop_item)),
     ));
+}
+
+fn to_priced_item(shop_item: ShopItem) -> PricedItem {
+    match shop_item {
+        ShopItem::FuelCan => PricedItem {
+            item: item::Type::FuelCan,
+            price: 3500,
+        },
+        ShopItem::Knife => PricedItem {
+            item: item::Type::Knife,
+            price: 300,
+        },
+        ShopItem::Bat => PricedItem {
+            item: item::Type::Bat,
+            price: 1000,
+        },
+        ShopItem::Sword => PricedItem {
+            item: item::Type::Sword,
+            price: 3000,
+        },
+        ShopItem::MeteorChunk => PricedItem {
+            item: item::Type::MeteorChunk,
+            price: 2500,
+        },
+        ShopItem::AncientCoin => PricedItem {
+            item: item::Type::AncientCoin,
+            price: 500,
+        },
+    }
 }
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
