@@ -203,33 +203,15 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
 fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
     match symbol {
         'v' => builder.set_entry(pos)?,
-        'f' => {
-            item::spawn_fuel_can(builder.world, pos);
-        }
-        'c' => {
-            item::spawn_crowbar(builder.world, pos);
-        }
-        'b' => {
-            item::spawn_blowtorch(builder.world, pos);
-        }
-        'k' => {
-            item::spawn_keycard(builder.world, pos);
-        }
-        'K' => {
-            item::spawn_knife(builder.world, pos);
-        }
-        'B' => {
-            item::spawn_bat(builder.world, pos);
-        }
-        's' => {
-            item::spawn_sword(builder.world, pos);
-        }
-        'm' => {
-            item::spawn_meteor_chunk(builder.world, pos);
-        }
-        'a' => {
-            item::spawn_ancient_coin(builder.world, pos);
-        }
+        'f' => item::Type::FuelCan.spawn(builder.world, pos),
+        'c' => item::Type::Crowbar.spawn(builder.world, pos),
+        'b' => item::Type::Blowtorch.spawn(builder.world, pos),
+        'k' => item::Type::Keycard.spawn(builder.world, pos),
+        'K' => item::Type::Knife.spawn(builder.world, pos),
+        'B' => item::Type::Bat.spawn(builder.world, pos),
+        's' => item::Type::Sword.spawn(builder.world, pos),
+        'm' => item::Type::MeteorChunk.spawn(builder.world, pos),
+        'a' => item::Type::AncientCoin.spawn(builder.world, pos),
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
