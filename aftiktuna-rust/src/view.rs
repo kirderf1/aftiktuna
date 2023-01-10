@@ -1,6 +1,7 @@
 pub use status::print_full_status;
 
 use crate::action::door::{Door, DoorBlocking};
+use crate::action::trade;
 use crate::area::Area;
 use crate::position::{Coord, Pos};
 use hecs::{Entity, World};
@@ -45,7 +46,7 @@ pub struct DisplayInfo {
     weight: u32,
 }
 
-pub type StatusCache = Option<status::Cache>;
+pub type StatusCache = status::Cache;
 
 impl DisplayInfo {
     pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
@@ -92,22 +93,26 @@ impl DisplayInfo {
     }
 }
 
-pub fn print(world: &World, aftik: Entity, messages: &mut Messages, cache: &mut StatusCache) {
-    let area = get_viewed_area(aftik, world);
-    let area_info = world.get::<&Area>(area).unwrap();
-    let area_size = area_info.size;
-
+pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &mut StatusCache) {
     println!("-----------");
-    println!("{}:", area_info.label);
-    print_area(world, area, area_size);
+    if let Some(shopkeeper) = trade::get_shop_info(world, character) {
+        println!(
+            "{} | {}p",
+            capitalize(shopkeeper.0.display_info().name()),
+            shopkeeper.1
+        );
+        status::print_points(world, character, cache);
+    } else {
+        let area = get_viewed_area(character, world);
+        let area_info = world.get::<&Area>(area).unwrap();
+        let area_size = area_info.size;
+        println!("{}:", area_info.label);
+        print_area(world, area, area_size);
+    }
 
     println!();
     messages.print_and_clear();
-    if let Some(cache) = cache {
-        status::print_with_cache(world, aftik, cache);
-    } else {
-        *cache = Some(status::print_without_cache(world, aftik));
-    }
+    status::print_changes(world, character, cache);
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {

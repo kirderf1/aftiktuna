@@ -1,5 +1,4 @@
-use crate::action::trade::IsTrading;
-use crate::action::Action;
+use crate::action::{trade, Action};
 use crate::view;
 use hecs::{Entity, World};
 
@@ -31,7 +30,7 @@ pub fn try_parse_input(
     world: &World,
     character: Entity,
 ) -> Result<CommandResult, String> {
-    if world.get::<&IsTrading>(character).is_ok() {
+    if trade::get_shop_info(world, character).is_some() {
         store::parse(input, world, character)
     } else {
         game::parse(input, world, character)

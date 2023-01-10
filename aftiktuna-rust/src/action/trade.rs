@@ -3,13 +3,18 @@ use crate::action::CrewMember;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{item, position};
-use hecs::{Entity, World};
-
-pub struct IsTrading(Entity);
+use hecs::{Entity, Ref, World};
 
 pub struct Points(pub i32);
 
 pub struct Shopkeeper(pub item::Type, pub i32);
+
+struct IsTrading(Entity);
+
+pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
+    let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
+    world.get::<&Shopkeeper>(shopkeeper).ok()
+}
 
 pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result<String, String> {
     let performer_name = DisplayInfo::find_definite_name(world, performer);

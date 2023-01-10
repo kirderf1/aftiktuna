@@ -158,7 +158,12 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
     }
 
     if !status::is_alive(controlled_aftik, world) {
-        view::print(world, controlled_aftik, messages, &mut None);
+        view::print(
+            world,
+            controlled_aftik,
+            messages,
+            &mut StatusCache::default(),
+        );
         thread::sleep(time::Duration::from_secs(2));
     }
 

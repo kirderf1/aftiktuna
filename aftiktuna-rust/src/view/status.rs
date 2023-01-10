@@ -4,9 +4,10 @@ use crate::status::{Health, Stats};
 use crate::view::{capitalize, DisplayInfo};
 use hecs::{Entity, World};
 
+#[derive(Default)]
 pub struct Cache {
-    points: i32,
-    character_cache: CharacterCache,
+    points: Option<i32>,
+    character_cache: Option<CharacterCache>,
 }
 struct CharacterCache {
     character_id: Entity,
@@ -16,7 +17,7 @@ struct CharacterCache {
 }
 
 pub fn print_full_status(world: &World, character: Entity) {
-    print_points(world, character, None);
+    maybe_print_points(world, character, None);
 
     println!("Crew:");
     for (character, _) in world.query::<()>().with::<&CrewMember>().iter() {
@@ -29,21 +30,20 @@ pub fn print_full_status(world: &World, character: Entity) {
     }
 }
 
-pub fn print_with_cache(world: &World, character: Entity, cache: &mut Cache) {
-    cache.points = print_points(world, character, Some(cache.points));
-    print_character_with_cache(world, character, &mut cache.character_cache);
-}
-
-pub fn print_without_cache(world: &World, character: Entity) -> Cache {
-    let points = print_points(world, character, None);
-    let character_cache = print_character_without_cache(world, character);
-    Cache {
-        points,
-        character_cache,
+pub fn print_changes(world: &World, character: Entity, cache: &mut Cache) {
+    cache.points = Some(maybe_print_points(world, character, cache.points));
+    if let Some(character_cache) = &mut cache.character_cache {
+        print_character_with_cache(world, character, character_cache);
+    } else {
+        cache.character_cache = Some(print_character_without_cache(world, character));
     }
 }
 
-fn print_points(world: &World, character: Entity, prev_points: Option<i32>) -> i32 {
+pub fn print_points(world: &World, character: Entity, cache: &mut Cache) {
+    cache.points = Some(maybe_print_points(world, character, None));
+}
+
+fn maybe_print_points(world: &World, character: Entity, prev_points: Option<i32>) -> i32 {
     let crew = world.get::<&CrewMember>(character).unwrap().0;
     let points = world.get::<&Points>(crew).unwrap().0;
 
