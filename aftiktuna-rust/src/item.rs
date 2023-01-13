@@ -56,6 +56,18 @@ impl Type {
             Type::AncientCoin => DisplayInfo::from_noun('a', "ancient coin", 1),
         }
     }
+
+    pub fn price(self) -> Option<i32> {
+        match self {
+            Type::FuelCan => Some(3500),
+            Type::Knife => Some(300),
+            Type::Bat => Some(1000),
+            Type::Sword => Some(3000),
+            Type::MeteorChunk => Some(2500),
+            Type::AncientCoin => Some(500),
+            _ => None,
+        }
+    }
 }
 
 pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> Entity {

@@ -6,7 +6,6 @@ use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::DisplayInfo;
 use hecs::{Entity, World};
-use serde::{Deserialize, Serialize};
 
 pub fn spawn_aftik(world: &mut World, crew: Entity, name: &str, stats: Stats) -> Entity {
     world.spawn((
@@ -57,50 +56,30 @@ pub fn place_azureclops(world: &mut World, pos: Pos) {
     ));
 }
 
-pub fn place_shopkeeper(world: &mut World, pos: Pos, shop_items: &[ShopItem]) {
+pub fn place_shopkeeper(
+    world: &mut World,
+    pos: Pos,
+    shop_items: &[item::Type],
+) -> Result<(), String> {
+    let stock = shop_items
+        .iter()
+        .map(|item| to_priced_item(*item))
+        .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
         DisplayInfo::from_noun('S', "shopkeeper", 15),
         pos,
-        Shopkeeper(shop_items.iter().map(to_priced_item).collect::<Vec<_>>()),
+        Shopkeeper(stock),
     ));
+    Ok(())
 }
 
-fn to_priced_item(shop_item: &ShopItem) -> PricedItem {
-    match shop_item {
-        ShopItem::FuelCan => PricedItem {
-            item: item::Type::FuelCan,
-            price: 3500,
-        },
-        ShopItem::Knife => PricedItem {
-            item: item::Type::Knife,
-            price: 300,
-        },
-        ShopItem::Bat => PricedItem {
-            item: item::Type::Bat,
-            price: 1000,
-        },
-        ShopItem::Sword => PricedItem {
-            item: item::Type::Sword,
-            price: 3000,
-        },
-        ShopItem::MeteorChunk => PricedItem {
-            item: item::Type::MeteorChunk,
-            price: 2500,
-        },
-        ShopItem::AncientCoin => PricedItem {
-            item: item::Type::AncientCoin,
-            price: 500,
-        },
-    }
-}
-
-#[derive(Copy, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ShopItem {
-    FuelCan,
-    Knife,
-    Bat,
-    Sword,
-    MeteorChunk,
-    AncientCoin,
+fn to_priced_item(item: item::Type) -> Result<PricedItem, String> {
+    item.price()
+        .map(|price| PricedItem { item, price })
+        .ok_or_else(|| {
+            format!(
+                "Cannot get a price from item {}",
+                item.display_info().name()
+            )
+        })
 }

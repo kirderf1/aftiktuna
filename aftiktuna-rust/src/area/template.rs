@@ -1,5 +1,4 @@
 use crate::action::door::BlockType;
-use crate::area::creature::{place_shopkeeper, ShopItem};
 use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area};
 use crate::item;
@@ -96,7 +95,7 @@ impl AreaData {
                         display_type,
                     }) => place_door(builder, pos, pair_id, display_type)?,
                     Some(SymbolData::Shopkeeper { items }) => {
-                        place_shopkeeper(builder.world, pos, items)
+                        creature::place_shopkeeper(builder.world, pos, items)?
                     }
                     None => place_object(builder, pos, symbol)?,
                 }
@@ -114,7 +113,7 @@ enum SymbolData {
         display_type: DoorType,
     },
     Shopkeeper {
-        items: Vec<ShopItem>,
+        items: Vec<item::Type>,
     },
 }
 
