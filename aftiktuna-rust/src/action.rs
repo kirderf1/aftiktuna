@@ -30,6 +30,7 @@ pub enum Action {
     Launch,
     Trade(Entity),
     Buy(crate::item::Type),
+    Sell(Entity),
     ExitTrade,
 }
 
@@ -79,6 +80,7 @@ fn perform(
         Launch => Ok(launch::perform(world, performer)),
         Trade(shopkeeper) => trade::trade(world, performer, shopkeeper).map(Some),
         Buy(item_type) => trade::buy(world, performer, item_type).map(Some),
+        Sell(item) => trade::sell(world, performer, item).map(Some),
         ExitTrade => trade::exit(world, performer).map(Some),
     };
     match result {

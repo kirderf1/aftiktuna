@@ -1,15 +1,17 @@
+use crate::action::item::InInventory;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::Action;
 use crate::command;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
-use hecs::{Entity, Ref, World};
+use crate::view::DisplayInfo;
+use hecs::{Entity, World};
 
 pub fn parse(
     input: &str,
     world: &World,
     character: Entity,
-    shopkeeper: Ref<Shopkeeper>,
+    shopkeeper: &Shopkeeper,
 ) -> Result<CommandResult, String> {
     Parse::new(input)
         .literal("buy", |parse| {
@@ -24,6 +26,18 @@ pub fn parse(
                 },
             )
         })
+        .literal("sell", |parse| {
+            parse.match_against(
+                inventory_items(world, character),
+                |parse, item| parse.done_or_err(|| sell(item)),
+                |input| {
+                    Err(format!(
+                        "\"{}\" does not match an item in your inventory.",
+                        input
+                    ))
+                },
+            )
+        })
         .literal("exit", |parse| {
             parse.done_or_err(|| command::action_result(Action::ExitTrade))
         })
@@ -33,7 +47,7 @@ pub fn parse(
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
-fn store_entries(shopkeeper: Ref<Shopkeeper>) -> Vec<(String, PricedItem)> {
+fn store_entries(shopkeeper: &Shopkeeper) -> Vec<(String, PricedItem)> {
     shopkeeper
         .0
         .iter()
@@ -48,4 +62,17 @@ fn store_entries(shopkeeper: Ref<Shopkeeper>) -> Vec<(String, PricedItem)> {
 
 fn buy(priced_item: PricedItem) -> Result<CommandResult, String> {
     command::action_result(Action::Buy(priced_item.item))
+}
+
+fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
+    world
+        .query::<(&DisplayInfo, &InInventory)>()
+        .iter()
+        .filter(|(_, (_, in_inventory))| in_inventory.held_by(character))
+        .map(|(entity, (display_info, _))| (display_info.name().to_string(), entity))
+        .collect::<Vec<_>>()
+}
+
+fn sell(item: Entity) -> Result<CommandResult, String> {
+    command::action_result(Action::Sell(item))
 }

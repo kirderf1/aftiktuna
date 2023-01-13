@@ -1,5 +1,6 @@
 use crate::action::item::InInventory;
 use crate::action::CrewMember;
+use crate::item::Price;
 use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{item, position};
@@ -78,6 +79,29 @@ fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<Pr
         .filter(|priced| priced.item == item_type)
         .map(PricedItem::clone)
         .next()
+}
+
+pub fn sell(world: &mut World, performer: Entity, item: Entity) -> Result<String, String> {
+    world
+        .get::<&InInventory>(item)
+        .ok()
+        .filter(|in_inventory| in_inventory.held_by(performer))
+        .ok_or_else(|| "Item to sell is not being held!".to_string())?;
+    let price = world
+        .get::<&Price>(item)
+        .map_err(|_| "That item can not be sold.".to_string())?
+        .0;
+    let price = price - price / 4;
+    let crew = world.get::<&CrewMember>(performer).unwrap().0;
+    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let item_name = DisplayInfo::find_name(world, item);
+
+    world.get::<&mut Points>(crew).unwrap().0 += price;
+    world.despawn(item).unwrap();
+    Ok(format!(
+        "{} sold a {} for {}.",
+        performer_name, item_name, price
+    ))
 }
 
 pub fn exit(world: &mut World, performer: Entity) -> Result<String, String> {

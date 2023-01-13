@@ -23,6 +23,8 @@ pub struct CanWield;
 #[derive(Debug)]
 pub struct Weapon(pub f32);
 
+pub struct Price(pub i32);
+
 // A type handy for spawning a variable type of item
 #[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -76,6 +78,10 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         .add(location)
         .add(Item)
         .add(item_type.display_info());
+    if let Some(price) = item_type.price() {
+        builder.add(Price(price));
+    }
+
     match item_type {
         Type::FuelCan => {
             builder.add(FuelCan);

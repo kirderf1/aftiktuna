@@ -1,6 +1,7 @@
 use crate::action::{trade, Action};
 use crate::view;
 use hecs::{Entity, World};
+use std::ops::Deref;
 
 mod game;
 mod parse;
@@ -31,7 +32,7 @@ pub fn try_parse_input(
     character: Entity,
 ) -> Result<CommandResult, String> {
     if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-        store::parse(input, world, character, shopkeeper)
+        store::parse(input, world, character, shopkeeper.deref())
     } else {
         game::parse(input, world, character)
     }
