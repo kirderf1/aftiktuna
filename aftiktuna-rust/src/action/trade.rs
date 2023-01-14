@@ -1,4 +1,4 @@
-use crate::action::item::InInventory;
+use crate::action::item::Held;
 use crate::action::CrewMember;
 use crate::item::Price;
 use crate::position::Pos;
@@ -63,7 +63,7 @@ pub fn buy(world: &mut World, performer: Entity, item_type: item::Type) -> Resul
 
     try_spend_points(world, crew, priced_item.price)?;
 
-    let item = item::spawn(world, priced_item.item, InInventory(performer));
+    let item = item::spawn(world, priced_item.item, Held::in_inventory(performer));
 
     Ok(format!(
         "{} bought 1 {}.",
@@ -83,9 +83,9 @@ fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<Pr
 
 pub fn sell(world: &mut World, performer: Entity, item: Entity) -> Result<String, String> {
     world
-        .get::<&InInventory>(item)
+        .get::<&Held>(item)
         .ok()
-        .filter(|in_inventory| in_inventory.held_by(performer))
+        .filter(|held| held.held_by(performer))
         .ok_or_else(|| "Item to sell is not being held!".to_string())?;
     let price = world
         .get::<&Price>(item)

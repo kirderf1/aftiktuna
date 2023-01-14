@@ -1,4 +1,4 @@
-use crate::action::{Action, CrewMember};
+use crate::action::Action;
 use crate::item::Item;
 use crate::position::{try_move, Pos};
 use crate::status;
@@ -6,49 +6,75 @@ use crate::view::DisplayInfo;
 use hecs::{Component, Entity, World};
 
 #[derive(Debug)]
-pub struct InInventory(pub Entity);
+pub struct Held {
+    holder: Entity,
+    in_hand: bool,
+}
 
-impl InInventory {
+impl Held {
     pub fn held_by(&self, holder: Entity) -> bool {
-        self.0 == holder
+        self.holder == holder
+    }
+
+    pub fn is_in_inventory(&self, holder: Entity) -> bool {
+        self.held_by(holder) && !self.in_hand
+    }
+
+    pub fn in_inventory(holder: Entity) -> Self {
+        Held {
+            holder,
+            in_hand: false,
+        }
     }
 }
 
-pub fn is_holding<C: Component>(world: &World, entity: Entity) -> bool {
+pub fn is_holding<C: Component>(world: &World, holder: Entity) -> bool {
     world
-        .query::<&Wielded>()
+        .query::<&Held>()
         .with::<&C>()
         .iter()
-        .any(|(_, wielded)| wielded.0 == entity)
-        || world
-            .query::<&InInventory>()
-            .with::<&C>()
-            .iter()
-            .any(|(_, in_inventory)| in_inventory.held_by(entity))
+        .any(|(_, held)| held.held_by(holder))
 }
 
 pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
     world
-        .get::<&InInventory>(item)
+        .get::<&Held>(item)
         .ok()
-        .map_or(false, |in_inventory| in_inventory.held_by(holder))
+        .map_or(false, |held| held.is_in_inventory(holder))
 }
 
-pub fn get_inventory(world: &World, holder: Entity) -> Vec<Entity> {
+pub fn get_held(world: &World, holder: Entity) -> Vec<Entity> {
     world
-        .query::<&InInventory>()
+        .query::<&Held>()
         .iter()
-        .filter(|(_, in_inventory)| in_inventory.held_by(holder))
+        .filter(|(_, held)| held.held_by(holder))
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>()
 }
 
-pub fn consume_one<C: Component>(world: &mut World, entity: Entity) -> Option<()> {
+pub fn get_inventory(world: &World, holder: Entity) -> Vec<Entity> {
+    world
+        .query::<&Held>()
+        .iter()
+        .filter(|(_, held)| held.is_in_inventory(holder))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>()
+}
+
+pub fn get_wielded(world: &World, holder: Entity) -> Option<Entity> {
+    world
+        .query::<&Held>()
+        .iter()
+        .find(|(_, held)| held.held_by(holder) && held.in_hand)
+        .map(|(item, _)| item)
+}
+
+pub fn consume_one<C: Component>(world: &mut World, holder: Entity) -> Option<()> {
     let (item, _) = world
-        .query::<&InInventory>()
+        .query::<&Held>()
         .with::<&C>()
         .iter()
-        .find(|(_, in_inventory)| in_inventory.held_by(entity))?;
+        .find(|(_, held)| held.held_by(holder))?;
     world.despawn(item).ok()
 }
 
@@ -77,21 +103,21 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
 
 pub fn take_item(
     world: &mut World,
-    aftik: Entity,
+    performer: Entity,
     item: Entity,
     item_name: &str,
 ) -> Result<String, String> {
-    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
+    let performer_name = DisplayInfo::find_definite_name(world, performer);
     let item_pos = *world
         .get::<&Pos>(item)
-        .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;
+        .map_err(|_| format!("{} lost track of {}.", performer_name, item_name))?;
 
-    try_move(world, aftik, item_pos)?;
+    try_move(world, performer, item_pos)?;
     world
-        .exchange_one::<Pos, _>(item, InInventory(aftik))
+        .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
 
-    Ok(format!("{} picked up {}.", aftik_name, item_name))
+    Ok(format!("{} picked up {}.", performer_name, item_name))
 }
 
 pub fn give_item(
@@ -104,7 +130,7 @@ pub fn give_item(
     let receiver_name = DisplayInfo::find_definite_name(world, receiver);
 
     if world
-        .get::<&InInventory>(item)
+        .get::<&Held>(item)
         .ok()
         .filter(|in_inv| in_inv.held_by(performer))
         .is_none()
@@ -145,7 +171,9 @@ pub fn give_item(
         receiver_pos.get_adjacent_towards(performer_pos),
     )?;
 
-    world.insert_one(item, InInventory(receiver)).unwrap();
+    world
+        .insert_one(item, Held::in_inventory(receiver))
+        .unwrap();
 
     Ok(format!(
         "{} gave {} a {}.",
@@ -155,66 +183,55 @@ pub fn give_item(
     ))
 }
 
-#[derive(Debug)]
-struct Wielded(Entity);
-
-pub fn get_wielded(world: &World, entity: Entity) -> Option<Entity> {
-    world.get::<&CrewMember>(entity).ok()?;
-    world
-        .query::<&Wielded>()
-        .iter()
-        .find(|(_, wielded)| wielded.0 == entity)
-        .map(|(item, _)| item)
-}
-
 pub fn wield(
     world: &mut World,
-    aftik: Entity,
+    performer: Entity,
     item: Entity,
     item_name: &str,
 ) -> Result<String, String> {
-    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
+    let performer_name = DisplayInfo::find_definite_name(world, performer);
 
-    if is_in_inventory(world, item, aftik) {
-        unwield_if_needed(world, aftik);
-        world.remove_one::<InInventory>(item).unwrap();
-        world.insert_one(item, Wielded(aftik)).unwrap();
+    if is_in_inventory(world, item, performer) {
+        unwield_if_needed(world, performer);
+        world.get::<&mut Held>(item).unwrap().in_hand = true;
 
-        Ok(format!("{} wielded a {}.", aftik_name, item_name))
+        Ok(format!("{} wielded a {}.", performer_name, item_name))
     } else {
         let item_pos = *world
             .get::<&Pos>(item)
-            .map_err(|_| format!("{} lost track of {}.", aftik_name, item_name))?;
-        try_move(world, aftik, item_pos)?;
+            .map_err(|_| format!("{} lost track of {}.", performer_name, item_name))?;
+        try_move(world, performer, item_pos)?;
 
-        unwield_if_needed(world, aftik);
+        unwield_if_needed(world, performer);
         world
-            .exchange_one::<Pos, _>(item, Wielded(aftik))
+            .exchange_one::<Pos, _>(
+                item,
+                Held {
+                    holder: performer,
+                    in_hand: true,
+                },
+            )
             .expect("Tried moving item");
 
         Ok(format!(
             "{} picked up and wielded the {}.",
-            aftik_name, item_name
+            performer_name, item_name
         ))
     }
 }
 
 fn unwield_if_needed(world: &mut World, holder: Entity) {
-    if let Some(item) = get_wielded(world, holder) {
-        world
-            .exchange_one::<Wielded, _>(item, InInventory(holder))
-            .unwrap();
-    }
+    world
+        .query_mut::<&mut Held>()
+        .into_iter()
+        .filter(|(_, held)| held.held_by(holder))
+        .for_each(|(_, held)| held.in_hand = false);
 }
 
 pub fn drop_all_items(world: &mut World, entity: Entity) {
     let pos = *world.get::<&Pos>(entity).unwrap();
-    let items = get_inventory(world, entity);
+    let items = get_held(world, entity);
     for item in items {
-        world.exchange_one::<InInventory, _>(item, pos).unwrap();
-    }
-    let wielded = get_wielded(world, entity);
-    if let Some(item) = wielded {
-        world.exchange_one::<Wielded, _>(item, pos).unwrap();
+        world.exchange_one::<Held, _>(item, pos).unwrap();
     }
 }

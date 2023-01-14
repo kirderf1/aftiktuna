@@ -1,4 +1,4 @@
-use crate::action::item::InInventory;
+use crate::action::item::Held;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::Action;
 use crate::command;
@@ -66,9 +66,9 @@ fn buy(priced_item: PricedItem) -> Result<CommandResult, String> {
 
 fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
     world
-        .query::<(&DisplayInfo, &InInventory)>()
+        .query::<(&DisplayInfo, &Held)>()
         .iter()
-        .filter(|(_, (_, in_inventory))| in_inventory.held_by(character))
+        .filter(|(_, (_, held))| held.held_by(character))
         .map(|(entity, (display_info, _))| (display_info.name().to_string(), entity))
         .collect::<Vec<_>>()
 }

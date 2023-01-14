@@ -1,4 +1,4 @@
-use crate::action::item::{is_holding, InInventory};
+use crate::action::item::{is_holding, Held};
 use crate::action::trade::Shopkeeper;
 use crate::action::{combat, door, Action, CrewMember};
 use crate::area::Ship;
@@ -107,11 +107,11 @@ fn give(
     }
 
     world
-        .query::<(&DisplayInfo, &InInventory)>()
+        .query::<(&DisplayInfo, &Held)>()
         .with::<&item::Item>()
         .iter()
-        .find(|(_, (display_info, in_inventory))| {
-            display_info.matches(item_name) && in_inventory.held_by(character)
+        .find(|(_, (display_info, held))| {
+            display_info.matches(item_name) && held.held_by(character)
         })
         .map(|(item, _)| command::action_result(Action::GiveItem(item, receiver)))
         .unwrap_or_else(|| {
@@ -126,12 +126,12 @@ fn give(
 fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     None.or_else(|| {
         world
-            .query::<(&DisplayInfo, &InInventory)>()
+            .query::<(&DisplayInfo, &Held)>()
             .with::<&item::CanWield>()
             .with::<&item::Item>()
             .iter()
-            .find(|(_, (display_info, in_inventory))| {
-                display_info.matches(item_name) && in_inventory.held_by(character)
+            .find(|(_, (display_info, held))| {
+                display_info.matches(item_name) && held.is_in_inventory(character)
             })
             .map(|(item, (display_info, _))| {
                 command::action_result(Action::Wield(
