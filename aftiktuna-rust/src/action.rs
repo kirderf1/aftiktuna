@@ -128,6 +128,10 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<Strin
     let performer_pos = *world.get::<&Pos>(performer).unwrap();
     let target_pos = *world.get::<&Pos>(target).unwrap();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
+    let crew_size = world.query::<&CrewMember>().iter().count();
+    if crew_size >= 2 {
+        return Err("There is not enough room for another crew member.".to_string());
+    }
 
     try_move(
         world,
