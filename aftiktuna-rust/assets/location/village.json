@@ -60,12 +60,21 @@
     },
     {
       "name": "House",
-      "objects": [ "", "", "^", "" ],
+      "objects": [ "A", "", "^", "" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "aftik_house",
           "display_type": "door"
+        },
+        "A": {
+          "type": "recruitable",
+          "name": "Plum",
+          "stats": {
+            "strength": 10,
+            "endurance": 2,
+            "agility": 9
+          }
         }
       }
     },

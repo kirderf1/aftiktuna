@@ -1,6 +1,6 @@
 use crate::action::item::{is_holding, Held};
 use crate::action::trade::Shopkeeper;
-use crate::action::{combat, door, Action, CrewMember};
+use crate::action::{combat, door, Action, CrewMember, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
@@ -61,6 +61,15 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
         })
         .literal("trade", |parse| {
             parse.done_or_err(|| trade(world, character))
+        })
+        .literal("recruit", |parse| {
+            parse.match_against(
+                recruit_targets(world, character),
+                |parse, target| {
+                    parse.done_or_err(|| command::action_result(Action::Recruit(target)))
+                },
+                |input| Err(format!("\"{}\" not a valid recruitment target", input)),
+            )
         })
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
@@ -283,4 +292,15 @@ fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
         .next()
         .ok_or_else(|| "There is no shopkeeper to trade with here.".to_string())?;
     command::action_result(Action::Trade(shopkeeper))
+}
+
+fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
+    let character_pos = *world.get::<&Pos>(character).unwrap();
+    world
+        .query::<(&DisplayInfo, &Pos)>()
+        .with::<&Recruitable>()
+        .iter()
+        .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
+        .map(|(entity, (display_info, _))| (display_info.name().to_lowercase(), entity))
+        .collect::<Vec<_>>()
 }

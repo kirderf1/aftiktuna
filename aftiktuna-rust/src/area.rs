@@ -122,8 +122,8 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
 
     let crew = world.spawn((Points(10000),));
 
-    creature::spawn_aftik(world, crew, "Cerulean", Stats::new(9, 2, 10));
-    let mint = creature::spawn_aftik(world, crew, "Mint", Stats::new(10, 3, 8));
+    creature::spawn_crew_member(world, crew, "Cerulean", Stats::new(9, 2, 10));
+    let mint = creature::spawn_crew_member(world, crew, "Mint", Stats::new(10, 3, 8));
 
     (mint, ship)
 }

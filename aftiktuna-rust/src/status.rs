@@ -1,4 +1,5 @@
 use hecs::{ComponentError, Entity, World};
+use serde::{Deserialize, Serialize};
 use std::cmp::min;
 
 #[derive(Debug)]
@@ -79,6 +80,7 @@ pub fn is_alive(entity: Entity, world: &World) -> bool {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Stats {
     pub strength: i16,
     pub endurance: i16,

@@ -3,6 +3,7 @@ use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area};
 use crate::item;
 use crate::position::Pos;
+use crate::status::Stats;
 use hecs::World;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -97,6 +98,9 @@ impl AreaData {
                     Some(SymbolData::Shopkeeper { items }) => {
                         creature::place_shopkeeper(builder.world, pos, items)?
                     }
+                    Some(SymbolData::Recruitable { name, stats }) => {
+                        creature::place_recruitable(builder.world, pos, name, stats.clone());
+                    }
                     None => place_object(builder, pos, symbol)?,
                 }
             }
@@ -114,6 +118,10 @@ enum SymbolData {
     },
     Shopkeeper {
         items: Vec<item::Type>,
+    },
+    Recruitable {
+        name: String,
+        stats: Stats,
     },
 }
 

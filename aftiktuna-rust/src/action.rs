@@ -1,5 +1,5 @@
 use crate::action::combat::Target;
-use crate::position::Pos;
+use crate::position::{try_move, Pos};
 use crate::status;
 use crate::view::{DisplayInfo, Messages};
 use hecs::{Entity, World};
@@ -15,6 +15,8 @@ pub mod trade;
 #[derive(Debug)]
 pub struct CrewMember(pub Entity);
 
+pub struct Recruitable(pub DisplayInfo);
+
 #[derive(Clone)]
 pub enum Action {
     TakeItem(Entity, String),
@@ -28,6 +30,7 @@ pub enum Action {
     Wait,
     Rest(bool),
     Launch,
+    Recruit(Entity),
     Trade(Entity),
     Buy(crate::item::Type),
     Sell(Entity),
@@ -78,6 +81,7 @@ fn perform(
         Wait => Ok(None),
         Rest(first) => Ok(rest(world, performer, first)),
         Launch => Ok(launch::perform(world, performer)),
+        Recruit(target) => recruit(world, performer, target).map(Some),
         Trade(shopkeeper) => trade::trade(world, performer, shopkeeper).map(Some),
         Buy(item_type) => trade::buy(world, performer, item_type).map(Some),
         Sell(item) => trade::sell(world, performer, item).map(Some),
@@ -118,4 +122,20 @@ fn rest(world: &mut World, performer: Entity, first: bool) -> Option<String> {
     } else {
         None
     }
+}
+
+fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<String, String> {
+    let performer_pos = *world.get::<&Pos>(performer).unwrap();
+    let target_pos = *world.get::<&Pos>(target).unwrap();
+    let crew = world.get::<&CrewMember>(performer).unwrap().0;
+
+    try_move(
+        world,
+        performer,
+        target_pos.get_adjacent_towards(performer_pos),
+    )?;
+    let Recruitable(real_name) = world.remove_one::<Recruitable>(target).unwrap();
+    let name = real_name.definite_name().to_string();
+    world.insert(target, (real_name, CrewMember(crew))).unwrap();
+    Ok(format!("{} joined the crew!", name))
 }
