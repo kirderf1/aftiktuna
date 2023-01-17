@@ -139,11 +139,10 @@ pub fn load_location(
     location_name: &str,
 ) {
     let ship_exit = world.get::<&Ship>(ship).unwrap().exit_pos;
-    let location = load_data(location_name);
 
-    let start_pos = location
+    let start_pos = load_data(location_name)
         .and_then(|location_data| location_data.build(world))
-        .unwrap_or_else(|message| panic!("{}", message));
+        .unwrap_or_else(|message| panic!("Error loading location {}: {}", location_name, message));
 
     door::place_pair(
         world,
@@ -167,8 +166,8 @@ pub fn load_location(
 
 pub fn load_data(name: &str) -> Result<LocationData, String> {
     let file = File::open(format!("assets/{}.json", name))
-        .map_err(|_| format!("Failed to open location: {}", name))?;
-    serde_json::from_reader(file).map_err(|_| format!("Failed to load location: {}", name))
+        .map_err(|error| format!("Failed to open file: {}", error))?;
+    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {}", error))
 }
 
 struct Keep;

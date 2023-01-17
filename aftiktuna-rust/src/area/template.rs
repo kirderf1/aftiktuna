@@ -178,7 +178,7 @@ fn place_door(
     let status = builder
         .doors
         .get_mut(pair_id)
-        .ok_or_else(|| format!("Unknown door id: {}", pair_id))?;
+        .ok_or_else(|| format!("Unknown door id \"{}\"", pair_id))?;
     let door_info = DoorInfo(pos, door::door_display(display_type));
 
     *status = match status {
@@ -192,7 +192,9 @@ fn place_door(
             );
             DoorStatus::Placed
         }
-        DoorStatus::Placed => return Err(format!("Door placed more than twice: {}", pair_id)),
+        DoorStatus::Placed => {
+            return Err(format!("Doors for \"{}\" placed more than twice", pair_id))
+        }
     };
     Ok(())
 }
@@ -222,7 +224,7 @@ fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), Str
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
-        _ => return Err(format!("Unknown symbol: {}", symbol)),
+        _ => return Err(format!("Unknown symbol \"{}\"", symbol)),
     }
     Ok(())
 }

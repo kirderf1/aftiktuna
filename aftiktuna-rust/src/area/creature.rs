@@ -100,7 +100,7 @@ fn to_priced_item(item: item::Type) -> Result<PricedItem, String> {
         .map(|price| PricedItem { item, price })
         .ok_or_else(|| {
             format!(
-                "Cannot get a price from item {}",
+                "Cannot get a price from item \"{}\" to put in store",
                 item.display_info().name()
             )
         })
