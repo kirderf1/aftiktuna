@@ -3,7 +3,7 @@ use std::io::Write;
 
 mod action;
 mod ai;
-mod area;
+pub mod area;
 mod command;
 pub mod game_loop;
 mod item;

@@ -2,7 +2,6 @@ use crate::action;
 use crate::action::door::Door;
 use crate::action::trade::Points;
 use crate::action::CrewMember;
-use crate::area::template::LocationData;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::{DisplayInfo, Messages};
@@ -12,6 +11,7 @@ use rand::seq::index;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
+pub use template::LocationData;
 
 mod creature;
 mod door;
@@ -43,8 +43,7 @@ pub struct Locations {
 
 impl Locations {
     pub fn new(count_until_win: i32) -> Self {
-        let file = File::open("assets/locations.json").expect("Failed to open locations.json");
-        let categories = serde_json::from_reader(file).expect("Failed to load locations.json");
+        let categories = load_location_categories();
         Locations {
             categories,
             count_until_win,
@@ -99,10 +98,15 @@ impl Locations {
     }
 }
 
+pub fn load_location_categories() -> Vec<Category> {
+    let file = File::open("assets/locations.json").expect("Failed to open locations.json");
+    serde_json::from_reader(file).expect("Failed to load locations.json")
+}
+
 #[derive(Serialize, Deserialize)]
-struct Category {
+pub struct Category {
     name: String,
-    location_names: Vec<String>,
+    pub location_names: Vec<String>,
 }
 
 pub fn init(world: &mut World) -> (Entity, Entity) {
@@ -138,7 +142,7 @@ pub fn load_location(
     let location = load_data(location_name);
 
     let start_pos = location
-        .build(world)
+        .and_then(|location_data| location_data.build(world))
         .unwrap_or_else(|message| panic!("{}", message));
 
     door::place_pair(
@@ -161,10 +165,10 @@ pub fn load_location(
     messages.add("The ship arrives at a new location, and the crew exit the ship.".to_string());
 }
 
-fn load_data(name: &str) -> LocationData {
+pub fn load_data(name: &str) -> Result<LocationData, String> {
     let file = File::open(format!("assets/{}.json", name))
-        .unwrap_or_else(|_| panic!("Failed to open location: {}", name));
-    serde_json::from_reader(file).unwrap_or_else(|_| panic!("Failed to load location: {}", name))
+        .map_err(|_| format!("Failed to open location: {}", name))?;
+    serde_json::from_reader(file).map_err(|_| format!("Failed to load location: {}", name))
 }
 
 struct Keep;
