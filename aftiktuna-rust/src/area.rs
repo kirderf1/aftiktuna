@@ -43,7 +43,8 @@ pub struct Locations {
 
 impl Locations {
     pub fn new(count_until_win: i32) -> Self {
-        let categories = load_location_categories();
+        let categories = load_location_categories()
+            .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {}", message));
         Locations {
             categories,
             count_until_win,
@@ -98,9 +99,11 @@ impl Locations {
     }
 }
 
-pub fn load_location_categories() -> Vec<Category> {
-    let file = File::open("assets/locations.json").expect("Failed to open locations.json");
-    serde_json::from_reader(file).expect("Failed to load locations.json")
+pub fn load_location_categories() -> Result<Vec<Category>, String> {
+    let file = File::open("assets/locations.json")
+        .map_err(|error| format!("Failed to open file: {}", error))?;
+    serde_json::from_reader::<_, Vec<Category>>(file)
+        .map_err(|error| format!("Failed to parse file: {}", error))
 }
 
 #[derive(Serialize, Deserialize)]
