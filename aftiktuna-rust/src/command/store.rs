@@ -15,16 +15,29 @@ pub fn parse(
 ) -> Result<CommandResult, String> {
     Parse::new(input)
         .literal("buy", |parse| {
-            parse.match_against(
-                store_entries(shopkeeper),
-                |parse, item| parse.done_or_err(|| buy(item)),
-                |input| {
-                    Err(format!(
-                        "\"{}\" does not match an item in the store.",
-                        input
-                    ))
-                },
-            )
+            parse
+                .numeric(|parse, amount| {
+                    parse.match_against(
+                        store_entries(shopkeeper),
+                        |parse, item| parse.done_or_err(|| buy(item, amount)),
+                        |input| {
+                            Err(format!(
+                                "\"{}\" does not match an item in the store.",
+                                input
+                            ))
+                        },
+                    )
+                })
+                .match_against(
+                    store_entries(shopkeeper),
+                    |parse, item| parse.done_or_err(|| buy(item, 1)),
+                    |input| {
+                        Err(format!(
+                            "\"{}\" does not match an item in the store.",
+                            input
+                        ))
+                    },
+                )
         })
         .literal("sell", |parse| {
             parse.match_against(
@@ -47,21 +60,16 @@ pub fn parse(
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
-fn store_entries(shopkeeper: &Shopkeeper) -> Vec<(String, PricedItem)> {
+fn store_entries(shopkeeper: &Shopkeeper) -> Vec<(String, &PricedItem)> {
     shopkeeper
         .0
         .iter()
-        .map(|priced| {
-            (
-                priced.item.display_info().name().to_string(),
-                priced.clone(),
-            )
-        })
+        .map(|priced| (priced.item.display_info().name().to_string(), priced))
         .collect::<Vec<_>>()
 }
 
-fn buy(priced_item: PricedItem) -> Result<CommandResult, String> {
-    command::action_result(Action::Buy(priced_item.item))
+fn buy(priced_item: &PricedItem, amount: i32) -> Result<CommandResult, String> {
+    command::action_result(Action::Buy(priced_item.item, amount))
 }
 
 fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {

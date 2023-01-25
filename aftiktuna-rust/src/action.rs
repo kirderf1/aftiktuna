@@ -32,7 +32,7 @@ pub enum Action {
     Launch,
     Recruit(Entity),
     Trade(Entity),
-    Buy(crate::item::Type),
+    Buy(crate::item::Type, i32),
     Sell(Entity),
     ExitTrade,
 }
@@ -83,7 +83,7 @@ fn perform(
         Launch => Ok(launch::perform(world, performer)),
         Recruit(target) => recruit(world, performer, target).map(Some),
         Trade(shopkeeper) => trade::trade(world, performer, shopkeeper).map(Some),
-        Buy(item_type) => trade::buy(world, performer, item_type).map(Some),
+        Buy(item_type, amount) => trade::buy(world, performer, item_type, amount).map(Some),
         Sell(item) => trade::sell(world, performer, item).map(Some),
         ExitTrade => trade::exit(world, performer).map(Some),
     };

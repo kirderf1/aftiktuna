@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Parse<'a> {
     input: &'a str,
     start: usize,
@@ -11,14 +12,10 @@ impl<'a> Parse<'a> {
     pub fn literal<R, F: FnOnce(Parse) -> R>(self, word: &str, closure: F) -> Partial<'a, R> {
         self.try_advance(word)
             .map(closure)
-            .map(Partial::Matched)
-            .unwrap_or(Partial::UnMatched(self))
+            .map_or(Partial::UnMatched(self), Partial::Matched)
     }
 
-    pub fn done<T, U>(self, closure: T) -> Partial<'a, U>
-    where
-        T: FnOnce() -> U,
-    {
+    pub fn done<R, F: FnOnce() -> R>(self, closure: F) -> Partial<'a, R> {
         if self.active_input().is_empty() {
             Partial::Matched(closure())
         } else {
@@ -26,10 +23,7 @@ impl<'a> Parse<'a> {
         }
     }
 
-    pub fn done_or_err<T, U>(self, done: T) -> Result<U, String>
-    where
-        T: FnOnce() -> Result<U, String>,
-    {
+    pub fn done_or_err<R, F: FnOnce() -> Result<R, String>>(self, done: F) -> Result<R, String> {
         if self.active_input().is_empty() {
             done()
         } else {
@@ -40,17 +34,21 @@ impl<'a> Parse<'a> {
         }
     }
 
-    pub fn take_remaining<F, T>(self, closure: F) -> T
-    where
-        F: FnOnce(&str) -> T,
-    {
+    pub fn take_remaining<R, F: FnOnce(&str) -> R>(self, closure: F) -> R {
         closure(self.active_input())
     }
 
-    pub fn match_against<A, F, E, T>(self, vec: Vec<(String, A)>, success: F, failure: E) -> T
+    pub fn numeric<R, F: FnOnce(Parse, i32) -> R>(self, closure: F) -> Partial<'a, R> {
+        let (word, parse) = self.next_word();
+        str::parse(word)
+            .map(|number| Partial::Matched(closure(parse, number)))
+            .unwrap_or_else(|_| Partial::UnMatched(self))
+    }
+
+    pub fn match_against<A, F, E, R>(self, vec: Vec<(String, A)>, success: F, failure: E) -> R
     where
-        F: FnOnce(Parse, A) -> T,
-        E: FnOnce(&str) -> T,
+        F: FnOnce(Parse, A) -> R,
+        E: FnOnce(&str) -> R,
     {
         vec.into_iter()
             .fold(None, |previous, (name, object)| {
@@ -61,11 +59,11 @@ impl<'a> Parse<'a> {
     }
 
     fn active_input(&self) -> &'a str {
-        self.input.split_at(self.start).1
+        &self.input[self.start..]
     }
 
     fn consumed_input(&self) -> &'a str {
-        self.input.split_at(self.start).0.trim_end()
+        self.input[..self.start].trim_end()
     }
 
     fn try_advance(&self, word: &str) -> Option<Self> {
@@ -77,17 +75,29 @@ impl<'a> Parse<'a> {
 
         let remainder = input.split_at(word.len()).1;
         if remainder.is_empty() {
-            Some(Parse {
-                input: self.input,
-                start: self.start + word.len(),
-            })
-        } else if remainder.starts_with(" ") {
-            Some(Parse {
-                input: self.input,
-                start: self.start + word.len() + " ".len(),
-            })
+            Some(self.advance_start(word.len()))
+        } else if remainder.starts_with(' ') {
+            Some(self.advance_start(word.len() + 1))
         } else {
             None
+        }
+    }
+
+    fn next_word(&self) -> (&str, Parse) {
+        let input = self.active_input();
+        for (i, char) in input.chars().enumerate() {
+            if char == ' ' {
+                return (&input[..i], self.advance_start(i + 1));
+            }
+        }
+
+        (input, self.clone())
+    }
+
+    fn advance_start(&self, length: usize) -> Self {
+        Parse {
+            input: self.input,
+            start: self.start + length,
         }
     }
 }
@@ -108,6 +118,17 @@ impl<'a, R> Partial<'a, R> {
     pub fn or_else_remaining<F: FnOnce(&str) -> R>(self, closure: F) -> R {
         match self {
             Partial::UnMatched(parse) => parse.take_remaining(closure),
+            Partial::Matched(r) => r,
+        }
+    }
+
+    pub fn match_against<A, F, E>(self, vec: Vec<(String, A)>, success: F, failure: E) -> R
+    where
+        F: FnOnce(Parse, A) -> R,
+        E: FnOnce(&str) -> R,
+    {
+        match self {
+            Partial::UnMatched(parse) => parse.match_against(vec, success, failure),
             Partial::Matched(r) => r,
         }
     }

@@ -5,7 +5,6 @@ use crate::position::Pos;
 use crate::view::DisplayInfo;
 use crate::{item, position};
 use hecs::{Entity, Ref, World};
-use std::ops::Deref;
 
 pub struct Points(pub i32);
 
@@ -47,7 +46,12 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result
     ))
 }
 
-pub fn buy(world: &mut World, performer: Entity, item_type: item::Type) -> Result<String, String> {
+pub fn buy(
+    world: &mut World,
+    performer: Entity,
+    item_type: item::Type,
+    amount: i32,
+) -> Result<String, String> {
     let performer_name = DisplayInfo::find_definite_name(world, performer);
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
@@ -58,17 +62,24 @@ pub fn buy(world: &mut World, performer: Entity, item_type: item::Type) -> Resul
     let priced_item = world
         .get::<&Shopkeeper>(shopkeeper)
         .ok()
-        .and_then(|shopkeeper| find_priced_item(shopkeeper.deref(), item_type))
+        .and_then(|shopkeeper| find_priced_item(&*shopkeeper, item_type))
         .ok_or_else(|| "The item is not in stock.".to_string())?;
 
-    try_spend_points(world, crew, priced_item.price)?;
+    if amount < 1 {
+        return Err("Tried to purchase a non-positive number of items.".to_string());
+    }
 
-    let item = item::spawn(world, priced_item.item, Held::in_inventory(performer));
+    try_spend_points(world, crew, priced_item.price * amount)?;
+
+    for _ in 0..amount {
+        item::spawn(world, priced_item.item, Held::in_inventory(performer));
+    }
 
     Ok(format!(
-        "{} bought 1 {}.",
+        "{} bought {} {}.",
         performer_name,
-        DisplayInfo::find_name(world, item)
+        amount,
+        priced_item.item.display_info().name(),
     ))
 }
 
