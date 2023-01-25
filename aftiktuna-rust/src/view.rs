@@ -41,9 +41,29 @@ impl Messages {
 #[derive(Clone, Debug)]
 pub struct DisplayInfo {
     symbol: char,
+    weight: u32,
+    name_data: NameData,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NameData {
     name: String,
     definite_name: String,
-    weight: u32,
+}
+
+impl NameData {
+    pub fn from_name(name: &str) -> Self {
+        NameData {
+            name: String::from(name),
+            definite_name: String::from(name),
+        }
+    }
+    pub fn from_noun(noun: &str) -> Self {
+        NameData {
+            name: String::from(noun),
+            definite_name: "the ".to_owned() + noun,
+        }
+    }
 }
 
 pub type StatusCache = status::Cache;
@@ -52,8 +72,7 @@ impl DisplayInfo {
     pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
         DisplayInfo {
             symbol,
-            name: String::from(name),
-            definite_name: String::from(name),
+            name_data: NameData::from_name(name),
             weight,
         }
     }
@@ -61,22 +80,21 @@ impl DisplayInfo {
     pub fn from_noun(symbol: char, noun: &str, weight: u32) -> DisplayInfo {
         DisplayInfo {
             symbol,
-            name: String::from(noun),
-            definite_name: "the ".to_owned() + noun,
+            name_data: NameData::from_noun(noun),
             weight,
         }
     }
 
     pub fn name(&self) -> &str {
-        &self.name
+        &self.name_data.name
     }
 
     pub fn definite_name(&self) -> &str {
-        &self.definite_name
+        &self.name_data.definite_name
     }
 
     pub fn matches(&self, string: &str) -> bool {
-        self.name.eq_ignore_ascii_case(string)
+        self.name_data.name.eq_ignore_ascii_case(string)
     }
 
     pub fn find_definite_name(world: &World, entity: Entity) -> String {
