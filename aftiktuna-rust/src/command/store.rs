@@ -18,7 +18,7 @@ pub fn parse(
             parse
                 .numeric(|parse, amount| {
                     parse.match_against(
-                        store_entries(shopkeeper),
+                        store_entries(shopkeeper, amount),
                         |parse, item| parse.done_or_err(|| buy(item, amount)),
                         |input| {
                             Err(format!(
@@ -29,7 +29,7 @@ pub fn parse(
                     )
                 })
                 .match_against(
-                    store_entries(shopkeeper),
+                    store_entries(shopkeeper, 1),
                     |parse, item| parse.done_or_err(|| buy(item, 1)),
                     |input| {
                         Err(format!(
@@ -60,11 +60,11 @@ pub fn parse(
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
-fn store_entries(shopkeeper: &Shopkeeper) -> Vec<(String, &PricedItem)> {
+fn store_entries(shopkeeper: &Shopkeeper, amount: i32) -> Vec<(String, &PricedItem)> {
     shopkeeper
         .0
         .iter()
-        .map(|priced| (priced.item.display_info().name().to_string(), priced))
+        .map(|priced| (priced.item.name_for_amount(amount), priced))
         .collect::<Vec<_>>()
 }
 

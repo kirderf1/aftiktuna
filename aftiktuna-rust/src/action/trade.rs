@@ -79,7 +79,7 @@ pub fn buy(
         "{} bought {} {}.",
         performer_name,
         amount,
-        priced_item.item.display_info().name(),
+        priced_item.item.name_for_amount(amount),
     ))
 }
 

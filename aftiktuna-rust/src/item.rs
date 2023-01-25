@@ -45,6 +45,25 @@ impl Type {
         spawn(world, self, location);
     }
 
+    pub fn name_for_amount(self, amount: i32) -> String {
+        if amount == 1 {
+            self.display_info().name().to_string()
+        } else {
+            match self {
+                Type::FuelCan => "fuel cans",
+                Type::Crowbar => "crowbars",
+                Type::Blowtorch => "blowtorches",
+                Type::Keycard => "keycards",
+                Type::Knife => "knives",
+                Type::Bat => "bats",
+                Type::Sword => "swords",
+                Type::MeteorChunk => "meteor chunks",
+                Type::AncientCoin => "ancient coins",
+            }
+            .to_string()
+        }
+    }
+
     pub fn display_info(self) -> DisplayInfo {
         match self {
             Type::FuelCan => DisplayInfo::from_noun('f', "fuel can", 1),
