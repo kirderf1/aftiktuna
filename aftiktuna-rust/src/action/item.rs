@@ -81,15 +81,15 @@ pub fn consume_one<C: Component>(world: &mut World, holder: Entity) -> Option<()
 pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
-        .query::<(&Pos, &DisplayInfo)>()
+        .query::<(&Pos, &NameData)>()
         .with::<&Item>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, display_info))| (item, display_info.name().definite()))
+        .map(|(item, (_, name_data))| (item, name_data.clone()))
         .ok_or("There are no items to take here.")?;
 
-    let result = take_item(world, aftik, item, &name)?;
+    let result = take_item(world, aftik, item, name)?;
     if world
         .query::<(&Pos, &DisplayInfo)>()
         .with::<&Item>()
@@ -105,19 +105,23 @@ pub fn take_item(
     world: &mut World,
     performer: Entity,
     item: Entity,
-    item_name: &str,
+    item_name: NameData,
 ) -> Result<String, String> {
     let performer_name = NameData::find(world, performer).definite();
     let item_pos = *world
         .get::<&Pos>(item)
-        .map_err(|_| format!("{} lost track of {}.", performer_name, item_name))?;
+        .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
 
     try_move(world, performer, item_pos)?;
     world
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
 
-    Ok(format!("{} picked up {}.", performer_name, item_name))
+    Ok(format!(
+        "{} picked up {}.",
+        performer_name,
+        item_name.definite()
+    ))
 }
 
 pub fn give_item(

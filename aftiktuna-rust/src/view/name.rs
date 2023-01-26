@@ -1,6 +1,6 @@
-use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 use std::collections::HashMap;
+use std::ops::Deref;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Data {
@@ -33,9 +33,9 @@ impl Data {
     }
 
     pub fn find(world: &World, entity: Entity) -> Self {
-        world.get::<&DisplayInfo>(entity).map_or_else(
+        world.get::<&Data>(entity).map_or_else(
             |_| Data::Name("???".to_string()),
-            |info| info.name_data.clone(),
+            |data| data.deref().clone(),
         )
     }
 }

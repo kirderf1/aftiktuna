@@ -1,7 +1,7 @@
 use crate::action::combat::Target;
 use crate::position::{try_move, Pos};
-use crate::status;
-use crate::view::{DisplayInfo, Messages, NameData};
+use crate::view::{Messages, NameData};
+use crate::{status, view};
 use hecs::{Entity, World};
 use rand::Rng;
 use Action::*;
@@ -15,11 +15,11 @@ pub mod trade;
 #[derive(Debug)]
 pub struct CrewMember(pub Entity);
 
-pub struct Recruitable(pub DisplayInfo);
+pub struct Recruitable(pub String);
 
 #[derive(Clone)]
 pub enum Action {
-    TakeItem(Entity, String),
+    TakeItem(Entity, NameData),
     TakeAll,
     GiveItem(Entity, Entity),
     Wield(Entity, NameData),
@@ -70,7 +70,7 @@ fn perform(
     messages: &mut Messages,
 ) {
     let result = match action {
-        TakeItem(item, name) => item::take_item(world, performer, item, &name).map(Some),
+        TakeItem(item, name) => item::take_item(world, performer, item, name).map(Some),
         TakeAll => item::take_all(world, performer).map(Some),
         GiveItem(item, receiver) => item::give_item(world, performer, item, receiver).map(Some),
         Wield(item, name) => item::wield(world, performer, item, name).map(Some),
@@ -138,8 +138,16 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<Strin
         performer,
         target_pos.get_adjacent_towards(performer_pos),
     )?;
-    let Recruitable(real_name) = world.remove_one::<Recruitable>(target).unwrap();
-    let name = real_name.name().definite();
-    world.insert(target, (real_name, CrewMember(crew))).unwrap();
+    let Recruitable(name) = world.remove_one::<Recruitable>(target).unwrap();
+    world
+        .insert(
+            target,
+            (
+                view::name_display_info(&name),
+                NameData::from_name(&name),
+                CrewMember(crew),
+            ),
+        )
+        .unwrap();
     Ok(format!("{} joined the crew!", name))
 }

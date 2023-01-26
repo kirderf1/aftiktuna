@@ -5,7 +5,7 @@ use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
-pub struct DoorInfo(pub Pos, pub DisplayInfo);
+pub struct DoorInfo(pub Pos, pub char, pub NameData);
 
 pub fn place_pair(
     world: &mut World,
@@ -17,19 +17,21 @@ pub fn place_pair(
         Some(block_type) => world.spawn((DoorBlocking(block_type),)),
         None => world.spawn(()),
     };
-    place(world, door1.0, door1.1, door2.0, door_pair);
-    place(world, door2.0, door2.1, door1.0, door_pair);
+    place(world, door1.0, door1.1, door1.2, door2.0, door_pair);
+    place(world, door2.0, door2.1, door2.2, door1.0, door_pair);
 }
 
 fn place(
     world: &mut World,
     pos: Pos,
-    disp: DisplayInfo,
+    symbol: char,
+    name: NameData,
     destination: Pos,
     door_pair: Entity,
 ) -> Entity {
     world.spawn((
-        disp,
+        DisplayInfo::new(symbol, 20),
+        name,
         pos,
         Door {
             destination,
@@ -38,7 +40,7 @@ fn place(
     ))
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
@@ -51,15 +53,23 @@ pub enum DoorType {
     RightPath,
 }
 
-pub fn door_display(door_type: &DoorType) -> DisplayInfo {
+pub fn symbol(door_type: DoorType) -> char {
     match door_type {
-        DoorType::Door => DisplayInfo::new('^', NameData::from_noun("door"), 20),
-        DoorType::LeftDoor => DisplayInfo::new('<', NameData::from_noun("left door"), 20),
-        DoorType::MidDoor => DisplayInfo::new('^', NameData::from_noun("middle door"), 20),
-        DoorType::RightDoor => DisplayInfo::new('>', NameData::from_noun("right door"), 20),
-        DoorType::Path => DisplayInfo::new('^', NameData::from_noun("path"), 20),
-        DoorType::LeftPath => DisplayInfo::new('<', NameData::from_noun("left path"), 20),
-        DoorType::MidPath => DisplayInfo::new('^', NameData::from_noun("middle path"), 20),
-        DoorType::RightPath => DisplayInfo::new('>', NameData::from_noun("right path"), 20),
+        DoorType::Door | DoorType::MidDoor | DoorType::Path | DoorType::MidPath => '^',
+        DoorType::LeftDoor | DoorType::LeftPath => '<',
+        DoorType::RightDoor | DoorType::RightPath => '>',
+    }
+}
+
+pub fn name_data(door_type: DoorType) -> NameData {
+    match door_type {
+        DoorType::Door => NameData::from_noun("door"),
+        DoorType::LeftDoor => NameData::from_noun("left door"),
+        DoorType::MidDoor => NameData::from_noun("middle door"),
+        DoorType::RightDoor => NameData::from_noun("right door"),
+        DoorType::Path => NameData::from_noun("path"),
+        DoorType::LeftPath => NameData::from_noun("left path"),
+        DoorType::MidPath => NameData::from_noun("middle path"),
+        DoorType::RightPath => NameData::from_noun("right path"),
     }
 }

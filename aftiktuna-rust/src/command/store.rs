@@ -4,7 +4,7 @@ use crate::action::Action;
 use crate::command;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
-use crate::view::DisplayInfo;
+use crate::view::NameData;
 use hecs::{Entity, World};
 
 pub fn parse(
@@ -74,10 +74,10 @@ fn buy(priced_item: &PricedItem, amount: i32) -> Result<CommandResult, String> {
 
 fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
     world
-        .query::<(&DisplayInfo, &Held)>()
+        .query::<(&NameData, &Held)>()
         .iter()
         .filter(|(_, (_, held))| held.held_by(character))
-        .map(|(entity, (display_info, _))| (display_info.name().base().to_string(), entity))
+        .map(|(entity, (name, _))| (name.base().to_string(), entity))
         .collect::<Vec<_>>()
 }
 

@@ -43,7 +43,6 @@ impl Messages {
 pub struct DisplayInfo {
     symbol: char,
     weight: u32,
-    name_data: NameData,
 }
 
 pub type StatusCache = status::Cache;
@@ -51,16 +50,8 @@ pub type StatusCache = status::Cache;
 pub type NameData = name::Data;
 
 impl DisplayInfo {
-    pub fn new(symbol: char, name_data: NameData, weight: u32) -> Self {
-        DisplayInfo {
-            symbol,
-            name_data,
-            weight,
-        }
-    }
-
-    pub fn name(&self) -> &NameData {
-        &self.name_data
+    pub fn new(symbol: char, weight: u32) -> Self {
+        DisplayInfo { symbol, weight }
     }
 }
 
@@ -106,7 +97,11 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
             let label = format!(
                 "{}: {}",
                 obj_type.symbol,
-                get_name(world, entity, &capitalize(obj_type.name().base()))
+                get_name(
+                    world,
+                    entity,
+                    &capitalize(NameData::find(world, entity).base())
+                )
             );
             if !labels.contains(&label) {
                 labels.push(label);
@@ -161,4 +156,8 @@ fn capitalize(text: &str) -> String {
         None => String::new(),
         Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),
     }
+}
+
+pub fn name_display_info(name: &str) -> DisplayInfo {
+    DisplayInfo::new(name.chars().next().unwrap(), 10)
 }
