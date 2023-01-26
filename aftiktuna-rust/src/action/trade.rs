@@ -2,7 +2,7 @@ use crate::action::item::Held;
 use crate::action::CrewMember;
 use crate::item::Price;
 use crate::position::Pos;
-use crate::view::DisplayInfo;
+use crate::view::NameData;
 use crate::{item, position};
 use hecs::{Entity, Ref, World};
 
@@ -24,7 +24,7 @@ pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>
 }
 
 pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result<String, String> {
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let performer_name = NameData::find(world, performer).definite();
     let performer_pos = *world.get::<&Pos>(performer).unwrap();
 
     let shop_pos = *world
@@ -52,7 +52,7 @@ pub fn buy(
     item_type: item::Type,
     amount: i32,
 ) -> Result<String, String> {
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let performer_name = NameData::find(world, performer).definite();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
         .get::<&IsTrading>(performer)
@@ -104,19 +104,21 @@ pub fn sell(world: &mut World, performer: Entity, item: Entity) -> Result<String
         .0;
     let price = price - price / 4;
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
-    let item_name = DisplayInfo::find_name(world, item);
+    let performer_name = NameData::find(world, performer).definite();
+    let item_name = NameData::find(world, item);
 
     world.get::<&mut Points>(crew).unwrap().0 += price;
     world.despawn(item).unwrap();
     Ok(format!(
         "{} sold a {} for {}.",
-        performer_name, item_name, price
+        performer_name,
+        item_name.base(),
+        price
     ))
 }
 
 pub fn exit(world: &mut World, performer: Entity) -> Result<String, String> {
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let performer_name = NameData::find(world, performer).definite();
     world
         .remove_one::<IsTrading>(performer)
         .map_err(|_| format!("{} is already not trading.", performer_name,))?;

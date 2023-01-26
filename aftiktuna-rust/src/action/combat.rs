@@ -2,7 +2,7 @@ use crate::action::{item, CrewMember};
 use crate::item::Weapon;
 use crate::position::{try_move, Pos};
 use crate::status::{Health, Stamina, Stats};
-use crate::view::DisplayInfo;
+use crate::view::NameData;
 use hecs::{Component, Entity, World};
 use rand::Rng;
 use std::cmp::Ordering;
@@ -69,8 +69,8 @@ pub fn attack(
     attacker: Entity,
     target: Entity,
 ) -> Result<String, String> {
-    let attacker_name = DisplayInfo::find_definite_name(world, attacker);
-    let target_name = DisplayInfo::find_definite_name(world, target);
+    let attacker_name = NameData::find(world, attacker).definite();
+    let target_name = NameData::find(world, target).definite();
     let attacker_pos = *world
         .get::<&Pos>(attacker)
         .expect("Expected attacker to have a position");

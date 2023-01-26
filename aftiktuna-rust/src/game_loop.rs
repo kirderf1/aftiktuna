@@ -3,7 +3,7 @@ use crate::area::{Locations, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
-use crate::view::{DisplayInfo, Messages, StatusCache};
+use crate::view::{Messages, NameData, StatusCache};
 use crate::{action, ai, area, command, status, view};
 use hecs::{Entity, World};
 use rand::{thread_rng, Rng};
@@ -20,7 +20,7 @@ pub fn run() {
 
     println!(
         "You're playing as the aftik {}.",
-        DisplayInfo::find_name(&world, aftik)
+        NameData::find(&world, aftik).definite()
     );
 
     area::load_location(
@@ -131,7 +131,7 @@ fn parse_user_action(
 
                 let message = format!(
                     "You're now playing as the aftik {}.",
-                    DisplayInfo::find_definite_name(world, *aftik)
+                    NameData::find(world, *aftik).definite()
                 );
                 view::print(world, *aftik, &mut Messages::simple(message), cache);
             }
@@ -153,7 +153,7 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
     for &aftik in &dead_crew {
         messages.add(format!(
             "{} is dead.",
-            DisplayInfo::find_definite_name(world, aftik)
+            NameData::find(world, aftik).definite()
         ));
     }
 
@@ -183,7 +183,7 @@ fn check_player_state(
             *aftik = next_aftik;
             messages.add(format!(
                 "You're now playing as the aftik {}.",
-                DisplayInfo::find_name(world, *aftik)
+                NameData::find(world, *aftik).definite()
             ));
         } else {
             return Err(StopType::Lose);

@@ -1,7 +1,7 @@
 use crate::action::trade::Points;
 use crate::action::{item, CrewMember};
 use crate::status::{Health, Stats};
-use crate::view::{capitalize, name, DisplayInfo, NameData};
+use crate::view::{capitalize, name, NameData};
 use hecs::{Entity, World};
 
 #[derive(Default)]
@@ -23,7 +23,7 @@ pub fn print_full_status(world: &World, character: Entity) {
     for (character, _) in world.query::<()>().with::<&CrewMember>().iter() {
         println!(
             "{} (Aftik):",
-            capitalize(DisplayInfo::find_definite_name(world, character).as_str())
+            capitalize(NameData::find(world, character).definite().as_str())
         );
         print_stats(world, character);
         print_character_without_cache(world, character);
@@ -123,7 +123,7 @@ fn print_wielded(
         None => println!("Wielding: Nothing"),
         Some(item) => println!(
             "Wielding: {}",
-            capitalize(&DisplayInfo::find_name(world, item))
+            capitalize(NameData::find(world, item).base())
         ),
     }
     wielded

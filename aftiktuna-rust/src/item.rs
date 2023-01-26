@@ -47,7 +47,7 @@ impl Type {
 
     pub fn name_for_amount(self, amount: i32) -> String {
         if amount == 1 {
-            self.display_info().name().to_string()
+            self.display_info().name().base().to_string()
         } else {
             match self {
                 Type::FuelCan => "fuel cans",

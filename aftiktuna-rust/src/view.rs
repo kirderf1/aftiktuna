@@ -48,7 +48,7 @@ pub struct DisplayInfo {
 
 pub type StatusCache = status::Cache;
 
-type NameData = name::Data;
+pub type NameData = name::Data;
 
 impl DisplayInfo {
     pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
@@ -67,33 +67,8 @@ impl DisplayInfo {
         }
     }
 
-    pub fn name(&self) -> &str {
-        match &self.name_data {
-            NameData::Name(name) | NameData::Noun(name) => name,
-        }
-    }
-
-    pub fn definite_name(&self) -> String {
-        match &self.name_data {
-            NameData::Name(name) => name.to_string(),
-            NameData::Noun(name) => format!("the {}", name),
-        }
-    }
-
-    pub fn matches(&self, string: &str) -> bool {
-        self.name().eq_ignore_ascii_case(string)
-    }
-
-    pub fn find_definite_name(world: &World, entity: Entity) -> String {
-        world
-            .get::<&DisplayInfo>(entity)
-            .map_or_else(|_| "???".to_string(), |info| info.definite_name())
-    }
-
-    pub fn find_name(world: &World, entity: Entity) -> String {
-        world
-            .get::<&DisplayInfo>(entity)
-            .map_or_else(|_| "???".to_string(), |info| info.name().to_string())
+    pub fn name(&self) -> &NameData {
+        &self.name_data
     }
 }
 
@@ -103,7 +78,12 @@ pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &
         let items = shopkeeper
             .0
             .iter()
-            .map(|priced| (capitalize(priced.item.display_info().name()), priced.price))
+            .map(|priced| {
+                (
+                    capitalize(priced.item.display_info().name().base()),
+                    priced.price,
+                )
+            })
             .collect::<Vec<_>>();
         let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
         for (name, price) in items {
@@ -139,7 +119,7 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
             let label = format!(
                 "{}: {}",
                 obj_type.symbol,
-                get_name(world, entity, &capitalize(obj_type.name()))
+                get_name(world, entity, &capitalize(obj_type.name().base()))
             );
             if !labels.contains(&label) {
                 labels.push(label);

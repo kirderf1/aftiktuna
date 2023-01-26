@@ -3,7 +3,7 @@ use crate::action::{combat, item, Action, CrewMember};
 use crate::item::Weapon;
 use crate::position::Pos;
 use crate::status;
-use crate::view::DisplayInfo;
+use crate::view::NameData;
 use hecs::{Entity, World};
 
 pub fn tick(world: &mut World) {
@@ -74,10 +74,7 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
     for item in item::get_inventory(world, aftik) {
         if let Ok(weapon) = world.get::<&Weapon>(item) {
             if weapon.0 > weapon_damage {
-                return Some(Action::Wield(
-                    item,
-                    DisplayInfo::find_definite_name(world, item),
-                ));
+                return Some(Action::Wield(item, NameData::find(world, item)));
             }
         }
     }

@@ -6,7 +6,7 @@ use crate::command::parse::Parse;
 use crate::command::CommandResult;
 use crate::item::FuelCan;
 use crate::position::Pos;
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, NameData};
 use crate::{command, item, status};
 use hecs::{Entity, World};
 
@@ -79,7 +79,7 @@ fn crew_targets(world: &World) -> Vec<(String, Entity)> {
         .query::<&DisplayInfo>()
         .with::<&CrewMember>()
         .iter()
-        .map(|(entity, display_info)| (display_info.name().to_lowercase(), entity))
+        .map(|(entity, display_info)| (display_info.name().base().to_lowercase(), entity))
         .collect::<Vec<_>>()
 }
 
@@ -90,11 +90,11 @@ fn take(item_name: &str, world: &World, character: Entity) -> Result<CommandResu
         .with::<&item::Item>()
         .iter()
         .filter(|(_, (pos, display_info))| {
-            pos.is_in(character_pos.get_area()) && display_info.matches(item_name)
+            pos.is_in(character_pos.get_area()) && display_info.name().matches(item_name)
         })
         .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
         .map(|(item, (_, display_info))| {
-            command::action_result(Action::TakeItem(item, display_info.definite_name()))
+            command::action_result(Action::TakeItem(item, display_info.name().definite()))
         })
         .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", item_name)))
 }
@@ -108,7 +108,7 @@ fn give(
     if character == receiver {
         return Err(format!(
             "{} can't give an item to themselves.",
-            DisplayInfo::find_definite_name(world, character)
+            NameData::find(world, character).definite()
         ));
     }
 
@@ -117,13 +117,13 @@ fn give(
         .with::<&item::Item>()
         .iter()
         .find(|(_, (display_info, held))| {
-            display_info.matches(item_name) && held.held_by(character)
+            display_info.name().matches(item_name) && held.held_by(character)
         })
         .map(|(item, _)| command::action_result(Action::GiveItem(item, receiver)))
         .unwrap_or_else(|| {
             Err(format!(
                 "{} has no {} to give.",
-                DisplayInfo::find_definite_name(world, character),
+                NameData::find(world, character).definite(),
                 item_name,
             ))
         })
@@ -137,10 +137,10 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
             .with::<&item::Item>()
             .iter()
             .find(|(_, (display_info, held))| {
-                display_info.matches(item_name) && held.is_in_inventory(character)
+                display_info.name().matches(item_name) && held.is_in_inventory(character)
             })
             .map(|(item, (display_info, _))| {
-                command::action_result(Action::Wield(item, display_info.definite_name()))
+                command::action_result(Action::Wield(item, display_info.name().clone()))
             })
     })
     .or_else(|| {
@@ -151,18 +151,18 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
             .with::<&item::Item>()
             .iter()
             .filter(|(_, (pos, display_info))| {
-                pos.is_in(character_pos.get_area()) && display_info.matches(item_name)
+                pos.is_in(character_pos.get_area()) && display_info.name().matches(item_name)
             })
             .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
             .map(|(item, (_, display_info))| {
-                command::action_result(Action::Wield(item, display_info.definite_name()))
+                command::action_result(Action::Wield(item, display_info.name().clone()))
             })
     })
     .unwrap_or_else(|| {
         Err(format!(
             "There is no {} that {} can wield.",
             item_name,
-            DisplayInfo::find_definite_name(world, character)
+            NameData::find(world, character).definite()
         ))
     })
 }
@@ -173,7 +173,7 @@ fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
         .query::<(&Pos, &DisplayInfo)>()
         .with::<&door::Door>()
         .iter()
-        .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(door_name))
+        .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.name().matches(door_name))
         .map(|(door, _)| command::crew_action(Action::EnterDoor(door)))
         .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
 }
@@ -184,7 +184,7 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
         .query::<(&Pos, &DisplayInfo)>()
         .with::<&door::Door>()
         .iter()
-        .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(door_name))
+        .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.name().matches(door_name))
         .map(|(door, _)| command::action_result(Action::ForceDoor(door)))
         .unwrap_or_else(|| Err("There is no such door here.".to_string()))
 }
@@ -209,7 +209,9 @@ fn attack(target_name: &str, world: &World, character: Entity) -> Result<Command
         .query::<(&Pos, &DisplayInfo)>()
         .with::<&combat::IsFoe>()
         .iter()
-        .find(|(_, (pos, display_info))| pos.is_in(area) && display_info.matches(target_name))
+        .find(|(_, (pos, display_info))| {
+            pos.is_in(area) && display_info.name().matches(target_name)
+        })
         .map(|(target, _)| command::action_result(Action::Attack(target)))
         .unwrap_or_else(|| Err("There is no such target here.".to_string()))
 }
@@ -234,7 +236,7 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
         } else {
             Err(format!(
                 "{} is already rested.",
-                DisplayInfo::find_definite_name(world, character)
+                NameData::find(world, character).definite()
             ))
         }
     }
@@ -245,13 +247,13 @@ fn launch_ship(world: &World, character: Entity) -> Result<CommandResult, String
     if !is_holding::<FuelCan>(world, character) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
-            DisplayInfo::find_definite_name(world, character)
+            NameData::find(world, character).definite()
         ));
     }
     world.get::<&Ship>(area).map_err(|_| {
         format!(
             "{} needs to be near the ship in order to launch it.",
-            DisplayInfo::find_definite_name(world, character)
+            NameData::find(world, character).definite()
         )
     })?;
     command::action_result(Action::Launch)
@@ -262,7 +264,7 @@ fn control(world: &World, character: Entity, target_name: &str) -> Result<Comman
         .query::<&DisplayInfo>()
         .with::<&CrewMember>()
         .iter()
-        .find(|(_, display_info)| display_info.matches(target_name))
+        .find(|(_, display_info)| display_info.name().matches(target_name))
         .ok_or_else(|| "There is no crew member by that name.".to_string())?;
 
     if new_character == character {
@@ -292,6 +294,6 @@ fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
         .with::<&Recruitable>()
         .iter()
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (display_info, _))| (display_info.name().to_lowercase(), entity))
+        .map(|(entity, (display_info, _))| (display_info.name().base().to_lowercase(), entity))
         .collect::<Vec<_>>()
 }

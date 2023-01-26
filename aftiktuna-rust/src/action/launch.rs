@@ -2,12 +2,12 @@ use crate::action::item;
 use crate::area::{Ship, ShipStatus};
 use crate::item::FuelCan;
 use crate::position::Pos;
-use crate::view::DisplayInfo;
+use crate::view::NameData;
 use hecs::{Entity, World};
 
 pub fn perform(world: &mut World, performer: Entity) -> Option<String> {
     let area = world.get::<&Pos>(performer).ok()?.get_area();
-    let name = DisplayInfo::find_definite_name(world, performer);
+    let name = NameData::find(world, performer).definite();
 
     let status = world.get::<&Ship>(area).ok()?.status;
 

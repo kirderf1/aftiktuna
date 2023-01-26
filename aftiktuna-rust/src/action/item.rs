@@ -2,7 +2,7 @@ use crate::action::Action;
 use crate::item::Item;
 use crate::position::{try_move, Pos};
 use crate::status;
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, NameData};
 use hecs::{Component, Entity, World};
 
 #[derive(Debug)]
@@ -86,7 +86,7 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, display_info))| (item, display_info.definite_name()))
+        .map(|(item, (_, display_info))| (item, display_info.name().definite()))
         .ok_or("There are no items to take here.")?;
 
     let result = take_item(world, aftik, item, &name)?;
@@ -107,7 +107,7 @@ pub fn take_item(
     item: Entity,
     item_name: &str,
 ) -> Result<String, String> {
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let performer_name = NameData::find(world, performer).definite();
     let item_pos = *world
         .get::<&Pos>(item)
         .map_err(|_| format!("{} lost track of {}.", performer_name, item_name))?;
@@ -126,8 +126,8 @@ pub fn give_item(
     item: Entity,
     receiver: Entity,
 ) -> Result<String, String> {
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
-    let receiver_name = DisplayInfo::find_definite_name(world, receiver);
+    let performer_name = NameData::find(world, performer).definite();
+    let receiver_name = NameData::find(world, receiver).definite();
 
     if world
         .get::<&Held>(item)
@@ -179,7 +179,7 @@ pub fn give_item(
         "{} gave {} a {}.",
         performer_name,
         receiver_name,
-        DisplayInfo::find_name(world, item)
+        NameData::find(world, item).base()
     ))
 }
 
@@ -187,19 +187,23 @@ pub fn wield(
     world: &mut World,
     performer: Entity,
     item: Entity,
-    item_name: &str,
+    item_name: NameData,
 ) -> Result<String, String> {
-    let performer_name = DisplayInfo::find_definite_name(world, performer);
+    let performer_name = NameData::find(world, performer).definite();
 
     if is_in_inventory(world, item, performer) {
         unwield_if_needed(world, performer);
         world.get::<&mut Held>(item).unwrap().in_hand = true;
 
-        Ok(format!("{} wielded a {}.", performer_name, item_name))
+        Ok(format!(
+            "{} wielded {}.",
+            performer_name,
+            item_name.definite()
+        ))
     } else {
         let item_pos = *world
             .get::<&Pos>(item)
-            .map_err(|_| format!("{} lost track of {}.", performer_name, item_name))?;
+            .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
         try_move(world, performer, item_pos)?;
 
         unwield_if_needed(world, performer);
@@ -214,8 +218,9 @@ pub fn wield(
             .expect("Tried moving item");
 
         Ok(format!(
-            "{} picked up and wielded the {}.",
-            performer_name, item_name
+            "{} picked up and wielded {}.",
+            performer_name,
+            item_name.definite()
         ))
     }
 }

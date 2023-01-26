@@ -2,7 +2,7 @@ use crate::action::item;
 use crate::item::{Blowtorch, Crowbar, Keycard};
 use crate::position;
 use crate::position::Pos;
-use crate::view::DisplayInfo;
+use crate::view::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -75,7 +75,7 @@ impl BlockType {
 }
 
 pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
-    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
+    let aftik_name = NameData::find(world, aftik).definite();
     let door_pos = *world
         .get::<&Pos>(door)
         .ok()
@@ -113,7 +113,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
 }
 
 pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
-    let aftik_name = DisplayInfo::find_definite_name(world, aftik);
+    let aftik_name = NameData::find(world, aftik).definite();
     let door_pos = *world
         .get::<&Pos>(door)
         .ok()

@@ -1,7 +1,7 @@
 use crate::action::combat::Target;
 use crate::position::{try_move, Pos};
 use crate::status;
-use crate::view::{DisplayInfo, Messages};
+use crate::view::{DisplayInfo, Messages, NameData};
 use hecs::{Entity, World};
 use rand::Rng;
 use Action::*;
@@ -22,7 +22,7 @@ pub enum Action {
     TakeItem(Entity, String),
     TakeAll,
     GiveItem(Entity, Entity),
-    Wield(Entity, String),
+    Wield(Entity, NameData),
     EnterDoor(Entity),
     ForceDoor(Entity),
     Attack(Entity),
@@ -73,7 +73,7 @@ fn perform(
         TakeItem(item, name) => item::take_item(world, performer, item, &name).map(Some),
         TakeAll => item::take_all(world, performer).map(Some),
         GiveItem(item, receiver) => item::give_item(world, performer, item, receiver).map(Some),
-        Wield(item, name) => item::wield(world, performer, item, &name).map(Some),
+        Wield(item, name) => item::wield(world, performer, item, name).map(Some),
         EnterDoor(door) => door::enter_door(world, performer, door).map(Some),
         ForceDoor(door) => door::force_door(world, performer, door).map(Some),
         Attack(target) => combat::attack(world, rng, performer, target).map(Some),
@@ -117,7 +117,7 @@ fn rest(world: &mut World, performer: Entity, first: bool) -> Option<String> {
     if first {
         Some(format!(
             "{} takes some time to rest up.",
-            DisplayInfo::find_definite_name(world, performer)
+            NameData::find(world, performer).definite()
         ))
     } else {
         None
@@ -139,7 +139,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<Strin
         target_pos.get_adjacent_towards(performer_pos),
     )?;
     let Recruitable(real_name) = world.remove_one::<Recruitable>(target).unwrap();
-    let name = real_name.definite_name();
+    let name = real_name.name().definite();
     world.insert(target, (real_name, CrewMember(crew))).unwrap();
     Ok(format!("{} joined the crew!", name))
 }

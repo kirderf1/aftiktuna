@@ -77,7 +77,7 @@ fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
         .query::<(&DisplayInfo, &Held)>()
         .iter()
         .filter(|(_, (_, held))| held.held_by(character))
-        .map(|(entity, (display_info, _))| (display_info.name().to_string(), entity))
+        .map(|(entity, (display_info, _))| (display_info.name().base().to_string(), entity))
         .collect::<Vec<_>>()
 }
 

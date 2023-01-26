@@ -15,6 +15,23 @@ impl Data {
     pub fn from_noun(noun: &str) -> Self {
         Data::Noun(noun.to_string())
     }
+
+    pub fn base(&self) -> &str {
+        match self {
+            Data::Name(name) | Data::Noun(name) => name,
+        }
+    }
+    pub fn definite(&self) -> String {
+        match self {
+            Data::Name(name) => name.to_string(),
+            Data::Noun(name) => format!("the {}", name),
+        }
+    }
+
+    pub fn matches(&self, string: &str) -> bool {
+        self.base().eq_ignore_ascii_case(string)
+    }
+
     pub fn find(world: &World, entity: Entity) -> Self {
         world.get::<&DisplayInfo>(entity).map_or_else(
             |_| Data::Name("???".to_string()),
