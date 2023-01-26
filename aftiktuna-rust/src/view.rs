@@ -6,8 +6,8 @@ use crate::area::Area;
 use crate::position::{Coord, Pos};
 use hecs::{Entity, World};
 use std::cmp::max;
-use std::collections::HashMap;
 
+mod name;
 mod status;
 
 #[derive(Default)]
@@ -46,42 +46,9 @@ pub struct DisplayInfo {
     name_data: NameData,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum NameData {
-    Name(String),
-    Noun(String),
-}
-
-impl NameData {
-    pub fn from_name(name: &str) -> Self {
-        NameData::Name(name.to_string())
-    }
-    pub fn from_noun(noun: &str) -> Self {
-        NameData::Noun(noun.to_string())
-    }
-    pub fn find(world: &World, entity: Entity) -> Self {
-        world
-            .get::<&DisplayInfo>(entity)
-            .map(|info| info.name_data.clone())
-            .unwrap_or_else(|_| NameData::Name("???".to_string()))
-    }
-}
-
-pub fn group_data(data: Vec<NameData>) -> (Vec<String>, Vec<(String, i32)>) {
-    let mut names = Vec::new();
-    let mut nouns = HashMap::new();
-
-    for name_data in data {
-        match name_data {
-            NameData::Name(name) => names.push(name),
-            NameData::Noun(noun) => *nouns.entry(noun).or_insert(0) += 1,
-        }
-    }
-
-    (names, nouns.into_iter().collect())
-}
-
 pub type StatusCache = status::Cache;
+
+type NameData = name::Data;
 
 impl DisplayInfo {
     pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
