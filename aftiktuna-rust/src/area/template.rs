@@ -94,7 +94,7 @@ impl AreaData {
                     Some(SymbolData::Door {
                         pair_id,
                         display_type,
-                    }) => place_door(builder, pos, pair_id, *display_type)?,
+                    }) => place_door(builder, pos, pair_id, symbol, *display_type)?,
                     Some(SymbolData::Shopkeeper { items }) => {
                         creature::place_shopkeeper(builder.world, pos, items)?
                     }
@@ -173,17 +173,14 @@ fn place_door(
     builder: &mut Builder,
     pos: Pos,
     pair_id: &str,
+    symbol: char,
     display_type: DoorType,
 ) -> Result<(), String> {
     let status = builder
         .doors
         .get_mut(pair_id)
         .ok_or_else(|| format!("Unknown door id \"{}\"", pair_id))?;
-    let door_info = DoorInfo(
-        pos,
-        door::symbol(display_type),
-        door::name_data(display_type),
-    );
+    let door_info = DoorInfo(pos, symbol, door::name_data(display_type));
 
     *status = match status {
         DoorStatus::None(data) => DoorStatus::One(data, door_info),

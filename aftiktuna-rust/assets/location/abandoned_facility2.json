@@ -7,7 +7,7 @@
         "<": {
           "type": "door",
           "pair_id": "path",
-          "display_type": "left_path"
+          "display_type": "path"
         },
         "^": {
           "type": "door",
@@ -28,7 +28,7 @@
         ">": {
           "type": "door",
           "pair_id": "path",
-          "display_type": "right_path"
+          "display_type": "path"
         }
       }
     },

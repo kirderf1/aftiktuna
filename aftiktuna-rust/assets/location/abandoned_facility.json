@@ -12,7 +12,7 @@
         ">": {
           "type": "door",
           "pair_id": "path",
-          "display_type": "right_path"
+          "display_type": "path"
         }
       }
     },

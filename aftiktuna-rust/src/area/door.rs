@@ -53,14 +53,6 @@ pub enum DoorType {
     RightPath,
 }
 
-pub fn symbol(door_type: DoorType) -> char {
-    match door_type {
-        DoorType::Door | DoorType::MidDoor | DoorType::Path | DoorType::MidPath => '^',
-        DoorType::LeftDoor | DoorType::LeftPath => '<',
-        DoorType::RightDoor | DoorType::RightPath => '>',
-    }
-}
-
 pub fn name_data(door_type: DoorType) -> NameData {
     match door_type {
         DoorType::Door => NameData::from_noun("door"),
