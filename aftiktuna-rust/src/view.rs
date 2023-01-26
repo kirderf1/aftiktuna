@@ -51,18 +51,10 @@ pub type StatusCache = status::Cache;
 pub type NameData = name::Data;
 
 impl DisplayInfo {
-    pub fn from_name(symbol: char, name: &str, weight: u32) -> DisplayInfo {
+    pub fn new(symbol: char, name_data: NameData, weight: u32) -> Self {
         DisplayInfo {
             symbol,
-            name_data: NameData::from_name(name),
-            weight,
-        }
-    }
-
-    pub fn from_noun(symbol: char, noun: &str, weight: u32) -> DisplayInfo {
-        DisplayInfo {
-            symbol,
-            name_data: NameData::from_noun(noun),
+            name_data,
             weight,
         }
     }
@@ -78,12 +70,7 @@ pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &
         let items = shopkeeper
             .0
             .iter()
-            .map(|priced| {
-                (
-                    capitalize(priced.item.display_info().name().base()),
-                    priced.price,
-                )
-            })
+            .map(|priced| (capitalize(priced.item.name_data().base()), priced.price))
             .collect::<Vec<_>>();
         let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
         for (name, price) in items {

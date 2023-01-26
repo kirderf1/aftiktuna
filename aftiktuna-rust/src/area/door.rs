@@ -1,6 +1,6 @@
 use crate::action::door::{BlockType, Door, DoorBlocking};
 use crate::position::Pos;
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, NameData};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -53,13 +53,13 @@ pub enum DoorType {
 
 pub fn door_display(door_type: &DoorType) -> DisplayInfo {
     match door_type {
-        DoorType::Door => DisplayInfo::from_noun('^', "door", 20),
-        DoorType::LeftDoor => DisplayInfo::from_noun('<', "left door", 20),
-        DoorType::MidDoor => DisplayInfo::from_noun('^', "middle door", 20),
-        DoorType::RightDoor => DisplayInfo::from_noun('>', "right door", 20),
-        DoorType::Path => DisplayInfo::from_noun('^', "path", 20),
-        DoorType::LeftPath => DisplayInfo::from_noun('<', "left path", 20),
-        DoorType::MidPath => DisplayInfo::from_noun('^', "middle path", 20),
-        DoorType::RightPath => DisplayInfo::from_noun('>', "right path", 20),
+        DoorType::Door => DisplayInfo::new('^', NameData::from_noun("door"), 20),
+        DoorType::LeftDoor => DisplayInfo::new('<', NameData::from_noun("left door"), 20),
+        DoorType::MidDoor => DisplayInfo::new('^', NameData::from_noun("middle door"), 20),
+        DoorType::RightDoor => DisplayInfo::new('>', NameData::from_noun("right door"), 20),
+        DoorType::Path => DisplayInfo::new('^', NameData::from_noun("path"), 20),
+        DoorType::LeftPath => DisplayInfo::new('<', NameData::from_noun("left path"), 20),
+        DoorType::MidPath => DisplayInfo::new('^', NameData::from_noun("middle path"), 20),
+        DoorType::RightPath => DisplayInfo::new('>', NameData::from_noun("right path"), 20),
     }
 }

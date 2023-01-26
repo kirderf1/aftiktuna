@@ -1,4 +1,4 @@
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, NameData};
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -47,7 +47,7 @@ impl Type {
 
     pub fn name_for_amount(self, amount: i32) -> String {
         if amount == 1 {
-            self.display_info().name().base().to_string()
+            self.name_data().base().to_string()
         } else {
             match self {
                 Type::FuelCan => "fuel cans",
@@ -64,18 +64,36 @@ impl Type {
         }
     }
 
-    pub fn display_info(self) -> DisplayInfo {
+    pub fn name_data(self) -> NameData {
         match self {
-            Type::FuelCan => DisplayInfo::from_noun('f', "fuel can", 1),
-            Type::Crowbar => DisplayInfo::from_noun('c', "crowbar", 1),
-            Type::Blowtorch => DisplayInfo::from_noun('b', "blowtorch", 1),
-            Type::Keycard => DisplayInfo::from_noun('k', "keycard", 1),
-            Type::Knife => DisplayInfo::from_noun('K', "knife", 1),
-            Type::Bat => DisplayInfo::from_noun('B', "bat", 1),
-            Type::Sword => DisplayInfo::from_noun('s', "sword", 1),
-            Type::MeteorChunk => DisplayInfo::from_noun('m', "meteor chunk", 1),
-            Type::AncientCoin => DisplayInfo::from_noun('a', "ancient coin", 1),
+            Type::FuelCan => NameData::from_noun("fuel can"),
+            Type::Crowbar => NameData::from_noun("crowbar"),
+            Type::Blowtorch => NameData::from_noun("blowtorch"),
+            Type::Keycard => NameData::from_noun("keycard"),
+            Type::Knife => NameData::from_noun("knife"),
+            Type::Bat => NameData::from_noun("bat"),
+            Type::Sword => NameData::from_noun("sword"),
+            Type::MeteorChunk => NameData::from_noun("meteor chunk"),
+            Type::AncientCoin => NameData::from_noun("ancient coin"),
         }
+    }
+
+    pub fn symbol(self) -> char {
+        match self {
+            Type::FuelCan => 'f',
+            Type::Crowbar => 'c',
+            Type::Blowtorch => 'b',
+            Type::Keycard => 'k',
+            Type::Knife => 'K',
+            Type::Bat => 'B',
+            Type::Sword => 's',
+            Type::MeteorChunk => 'm',
+            Type::AncientCoin => 'a',
+        }
+    }
+
+    pub fn display_info(self) -> DisplayInfo {
+        DisplayInfo::new(self.symbol(), self.name_data(), 1)
     }
 
     pub fn price(self) -> Option<i32> {

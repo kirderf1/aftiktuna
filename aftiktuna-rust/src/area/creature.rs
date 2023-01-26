@@ -4,7 +4,7 @@ use crate::action::{CrewMember, Recruitable};
 use crate::item;
 use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, NameData};
 use hecs::{Entity, EntityBuilder, World};
 
 pub fn spawn_crew_member(world: &mut World, crew: Entity, name: &str, stats: Stats) -> Entity {
@@ -17,10 +17,13 @@ pub fn spawn_crew_member(world: &mut World, crew: Entity, name: &str, stats: Sta
 
 pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats) {
     world.spawn(
-        aftik_builder(DisplayInfo::from_noun('A', "aftik", 10), stats)
-            .add(Recruitable(name_display_info(name)))
-            .add(pos)
-            .build(),
+        aftik_builder(
+            DisplayInfo::new('A', NameData::from_noun("aftik"), 10),
+            stats,
+        )
+        .add(Recruitable(name_display_info(name)))
+        .add(pos)
+        .build(),
     );
 }
 
@@ -36,13 +39,13 @@ fn aftik_builder(display_info: DisplayInfo, stats: Stats) -> EntityBuilder {
 }
 
 fn name_display_info(name: &str) -> DisplayInfo {
-    DisplayInfo::from_name(name.chars().next().unwrap(), name, 10)
+    DisplayInfo::new(name.chars().next().unwrap(), NameData::from_name(name), 10)
 }
 
 pub fn place_goblin(world: &mut World, pos: Pos) {
     let stats = Stats::new(2, 4, 10);
     world.spawn((
-        DisplayInfo::from_noun('G', "goblin", 10),
+        DisplayInfo::new('G', NameData::from_noun("goblin"), 10),
         pos,
         MovementBlocking,
         IsFoe,
@@ -55,7 +58,7 @@ pub fn place_goblin(world: &mut World, pos: Pos) {
 pub fn place_eyesaur(world: &mut World, pos: Pos) {
     let stats = Stats::new(7, 7, 4);
     world.spawn((
-        DisplayInfo::from_noun('E', "eyesaur", 10),
+        DisplayInfo::new('E', NameData::from_noun("eyesaur"), 10),
         pos,
         MovementBlocking,
         IsFoe,
@@ -68,7 +71,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
 pub fn place_azureclops(world: &mut World, pos: Pos) {
     let stats = Stats::new(15, 10, 4);
     world.spawn((
-        DisplayInfo::from_noun('Z', "azureclops", 10),
+        DisplayInfo::new('Z', NameData::from_noun("azureclops"), 10),
         pos,
         MovementBlocking,
         IsFoe,
@@ -88,7 +91,7 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        DisplayInfo::from_noun('S', "shopkeeper", 15),
+        DisplayInfo::new('S', NameData::from_noun("shopkeeper"), 15),
         pos,
         Shopkeeper(stock),
     ));
@@ -101,7 +104,7 @@ fn to_priced_item(item: item::Type) -> Result<PricedItem, String> {
         .ok_or_else(|| {
             format!(
                 "Cannot get a price from item \"{}\" to put in store",
-                &item.display_info().name().base()
+                &item.name_data().base()
             )
         })
 }

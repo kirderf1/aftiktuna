@@ -4,7 +4,7 @@ use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
-use crate::view::{DisplayInfo, Messages};
+use crate::view::{DisplayInfo, Messages, NameData};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -149,8 +149,14 @@ pub fn load_location(
 
     door::place_pair(
         world,
-        DoorInfo(start_pos, DisplayInfo::from_noun('v', "ship entrance", 20)),
-        DoorInfo(ship_exit, DisplayInfo::from_noun('^', "ship exit", 20)),
+        DoorInfo(
+            start_pos,
+            DisplayInfo::new('v', NameData::from_noun("ship entrance"), 20),
+        ),
+        DoorInfo(
+            ship_exit,
+            DisplayInfo::new('^', NameData::from_noun("ship exit"), 20),
+        ),
         None,
     );
 
