@@ -94,10 +94,7 @@ fn take(item_name: &str, world: &World, character: Entity) -> Result<CommandResu
         })
         .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
         .map(|(item, (_, display_info))| {
-            command::action_result(Action::TakeItem(
-                item,
-                display_info.definite_name().to_string(),
-            ))
+            command::action_result(Action::TakeItem(item, display_info.definite_name()))
         })
         .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", item_name)))
 }
@@ -143,10 +140,7 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
                 display_info.matches(item_name) && held.is_in_inventory(character)
             })
             .map(|(item, (display_info, _))| {
-                command::action_result(Action::Wield(
-                    item,
-                    display_info.definite_name().to_string(),
-                ))
+                command::action_result(Action::Wield(item, display_info.definite_name()))
             })
     })
     .or_else(|| {
@@ -161,10 +155,7 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
             })
             .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
             .map(|(item, (_, display_info))| {
-                command::action_result(Action::Wield(
-                    item,
-                    display_info.definite_name().to_string(),
-                ))
+                command::action_result(Action::Wield(item, display_info.definite_name()))
             })
     })
     .unwrap_or_else(|| {

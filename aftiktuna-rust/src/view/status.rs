@@ -1,7 +1,7 @@
 use crate::action::trade::Points;
 use crate::action::{item, CrewMember};
 use crate::status::{Health, Stats};
-use crate::view::{capitalize, DisplayInfo};
+use crate::view::{capitalize, group_data, DisplayInfo, NameData};
 use hecs::{Entity, World};
 
 #[derive(Default)]
@@ -144,11 +144,22 @@ fn print_inventory(
     if inventory.is_empty() {
         println!("Inventory: Empty");
     } else {
-        println!(
-            "Inventory: {}",
+        let (names, nouns) = group_data(
             inventory
                 .iter()
-                .map(|item| capitalize(&DisplayInfo::find_name(world, *item)))
+                .map(|entity| NameData::find(world, *entity))
+                .collect(),
+        );
+        println!(
+            "Inventory: {}",
+            names
+                .into_iter()
+                .map(|name| capitalize(&name))
+                .chain(nouns.into_iter().map(|(noun, count)| format!(
+                    "{} {}",
+                    count,
+                    capitalize(&noun)
+                )))
                 .collect::<Vec<String>>()
                 .join(", ")
         );

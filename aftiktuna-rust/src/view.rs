@@ -6,6 +6,7 @@ use crate::area::Area;
 use crate::position::{Coord, Pos};
 use hecs::{Entity, World};
 use std::cmp::max;
+use std::collections::HashMap;
 
 mod status;
 
@@ -46,24 +47,38 @@ pub struct DisplayInfo {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct NameData {
-    name: String,
-    definite_name: String,
+pub enum NameData {
+    Name(String),
+    Noun(String),
 }
 
 impl NameData {
     pub fn from_name(name: &str) -> Self {
-        NameData {
-            name: String::from(name),
-            definite_name: String::from(name),
-        }
+        NameData::Name(name.to_string())
     }
     pub fn from_noun(noun: &str) -> Self {
-        NameData {
-            name: String::from(noun),
-            definite_name: "the ".to_owned() + noun,
+        NameData::Noun(noun.to_string())
+    }
+    pub fn find(world: &World, entity: Entity) -> Self {
+        world
+            .get::<&DisplayInfo>(entity)
+            .map(|info| info.name_data.clone())
+            .unwrap_or_else(|_| NameData::Name("???".to_string()))
+    }
+}
+
+pub fn group_data(data: Vec<NameData>) -> (Vec<String>, Vec<(String, i32)>) {
+    let mut names = Vec::new();
+    let mut nouns = HashMap::new();
+
+    for name_data in data {
+        match name_data {
+            NameData::Name(name) => names.push(name),
+            NameData::Noun(noun) => *nouns.entry(noun).or_insert(0) += 1,
         }
     }
+
+    (names, nouns.into_iter().collect())
 }
 
 pub type StatusCache = status::Cache;
@@ -86,22 +101,26 @@ impl DisplayInfo {
     }
 
     pub fn name(&self) -> &str {
-        &self.name_data.name
+        match &self.name_data {
+            NameData::Name(name) | NameData::Noun(name) => name,
+        }
     }
 
-    pub fn definite_name(&self) -> &str {
-        &self.name_data.definite_name
+    pub fn definite_name(&self) -> String {
+        match &self.name_data {
+            NameData::Name(name) => name.to_string(),
+            NameData::Noun(name) => format!("the {}", name),
+        }
     }
 
     pub fn matches(&self, string: &str) -> bool {
-        self.name_data.name.eq_ignore_ascii_case(string)
+        self.name().eq_ignore_ascii_case(string)
     }
 
     pub fn find_definite_name(world: &World, entity: Entity) -> String {
-        world.get::<&DisplayInfo>(entity).map_or_else(
-            |_| "???".to_string(),
-            |info| info.definite_name().to_string(),
-        )
+        world
+            .get::<&DisplayInfo>(entity)
+            .map_or_else(|_| "???".to_string(), |info| info.definite_name())
     }
 
     pub fn find_name(world: &World, entity: Entity) -> String {

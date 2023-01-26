@@ -86,7 +86,7 @@ pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, display_info))| (item, display_info.definite_name().to_string()))
+        .map(|(item, (_, display_info))| (item, display_info.definite_name()))
         .ok_or("There are no items to take here.")?;
 
     let result = take_item(world, aftik, item, &name)?;

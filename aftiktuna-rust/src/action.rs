@@ -139,7 +139,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<Strin
         target_pos.get_adjacent_towards(performer_pos),
     )?;
     let Recruitable(real_name) = world.remove_one::<Recruitable>(target).unwrap();
-    let name = real_name.definite_name().to_string();
+    let name = real_name.definite_name();
     world.insert(target, (real_name, CrewMember(crew))).unwrap();
     Ok(format!("{} joined the crew!", name))
 }
