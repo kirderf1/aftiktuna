@@ -1,8 +1,8 @@
 use crate::action::item;
 use crate::item::{Blowtorch, Crowbar, Keycard};
-use crate::position;
 use crate::position::Pos;
 use crate::view::NameData;
+use crate::{action, position};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -32,21 +32,16 @@ impl BlockType {
         }
     }
 
-    fn try_force(
-        self,
-        world: &mut World,
-        aftik: Entity,
-        aftik_name: String,
-    ) -> Result<String, String> {
+    fn try_force(self, world: &mut World, aftik: Entity, aftik_name: String) -> action::Result {
         match self {
             BlockType::Stuck => {
                 if item::is_holding::<Crowbar>(world, aftik) {
-                    Ok(format!(
+                    action::ok(format!(
                         "{} used their crowbar and forced open the door.",
                         aftik_name
                     ))
                 } else if item::is_holding::<Blowtorch>(world, aftik) {
-                    Ok(format!(
+                    action::ok(format!(
                         "{} used their blowtorch and cut open the door.",
                         aftik_name
                     ))
@@ -59,7 +54,7 @@ impl BlockType {
             }
             BlockType::Sealed | BlockType::Locked => {
                 if item::is_holding::<Blowtorch>(world, aftik) {
-                    Ok(format!(
+                    action::ok(format!(
                         "{} used their blowtorch and cut open the door.",
                         aftik_name
                     ))
@@ -74,7 +69,7 @@ impl BlockType {
     }
 }
 
-pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
+pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Result {
     let aftik_name = NameData::find(world, aftik).definite();
     let door_pos = *world
         .get::<&Pos>(door)
@@ -103,16 +98,16 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> Result<Stri
 
     world.insert_one(aftik, destination).unwrap();
     if used_keycard {
-        Ok(format!(
+        action::ok(format!(
             "Using their keycard, {} entered the door into a new area.",
             aftik_name
         ))
     } else {
-        Ok(format!("{} entered the door into a new area.", aftik_name))
+        action::ok(format!("{} entered the door into a new area.", aftik_name))
     }
 }
 
-pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> Result<String, String> {
+pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Result {
     let aftik_name = NameData::find(world, aftik).definite();
     let door_pos = *world
         .get::<&Pos>(door)

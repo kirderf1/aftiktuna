@@ -4,6 +4,7 @@ use crate::view::{Messages, NameData};
 use crate::{status, view};
 use hecs::{Entity, World};
 use rand::Rng;
+use std::result;
 use Action::*;
 
 pub mod combat;
@@ -11,6 +12,8 @@ pub mod door;
 pub mod item;
 mod launch;
 pub mod trade;
+
+type Result = result::Result<Option<String>, String>;
 
 #[derive(Debug)]
 pub struct CrewMember(pub Entity);
@@ -70,22 +73,22 @@ fn perform(
     messages: &mut Messages,
 ) {
     let result = match action {
-        TakeItem(item, name) => item::take_item(world, performer, item, name).map(Some),
-        TakeAll => item::take_all(world, performer).map(Some),
-        GiveItem(item, receiver) => item::give_item(world, performer, item, receiver).map(Some),
-        Wield(item, name) => item::wield(world, performer, item, name).map(Some),
-        EnterDoor(door) => door::enter_door(world, performer, door).map(Some),
-        ForceDoor(door) => door::force_door(world, performer, door).map(Some),
-        Attack(target) => combat::attack(world, rng, performer, target).map(Some),
+        TakeItem(item, name) => item::take_item(world, performer, item, name),
+        TakeAll => item::take_all(world, performer),
+        GiveItem(item, receiver) => item::give_item(world, performer, item, receiver),
+        Wield(item, name) => item::wield(world, performer, item, name),
+        EnterDoor(door) => door::enter_door(world, performer, door),
+        ForceDoor(door) => door::force_door(world, performer, door),
+        Attack(target) => combat::attack(world, rng, performer, target),
         AttackNearest(target) => combat::attack_nearest(world, rng, performer, target),
-        Wait => Ok(None),
-        Rest(first) => Ok(rest(world, performer, first)),
-        Launch => Ok(launch::perform(world, performer)),
-        Recruit(target) => recruit(world, performer, target).map(Some),
-        Trade(shopkeeper) => trade::trade(world, performer, shopkeeper).map(Some),
-        Buy(item_type, amount) => trade::buy(world, performer, item_type, amount).map(Some),
-        Sell(items) => trade::sell(world, performer, items).map(Some),
-        ExitTrade => trade::exit(world, performer).map(Some),
+        Wait => silent_ok(),
+        Rest(first) => rest(world, performer, first),
+        Launch => launch::perform(world, performer),
+        Recruit(target) => recruit(world, performer, target),
+        Trade(shopkeeper) => trade::trade(world, performer, shopkeeper),
+        Buy(item_type, amount) => trade::buy(world, performer, item_type, amount),
+        Sell(items) => trade::sell(world, performer, items),
+        ExitTrade => trade::exit(world, performer),
     };
     match result {
         Ok(Some(message)) => {
@@ -104,7 +107,7 @@ fn perform(
     }
 }
 
-fn rest(world: &mut World, performer: Entity, first: bool) -> Option<String> {
+fn rest(world: &mut World, performer: Entity, first: bool) -> Result {
     let need_more_rest = world
         .get::<&status::Stamina>(performer)
         .map(|stamina| stamina.need_more_rest())
@@ -115,16 +118,16 @@ fn rest(world: &mut World, performer: Entity, first: bool) -> Option<String> {
     }
 
     if first {
-        Some(format!(
+        ok(format!(
             "{} takes some time to rest up.",
             NameData::find(world, performer).definite()
         ))
     } else {
-        None
+        silent_ok()
     }
 }
 
-fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<String, String> {
+fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     let performer_pos = *world.get::<&Pos>(performer).unwrap();
     let target_pos = *world.get::<&Pos>(target).unwrap();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
@@ -149,5 +152,13 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<Strin
             ),
         )
         .unwrap();
-    Ok(format!("{} joined the crew!", name))
+    ok(format!("{} joined the crew!", name))
+}
+
+fn ok(message: String) -> Result {
+    Ok(Some(message))
+}
+
+fn silent_ok() -> Result {
+    Ok(None)
 }

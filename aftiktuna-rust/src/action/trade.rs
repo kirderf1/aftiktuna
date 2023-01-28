@@ -3,7 +3,7 @@ use crate::action::CrewMember;
 use crate::item::Price;
 use crate::position::Pos;
 use crate::view::{as_grouped_text_list, NameData};
-use crate::{item, position};
+use crate::{action, item, position};
 use hecs::{Entity, Ref, World};
 
 pub struct Points(pub i32);
@@ -23,7 +23,7 @@ pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>
     world.get::<&Shopkeeper>(shopkeeper).ok()
 }
 
-pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result<String, String> {
+pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
     let performer_pos = *world.get::<&Pos>(performer).unwrap();
 
@@ -40,7 +40,7 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> Result
 
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 
-    Ok(format!(
+    action::ok(format!(
         "{} starts trading with the shopkeeper.",
         performer_name,
     ))
@@ -51,7 +51,7 @@ pub fn buy(
     performer: Entity,
     item_type: item::Type,
     amount: u16,
-) -> Result<String, String> {
+) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
@@ -75,7 +75,7 @@ pub fn buy(
         item::spawn(world, priced_item.item, Held::in_inventory(performer));
     }
 
-    Ok(format!(
+    action::ok(format!(
         "{} bought {}.",
         performer_name,
         priced_item.item.noun_data().with_count(amount),
@@ -91,7 +91,7 @@ fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<Pr
         .next()
 }
 
-pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> Result<String, String> {
+pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action::Result {
     let mut price = 0;
     for item in &items {
         world
@@ -121,19 +121,19 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> Result<
         world.despawn(item).unwrap();
     }
 
-    Ok(format!(
+    action::ok(format!(
         "{} sold {} for {}.",
         performer_name, item_list, value
     ))
 }
 
-pub fn exit(world: &mut World, performer: Entity) -> Result<String, String> {
+pub fn exit(world: &mut World, performer: Entity) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
     world
         .remove_one::<IsTrading>(performer)
         .map_err(|_| format!("{} is already not trading.", performer_name,))?;
 
-    Ok(format!(
+    action::ok(format!(
         "{} stops trading with the shopkeeper.",
         performer_name
     ))

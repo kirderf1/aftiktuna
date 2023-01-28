@@ -1,8 +1,8 @@
 use crate::action::Action;
 use crate::item::Item;
 use crate::position::{try_move, Pos};
-use crate::status;
 use crate::view::{DisplayInfo, NameData};
+use crate::{action, status};
 use hecs::{Component, Entity, World};
 
 #[derive(Debug)]
@@ -78,7 +78,7 @@ pub fn consume_one<C: Component>(world: &mut World, holder: Entity) -> Option<()
     world.despawn(item).ok()
 }
 
-pub fn take_all(world: &mut World, aftik: Entity) -> Result<String, String> {
+pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
         .query::<(&Pos, &NameData)>()
@@ -106,7 +106,7 @@ pub fn take_item(
     performer: Entity,
     item: Entity,
     item_name: NameData,
-) -> Result<String, String> {
+) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
     let item_pos = *world
         .get::<&Pos>(item)
@@ -117,7 +117,7 @@ pub fn take_item(
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
 
-    Ok(format!(
+    action::ok(format!(
         "{} picked up {}.",
         performer_name,
         item_name.definite()
@@ -129,7 +129,7 @@ pub fn give_item(
     performer: Entity,
     item: Entity,
     receiver: Entity,
-) -> Result<String, String> {
+) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
     let receiver_name = NameData::find(world, receiver).definite();
 
@@ -179,7 +179,7 @@ pub fn give_item(
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
 
-    Ok(format!(
+    action::ok(format!(
         "{} gave {} a {}.",
         performer_name,
         receiver_name,
@@ -192,14 +192,14 @@ pub fn wield(
     performer: Entity,
     item: Entity,
     item_name: NameData,
-) -> Result<String, String> {
+) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
 
     if is_in_inventory(world, item, performer) {
         unwield_if_needed(world, performer);
         world.get::<&mut Held>(item).unwrap().in_hand = true;
 
-        Ok(format!(
+        action::ok(format!(
             "{} wielded {}.",
             performer_name,
             item_name.definite()
@@ -221,7 +221,7 @@ pub fn wield(
             )
             .expect("Tried moving item");
 
-        Ok(format!(
+        action::ok(format!(
             "{} picked up and wielded {}.",
             performer_name,
             item_name.definite()

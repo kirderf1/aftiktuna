@@ -1,3 +1,4 @@
+use crate::action;
 use crate::action::{item, CrewMember};
 use crate::item::Weapon;
 use crate::position::{try_move, Pos};
@@ -10,7 +11,7 @@ use std::cmp::Ordering;
 #[derive(Debug)]
 pub struct IsFoe;
 
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub enum Target {
     Aftik,
     Foe,
@@ -21,7 +22,7 @@ pub fn attack_nearest(
     rng: &mut impl Rng,
     attacker: Entity,
     target: Target,
-) -> Result<Option<String>, String> {
+) -> action::Result {
     let pos = *world.get::<&Pos>(attacker).unwrap();
     let target = match target {
         Target::Aftik => find_closest::<CrewMember, _>(world, pos, rng),
@@ -29,8 +30,8 @@ pub fn attack_nearest(
     };
 
     match target {
-        Some(target) => attack(world, rng, attacker, target).map(Some),
-        None => Ok(None), // Silent failure to find a target
+        Some(target) => attack(world, rng, attacker, target),
+        None => action::silent_ok(),
     }
 }
 
@@ -68,7 +69,7 @@ pub fn attack(
     rng: &mut impl Rng,
     attacker: Entity,
     target: Entity,
-) -> Result<String, String> {
+) -> action::Result {
     let attacker_name = NameData::find(world, attacker).definite();
     let target_name = NameData::find(world, target).definite();
     let attacker_pos = *world
@@ -97,7 +98,7 @@ pub fn attack(
     let hit_type = roll_hit(world, attacker, target, rng);
 
     if hit_type == HitType::Dodge {
-        return Ok(format!(
+        return action::ok(format!(
             "{} dodged {}'s attack.",
             target_name, attacker_name
         ));
@@ -121,23 +122,23 @@ pub fn attack(
         }
 
         if hit_type == HitType::GrazingHit {
-            Ok(format!(
+            action::ok(format!(
                 "{}'s attack grazed and killed {}.",
                 attacker_name, target_name
             ))
         } else {
-            Ok(format!(
+            action::ok(format!(
                 "{} got a direct hit on and killed {}.",
                 attacker_name, target_name
             ))
         }
     } else if hit_type == HitType::GrazingHit {
-        Ok(format!(
+        action::ok(format!(
             "{}'s attack grazed {}.",
             attacker_name, target_name
         ))
     } else {
-        Ok(format!(
+        action::ok(format!(
             "{} got a direct hit on {}.",
             attacker_name, target_name
         ))
