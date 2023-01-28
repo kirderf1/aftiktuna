@@ -4,11 +4,12 @@ use crate::action::{combat, door, Action, CrewMember, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
-use crate::item::FuelCan;
+use crate::item::{FuelCan, Medkit};
 use crate::position::Pos;
 use crate::view::NameData;
 use crate::{command, item, status};
 use hecs::{Entity, World};
+use crate::status::Health;
 
 pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     Parse::new(input)
@@ -178,6 +179,14 @@ fn use_item(world: &World, character: Entity, item_name: &str) -> Result<Command
 
     if world.get::<&FuelCan>(item).is_ok() {
         launch_ship(world, character)
+    } else if world.get::<&Medkit>(item).is_ok() {
+        if !world.get::<&Health>(character).unwrap().is_hurt() {
+            return Err(format!(
+                "{} is not hurt, and does not need to use the medkit.",
+                NameData::find(world, character).definite()
+            ));
+        }
+        command::action_result(Action::UseMedkit(item))
     } else if world.get::<&item::CanWield>(item).is_ok() {
         if world
             .get::<&Held>(item)

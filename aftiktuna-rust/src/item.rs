@@ -17,6 +17,8 @@ pub struct Blowtorch;
 #[derive(Debug)]
 pub struct Keycard;
 
+pub struct Medkit;
+
 #[derive(Debug, Default)]
 pub struct CanWield;
 
@@ -36,6 +38,7 @@ pub enum Type {
     Knife,
     Bat,
     Sword,
+    Medkit,
     MeteorChunk,
     AncientCoin,
 }
@@ -54,6 +57,7 @@ impl Type {
             Type::Knife => NounData::new("knife", "knives"),
             Type::Bat => NounData::new("bat", "bats"),
             Type::Sword => NounData::new("sword", "swords"),
+            Type::Medkit => NounData::new("medkit", "medkits"),
             Type::MeteorChunk => NounData::new("meteor chunk", "meteor chunks"),
             Type::AncientCoin => NounData::new("ancient coin", "ancient coins"),
         }
@@ -68,6 +72,7 @@ impl Type {
             Type::Knife => 'K',
             Type::Bat => 'B',
             Type::Sword => 's',
+            Type::Medkit => '+',
             Type::MeteorChunk => 'm',
             Type::AncientCoin => 'a',
         }
@@ -122,6 +127,9 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         }
         Type::Sword => {
             builder.add(CanWield).add(Weapon(5.0));
+        }
+        Type::Medkit => {
+            builder.add(Medkit);
         }
         _ => {}
     };

@@ -1,6 +1,7 @@
 use crate::action::Action;
-use crate::item::Item;
+use crate::item::{Item, Medkit};
 use crate::position::{try_move, Pos};
+use crate::status::Health;
 use crate::view::{DisplayInfo, NameData};
 use crate::{action, status};
 use hecs::{Component, Entity, World};
@@ -239,6 +240,35 @@ fn unwield_if_needed(world: &mut World, holder: Entity) {
         .into_iter()
         .filter(|(_, held)| held.held_by(holder))
         .for_each(|(_, held)| held.in_hand = false);
+}
+
+pub fn use_medkit(world: &mut World, performer: Entity, item: Entity) -> action::Result {
+    world
+        .get::<&Medkit>(item)
+        .map_err(|_| "The medkit is missing.".to_string())?;
+    world
+        .get::<&Held>(item)
+        .ok()
+        .filter(|held| held.held_by(performer))
+        .ok_or_else(|| "The medkit is missing.".to_string())?;
+
+    if !world.get::<&Health>(performer).unwrap().is_hurt() {
+        return Err(format!(
+            "{} no longer needs to use a medkit.",
+            NameData::find(world, performer).definite()
+        ));
+    }
+
+    world
+        .get::<&mut Health>(performer)
+        .unwrap()
+        .restore_fraction(0.5);
+    world.despawn(item).unwrap();
+
+    action::ok(format!(
+        "{} used a medkit and recovered some health.",
+        NameData::find(world, performer).definite()
+    ))
 }
 
 pub fn drop_all_items(world: &mut World, entity: Entity) {

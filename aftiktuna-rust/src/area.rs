@@ -1,10 +1,10 @@
-use crate::action;
 use crate::action::door::Door;
 use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::{Messages, NameData};
+use crate::{action, item};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -136,6 +136,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
             },
         )
         .unwrap();
+    item::Type::Medkit.spawn(world, Pos::new(ship, 1, world));
 
     let crew = world.spawn((Points(10000),));
 

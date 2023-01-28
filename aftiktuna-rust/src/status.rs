@@ -22,6 +22,10 @@ impl Health {
         !self.is_alive()
     }
 
+    pub fn is_hurt(&self) -> bool {
+        self.value < self.max
+    }
+
     pub fn as_fraction(&self) -> f32 {
         self.value / self.max
     }
@@ -29,6 +33,15 @@ impl Health {
     pub fn take_damage(&mut self, damage: f32) -> bool {
         self.value -= damage;
         self.value <= 0.0
+    }
+
+    pub fn restore_fraction(&mut self, fraction: f32) {
+        let value = self.value + self.max * fraction;
+        if value < self.max {
+            self.value = value
+        } else {
+            self.value = self.max
+        }
     }
 
     pub fn restore_to_full(&mut self) {
