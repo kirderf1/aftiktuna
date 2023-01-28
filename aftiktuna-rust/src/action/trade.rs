@@ -76,10 +76,9 @@ pub fn buy(
     }
 
     Ok(format!(
-        "{} bought {} {}.",
+        "{} bought {}.",
         performer_name,
-        amount,
-        priced_item.item.name_for_amount(amount),
+        priced_item.item.noun_data().with_count(amount),
     ))
 }
 

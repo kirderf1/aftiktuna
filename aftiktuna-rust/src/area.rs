@@ -149,8 +149,16 @@ pub fn load_location(
 
     door::place_pair(
         world,
-        DoorInfo(start_pos, 'v', NameData::from_noun("ship entrance")),
-        DoorInfo(ship_exit, '^', NameData::from_noun("ship exit")),
+        DoorInfo(
+            start_pos,
+            'v',
+            NameData::from_noun("ship entrance", "ship entrances"),
+        ),
+        DoorInfo(
+            ship_exit,
+            '^',
+            NameData::from_noun("ship exit", "ship exits"),
+        ),
         None,
     );
 

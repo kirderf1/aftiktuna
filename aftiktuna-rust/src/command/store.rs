@@ -64,7 +64,12 @@ fn store_entries(shopkeeper: &Shopkeeper, amount: i32) -> Vec<(String, &PricedIt
     shopkeeper
         .0
         .iter()
-        .map(|priced| (priced.item.name_for_amount(amount), priced))
+        .map(|priced| {
+            (
+                priced.item.noun_data().for_count(amount).to_string(),
+                priced,
+            )
+        })
         .collect::<Vec<_>>()
 }
 

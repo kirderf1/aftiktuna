@@ -155,11 +155,11 @@ fn print_inventory(
             names
                 .into_iter()
                 .map(|name| capitalize(&name))
-                .chain(nouns.into_iter().map(|(noun, count)| format!(
-                    "{} {}",
-                    count,
-                    capitalize(&noun)
-                )))
+                .chain(
+                    nouns
+                        .into_iter()
+                        .map(|(noun, count)| noun.with_count(count))
+                )
                 .collect::<Vec<String>>()
                 .join(", ")
         );

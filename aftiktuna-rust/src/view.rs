@@ -5,6 +5,7 @@ use crate::action::trade;
 use crate::area::Area;
 use crate::position::{Coord, Pos};
 use hecs::{Entity, World};
+pub use name::NounData;
 use std::cmp::max;
 
 mod name;
@@ -61,7 +62,7 @@ pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &
         let items = shopkeeper
             .0
             .iter()
-            .map(|priced| (capitalize(priced.item.name_data().base()), priced.price))
+            .map(|priced| (capitalize(priced.item.noun_data().singular()), priced.price))
             .collect::<Vec<_>>();
         let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
         for (name, price) in items {

@@ -55,13 +55,13 @@ pub enum DoorType {
 
 pub fn name_data(door_type: DoorType) -> NameData {
     match door_type {
-        DoorType::Door => NameData::from_noun("door"),
-        DoorType::LeftDoor => NameData::from_noun("left door"),
-        DoorType::MidDoor => NameData::from_noun("middle door"),
-        DoorType::RightDoor => NameData::from_noun("right door"),
-        DoorType::Path => NameData::from_noun("path"),
-        DoorType::LeftPath => NameData::from_noun("left path"),
-        DoorType::MidPath => NameData::from_noun("middle path"),
-        DoorType::RightPath => NameData::from_noun("right path"),
+        DoorType::Door => NameData::from_noun("door", "doors"),
+        DoorType::LeftDoor => NameData::from_noun("left door", "left doors"),
+        DoorType::MidDoor => NameData::from_noun("middle door", "middle doors"),
+        DoorType::RightDoor => NameData::from_noun("right door", "right doors"),
+        DoorType::Path => NameData::from_noun("path", "paths"),
+        DoorType::LeftPath => NameData::from_noun("left path", "left paths"),
+        DoorType::MidPath => NameData::from_noun("middle path", "middle paths"),
+        DoorType::RightPath => NameData::from_noun("right path", "right paths"),
     }
 }

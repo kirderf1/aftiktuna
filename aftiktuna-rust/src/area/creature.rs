@@ -23,7 +23,7 @@ pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats) 
     world.spawn(
         aftik_builder(
             DisplayInfo::new('A', 10),
-            NameData::from_noun("aftik"),
+            NameData::from_noun("aftik", "aftiks"),
             stats,
         )
         .add(Recruitable(name.to_string()))
@@ -48,7 +48,7 @@ pub fn place_goblin(world: &mut World, pos: Pos) {
     let stats = Stats::new(2, 4, 10);
     world.spawn((
         DisplayInfo::new('G', 10),
-        NameData::from_noun("goblin"),
+        NameData::from_noun("goblin", "goblins"),
         pos,
         MovementBlocking,
         IsFoe,
@@ -62,7 +62,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
     let stats = Stats::new(7, 7, 4);
     world.spawn((
         DisplayInfo::new('E', 10),
-        NameData::from_noun("eyesaur"),
+        NameData::from_noun("eyesaur", "eyesaurs"),
         pos,
         MovementBlocking,
         IsFoe,
@@ -76,7 +76,7 @@ pub fn place_azureclops(world: &mut World, pos: Pos) {
     let stats = Stats::new(15, 10, 4);
     world.spawn((
         DisplayInfo::new('Z', 10),
-        NameData::from_noun("azureclops"),
+        NameData::from_noun("azureclops", "azureclopses"),
         pos,
         MovementBlocking,
         IsFoe,
@@ -97,7 +97,7 @@ pub fn place_shopkeeper(
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
         DisplayInfo::new('S', 15),
-        NameData::from_noun("shopkeeper"),
+        NameData::from_noun("shopkeeper", "shopkeepers"),
         pos,
         Shopkeeper(stock),
     ));
@@ -110,7 +110,7 @@ fn to_priced_item(item: item::Type) -> Result<PricedItem, String> {
         .ok_or_else(|| {
             format!(
                 "Cannot get a price from item \"{}\" to put in store",
-                &item.name_data().base()
+                item.noun_data().singular()
             )
         })
 }

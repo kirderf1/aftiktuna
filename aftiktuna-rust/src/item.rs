@@ -1,4 +1,4 @@
-use crate::view::{DisplayInfo, NameData};
+use crate::view::{DisplayInfo, NameData, NounData};
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -45,36 +45,17 @@ impl Type {
         spawn(world, self, location);
     }
 
-    pub fn name_for_amount(self, amount: i32) -> String {
-        if amount == 1 {
-            self.name_data().base().to_string()
-        } else {
-            match self {
-                Type::FuelCan => "fuel cans",
-                Type::Crowbar => "crowbars",
-                Type::Blowtorch => "blowtorches",
-                Type::Keycard => "keycards",
-                Type::Knife => "knives",
-                Type::Bat => "bats",
-                Type::Sword => "swords",
-                Type::MeteorChunk => "meteor chunks",
-                Type::AncientCoin => "ancient coins",
-            }
-            .to_string()
-        }
-    }
-
-    pub fn name_data(self) -> NameData {
+    pub fn noun_data(self) -> NounData {
         match self {
-            Type::FuelCan => NameData::from_noun("fuel can"),
-            Type::Crowbar => NameData::from_noun("crowbar"),
-            Type::Blowtorch => NameData::from_noun("blowtorch"),
-            Type::Keycard => NameData::from_noun("keycard"),
-            Type::Knife => NameData::from_noun("knife"),
-            Type::Bat => NameData::from_noun("bat"),
-            Type::Sword => NameData::from_noun("sword"),
-            Type::MeteorChunk => NameData::from_noun("meteor chunk"),
-            Type::AncientCoin => NameData::from_noun("ancient coin"),
+            Type::FuelCan => NounData::new("fuel can", "fuel cans"),
+            Type::Crowbar => NounData::new("crowbar", "crowbars"),
+            Type::Blowtorch => NounData::new("blowtorch", "blowtorches"),
+            Type::Keycard => NounData::new("keycard", "keycards"),
+            Type::Knife => NounData::new("knife", "knives"),
+            Type::Bat => NounData::new("bat", "bats"),
+            Type::Sword => NounData::new("sword", "swords"),
+            Type::MeteorChunk => NounData::new("meteor chunk", "meteor chunks"),
+            Type::AncientCoin => NounData::new("ancient coin", "ancient coins"),
         }
     }
 
@@ -115,7 +96,7 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         .add(location)
         .add(Item)
         .add(item_type.display_info())
-        .add(item_type.name_data());
+        .add(NameData::Noun(item_type.noun_data()));
     if let Some(price) = item_type.price() {
         builder.add(Price(price));
     }

@@ -144,7 +144,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result<Strin
             target,
             (
                 view::name_display_info(&name),
-                NameData::from_name(&name),
+                NameData::Name(name.clone()),
                 CrewMember(crew),
             ),
         )
