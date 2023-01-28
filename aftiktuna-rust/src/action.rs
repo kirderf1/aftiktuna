@@ -13,8 +13,6 @@ pub mod item;
 mod launch;
 pub mod trade;
 
-type Result = result::Result<Option<String>, String>;
-
 #[derive(Debug)]
 pub struct CrewMember(pub Entity);
 
@@ -91,14 +89,20 @@ fn perform(
         ExitTrade => trade::exit(world, performer),
     };
     match result {
-        Ok(Some(message)) => {
+        Ok(Success::LocalMessage(message)) => {
             let performer_pos = *world.get::<&Pos>(performer).unwrap();
             let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if player_pos.is_in(performer_pos.get_area()) {
                 messages.add(message);
             }
         }
-        Ok(None) => {}
+        Ok(Success::Message(message, areas)) => {
+            let player_pos = *world.get::<&Pos>(controlled).unwrap();
+            if areas.contains(&player_pos.get_area()) {
+                messages.add(message);
+            }
+        }
+        Ok(Success::Silent) => {}
         Err(message) => {
             if performer == controlled {
                 messages.add(message);
@@ -155,10 +159,22 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     ok(format!("{} joined the crew!", name))
 }
 
+type Result = result::Result<Success, String>;
+
+pub enum Success {
+    LocalMessage(String),
+    Message(String, Vec<Entity>),
+    Silent,
+}
+
 fn ok(message: String) -> Result {
-    Ok(Some(message))
+    Ok(Success::LocalMessage(message))
+}
+
+fn ok_at(message: String, areas: Vec<Entity>) -> Result {
+    Ok(Success::Message(message, areas))
 }
 
 fn silent_ok() -> Result {
-    Ok(None)
+    Ok(Success::Silent)
 }

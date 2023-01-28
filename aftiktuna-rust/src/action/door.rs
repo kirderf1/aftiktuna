@@ -97,13 +97,20 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
     };
 
     world.insert_one(aftik, destination).unwrap();
+    let areas = vec![door_pos.get_area(), destination.get_area()];
     if used_keycard {
-        action::ok(format!(
-            "Using their keycard, {} entered the door into a new area.",
-            aftik_name
-        ))
+        action::ok_at(
+            format!(
+                "Using their keycard, {} entered the door into a new area.",
+                aftik_name
+            ),
+            areas,
+        )
     } else {
-        action::ok(format!("{} entered the door into a new area.", aftik_name))
+        action::ok_at(
+            format!("{} entered the door into a new area.", aftik_name),
+            areas,
+        )
     }
 }
 
