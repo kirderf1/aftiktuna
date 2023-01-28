@@ -108,6 +108,16 @@ fn give(
         ));
     }
 
+    let character_pos = world.get::<&Pos>(character).unwrap();
+    let target_pos = world.get::<&Pos>(receiver).unwrap();
+    if !character_pos.is_in(target_pos.get_area()) {
+        return Err(format!(
+            "{} can not reach {} from here.",
+            NameData::find(world, character).definite(),
+            NameData::find(world, receiver).definite()
+        ));
+    }
+
     world
         .query::<(&NameData, &Held)>()
         .with::<&item::Item>()
