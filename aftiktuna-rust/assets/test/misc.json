@@ -3,16 +3,19 @@
     {
       "name": "Room",
       "objects": [ "<k", "v", "^", ">c" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "left",
           "display_type": "left_door"
         },
         "^": {
+          "type": "door",
           "pair_id": "mid",
           "display_type": "mid_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "right",
           "display_type": "right_door"
         }
@@ -21,12 +24,14 @@
     {
       "name": "Side Room",
       "objects": [ "", "<", ">", "f", "f" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "left",
           "display_type": "left_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "side",
           "display_type": "right_door"
         }
@@ -35,12 +40,14 @@
     {
       "name": "Side Room",
       "objects": [ "b", "", "", "G", "", "<", "", "", ">", "", "", "" ],
-      "doors": {
+      "symbols": {
         "<": {
+          "type": "door",
           "pair_id": "right",
           "display_type": "left_door"
         },
         ">": {
+          "type": "door",
           "pair_id": "side",
           "display_type": "right_door"
         }
@@ -49,8 +56,9 @@
     {
       "name": "Room",
       "objects": [ "", "^", "", "", "" ],
-      "doors": {
+      "symbols": {
         "^": {
+          "type": "door",
           "pair_id": "mid",
           "display_type": "door"
         }
