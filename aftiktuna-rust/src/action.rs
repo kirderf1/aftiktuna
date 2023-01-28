@@ -32,7 +32,7 @@ pub enum Action {
     Launch,
     Recruit(Entity),
     Trade(Entity),
-    Buy(crate::item::Type, i32),
+    Buy(crate::item::Type, u16),
     Sell(Vec<Entity>),
     ExitTrade,
 }

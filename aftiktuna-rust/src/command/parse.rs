@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 #[derive(Clone)]
 pub struct Parse<'a> {
     input: &'a str,
@@ -38,7 +40,7 @@ impl<'a> Parse<'a> {
         closure(self.active_input())
     }
 
-    pub fn numeric<R, F: FnOnce(Parse, i32) -> R>(self, closure: F) -> Partial<'a, R> {
+    pub fn numeric<R, F: FnOnce(Parse, N) -> R, N: FromStr>(self, closure: F) -> Partial<'a, R> {
         let (word, parse) = self.next_word();
         str::parse(word)
             .map(|number| Partial::Matched(closure(parse, number)))

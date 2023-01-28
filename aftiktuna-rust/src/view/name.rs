@@ -41,6 +41,13 @@ impl Data {
     pub fn matches_plural(&self, string: &str) -> bool {
         self.plural().eq_ignore_ascii_case(string)
     }
+    pub fn matches_with_count(&self, string: &str, count: u16) -> bool {
+        match self {
+            Data::Name(name) => name,
+            Data::Noun(noun) => noun.for_count(count),
+        }
+        .eq_ignore_ascii_case(string)
+    }
 
     pub fn find(world: &World, entity: Entity) -> Self {
         world.get::<&Data>(entity).map_or_else(
@@ -68,7 +75,7 @@ impl NounData {
         &self.singular
     }
 
-    pub fn for_count(&self, count: i32) -> &str {
+    pub fn for_count(&self, count: u16) -> &str {
         if count == 1 {
             &self.singular
         } else {
@@ -76,7 +83,7 @@ impl NounData {
         }
     }
 
-    pub fn with_count(&self, count: i32) -> String {
+    pub fn with_count(&self, count: u16) -> String {
         format!("{} {}", count, self.for_count(count))
     }
 }

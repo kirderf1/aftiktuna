@@ -50,7 +50,7 @@ pub fn buy(
     world: &mut World,
     performer: Entity,
     item_type: item::Type,
-    amount: i32,
+    amount: u16,
 ) -> Result<String, String> {
     let performer_name = NameData::find(world, performer).definite();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
@@ -69,7 +69,7 @@ pub fn buy(
         return Err("Tried to purchase a non-positive number of items.".to_string());
     }
 
-    try_spend_points(world, crew, priced_item.price * amount)?;
+    try_spend_points(world, crew, priced_item.price * i32::from(amount))?;
 
     for _ in 0..amount {
         item::spawn(world, priced_item.item, Held::in_inventory(performer));

@@ -41,6 +41,9 @@ pub fn parse(
         })
         .literal("sell", |parse| {
             parse
+                .numeric(|parse, count| {
+                    parse.take_remaining(|item_name| sell_count(world, character, count, item_name))
+                })
                 .literal("all", |parse| {
                     parse.take_remaining(|item_name| sell_all(world, character, item_name))
                 })
@@ -64,7 +67,7 @@ pub fn parse(
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
-fn store_entries(shopkeeper: &Shopkeeper, amount: i32) -> Vec<(String, &PricedItem)> {
+fn store_entries(shopkeeper: &Shopkeeper, amount: u16) -> Vec<(String, &PricedItem)> {
     shopkeeper
         .0
         .iter()
@@ -77,7 +80,7 @@ fn store_entries(shopkeeper: &Shopkeeper, amount: i32) -> Vec<(String, &PricedIt
         .collect::<Vec<_>>()
 }
 
-fn buy(priced_item: &PricedItem, amount: i32) -> Result<CommandResult, String> {
+fn buy(priced_item: &PricedItem, amount: u16) -> Result<CommandResult, String> {
     command::action_result(Action::Buy(priced_item.item, amount))
 }
 
@@ -92,6 +95,38 @@ fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
 
 fn sell(item: Entity) -> Result<CommandResult, String> {
     command::action_result(Action::Sell(vec![item]))
+}
+
+fn sell_count(
+    world: &World,
+    character: Entity,
+    count: u16,
+    item_name: &str,
+) -> Result<CommandResult, String> {
+    let items = world
+        .query::<(&NameData, &Held)>()
+        .iter()
+        .filter(|(_, (name_data, held))| {
+            name_data.matches_with_count(item_name, count) && held.held_by(character)
+        })
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    if items.is_empty() {
+        return Err(format!(
+            "{} is holding no item by the name \"{}\".",
+            NameData::find(world, character).definite(),
+            item_name
+        ));
+    }
+    let count = count as usize;
+    if items.len() < count {
+        return Err(format!(
+            "{} does not have that many {}.",
+            NameData::find(world, character).definite(),
+            item_name
+        ));
+    }
+    command::action_result(Action::Sell(items[0..count].to_vec()))
 }
 
 fn sell_all(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
