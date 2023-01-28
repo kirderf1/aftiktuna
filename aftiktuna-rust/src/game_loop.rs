@@ -9,13 +9,12 @@ use hecs::{Entity, World};
 use rand::{thread_rng, Rng};
 use std::{thread, time};
 
-pub fn run() {
+pub fn run(mut locations: Locations) {
     let mut world = World::new();
     let mut messages = Messages::default();
     let mut rng = thread_rng();
     let mut cache = StatusCache::default();
 
-    let mut locations = Locations::new(2);
     let (mut aftik, ship) = area::init(&mut world);
 
     println!(

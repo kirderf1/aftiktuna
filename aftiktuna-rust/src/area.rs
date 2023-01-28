@@ -51,6 +51,16 @@ impl Locations {
         }
     }
 
+    pub fn single(location: String) -> Self {
+        Locations {
+            categories: vec![Category {
+                name: "test".to_string(),
+                location_names: vec![location],
+            }],
+            count_until_win: 1,
+        }
+    }
+
     pub fn pick_random(&mut self, rng: &mut impl Rng) -> Option<String> {
         if self.count_until_win <= 0 || self.categories.is_empty() {
             return None;
