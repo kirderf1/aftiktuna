@@ -125,8 +125,8 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
         }
         println!("{}", symbols.iter().collect::<String>());
     }
-    for label in labels {
-        println!("{}", label);
+    for label in labels.chunks(3) {
+        println!("{}", label.join("   "));
     }
 }
 
