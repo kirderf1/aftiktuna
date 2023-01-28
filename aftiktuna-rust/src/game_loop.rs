@@ -5,7 +5,7 @@ use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{Messages, NameData, StatusCache};
 use crate::{action, ai, area, command, status, view};
-use hecs::{Entity, World};
+use hecs::{CommandBuffer, Entity, World};
 use rand::{thread_rng, Rng};
 use std::{thread, time};
 
@@ -77,6 +77,8 @@ fn tick(
     ai::tick(world);
 
     action::tick(world, rng, messages, *aftik);
+
+    detect_low_health(world, messages, *aftik);
 
     handle_aftik_deaths(world, messages, *aftik);
 
@@ -225,4 +227,28 @@ fn is_ship_launching(world: &World, area: Entity) -> bool {
         .get::<&Ship>(area)
         .map(|ship| ship.status == ShipStatus::Launching)
         .unwrap_or(false)
+}
+
+struct LowHealth;
+
+fn detect_low_health(world: &mut World, messages: &mut Messages, character: Entity) {
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+    let mut command_buffer = CommandBuffer::new();
+    for (entity, (pos, health)) in world.query::<(&Pos, &Health)>().iter() {
+        let has_tag = world.get::<&LowHealth>(entity).is_ok();
+        let visible_low_health = pos.is_in(area) && health.as_fraction() < 0.5;
+        if has_tag && !visible_low_health {
+            command_buffer.remove_one::<LowHealth>(entity);
+        }
+        if !has_tag && visible_low_health && health.is_alive() {
+            command_buffer.insert_one(entity, LowHealth);
+            if entity != character {
+                messages.add(format!(
+                    "{} is badly hurt.",
+                    NameData::find(world, entity).definite()
+                ));
+            }
+        }
+    }
+    command_buffer.run_on(world);
 }
