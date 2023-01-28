@@ -16,6 +16,10 @@ impl Held {
         self.holder == holder
     }
 
+    pub fn is_in_hand(&self) -> bool {
+        self.in_hand
+    }
+
     pub fn is_in_inventory(&self, holder: Entity) -> bool {
         self.held_by(holder) && !self.in_hand
     }

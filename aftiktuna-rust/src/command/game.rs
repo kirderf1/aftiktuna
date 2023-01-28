@@ -31,6 +31,9 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
         .literal("wield", |parse| {
             parse.take_remaining(|item_name| wield(item_name, world, character))
         })
+        .literal("use", |parse| {
+            parse.take_remaining(|item_name| use_item(world, character, item_name))
+        })
         .literal("enter", |parse| {
             parse.take_remaining(|door_name| enter(door_name, world, character))
         })
@@ -165,6 +168,33 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
     })
 }
 
+fn use_item(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
+    let item = world
+        .query::<(&Held, &NameData)>()
+        .iter()
+        .find(|(_, (held, name_data))| held.held_by(character) && name_data.matches(item_name))
+        .ok_or_else(|| format!("No held item by the name \"{}\".", item_name))?
+        .0;
+
+    if world.get::<&FuelCan>(item).is_ok() {
+        launch_ship(world, character)
+    } else if world.get::<&item::CanWield>(item).is_ok() {
+        if world
+            .get::<&Held>(item)
+            .map_or(false, |held| held.is_in_hand())
+        {
+            Err(format!(
+                "{} is already being held.",
+                NameData::find(world, item).definite()
+            ))
+        } else {
+            command::action_result(Action::Wield(item, NameData::find(world, item)))
+        }
+    } else {
+        Err("The item can not be used in any meaningful way.".to_string())
+    }
+}
+
 fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     world
@@ -248,7 +278,7 @@ fn launch_ship(world: &World, character: Entity) -> Result<CommandResult, String
     }
     world.get::<&Ship>(area).map_err(|_| {
         format!(
-            "{} needs to be near the ship in order to launch it.",
+            "{} needs to be in the ship in order to launch it.",
             NameData::find(world, character).definite()
         )
     })?;
