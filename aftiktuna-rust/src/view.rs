@@ -5,7 +5,7 @@ use crate::action::trade;
 use crate::area::Area;
 use crate::position::{Coord, Pos};
 use hecs::{Entity, World};
-pub use name::NounData;
+pub use name::{as_grouped_text_list, NounData};
 use std::cmp::max;
 
 mod name;

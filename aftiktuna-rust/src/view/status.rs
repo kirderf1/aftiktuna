@@ -144,24 +144,14 @@ fn print_inventory(
     if inventory.is_empty() {
         println!("Inventory: Empty");
     } else {
-        let (names, nouns) = name::group_data(
-            inventory
-                .iter()
-                .map(|entity| NameData::find(world, *entity))
-                .collect(),
-        );
         println!(
             "Inventory: {}",
-            names
-                .into_iter()
-                .map(|name| capitalize(&name))
-                .chain(
-                    nouns
-                        .into_iter()
-                        .map(|(noun, count)| noun.with_count(count))
-                )
-                .collect::<Vec<String>>()
-                .join(", ")
+            name::as_grouped_text_list(
+                inventory
+                    .iter()
+                    .map(|item| NameData::find(world, *item))
+                    .collect()
+            )
         );
     }
     inventory

@@ -40,16 +40,20 @@ pub fn parse(
                 )
         })
         .literal("sell", |parse| {
-            parse.match_against(
-                inventory_items(world, character),
-                |parse, item| parse.done_or_err(|| sell(item)),
-                |input| {
-                    Err(format!(
-                        "\"{}\" does not match an item in your inventory.",
-                        input
-                    ))
-                },
-            )
+            parse
+                .literal("all", |parse| {
+                    parse.take_remaining(|item_name| sell_all(world, character, item_name))
+                })
+                .match_against(
+                    inventory_items(world, character),
+                    |parse, item| parse.done_or_err(|| sell(item)),
+                    |input| {
+                        Err(format!(
+                            "\"{}\" does not match an item in your inventory.",
+                            input
+                        ))
+                    },
+                )
         })
         .literal("exit", |parse| {
             parse.done_or_err(|| command::action_result(Action::ExitTrade))
@@ -87,5 +91,24 @@ fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
 }
 
 fn sell(item: Entity) -> Result<CommandResult, String> {
-    command::action_result(Action::Sell(item))
+    command::action_result(Action::Sell(vec![item]))
+}
+
+fn sell_all(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
+    let items = world
+        .query::<(&NameData, &Held)>()
+        .iter()
+        .filter(|(_, (name_data, held))| {
+            name_data.matches_plural(item_name) && held.held_by(character)
+        })
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    if items.is_empty() {
+        return Err(format!(
+            "{} is holding no item by the name \"{}\".",
+            NameData::find(world, character).definite(),
+            item_name
+        ));
+    }
+    command::action_result(Action::Sell(items))
 }

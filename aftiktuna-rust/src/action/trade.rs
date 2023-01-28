@@ -2,7 +2,7 @@ use crate::action::item::Held;
 use crate::action::CrewMember;
 use crate::item::Price;
 use crate::position::Pos;
-use crate::view::NameData;
+use crate::view::{as_grouped_text_list, NameData};
 use crate::{item, position};
 use hecs::{Entity, Ref, World};
 
@@ -91,28 +91,39 @@ fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<Pr
         .next()
 }
 
-pub fn sell(world: &mut World, performer: Entity, item: Entity) -> Result<String, String> {
-    world
-        .get::<&Held>(item)
-        .ok()
-        .filter(|held| held.held_by(performer))
-        .ok_or_else(|| "Item to sell is not being held!".to_string())?;
-    let price = world
-        .get::<&Price>(item)
-        .map_err(|_| "That item can not be sold.".to_string())?
-        .0;
-    let price = price - price / 4;
+pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> Result<String, String> {
+    let mut price = 0;
+    for item in &items {
+        world
+            .get::<&Held>(*item)
+            .ok()
+            .filter(|held| held.held_by(performer))
+            .ok_or_else(|| "Item to sell is not being held!".to_string())?;
+        price += world
+            .get::<&Price>(*item)
+            .map_err(|_| "That item can not be sold.".to_string())?
+            .0;
+    }
+    // Their sell value is a portion of the buy price
+    let value = price - price / 4;
+
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let performer_name = NameData::find(world, performer).definite();
-    let item_name = NameData::find(world, item);
+    let item_list = as_grouped_text_list(
+        items
+            .iter()
+            .map(|item| NameData::find(world, *item))
+            .collect(),
+    );
 
-    world.get::<&mut Points>(crew).unwrap().0 += price;
-    world.despawn(item).unwrap();
+    world.get::<&mut Points>(crew).unwrap().0 += value;
+    for item in items {
+        world.despawn(item).unwrap();
+    }
+
     Ok(format!(
-        "{} sold a {} for {}.",
-        performer_name,
-        item_name.base(),
-        price
+        "{} sold {} for {}.",
+        performer_name, item_list, value
     ))
 }
 

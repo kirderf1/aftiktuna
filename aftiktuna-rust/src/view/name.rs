@@ -22,6 +22,12 @@ impl Data {
             Data::Noun(noun) => &noun.singular,
         }
     }
+    pub fn plural(&self) -> &str {
+        match self {
+            Data::Name(name) => name,
+            Data::Noun(noun) => &noun.plural,
+        }
+    }
     pub fn definite(&self) -> String {
         match self {
             Data::Name(name) => name.to_string(),
@@ -31,6 +37,9 @@ impl Data {
 
     pub fn matches(&self, string: &str) -> bool {
         self.base().eq_ignore_ascii_case(string)
+    }
+    pub fn matches_plural(&self, string: &str) -> bool {
+        self.plural().eq_ignore_ascii_case(string)
     }
 
     pub fn find(world: &World, entity: Entity) -> Self {
@@ -72,7 +81,7 @@ impl NounData {
     }
 }
 
-pub fn group_data(data: Vec<Data>) -> (Vec<String>, Vec<(NounData, i32)>) {
+pub fn as_grouped_text_list(data: Vec<Data>) -> String {
     let mut names = Vec::new();
     let mut nouns = HashMap::new();
 
@@ -83,5 +92,13 @@ pub fn group_data(data: Vec<Data>) -> (Vec<String>, Vec<(NounData, i32)>) {
         }
     }
 
-    (names, nouns.into_iter().collect())
+    names
+        .into_iter()
+        .chain(
+            nouns
+                .into_iter()
+                .map(|(noun, count)| noun.with_count(count)),
+        )
+        .collect::<Vec<String>>()
+        .join(", ")
 }
