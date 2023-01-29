@@ -1,4 +1,4 @@
-use crate::action::door::{BlockType, Door, DoorBlocking};
+use crate::action::door::{BlockType, Door};
 use crate::position::Pos;
 use crate::view::{DisplayInfo, NameData};
 use hecs::{Entity, World};
@@ -14,7 +14,7 @@ pub fn place_pair(
     block_type: Option<BlockType>,
 ) {
     let door_pair = match block_type {
-        Some(block_type) => world.spawn((DoorBlocking(block_type),)),
+        Some(block_type) => world.spawn((block_type,)),
         None => world.spawn(()),
     };
     place(world, door1.0, door1.1, door1.2, door2.0, door_pair);

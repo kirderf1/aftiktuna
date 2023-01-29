@@ -12,9 +12,6 @@ pub struct Door {
     pub door_pair: Entity,
 }
 
-#[derive(Debug)]
-pub struct DoorBlocking(pub BlockType);
-
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BlockType {
@@ -86,11 +83,11 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         .map_err(|_| "The door ceased being a door.".to_string())
         .map(|door| (door.destination, door.door_pair))?;
 
-    let used_keycard = if let Ok(blocking) = world.get::<&DoorBlocking>(door_pair) {
-        if blocking.0 == BlockType::Locked && item::is_holding::<Keycard>(world, aftik) {
+    let used_keycard = if let Ok(blocking) = world.get::<&BlockType>(door_pair) {
+        if *blocking == BlockType::Locked && item::is_holding::<Keycard>(world, aftik) {
             true
         } else {
-            return Err(format!("The door is {}.", blocking.0.description()));
+            return Err(format!("The door is {}.", blocking.description()));
         }
     } else {
         false
@@ -131,16 +128,13 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         .map_err(|_| "The door ceased being a door.".to_string())?
         .door_pair;
 
-    let block_type = world
-        .get::<&DoorBlocking>(door_pair)
-        .map(|blocking| blocking.0);
-    if let Ok(block_type) = block_type {
-        let result = block_type.try_force(world, aftik, aftik_name);
-        if result.is_ok() {
-            world.remove_one::<DoorBlocking>(door_pair).unwrap();
-        }
-        result
-    } else {
-        Err("The door does not seem to be stuck.".to_string())
+    let block_type = *world
+        .get::<&BlockType>(door_pair)
+        .map_err(|_| "The door does not seem to be stuck.".to_string())?;
+
+    let result = block_type.try_force(world, aftik, aftik_name);
+    if result.is_ok() {
+        world.remove_one::<BlockType>(door_pair).unwrap();
     }
+    result
 }

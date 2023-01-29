@@ -1,6 +1,6 @@
 pub use status::print_full_status;
 
-use crate::action::door::{Door, DoorBlocking};
+use crate::action::door::{BlockType, Door};
 use crate::action::trade;
 use crate::area::Area;
 use crate::position::{Coord, Pos};
@@ -132,8 +132,8 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
 
 fn get_name(world: &World, entity: Entity, name: &str) -> String {
     if let Ok(door_pair) = world.get::<&Door>(entity).map(|door| door.door_pair) {
-        if let Ok(blocking) = world.get::<&DoorBlocking>(door_pair) {
-            return format!("{} ({})", name, blocking.0.description());
+        if let Ok(blocking) = world.get::<&BlockType>(door_pair) {
+            return format!("{} ({})", name, blocking.description());
         }
     }
     name.to_string()
