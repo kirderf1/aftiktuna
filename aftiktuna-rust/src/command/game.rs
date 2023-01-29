@@ -138,6 +138,20 @@ fn give(
 }
 
 fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
+    if world
+        .query::<(&NameData, &Held)>()
+        .into_iter()
+        .find(|(_, (name, held))| {
+            name.matches(item_name) && held.held_by(character) && held.is_in_hand()
+        })
+        .is_some()
+    {
+        return Err(format!(
+            "{} is already wielding a {}.",
+            NameData::find(world, character).definite(),
+            item_name
+        ));
+    }
     None.or_else(|| {
         world
             .query::<(&NameData, &Held)>()
