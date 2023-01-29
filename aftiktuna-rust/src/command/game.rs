@@ -4,7 +4,6 @@ use crate::action::{combat, door, Action, CrewMember, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
-use crate::item::{FuelCan, Medkit};
 use crate::position::Pos;
 use crate::status::Health;
 use crate::view::NameData;
@@ -179,9 +178,9 @@ fn use_item(world: &World, character: Entity, item_name: &str) -> Result<Command
         .ok_or_else(|| format!("No held item by the name \"{}\".", item_name))?
         .0;
 
-    if world.get::<&FuelCan>(item).is_ok() {
+    if world.get::<&item::FuelCan>(item).is_ok() {
         launch_ship(world, character)
-    } else if world.get::<&Medkit>(item).is_ok() {
+    } else if world.get::<&item::Medkit>(item).is_ok() {
         if !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
                 "{} is not hurt, and does not need to use the medkit.",
@@ -189,6 +188,22 @@ fn use_item(world: &World, character: Entity, item_name: &str) -> Result<Command
             ));
         }
         command::action_result(Action::UseMedkit(item))
+    } else if world.get::<&item::Keycard>(item).is_ok() {
+        let area = world.get::<&Pos>(character).unwrap().get_area();
+        let (door, _) = world
+            .query::<(&Pos, &door::Door)>()
+            .into_iter()
+            .find(|(_, (door_pos, door))| {
+                door_pos.is_in(area)
+                    && world
+                        .get::<&door::BlockType>(door.door_pair)
+                        .map_or(false, |block_type| door::BlockType::Locked.eq(&block_type))
+            })
+            .ok_or_else(|| {
+                "There is no accessible door here that requires a keycard.".to_string()
+            })?;
+
+        command::crew_action(Action::EnterDoor(door))
     } else if world.get::<&item::CanWield>(item).is_ok() {
         if world
             .get::<&Held>(item)
@@ -281,7 +296,7 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
 
 fn launch_ship(world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if !is_holding::<FuelCan>(world, character) {
+    if !is_holding::<item::FuelCan>(world, character) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             NameData::find(world, character).definite()
