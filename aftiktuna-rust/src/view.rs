@@ -151,7 +151,7 @@ fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
     symbols
 }
 
-fn capitalize(text: &str) -> String {
+pub fn capitalize(text: &str) -> String {
     let mut chars = text.chars();
     match chars.next() {
         None => String::new(),

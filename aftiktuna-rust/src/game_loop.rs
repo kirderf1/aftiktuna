@@ -137,7 +137,7 @@ fn parse_user_action(
                 view::print(world, *aftik, &mut Messages::simple(message), cache);
             }
             Ok(CommandResult::None) => {}
-            Err(message) => println!("{}", message),
+            Err(message) => println!("{}", view::capitalize(&message)),
         }
     }
 }
