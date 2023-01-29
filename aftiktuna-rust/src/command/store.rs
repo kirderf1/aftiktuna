@@ -48,7 +48,7 @@ pub fn parse(
                     parse.take_remaining(|item_name| sell_all(world, character, item_name))
                 })
                 .match_against(
-                    inventory_items(world, character),
+                    held_items(world, character),
                     |parse, item| parse.done_or_err(|| sell(item)),
                     |input| {
                         Err(format!(
@@ -84,13 +84,19 @@ fn buy(priced_item: &PricedItem, amount: u16) -> Result<CommandResult, String> {
     command::action_result(Action::Buy(priced_item.item, amount))
 }
 
-fn inventory_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
-    world
+fn held_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
+    let mut items = world
         .query::<(&NameData, &Held)>()
         .iter()
         .filter(|(_, (_, held))| held.held_by(character))
-        .map(|(entity, (name, _))| (name.base().to_string(), entity))
-        .collect::<Vec<_>>()
+        .map(|(entity, (name, held))| (name.base().to_string(), entity, held.is_in_hand()))
+        .collect::<Vec<_>>();
+    // Put item in hand at the end of the vec
+    items.sort_by_key(|(_, _, in_hand)| *in_hand);
+    items
+        .into_iter()
+        .map(|(name, entity, _)| (name, entity))
+        .collect()
 }
 
 fn sell(item: Entity) -> Result<CommandResult, String> {
@@ -103,14 +109,17 @@ fn sell_count(
     count: u16,
     item_name: &str,
 ) -> Result<CommandResult, String> {
-    let items = world
+    let mut items = world
         .query::<(&NameData, &Held)>()
         .iter()
         .filter(|(_, (name_data, held))| {
             name_data.matches_with_count(item_name, count) && held.held_by(character)
         })
-        .map(|(entity, _)| entity)
+        .map(|(entity, (_, held))| (entity, held.is_in_hand()))
         .collect::<Vec<_>>();
+    // Put item in hand at the end of the vec
+    items.sort_by_key(|(_, in_hand)| *in_hand);
+
     if items.is_empty() {
         return Err(format!(
             "{} is holding no item by the name \"{}\".",
@@ -126,7 +135,9 @@ fn sell_count(
             item_name
         ));
     }
-    command::action_result(Action::Sell(items[0..count].to_vec()))
+    command::action_result(Action::Sell(
+        items[0..count].iter().map(|(item, _)| *item).collect(),
+    ))
 }
 
 fn sell_all(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
@@ -138,6 +149,7 @@ fn sell_all(world: &World, character: Entity, item_name: &str) -> Result<Command
         })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
+
     if items.is_empty() {
         return Err(format!(
             "{} is holding no item by the name \"{}\".",

@@ -6,10 +6,10 @@ use crate::command::parse::Parse;
 use crate::command::CommandResult;
 use crate::item::{FuelCan, Medkit};
 use crate::position::Pos;
+use crate::status::Health;
 use crate::view::NameData;
 use crate::{command, item, status};
 use hecs::{Entity, World};
-use crate::status::Health;
 
 pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     Parse::new(input)
@@ -126,7 +126,8 @@ fn give(
         .query::<(&NameData, &Held)>()
         .with::<&item::Item>()
         .iter()
-        .find(|(_, (name, held))| name.matches(item_name) && held.held_by(character))
+        .filter(|(_, (name, held))| name.matches(item_name) && held.held_by(character))
+        .min_by_key(|(_, (_, held))| held.is_in_hand())
         .map(|(item, _)| command::action_result(Action::GiveItem(item, receiver)))
         .unwrap_or_else(|| {
             Err(format!(
@@ -173,7 +174,8 @@ fn use_item(world: &World, character: Entity, item_name: &str) -> Result<Command
     let item = world
         .query::<(&Held, &NameData)>()
         .iter()
-        .find(|(_, (held, name_data))| held.held_by(character) && name_data.matches(item_name))
+        .filter(|(_, (held, name_data))| held.held_by(character) && name_data.matches(item_name))
+        .max_by_key(|(_, (held, _))| held.is_in_hand())
         .ok_or_else(|| format!("No held item by the name \"{}\".", item_name))?
         .0;
 
