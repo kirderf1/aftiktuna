@@ -62,30 +62,38 @@ impl Locations {
     }
 
     pub fn pick_random(&mut self, rng: &mut impl Rng) -> Option<String> {
-        if self.count_until_win <= 0 || self.categories.is_empty() {
-            return None;
+        match self.next(rng) {
+            PickResult::None => None,
+            PickResult::Location(location) => Some(location),
+            PickResult::Choice(choice) => loop {
+                if let Some(location) = self.try_make_choice(&choice, crate::read_input(), rng) {
+                    break Some(location);
+                }
+            },
         }
-
-        self.count_until_win -= 1;
-        let category_index = self.pick_category(rng);
-        let category = self.categories.get_mut(category_index).unwrap();
-        let chosen_location = category
-            .location_names
-            .remove(rng.gen_range(0..category.location_names.len()));
-        if category.location_names.is_empty() {
-            self.categories.remove(category_index);
-        }
-        Some(chosen_location)
     }
 
-    fn pick_category(&self, rng: &mut impl Rng) -> usize {
+    pub fn next(&mut self, rng: &mut impl Rng) -> PickResult {
+        if self.count_until_win <= 0 || self.categories.is_empty() {
+            return PickResult::None;
+        }
+
+        match self.pick_category(rng) {
+            Ok(category_index) => {
+                PickResult::Location(self.pick_from_category(category_index, rng))
+            }
+            Err(choice) => PickResult::Choice(choice),
+        }
+    }
+
+    fn pick_category(&self, rng: &mut impl Rng) -> Result<usize, Choice> {
         if self.categories.len() == 1 {
-            return 0;
+            return Ok(0);
         }
 
         let alternatives = index::sample(rng, self.categories.len(), 2)
             .into_iter()
-            .map(|index| (index, &self.categories[index].name))
+            .map(|index| (index, self.categories[index].name.clone()))
             .collect::<Vec<_>>();
 
         println!("-----------");
@@ -95,17 +103,51 @@ impl Locations {
         );
         println!("Pick the location to travel to next.");
         println!();
+        Err(Choice(alternatives))
+    }
 
-        loop {
-            let input = crate::read_input().to_lowercase();
-
-            for (index, name) in &alternatives {
-                if input.eq(*name) {
-                    return *index;
-                }
+    pub fn try_make_choice(
+        &mut self,
+        choice: &Choice,
+        input: String,
+        rng: &mut impl Rng,
+    ) -> Option<String> {
+        match choice.try_choose(&input) {
+            Some(category_index) => Some(self.pick_from_category(category_index, rng)),
+            None => {
+                println!("Unexpected input: \"{input}\"");
+                None
             }
-            println!("Unexpected input: \"{}\"", input);
         }
+    }
+
+    fn pick_from_category(&mut self, category_index: usize, rng: &mut impl Rng) -> String {
+        self.count_until_win -= 1;
+        let category = self.categories.get_mut(category_index).unwrap();
+        let chosen_location = category
+            .location_names
+            .remove(rng.gen_range(0..category.location_names.len()));
+        if category.location_names.is_empty() {
+            self.categories.remove(category_index);
+        }
+        chosen_location
+    }
+}
+
+pub enum PickResult {
+    None,
+    Location(String),
+    Choice(Choice),
+}
+
+pub struct Choice(Vec<(usize, String)>);
+
+impl Choice {
+    fn try_choose(&self, input: &str) -> Option<usize> {
+        self.0
+            .iter()
+            .find(|(_, name)| name.eq_ignore_ascii_case(input))
+            .map(|(index, _)| *index)
     }
 }
 
