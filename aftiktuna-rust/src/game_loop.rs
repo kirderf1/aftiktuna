@@ -1,5 +1,5 @@
 use crate::action::{item, Action, CrewMember};
-use crate::area::{Locations, Ship, ShipStatus};
+use crate::area::{Locations, PickResult, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
@@ -7,7 +7,8 @@ use crate::view::{Messages, NameData, StatusCache};
 use crate::{action, ai, area, command, status, view};
 use hecs::{CommandBuffer, Entity, World};
 use rand::{thread_rng, Rng};
-use std::{thread, time};
+use std::io::Write;
+use std::{io, thread, time};
 
 pub fn run(mut locations: Locations) {
     let mut world = World::new();
@@ -27,15 +28,23 @@ pub fn run(mut locations: Locations) {
     loop {
         if load_location {
             load_location = false;
-            match locations.pick_random(&mut rng) {
-                Some(location_name) => {
-                    area::load_location(&mut world, &mut messages, ship, &location_name)
-                }
-                None => {
+            match locations.next(&mut rng) {
+                PickResult::None => {
                     println!();
                     println!("Congratulations, you won!");
-                    break;
+                    return;
                 }
+                PickResult::Location(location) => {
+                    area::load_location(&mut world, &mut messages, ship, &location);
+                }
+                PickResult::Choice(choice) => loop {
+                    if let Some(location) =
+                        locations.try_make_choice(&choice, read_input(), &mut rng)
+                    {
+                        area::load_location(&mut world, &mut messages, ship, &location);
+                        break;
+                    }
+                },
             }
         }
 
@@ -44,7 +53,7 @@ pub fn run(mut locations: Locations) {
                 StopType::Lose => {
                     println!();
                     println!("You lost.");
-                    break;
+                    return;
                 }
                 StopType::LoadLocation => {
                     load_location = true;
@@ -123,7 +132,7 @@ fn parse_user_action(
     cache: &mut StatusCache,
 ) -> (Action, Target) {
     loop {
-        let input = crate::read_input().to_lowercase();
+        let input = read_input().to_lowercase();
 
         match command::try_parse_input(&input, world, *aftik) {
             Ok(CommandResult::Action(action, target)) => return (action, target),
@@ -246,4 +255,15 @@ fn detect_low_health(world: &mut World, messages: &mut Messages, character: Enti
         }
     }
     command_buffer.run_on(world);
+}
+
+fn read_input() -> String {
+    print!("> ");
+    io::stdout().flush().expect("Failed to flush stdout");
+
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read input");
+    String::from(input.trim())
 }

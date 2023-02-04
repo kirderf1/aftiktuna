@@ -61,18 +61,6 @@ impl Locations {
         }
     }
 
-    pub fn pick_random(&mut self, rng: &mut impl Rng) -> Option<String> {
-        match self.next(rng) {
-            PickResult::None => None,
-            PickResult::Location(location) => Some(location),
-            PickResult::Choice(choice) => loop {
-                if let Some(location) = self.try_make_choice(&choice, crate::read_input(), rng) {
-                    break Some(location);
-                }
-            },
-        }
-    }
-
     pub fn next(&mut self, rng: &mut impl Rng) -> PickResult {
         if self.count_until_win <= 0 || self.categories.is_empty() {
             return PickResult::None;
