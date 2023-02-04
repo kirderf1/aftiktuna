@@ -22,40 +22,41 @@ pub fn run(mut locations: Locations) {
         NameData::find(&world, aftik).definite()
     );
 
-    area::load_location(
-        &mut world,
-        &mut messages,
-        ship,
-        &locations.pick_random(&mut rng).unwrap(),
-    );
+    let mut load_location = true;
 
     loop {
-        if let Err(stop_type) = tick(
-            &mut world,
-            &mut messages,
-            &mut rng,
-            &mut aftik,
-            &mut cache,
-            &mut locations,
-        ) {
+        if load_location {
+            load_location = false;
+            match locations.pick_random(&mut rng) {
+                Some(location_name) => {
+                    area::load_location(&mut world, &mut messages, ship, &location_name)
+                }
+                None => {
+                    println!();
+                    println!("Congratulations, you won!");
+                    break;
+                }
+            }
+        }
+
+        if let Err(stop_type) = tick(&mut world, &mut messages, &mut rng, &mut aftik, &mut cache) {
             match stop_type {
                 StopType::Lose => {
                     println!();
                     println!("You lost.");
+                    break;
                 }
-                StopType::Win => {
-                    println!();
-                    println!("Congratulations, you won!");
+                StopType::LoadLocation => {
+                    load_location = true;
                 }
             }
-            break;
         }
     }
 }
 
 enum StopType {
     Lose,
-    Win,
+    LoadLocation,
 }
 
 fn tick(
@@ -64,7 +65,6 @@ fn tick(
     rng: &mut impl Rng,
     aftik: &mut Entity,
     cache: &mut StatusCache,
-    locations: &mut Locations,
 ) -> Result<(), StopType> {
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
@@ -84,7 +84,7 @@ fn tick(
 
     check_player_state(world, messages, aftik)?;
 
-    check_ship_state(world, messages, rng, *aftik, cache, locations)?;
+    check_ship_state(world, messages, *aftik, cache)?;
 
     Ok(())
 }
@@ -196,10 +196,8 @@ fn check_player_state(
 fn check_ship_state(
     world: &mut World,
     messages: &mut Messages,
-    rng: &mut impl Rng,
     aftik: Entity,
     cache: &mut StatusCache,
-    locations: &mut Locations,
 ) -> Result<(), StopType> {
     let area = world.get::<&Pos>(aftik).unwrap().get_area();
     if is_ship_launching(world, area) {
@@ -207,19 +205,16 @@ fn check_ship_state(
         messages.add("The ship leaves for the next planet.".to_string());
         view::print(world, aftik, messages, cache);
 
-        if let Some(location_name) = locations.pick_random(rng) {
-            area::despawn_all_except_ship(world, ship);
-            world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
-            for (_, health) in world.query_mut::<&mut Health>() {
-                health.restore_to_full();
-            }
-
-            area::load_location(world, messages, ship, &location_name);
-        } else {
-            return Err(StopType::Win);
+        area::despawn_all_except_ship(world, ship);
+        world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
+        for (_, health) in world.query_mut::<&mut Health>() {
+            health.restore_to_full();
         }
+
+        Err(StopType::LoadLocation)
+    } else {
+        Ok(())
     }
-    Ok(())
 }
 
 fn is_ship_launching(world: &World, area: Entity) -> bool {
