@@ -48,15 +48,33 @@ pub fn run(mut locations: Locations) {
             }
         }
 
-        if let Err(stop_type) = tick(&mut world, &mut messages, &mut rng, &mut aftik, &mut cache) {
+        view::print(&world, aftik, &mut messages, &mut cache);
+
+        if let Err(stop_type) = tick(&mut world, &mut messages, &mut rng, &mut aftik) {
             match stop_type {
                 StopType::Lose => {
                     println!();
                     println!("You lost.");
                     return;
                 }
-                StopType::LoadLocation => {
+                StopType::Depart => {
+                    messages.add("The ship leaves for the next planet.");
+                    view::print(&world, aftik, &mut messages, &mut cache);
+
+                    area::despawn_all_except_ship(&mut world, ship);
+                    world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
+                    for (_, health) in world.query_mut::<&mut Health>() {
+                        health.restore_to_full();
+                    }
                     load_location = true;
+                }
+                StopType::ControlCharacter(character) => {
+                    aftik = character;
+
+                    messages.add(format!(
+                        "You're now playing as the aftik {}.",
+                        NameData::find(&world, aftik).definite()
+                    ));
                 }
             }
         }
@@ -65,7 +83,8 @@ pub fn run(mut locations: Locations) {
 
 enum StopType {
     Lose,
-    LoadLocation,
+    Depart,
+    ControlCharacter(Entity),
 }
 
 fn tick(
@@ -73,15 +92,8 @@ fn tick(
     messages: &mut Messages,
     rng: &mut impl Rng,
     aftik: &mut Entity,
-    cache: &mut StatusCache,
 ) -> Result<(), StopType> {
-    for (_, stamina) in world.query_mut::<&mut Stamina>() {
-        stamina.tick();
-    }
-
-    view::print(world, *aftik, messages, cache);
-
-    decision_phase(world, aftik, cache);
+    decision_phase(world, *aftik)?;
 
     ai::tick(world);
 
@@ -91,25 +103,45 @@ fn tick(
 
     handle_aftik_deaths(world, messages, *aftik);
 
+    for (_, stamina) in world.query_mut::<&mut Stamina>() {
+        stamina.tick();
+    }
+
     check_player_state(world, messages, aftik)?;
 
-    check_ship_state(world, messages, *aftik, cache)?;
+    check_ship_state(world, *aftik)?;
 
     Ok(())
 }
 
-fn decision_phase(world: &mut World, player: &mut Entity, cache: &mut StatusCache) {
-    if world.get::<&Action>(*player).is_err() {
-        let (action, target) = parse_user_action(world, player, cache);
+fn decision_phase(world: &mut World, controlled: Entity) -> Result<(), StopType> {
+    if world.get::<&Action>(controlled).is_err() {
+        let (action, target) = parse_user_action(world, controlled)?;
         match target {
-            Target::Controlled => world.insert_one(*player, action).unwrap(),
+            Target::Controlled => world.insert_one(controlled, action).unwrap(),
             Target::Crew => {
-                let area = world.get::<&Pos>(*player).unwrap().get_area();
+                let area = world.get::<&Pos>(controlled).unwrap().get_area();
                 insert_crew_action(world, area, action);
             }
         }
     } else {
         thread::sleep(time::Duration::from_secs(2));
+    }
+    Ok(())
+}
+
+fn parse_user_action(world: &World, controlled: Entity) -> Result<(Action, Target), StopType> {
+    loop {
+        let input = read_input().to_lowercase();
+
+        match command::try_parse_input(&input, world, controlled) {
+            Ok(CommandResult::Action(action, target)) => return Ok((action, target)),
+            Ok(CommandResult::ChangeControlled(new_aftik)) => {
+                return Err(StopType::ControlCharacter(new_aftik));
+            }
+            Ok(CommandResult::None) => {}
+            Err(message) => println!("{}", view::capitalize(message)),
+        }
     }
 }
 
@@ -123,31 +155,6 @@ fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
         .collect::<Vec<_>>();
     for aftik in aftiks {
         world.insert_one(aftik, action.clone()).unwrap();
-    }
-}
-
-fn parse_user_action(
-    world: &World,
-    aftik: &mut Entity,
-    cache: &mut StatusCache,
-) -> (Action, Target) {
-    loop {
-        let input = read_input().to_lowercase();
-
-        match command::try_parse_input(&input, world, *aftik) {
-            Ok(CommandResult::Action(action, target)) => return (action, target),
-            Ok(CommandResult::ChangeControlled(new_aftik)) => {
-                *aftik = new_aftik;
-
-                let message = format!(
-                    "You're now playing as the aftik {}.",
-                    NameData::find(world, *aftik).definite()
-                );
-                view::print(world, *aftik, &mut Messages::from(message), cache);
-            }
-            Ok(CommandResult::None) => {}
-            Err(message) => println!("{}", view::capitalize(message)),
-        }
     }
 }
 
@@ -202,25 +209,10 @@ fn check_player_state(
     Ok(())
 }
 
-fn check_ship_state(
-    world: &mut World,
-    messages: &mut Messages,
-    aftik: Entity,
-    cache: &mut StatusCache,
-) -> Result<(), StopType> {
+fn check_ship_state(world: &mut World, aftik: Entity) -> Result<(), StopType> {
     let area = world.get::<&Pos>(aftik).unwrap().get_area();
     if is_ship_launching(world, area) {
-        let ship = area;
-        messages.add("The ship leaves for the next planet.");
-        view::print(world, aftik, messages, cache);
-
-        area::despawn_all_except_ship(world, ship);
-        world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
-        for (_, health) in world.query_mut::<&mut Health>() {
-            health.restore_to_full();
-        }
-
-        Err(StopType::LoadLocation)
+        Err(StopType::Depart)
     } else {
         Ok(())
     }
