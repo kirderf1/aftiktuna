@@ -1,5 +1,6 @@
 use crate::action::{trade, Action};
 use crate::view;
+use crate::view::Messages;
 use hecs::{Entity, World};
 use std::ops::Deref;
 
@@ -39,6 +40,8 @@ pub fn try_parse_input(
 }
 
 fn status(world: &World, character: Entity) -> Result<CommandResult, String> {
-    view::print_full_status(world, character);
+    let mut messages = Messages::default();
+    view::print_full_status(world, character, &mut messages);
+    messages.print_lines();
     Ok(CommandResult::None)
 }

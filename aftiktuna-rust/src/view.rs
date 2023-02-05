@@ -38,6 +38,12 @@ impl Messages {
             self.0.clear();
         }
     }
+
+    pub fn print_lines(self) {
+        for line in self.0 {
+            println!("{line}");
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -73,7 +79,9 @@ pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &
                 price
             );
         }
-        status::print_points(world, character, cache);
+        let mut messages = Messages::default();
+        status::print_points(world, character, &mut messages, cache);
+        messages.print_lines();
     } else {
         let area = get_viewed_area(character, world);
         let area_info = world.get::<&Area>(area).unwrap();
@@ -84,7 +92,9 @@ pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &
 
     println!();
     messages.print_and_clear();
-    status::print_changes(world, character, cache);
+    let mut status_messages = Messages::default();
+    status::print_changes(world, character, &mut status_messages, cache);
+    status_messages.print_lines();
 }
 
 fn print_area(world: &World, area: Entity, area_size: Coord) {
