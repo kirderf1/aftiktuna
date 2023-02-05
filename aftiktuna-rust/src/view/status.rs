@@ -19,11 +19,11 @@ struct CharacterCache {
 pub fn print_full_status(world: &World, character: Entity, messages: &mut Messages) {
     maybe_print_points(world, character, messages, None);
 
-    messages.add("Crew:".to_string());
+    messages.add("Crew:");
     for (character, _) in world.query::<()>().with::<&CrewMember>().iter() {
         messages.add(format!(
             "{} (Aftik):",
-            capitalize(NameData::find(world, character).definite().as_str())
+            NameData::find(world, character).definite()
         ));
         print_stats(world, character, messages);
         print_character_without_cache(world, character, messages);

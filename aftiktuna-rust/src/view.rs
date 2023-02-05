@@ -15,26 +15,13 @@ mod status;
 pub struct Messages(Vec<String>);
 
 impl Messages {
-    pub fn simple(message: String) -> Messages {
-        let mut messages = Messages::default();
-        messages.add(message);
-        messages
-    }
-
-    pub fn add(&mut self, message: String) {
-        self.0.push(message);
+    pub fn add(&mut self, message: impl AsRef<str>) {
+        self.0.push(capitalize(message));
     }
 
     pub fn print_and_clear(&mut self) {
         if !self.0.is_empty() {
-            println!(
-                "{}",
-                self.0
-                    .iter()
-                    .map(|line| capitalize(line))
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            );
+            println!("{}", self.0.join(" "));
             self.0.clear();
         }
     }
@@ -43,6 +30,14 @@ impl Messages {
         for line in self.0 {
             println!("{line}");
         }
+    }
+}
+
+impl<T: AsRef<str>> From<T> for Messages {
+    fn from(value: T) -> Self {
+        let mut messages = Self::default();
+        messages.add(value);
+        messages
     }
 }
 
@@ -116,7 +111,7 @@ fn print_area(world: &World, messages: &mut Messages, area: Entity, area_size: C
                 get_name(
                     world,
                     entity,
-                    &capitalize(NameData::find(world, entity).base())
+                    capitalize(NameData::find(world, entity).base())
                 )
             );
             if !labels.contains(&label) {
@@ -145,13 +140,13 @@ fn print_area(world: &World, messages: &mut Messages, area: Entity, area_size: C
     }
 }
 
-fn get_name(world: &World, entity: Entity, name: &str) -> String {
+fn get_name(world: &World, entity: Entity, name: String) -> String {
     if let Ok(door_pair) = world.get::<&Door>(entity).map(|door| door.door_pair) {
         if let Ok(blocking) = world.get::<&BlockType>(door_pair) {
             return format!("{} ({})", name, blocking.description());
         }
     }
-    name.to_string()
+    name
 }
 
 fn get_viewed_area(aftik: Entity, world: &World) -> Entity {
@@ -166,8 +161,8 @@ fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
     symbols
 }
 
-pub fn capitalize(text: &str) -> String {
-    let mut chars = text.chars();
+pub fn capitalize(text: impl AsRef<str>) -> String {
+    let mut chars = text.as_ref().chars();
     match chars.next() {
         None => String::new(),
         Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),

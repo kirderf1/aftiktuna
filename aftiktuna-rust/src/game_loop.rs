@@ -143,10 +143,10 @@ fn parse_user_action(
                     "You're now playing as the aftik {}.",
                     NameData::find(world, *aftik).definite()
                 );
-                view::print(world, *aftik, &mut Messages::simple(message), cache);
+                view::print(world, *aftik, &mut Messages::from(message), cache);
             }
             Ok(CommandResult::None) => {}
-            Err(message) => println!("{}", view::capitalize(&message)),
+            Err(message) => println!("{}", view::capitalize(message)),
         }
     }
 }
@@ -211,7 +211,7 @@ fn check_ship_state(
     let area = world.get::<&Pos>(aftik).unwrap().get_area();
     if is_ship_launching(world, area) {
         let ship = area;
-        messages.add("The ship leaves for the next planet.".to_string());
+        messages.add("The ship leaves for the next planet.");
         view::print(world, aftik, messages, cache);
 
         area::despawn_all_except_ship(world, ship);

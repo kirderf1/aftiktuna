@@ -213,7 +213,7 @@ pub fn load_location(
         world.insert_one(aftik, start_pos).unwrap();
     }
 
-    messages.add("The ship arrives at a new location, and the crew exit the ship.".to_string());
+    messages.add("The ship arrives at a new location, and the crew exit the ship.");
 }
 
 pub fn load_data(name: &str) -> Result<LocationData, String> {
