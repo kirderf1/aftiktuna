@@ -12,7 +12,6 @@ use std::{io, thread, time};
 
 pub fn run(mut locations: Locations) {
     let mut world = World::new();
-    let mut messages = Messages::default();
     let mut rng = thread_rng();
     let mut cache = StatusCache::default();
 
@@ -26,8 +25,13 @@ pub fn run(mut locations: Locations) {
     let mut load_location = true;
 
     loop {
+        let mut messages = Messages::default();
         if load_location {
             load_location = false;
+            world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
+            for (_, health) in world.query_mut::<&mut Health>() {
+                health.restore_to_full();
+            }
             match locations.next(&mut rng) {
                 PickResult::None => {
                     println!();
@@ -46,27 +50,12 @@ pub fn run(mut locations: Locations) {
                     }
                 },
             }
-        }
-
-        view::print(&world, aftik, &mut messages, &mut cache);
-
-        if let Err(stop_type) = tick(&mut world, &mut messages, &mut rng, &mut aftik) {
+        } else if let Err(stop_type) = tick(&mut world, &mut messages, &mut rng, aftik) {
             match stop_type {
                 StopType::Lose => {
                     println!();
                     println!("You lost.");
                     return;
-                }
-                StopType::Depart => {
-                    messages.add("The ship leaves for the next planet.");
-                    view::print(&world, aftik, &mut messages, &mut cache);
-
-                    area::despawn_all_except_ship(&mut world, ship);
-                    world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
-                    for (_, health) in world.query_mut::<&mut Health>() {
-                        health.restore_to_full();
-                    }
-                    load_location = true;
                 }
                 StopType::ControlCharacter(character) => {
                     aftik = character;
@@ -78,12 +67,21 @@ pub fn run(mut locations: Locations) {
                 }
             }
         }
+
+        let area = world.get::<&Pos>(aftik).unwrap().get_area();
+        if is_ship_launching(&world, area) {
+            messages.add("The ship leaves for the next planet.");
+
+            area::despawn_all_except_ship(&mut world, ship);
+            load_location = true;
+        }
+
+        view::print(&world, aftik, &mut messages, &mut cache);
     }
 }
 
 enum StopType {
     Lose,
-    Depart,
     ControlCharacter(Entity),
 }
 
@@ -91,25 +89,23 @@ fn tick(
     world: &mut World,
     messages: &mut Messages,
     rng: &mut impl Rng,
-    aftik: &mut Entity,
+    aftik: Entity,
 ) -> Result<(), StopType> {
-    decision_phase(world, *aftik)?;
+    decision_phase(world, aftik)?;
 
     ai::tick(world);
 
-    action::tick(world, rng, messages, *aftik);
+    action::tick(world, rng, messages, aftik);
 
-    detect_low_health(world, messages, *aftik);
+    detect_low_health(world, messages, aftik);
 
-    handle_aftik_deaths(world, messages, *aftik);
+    handle_aftik_deaths(world, messages, aftik);
 
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
 
-    check_player_state(world, messages, aftik)?;
-
-    check_ship_state(world, *aftik)?;
+    check_player_state(world, aftik)?;
 
     Ok(())
 }
@@ -190,29 +186,13 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
     }
 }
 
-fn check_player_state(
-    world: &World,
-    messages: &mut Messages,
-    aftik: &mut Entity,
-) -> Result<(), StopType> {
-    if world.get::<&CrewMember>(*aftik).is_err() {
-        if let Some((next_aftik, _)) = world.query::<()>().with::<&CrewMember>().iter().next() {
-            *aftik = next_aftik;
-            messages.add(format!(
-                "You're now playing as the aftik {}.",
-                NameData::find(world, *aftik).definite()
-            ));
+fn check_player_state(world: &World, controlled: Entity) -> Result<(), StopType> {
+    if world.get::<&CrewMember>(controlled).is_err() {
+        if let Some((next_character, _)) = world.query::<()>().with::<&CrewMember>().iter().next() {
+            Err(StopType::ControlCharacter(next_character))
         } else {
-            return Err(StopType::Lose);
+            Err(StopType::Lose)
         }
-    }
-    Ok(())
-}
-
-fn check_ship_state(world: &mut World, aftik: Entity) -> Result<(), StopType> {
-    let area = world.get::<&Pos>(aftik).unwrap().get_area();
-    if is_ship_launching(world, area) {
-        Err(StopType::Depart)
     } else {
         Ok(())
     }
