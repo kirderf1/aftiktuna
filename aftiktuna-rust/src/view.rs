@@ -64,6 +64,18 @@ impl DisplayInfo {
 
 pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &mut StatusCache) {
     println!("-----------");
+
+    view_messages(world, character, cache).print_lines();
+
+    println!();
+
+    messages.print_and_clear();
+
+    status::changes_messages(world, character, cache).print_lines();
+}
+
+fn view_messages(world: &World, character: Entity, cache: &mut StatusCache) -> Messages {
+    let mut messages = Messages::default();
     if let Some(shopkeeper) = trade::get_shop_info(world, character) {
         let items = shopkeeper
             .0
@@ -72,32 +84,25 @@ pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &
             .collect::<Vec<_>>();
         let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
         for (name, price) in items {
-            println!(
+            messages.add(format!(
                 "{} {}| {}p",
                 name,
                 " ".repeat(max_length - name.len()),
                 price
-            );
+            ));
         }
-        let mut messages = Messages::default();
         status::print_points(world, character, &mut messages, cache);
-        messages.print_lines();
     } else {
         let area = get_viewed_area(character, world);
         let area_info = world.get::<&Area>(area).unwrap();
         let area_size = area_info.size;
-        println!("{}:", area_info.label);
-        print_area(world, area, area_size);
+        messages.add(format!("{}:", area_info.label));
+        print_area(world, &mut messages, area, area_size);
     }
-
-    println!();
-    messages.print_and_clear();
-    let mut status_messages = Messages::default();
-    status::print_changes(world, character, &mut status_messages, cache);
-    status_messages.print_lines();
+    messages
 }
 
-fn print_area(world: &World, area: Entity, area_size: Coord) {
+fn print_area(world: &World, messages: &mut Messages, area: Entity, area_size: Coord) {
     let mut symbols_by_pos = init_symbol_vectors(area_size);
     let mut labels = Vec::new();
 
@@ -133,10 +138,10 @@ fn print_area(world: &World, area: Entity, area_size: Coord) {
                 symbols[pos] = symbol.0;
             }
         }
-        println!("{}", symbols.iter().collect::<String>());
+        messages.add(symbols.iter().collect::<String>());
     }
-    for label in labels.chunks(3) {
-        println!("{}", label.join("   "));
+    for labels in labels.chunks(3) {
+        messages.add(labels.join("   "));
     }
 }
 

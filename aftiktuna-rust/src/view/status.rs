@@ -30,13 +30,24 @@ pub fn print_full_status(world: &World, character: Entity, messages: &mut Messag
     }
 }
 
-pub fn print_changes(world: &World, character: Entity, messages: &mut Messages, cache: &mut Cache) {
-    cache.points = Some(maybe_print_points(world, character, messages, cache.points));
+pub fn changes_messages(world: &World, character: Entity, cache: &mut Cache) -> Messages {
+    let mut messages = Messages::default();
+    cache.points = Some(maybe_print_points(
+        world,
+        character,
+        &mut messages,
+        cache.points,
+    ));
     if let Some(character_cache) = &mut cache.character_cache {
-        print_character_with_cache(world, character, messages, character_cache);
+        print_character_with_cache(world, character, &mut messages, character_cache);
     } else {
-        cache.character_cache = Some(print_character_without_cache(world, character, messages));
+        cache.character_cache = Some(print_character_without_cache(
+            world,
+            character,
+            &mut messages,
+        ));
     }
+    messages
 }
 
 pub fn print_points(world: &World, character: Entity, messages: &mut Messages, cache: &mut Cache) {
