@@ -7,6 +7,7 @@ use crate::position::{Coord, Pos};
 use hecs::{Entity, World};
 pub use name::{as_grouped_text_list, NounData};
 use std::cmp::max;
+use std::mem::take;
 
 mod name;
 mod status;
@@ -19,10 +20,9 @@ impl Messages {
         self.0.push(capitalize(message));
     }
 
-    pub fn print_and_clear(&mut self) {
+    pub fn print(self) {
         if !self.0.is_empty() {
             println!("{}", self.0.join(" "));
-            self.0.clear();
         }
     }
 
@@ -51,22 +51,43 @@ pub type StatusCache = status::Cache;
 
 pub type NameData = name::Data;
 
+pub struct Data {
+    view: Messages,
+    messages: Messages,
+    changes: Messages,
+}
+
+impl Data {
+    pub fn print(self) {
+        println!("-----------");
+
+        self.view.print_lines();
+
+        println!();
+
+        self.messages.print();
+
+        self.changes.print_lines();
+    }
+}
+
 impl DisplayInfo {
     pub fn new(symbol: char, weight: u32) -> Self {
         DisplayInfo { symbol, weight }
     }
 }
 
-pub fn print(world: &World, character: Entity, messages: &mut Messages, cache: &mut StatusCache) {
-    println!("-----------");
-
-    view_messages(world, character, cache).print_lines();
-
-    println!();
-
-    messages.print_and_clear();
-
-    status::changes_messages(world, character, cache).print_lines();
+pub fn capture(
+    world: &World,
+    character: Entity,
+    messages: &mut Messages,
+    cache: &mut StatusCache,
+) -> Data {
+    Data {
+        view: view_messages(world, character, cache),
+        messages: take(messages),
+        changes: status::changes_messages(world, character, cache),
+    }
 }
 
 fn view_messages(world: &World, character: Entity, cache: &mut StatusCache) -> Messages {

@@ -76,7 +76,7 @@ pub fn run(mut locations: Locations) {
             load_location = true;
         }
 
-        view::print(&world, aftik, &mut messages, &mut cache);
+        view::capture(&world, aftik, &mut messages, &mut cache).print();
     }
 }
 
@@ -171,12 +171,13 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
     }
 
     if !status::is_alive(controlled_aftik, world) {
-        view::print(
+        view::capture(
             world,
             controlled_aftik,
             messages,
             &mut StatusCache::default(),
-        );
+        )
+        .print();
         thread::sleep(time::Duration::from_secs(2));
     }
 
