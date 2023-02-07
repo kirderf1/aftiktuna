@@ -8,6 +8,7 @@ use hecs::{Entity, World};
 pub use name::{as_grouped_text_list, NounData};
 use std::cmp::max;
 use std::mem::take;
+use std::{thread, time};
 
 mod name;
 mod status;
@@ -51,6 +52,32 @@ pub type StatusCache = status::Cache;
 
 pub type NameData = name::Data;
 
+#[derive(Default)]
+pub struct Buffer {
+    pub messages: Messages,
+    captures: Vec<Data>,
+}
+
+impl Buffer {
+    pub fn capture_view(&mut self, world: &World, character: Entity, cache: &mut StatusCache) {
+        self.captures.push(Data {
+            view: view_messages(world, character, cache),
+            messages: take(&mut self.messages),
+            changes: status::changes_messages(world, character, cache),
+        });
+    }
+
+    pub fn print(self) {
+        let mut iter = self.captures.into_iter();
+        while let Some(data) = iter.next() {
+            data.print();
+            if iter.len() > 0 {
+                thread::sleep(time::Duration::from_secs(2));
+            }
+        }
+    }
+}
+
 pub struct Data {
     view: Messages,
     messages: Messages,
@@ -74,19 +101,6 @@ impl Data {
 impl DisplayInfo {
     pub fn new(symbol: char, weight: u32) -> Self {
         DisplayInfo { symbol, weight }
-    }
-}
-
-pub fn capture(
-    world: &World,
-    character: Entity,
-    messages: &mut Messages,
-    cache: &mut StatusCache,
-) -> Data {
-    Data {
-        view: view_messages(world, character, cache),
-        messages: take(messages),
-        changes: status::changes_messages(world, character, cache),
     }
 }
 

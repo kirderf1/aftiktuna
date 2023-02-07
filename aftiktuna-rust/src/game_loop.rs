@@ -25,34 +25,33 @@ pub fn run(mut locations: Locations) {
     let mut load_location = true;
 
     loop {
-        let mut messages = Messages::default();
+        let mut view_buffer = view::Buffer::default();
         if load_location {
             load_location = false;
             world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
             for (_, health) in world.query_mut::<&mut Health>() {
                 health.restore_to_full();
             }
-            match locations.next(&mut rng) {
+            let location = match locations.next(&mut rng) {
                 PickResult::None => {
                     println!();
                     println!("Congratulations, you won!");
                     return;
                 }
-                PickResult::Location(location) => {
-                    area::load_location(&mut world, &mut messages, ship, &location);
-                }
+                PickResult::Location(location) => location,
                 PickResult::Choice(choice) => loop {
                     if let Some(location) =
                         locations.try_make_choice(&choice, read_input(), &mut rng)
                     {
-                        area::load_location(&mut world, &mut messages, ship, &location);
-                        break;
+                        break location;
                     }
                 },
-            }
-        } else if let Err(stop_type) = tick(&mut world, &mut messages, &mut rng, aftik) {
+            };
+            area::load_location(&mut world, &mut view_buffer.messages, ship, &location);
+        } else if let Err(stop_type) = tick(&mut world, &mut view_buffer, &mut rng, aftik) {
             match stop_type {
                 StopType::Lose => {
+                    view_buffer.print();
                     println!();
                     println!("You lost.");
                     return;
@@ -60,7 +59,7 @@ pub fn run(mut locations: Locations) {
                 StopType::ControlCharacter(character) => {
                     aftik = character;
 
-                    messages.add(format!(
+                    view_buffer.messages.add(format!(
                         "You're now playing as the aftik {}.",
                         NameData::find(&world, aftik).definite()
                     ));
@@ -70,13 +69,16 @@ pub fn run(mut locations: Locations) {
 
         let area = world.get::<&Pos>(aftik).unwrap().get_area();
         if is_ship_launching(&world, area) {
-            messages.add("The ship leaves for the next planet.");
+            view_buffer
+                .messages
+                .add("The ship leaves for the next planet.");
 
             area::despawn_all_except_ship(&mut world, ship);
             load_location = true;
         }
 
-        view::capture(&world, aftik, &mut messages, &mut cache).print();
+        view_buffer.capture_view(&world, aftik, &mut cache);
+        view_buffer.print();
     }
 }
 
@@ -87,7 +89,7 @@ enum StopType {
 
 fn tick(
     world: &mut World,
-    messages: &mut Messages,
+    view_buffer: &mut view::Buffer,
     rng: &mut impl Rng,
     aftik: Entity,
 ) -> Result<(), StopType> {
@@ -95,11 +97,11 @@ fn tick(
 
     ai::tick(world);
 
-    action::tick(world, rng, messages, aftik);
+    action::tick(world, rng, &mut view_buffer.messages, aftik);
 
-    detect_low_health(world, messages, aftik);
+    detect_low_health(world, &mut view_buffer.messages, aftik);
 
-    handle_aftik_deaths(world, messages, aftik);
+    handle_aftik_deaths(world, view_buffer, aftik);
 
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
@@ -154,7 +156,11 @@ fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
     }
 }
 
-fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_aftik: Entity) {
+fn handle_aftik_deaths(
+    world: &mut World,
+    view_buffer: &mut view::Buffer,
+    controlled_aftik: Entity,
+) {
     let dead_crew = world
         .query::<&Health>()
         .with::<&CrewMember>()
@@ -164,21 +170,14 @@ fn handle_aftik_deaths(world: &mut World, messages: &mut Messages, controlled_af
         .collect::<Vec<_>>();
 
     for &aftik in &dead_crew {
-        messages.add(format!(
+        view_buffer.messages.add(format!(
             "{} is dead.",
             NameData::find(world, aftik).definite()
         ));
     }
 
     if !status::is_alive(controlled_aftik, world) {
-        view::capture(
-            world,
-            controlled_aftik,
-            messages,
-            &mut StatusCache::default(),
-        )
-        .print();
-        thread::sleep(time::Duration::from_secs(2));
+        view_buffer.capture_view(world, controlled_aftik, &mut StatusCache::default());
     }
 
     for aftik in dead_crew {
