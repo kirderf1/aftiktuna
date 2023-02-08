@@ -6,33 +6,48 @@ use crate::status::{Health, Stamina};
 use crate::view::{Messages, NameData, StatusCache};
 use crate::{action, ai, area, command, status, view};
 use hecs::{CommandBuffer, Entity, World};
-use rand::{thread_rng, Rng};
+use rand::prelude::ThreadRng;
+use rand::thread_rng;
 use std::io::Write;
 use std::{io, thread, time};
 
+struct Game {
+    world: World,
+    rng: ThreadRng,
+    controlled: Entity,
+    ship: Entity,
+    load_location: bool,
+}
+
 pub fn run(mut locations: Locations) {
     let mut world = World::new();
-    let mut rng = thread_rng();
+    let rng = thread_rng();
     let mut cache = StatusCache::default();
 
-    let (mut aftik, ship) = area::init(&mut world);
+    let (controlled, ship) = area::init(&mut world);
 
     println!(
         "You're playing as the aftik {}.",
-        NameData::find(&world, aftik).definite()
+        NameData::find(&world, controlled).definite()
     );
 
-    let mut load_location = true;
+    let mut game = Game {
+        world,
+        rng,
+        controlled,
+        ship,
+        load_location: true,
+    };
 
     loop {
         let mut view_buffer = view::Buffer::default();
-        if load_location {
-            load_location = false;
-            world.get::<&mut Ship>(ship).unwrap().status = ShipStatus::NeedTwoCans;
-            for (_, health) in world.query_mut::<&mut Health>() {
+        if game.load_location {
+            game.load_location = false;
+            game.world.get::<&mut Ship>(game.ship).unwrap().status = ShipStatus::NeedTwoCans;
+            for (_, health) in game.world.query_mut::<&mut Health>() {
                 health.restore_to_full();
             }
-            let location = match locations.next(&mut rng) {
+            let location = match locations.next(&mut game.rng) {
                 PickResult::None => {
                     println!();
                     println!("Congratulations, you won!");
@@ -41,14 +56,19 @@ pub fn run(mut locations: Locations) {
                 PickResult::Location(location) => location,
                 PickResult::Choice(choice) => loop {
                     if let Some(location) =
-                        locations.try_make_choice(&choice, read_input(), &mut rng)
+                        locations.try_make_choice(&choice, read_input(), &mut game.rng)
                     {
                         break location;
                     }
                 },
             };
-            area::load_location(&mut world, &mut view_buffer.messages, ship, &location);
-        } else if let Err(stop_type) = tick(&mut world, &mut view_buffer, &mut rng, aftik) {
+            area::load_location(
+                &mut game.world,
+                &mut view_buffer.messages,
+                game.ship,
+                &location,
+            );
+        } else if let Err(stop_type) = tick(&mut game, &mut view_buffer) {
             match stop_type {
                 StopType::Lose => {
                     view_buffer.print();
@@ -57,27 +77,27 @@ pub fn run(mut locations: Locations) {
                     return;
                 }
                 StopType::ControlCharacter(character) => {
-                    aftik = character;
+                    game.controlled = character;
 
                     view_buffer.messages.add(format!(
                         "You're now playing as the aftik {}.",
-                        NameData::find(&world, aftik).definite()
+                        NameData::find(&game.world, game.controlled).definite()
                     ));
                 }
             }
         }
 
-        let area = world.get::<&Pos>(aftik).unwrap().get_area();
-        if is_ship_launching(&world, area) {
+        let area = game.world.get::<&Pos>(game.controlled).unwrap().get_area();
+        if is_ship_launching(&game.world, area) {
             view_buffer
                 .messages
                 .add("The ship leaves for the next planet.");
 
-            area::despawn_all_except_ship(&mut world, ship);
-            load_location = true;
+            area::despawn_all_except_ship(&mut game.world, game.ship);
+            game.load_location = true;
         }
 
-        view_buffer.capture_view(&world, aftik, &mut cache);
+        view_buffer.capture_view(&game.world, game.controlled, &mut cache);
         view_buffer.print();
     }
 }
@@ -87,27 +107,25 @@ enum StopType {
     ControlCharacter(Entity),
 }
 
-fn tick(
-    world: &mut World,
-    view_buffer: &mut view::Buffer,
-    rng: &mut impl Rng,
-    aftik: Entity,
-) -> Result<(), StopType> {
-    decision_phase(world, aftik)?;
+fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+    let world = &mut game.world;
+    let controlled = game.controlled;
+
+    decision_phase(world, controlled)?;
 
     ai::tick(world);
 
-    action::tick(world, rng, &mut view_buffer.messages, aftik);
+    action::tick(world, &mut game.rng, &mut view_buffer.messages, controlled);
 
-    detect_low_health(world, &mut view_buffer.messages, aftik);
+    detect_low_health(world, &mut view_buffer.messages, controlled);
 
-    handle_aftik_deaths(world, view_buffer, aftik);
+    handle_aftik_deaths(world, view_buffer, controlled);
 
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
 
-    check_player_state(world, aftik)?;
+    check_player_state(world, controlled)?;
 
     Ok(())
 }
