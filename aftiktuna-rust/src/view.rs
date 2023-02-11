@@ -60,11 +60,15 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn capture_view(&mut self, world: &World, character: Entity, cache: &mut StatusCache) {
-        self.captures.push(Data {
+        self.captures.push(Data::Full {
             view: view_messages(world, character, cache),
             messages: take(&mut self.messages),
             changes: status::changes_messages(world, character, cache),
         });
+    }
+
+    pub fn push_messages(&mut self, messages: Messages) {
+        self.captures.push(Data::Simple(messages));
     }
 
     pub fn print(self) {
@@ -78,23 +82,35 @@ impl Buffer {
     }
 }
 
-pub struct Data {
-    view: Messages,
-    messages: Messages,
-    changes: Messages,
+pub enum Data {
+    Full {
+        view: Messages,
+        messages: Messages,
+        changes: Messages,
+    },
+    Simple(Messages),
 }
 
 impl Data {
     pub fn print(self) {
-        println!("-----------");
-
-        self.view.print_lines();
-
-        println!();
-
-        self.messages.print();
-
-        self.changes.print_lines();
+        match self {
+            Data::Full {
+                view,
+                messages,
+                changes,
+            } => {
+                println!("-----------");
+                view.print_lines();
+                println!();
+                messages.print();
+                changes.print_lines();
+            }
+            Data::Simple(messages) => {
+                println!("-----------");
+                messages.print_lines();
+                println!();
+            }
+        }
     }
 }
 

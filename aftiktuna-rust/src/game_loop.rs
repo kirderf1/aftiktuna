@@ -66,11 +66,13 @@ impl Game {
                 for (_, health) in self.world.query_mut::<&mut Health>() {
                     health.restore_to_full();
                 }
-                mem::take(view_buffer).print();
                 let location = match self.locations.next(&mut self.rng) {
                     PickResult::None => return StopType::Win,
                     PickResult::Location(location) => location,
                     PickResult::Choice(choice) => {
+                        view_buffer.push_messages(choice.present());
+                        mem::take(view_buffer).print();
+
                         loop {
                             if let Some(location) =
                                 self.locations

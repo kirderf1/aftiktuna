@@ -84,13 +84,6 @@ impl Locations {
             .map(|index| (index, self.categories[index].name.clone()))
             .collect::<Vec<_>>();
 
-        println!("-----------");
-        println!(
-            "There are two destination targets: {}, {}",
-            alternatives[0].1, alternatives[1].1
-        );
-        println!("Pick the location to travel to next.");
-        println!();
         Err(Choice(alternatives))
     }
 
@@ -129,6 +122,19 @@ pub enum PickResult {
 }
 
 pub struct Choice(Vec<(usize, String)>);
+
+impl Choice {
+    pub fn present(&self) -> Messages {
+        let alternatives = &self.0;
+        let mut messages = Messages::default();
+        messages.add(format!(
+            "There are two destination targets: {}, {}",
+            alternatives[0].1, alternatives[1].1
+        ));
+        messages.add("Pick the location to travel to next.");
+        messages
+    }
+}
 
 impl Choice {
     fn try_choose(&self, input: &str) -> Option<usize> {
