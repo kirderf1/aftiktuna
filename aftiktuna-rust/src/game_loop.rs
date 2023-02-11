@@ -9,20 +9,11 @@ use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
 use std::io::Write;
-use std::{io, thread, time};
+use std::{io, mem};
 
-struct Game {
-    world: World,
-    rng: ThreadRng,
-    controlled: Entity,
-    ship: Entity,
-    load_location: bool,
-}
-
-pub fn run(mut locations: Locations) {
+pub fn run(locations: Locations) {
     let mut world = World::new();
     let rng = thread_rng();
-    let mut cache = StatusCache::default();
 
     let (controlled, ship) = area::init(&mut world);
 
@@ -37,81 +28,109 @@ pub fn run(mut locations: Locations) {
         controlled,
         ship,
         load_location: true,
+        locations,
+        cache: StatusCache::default(),
     };
 
-    loop {
-        let mut view_buffer = view::Buffer::default();
-        if game.load_location {
-            game.load_location = false;
-            game.world.get::<&mut Ship>(game.ship).unwrap().status = ShipStatus::NeedTwoCans;
-            for (_, health) in game.world.query_mut::<&mut Health>() {
-                health.restore_to_full();
-            }
-            let location = match locations.next(&mut game.rng) {
-                PickResult::None => {
-                    println!();
-                    println!("Congratulations, you won!");
-                    return;
+    let mut view_buffer = view::Buffer::default();
+    match game.run(&mut view_buffer) {
+        StopType::Win => {
+            view_buffer.print();
+            println!();
+            println!("Congratulations, you won!");
+        }
+        StopType::Lose => {
+            view_buffer.print();
+            println!();
+            println!("You lost.");
+        }
+    }
+}
+
+struct Game {
+    world: World,
+    rng: ThreadRng,
+    controlled: Entity,
+    ship: Entity,
+    load_location: bool,
+    locations: Locations,
+    cache: StatusCache,
+}
+
+impl Game {
+    fn run(&mut self, view_buffer: &mut view::Buffer) -> StopType {
+        loop {
+            if self.load_location {
+                self.load_location = false;
+                self.world.get::<&mut Ship>(self.ship).unwrap().status = ShipStatus::NeedTwoCans;
+                for (_, health) in self.world.query_mut::<&mut Health>() {
+                    health.restore_to_full();
                 }
-                PickResult::Location(location) => location,
-                PickResult::Choice(choice) => loop {
-                    if let Some(location) =
-                        locations.try_make_choice(&choice, read_input(), &mut game.rng)
-                    {
-                        break location;
+                mem::take(view_buffer).print();
+                let location = match self.locations.next(&mut self.rng) {
+                    PickResult::None => return StopType::Win,
+                    PickResult::Location(location) => location,
+                    PickResult::Choice(choice) => {
+                        loop {
+                            if let Some(location) =
+                                self.locations
+                                    .try_make_choice(&choice, read_input(), &mut self.rng)
+                            {
+                                break location;
+                            }
+                        }
                     }
-                },
-            };
-            area::load_location(
-                &mut game.world,
-                &mut view_buffer.messages,
-                game.ship,
-                &location,
-            );
-        } else if let Err(stop_type) = tick(&mut game, &mut view_buffer) {
-            match stop_type {
-                StopType::Lose => {
-                    view_buffer.print();
-                    println!();
-                    println!("You lost.");
-                    return;
-                }
-                StopType::ControlCharacter(character) => {
-                    game.controlled = character;
+                };
+                area::load_location(
+                    &mut self.world,
+                    &mut view_buffer.messages,
+                    self.ship,
+                    &location,
+                );
+            } else if let Err(stop_type) = tick(self, view_buffer) {
+                match stop_type {
+                    TickInterrupt::Lose => return StopType::Lose,
+                    TickInterrupt::ControlCharacter(character) => {
+                        self.controlled = character;
 
-                    view_buffer.messages.add(format!(
-                        "You're now playing as the aftik {}.",
-                        NameData::find(&game.world, game.controlled).definite()
-                    ));
+                        view_buffer.messages.add(format!(
+                            "You're now playing as the aftik {}.",
+                            NameData::find(&self.world, self.controlled).definite()
+                        ));
+                    }
                 }
             }
+
+            let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
+            if is_ship_launching(&self.world, area) {
+                view_buffer
+                    .messages
+                    .add("The ship leaves for the next planet.");
+
+                area::despawn_all_except_ship(&mut self.world, self.ship);
+                self.load_location = true;
+            }
+
+            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
         }
-
-        let area = game.world.get::<&Pos>(game.controlled).unwrap().get_area();
-        if is_ship_launching(&game.world, area) {
-            view_buffer
-                .messages
-                .add("The ship leaves for the next planet.");
-
-            area::despawn_all_except_ship(&mut game.world, game.ship);
-            game.load_location = true;
-        }
-
-        view_buffer.capture_view(&game.world, game.controlled, &mut cache);
-        view_buffer.print();
     }
 }
 
 enum StopType {
+    Win,
+    Lose,
+}
+
+enum TickInterrupt {
     Lose,
     ControlCharacter(Entity),
 }
 
-fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), TickInterrupt> {
     let world = &mut game.world;
     let controlled = game.controlled;
 
-    decision_phase(world, controlled)?;
+    decision_phase(world, controlled, view_buffer)?;
 
     ai::tick(world);
 
@@ -130,9 +149,15 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType>
     Ok(())
 }
 
-fn decision_phase(world: &mut World, controlled: Entity) -> Result<(), StopType> {
+fn decision_phase(
+    world: &mut World,
+    controlled: Entity,
+    view_buffer: &mut view::Buffer,
+) -> Result<(), TickInterrupt> {
     if world.get::<&Action>(controlled).is_err() {
+        mem::take(view_buffer).print();
         let (action, target) = parse_user_action(world, controlled)?;
+
         match target {
             Target::Controlled => world.insert_one(controlled, action).unwrap(),
             Target::Crew => {
@@ -140,20 +165,18 @@ fn decision_phase(world: &mut World, controlled: Entity) -> Result<(), StopType>
                 insert_crew_action(world, area, action);
             }
         }
-    } else {
-        thread::sleep(time::Duration::from_secs(2));
     }
     Ok(())
 }
 
-fn parse_user_action(world: &World, controlled: Entity) -> Result<(Action, Target), StopType> {
+fn parse_user_action(world: &World, controlled: Entity) -> Result<(Action, Target), TickInterrupt> {
     loop {
         let input = read_input().to_lowercase();
 
         match command::try_parse_input(&input, world, controlled) {
             Ok(CommandResult::Action(action, target)) => return Ok((action, target)),
             Ok(CommandResult::ChangeControlled(new_aftik)) => {
-                return Err(StopType::ControlCharacter(new_aftik));
+                return Err(TickInterrupt::ControlCharacter(new_aftik));
             }
             Ok(CommandResult::None) => {}
             Err(message) => println!("{}", view::capitalize(message)),
@@ -204,12 +227,12 @@ fn handle_aftik_deaths(
     }
 }
 
-fn check_player_state(world: &World, controlled: Entity) -> Result<(), StopType> {
+fn check_player_state(world: &World, controlled: Entity) -> Result<(), TickInterrupt> {
     if world.get::<&CrewMember>(controlled).is_err() {
         if let Some((next_character, _)) = world.query::<()>().with::<&CrewMember>().iter().next() {
-            Err(StopType::ControlCharacter(next_character))
+            Err(TickInterrupt::ControlCharacter(next_character))
         } else {
-            Err(StopType::Lose)
+            Err(TickInterrupt::Lose)
         }
     } else {
         Ok(())
