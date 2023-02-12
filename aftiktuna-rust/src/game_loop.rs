@@ -89,13 +89,10 @@ impl Game {
             } else {
                 decision_phase(self, view_buffer);
 
-                if let Err(stop_type) = tick(self, view_buffer) {
-                    match stop_type {
-                        TickInterrupt::Lose => return StopType::Lose,
-                        TickInterrupt::ControlCharacter(character) => {
-                            self.change_character(character, view_buffer);
-                        }
-                    }
+                tick(self, view_buffer);
+
+                if let Err(stop_type) = check_player_state(self, view_buffer) {
+                    return stop_type;
                 }
 
                 let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
@@ -134,12 +131,7 @@ enum StopType {
     Lose,
 }
 
-enum TickInterrupt {
-    Lose,
-    ControlCharacter(Entity),
-}
-
-fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), TickInterrupt> {
+fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
     let world = &mut game.world;
     let controlled = game.controlled;
 
@@ -154,10 +146,6 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), TickInter
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
-
-    check_player_state(world, controlled)?;
-
-    Ok(())
 }
 
 fn decision_phase(game: &mut Game, view_buffer: &mut view::Buffer) {
@@ -244,16 +232,18 @@ fn handle_aftik_deaths(
     }
 }
 
-fn check_player_state(world: &World, controlled: Entity) -> Result<(), TickInterrupt> {
-    if world.get::<&CrewMember>(controlled).is_err() {
-        if let Some((next_character, _)) = world.query::<()>().with::<&CrewMember>().iter().next() {
-            Err(TickInterrupt::ControlCharacter(next_character))
-        } else {
-            Err(TickInterrupt::Lose)
-        }
-    } else {
-        Ok(())
+fn check_player_state(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+    if game.world.get::<&CrewMember>(game.controlled).is_err() {
+        let (next_character, _) = game
+            .world
+            .query::<()>()
+            .with::<&CrewMember>()
+            .iter()
+            .next()
+            .ok_or(StopType::Lose)?;
+        game.change_character(next_character, view_buffer);
     }
+    Ok(())
 }
 
 fn is_ship_launching(world: &World, area: Entity) -> bool {
