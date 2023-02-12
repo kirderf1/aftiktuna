@@ -87,16 +87,13 @@ impl Game {
                 );
                 view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
             } else {
+                decision_phase(self, view_buffer);
+
                 if let Err(stop_type) = tick(self, view_buffer) {
                     match stop_type {
                         TickInterrupt::Lose => return StopType::Lose,
                         TickInterrupt::ControlCharacter(character) => {
-                            self.controlled = character;
-
-                            view_buffer.messages.add(format!(
-                                "You're now playing as the aftik {}.",
-                                NameData::find(&self.world, self.controlled).definite()
-                            ));
+                            self.change_character(character, view_buffer);
                         }
                     }
                 }
@@ -121,6 +118,15 @@ impl Game {
             }
         }
     }
+
+    fn change_character(&mut self, character: Entity, view_buffer: &mut view::Buffer) {
+        self.controlled = character;
+
+        view_buffer.messages.add(format!(
+            "You're now playing as the aftik {}.",
+            NameData::find(&self.world, self.controlled).definite()
+        ));
+    }
 }
 
 enum StopType {
@@ -136,8 +142,6 @@ enum TickInterrupt {
 fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), TickInterrupt> {
     let world = &mut game.world;
     let controlled = game.controlled;
-
-    decision_phase(world, controlled, view_buffer)?;
 
     ai::tick(world);
 
@@ -156,34 +160,40 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), TickInter
     Ok(())
 }
 
-fn decision_phase(
-    world: &mut World,
-    controlled: Entity,
-    view_buffer: &mut view::Buffer,
-) -> Result<(), TickInterrupt> {
-    if world.get::<&Action>(controlled).is_err() {
+fn decision_phase(game: &mut Game, view_buffer: &mut view::Buffer) {
+    while game.world.get::<&Action>(game.controlled).is_err() {
         mem::take(view_buffer).print();
-        let (action, target) = parse_user_action(world, controlled)?;
-
-        match target {
-            Target::Controlled => world.insert_one(controlled, action).unwrap(),
-            Target::Crew => {
-                let area = world.get::<&Pos>(controlled).unwrap().get_area();
-                insert_crew_action(world, area, action);
+        match parse_user_action(&game.world, game.controlled) {
+            InputResult::Action(action, target) => match target {
+                Target::Controlled => game.world.insert_one(game.controlled, action).unwrap(),
+                Target::Crew => {
+                    let area = game.world.get::<&Pos>(game.controlled).unwrap().get_area();
+                    insert_crew_action(&mut game.world, area, action);
+                }
+            },
+            InputResult::ChangeControlled(character) => {
+                game.change_character(character, view_buffer);
+                view_buffer.capture_view(&game.world, game.controlled, &mut game.cache);
             }
         }
     }
-    Ok(())
 }
 
-fn parse_user_action(world: &World, controlled: Entity) -> Result<(Action, Target), TickInterrupt> {
+enum InputResult {
+    Action(Action, Target),
+    ChangeControlled(Entity),
+}
+
+fn parse_user_action(world: &World, controlled: Entity) -> InputResult {
     loop {
         let input = read_input().to_lowercase();
 
         match command::try_parse_input(&input, world, controlled) {
-            Ok(CommandResult::Action(action, target)) => return Ok((action, target)),
+            Ok(CommandResult::Action(action, target)) => {
+                return InputResult::Action(action, target);
+            }
             Ok(CommandResult::ChangeControlled(new_aftik)) => {
-                return Err(TickInterrupt::ControlCharacter(new_aftik));
+                return InputResult::ChangeControlled(new_aftik);
             }
             Ok(CommandResult::None) => {}
             Err(message) => println!("{}", view::capitalize(message)),
