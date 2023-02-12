@@ -27,7 +27,7 @@ pub fn run(locations: Locations) {
         rng,
         controlled,
         ship,
-        state: State::NoLocation,
+        state: State::Prepare,
         locations,
         cache: StatusCache::default(),
     };
@@ -58,8 +58,10 @@ struct Game {
 }
 
 enum State {
+    Prepare,
+    Load(String),
+    Choose(area::Choice),
     AtLocation,
-    NoLocation,
 }
 
 enum StopType {
@@ -70,8 +72,28 @@ enum StopType {
 impl Game {
     fn run(&mut self, view_buffer: &mut view::Buffer) -> StopType {
         loop {
-            let result = match self.state {
-                State::NoLocation => self.load_location(view_buffer),
+            let result = match &self.state {
+                State::Prepare => self.prepare_next_location(view_buffer),
+                State::Load(location) => {
+                    area::load_location(
+                        &mut self.world,
+                        &mut view_buffer.messages,
+                        self.ship,
+                        location,
+                    );
+                    self.state = State::AtLocation;
+                    view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                    Ok(())
+                }
+                State::Choose(choice) => {
+                    if let Some(location) =
+                        self.locations
+                            .try_make_choice(choice, read_input(), &mut self.rng)
+                    {
+                        self.state = State::Load(location);
+                    }
+                    Ok(())
+                }
                 State::AtLocation => self.tick(view_buffer),
             };
             if let Err(stop_type) = result {
@@ -80,32 +102,16 @@ impl Game {
         }
     }
 
-    fn load_location(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
-        let location = match self.locations.next(&mut self.rng) {
+    fn prepare_next_location(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+        match self.locations.next(&mut self.rng) {
             PickResult::None => return Err(StopType::Win),
-            PickResult::Location(location) => location,
+            PickResult::Location(location) => self.state = State::Load(location),
             PickResult::Choice(choice) => {
                 view_buffer.push_messages(choice.present());
                 mem::take(view_buffer).print();
-
-                loop {
-                    if let Some(location) =
-                        self.locations
-                            .try_make_choice(&choice, read_input(), &mut self.rng)
-                    {
-                        break location;
-                    }
-                }
+                self.state = State::Choose(choice);
             }
         };
-        self.state = State::AtLocation;
-        area::load_location(
-            &mut self.world,
-            &mut view_buffer.messages,
-            self.ship,
-            &location,
-        );
-        view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
         Ok(())
     }
 
@@ -128,7 +134,7 @@ impl Game {
             for (_, health) in self.world.query_mut::<&mut Health>() {
                 health.restore_to_full();
             }
-            self.state = State::NoLocation;
+            self.state = State::Prepare;
         } else {
             view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
         }
