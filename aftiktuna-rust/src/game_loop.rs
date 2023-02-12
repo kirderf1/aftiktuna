@@ -62,10 +62,6 @@ impl Game {
         loop {
             if self.load_location {
                 self.load_location = false;
-                self.world.get::<&mut Ship>(self.ship).unwrap().status = ShipStatus::NeedTwoCans;
-                for (_, health) in self.world.query_mut::<&mut Health>() {
-                    health.restore_to_full();
-                }
                 let location = match self.locations.next(&mut self.rng) {
                     PickResult::None => return StopType::Win,
                     PickResult::Location(location) => location,
@@ -89,31 +85,40 @@ impl Game {
                     self.ship,
                     &location,
                 );
-            } else if let Err(stop_type) = tick(self, view_buffer) {
-                match stop_type {
-                    TickInterrupt::Lose => return StopType::Lose,
-                    TickInterrupt::ControlCharacter(character) => {
-                        self.controlled = character;
+                view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+            } else {
+                if let Err(stop_type) = tick(self, view_buffer) {
+                    match stop_type {
+                        TickInterrupt::Lose => return StopType::Lose,
+                        TickInterrupt::ControlCharacter(character) => {
+                            self.controlled = character;
 
-                        view_buffer.messages.add(format!(
-                            "You're now playing as the aftik {}.",
-                            NameData::find(&self.world, self.controlled).definite()
-                        ));
+                            view_buffer.messages.add(format!(
+                                "You're now playing as the aftik {}.",
+                                NameData::find(&self.world, self.controlled).definite()
+                            ));
+                        }
                     }
                 }
+
+                let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
+                if is_ship_launching(&self.world, area) {
+                    view_buffer
+                        .messages
+                        .add("The ship leaves for the next planet.");
+                    view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+
+                    area::despawn_all_except_ship(&mut self.world, self.ship);
+                    self.world.get::<&mut Ship>(self.ship).unwrap().status =
+                        ShipStatus::NeedTwoCans;
+                    for (_, health) in self.world.query_mut::<&mut Health>() {
+                        health.restore_to_full();
+                    }
+                    self.load_location = true;
+                } else {
+                    view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                }
             }
-
-            let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
-            if is_ship_launching(&self.world, area) {
-                view_buffer
-                    .messages
-                    .add("The ship leaves for the next planet.");
-
-                area::despawn_all_except_ship(&mut self.world, self.ship);
-                self.load_location = true;
-            }
-
-            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
         }
     }
 }
