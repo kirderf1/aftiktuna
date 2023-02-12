@@ -27,7 +27,7 @@ pub fn run(locations: Locations) {
         rng,
         controlled,
         ship,
-        load_location: true,
+        state: State::NoLocation,
         locations,
         cache: StatusCache::default(),
     };
@@ -52,68 +52,87 @@ struct Game {
     rng: ThreadRng,
     controlled: Entity,
     ship: Entity,
-    load_location: bool,
+    state: State,
     locations: Locations,
     cache: StatusCache,
+}
+
+enum State {
+    AtLocation,
+    NoLocation,
+}
+
+enum StopType {
+    Win,
+    Lose,
 }
 
 impl Game {
     fn run(&mut self, view_buffer: &mut view::Buffer) -> StopType {
         loop {
-            if self.load_location {
-                self.load_location = false;
-                let location = match self.locations.next(&mut self.rng) {
-                    PickResult::None => return StopType::Win,
-                    PickResult::Location(location) => location,
-                    PickResult::Choice(choice) => {
-                        view_buffer.push_messages(choice.present());
-                        mem::take(view_buffer).print();
-
-                        loop {
-                            if let Some(location) =
-                                self.locations
-                                    .try_make_choice(&choice, read_input(), &mut self.rng)
-                            {
-                                break location;
-                            }
-                        }
-                    }
-                };
-                area::load_location(
-                    &mut self.world,
-                    &mut view_buffer.messages,
-                    self.ship,
-                    &location,
-                );
-                view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-            } else {
-                decision_phase(self, view_buffer);
-
-                tick(self, view_buffer);
-
-                if let Err(stop_type) = check_player_state(self, view_buffer) {
-                    return stop_type;
-                }
-
-                let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
-                if is_ship_launching(&self.world, area) {
-                    view_buffer
-                        .messages
-                        .add("The ship leaves for the next planet.");
-                    view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-
-                    area::despawn_all_except_ship(&mut self.world, self.ship);
-                    self.world.get::<&mut Ship>(self.ship).unwrap().status =
-                        ShipStatus::NeedTwoCans;
-                    for (_, health) in self.world.query_mut::<&mut Health>() {
-                        health.restore_to_full();
-                    }
-                    self.load_location = true;
-                } else {
-                    view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-                }
+            let result = match self.state {
+                State::NoLocation => self.load_location(view_buffer),
+                State::AtLocation => self.tick(view_buffer),
+            };
+            if let Err(stop_type) = result {
+                return stop_type;
             }
         }
+    }
+
+    fn load_location(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+        let location = match self.locations.next(&mut self.rng) {
+            PickResult::None => return Err(StopType::Win),
+            PickResult::Location(location) => location,
+            PickResult::Choice(choice) => {
+                view_buffer.push_messages(choice.present());
+                mem::take(view_buffer).print();
+
+                loop {
+                    if let Some(location) =
+                        self.locations
+                            .try_make_choice(&choice, read_input(), &mut self.rng)
+                    {
+                        break location;
+                    }
+                }
+            }
+        };
+        self.state = State::AtLocation;
+        area::load_location(
+            &mut self.world,
+            &mut view_buffer.messages,
+            self.ship,
+            &location,
+        );
+        view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+        Ok(())
+    }
+
+    fn tick(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+        decision_phase(self, view_buffer);
+
+        tick(self, view_buffer);
+
+        check_player_state(self, view_buffer)?;
+
+        let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
+        if is_ship_launching(&self.world, area) {
+            view_buffer
+                .messages
+                .add("The ship leaves for the next planet.");
+            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+
+            area::despawn_all_except_ship(&mut self.world, self.ship);
+            self.world.get::<&mut Ship>(self.ship).unwrap().status = ShipStatus::NeedTwoCans;
+            for (_, health) in self.world.query_mut::<&mut Health>() {
+                health.restore_to_full();
+            }
+            self.state = State::NoLocation;
+        } else {
+            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+        }
+        Ok(())
     }
 
     fn change_character(&mut self, character: Entity, view_buffer: &mut view::Buffer) {
@@ -124,11 +143,6 @@ impl Game {
             NameData::find(&self.world, self.controlled).definite()
         ));
     }
-}
-
-enum StopType {
-    Win,
-    Lose,
 }
 
 fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
