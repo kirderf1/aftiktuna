@@ -62,6 +62,7 @@ enum State {
     Load(String),
     Choose(area::Choice),
     AtLocation,
+    CommandInput,
 }
 
 enum StopType {
@@ -95,6 +96,27 @@ impl Game {
                     Ok(())
                 }
                 State::AtLocation => self.tick(view_buffer),
+                State::CommandInput => {
+                    mem::take(view_buffer).print();
+                    match parse_user_action(&self.world, self.controlled) {
+                        InputResult::Action(action, target) => match target {
+                            Target::Controlled => {
+                                self.world.insert_one(self.controlled, action).unwrap();
+                            }
+                            Target::Crew => {
+                                let area =
+                                    self.world.get::<&Pos>(self.controlled).unwrap().get_area();
+                                insert_crew_action(&mut self.world, area, action);
+                            }
+                        },
+                        InputResult::ChangeControlled(character) => {
+                            self.change_character(character, view_buffer);
+                            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                        }
+                    }
+                    self.state = State::AtLocation;
+                    Ok(())
+                }
             };
             if let Err(stop_type) = result {
                 return stop_type;
@@ -116,7 +138,10 @@ impl Game {
     }
 
     fn tick(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
-        decision_phase(self, view_buffer);
+        if self.world.get::<&Action>(self.controlled).is_err() {
+            self.state = State::CommandInput;
+            return Ok(());
+        }
 
         tick(self, view_buffer);
 
@@ -165,25 +190,6 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
 
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
-    }
-}
-
-fn decision_phase(game: &mut Game, view_buffer: &mut view::Buffer) {
-    while game.world.get::<&Action>(game.controlled).is_err() {
-        mem::take(view_buffer).print();
-        match parse_user_action(&game.world, game.controlled) {
-            InputResult::Action(action, target) => match target {
-                Target::Controlled => game.world.insert_one(game.controlled, action).unwrap(),
-                Target::Crew => {
-                    let area = game.world.get::<&Pos>(game.controlled).unwrap().get_area();
-                    insert_crew_action(&mut game.world, area, action);
-                }
-            },
-            InputResult::ChangeControlled(character) => {
-                game.change_character(character, view_buffer);
-                view_buffer.capture_view(&game.world, game.controlled, &mut game.cache);
-            }
-        }
     }
 }
 
