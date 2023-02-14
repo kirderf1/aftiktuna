@@ -90,15 +90,14 @@ impl Locations {
     pub fn try_make_choice(
         &mut self,
         choice: &Choice,
-        input: String,
+        input: &str,
         rng: &mut impl Rng,
     ) -> Option<String> {
-        match choice.try_choose(&input) {
-            Some(category_index) => Some(self.pick_from_category(category_index, rng)),
-            None => {
-                println!("Unexpected input: \"{input}\"");
-                None
-            }
+        if let Some(category_index) = choice.try_choose(input) {
+            Some(self.pick_from_category(category_index, rng))
+        } else {
+            println!("Unexpected input: \"{input}\"");
+            None
         }
     }
 
@@ -121,6 +120,7 @@ pub enum PickResult {
     Choice(Choice),
 }
 
+#[derive(Debug)]
 pub struct Choice(Vec<(usize, String)>);
 
 impl Choice {

@@ -8,8 +8,8 @@ use crate::{action, ai, area, command, status, view};
 use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
+use std::io;
 use std::io::Write;
-use std::{io, mem};
 
 pub fn run(locations: Locations) {
     let mut world = World::new();
@@ -32,20 +32,31 @@ pub fn run(locations: Locations) {
         cache: StatusCache::default(),
     };
 
-    let mut view_buffer = view::Buffer::default();
-    match game.run(&mut view_buffer) {
-        StopType::Win => {
-            view_buffer.print();
-            println!();
-            println!("Congratulations, you won!");
-        }
-        StopType::Lose => {
-            view_buffer.print();
-            println!();
-            println!("You lost.");
+    loop {
+        let mut view_buffer = view::Buffer::default();
+        match game.run(&mut view_buffer) {
+            Ok(TakeInput) => {
+                view_buffer.print();
+                let input = read_input();
+                game.handle_input(&input);
+            }
+            Err(StopType::Win) => {
+                view_buffer.print();
+                println!();
+                println!("Congratulations, you won!");
+                return;
+            }
+            Err(StopType::Lose) => {
+                view_buffer.print();
+                println!();
+                println!("You lost.");
+                return;
+            }
         }
     }
 }
+
+struct TakeInput;
 
 struct Game {
     world: World,
@@ -57,12 +68,14 @@ struct Game {
     cache: StatusCache,
 }
 
+#[derive(Debug)]
 enum State {
     Prepare,
     Load(String),
     Choose(area::Choice),
     AtLocation,
     CommandInput,
+    ChangeControlled(Entity),
 }
 
 enum StopType {
@@ -71,10 +84,11 @@ enum StopType {
 }
 
 impl Game {
-    fn run(&mut self, view_buffer: &mut view::Buffer) -> StopType {
+    fn run(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
         loop {
-            let result = match &self.state {
-                State::Prepare => self.prepare_next_location(view_buffer),
+            match &self.state {
+                State::Choose(_) | State::CommandInput => return Ok(TakeInput),
+                State::Prepare => self.prepare_next_location(view_buffer)?,
                 State::Load(location) => {
                     area::load_location(
                         &mut self.world,
@@ -82,44 +96,41 @@ impl Game {
                         self.ship,
                         location,
                     );
-                    self.state = State::AtLocation;
                     view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-                    Ok(())
+                    self.state = State::AtLocation;
                 }
-                State::Choose(choice) => {
-                    mem::take(view_buffer).print();
-                    if let Some(location) =
-                        self.locations
-                            .try_make_choice(choice, read_input(), &mut self.rng)
-                    {
-                        self.state = State::Load(location);
-                    }
-                    Ok(())
+                State::AtLocation => self.tick(view_buffer)?,
+                State::ChangeControlled(character) => {
+                    self.change_character(*character, view_buffer);
+                    view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                    self.state = State::AtLocation;
                 }
-                State::AtLocation => self.tick(view_buffer),
-                State::CommandInput => {
-                    mem::take(view_buffer).print();
-                    let input = read_input().to_lowercase();
-
-                    match command::try_parse_input(&input, &self.world, self.controlled) {
-                        Ok(CommandResult::Action(action, target)) => {
-                            insert_action(&mut self.world, self.controlled, action, target);
-                            self.state = State::AtLocation;
-                        }
-                        Ok(CommandResult::ChangeControlled(new_aftik)) => {
-                            self.change_character(new_aftik, view_buffer);
-                            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-                            self.state = State::AtLocation;
-                        }
-                        Ok(CommandResult::None) => {}
-                        Err(message) => println!("{}", view::capitalize(message)),
-                    }
-                    Ok(())
-                }
-            };
-            if let Err(stop_type) = result {
-                return stop_type;
             }
+        }
+    }
+
+    fn handle_input(&mut self, input: &str) {
+        match &self.state {
+            State::Choose(choice) => {
+                if let Some(location) = self.locations.try_make_choice(choice, input, &mut self.rng)
+                {
+                    self.state = State::Load(location);
+                }
+            }
+            State::CommandInput => {
+                match command::try_parse_input(input, &self.world, self.controlled) {
+                    Ok(CommandResult::Action(action, target)) => {
+                        insert_action(&mut self.world, self.controlled, action, target);
+                        self.state = State::AtLocation;
+                    }
+                    Ok(CommandResult::ChangeControlled(character)) => {
+                        self.state = State::ChangeControlled(character);
+                    }
+                    Ok(CommandResult::None) => {}
+                    Err(message) => println!("{}", view::capitalize(message)),
+                }
+            }
+            state => panic!("Handling input in unexpected state {state:?}"),
         }
     }
 

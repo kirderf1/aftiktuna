@@ -33,10 +33,11 @@ pub fn try_parse_input(
     world: &World,
     character: Entity,
 ) -> Result<CommandResult, String> {
+    let input = input.to_lowercase();
     if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-        store::parse(input, world, character, shopkeeper.deref())
+        store::parse(&input, world, character, shopkeeper.deref())
     } else {
-        game::parse(input, world, character)
+        game::parse(&input, world, character)
     }
 }
 
