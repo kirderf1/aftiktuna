@@ -87,6 +87,7 @@ impl Game {
                     Ok(())
                 }
                 State::Choose(choice) => {
+                    mem::take(view_buffer).print();
                     if let Some(location) =
                         self.locations
                             .try_make_choice(choice, read_input(), &mut self.rng)
@@ -98,23 +99,21 @@ impl Game {
                 State::AtLocation => self.tick(view_buffer),
                 State::CommandInput => {
                     mem::take(view_buffer).print();
-                    match parse_user_action(&self.world, self.controlled) {
-                        InputResult::Action(action, target) => match target {
-                            Target::Controlled => {
-                                self.world.insert_one(self.controlled, action).unwrap();
-                            }
-                            Target::Crew => {
-                                let area =
-                                    self.world.get::<&Pos>(self.controlled).unwrap().get_area();
-                                insert_crew_action(&mut self.world, area, action);
-                            }
-                        },
-                        InputResult::ChangeControlled(character) => {
-                            self.change_character(character, view_buffer);
-                            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                    let input = read_input().to_lowercase();
+
+                    match command::try_parse_input(&input, &self.world, self.controlled) {
+                        Ok(CommandResult::Action(action, target)) => {
+                            insert_action(&mut self.world, self.controlled, action, target);
+                            self.state = State::AtLocation;
                         }
+                        Ok(CommandResult::ChangeControlled(new_aftik)) => {
+                            self.change_character(new_aftik, view_buffer);
+                            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                            self.state = State::AtLocation;
+                        }
+                        Ok(CommandResult::None) => {}
+                        Err(message) => println!("{}", view::capitalize(message)),
                     }
-                    self.state = State::AtLocation;
                     Ok(())
                 }
             };
@@ -130,7 +129,6 @@ impl Game {
             PickResult::Location(location) => self.state = State::Load(location),
             PickResult::Choice(choice) => {
                 view_buffer.push_messages(choice.present());
-                mem::take(view_buffer).print();
                 self.state = State::Choose(choice);
             }
         };
@@ -193,38 +191,24 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
     }
 }
 
-enum InputResult {
-    Action(Action, Target),
-    ChangeControlled(Entity),
-}
-
-fn parse_user_action(world: &World, controlled: Entity) -> InputResult {
-    loop {
-        let input = read_input().to_lowercase();
-
-        match command::try_parse_input(&input, world, controlled) {
-            Ok(CommandResult::Action(action, target)) => {
-                return InputResult::Action(action, target);
-            }
-            Ok(CommandResult::ChangeControlled(new_aftik)) => {
-                return InputResult::ChangeControlled(new_aftik);
-            }
-            Ok(CommandResult::None) => {}
-            Err(message) => println!("{}", view::capitalize(message)),
+fn insert_action(world: &mut World, controlled: Entity, action: Action, target: Target) {
+    match target {
+        Target::Controlled => {
+            world.insert_one(controlled, action).unwrap();
         }
-    }
-}
-
-fn insert_crew_action(world: &mut World, area: Entity, action: Action) {
-    let aftiks = world
-        .query::<&Pos>()
-        .with::<&CrewMember>()
-        .iter()
-        .filter(|(_, pos)| pos.is_in(area))
-        .map(|(aftik, _)| aftik)
-        .collect::<Vec<_>>();
-    for aftik in aftiks {
-        world.insert_one(aftik, action.clone()).unwrap();
+        Target::Crew => {
+            let area = world.get::<&Pos>(controlled).unwrap().get_area();
+            let aftiks = world
+                .query::<&Pos>()
+                .with::<&CrewMember>()
+                .iter()
+                .filter(|(_, pos)| pos.is_in(area))
+                .map(|(aftik, _)| aftik)
+                .collect::<Vec<_>>();
+            for aftik in aftiks {
+                world.insert_one(aftik, action.clone()).unwrap();
+            }
+        }
     }
 }
 

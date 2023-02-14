@@ -8,6 +8,7 @@ mod game;
 mod parse;
 mod store;
 
+#[derive(Copy, Clone)]
 pub enum Target {
     Controlled,
     Crew,
