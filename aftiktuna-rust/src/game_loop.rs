@@ -38,7 +38,9 @@ pub fn run(locations: Locations) {
             Ok(TakeInput) => {
                 view_buffer.print();
                 let input = read_input();
-                game.handle_input(&input);
+                if let Err(messages) = game.handle_input(&input) {
+                    messages.print_lines();
+                }
             }
             Err(StopType::Win) => {
                 view_buffer.print();
@@ -109,29 +111,29 @@ impl Game {
         }
     }
 
-    fn handle_input(&mut self, input: &str) {
+    fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
         match &self.state {
             State::Choose(choice) => {
-                if let Some(location) = self.locations.try_make_choice(choice, input, &mut self.rng)
-                {
-                    self.state = State::Load(location);
-                }
+                let location = self
+                    .locations
+                    .try_make_choice(choice, input, &mut self.rng)?;
+                self.state = State::Load(location);
             }
             State::CommandInput => {
-                match command::try_parse_input(input, &self.world, self.controlled) {
-                    Ok(CommandResult::Action(action, target)) => {
+                match command::try_parse_input(input, &self.world, self.controlled)? {
+                    CommandResult::Action(action, target) => {
                         insert_action(&mut self.world, self.controlled, action, target);
                         self.state = State::AtLocation;
                     }
-                    Ok(CommandResult::ChangeControlled(character)) => {
+                    CommandResult::ChangeControlled(character) => {
                         self.state = State::ChangeControlled(character);
                     }
-                    Ok(CommandResult::None) => {}
-                    Err(message) => println!("{}", view::capitalize(message)),
+                    CommandResult::Info(messages) => return Err(messages),
                 }
             }
             state => panic!("Handling input in unexpected state {state:?}"),
         }
+        Ok(())
     }
 
     fn prepare_next_location(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {

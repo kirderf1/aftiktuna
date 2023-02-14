@@ -92,13 +92,11 @@ impl Locations {
         choice: &Choice,
         input: &str,
         rng: &mut impl Rng,
-    ) -> Option<String> {
-        if let Some(category_index) = choice.try_choose(input) {
-            Some(self.pick_from_category(category_index, rng))
-        } else {
-            println!("Unexpected input: \"{input}\"");
-            None
-        }
+    ) -> Result<String, String> {
+        choice
+            .try_choose(input)
+            .map(|category_index| self.pick_from_category(category_index, rng))
+            .ok_or_else(|| format!("Unexpected input: \"{input}\""))
     }
 
     fn pick_from_category(&mut self, category_index: usize, rng: &mut impl Rng) -> String {
