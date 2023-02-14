@@ -1,7 +1,7 @@
 use aftiktuna::area::Locations;
-use aftiktuna::game_loop;
+use aftiktuna::standard_io_interface;
 
 fn main() {
     println!("Welcome to aftiktuna!");
-    game_loop::run(Locations::new(3));
+    standard_io_interface::run(Locations::new(3));
 }

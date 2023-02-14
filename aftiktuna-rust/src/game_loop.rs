@@ -8,21 +8,14 @@ use crate::{action, ai, area, command, status, view};
 use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
-use std::io;
-use std::io::Write;
 
-pub fn run(locations: Locations) {
+pub fn setup(locations: Locations) -> (Messages, Game) {
     let mut world = World::new();
     let rng = thread_rng();
 
     let (controlled, ship) = area::init(&mut world);
 
-    println!(
-        "You're playing as the aftik {}.",
-        NameData::find(&world, controlled).definite()
-    );
-
-    let mut game = Game {
+    let game = Game {
         world,
         rng,
         controlled,
@@ -32,35 +25,23 @@ pub fn run(locations: Locations) {
         cache: StatusCache::default(),
     };
 
-    loop {
-        let mut view_buffer = view::Buffer::default();
-        match game.run(&mut view_buffer) {
-            Ok(TakeInput) => {
-                view_buffer.print();
-                let input = read_input();
-                if let Err(messages) = game.handle_input(&input) {
-                    messages.print_lines();
-                }
-            }
-            Err(StopType::Win) => {
-                view_buffer.print();
-                println!();
-                println!("Congratulations, you won!");
-                return;
-            }
-            Err(StopType::Lose) => {
-                view_buffer.print();
-                println!();
-                println!("You lost.");
-                return;
-            }
-        }
-    }
+    (
+        Messages::from(format!(
+            "You're playing as the aftik {}.",
+            NameData::find(&game.world, game.controlled).definite()
+        )),
+        game,
+    )
 }
 
-struct TakeInput;
+pub struct TakeInput;
 
-struct Game {
+pub enum StopType {
+    Win,
+    Lose,
+}
+
+pub struct Game {
     world: World,
     rng: ThreadRng,
     controlled: Entity,
@@ -80,13 +61,17 @@ enum State {
     ChangeControlled(Entity),
 }
 
-enum StopType {
-    Win,
-    Lose,
+impl StopType {
+    pub fn messages(self) -> Messages {
+        match self {
+            StopType::Win => Messages::from("Congratulations, you won!"),
+            StopType::Lose => Messages::from("You lost."),
+        }
+    }
 }
 
 impl Game {
-    fn run(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
+    pub fn run(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
         loop {
             match &self.state {
                 State::Choose(_) | State::CommandInput => return Ok(TakeInput),
@@ -111,7 +96,7 @@ impl Game {
         }
     }
 
-    fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
+    pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
         match &self.state {
             State::Choose(choice) => {
                 let location = self
@@ -298,15 +283,4 @@ fn detect_low_health(world: &mut World, messages: &mut Messages, character: Enti
         }
     }
     command_buffer.run_on(world);
-}
-
-fn read_input() -> String {
-    print!("> ");
-    io::stdout().flush().expect("Failed to flush stdout");
-
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read input");
-    String::from(input.trim())
 }

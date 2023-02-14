@@ -5,5 +5,6 @@ mod command;
 pub mod game_loop;
 mod item;
 mod position;
+pub mod standard_io_interface;
 mod status;
 mod view;
