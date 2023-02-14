@@ -21,16 +21,14 @@ impl Messages {
         self.0.push(capitalize(message));
     }
 
-    pub fn print(self) {
-        if !self.0.is_empty() {
-            println!("{}", self.0.join(" "));
-        }
-    }
-
     pub fn print_lines(self) {
         for line in self.0 {
             println!("{line}");
         }
+    }
+
+    pub fn into_text(self) -> Vec<String> {
+        self.0
     }
 }
 
@@ -80,6 +78,10 @@ impl Buffer {
             }
         }
     }
+
+    pub fn into_data(self) -> Vec<Data> {
+        self.captures
+    }
 }
 
 pub enum Data {
@@ -93,24 +95,32 @@ pub enum Data {
 
 impl Data {
     pub fn print(self) {
+        for line in self.into_text() {
+            println!("{line}");
+        }
+    }
+
+    pub fn into_text(self) -> Vec<String> {
+        let mut text = vec!["-----------".to_string()];
         match self {
             Data::Full {
                 view,
                 messages,
                 changes,
             } => {
-                println!("-----------");
-                view.print_lines();
-                println!();
-                messages.print();
-                changes.print_lines();
+                text.extend(view.0);
+                text.push(String::default());
+                if !messages.0.is_empty() {
+                    text.push(messages.0.join(" "));
+                }
+                text.extend(changes.0);
             }
             Data::Simple(messages) => {
-                println!("-----------");
-                messages.print_lines();
-                println!();
+                text.extend(messages.0);
+                text.push(String::default());
             }
         }
+        text
     }
 }
 

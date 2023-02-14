@@ -7,4 +7,4 @@ mod item;
 mod position;
 pub mod standard_io_interface;
 mod status;
-mod view;
+pub mod view;
