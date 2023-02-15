@@ -38,7 +38,69 @@ enum State {
     Done,
 }
 
+const FONT: egui::FontId = egui::FontId::monospace(15.0);
+
+impl eframe::App for App {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.update_game_state();
+
+        egui::TopBottomPanel::bottom("input").show(ctx, |ui| self.input_field(ctx, ui));
+
+        egui::CentralPanel::default().show(ctx, |ui| self.text_box(ui));
+    }
+}
+
 impl App {
+    fn update_game_state(&mut self) {
+        if self.state == State::Run {
+            let mut view_buffer = view::Buffer::default();
+            match self.game.run(&mut view_buffer) {
+                Ok(TakeInput) => {
+                    self.add_view_data(view_buffer);
+                    self.state = State::Input;
+                }
+                Err(stop_type) => {
+                    self.add_view_data(view_buffer);
+                    self.text_lines.extend(stop_type.messages().into_text());
+                    self.state = State::Done;
+                }
+            }
+        }
+    }
+
+    fn input_field(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
+        let response = ui.add_enabled(
+            self.state == State::Input,
+            egui::TextEdit::singleline(&mut self.input)
+                .font(FONT)
+                .desired_width(f32::INFINITY),
+        );
+
+        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+            let input = take(&mut self.input);
+            if !input.is_empty() {
+                self.text_lines.push(format!("> {input}"));
+                if let Err(messages) = self.game.handle_input(&input) {
+                    self.text_lines.extend(messages.into_text());
+                } else {
+                    self.state = State::Run;
+                }
+            }
+            ctx.memory().request_focus(response.id);
+        }
+    }
+
+    fn text_box(&mut self, ui: &mut egui::Ui) {
+        ScrollArea::vertical()
+            .auto_shrink([false; 2])
+            .stick_to_bottom(true)
+            .show(ui, |ui| {
+                for text in &self.text_lines {
+                    ui.label(egui::RichText::new(text).font(FONT));
+                }
+            });
+    }
+
     fn add_view_data(&mut self, view_buffer: view::Buffer) {
         self.text_lines.extend(
             view_buffer
@@ -47,59 +109,5 @@ impl App {
                 .flat_map(view::Data::into_text)
                 .collect::<Vec<_>>(),
         );
-    }
-}
-
-const FONT: egui::FontId = egui::FontId::monospace(15.0);
-
-impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        if self.state == State::Run {
-            let mut view_buffer = view::Buffer::default();
-            match self.game.run(&mut view_buffer) {
-                Ok(TakeInput) => {
-                    self.add_view_data(view_buffer);
-                    self.state = State::Input
-                },
-                Err(stop_type) => {
-                    self.add_view_data(view_buffer);
-                    self.text_lines.extend(stop_type.messages().into_text());
-                    self.state = State::Done;
-                }
-            }
-        }
-
-        egui::TopBottomPanel::bottom("input").show(ctx, |ui| {
-            let response = ui.add_enabled(
-                self.state == State::Input,
-                egui::TextEdit::singleline(&mut self.input)
-                    .font(FONT)
-                    .desired_width(f32::INFINITY),
-            );
-
-            if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
-                let input = take(&mut self.input);
-                if !input.is_empty() {
-                    self.text_lines.push(format!("> {}", input));
-                    if let Err(messages) = self.game.handle_input(&input) {
-                        self.text_lines.extend(messages.into_text());
-                    } else {
-                        self.state = State::Run;
-                    }
-                }
-                ctx.memory().request_focus(response.id);
-            }
-        });
-
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ScrollArea::vertical()
-                .auto_shrink([false; 2])
-                .stick_to_bottom(true)
-                .show(ui, |ui| {
-                    for text in &self.text_lines {
-                        ui.label(egui::RichText::new(text).font(FONT));
-                    }
-                })
-        });
     }
 }
