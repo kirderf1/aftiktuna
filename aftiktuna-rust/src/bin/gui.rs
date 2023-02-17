@@ -81,6 +81,8 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        ctx.request_repaint();
+
         self.update_view_state();
 
         self.update_game_state();
@@ -98,9 +100,8 @@ impl App {
             .as_ref()
             .map_or(false, |(instant, _)| instant.elapsed() >= DELAY)
         {
-            self.delayed_views = take(&mut self.delayed_views).and_then(|(_, delayed_views)| {
-                delayed_views.next_and_write(&mut self.text_lines)
-            });
+            self.delayed_views = take(&mut self.delayed_views)
+                .and_then(|(_, delayed_views)| delayed_views.next_and_write(&mut self.text_lines));
         }
     }
 
