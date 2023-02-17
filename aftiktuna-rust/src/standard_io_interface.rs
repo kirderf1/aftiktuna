@@ -1,8 +1,8 @@
 use crate::area::Locations;
 use crate::game_loop::TakeInput;
 use crate::{game_loop, view};
-use std::io;
 use std::io::Write;
+use std::{io, thread, time};
 
 pub fn run(locations: Locations) {
     let (messages, mut game) = game_loop::setup(locations);
@@ -20,6 +20,7 @@ pub fn run(locations: Locations) {
             }
             Err(stop_type) => {
                 view_buffer.print();
+                thread::sleep(time::Duration::from_secs(2));
                 println!();
                 stop_type.messages().print_lines();
                 return;
