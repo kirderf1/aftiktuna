@@ -3,18 +3,56 @@ use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
 use aftiktuna::view;
 use aftiktuna::view::Messages;
-use eframe::egui;
-use eframe::egui::ScrollArea;
+use egui_macroquad::egui;
+use macroquad::prelude::*;
 use std::mem::take;
 use std::time;
 use std::time::Instant;
 
-fn main() {
-    let options = eframe::NativeOptions {
-        resizable: false,
-        ..Default::default()
-    };
-    eframe::run_native("Aftiktuna", options, Box::new(|_cc| Box::new(init())));
+#[macroquad::main("Aftiktuna")]
+async fn main() {
+    let mut app = init();
+    let background = load_texture("assets/tree_background.png").await.unwrap();
+    let unknown = load_texture("assets/unknown.png").await.unwrap();
+
+    loop {
+        app.update_view_state();
+
+        app.update_game_state();
+
+        clear_background(BLACK);
+
+        if is_key_down(KeyCode::Tab) {
+            let width = screen_width();
+            let height = screen_height();
+            draw_texture_ex(
+                background,
+                0.,
+                0.,
+                WHITE,
+                DrawTextureParams {
+                    source: Some(Rect::new((800. - width) / 2., 600. - height, width, height)),
+                    dest_size: Some(Vec2::new(width, height)),
+                    ..Default::default()
+                },
+            );
+
+            draw_texture_ex(unknown, 100., 200., WHITE, DrawTextureParams {
+                dest_size: Some(Vec2::new(120., 200.)),
+                ..Default::default()
+            });
+            draw_texture_ex(unknown, 400., 200., WHITE, DrawTextureParams {
+                dest_size: Some(Vec2::new(120., 200.)),
+                ..Default::default()
+            });
+        } else {
+            egui_macroquad::ui(|ctx| app.ui(ctx));
+
+            egui_macroquad::draw();
+        }
+
+        next_frame().await
+    }
 }
 
 fn init() -> App {
@@ -79,20 +117,6 @@ impl DelayedViews {
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 const DELAY: time::Duration = time::Duration::from_secs(2);
 
-impl eframe::App for App {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        ctx.request_repaint();
-
-        self.update_view_state();
-
-        self.update_game_state();
-
-        egui::TopBottomPanel::bottom("input").show(ctx, |ui| self.input_field(ctx, ui));
-
-        egui::CentralPanel::default().show(ctx, |ui| self.text_box(ui));
-    }
-}
-
 impl App {
     fn update_view_state(&mut self) {
         if self
@@ -129,7 +153,9 @@ impl App {
                 .desired_width(f32::INFINITY),
         );
 
-        if response.lost_focus() && ui.input().key_pressed(egui::Key::Enter) {
+        if response.lost_focus()
+            && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter))
+        {
             let input = take(&mut self.input);
             if !input.is_empty() {
                 self.text_lines.push(format!("> {input}"));
@@ -139,12 +165,12 @@ impl App {
                     self.state = State::Run;
                 }
             }
-            ctx.memory().request_focus(response.id);
+            ctx.memory_mut(|memory| memory.request_focus(response.id));
         }
     }
 
     fn text_box(&mut self, ui: &mut egui::Ui) {
-        ScrollArea::vertical()
+        egui::ScrollArea::vertical()
             .auto_shrink([false; 2])
             .stick_to_bottom(true)
             .show(ui, |ui| {
@@ -157,5 +183,11 @@ impl App {
     fn add_view_data(&mut self, view_buffer: view::Buffer, extra_messages: Option<Messages>) {
         let views = DelayedViews::new(view_buffer, extra_messages);
         self.delayed_views = views.next_and_write(&mut self.text_lines);
+    }
+
+    fn ui(&mut self, ctx: &egui::Context) {
+        egui::TopBottomPanel::bottom("input").show(ctx, |ui| self.input_field(ctx, ui));
+
+        egui::CentralPanel::default().show(ctx, |ui| self.text_box(ui));
     }
 }
