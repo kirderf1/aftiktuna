@@ -62,6 +62,7 @@ impl Buffer {
             view: view_messages(world, character, cache),
             messages: take(&mut self.messages),
             changes: status::changes_messages(world, character, cache),
+            objects: objects_for_rendering(world, character),
         });
     }
 
@@ -89,34 +90,36 @@ pub enum Data {
         view: Messages,
         messages: Messages,
         changes: Messages,
+        objects: Vec<Coord>,
     },
     Simple(Messages),
 }
 
 impl Data {
     pub fn print(self) {
-        for line in self.into_text() {
+        for line in self.as_text() {
             println!("{line}");
         }
     }
 
-    pub fn into_text(self) -> Vec<String> {
+    pub fn as_text(&self) -> Vec<String> {
         let mut text = vec!["-----------".to_string()];
         match self {
             Data::Full {
                 view,
                 messages,
                 changes,
+                ..
             } => {
-                text.extend(view.0);
+                text.extend(view.0.clone());
                 text.push(String::default());
                 if !messages.0.is_empty() {
                     text.push(messages.0.join(" "));
                 }
-                text.extend(changes.0);
+                text.extend(changes.0.clone());
             }
             Data::Simple(messages) => {
-                text.extend(messages.0);
+                text.extend(messages.0.clone());
                 text.push(String::default());
             }
         }
@@ -232,4 +235,15 @@ pub fn capitalize(text: impl AsRef<str>) -> String {
 
 pub fn name_display_info(name: &str) -> DisplayInfo {
     DisplayInfo::new(name.chars().next().unwrap(), 10)
+}
+
+fn objects_for_rendering(world: &World, character: Entity) -> Vec<Coord> {
+    let area = get_viewed_area(character, world);
+
+    world
+        .query::<(&Pos, &DisplayInfo)>()
+        .iter()
+        .filter(|(_, (pos, _))| pos.is_in(area))
+        .map(|(_, (pos, _))| pos.get_coord())
+        .collect()
 }

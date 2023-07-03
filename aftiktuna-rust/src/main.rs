@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
+use aftiktuna::position::Coord;
 use aftiktuna::view;
 use aftiktuna::view::Messages;
 use egui_macroquad::egui;
@@ -9,7 +11,14 @@ use std::mem::take;
 use std::time;
 use std::time::Instant;
 
-#[macroquad::main("Aftiktuna")]
+fn config() -> Conf {
+    Conf {
+        window_title : "Aftiktuna".to_string(),
+        .. Default::default()
+    }
+}
+
+#[macroquad::main(config)]
 async fn main() {
     let mut app = init();
     let background = load_texture("assets/tree_background.png").await.unwrap();
@@ -37,14 +46,7 @@ async fn main() {
                 },
             );
 
-            draw_texture_ex(unknown, 100., 200., WHITE, DrawTextureParams {
-                dest_size: Some(Vec2::new(120., 200.)),
-                ..Default::default()
-            });
-            draw_texture_ex(unknown, 400., 200., WHITE, DrawTextureParams {
-                dest_size: Some(Vec2::new(120., 200.)),
-                ..Default::default()
-            });
+            draw_objects(&mut app, unknown);
         } else {
             egui_macroquad::ui(|ctx| app.ui(ctx));
 
@@ -55,6 +57,31 @@ async fn main() {
     }
 }
 
+fn draw_objects(app: &mut App, unknown: Texture2D) {
+    let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
+
+    for coord in &app.objects {
+        let count_ref = coord_counts.entry(*coord).or_insert(0);
+        let count = *count_ref;
+        *count_ref = count + 1;
+        draw_object(unknown, (50 + (*coord as i32) * 120 - count * 15) as f32, (300 + count * 10) as f32);
+    }
+}
+
+fn draw_object(texture: Texture2D, x: f32, y: f32) {
+
+    draw_texture_ex(
+        texture,
+        x,
+        y,
+        WHITE,
+        DrawTextureParams {
+            dest_size: Some(Vec2::new(120., 200.)),
+            ..Default::default()
+        },
+    );
+}
+
 fn init() -> App {
     let (messages, game) = game_loop::setup(Locations::new(3));
     App {
@@ -63,6 +90,7 @@ fn init() -> App {
         game,
         state: State::Run,
         delayed_views: None,
+        objects: Vec::new(),
     }
 }
 
@@ -72,6 +100,7 @@ struct App {
     game: Game,
     state: State,
     delayed_views: Option<(Instant, DelayedViews)>,
+    objects: Vec<Coord>,
 }
 
 #[derive(Eq, PartialEq)]
@@ -96,9 +125,17 @@ impl DelayedViews {
         }
     }
 
-    fn next_and_write(mut self, text_lines: &mut Vec<String>) -> Option<(Instant, Self)> {
+    fn next_and_write(
+        mut self,
+        text_lines: &mut Vec<String>,
+        render_objects: &mut Vec<Coord>,
+    ) -> Option<(Instant, Self)> {
         if let Some(view_data) = self.remaining_views.pop() {
-            text_lines.extend(view_data.into_text());
+            text_lines.extend(view_data.as_text());
+            if let view::Data::Full { objects, .. } = view_data {
+                *render_objects = objects;
+            }
+
             if self.remaining_views.is_empty() && self.extra_messages.is_none() {
                 None
             } else {
@@ -124,8 +161,9 @@ impl App {
             .as_ref()
             .map_or(false, |(instant, _)| instant.elapsed() >= DELAY)
         {
-            self.delayed_views = take(&mut self.delayed_views)
-                .and_then(|(_, delayed_views)| delayed_views.next_and_write(&mut self.text_lines));
+            self.delayed_views = take(&mut self.delayed_views).and_then(|(_, delayed_views)| {
+                delayed_views.next_and_write(&mut self.text_lines, &mut self.objects)
+            });
         }
     }
 
@@ -182,7 +220,7 @@ impl App {
 
     fn add_view_data(&mut self, view_buffer: view::Buffer, extra_messages: Option<Messages>) {
         let views = DelayedViews::new(view_buffer, extra_messages);
-        self.delayed_views = views.next_and_write(&mut self.text_lines);
+        self.delayed_views = views.next_and_write(&mut self.text_lines, &mut self.objects);
     }
 
     fn ui(&mut self, ctx: &egui::Context) {
