@@ -1,20 +1,20 @@
-use std::collections::HashMap;
 use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
 use aftiktuna::position::Coord;
 use aftiktuna::view;
-use aftiktuna::view::Messages;
+use aftiktuna::view::{Messages, RenderData, TextureType};
 use egui_macroquad::egui;
 use macroquad::prelude::*;
+use std::collections::HashMap;
 use std::mem::take;
 use std::time;
 use std::time::Instant;
 
 fn config() -> Conf {
     Conf {
-        window_title : "Aftiktuna".to_string(),
-        .. Default::default()
+        window_title: "Aftiktuna".to_string(),
+        ..Default::default()
     }
 }
 
@@ -60,23 +60,33 @@ async fn main() {
 fn draw_objects(app: &mut App, unknown: Texture2D) {
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
-    for coord in &app.objects {
-        let count_ref = coord_counts.entry(*coord).or_insert(0);
+    for data in &app.objects {
+        let coord = data.coord;
+        let count_ref = coord_counts.entry(coord).or_insert(0);
         let count = *count_ref;
         *count_ref = count + 1;
-        draw_object(unknown, (50 + (*coord as i32) * 120 - count * 15) as f32, (300 + count * 10) as f32);
+
+        draw_object(
+            unknown,
+            data.texture_type,
+            (110 + (coord as i32) * 120 - count * 15) as f32,
+            (500 + count * 10) as f32,
+        );
     }
 }
 
-fn draw_object(texture: Texture2D, x: f32, y: f32) {
-
+fn draw_object(unknown: Texture2D, texture_type: TextureType, x: f32, y: f32) {
+    let (texture, size) = match texture_type {
+        TextureType::Unknown => (unknown, Vec2::new(120., 200.)),
+        TextureType::SmallUnknown => (unknown, Vec2::new(100., 100.)),
+    };
     draw_texture_ex(
         texture,
-        x,
-        y,
+        x - size.x / 2.,
+        y - size.y,
         WHITE,
         DrawTextureParams {
-            dest_size: Some(Vec2::new(120., 200.)),
+            dest_size: Some(size),
             ..Default::default()
         },
     );
@@ -100,7 +110,7 @@ struct App {
     game: Game,
     state: State,
     delayed_views: Option<(Instant, DelayedViews)>,
-    objects: Vec<Coord>,
+    objects: Vec<RenderData>,
 }
 
 #[derive(Eq, PartialEq)]
@@ -128,7 +138,7 @@ impl DelayedViews {
     fn next_and_write(
         mut self,
         text_lines: &mut Vec<String>,
-        render_objects: &mut Vec<Coord>,
+        render_objects: &mut Vec<RenderData>,
     ) -> Option<(Instant, Self)> {
         if let Some(view_data) = self.remaining_views.pop() {
             text_lines.extend(view_data.as_text());

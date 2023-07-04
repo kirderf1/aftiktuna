@@ -1,4 +1,4 @@
-use crate::view::{DisplayInfo, NameData, NounData};
+use crate::view::{DisplayInfo, NameData, NounData, TextureType};
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -79,7 +79,7 @@ impl Type {
     }
 
     pub fn display_info(self) -> DisplayInfo {
-        DisplayInfo::new(self.symbol(), 1)
+        DisplayInfo::new(self.symbol(), TextureType::SmallUnknown, 1)
     }
 
     pub fn price(self) -> Option<i32> {

@@ -3,7 +3,7 @@ use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, Recruitable};
 use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
-use crate::view::{DisplayInfo, NameData};
+use crate::view::{DisplayInfo, NameData, TextureType};
 use crate::{item, view};
 use hecs::{Entity, EntityBuilder, World};
 
@@ -22,7 +22,7 @@ pub fn spawn_crew_member(world: &mut World, crew: Entity, name: &str, stats: Sta
 pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats) {
     world.spawn(
         aftik_builder(
-            DisplayInfo::new('A', 10),
+            DisplayInfo::new('A', TextureType::Unknown, 10),
             NameData::from_noun("aftik", "aftiks"),
             stats,
         )
@@ -47,7 +47,7 @@ fn aftik_builder(display_info: DisplayInfo, name_data: NameData, stats: Stats) -
 pub fn place_goblin(world: &mut World, pos: Pos) {
     let stats = Stats::new(2, 4, 10);
     world.spawn((
-        DisplayInfo::new('G', 10),
+        DisplayInfo::new('G', TextureType::Unknown, 10),
         NameData::from_noun("goblin", "goblins"),
         pos,
         MovementBlocking,
@@ -61,7 +61,7 @@ pub fn place_goblin(world: &mut World, pos: Pos) {
 pub fn place_eyesaur(world: &mut World, pos: Pos) {
     let stats = Stats::new(7, 7, 4);
     world.spawn((
-        DisplayInfo::new('E', 10),
+        DisplayInfo::new('E', TextureType::Unknown, 10),
         NameData::from_noun("eyesaur", "eyesaurs"),
         pos,
         MovementBlocking,
@@ -75,7 +75,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
 pub fn place_azureclops(world: &mut World, pos: Pos) {
     let stats = Stats::new(15, 10, 4);
     world.spawn((
-        DisplayInfo::new('Z', 10),
+        DisplayInfo::new('Z', TextureType::Unknown, 10),
         NameData::from_noun("azureclops", "azureclopses"),
         pos,
         MovementBlocking,
@@ -96,7 +96,7 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        DisplayInfo::new('S', 15),
+        DisplayInfo::new('S', TextureType::Unknown, 15),
         NameData::from_noun("shopkeeper", "shopkeepers"),
         pos,
         Shopkeeper(stock),

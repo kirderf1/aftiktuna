@@ -43,6 +43,7 @@ impl<T: AsRef<str>> From<T> for Messages {
 #[derive(Clone, Debug)]
 pub struct DisplayInfo {
     symbol: char,
+    texture_type: TextureType,
     weight: u32,
 }
 
@@ -90,7 +91,7 @@ pub enum Data {
         view: Messages,
         messages: Messages,
         changes: Messages,
-        objects: Vec<Coord>,
+        objects: Vec<RenderData>,
     },
     Simple(Messages),
 }
@@ -128,8 +129,12 @@ impl Data {
 }
 
 impl DisplayInfo {
-    pub fn new(symbol: char, weight: u32) -> Self {
-        DisplayInfo { symbol, weight }
+    pub fn new(symbol: char, texture_type: TextureType, weight: u32) -> Self {
+        DisplayInfo {
+            symbol,
+            texture_type,
+            weight,
+        }
     }
 }
 
@@ -234,16 +239,30 @@ pub fn capitalize(text: impl AsRef<str>) -> String {
 }
 
 pub fn name_display_info(name: &str) -> DisplayInfo {
-    DisplayInfo::new(name.chars().next().unwrap(), 10)
+    DisplayInfo::new(name.chars().next().unwrap(), TextureType::Unknown, 10)
 }
 
-fn objects_for_rendering(world: &World, character: Entity) -> Vec<Coord> {
+pub struct RenderData {
+    pub coord: Coord,
+    pub texture_type: TextureType,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum TextureType {
+    Unknown,
+    SmallUnknown,
+}
+
+fn objects_for_rendering(world: &World, character: Entity) -> Vec<RenderData> {
     let area = get_viewed_area(character, world);
 
     world
         .query::<(&Pos, &DisplayInfo)>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(area))
-        .map(|(_, (pos, _))| pos.get_coord())
+        .map(|(_, (pos, display_info))| RenderData {
+            coord: pos.get_coord(),
+            texture_type: display_info.texture_type,
+        })
         .collect()
 }
