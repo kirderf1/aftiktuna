@@ -161,12 +161,12 @@ fn view_messages(world: &World, character: Entity, cache: &mut StatusCache) -> M
         let area_info = world.get::<&Area>(area).unwrap();
         let area_size = area_info.size;
         messages.add(format!("{}:", area_info.label));
-        print_area(world, &mut messages, area, area_size);
+        print_area(world, &mut messages.0, area, area_size);
     }
     messages
 }
 
-fn print_area(world: &World, messages: &mut Messages, area: Entity, area_size: Coord) {
+fn print_area(world: &World, lines: &mut Vec<String>, area: Entity, area_size: Coord) {
     let mut symbols_by_pos = init_symbol_vectors(area_size);
     let mut labels = Vec::new();
 
@@ -202,10 +202,10 @@ fn print_area(world: &World, messages: &mut Messages, area: Entity, area_size: C
                 symbols[pos] = symbol.0;
             }
         }
-        messages.add(symbols.iter().collect::<String>());
+        lines.push(symbols.iter().collect::<String>());
     }
     for labels in labels.chunks(3) {
-        messages.add(labels.join("   "));
+        lines.push(labels.join("   "));
     }
 }
 
