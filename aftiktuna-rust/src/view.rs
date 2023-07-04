@@ -63,7 +63,7 @@ impl Buffer {
             view: view_messages(world, character, cache),
             messages: take(&mut self.messages),
             changes: status::changes_messages(world, character, cache),
-            objects: objects_for_rendering(world, character),
+            render_data: prepare_render_data(world, character),
         });
     }
 
@@ -91,7 +91,7 @@ pub enum Data {
         view: Messages,
         messages: Messages,
         changes: Messages,
-        objects: Vec<RenderData>,
+        render_data: RenderData,
     },
     Simple(Messages),
 }
@@ -243,6 +243,11 @@ pub fn name_display_info(name: &str) -> DisplayInfo {
 }
 
 pub struct RenderData {
+    pub size: Coord,
+    pub objects: Vec<ObjectRenderData>,
+}
+
+pub struct ObjectRenderData {
     pub coord: Coord,
     pub texture_type: TextureType,
 }
@@ -253,16 +258,19 @@ pub enum TextureType {
     SmallUnknown,
 }
 
-fn objects_for_rendering(world: &World, character: Entity) -> Vec<RenderData> {
+fn prepare_render_data(world: &World, character: Entity) -> RenderData {
     let area = get_viewed_area(character, world);
+    let size = world.get::<&Area>(area).unwrap().size;
 
-    world
+    let objects = world
         .query::<(&Pos, &DisplayInfo)>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(area))
-        .map(|(_, (pos, display_info))| RenderData {
+        .map(|(_, (pos, display_info))| ObjectRenderData {
             coord: pos.get_coord(),
             texture_type: display_info.texture_type,
         })
-        .collect()
+        .collect();
+
+    RenderData { size, objects }
 }

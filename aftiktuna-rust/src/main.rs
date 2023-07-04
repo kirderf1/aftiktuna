@@ -46,7 +46,9 @@ async fn main() {
                 },
             );
 
-            draw_objects(&mut app, unknown);
+            if let Some(render_data) = &app.render_data {
+                draw_objects(render_data, unknown);
+            }
         } else {
             egui_macroquad::ui(|ctx| app.ui(ctx));
 
@@ -57,10 +59,12 @@ async fn main() {
     }
 }
 
-fn draw_objects(app: &mut App, unknown: Texture2D) {
+fn draw_objects(render_data: &RenderData, unknown: Texture2D) {
+    let size = render_data.size;
+    let start_x = (800. - (size - 1) as f32 * 120.) / 2.;
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
-    for data in &app.objects {
+    for data in &render_data.objects {
         let coord = data.coord;
         let count_ref = coord_counts.entry(coord).or_insert(0);
         let count = *count_ref;
@@ -69,7 +73,7 @@ fn draw_objects(app: &mut App, unknown: Texture2D) {
         draw_object(
             unknown,
             data.texture_type,
-            (110 + (coord as i32) * 120 - count * 15) as f32,
+            start_x + ((coord as i32) * 120 - count * 15) as f32,
             (500 + count * 10) as f32,
         );
     }
@@ -100,7 +104,7 @@ fn init() -> App {
         game,
         state: State::Run,
         delayed_views: None,
-        objects: Vec::new(),
+        render_data: None,
     }
 }
 
@@ -110,7 +114,7 @@ struct App {
     game: Game,
     state: State,
     delayed_views: Option<(Instant, DelayedViews)>,
-    objects: Vec<RenderData>,
+    render_data: Option<RenderData>,
 }
 
 #[derive(Eq, PartialEq)]
@@ -138,12 +142,12 @@ impl DelayedViews {
     fn next_and_write(
         mut self,
         text_lines: &mut Vec<String>,
-        render_objects: &mut Vec<RenderData>,
+        data_consumer: impl FnOnce(RenderData),
     ) -> Option<(Instant, Self)> {
         if let Some(view_data) = self.remaining_views.pop() {
             text_lines.extend(view_data.as_text());
-            if let view::Data::Full { objects, .. } = view_data {
-                *render_objects = objects;
+            if let view::Data::Full { render_data, .. } = view_data {
+                data_consumer(render_data);
             }
 
             if self.remaining_views.is_empty() && self.extra_messages.is_none() {
@@ -172,7 +176,8 @@ impl App {
             .map_or(false, |(instant, _)| instant.elapsed() >= DELAY)
         {
             self.delayed_views = take(&mut self.delayed_views).and_then(|(_, delayed_views)| {
-                delayed_views.next_and_write(&mut self.text_lines, &mut self.objects)
+                delayed_views
+                    .next_and_write(&mut self.text_lines, |data| self.render_data = Some(data))
             });
         }
     }
@@ -230,7 +235,8 @@ impl App {
 
     fn add_view_data(&mut self, view_buffer: view::Buffer, extra_messages: Option<Messages>) {
         let views = DelayedViews::new(view_buffer, extra_messages);
-        self.delayed_views = views.next_and_write(&mut self.text_lines, &mut self.objects);
+        self.delayed_views =
+            views.next_and_write(&mut self.text_lines, |data| self.render_data = Some(data));
     }
 
     fn ui(&mut self, ctx: &egui::Context) {
