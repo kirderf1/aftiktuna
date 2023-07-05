@@ -238,8 +238,8 @@ pub fn capitalize(text: impl AsRef<str>) -> String {
     }
 }
 
-pub fn name_display_info(name: &str) -> DisplayInfo {
-    DisplayInfo::new(name.chars().next().unwrap(), TextureType::Unknown, 10)
+pub fn name_display_info(texture_type: TextureType, name: &str) -> DisplayInfo {
+    DisplayInfo::new(name.chars().next().unwrap(), texture_type, 10)
 }
 
 pub struct RenderData {
@@ -256,6 +256,7 @@ pub struct ObjectRenderData {
 pub enum TextureType {
     Unknown,
     SmallUnknown,
+    Aftik,
 }
 
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {

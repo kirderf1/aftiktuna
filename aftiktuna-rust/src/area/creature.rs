@@ -10,7 +10,7 @@ use hecs::{Entity, EntityBuilder, World};
 pub fn spawn_crew_member(world: &mut World, crew: Entity, name: &str, stats: Stats) -> Entity {
     world.spawn(
         aftik_builder(
-            view::name_display_info(name),
+            view::name_display_info(TextureType::Aftik, name),
             NameData::from_name(name),
             stats,
         )
@@ -22,7 +22,7 @@ pub fn spawn_crew_member(world: &mut World, crew: Entity, name: &str, stats: Sta
 pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats) {
     world.spawn(
         aftik_builder(
-            DisplayInfo::new('A', TextureType::Unknown, 10),
+            DisplayInfo::new('A', TextureType::Aftik, 10),
             NameData::from_noun("aftik", "aftiks"),
             stats,
         )
@@ -96,7 +96,7 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        DisplayInfo::new('S', TextureType::Unknown, 15),
+        DisplayInfo::new('S', TextureType::Aftik, 15),
         NameData::from_noun("shopkeeper", "shopkeepers"),
         pos,
         Shopkeeper(stock),

@@ -1,6 +1,6 @@
 use crate::action::combat::Target;
 use crate::position::{try_move, Pos};
-use crate::view::{Messages, NameData};
+use crate::view::{Messages, NameData, TextureType};
 use crate::{status, view};
 use hecs::{Entity, World};
 use rand::Rng;
@@ -152,7 +152,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
         .insert(
             target,
             (
-                view::name_display_info(&name),
+                view::name_display_info(TextureType::Aftik, &name),
                 NameData::Name(name.clone()),
                 CrewMember(crew),
             ),
