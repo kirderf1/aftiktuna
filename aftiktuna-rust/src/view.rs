@@ -252,7 +252,7 @@ pub struct ObjectRenderData {
     pub texture_type: TextureType,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub enum TextureType {
     Unknown,
     SmallUnknown,

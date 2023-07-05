@@ -22,7 +22,7 @@ fn config() -> Conf {
 async fn main() {
     let mut app = init();
     let background = load_texture("assets/tree_background.png").await.unwrap();
-    let unknown = load_texture("assets/unknown.png").await.unwrap();
+    let textures = setup_object_textures().await;
 
     loop {
         app.update_view_state();
@@ -47,7 +47,7 @@ async fn main() {
             );
 
             if let Some(render_data) = &app.render_data {
-                draw_objects(render_data, unknown);
+                draw_objects(render_data, &textures);
             }
         } else {
             egui_macroquad::ui(|ctx| app.ui(ctx));
@@ -59,7 +59,35 @@ async fn main() {
     }
 }
 
-fn draw_objects(render_data: &RenderData, unknown: Texture2D) {
+struct TextureData {
+    texture: Texture2D,
+    dest_size: Vec2,
+}
+
+async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
+    let unknown = load_texture("assets/unknown.png").await.unwrap();
+
+    let mut textures = HashMap::new();
+
+    textures.insert(
+        TextureType::Unknown,
+        TextureData {
+            texture: unknown,
+            dest_size: Vec2::new(120., 200.),
+        },
+    );
+    textures.insert(
+        TextureType::SmallUnknown,
+        TextureData {
+            texture: unknown,
+            dest_size: Vec2::new(100., 100.),
+        },
+    );
+
+    textures
+}
+
+fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, TextureData>) {
     let size = render_data.size;
     let start_x = (800. - (size - 1) as f32 * 120.) / 2.;
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
@@ -71,21 +99,17 @@ fn draw_objects(render_data: &RenderData, unknown: Texture2D) {
         *count_ref = count + 1;
 
         draw_object(
-            unknown,
-            data.texture_type,
+            textures.get(&data.texture_type).unwrap(),
             start_x + ((coord as i32) * 120 - count * 15) as f32,
             (500 + count * 10) as f32,
         );
     }
 }
 
-fn draw_object(unknown: Texture2D, texture_type: TextureType, x: f32, y: f32) {
-    let (texture, size) = match texture_type {
-        TextureType::Unknown => (unknown, Vec2::new(120., 200.)),
-        TextureType::SmallUnknown => (unknown, Vec2::new(100., 100.)),
-    };
+fn draw_object(data: &TextureData, x: f32, y: f32) {
+    let size = data.dest_size;
     draw_texture_ex(
-        texture,
+        data.texture,
         x - size.x / 2.,
         y - size.y,
         WHITE,
