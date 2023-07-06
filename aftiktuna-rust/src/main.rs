@@ -59,6 +59,7 @@ async fn main() {
     }
 }
 
+#[derive(Clone)]
 struct TextureData {
     texture: Texture2D,
     dest_size: Vec2,
@@ -89,6 +90,14 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         },
     );
     textures.insert(
+        TextureType::Path,
+        TextureData {
+            texture: path,
+            dest_size: Vec2::new(path.width(), path.height()),
+            directional: false,
+        },
+    );
+    textures.insert(
         TextureType::Aftik,
         TextureData {
             texture: aftik,
@@ -97,12 +106,16 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         },
     );
     textures.insert(
-        TextureType::Path,
-        TextureData {
-            texture: path,
-            dest_size: Vec2::new(path.width(), path.height()),
-            directional: false,
-        },
+        TextureType::Goblin,
+        textures.get(&TextureType::Unknown).unwrap().clone(),
+    );
+    textures.insert(
+        TextureType::Eyesaur,
+        textures.get(&TextureType::Unknown).unwrap().clone(),
+    );
+    textures.insert(
+        TextureType::Azureclops,
+        textures.get(&TextureType::Unknown).unwrap().clone(),
     );
 
     textures

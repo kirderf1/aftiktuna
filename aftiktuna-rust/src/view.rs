@@ -278,8 +278,11 @@ impl Direction {
 pub enum TextureType {
     Unknown,
     SmallUnknown,
-    Aftik,
     Path,
+    Aftik,
+    Goblin,
+    Eyesaur,
+    Azureclops,
 }
 
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {

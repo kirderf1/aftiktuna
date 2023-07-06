@@ -48,7 +48,7 @@ fn aftik_builder(display_info: DisplayInfo, name_data: NameData, stats: Stats) -
 pub fn place_goblin(world: &mut World, pos: Pos) {
     let stats = Stats::new(2, 4, 10);
     world.spawn((
-        DisplayInfo::new('G', TextureType::Unknown, 10),
+        DisplayInfo::new('G', TextureType::Goblin, 10),
         NameData::from_noun("goblin", "goblins"),
         pos,
         Direction::towards_center(pos, world),
@@ -63,7 +63,7 @@ pub fn place_goblin(world: &mut World, pos: Pos) {
 pub fn place_eyesaur(world: &mut World, pos: Pos) {
     let stats = Stats::new(7, 7, 4);
     world.spawn((
-        DisplayInfo::new('E', TextureType::Unknown, 10),
+        DisplayInfo::new('E', TextureType::Eyesaur, 10),
         NameData::from_noun("eyesaur", "eyesaurs"),
         pos,
         Direction::towards_center(pos, world),
@@ -78,7 +78,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
 pub fn place_azureclops(world: &mut World, pos: Pos) {
     let stats = Stats::new(15, 10, 4);
     world.spawn((
-        DisplayInfo::new('Z', TextureType::Unknown, 10),
+        DisplayInfo::new('Z', TextureType::Azureclops, 10),
         NameData::from_noun("azureclops", "azureclopses"),
         pos,
         Direction::towards_center(pos, world),
