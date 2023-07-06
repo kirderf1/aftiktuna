@@ -250,6 +250,23 @@ pub struct RenderData {
 pub struct ObjectRenderData {
     pub coord: Coord,
     pub texture_type: TextureType,
+    pub direction: Direction,
+}
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum Direction {
+    Left,
+    Right,
+}
+
+impl Direction {
+    pub fn between(from: Pos, to: Pos) -> Direction {
+        if to.get_coord() < from.get_coord() {
+            Direction::Left
+        } else {
+            Direction::Right
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -264,12 +281,13 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
     let size = world.get::<&Area>(area).unwrap().size;
 
     let objects = world
-        .query::<(&Pos, &DisplayInfo)>()
+        .query::<(&Pos, &DisplayInfo, Option<&Direction>)>()
         .iter()
-        .filter(|(_, (pos, _))| pos.is_in(area))
-        .map(|(_, (pos, display_info))| ObjectRenderData {
+        .filter(|(_, (pos, _, _))| pos.is_in(area))
+        .map(|(_, (pos, display_info, direction))| ObjectRenderData {
             coord: pos.get_coord(),
             texture_type: display_info.texture_type,
+            direction: direction.copied().unwrap_or(Direction::Right),
         })
         .collect();
 

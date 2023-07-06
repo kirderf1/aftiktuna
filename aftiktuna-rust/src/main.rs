@@ -3,7 +3,7 @@ use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
 use aftiktuna::position::Coord;
 use aftiktuna::view;
-use aftiktuna::view::{Messages, RenderData, TextureType};
+use aftiktuna::view::{Direction, Messages, RenderData, TextureType};
 use egui_macroquad::egui;
 use macroquad::prelude::*;
 use std::collections::HashMap;
@@ -62,6 +62,7 @@ async fn main() {
 struct TextureData {
     texture: Texture2D,
     dest_size: Vec2,
+    directional: bool,
 }
 
 async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
@@ -75,6 +76,7 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         TextureData {
             texture: unknown,
             dest_size: Vec2::new(120., 200.),
+            directional: false,
         },
     );
     textures.insert(
@@ -82,6 +84,7 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         TextureData {
             texture: unknown,
             dest_size: Vec2::new(100., 100.),
+            directional: false,
         },
     );
     textures.insert(
@@ -89,6 +92,7 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         TextureData {
             texture: aftik,
             dest_size: Vec2::new(100., 140.),
+            directional: true,
         },
     );
 
@@ -108,13 +112,14 @@ fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, Textur
 
         draw_object(
             textures.get(&data.texture_type).unwrap(),
+            data.direction,
             start_x + ((coord as i32) * 120 - count * 15) as f32,
             (500 + count * 10) as f32,
         );
     }
 }
 
-fn draw_object(data: &TextureData, x: f32, y: f32) {
+fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
     let size = data.dest_size;
     draw_texture_ex(
         data.texture,
@@ -123,6 +128,7 @@ fn draw_object(data: &TextureData, x: f32, y: f32) {
         WHITE,
         DrawTextureParams {
             dest_size: Some(size),
+            flip_x: data.directional && direction == Direction::Left,
             ..Default::default()
         },
     );

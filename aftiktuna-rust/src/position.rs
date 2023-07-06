@@ -1,5 +1,6 @@
 use crate::action::CrewMember;
 use crate::area::Area;
+use crate::view::Direction;
 use hecs::{Entity, World};
 use std::cmp::{max, min, Ordering};
 
@@ -84,7 +85,12 @@ pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(
     if is_blocked(world, entity, position, destination) {
         Err("Something is in the way.".to_string())
     } else {
-        world.insert_one(entity, destination).unwrap();
+        world
+            .insert(
+                entity,
+                (destination, Direction::between(position, destination)),
+            )
+            .unwrap();
         Ok(())
     }
 }
