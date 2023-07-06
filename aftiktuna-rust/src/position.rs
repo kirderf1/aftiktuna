@@ -18,6 +18,11 @@ impl Pos {
         Pos { coord, area }
     }
 
+    pub fn center_of(area: Entity, world: &World) -> Pos {
+        let size = world.get::<&Area>(area).unwrap().size;
+        Pos::new(area, (size - 1) / 2, world)
+    }
+
     pub fn get_coord(&self) -> Coord {
         self.coord
     }

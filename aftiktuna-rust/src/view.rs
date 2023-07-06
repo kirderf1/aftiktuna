@@ -267,6 +267,11 @@ impl Direction {
             Direction::Right
         }
     }
+
+    pub fn towards_center(pos: Pos, world: &World) -> Direction {
+        let center = Pos::center_of(pos.get_area(), world);
+        Direction::between(pos, center)
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]

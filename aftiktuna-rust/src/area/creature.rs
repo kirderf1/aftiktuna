@@ -3,7 +3,7 @@ use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, Recruitable};
 use crate::position::{MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
-use crate::view::{DisplayInfo, NameData, TextureType};
+use crate::view::{Direction, DisplayInfo, NameData, TextureType};
 use crate::{item, view};
 use hecs::{Entity, EntityBuilder, World};
 
@@ -28,6 +28,7 @@ pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats) 
         )
         .add(Recruitable(name.to_string()))
         .add(pos)
+        .add(Direction::towards_center(pos, world))
         .build(),
     );
 }
@@ -50,6 +51,7 @@ pub fn place_goblin(world: &mut World, pos: Pos) {
         DisplayInfo::new('G', TextureType::Unknown, 10),
         NameData::from_noun("goblin", "goblins"),
         pos,
+        Direction::towards_center(pos, world),
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
@@ -64,6 +66,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
         DisplayInfo::new('E', TextureType::Unknown, 10),
         NameData::from_noun("eyesaur", "eyesaurs"),
         pos,
+        Direction::towards_center(pos, world),
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
@@ -78,6 +81,7 @@ pub fn place_azureclops(world: &mut World, pos: Pos) {
         DisplayInfo::new('Z', TextureType::Unknown, 10),
         NameData::from_noun("azureclops", "azureclopses"),
         pos,
+        Direction::towards_center(pos, world),
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
@@ -99,6 +103,7 @@ pub fn place_shopkeeper(
         DisplayInfo::new('S', TextureType::Aftik, 15),
         NameData::from_noun("shopkeeper", "shopkeepers"),
         pos,
+        Direction::towards_center(pos, world),
         Shopkeeper(stock),
     ));
     Ok(())
