@@ -68,6 +68,7 @@ struct TextureData {
 async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
     let unknown = load_texture("assets/unknown.png").await.unwrap();
     let aftik = load_texture("assets/aftik.png").await.unwrap();
+    let path = load_texture("assets/path.png").await.unwrap();
 
     let mut textures = HashMap::new();
 
@@ -75,7 +76,7 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         TextureType::Unknown,
         TextureData {
             texture: unknown,
-            dest_size: Vec2::new(120., 200.),
+            dest_size: Vec2::new(unknown.width(), unknown.height()),
             directional: false,
         },
     );
@@ -91,8 +92,16 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
         TextureType::Aftik,
         TextureData {
             texture: aftik,
-            dest_size: Vec2::new(100., 140.),
+            dest_size: Vec2::new(aftik.width(), aftik.height()),
             directional: true,
+        },
+    );
+    textures.insert(
+        TextureType::Path,
+        TextureData {
+            texture: path,
+            dest_size: Vec2::new(path.width(), path.height()),
+            directional: false,
         },
     );
 

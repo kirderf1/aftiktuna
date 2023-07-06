@@ -30,7 +30,7 @@ fn place(
     door_pair: Entity,
 ) -> Entity {
     world.spawn((
-        DisplayInfo::new(symbol, TextureType::Unknown, 20),
+        DisplayInfo::new(symbol, TextureType::Path, 20),
         name,
         pos,
         Door {

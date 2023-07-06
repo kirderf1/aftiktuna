@@ -279,6 +279,7 @@ pub enum TextureType {
     Unknown,
     SmallUnknown,
     Aftik,
+    Path,
 }
 
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {
