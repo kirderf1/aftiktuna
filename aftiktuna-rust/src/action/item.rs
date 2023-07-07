@@ -1,6 +1,6 @@
 use crate::action::Action;
 use crate::item::{Item, Medkit};
-use crate::position::{try_move, Pos};
+use crate::position::{try_move, try_move_adjacent, Pos};
 use crate::status::Health;
 use crate::view::{DisplayInfo, NameData};
 use crate::{action, status};
@@ -174,11 +174,7 @@ pub fn give_item(
         ));
     }
 
-    try_move(
-        world,
-        performer,
-        receiver_pos.get_adjacent_towards(performer_pos),
-    )?;
+    try_move_adjacent(world, performer, receiver_pos)?;
 
     world
         .insert_one(item, Held::in_inventory(receiver))

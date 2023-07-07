@@ -25,18 +25,13 @@ pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>
 
 pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
-    let performer_pos = *world.get::<&Pos>(performer).unwrap();
 
     let shop_pos = *world
         .get::<&Pos>(shopkeeper)
         .map_err(|_| format!("{} lost track of the shopkeeper.", performer_name))?;
     world.get::<&Shopkeeper>(shopkeeper).unwrap();
 
-    position::try_move(
-        world,
-        performer,
-        shop_pos.get_adjacent_towards(performer_pos),
-    )?;
+    position::try_move_adjacent(world, performer, shop_pos)?;
 
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 

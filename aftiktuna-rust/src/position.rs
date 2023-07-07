@@ -5,7 +5,7 @@ use std::cmp::{max, min, Ordering};
 
 pub type Coord = usize;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Pos {
     coord: Coord,
     area: Entity,
@@ -86,6 +86,10 @@ pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(
         "Areas should be equal when called."
     );
 
+    if position == destination {
+        return Ok(());
+    }
+
     if is_blocked(world, entity, position, destination) {
         Err("Something is in the way.".to_string())
     } else {
@@ -95,6 +99,18 @@ pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(
                 (destination, Direction::between(position, destination)),
             )
             .unwrap();
+        Ok(())
+    }
+}
+
+pub fn try_move_adjacent(world: &mut World, entity: Entity, target: Pos) -> Result<(), String> {
+    let position = *world.get::<&Pos>(entity).unwrap();
+    let move_target = target.get_adjacent_towards(position);
+
+    if position != move_target {
+        try_move(world, entity, move_target)
+    } else {
+        set_direction_towards(world, entity, target);
         Ok(())
     }
 }
@@ -138,5 +154,15 @@ impl Direction {
     pub fn towards_center(pos: Pos, world: &World) -> Direction {
         let center = Pos::center_of(pos.get_area(), world);
         Direction::between(pos, center)
+    }
+}
+
+pub fn set_direction_towards(world: &mut World, entity: Entity, target: Pos) {
+    let position = *world.get::<&Pos>(entity).unwrap();
+
+    if position != target {
+        world
+            .insert_one(entity, Direction::between(position, target))
+            .unwrap();
     }
 }

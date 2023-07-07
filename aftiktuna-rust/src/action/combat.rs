@@ -1,7 +1,7 @@
 use crate::action;
 use crate::action::{item, CrewMember};
 use crate::item::Weapon;
-use crate::position::{try_move, Pos};
+use crate::position::{try_move_adjacent, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::NameData;
 use hecs::{Component, Entity, World};
@@ -89,11 +89,7 @@ pub fn attack(
         ));
     }
 
-    try_move(
-        world,
-        attacker,
-        target_pos.get_adjacent_towards(attacker_pos),
-    )?;
+    try_move_adjacent(world, attacker, target_pos)?;
 
     let hit_type = roll_hit(world, attacker, target, rng);
 

@@ -1,5 +1,5 @@
 use crate::action::combat::Target;
-use crate::position::{try_move, Pos};
+use crate::position::{try_move_adjacent, Pos};
 use crate::view::{Messages, NameData, TextureType};
 use crate::{status, view};
 use hecs::{Entity, World};
@@ -134,7 +134,6 @@ fn rest(world: &mut World, performer: Entity, first: bool) -> Result {
 }
 
 fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
-    let performer_pos = *world.get::<&Pos>(performer).unwrap();
     let target_pos = *world.get::<&Pos>(target).unwrap();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
@@ -142,11 +141,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
         return Err("There is not enough room for another crew member.".to_string());
     }
 
-    try_move(
-        world,
-        performer,
-        target_pos.get_adjacent_towards(performer_pos),
-    )?;
+    try_move_adjacent(world, performer, target_pos)?;
     let Recruitable(name) = world.remove_one::<Recruitable>(target).unwrap();
     world
         .insert(
