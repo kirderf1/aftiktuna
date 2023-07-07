@@ -66,21 +66,32 @@ struct TextureData {
     directional: bool,
 }
 
+impl TextureData {
+    fn new_static(texture: Texture2D) -> TextureData {
+        TextureData {
+            texture,
+            dest_size: Vec2::new(texture.width(), texture.height()),
+            directional: false,
+        }
+    }
+    fn new_directional(texture: Texture2D) -> TextureData {
+        TextureData {
+            texture,
+            dest_size: Vec2::new(texture.width(), texture.height()),
+            directional: true,
+        }
+    }
+}
+
 async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
     let unknown = load_texture("assets/unknown.png").await.unwrap();
-    let aftik = load_texture("assets/aftik.png").await.unwrap();
     let path = load_texture("assets/path.png").await.unwrap();
+    let aftik = load_texture("assets/aftik.png").await.unwrap();
+    let eyesaur = load_texture("assets/eyesaur.png").await.unwrap();
 
     let mut textures = HashMap::new();
 
-    textures.insert(
-        TextureType::Unknown,
-        TextureData {
-            texture: unknown,
-            dest_size: Vec2::new(unknown.width(), unknown.height()),
-            directional: false,
-        },
-    );
+    textures.insert(TextureType::Unknown, TextureData::new_static(unknown));
     textures.insert(
         TextureType::SmallUnknown,
         TextureData {
@@ -89,34 +100,11 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
             directional: false,
         },
     );
-    textures.insert(
-        TextureType::Path,
-        TextureData {
-            texture: path,
-            dest_size: Vec2::new(path.width(), path.height()),
-            directional: false,
-        },
-    );
-    textures.insert(
-        TextureType::Aftik,
-        TextureData {
-            texture: aftik,
-            dest_size: Vec2::new(aftik.width(), aftik.height()),
-            directional: true,
-        },
-    );
-    textures.insert(
-        TextureType::Goblin,
-        textures.get(&TextureType::Unknown).unwrap().clone(),
-    );
-    textures.insert(
-        TextureType::Eyesaur,
-        textures.get(&TextureType::Unknown).unwrap().clone(),
-    );
-    textures.insert(
-        TextureType::Azureclops,
-        textures.get(&TextureType::Unknown).unwrap().clone(),
-    );
+    textures.insert(TextureType::Path, TextureData::new_static(path));
+    textures.insert(TextureType::Aftik, TextureData::new_directional(aftik));
+    textures.insert(TextureType::Goblin, TextureData::new_static(unknown));
+    textures.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
+    textures.insert(TextureType::Azureclops, TextureData::new_static(unknown));
 
     textures
 }
