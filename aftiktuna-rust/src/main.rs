@@ -14,6 +14,7 @@ use std::time::Instant;
 fn config() -> Conf {
     Conf {
         window_title: "Aftiktuna".to_string(),
+        window_resizable: false,
         ..Default::default()
     }
 }
@@ -31,7 +32,11 @@ async fn main() {
 
         clear_background(BLACK);
 
-        if is_key_down(KeyCode::Tab) {
+        if is_key_pressed(KeyCode::Tab) {
+            app.show_view = !app.show_view;
+        }
+
+        if app.show_view {
             let width = screen_width();
             let height = screen_height();
             draw_texture_ex(
@@ -153,6 +158,7 @@ fn init() -> App {
         state: State::Run,
         delayed_views: None,
         render_data: None,
+        show_view: false,
     }
 }
 
@@ -163,6 +169,7 @@ struct App {
     state: State,
     delayed_views: Option<(Instant, DelayedViews)>,
     render_data: Option<RenderData>,
+    show_view: bool,
 }
 
 #[derive(Eq, PartialEq)]
