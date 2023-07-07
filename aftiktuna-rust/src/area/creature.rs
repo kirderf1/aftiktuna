@@ -1,9 +1,9 @@
 use crate::action::combat::IsFoe;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, Recruitable};
-use crate::position::{MovementBlocking, Pos};
+use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
-use crate::view::{Direction, DisplayInfo, NameData, TextureType};
+use crate::view::{DisplayInfo, NameData, TextureType};
 use crate::{item, view};
 use hecs::{Entity, EntityBuilder, World};
 

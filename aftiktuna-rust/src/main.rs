@@ -1,9 +1,9 @@
 use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
-use aftiktuna::position::Coord;
+use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view;
-use aftiktuna::view::{Direction, Messages, RenderData, TextureType};
+use aftiktuna::view::{Messages, RenderData, TextureType};
 use egui_macroquad::egui;
 use macroquad::prelude::*;
 use std::collections::HashMap;

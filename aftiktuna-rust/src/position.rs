@@ -1,6 +1,5 @@
 use crate::action::CrewMember;
 use crate::area::Area;
-use crate::view::Direction;
 use hecs::{Entity, World};
 use std::cmp::{max, min, Ordering};
 
@@ -119,4 +118,25 @@ pub fn is_blocked(world: &World, entity: Entity, entity_pos: Pos, target_pos: Po
         .any(|(_, pos)| {
             pos.is_in(entity_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
         })
+}
+
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum Direction {
+    Left,
+    Right,
+}
+
+impl Direction {
+    pub fn between(from: Pos, to: Pos) -> Direction {
+        if to.get_coord() < from.get_coord() {
+            Direction::Left
+        } else {
+            Direction::Right
+        }
+    }
+
+    pub fn towards_center(pos: Pos, world: &World) -> Direction {
+        let center = Pos::center_of(pos.get_area(), world);
+        Direction::between(pos, center)
+    }
 }

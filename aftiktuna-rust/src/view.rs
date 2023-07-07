@@ -3,7 +3,7 @@ pub use status::print_full_status;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade;
 use crate::area::Area;
-use crate::position::{Coord, Pos};
+use crate::position::{Coord, Direction, Pos};
 use hecs::{Entity, World};
 pub use name::{as_grouped_text_list, NounData};
 use std::cmp::max;
@@ -251,27 +251,6 @@ pub struct ObjectRenderData {
     pub coord: Coord,
     pub texture_type: TextureType,
     pub direction: Direction,
-}
-
-#[derive(Copy, Clone, Eq, PartialEq)]
-pub enum Direction {
-    Left,
-    Right,
-}
-
-impl Direction {
-    pub fn between(from: Pos, to: Pos) -> Direction {
-        if to.get_coord() < from.get_coord() {
-            Direction::Left
-        } else {
-            Direction::Right
-        }
-    }
-
-    pub fn towards_center(pos: Pos, world: &World) -> Direction {
-        let center = Pos::center_of(pos.get_area(), world);
-        Direction::between(pos, center)
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
