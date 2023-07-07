@@ -22,7 +22,9 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     let mut app = init();
-    let background = load_texture("assets/tree_background.png").await.unwrap();
+    let background = load_texture(&texture_path("tree_background"))
+        .await
+        .unwrap();
     let textures = setup_object_textures().await;
 
     loop {
@@ -88,11 +90,15 @@ impl TextureData {
     }
 }
 
+fn texture_path(name: &str) -> String {
+    format!("assets/textures/{}.png", name)
+}
+
 async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
-    let unknown = load_texture("assets/unknown.png").await.unwrap();
-    let path = load_texture("assets/path.png").await.unwrap();
-    let aftik = load_texture("assets/aftik.png").await.unwrap();
-    let eyesaur = load_texture("assets/eyesaur.png").await.unwrap();
+    let unknown = load_texture(&texture_path("unknown")).await.unwrap();
+    let path = load_texture(&texture_path("path")).await.unwrap();
+    let aftik = load_texture(&texture_path("aftik")).await.unwrap();
+    let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
 
     let mut textures = HashMap::new();
 
