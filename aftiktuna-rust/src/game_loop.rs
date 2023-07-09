@@ -126,7 +126,7 @@ impl Game {
             PickResult::None => return Err(StopType::Win),
             PickResult::Location(location) => self.state = State::Load(location),
             PickResult::Choice(choice) => {
-                view_buffer.push_messages(choice.present());
+                view_buffer.push_messages(choice.present(), true);
                 self.state = State::Choose(choice);
             }
         };

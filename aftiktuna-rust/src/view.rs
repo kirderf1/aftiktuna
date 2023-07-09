@@ -68,8 +68,11 @@ impl Buffer {
         });
     }
 
-    pub fn push_messages(&mut self, messages: Messages) {
-        self.captures.push(Data::Simple(messages));
+    pub fn push_messages(&mut self, messages: Messages, is_at_selection: bool) {
+        self.captures.push(Data::Simple {
+            messages,
+            is_at_selection,
+        });
     }
 
     pub fn print(self) {
@@ -94,7 +97,10 @@ pub enum Data {
         changes: Messages,
         render_data: RenderData,
     },
-    Simple(Messages),
+    Simple {
+        messages: Messages,
+        is_at_selection: bool,
+    },
 }
 
 impl Data {
@@ -120,7 +126,7 @@ impl Data {
                 }
                 text.extend(changes.0.clone());
             }
-            Data::Simple(messages) => {
+            Data::Simple { messages, .. } => {
                 text.extend(messages.0.clone());
                 text.push(String::default());
             }

@@ -1,4 +1,4 @@
-use crate::{App, State};
+use crate::{App, GameState};
 use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view::{RenderData, TextureType};
 use egui_macroquad::egui;
@@ -14,7 +14,13 @@ const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub struct TextureStorage {
     background: Texture2D,
+    selection_background: Texture2D,
     by_type: HashMap<TextureType, TextureData>,
+}
+
+pub enum State {
+    LocationChoice,
+    InGame(RenderData),
 }
 
 #[derive(Clone)]
@@ -49,6 +55,9 @@ pub async fn load_textures() -> TextureStorage {
     let background = load_texture(&texture_path("tree_background"))
         .await
         .unwrap();
+    let selection_background = load_texture(&texture_path("selection_background"))
+        .await
+        .unwrap();
     let unknown = load_texture(&texture_path("unknown")).await.unwrap();
     let path = load_texture(&texture_path("path")).await.unwrap();
     let aftik = load_texture(&texture_path("aftik")).await.unwrap();
@@ -73,6 +82,7 @@ pub async fn load_textures() -> TextureStorage {
 
     TextureStorage {
         background,
+        selection_background,
         by_type: textures,
     }
 }
@@ -103,10 +113,15 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
 }
 
 fn draw_game(app: &mut App, textures: &TextureStorage) {
-    draw_texture(textures.background, 0., 0., WHITE);
+    match &app.render_state {
+        State::LocationChoice => {
+            draw_texture(textures.selection_background, 0., 0., WHITE);
+        }
+        State::InGame(render_data) => {
+            draw_texture(textures.background, 0., 0., WHITE);
 
-    if let Some(render_data) = &app.render_data {
-        draw_objects(render_data, &textures.by_type);
+            draw_objects(render_data, &textures.by_type);
+        }
     }
 }
 
@@ -155,7 +170,7 @@ fn ui(app: &mut App, ctx: &egui::Context) {
 
 fn input_field(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
     let response = ui.add_enabled(
-        app.state == State::Input && app.delayed_views.is_none(),
+        app.state == GameState::Input && app.delayed_views.is_none(),
         egui::TextEdit::singleline(&mut app.input)
             .font(FONT)
             .desired_width(f32::INFINITY),
@@ -168,7 +183,7 @@ fn input_field(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
             if let Err(messages) = app.game.handle_input(&input) {
                 app.text_lines.extend(messages.into_text());
             } else {
-                app.state = State::Run;
+                app.state = GameState::Run;
             }
         }
         ctx.memory_mut(|memory| memory.request_focus(response.id));
