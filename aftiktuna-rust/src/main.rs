@@ -40,11 +40,11 @@ async fn main() {
 
         if app.show_graphical {
             draw_game(&mut app, background, &textures);
-        } else {
-            egui_macroquad::ui(|ctx| app.ui(ctx));
-
-            egui_macroquad::draw();
         }
+
+        egui_macroquad::ui(|ctx| app.ui(ctx));
+
+        egui_macroquad::draw();
 
         next_frame().await
     }
@@ -308,6 +308,8 @@ impl App {
     fn ui(&mut self, ctx: &egui::Context) {
         egui::TopBottomPanel::bottom("input").show(ctx, |ui| self.input_field(ctx, ui));
 
-        egui::CentralPanel::default().show(ctx, |ui| self.text_box(ui));
+        if !self.show_graphical {
+            egui::CentralPanel::default().show(ctx, |ui| self.text_box(ui));
+        }
     }
 }
