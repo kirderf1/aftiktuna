@@ -21,10 +21,7 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     let mut app = init();
-    let background = load_texture(&render::texture_path("tree_background"))
-        .await
-        .unwrap();
-    let textures = render::setup_object_textures().await;
+    let textures = render::load_textures().await;
 
     loop {
         app.update_view_state();
@@ -35,7 +32,7 @@ async fn main() {
             app.show_graphical = !app.show_graphical;
         }
 
-        render::draw(&mut app, background, &textures);
+        render::draw(&mut app, &textures);
 
         next_frame().await
     }

@@ -12,8 +12,13 @@ use std::mem::take;
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
+pub struct TextureStorage {
+    background: Texture2D,
+    by_type: HashMap<TextureType, TextureData>,
+}
+
 #[derive(Clone)]
-pub struct TextureData {
+struct TextureData {
     texture: Texture2D,
     dest_size: Vec2,
     directional: bool,
@@ -36,11 +41,14 @@ impl TextureData {
     }
 }
 
-pub fn texture_path(name: &str) -> String {
+fn texture_path(name: &str) -> String {
     format!("assets/textures/{}.png", name)
 }
 
-pub async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
+pub async fn load_textures() -> TextureStorage {
+    let background = load_texture(&texture_path("tree_background"))
+        .await
+        .unwrap();
     let unknown = load_texture(&texture_path("unknown")).await.unwrap();
     let path = load_texture(&texture_path("path")).await.unwrap();
     let aftik = load_texture(&texture_path("aftik")).await.unwrap();
@@ -63,7 +71,10 @@ pub async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
     textures.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
     textures.insert(TextureType::Azureclops, TextureData::new_static(unknown));
 
-    textures
+    TextureStorage {
+        background,
+        by_type: textures,
+    }
 }
 
 fn lookup_texture(
@@ -79,11 +90,11 @@ fn lookup_texture(
     }
 }
 
-pub fn draw(app: &mut App, background: Texture2D, textures: &HashMap<TextureType, TextureData>) {
+pub fn draw(app: &mut App, textures: &TextureStorage) {
     clear_background(BLACK);
 
     if app.show_graphical {
-        draw_game(app, background, textures);
+        draw_game(app, textures);
     }
 
     egui_macroquad::ui(|ctx| ui(app, ctx));
@@ -91,11 +102,11 @@ pub fn draw(app: &mut App, background: Texture2D, textures: &HashMap<TextureType
     egui_macroquad::draw();
 }
 
-fn draw_game(app: &mut App, background: Texture2D, textures: &HashMap<TextureType, TextureData>) {
-    draw_texture(background, 0., 0., WHITE);
+fn draw_game(app: &mut App, textures: &TextureStorage) {
+    draw_texture(textures.background, 0., 0., WHITE);
 
     if let Some(render_data) = &app.render_data {
-        draw_objects(render_data, textures);
+        draw_objects(render_data, &textures.by_type);
     }
 }
 
