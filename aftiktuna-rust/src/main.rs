@@ -35,27 +35,11 @@ async fn main() {
         clear_background(BLACK);
 
         if is_key_pressed(KeyCode::Tab) {
-            app.show_view = !app.show_view;
+            app.show_graphical = !app.show_graphical;
         }
 
-        if app.show_view {
-            let width = screen_width();
-            let height = screen_height();
-            draw_texture_ex(
-                background,
-                0.,
-                0.,
-                WHITE,
-                DrawTextureParams {
-                    source: Some(Rect::new((800. - width) / 2., 600. - height, width, height)),
-                    dest_size: Some(Vec2::new(width, height)),
-                    ..Default::default()
-                },
-            );
-
-            if let Some(render_data) = &app.render_data {
-                draw_objects(render_data, &textures);
-            }
+        if app.show_graphical {
+            draw_game(&mut app, background, &textures);
         } else {
             egui_macroquad::ui(|ctx| app.ui(ctx));
 
@@ -63,6 +47,14 @@ async fn main() {
         }
 
         next_frame().await
+    }
+}
+
+fn draw_game(app: &mut App, background: Texture2D, textures: &HashMap<TextureType, TextureData>) {
+    draw_texture(background, 0., 0., WHITE);
+
+    if let Some(render_data) = &app.render_data {
+        draw_objects(render_data, textures);
     }
 }
 
@@ -177,7 +169,7 @@ fn init() -> App {
         state: State::Run,
         delayed_views: None,
         render_data: None,
-        show_view: false,
+        show_graphical: false,
     }
 }
 
@@ -188,7 +180,7 @@ struct App {
     state: State,
     delayed_views: Option<(Instant, DelayedViews)>,
     render_data: Option<RenderData>,
-    show_view: bool,
+    show_graphical: bool,
 }
 
 #[derive(Eq, PartialEq)]
