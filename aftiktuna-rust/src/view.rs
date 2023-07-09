@@ -3,6 +3,7 @@ pub use status::print_full_status;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade;
 use crate::area::Area;
+use crate::item;
 use crate::position::{Coord, Direction, Pos};
 use hecs::{Entity, World};
 pub use name::{as_grouped_text_list, NounData};
@@ -262,6 +263,7 @@ pub enum TextureType {
     Goblin,
     Eyesaur,
     Azureclops,
+    Item(item::Type),
 }
 
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {

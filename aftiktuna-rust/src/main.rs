@@ -120,6 +120,19 @@ async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
     textures
 }
 
+fn lookup_texture(
+    textures: &HashMap<TextureType, TextureData>,
+    texture_type: TextureType,
+) -> &TextureData {
+    if let Some(data) = textures.get(&texture_type) {
+        data
+    } else if let TextureType::Item(_) = texture_type {
+        textures.get(&TextureType::SmallUnknown).unwrap()
+    } else {
+        textures.get(&TextureType::Unknown).unwrap()
+    }
+}
+
 fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, TextureData>) {
     let size = render_data.size;
     let start_x = (800. - (size - 1) as f32 * 120.) / 2.;
@@ -132,7 +145,7 @@ fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, Textur
         *count_ref = count + 1;
 
         draw_object(
-            textures.get(&data.texture_type).unwrap(),
+            lookup_texture(textures, data.texture_type),
             data.direction,
             start_x + ((coord as i32) * 120 - count * 15) as f32,
             (500 + count * 10) as f32,

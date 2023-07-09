@@ -3,7 +3,7 @@ mod ai;
 pub mod area;
 mod command;
 pub mod game_loop;
-mod item;
+pub mod item;
 pub mod position;
 pub mod standard_io_interface;
 mod status;

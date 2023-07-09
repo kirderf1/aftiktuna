@@ -28,7 +28,7 @@ pub struct Weapon(pub f32);
 pub struct Price(pub i32);
 
 // A type handy for spawning a variable type of item
-#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     FuelCan,
@@ -79,7 +79,7 @@ impl Type {
     }
 
     pub fn display_info(self) -> DisplayInfo {
-        DisplayInfo::new(self.symbol(), TextureType::SmallUnknown, 1)
+        DisplayInfo::new(self.symbol(), TextureType::Item(self), 1)
     }
 
     pub fn price(self) -> Option<i32> {
