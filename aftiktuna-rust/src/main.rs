@@ -1,15 +1,14 @@
 use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
-use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view;
-use aftiktuna::view::{Messages, RenderData, TextureType};
-use egui_macroquad::egui;
+use aftiktuna::view::{Messages, RenderData};
 use macroquad::prelude::*;
-use std::collections::HashMap;
 use std::mem::take;
 use std::time;
 use std::time::Instant;
+
+mod render;
 
 fn config() -> Conf {
     Conf {
@@ -22,142 +21,24 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     let mut app = init();
-    let background = load_texture(&texture_path("tree_background"))
+    let background = load_texture(&render::texture_path("tree_background"))
         .await
         .unwrap();
-    let textures = setup_object_textures().await;
+    let textures = render::setup_object_textures().await;
 
     loop {
         app.update_view_state();
 
         app.update_game_state();
 
-        clear_background(BLACK);
-
         if is_key_pressed(KeyCode::Tab) {
             app.show_graphical = !app.show_graphical;
         }
 
-        if app.show_graphical {
-            draw_game(&mut app, background, &textures);
-        }
-
-        egui_macroquad::ui(|ctx| app.ui(ctx));
-
-        egui_macroquad::draw();
+        render::draw(&mut app, background, &textures);
 
         next_frame().await
     }
-}
-
-fn draw_game(app: &mut App, background: Texture2D, textures: &HashMap<TextureType, TextureData>) {
-    draw_texture(background, 0., 0., WHITE);
-
-    if let Some(render_data) = &app.render_data {
-        draw_objects(render_data, textures);
-    }
-}
-
-#[derive(Clone)]
-struct TextureData {
-    texture: Texture2D,
-    dest_size: Vec2,
-    directional: bool,
-}
-
-impl TextureData {
-    fn new_static(texture: Texture2D) -> TextureData {
-        TextureData {
-            texture,
-            dest_size: Vec2::new(texture.width(), texture.height()),
-            directional: false,
-        }
-    }
-    fn new_directional(texture: Texture2D) -> TextureData {
-        TextureData {
-            texture,
-            dest_size: Vec2::new(texture.width(), texture.height()),
-            directional: true,
-        }
-    }
-}
-
-fn texture_path(name: &str) -> String {
-    format!("assets/textures/{}.png", name)
-}
-
-async fn setup_object_textures() -> HashMap<TextureType, TextureData> {
-    let unknown = load_texture(&texture_path("unknown")).await.unwrap();
-    let path = load_texture(&texture_path("path")).await.unwrap();
-    let aftik = load_texture(&texture_path("aftik")).await.unwrap();
-    let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
-
-    let mut textures = HashMap::new();
-
-    textures.insert(TextureType::Unknown, TextureData::new_static(unknown));
-    textures.insert(
-        TextureType::SmallUnknown,
-        TextureData {
-            texture: unknown,
-            dest_size: Vec2::new(100., 100.),
-            directional: false,
-        },
-    );
-    textures.insert(TextureType::Path, TextureData::new_static(path));
-    textures.insert(TextureType::Aftik, TextureData::new_directional(aftik));
-    textures.insert(TextureType::Goblin, TextureData::new_static(unknown));
-    textures.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
-    textures.insert(TextureType::Azureclops, TextureData::new_static(unknown));
-
-    textures
-}
-
-fn lookup_texture(
-    textures: &HashMap<TextureType, TextureData>,
-    texture_type: TextureType,
-) -> &TextureData {
-    if let Some(data) = textures.get(&texture_type) {
-        data
-    } else if let TextureType::Item(_) = texture_type {
-        textures.get(&TextureType::SmallUnknown).unwrap()
-    } else {
-        textures.get(&TextureType::Unknown).unwrap()
-    }
-}
-
-fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, TextureData>) {
-    let size = render_data.size;
-    let start_x = (800. - (size - 1) as f32 * 120.) / 2.;
-    let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
-
-    for data in &render_data.objects {
-        let coord = data.coord;
-        let count_ref = coord_counts.entry(coord).or_insert(0);
-        let count = *count_ref;
-        *count_ref = count + 1;
-
-        draw_object(
-            lookup_texture(textures, data.texture_type),
-            data.direction,
-            start_x + ((coord as i32) * 120 - count * 15) as f32,
-            (500 + count * 10) as f32,
-        );
-    }
-}
-
-fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
-    let size = data.dest_size;
-    draw_texture_ex(
-        data.texture,
-        x - size.x / 2.,
-        y - size.y,
-        WHITE,
-        DrawTextureParams {
-            dest_size: Some(size),
-            flip_x: data.directional && direction == Direction::Left,
-            ..Default::default()
-        },
-    );
 }
 
 fn init() -> App {
@@ -173,7 +54,7 @@ fn init() -> App {
     }
 }
 
-struct App {
+pub struct App {
     text_lines: Vec<String>,
     input: String,
     game: Game,
@@ -231,7 +112,6 @@ impl DelayedViews {
     }
 }
 
-const FONT: egui::FontId = egui::FontId::monospace(15.0);
 const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl App {
@@ -264,52 +144,9 @@ impl App {
         }
     }
 
-    fn input_field(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
-        let response = ui.add_enabled(
-            self.state == State::Input && self.delayed_views.is_none(),
-            egui::TextEdit::singleline(&mut self.input)
-                .font(FONT)
-                .desired_width(f32::INFINITY),
-        );
-
-        if response.lost_focus()
-            && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter))
-        {
-            let input = take(&mut self.input);
-            if !input.is_empty() {
-                self.text_lines.push(format!("> {input}"));
-                if let Err(messages) = self.game.handle_input(&input) {
-                    self.text_lines.extend(messages.into_text());
-                } else {
-                    self.state = State::Run;
-                }
-            }
-            ctx.memory_mut(|memory| memory.request_focus(response.id));
-        }
-    }
-
-    fn text_box(&mut self, ui: &mut egui::Ui) {
-        egui::ScrollArea::vertical()
-            .auto_shrink([false; 2])
-            .stick_to_bottom(true)
-            .show(ui, |ui| {
-                for text in &self.text_lines {
-                    ui.label(egui::RichText::new(text).font(FONT));
-                }
-            });
-    }
-
     fn add_view_data(&mut self, view_buffer: view::Buffer, extra_messages: Option<Messages>) {
         let views = DelayedViews::new(view_buffer, extra_messages);
         self.delayed_views =
             views.next_and_write(&mut self.text_lines, |data| self.render_data = Some(data));
-    }
-
-    fn ui(&mut self, ctx: &egui::Context) {
-        egui::TopBottomPanel::bottom("input").show(ctx, |ui| self.input_field(ctx, ui));
-
-        if !self.show_graphical {
-            egui::CentralPanel::default().show(ctx, |ui| self.text_box(ui));
-        }
     }
 }
