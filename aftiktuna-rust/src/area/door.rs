@@ -5,7 +5,12 @@ use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
-pub struct DoorInfo(pub Pos, pub char, pub NameData);
+pub struct DoorInfo {
+    pub pos: Pos,
+    pub symbol: char,
+    pub texture_type: TextureType,
+    pub name: NameData,
+}
 
 pub fn place_pair(
     world: &mut World,
@@ -17,22 +22,17 @@ pub fn place_pair(
         Some(block_type) => world.spawn((block_type,)),
         None => world.spawn(()),
     };
-    place(world, door1.0, door1.1, door1.2, door2.0, door_pair);
-    place(world, door2.0, door2.1, door2.2, door1.0, door_pair);
+    let dest1 = door2.pos;
+    let dest2 = door1.pos;
+    place(world, door1, dest1, door_pair);
+    place(world, door2, dest2, door_pair);
 }
 
-fn place(
-    world: &mut World,
-    pos: Pos,
-    symbol: char,
-    name: NameData,
-    destination: Pos,
-    door_pair: Entity,
-) -> Entity {
+fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
     world.spawn((
-        DisplayInfo::new(symbol, TextureType::Path, 20),
-        name,
-        pos,
+        DisplayInfo::new(info.symbol, info.texture_type, 20),
+        info.name,
+        info.pos,
         Door {
             destination,
             door_pair,
@@ -53,15 +53,29 @@ pub enum DoorType {
     RightPath,
 }
 
-pub fn name_data(door_type: DoorType) -> NameData {
-    match door_type {
-        DoorType::Door => NameData::from_noun("door", "doors"),
-        DoorType::LeftDoor => NameData::from_noun("left door", "left doors"),
-        DoorType::MidDoor => NameData::from_noun("middle door", "middle doors"),
-        DoorType::RightDoor => NameData::from_noun("right door", "right doors"),
-        DoorType::Path => NameData::from_noun("path", "paths"),
-        DoorType::LeftPath => NameData::from_noun("left path", "left paths"),
-        DoorType::MidPath => NameData::from_noun("middle path", "middle paths"),
-        DoorType::RightPath => NameData::from_noun("right path", "right paths"),
+impl DoorType {
+    pub fn name_data(self) -> NameData {
+        match self {
+            DoorType::Door => NameData::from_noun("door", "doors"),
+            DoorType::LeftDoor => NameData::from_noun("left door", "left doors"),
+            DoorType::MidDoor => NameData::from_noun("middle door", "middle doors"),
+            DoorType::RightDoor => NameData::from_noun("right door", "right doors"),
+            DoorType::Path => NameData::from_noun("path", "paths"),
+            DoorType::LeftPath => NameData::from_noun("left path", "left paths"),
+            DoorType::MidPath => NameData::from_noun("middle path", "middle paths"),
+            DoorType::RightPath => NameData::from_noun("right path", "right paths"),
+        }
+    }
+    pub fn texture_type(self) -> TextureType {
+        match self {
+            DoorType::Door => TextureType::Door,
+            DoorType::LeftDoor => TextureType::Door,
+            DoorType::MidDoor => TextureType::Door,
+            DoorType::RightDoor => TextureType::Door,
+            DoorType::Path => TextureType::Path,
+            DoorType::LeftPath => TextureType::Path,
+            DoorType::MidPath => TextureType::Path,
+            DoorType::RightPath => TextureType::Path,
+        }
     }
 }

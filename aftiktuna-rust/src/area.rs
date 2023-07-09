@@ -3,7 +3,7 @@ use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
-use crate::view::{Messages, NameData};
+use crate::view::{Messages, NameData, TextureType};
 use crate::{action, item};
 use door::DoorInfo;
 use hecs::{Entity, World};
@@ -194,16 +194,18 @@ pub fn load_location(
 
     door::place_pair(
         world,
-        DoorInfo(
-            start_pos,
-            'v',
-            NameData::from_noun("ship entrance", "ship entrances"),
-        ),
-        DoorInfo(
-            ship_exit,
-            '^',
-            NameData::from_noun("ship exit", "ship exits"),
-        ),
+        DoorInfo {
+            pos: start_pos,
+            symbol: 'v',
+            texture_type: TextureType::Ship,
+            name: NameData::from_noun("ship entrance", "ship entrances"),
+        },
+        DoorInfo {
+            pos: ship_exit,
+            symbol: '^',
+            texture_type: TextureType::Ship,
+            name: NameData::from_noun("ship exit", "ship exits"),
+        },
         None,
     );
 

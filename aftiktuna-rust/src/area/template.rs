@@ -1,6 +1,6 @@
 use crate::action::door::BlockType;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
-use crate::area::{creature, door, Area};
+use crate::area::{creature, Area};
 use crate::item;
 use crate::position::Pos;
 use crate::status::Stats;
@@ -180,7 +180,12 @@ fn place_door(
         .doors
         .get_mut(pair_id)
         .ok_or_else(|| format!("Unknown door id \"{}\"", pair_id))?;
-    let door_info = DoorInfo(pos, symbol, door::name_data(display_type));
+    let door_info = DoorInfo {
+        pos,
+        symbol,
+        texture_type: display_type.texture_type(),
+        name: display_type.name_data(),
+    };
 
     *status = match status {
         DoorStatus::None(data) => DoorStatus::One(data, door_info),
