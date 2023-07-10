@@ -1,4 +1,5 @@
 use crate::App;
+use aftiktuna::item;
 use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view::{RenderData, TextureType};
 use egui_macroquad::egui;
@@ -61,6 +62,7 @@ pub async fn load_textures() -> TextureStorage {
     let path = load_texture(&texture_path("path")).await.unwrap();
     let aftik = load_texture(&texture_path("aftik")).await.unwrap();
     let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
+    let bat = load_texture(&texture_path("bat")).await.unwrap();
 
     let mut textures = HashMap::new();
 
@@ -75,9 +77,11 @@ pub async fn load_textures() -> TextureStorage {
     );
     textures.insert(TextureType::Path, TextureData::new_static(path));
     textures.insert(TextureType::Aftik, TextureData::new_directional(aftik));
-    textures.insert(TextureType::Goblin, TextureData::new_static(unknown));
     textures.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
-    textures.insert(TextureType::Azureclops, TextureData::new_static(unknown));
+    textures.insert(
+        TextureType::Item(item::Type::Bat),
+        TextureData::new_static(bat),
+    );
 
     TextureStorage {
         background,
