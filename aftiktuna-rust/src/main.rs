@@ -94,13 +94,10 @@ impl DelayedFrames {
                 Frame::Full { render_data, .. } => {
                     state_consumer(render::State::InGame(render_data))
                 }
-                Frame::Simple {
-                    is_at_selection, ..
-                } => {
-                    if is_at_selection {
-                        state_consumer(render::State::LocationChoice);
-                    }
+                Frame::LocationChoice(..) => {
+                    state_consumer(render::State::LocationChoice);
                 }
+                _ => {}
             }
 
             if self.remaining_frames.is_empty() && self.extra_messages.is_none() {

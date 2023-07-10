@@ -68,11 +68,8 @@ impl Buffer {
         });
     }
 
-    pub fn push_messages(&mut self, messages: Messages, is_at_selection: bool) {
-        self.captured_frames.push(Frame::Simple {
-            messages,
-            is_at_selection,
-        });
+    pub fn push_frame(&mut self, frame: Frame) {
+        self.captured_frames.push(frame);
     }
 
     pub fn print(self) {
@@ -97,10 +94,8 @@ pub enum Frame {
         changes: Messages,
         render_data: RenderData,
     },
-    Simple {
-        messages: Messages,
-        is_at_selection: bool,
-    },
+    LocationChoice(Messages),
+    Simple(Messages),
 }
 
 impl Frame {
@@ -126,7 +121,7 @@ impl Frame {
                 }
                 text.extend(changes.0.clone());
             }
-            Frame::Simple { messages, .. } => {
+            Frame::Simple(messages) | Frame::LocationChoice(messages) => {
                 text.extend(messages.0.clone());
                 text.push(String::default());
             }

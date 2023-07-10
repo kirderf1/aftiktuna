@@ -3,7 +3,7 @@ use crate::area::{Locations, PickResult, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
-use crate::view::{Messages, NameData, StatusCache};
+use crate::view::{Frame, Messages, NameData, StatusCache};
 use crate::{action, ai, area, command, status, view};
 use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
@@ -126,7 +126,7 @@ impl Game {
             PickResult::None => return Err(StopType::Win),
             PickResult::Location(location) => self.state = State::Load(location),
             PickResult::Choice(choice) => {
-                view_buffer.push_messages(choice.present(), true);
+                view_buffer.push_frame(Frame::LocationChoice(choice.present()));
                 self.state = State::Choose(choice);
             }
         };
