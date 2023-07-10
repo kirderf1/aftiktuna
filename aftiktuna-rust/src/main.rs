@@ -2,7 +2,7 @@ use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
 use aftiktuna::view;
-use aftiktuna::view::{Frame, Messages};
+use aftiktuna::view::Frame;
 use macroquad::prelude::*;
 use std::mem::take;
 use std::time;
@@ -70,16 +70,14 @@ enum GameState {
 
 struct DelayedFrames {
     remaining_frames: Vec<Frame>,
-    extra_messages: Option<Messages>,
 }
 
 impl DelayedFrames {
-    fn new(view_buffer: view::Buffer, extra_messages: Option<Messages>) -> Self {
+    fn new(view_buffer: view::Buffer) -> Self {
         let mut frames = view_buffer.into_frames();
         frames.reverse();
         Self {
             remaining_frames: frames,
-            extra_messages,
         }
     }
 
@@ -100,16 +98,12 @@ impl DelayedFrames {
                 _ => {}
             }
 
-            if self.remaining_frames.is_empty() && self.extra_messages.is_none() {
+            if self.remaining_frames.is_empty() {
                 None
             } else {
                 Some((Instant::now(), self))
             }
         } else {
-            if let Some(messages) = self.extra_messages {
-                text_lines.push(String::default());
-                text_lines.extend(messages.into_text());
-            }
             None
         }
     }
@@ -136,19 +130,20 @@ impl App {
             let mut view_buffer = view::Buffer::default();
             match self.game.run(&mut view_buffer) {
                 Ok(TakeInput) => {
-                    self.add_view_data(view_buffer, None);
+                    self.add_view_data(view_buffer);
                     self.state = GameState::Input;
                 }
                 Err(stop_type) => {
-                    self.add_view_data(view_buffer, Some(stop_type.messages()));
+                    view_buffer.push_frame(Frame::Ending(stop_type));
+                    self.add_view_data(view_buffer);
                     self.state = GameState::Done;
                 }
             }
         }
     }
 
-    fn add_view_data(&mut self, view_buffer: view::Buffer, extra_messages: Option<Messages>) {
-        let frames = DelayedFrames::new(view_buffer, extra_messages);
+    fn add_view_data(&mut self, view_buffer: view::Buffer) {
+        let frames = DelayedFrames::new(view_buffer);
         self.delayed_frames =
             frames.next_and_write(&mut self.text_lines, |state| self.render_state = state);
     }

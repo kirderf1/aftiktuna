@@ -3,6 +3,7 @@ pub use status::print_full_status;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade;
 use crate::area::Area;
+use crate::game_loop::StopType;
 use crate::item;
 use crate::position::{Coord, Direction, Pos};
 use hecs::{Entity, World};
@@ -84,12 +85,12 @@ pub enum Frame {
         render_data: RenderData,
     },
     LocationChoice(Messages),
-    Simple(Messages),
+    Ending(StopType),
 }
 
 impl Frame {
     pub fn as_text(&self) -> Vec<String> {
-        let mut text = vec!["-----------".to_string()];
+        let mut text = Vec::new();
         match self {
             Frame::Full {
                 view,
@@ -97,16 +98,23 @@ impl Frame {
                 changes,
                 ..
             } => {
+                text.push("-----------".to_string());
                 text.extend(view.0.clone());
                 text.push(String::default());
+
                 if !messages.0.is_empty() {
                     text.push(messages.0.join(" "));
                 }
                 text.extend(changes.0.clone());
             }
-            Frame::Simple(messages) | Frame::LocationChoice(messages) => {
+            Frame::LocationChoice(messages) => {
+                text.push("-----------".to_string());
                 text.extend(messages.0.clone());
                 text.push(String::default());
+            }
+            Frame::Ending(stop_type) => {
+                text.push(String::default());
+                text.extend(stop_type.messages().into_text());
             }
         }
         text

@@ -20,10 +20,8 @@ pub fn run(locations: Locations) {
                 }
             }
             Err(stop_type) => {
+                view_buffer.push_frame(Frame::Ending(stop_type));
                 print_buffer(view_buffer);
-                thread::sleep(time::Duration::from_secs(2));
-                println!();
-                stop_type.messages().print_lines();
                 return;
             }
         }

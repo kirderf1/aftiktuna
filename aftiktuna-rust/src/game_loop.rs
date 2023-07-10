@@ -36,6 +36,7 @@ pub fn setup(locations: Locations) -> (Messages, Game) {
 
 pub struct TakeInput;
 
+#[derive(Copy, Clone)]
 pub enum StopType {
     Win,
     Lose,
