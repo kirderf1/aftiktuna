@@ -56,7 +56,7 @@ pub struct App {
     input: String,
     game: Game,
     state: GameState,
-    delayed_frames: Option<(Instant, DelayedFrames)>,
+    delayed_frames: Option<DelayedFrames>,
     render_state: render::State,
     show_graphical: bool,
 }
@@ -70,6 +70,7 @@ enum GameState {
 
 struct DelayedFrames {
     remaining_frames: Vec<Frame>,
+    last_frame: Option<Instant>,
 }
 
 impl DelayedFrames {
@@ -78,6 +79,7 @@ impl DelayedFrames {
         frames.reverse();
         Self {
             remaining_frames: frames,
+            last_frame: None,
         }
     }
 
@@ -85,8 +87,16 @@ impl DelayedFrames {
         mut self,
         text_lines: &mut Vec<String>,
         state_consumer: impl FnOnce(render::State),
-    ) -> Option<(Instant, Self)> {
+    ) -> Option<Self> {
+        if self
+            .last_frame
+            .map_or(false, |instant| instant.elapsed() < DELAY)
+        {
+            return Some(self);
+        }
+
         if let Some(frame) = self.remaining_frames.pop() {
+            self.last_frame = Some(Instant::now());
             text_lines.extend(frame.as_text());
             match frame {
                 Frame::Full { render_data, .. } => {
@@ -101,7 +111,7 @@ impl DelayedFrames {
             if self.remaining_frames.is_empty() {
                 None
             } else {
-                Some((Instant::now(), self))
+                Some(self)
             }
         } else {
             None
@@ -113,16 +123,9 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl App {
     fn update_view_state(&mut self) {
-        if self
-            .delayed_frames
-            .as_ref()
-            .map_or(false, |(instant, _)| instant.elapsed() >= DELAY)
-        {
-            self.delayed_frames = take(&mut self.delayed_frames).and_then(|(_, delayed_views)| {
-                delayed_views
-                    .next_and_write(&mut self.text_lines, |state| self.render_state = state)
-            });
-        }
+        self.delayed_frames = take(&mut self.delayed_frames).and_then(|delayed_views| {
+            delayed_views.next_and_write(&mut self.text_lines, |state| self.render_state = state)
+        });
     }
 
     fn update_game_state(&mut self) {
