@@ -60,12 +60,22 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn capture_view(&mut self, world: &World, character: Entity, cache: &mut StatusCache) {
+        let mut messages = Messages::default();
+        self.pop_message_cache(&mut messages);
+        status::changes_messages(world, character, &mut messages, cache);
+
         self.captured_frames.push(Frame::Full {
             view: view_messages(world, character, cache),
-            messages: take(&mut self.messages),
-            changes: status::changes_messages(world, character, cache),
+            messages,
             render_data: prepare_render_data(world, character),
         });
+    }
+
+    fn pop_message_cache(&mut self, messages: &mut Messages) {
+        let messages_text = take(&mut self.messages).0.join(" ");
+        if !messages_text.is_empty() {
+            messages.add(messages_text);
+        }
     }
 
     pub fn push_frame(&mut self, frame: Frame) {
@@ -81,7 +91,6 @@ pub enum Frame {
     Full {
         view: Messages,
         messages: Messages,
-        changes: Messages,
         render_data: RenderData,
     },
     LocationChoice(Messages),
@@ -92,22 +101,14 @@ impl Frame {
     pub fn as_text(&self) -> Vec<String> {
         let mut text = Vec::new();
         match self {
-            Frame::Full {
-                view,
-                messages,
-                changes,
-                ..
-            } => {
+            Frame::Full { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.0.clone());
 
-                if !messages.0.is_empty() || !changes.0.is_empty() {
+                if !messages.0.is_empty() {
                     text.push(String::default());
 
-                    if !messages.0.is_empty() {
-                        text.push(messages.0.join(" "));
-                    }
-                    text.extend(changes.0.clone());
+                    text.extend(messages.0.clone());
                 }
             }
             Frame::LocationChoice(messages) => {
