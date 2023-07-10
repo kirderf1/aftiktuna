@@ -88,30 +88,16 @@ impl DelayedFrames {
         self.remaining_frames.is_empty()
     }
 
-    fn next_and_write(
-        &mut self,
-        text_lines: &mut Vec<String>,
-        state_consumer: impl FnOnce(render::State),
-    ) {
+    fn next_frame(&mut self) -> Option<Frame> {
         if self
             .last_frame
-            .map_or(false, |instant| instant.elapsed() < DELAY)
+            .map_or(true, |instant| instant.elapsed() >= DELAY)
         {
-            return;
-        }
-
-        if let Some(frame) = self.remaining_frames.pop() {
+            let frame = self.remaining_frames.pop()?;
             self.last_frame = Some(Instant::now());
-            text_lines.extend(frame.as_text());
-            match frame {
-                Frame::Full { render_data, .. } => {
-                    state_consumer(render::State::InGame(render_data))
-                }
-                Frame::LocationChoice(..) => {
-                    state_consumer(render::State::LocationChoice);
-                }
-                _ => {}
-            }
+            Some(frame)
+        } else {
+            None
         }
     }
 }
@@ -120,8 +106,22 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl App {
     fn update_view_state(&mut self) {
-        self.delayed_frames
-            .next_and_write(&mut self.text_lines, |state| self.render_state = state);
+        if let Some(frame) = self.delayed_frames.next_frame() {
+            self.show_frame(frame);
+        }
+    }
+
+    fn show_frame(&mut self, frame: Frame) {
+        self.text_lines.extend(frame.as_text());
+        match frame {
+            Frame::Full { render_data, .. } => {
+                self.render_state = render::State::InGame(render_data)
+            }
+            Frame::LocationChoice(..) => {
+                self.render_state = render::State::LocationChoice;
+            }
+            _ => {}
+        }
     }
 
     fn update_game_state(&mut self) {
