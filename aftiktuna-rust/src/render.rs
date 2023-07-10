@@ -1,4 +1,4 @@
-use crate::{App, GameState};
+use crate::App;
 use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view::{RenderData, TextureType};
 use egui_macroquad::egui;
@@ -8,7 +8,6 @@ use macroquad::prelude::{
     clear_background, draw_texture, draw_texture_ex, load_texture, DrawTextureParams, Texture2D,
 };
 use std::collections::HashMap;
-use std::mem::take;
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
@@ -170,22 +169,14 @@ fn ui(app: &mut App, ctx: &egui::Context) {
 
 fn input_field(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
     let response = ui.add_enabled(
-        app.state == GameState::Input && app.delayed_views.is_none(),
+        app.ready_to_take_input(),
         egui::TextEdit::singleline(&mut app.input)
             .font(FONT)
             .desired_width(f32::INFINITY),
     );
 
     if response.lost_focus() && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter)) {
-        let input = take(&mut app.input);
-        if !input.is_empty() {
-            app.text_lines.push(format!("> {input}"));
-            if let Err(messages) = app.game.handle_input(&input) {
-                app.text_lines.extend(messages.into_text());
-            } else {
-                app.state = GameState::Run;
-            }
-        }
+        app.handle_input();
         ctx.memory_mut(|memory| memory.request_focus(response.id));
     }
 }

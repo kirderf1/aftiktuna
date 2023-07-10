@@ -155,4 +155,20 @@ impl App {
         self.delayed_views =
             views.next_and_write(&mut self.text_lines, |state| self.render_state = state);
     }
+
+    fn ready_to_take_input(&self) -> bool {
+        self.state == GameState::Input && self.delayed_views.is_none()
+    }
+
+    fn handle_input(&mut self) {
+        let input = take(&mut self.input);
+        if !input.is_empty() {
+            self.text_lines.push(format!("> {input}"));
+            if let Err(messages) = self.game.handle_input(&input) {
+                self.text_lines.extend(messages.into_text());
+            } else {
+                self.state = GameState::Run;
+            }
+        }
+    }
 }
