@@ -118,7 +118,7 @@ impl App {
         }
 
         match frame {
-            Frame::Full { render_data, .. } => {
+            Frame::AreaView { render_data, .. } => {
                 self.render_state = render::State::InGame(render_data)
             }
             Frame::LocationChoice(..) => {

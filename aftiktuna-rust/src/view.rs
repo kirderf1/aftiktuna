@@ -2,6 +2,7 @@ pub use status::print_full_status;
 
 use crate::action::door::{BlockType, Door};
 use crate::action::trade;
+use crate::action::trade::Shopkeeper;
 use crate::area::Area;
 use crate::game_loop::StopType;
 use crate::item;
@@ -64,11 +65,13 @@ impl Buffer {
         self.pop_message_cache(&mut messages);
         status::changes_messages(world, character, &mut messages, cache);
 
-        self.captured_frames.push(Frame::Full {
-            view: view_messages(world, character, cache),
-            messages,
-            render_data: prepare_render_data(world, character),
-        });
+        let frame = if let Some(shopkeeper) = trade::get_shop_info(world, character) {
+            shop_frame(&shopkeeper, messages, world, character, cache)
+        } else {
+            area_view_frame(messages, world, character)
+        };
+
+        self.captured_frames.push(frame);
     }
 
     fn pop_message_cache(&mut self, messages: &mut Messages) {
@@ -88,7 +91,7 @@ impl Buffer {
 }
 
 pub enum Frame {
-    Full {
+    AreaView {
         view: Messages,
         messages: Messages,
         render_data: RenderData,
@@ -101,7 +104,7 @@ impl Frame {
     pub fn as_text(&self) -> Vec<String> {
         let mut text = Vec::new();
         match self {
-            Frame::Full { view, messages, .. } => {
+            Frame::AreaView { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.0.clone());
 
@@ -124,6 +127,28 @@ impl Frame {
     }
 }
 
+fn shop_frame(
+    shopkeeper: &Shopkeeper,
+    messages: Messages,
+    world: &World,
+    character: Entity,
+    cache: &mut StatusCache,
+) -> Frame {
+    Frame::AreaView {
+        view: shop_view_messages(world, character, cache, shopkeeper),
+        messages,
+        render_data: prepare_render_data(world, character),
+    }
+}
+
+fn area_view_frame(messages: Messages, world: &World, character: Entity) -> Frame {
+    Frame::AreaView {
+        view: area_view_messages(world, character),
+        messages,
+        render_data: prepare_render_data(world, character),
+    }
+}
+
 impl DisplayInfo {
     pub fn new(symbol: char, texture_type: TextureType, weight: u32) -> Self {
         DisplayInfo {
@@ -134,31 +159,38 @@ impl DisplayInfo {
     }
 }
 
-fn view_messages(world: &World, character: Entity, cache: &mut StatusCache) -> Messages {
+fn area_view_messages(world: &World, character: Entity) -> Messages {
     let mut messages = Messages::default();
-    if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-        let items = shopkeeper
-            .0
-            .iter()
-            .map(|priced| (capitalize(priced.item.noun_data().singular()), priced.price))
-            .collect::<Vec<_>>();
-        let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
-        for (name, price) in items {
-            messages.add(format!(
-                "{} {}| {}p",
-                name,
-                " ".repeat(max_length - name.len()),
-                price
-            ));
-        }
-        status::print_points(world, character, &mut messages, cache);
-    } else {
-        let area = get_viewed_area(character, world);
-        let area_info = world.get::<&Area>(area).unwrap();
-        let area_size = area_info.size;
-        messages.add(format!("{}:", area_info.label));
-        print_area(world, &mut messages.0, area, area_size);
+    let area = get_viewed_area(character, world);
+    let area_info = world.get::<&Area>(area).unwrap();
+    let area_size = area_info.size;
+    messages.add(format!("{}:", area_info.label));
+    print_area(world, &mut messages.0, area, area_size);
+    messages
+}
+
+fn shop_view_messages(
+    world: &World,
+    character: Entity,
+    cache: &mut StatusCache,
+    shopkeeper: &Shopkeeper,
+) -> Messages {
+    let mut messages = Messages::default();
+    let items = shopkeeper
+        .0
+        .iter()
+        .map(|priced| (capitalize(priced.item.noun_data().singular()), priced.price))
+        .collect::<Vec<_>>();
+    let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
+    for (name, price) in items {
+        messages.add(format!(
+            "{} {}| {}p",
+            name,
+            " ".repeat(max_length - name.len()),
+            price
+        ));
     }
+    status::print_points(world, character, &mut messages, cache);
     messages
 }
 
