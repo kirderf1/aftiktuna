@@ -3,9 +3,9 @@ use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view::{RenderData, TextureType};
 use egui_macroquad::egui;
 use macroquad::color::{BLACK, WHITE};
-use macroquad::math::{bool, f32, i32, Vec2};
 use macroquad::prelude::{
-    clear_background, draw_texture, draw_texture_ex, load_texture, DrawTextureParams, Texture2D,
+    clear_background, draw_rectangle, draw_text, draw_texture, draw_texture_ex, load_texture,
+    Color, DrawTextureParams, Texture2D, Vec2,
 };
 use std::collections::HashMap;
 
@@ -122,6 +122,7 @@ fn draw_game(app: &mut App, textures: &TextureStorage) {
             draw_objects(render_data, &textures.by_type);
         }
     }
+    draw_text_box(&app.text_box_text);
 }
 
 fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, TextureData>) {
@@ -139,7 +140,7 @@ fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, Textur
             lookup_texture(textures, data.texture_type),
             data.direction,
             start_x + ((coord as i32) * 120 - count * 15) as f32,
-            (500 + count * 10) as f32,
+            (450 + count * 10) as f32,
         );
     }
 }
@@ -157,6 +158,27 @@ fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
             ..Default::default()
         },
     );
+}
+
+const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
+const TEXT_BOX_TEXT_SIZE: f32 = 16.;
+
+fn draw_text_box(text: &Vec<String>) {
+    if text.is_empty() {
+        return;
+    }
+    let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE);
+    let text_box_start = 600. - 25. - text_box_size;
+    draw_rectangle(0., text_box_start, 800., text_box_size, TEXT_BOX_COLOR);
+    for (index, text_line) in text.iter().enumerate() {
+        draw_text(
+            text_line,
+            8.,
+            text_box_start + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE),
+            TEXT_BOX_TEXT_SIZE,
+            WHITE,
+        );
+    }
 }
 
 fn ui(app: &mut App, ctx: &egui::Context) {

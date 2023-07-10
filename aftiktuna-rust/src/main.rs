@@ -47,7 +47,8 @@ fn init() -> App {
         state: GameState::Run,
         delayed_frames: Default::default(),
         render_state: render::State::LocationChoice,
-        show_graphical: false,
+        text_box_text: vec![],
+        show_graphical: true,
     }
 }
 
@@ -58,6 +59,7 @@ pub struct App {
     state: GameState,
     delayed_frames: DelayedFrames,
     render_state: render::State,
+    text_box_text: Vec<String>,
     show_graphical: bool,
 }
 
@@ -118,13 +120,21 @@ impl App {
         }
 
         match frame {
-            Frame::AreaView { render_data, .. } => {
-                self.render_state = render::State::InGame(render_data)
+            Frame::AreaView {
+                render_data,
+                messages,
+                ..
+            } => {
+                self.render_state = render::State::InGame(render_data);
+                self.text_box_text = messages.into_text();
             }
-            Frame::LocationChoice(..) => {
+            Frame::LocationChoice(messages) => {
                 self.render_state = render::State::LocationChoice;
+                self.text_box_text = messages.into_text();
             }
-            _ => {}
+            Frame::Ending(stop_type) => {
+                self.text_box_text = stop_type.messages().into_text();
+            }
         }
     }
 
@@ -158,7 +168,9 @@ impl App {
         if !input.is_empty() {
             self.text_lines.push(format!("> {input}"));
             if let Err(messages) = self.game.handle_input(&input) {
-                self.text_lines.extend(messages.into_text());
+                let text = messages.into_text();
+                self.text_lines.extend(text.clone());
+                self.text_box_text = text;
             } else {
                 self.state = GameState::Run;
             }
