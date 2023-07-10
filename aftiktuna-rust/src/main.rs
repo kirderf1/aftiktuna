@@ -130,15 +130,14 @@ impl App {
 
     fn update_game_state(&mut self) {
         if self.state == GameState::Run {
-            let mut view_buffer = view::Buffer::default();
-            match self.game.run(&mut view_buffer) {
+            let (result, view_buffer) = self.game.run();
+            self.add_view_data(view_buffer);
+
+            match result {
                 Ok(TakeInput) => {
-                    self.add_view_data(view_buffer);
                     self.state = GameState::Input;
                 }
-                Err(stop_type) => {
-                    view_buffer.push_frame(Frame::Ending(stop_type));
-                    self.add_view_data(view_buffer);
+                Err(_) => {
                     self.state = GameState::Done;
                 }
             }

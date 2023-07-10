@@ -72,7 +72,19 @@ impl StopType {
 }
 
 impl Game {
-    pub fn run(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
+    pub fn run(&mut self) -> (Result<TakeInput, StopType>, view::Buffer) {
+        let mut buffer = Default::default();
+        let result = self.run_with_buffer(&mut buffer);
+        if let Err(stop_type) = result {
+            buffer.push_frame(Frame::Ending(stop_type));
+        }
+        (result, buffer)
+    }
+
+    pub fn run_with_buffer(
+        &mut self,
+        view_buffer: &mut view::Buffer,
+    ) -> Result<TakeInput, StopType> {
         loop {
             match &self.state {
                 State::Choose(_) | State::CommandInput => return Ok(TakeInput),

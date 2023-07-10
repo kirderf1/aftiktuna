@@ -10,16 +10,15 @@ pub fn run(locations: Locations) {
     messages.print_lines();
 
     loop {
-        let mut view_buffer = view::Buffer::default();
-        match game.run(&mut view_buffer) {
+        let (result, view_buffer) = game.run();
+        print_buffer(view_buffer);
+
+        match result {
             Ok(TakeInput) => {
-                print_buffer(view_buffer);
                 println!();
                 input_loop(&mut game);
             }
-            Err(stop_type) => {
-                view_buffer.push_frame(Frame::Ending(stop_type));
-                print_buffer(view_buffer);
+            Err(_) => {
                 return;
             }
         }
