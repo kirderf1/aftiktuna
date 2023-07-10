@@ -2,7 +2,7 @@ use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
 use aftiktuna::view;
-use aftiktuna::view::Messages;
+use aftiktuna::view::{Frame, Messages};
 use macroquad::prelude::*;
 use std::mem::take;
 use std::time;
@@ -45,7 +45,7 @@ fn init() -> App {
         input: String::new(),
         game,
         state: GameState::Run,
-        delayed_views: None,
+        delayed_frames: None,
         render_state: render::State::LocationChoice,
         show_graphical: false,
     }
@@ -56,7 +56,7 @@ pub struct App {
     input: String,
     game: Game,
     state: GameState,
-    delayed_views: Option<(Instant, DelayedViews)>,
+    delayed_frames: Option<(Instant, DelayedFrames)>,
     render_state: render::State,
     show_graphical: bool,
 }
@@ -68,17 +68,17 @@ enum GameState {
     Done,
 }
 
-struct DelayedViews {
-    remaining_views: Vec<view::Data>,
+struct DelayedFrames {
+    remaining_frames: Vec<Frame>,
     extra_messages: Option<Messages>,
 }
 
-impl DelayedViews {
+impl DelayedFrames {
     fn new(view_buffer: view::Buffer, extra_messages: Option<Messages>) -> Self {
-        let mut views = view_buffer.into_data();
-        views.reverse();
+        let mut frames = view_buffer.into_frames();
+        frames.reverse();
         Self {
-            remaining_views: views,
+            remaining_frames: frames,
             extra_messages,
         }
     }
@@ -88,13 +88,13 @@ impl DelayedViews {
         text_lines: &mut Vec<String>,
         state_consumer: impl FnOnce(render::State),
     ) -> Option<(Instant, Self)> {
-        if let Some(view_data) = self.remaining_views.pop() {
-            text_lines.extend(view_data.as_text());
-            match view_data {
-                view::Data::Full { render_data, .. } => {
+        if let Some(frame) = self.remaining_frames.pop() {
+            text_lines.extend(frame.as_text());
+            match frame {
+                Frame::Full { render_data, .. } => {
                     state_consumer(render::State::InGame(render_data))
                 }
-                view::Data::Simple {
+                Frame::Simple {
                     is_at_selection, ..
                 } => {
                     if is_at_selection {
@@ -103,7 +103,7 @@ impl DelayedViews {
                 }
             }
 
-            if self.remaining_views.is_empty() && self.extra_messages.is_none() {
+            if self.remaining_frames.is_empty() && self.extra_messages.is_none() {
                 None
             } else {
                 Some((Instant::now(), self))
@@ -123,11 +123,11 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 impl App {
     fn update_view_state(&mut self) {
         if self
-            .delayed_views
+            .delayed_frames
             .as_ref()
             .map_or(false, |(instant, _)| instant.elapsed() >= DELAY)
         {
-            self.delayed_views = take(&mut self.delayed_views).and_then(|(_, delayed_views)| {
+            self.delayed_frames = take(&mut self.delayed_frames).and_then(|(_, delayed_views)| {
                 delayed_views
                     .next_and_write(&mut self.text_lines, |state| self.render_state = state)
             });
@@ -151,13 +151,13 @@ impl App {
     }
 
     fn add_view_data(&mut self, view_buffer: view::Buffer, extra_messages: Option<Messages>) {
-        let views = DelayedViews::new(view_buffer, extra_messages);
-        self.delayed_views =
-            views.next_and_write(&mut self.text_lines, |state| self.render_state = state);
+        let frames = DelayedFrames::new(view_buffer, extra_messages);
+        self.delayed_frames =
+            frames.next_and_write(&mut self.text_lines, |state| self.render_state = state);
     }
 
     fn ready_to_take_input(&self) -> bool {
-        self.state == GameState::Input && self.delayed_views.is_none()
+        self.state == GameState::Input && self.delayed_frames.is_none()
     }
 
     fn handle_input(&mut self) {

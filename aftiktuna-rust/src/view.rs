@@ -55,12 +55,12 @@ pub type NameData = name::Data;
 #[derive(Default)]
 pub struct Buffer {
     pub messages: Messages,
-    captures: Vec<Data>,
+    captured_frames: Vec<Frame>,
 }
 
 impl Buffer {
     pub fn capture_view(&mut self, world: &World, character: Entity, cache: &mut StatusCache) {
-        self.captures.push(Data::Full {
+        self.captured_frames.push(Frame::Full {
             view: view_messages(world, character, cache),
             messages: take(&mut self.messages),
             changes: status::changes_messages(world, character, cache),
@@ -69,28 +69,28 @@ impl Buffer {
     }
 
     pub fn push_messages(&mut self, messages: Messages, is_at_selection: bool) {
-        self.captures.push(Data::Simple {
+        self.captured_frames.push(Frame::Simple {
             messages,
             is_at_selection,
         });
     }
 
     pub fn print(self) {
-        let mut iter = self.captures.into_iter();
-        while let Some(data) = iter.next() {
-            data.print();
+        let mut iter = self.captured_frames.into_iter();
+        while let Some(frame) = iter.next() {
+            frame.print();
             if iter.len() > 0 {
                 thread::sleep(time::Duration::from_secs(2));
             }
         }
     }
 
-    pub fn into_data(self) -> Vec<Data> {
-        self.captures
+    pub fn into_frames(self) -> Vec<Frame> {
+        self.captured_frames
     }
 }
 
-pub enum Data {
+pub enum Frame {
     Full {
         view: Messages,
         messages: Messages,
@@ -103,7 +103,7 @@ pub enum Data {
     },
 }
 
-impl Data {
+impl Frame {
     pub fn print(self) {
         for line in self.as_text() {
             println!("{line}");
@@ -113,7 +113,7 @@ impl Data {
     pub fn as_text(&self) -> Vec<String> {
         let mut text = vec!["-----------".to_string()];
         match self {
-            Data::Full {
+            Frame::Full {
                 view,
                 messages,
                 changes,
@@ -126,7 +126,7 @@ impl Data {
                 }
                 text.extend(changes.0.clone());
             }
-            Data::Simple { messages, .. } => {
+            Frame::Simple { messages, .. } => {
                 text.extend(messages.0.clone());
                 text.push(String::default());
             }
