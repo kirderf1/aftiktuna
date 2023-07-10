@@ -61,17 +61,25 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn capture_view(&mut self, world: &World, character: Entity, cache: &mut StatusCache) {
-        let mut messages = Messages::default();
-        self.pop_message_cache(&mut messages);
-        status::changes_messages(world, character, &mut messages, cache);
-
         let frame = if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-            shop_frame(&shopkeeper, messages, world, character, cache)
+            shop_frame(&shopkeeper, self, world, character, cache)
         } else {
-            area_view_frame(messages, world, character)
+            area_view_frame(self, world, character, cache)
         };
 
         self.captured_frames.push(frame);
+    }
+
+    fn pop_messages(
+        &mut self,
+        world: &World,
+        character: Entity,
+        cache: &mut StatusCache,
+    ) -> Messages {
+        let mut messages = Messages::default();
+        self.pop_message_cache(&mut messages);
+        status::changes_messages(world, character, &mut messages, cache);
+        messages
     }
 
     fn pop_message_cache(&mut self, messages: &mut Messages) {
@@ -129,22 +137,29 @@ impl Frame {
 
 fn shop_frame(
     shopkeeper: &Shopkeeper,
-    messages: Messages,
+    buffer: &mut Buffer,
+    world: &World,
+    character: Entity,
+    cache: &mut StatusCache,
+) -> Frame {
+    // Use the cache in shop view before status messages so that points aren't shown in status messages too
+    let view = shop_view_messages(world, character, cache, shopkeeper);
+    Frame::AreaView {
+        view,
+        messages: buffer.pop_messages(world, character, cache),
+        render_data: prepare_render_data(world, character),
+    }
+}
+
+fn area_view_frame(
+    buffer: &mut Buffer,
     world: &World,
     character: Entity,
     cache: &mut StatusCache,
 ) -> Frame {
     Frame::AreaView {
-        view: shop_view_messages(world, character, cache, shopkeeper),
-        messages,
-        render_data: prepare_render_data(world, character),
-    }
-}
-
-fn area_view_frame(messages: Messages, world: &World, character: Entity) -> Frame {
-    Frame::AreaView {
         view: area_view_messages(world, character),
-        messages,
+        messages: buffer.pop_messages(world, character, cache),
         render_data: prepare_render_data(world, character),
     }
 }
