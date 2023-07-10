@@ -9,7 +9,6 @@ use hecs::{Entity, World};
 pub use name::{as_grouped_text_list, NounData};
 use std::cmp::max;
 use std::mem::take;
-use std::{thread, time};
 
 mod name;
 mod status;
@@ -72,16 +71,6 @@ impl Buffer {
         self.captured_frames.push(frame);
     }
 
-    pub fn print(self) {
-        let mut iter = self.captured_frames.into_iter();
-        while let Some(frame) = iter.next() {
-            frame.print();
-            if iter.len() > 0 {
-                thread::sleep(time::Duration::from_secs(2));
-            }
-        }
-    }
-
     pub fn into_frames(self) -> Vec<Frame> {
         self.captured_frames
     }
@@ -99,12 +88,6 @@ pub enum Frame {
 }
 
 impl Frame {
-    pub fn print(self) {
-        for line in self.as_text() {
-            println!("{line}");
-        }
-    }
-
     pub fn as_text(&self) -> Vec<String> {
         let mut text = vec!["-----------".to_string()];
         match self {
