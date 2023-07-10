@@ -1,5 +1,5 @@
 use crate::area::Locations;
-use crate::game_loop::TakeInput;
+use crate::game_loop::{Game, TakeInput};
 use crate::view::Frame;
 use crate::{game_loop, view};
 use std::io::Write;
@@ -14,16 +14,25 @@ pub fn run(locations: Locations) {
         match game.run(&mut view_buffer) {
             Ok(TakeInput) => {
                 print_buffer(view_buffer);
-                let input = read_input();
-                if let Err(messages) = game.handle_input(&input) {
-                    messages.print_lines();
-                }
+                println!();
+                input_loop(&mut game);
             }
             Err(stop_type) => {
                 view_buffer.push_frame(Frame::Ending(stop_type));
                 print_buffer(view_buffer);
                 return;
             }
+        }
+    }
+}
+
+fn input_loop(game: &mut Game) {
+    loop {
+        let input = read_input();
+        if let Err(messages) = game.handle_input(&input) {
+            messages.print_lines();
+        } else {
+            break;
         }
     }
 }

@@ -113,6 +113,10 @@ impl App {
 
     fn show_frame(&mut self, frame: Frame) {
         self.text_lines.extend(frame.as_text());
+        if self.delayed_frames.is_done() && self.state != GameState::Done {
+            self.text_lines.push(String::default())
+        }
+
         match frame {
             Frame::Full { render_data, .. } => {
                 self.render_state = render::State::InGame(render_data)

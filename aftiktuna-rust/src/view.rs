@@ -98,19 +98,21 @@ impl Frame {
                 changes,
                 ..
             } => {
-                text.push("-----------".to_string());
+                text.push("--------------------".to_string());
                 text.extend(view.0.clone());
-                text.push(String::default());
 
-                if !messages.0.is_empty() {
-                    text.push(messages.0.join(" "));
+                if !messages.0.is_empty() || !changes.0.is_empty() {
+                    text.push(String::default());
+
+                    if !messages.0.is_empty() {
+                        text.push(messages.0.join(" "));
+                    }
+                    text.extend(changes.0.clone());
                 }
-                text.extend(changes.0.clone());
             }
             Frame::LocationChoice(messages) => {
-                text.push("-----------".to_string());
+                text.push("--------------------".to_string());
                 text.extend(messages.0.clone());
-                text.push(String::default());
             }
             Frame::Ending(stop_type) => {
                 text.push(String::default());
