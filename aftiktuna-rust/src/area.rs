@@ -1,7 +1,7 @@
 use crate::action::door::Door;
 use crate::action::trade::Points;
 use crate::action::CrewMember;
-use crate::position::{Coord, Pos};
+use crate::position::{Coord, Direction, Pos};
 use crate::status::Stats;
 use crate::view::{Messages, NameData, TextureType};
 use crate::{action, item};
@@ -215,8 +215,9 @@ pub fn load_location(
         .iter()
         .map(|pair| pair.0)
         .collect::<Vec<_>>();
+    let direction = Direction::towards_center(start_pos, world);
     for aftik in aftiks {
-        world.insert_one(aftik, start_pos).unwrap();
+        world.insert(aftik, (start_pos, direction)).unwrap();
     }
 
     messages.add("The ship arrives at a new location, and the crew exit the ship.");
