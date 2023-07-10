@@ -45,7 +45,7 @@ fn init() -> App {
         input: String::new(),
         game,
         state: GameState::Run,
-        delayed_frames: None,
+        delayed_frames: Default::default(),
         render_state: render::State::LocationChoice,
         show_graphical: false,
     }
@@ -56,7 +56,7 @@ pub struct App {
     input: String,
     game: Game,
     state: GameState,
-    delayed_frames: Option<DelayedFrames>,
+    delayed_frames: DelayedFrames,
     render_state: render::State,
     show_graphical: bool,
 }
@@ -68,6 +68,7 @@ enum GameState {
     Done,
 }
 
+#[derive(Default)]
 struct DelayedFrames {
     remaining_frames: Vec<Frame>,
     last_frame: Option<Instant>,
@@ -83,16 +84,20 @@ impl DelayedFrames {
         }
     }
 
+    fn is_done(&self) -> bool {
+        self.remaining_frames.is_empty()
+    }
+
     fn next_and_write(
-        mut self,
+        &mut self,
         text_lines: &mut Vec<String>,
         state_consumer: impl FnOnce(render::State),
-    ) -> Option<Self> {
+    ) {
         if self
             .last_frame
             .map_or(false, |instant| instant.elapsed() < DELAY)
         {
-            return Some(self);
+            return;
         }
 
         if let Some(frame) = self.remaining_frames.pop() {
@@ -107,14 +112,6 @@ impl DelayedFrames {
                 }
                 _ => {}
             }
-
-            if self.remaining_frames.is_empty() {
-                None
-            } else {
-                Some(self)
-            }
-        } else {
-            None
         }
     }
 }
@@ -123,9 +120,8 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl App {
     fn update_view_state(&mut self) {
-        self.delayed_frames = take(&mut self.delayed_frames).and_then(|delayed_views| {
-            delayed_views.next_and_write(&mut self.text_lines, |state| self.render_state = state)
-        });
+        self.delayed_frames
+            .next_and_write(&mut self.text_lines, |state| self.render_state = state);
     }
 
     fn update_game_state(&mut self) {
@@ -146,13 +142,12 @@ impl App {
     }
 
     fn add_view_data(&mut self, view_buffer: view::Buffer) {
-        let frames = DelayedFrames::new(view_buffer);
-        self.delayed_frames =
-            frames.next_and_write(&mut self.text_lines, |state| self.render_state = state);
+        self.delayed_frames = DelayedFrames::new(view_buffer);
+        self.update_view_state();
     }
 
     fn ready_to_take_input(&self) -> bool {
-        self.state == GameState::Input && self.delayed_frames.is_none()
+        self.state == GameState::Input && self.delayed_frames.is_done()
     }
 
     fn handle_input(&mut self) {
