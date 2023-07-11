@@ -3,10 +3,11 @@ use aftiktuna::item;
 use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view::{RenderData, TextureType};
 use egui_macroquad::egui;
+use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
 use macroquad::prelude::{
-    clear_background, draw_rectangle, draw_text, draw_texture, draw_texture_ex, load_texture,
-    Color, DrawTextureParams, Texture2D, Vec2,
+    clamp, clear_background, draw_rectangle, draw_text, draw_texture, draw_texture_ex,
+    load_texture, set_default_camera, Camera2D, Color, DrawTextureParams, Rect, Texture2D, Vec2,
 };
 use std::collections::HashMap;
 
@@ -126,12 +127,15 @@ fn draw_game(app: &mut App, textures: &TextureStorage) {
             draw_objects(render_data, &textures.by_type);
         }
     }
+
+    set_default_camera();
+
     draw_text_box(&app.text_box_text);
 }
 
 fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, TextureData>) {
-    let size = render_data.size;
-    let start_x = (800. - (size - 1) as f32 * 120.) / 2.;
+    setup_camera(render_data);
+    let start_x = 40.;
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
     for data in &render_data.objects {
@@ -162,6 +166,25 @@ fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
             ..Default::default()
         },
     );
+}
+
+fn setup_camera(render_data: &RenderData) {
+    let camera_target = if render_data.size <= 6 {
+        (render_data.size - 1) as f32 / 2.
+    } else {
+        clamp(
+            render_data.character_coord as f32,
+            2.5,
+            render_data.size as f32 - 3.5,
+        )
+    };
+
+    set_camera(&Camera2D::from_display_rect(Rect::new(
+        (camera_target - 3.) * 120.,
+        0.,
+        800.,
+        600.,
+    )));
 }
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);

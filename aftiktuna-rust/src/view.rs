@@ -287,6 +287,7 @@ pub fn name_display_info(texture_type: TextureType, name: &str) -> DisplayInfo {
 
 pub struct RenderData {
     pub size: Coord,
+    pub character_coord: Coord,
     pub objects: Vec<ObjectRenderData>,
 }
 
@@ -311,13 +312,13 @@ pub enum TextureType {
 }
 
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {
-    let area = get_viewed_area(character, world);
-    let size = world.get::<&Area>(area).unwrap().size;
+    let character_pos = world.get::<&Pos>(character).unwrap();
+    let size = world.get::<&Area>(character_pos.get_area()).unwrap().size;
 
     let objects = world
         .query::<(&Pos, &DisplayInfo, Option<&Direction>)>()
         .iter()
-        .filter(|(_, (pos, _, _))| pos.is_in(area))
+        .filter(|(_, (pos, _, _))| pos.is_in(character_pos.get_area()))
         .map(|(_, (pos, display_info, direction))| ObjectRenderData {
             coord: pos.get_coord(),
             texture_type: display_info.texture_type,
@@ -325,5 +326,9 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
         })
         .collect();
 
-    RenderData { size, objects }
+    RenderData {
+        size,
+        character_coord: character_pos.get_coord(),
+        objects,
+    }
 }
