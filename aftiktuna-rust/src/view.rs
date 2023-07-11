@@ -3,7 +3,7 @@ pub use status::print_full_status;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade;
 use crate::action::trade::Shopkeeper;
-use crate::area::Area;
+use crate::area::{Area, BackgroundType};
 use crate::game_loop::StopType;
 use crate::item;
 use crate::position::{Coord, Direction, Pos};
@@ -287,6 +287,7 @@ pub fn name_display_info(texture_type: TextureType, name: &str) -> DisplayInfo {
 
 pub struct RenderData {
     pub size: Coord,
+    pub background: Option<BackgroundType>,
     pub character_coord: Coord,
     pub objects: Vec<ObjectRenderData>,
 }
@@ -313,7 +314,7 @@ pub enum TextureType {
 
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {
     let character_pos = world.get::<&Pos>(character).unwrap();
-    let size = world.get::<&Area>(character_pos.get_area()).unwrap().size;
+    let area = world.get::<&Area>(character_pos.get_area()).unwrap();
 
     let objects = world
         .query::<(&Pos, &DisplayInfo, Option<&Direction>)>()
@@ -327,7 +328,8 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
         .collect();
 
     RenderData {
-        size,
+        size: area.size,
+        background: area.background,
         character_coord: character_pos.get_coord(),
         objects,
     }

@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a forest",
+      "background": "forest",
       "objects": [ "", "v", "", "", "^", "", "" ],
       "symbols": {
         "^": {
@@ -13,6 +14,7 @@
     },
     {
       "name": "Forest entrance",
+      "background": "forest",
       "objects": [ "<", "", "^", "", ">" ],
       "symbols": {
         "<": {
@@ -34,6 +36,7 @@
     },
     {
       "name": "Forest path leading to a shack",
+      "background": "forest",
       "objects": [ "^", "", "<", "", ">", "" ],
       "symbols": {
         "^": {
@@ -66,6 +69,7 @@
     },
     {
       "name": "Forest path",
+      "background": "forest",
       "objects": [ "<", "", "", "G", ">" ],
       "symbols": {
         "<": {
@@ -82,6 +86,7 @@
     },
     {
       "name": "Forest path",
+      "background": "forest",
       "objects": [ "<", "B", "G", "G", "", ">" ],
       "symbols": {
         "<": {
@@ -98,6 +103,7 @@
     },
     {
       "name": "Forest path",
+      "background": "forest",
       "objects": [ "<", "", ">", "", "G", "c" ],
       "symbols": {
         "<": {

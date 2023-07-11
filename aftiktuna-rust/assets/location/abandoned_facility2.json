@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a building",
+      "background": "forest",
       "objects": [ "<", "", "", "^", "", "v" ],
       "symbols": {
         "<": {
@@ -18,6 +19,7 @@
     },
     {
       "name": "Field next to a building",
+      "background": "forest",
       "objects": [ "^", "", "", "", ">" ],
       "symbols": {
         "^": {

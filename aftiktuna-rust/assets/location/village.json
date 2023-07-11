@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Village road",
+      "background": "forest",
       "objects": [ "", "<", "", "v", "", "^", "", "", ">", "" ],
       "symbols": {
         "<": {
@@ -23,6 +24,7 @@
     },
     {
       "name": "Village road",
+      "background": "forest",
       "objects": [ "", "<", "", "", "", ">", "", "", "^", "" ],
       "symbols": {
         "<": {
@@ -44,6 +46,7 @@
     },
     {
       "name": "Side path",
+      "background": "forest",
       "objects": [ "a", "<", "", "G", "G", "", "G", "^", "" ],
       "symbols": {
         "<": {

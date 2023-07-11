@@ -1,6 +1,6 @@
 use crate::action::door::BlockType;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
-use crate::area::{creature, Area};
+use crate::area::{creature, Area, BackgroundType};
 use crate::item;
 use crate::position::Pos;
 use crate::status::Stats;
@@ -25,6 +25,7 @@ impl LocationData {
     pub fn area(&mut self, name: &str, objects: &[&str]) -> &mut AreaData {
         self.areas.push(AreaData {
             name: name.to_string(),
+            background: None,
             objects: objects.iter().map(ToString::to_string).collect(),
             symbols: HashMap::new(),
         });
@@ -60,6 +61,7 @@ impl LocationData {
 #[derive(Serialize, Deserialize)]
 pub struct AreaData {
     name: String,
+    background: Option<BackgroundType>,
     objects: Vec<String>,
     symbols: HashMap<char, SymbolData>,
 }
@@ -85,6 +87,7 @@ impl AreaData {
         let room = builder.world.spawn((Area {
             size: self.objects.len(),
             label: self.name,
+            background: self.background,
         },));
 
         for (coord, objects) in self.objects.iter().enumerate() {

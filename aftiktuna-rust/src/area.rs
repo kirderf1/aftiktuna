@@ -21,6 +21,13 @@ mod template;
 pub struct Area {
     pub size: Coord,
     pub label: String,
+    pub background: Option<BackgroundType>,
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BackgroundType {
+    Forest,
 }
 
 #[derive(Clone, Debug)]
@@ -160,6 +167,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 4,
+        background: None,
     },));
     world
         .insert_one(

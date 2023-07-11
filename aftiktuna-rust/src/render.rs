@@ -1,4 +1,5 @@
 use crate::App;
+use aftiktuna::area::BackgroundType;
 use aftiktuna::item;
 use aftiktuna::position::{Coord, Direction};
 use aftiktuna::view::{RenderData, TextureType};
@@ -14,7 +15,8 @@ use std::collections::HashMap;
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub struct TextureStorage {
-    background: Texture2D,
+    forest_background: Texture2D,
+    blank_background: Texture2D,
     selection_background: Texture2D,
     by_type: HashMap<TextureType, TextureData>,
 }
@@ -53,9 +55,10 @@ fn texture_path(name: &str) -> String {
 }
 
 pub async fn load_textures() -> TextureStorage {
-    let background = load_texture(&texture_path("tree_background"))
+    let forest_background = load_texture(&texture_path("tree_background"))
         .await
         .unwrap();
+    let blank_background = load_texture(&texture_path("white_space")).await.unwrap();
     let selection_background = load_texture(&texture_path("selection_background"))
         .await
         .unwrap();
@@ -85,7 +88,8 @@ pub async fn load_textures() -> TextureStorage {
     );
 
     TextureStorage {
-        background,
+        forest_background,
+        blank_background,
         selection_background,
         by_type: textures,
     }
@@ -122,7 +126,12 @@ fn draw_game(app: &mut App, textures: &TextureStorage) {
             draw_texture(textures.selection_background, 0., 0., WHITE);
         }
         State::InGame(render_data) => {
-            draw_texture(textures.background, 0., 0., WHITE);
+            match render_data.background {
+                Some(BackgroundType::Forest) => {
+                    draw_texture(textures.forest_background, 0., 0., WHITE)
+                }
+                None => draw_texture(textures.blank_background, 0., 0., WHITE),
+            }
 
             draw_objects(render_data, &textures.by_type);
         }
