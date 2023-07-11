@@ -15,14 +15,13 @@ use std::collections::HashMap;
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub struct TextureStorage {
-    backgrounds: HashMap<BGTextureType, Texture2D>,
+    backgrounds: HashMap<BGTextureType, BGTexture>,
     objects: HashMap<TextureType, TextureData>,
 }
 
 impl TextureStorage {
-    fn lookup_background(&self, texture_type: BGTextureType) -> Texture2D {
-        *self
-            .backgrounds
+    fn lookup_background(&self, texture_type: BGTextureType) -> &BGTexture {
+        self.backgrounds
             .get(&texture_type)
             .unwrap_or_else(|| self.backgrounds.get(&BGTextureType::Blank).unwrap())
     }
@@ -82,6 +81,11 @@ impl From<BackgroundType> for BGTextureType {
     }
 }
 
+enum BGTexture {
+    Simple(Texture2D),
+    Repeating(Texture2D),
+}
+
 fn texture_path(name: &str) -> String {
     format!("assets/textures/{}.png", name)
 }
@@ -103,9 +107,15 @@ pub async fn load_textures() -> TextureStorage {
 
     let mut backgrounds = HashMap::new();
 
-    backgrounds.insert(BGTextureType::LocationChoice, selection_background);
-    backgrounds.insert(BGTextureType::Forest, forest_background);
-    backgrounds.insert(BGTextureType::Blank, blank_background);
+    backgrounds.insert(
+        BGTextureType::LocationChoice,
+        BGTexture::Simple(selection_background),
+    );
+    backgrounds.insert(
+        BGTextureType::Forest,
+        BGTexture::Repeating(forest_background),
+    );
+    backgrounds.insert(BGTextureType::Blank, BGTexture::Simple(blank_background));
 
     let mut objects = HashMap::new();
 
@@ -148,34 +158,49 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     egui_macroquad::draw();
 }
 
+fn default_camera_space() -> Rect {
+    Rect::new(0., 0., 800., 600.)
+}
+
 fn draw_game(app: &mut App, textures: &TextureStorage) {
     match &app.render_state {
         State::LocationChoice => {
-            draw_background(BGTextureType::LocationChoice, textures);
+            draw_background(
+                BGTextureType::LocationChoice,
+                default_camera_space(),
+                textures,
+            );
         }
         State::InGame(render_data) => {
+            let camera_space = setup_camera(render_data);
             draw_background(
                 render_data
                     .background
                     .map_or(BGTextureType::Blank, BGTextureType::from),
+                camera_space,
                 textures,
             );
 
             draw_objects(render_data, textures);
+            set_default_camera();
         }
     }
-
-    set_default_camera();
 
     draw_text_box(&app.text_box_text);
 }
 
-fn draw_background(texture_type: BGTextureType, textures: &TextureStorage) {
-    draw_texture(textures.lookup_background(texture_type), 0., 0., WHITE);
+fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &TextureStorage) {
+    match textures.lookup_background(texture_type) {
+        BGTexture::Simple(texture) => draw_texture(*texture, camera_space.x, 0., WHITE),
+        BGTexture::Repeating(texture) => {
+            let start_x = 800. * f32::floor(camera_space.x / 800.);
+            draw_texture(*texture, start_x, 0., WHITE);
+            draw_texture(*texture, start_x + 800., 0., WHITE);
+        }
+    }
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
-    setup_camera(render_data);
     let start_x = 40.;
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
@@ -209,7 +234,7 @@ fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
     );
 }
 
-fn setup_camera(render_data: &RenderData) {
+fn setup_camera(render_data: &RenderData) -> Rect {
     let camera_target = if render_data.size <= 6 {
         (render_data.size - 1) as f32 / 2.
     } else {
@@ -220,12 +245,9 @@ fn setup_camera(render_data: &RenderData) {
         )
     };
 
-    set_camera(&Camera2D::from_display_rect(Rect::new(
-        (camera_target - 3.) * 120.,
-        0.,
-        800.,
-        600.,
-    )));
+    let camera_space = Rect::new((camera_target - 3.) * 120., 0., 800., 600.);
+    set_camera(&Camera2D::from_display_rect(camera_space));
+    camera_space
 }
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
