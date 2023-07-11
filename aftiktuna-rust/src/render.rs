@@ -15,10 +15,27 @@ use std::collections::HashMap;
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub struct TextureStorage {
-    forest_background: Texture2D,
-    blank_background: Texture2D,
-    selection_background: Texture2D,
-    by_type: HashMap<TextureType, TextureData>,
+    backgrounds: HashMap<BGTextureType, Texture2D>,
+    objects: HashMap<TextureType, TextureData>,
+}
+
+impl TextureStorage {
+    fn lookup_background(&self, texture_type: BGTextureType) -> Texture2D {
+        *self
+            .backgrounds
+            .get(&texture_type)
+            .unwrap_or_else(|| self.backgrounds.get(&BGTextureType::Blank).unwrap())
+    }
+
+    fn lookup_texture(&self, texture_type: TextureType) -> &TextureData {
+        if let Some(data) = self.objects.get(&texture_type) {
+            data
+        } else if let TextureType::Item(_) = texture_type {
+            self.objects.get(&TextureType::SmallUnknown).unwrap()
+        } else {
+            self.objects.get(&TextureType::Unknown).unwrap()
+        }
+    }
 }
 
 pub enum State {
@@ -50,6 +67,21 @@ impl TextureData {
     }
 }
 
+#[derive(Eq, PartialEq, Hash)]
+enum BGTextureType {
+    LocationChoice,
+    Forest,
+    Blank,
+}
+
+impl From<BackgroundType> for BGTextureType {
+    fn from(value: BackgroundType) -> Self {
+        match value {
+            BackgroundType::Forest => BGTextureType::Forest,
+        }
+    }
+}
+
 fn texture_path(name: &str) -> String {
     format!("assets/textures/{}.png", name)
 }
@@ -68,10 +100,16 @@ pub async fn load_textures() -> TextureStorage {
     let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
     let bat = load_texture(&texture_path("bat")).await.unwrap();
 
-    let mut textures = HashMap::new();
+    let mut backgrounds = HashMap::new();
 
-    textures.insert(TextureType::Unknown, TextureData::new_static(unknown));
-    textures.insert(
+    backgrounds.insert(BGTextureType::LocationChoice, selection_background);
+    backgrounds.insert(BGTextureType::Forest, forest_background);
+    backgrounds.insert(BGTextureType::Blank, blank_background);
+
+    let mut objects = HashMap::new();
+
+    objects.insert(TextureType::Unknown, TextureData::new_static(unknown));
+    objects.insert(
         TextureType::SmallUnknown,
         TextureData {
             texture: unknown,
@@ -79,32 +117,17 @@ pub async fn load_textures() -> TextureStorage {
             directional: false,
         },
     );
-    textures.insert(TextureType::Path, TextureData::new_static(path));
-    textures.insert(TextureType::Aftik, TextureData::new_directional(aftik));
-    textures.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
-    textures.insert(
+    objects.insert(TextureType::Path, TextureData::new_static(path));
+    objects.insert(TextureType::Aftik, TextureData::new_directional(aftik));
+    objects.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
+    objects.insert(
         TextureType::Item(item::Type::Bat),
         TextureData::new_static(bat),
     );
 
     TextureStorage {
-        forest_background,
-        blank_background,
-        selection_background,
-        by_type: textures,
-    }
-}
-
-fn lookup_texture(
-    textures: &HashMap<TextureType, TextureData>,
-    texture_type: TextureType,
-) -> &TextureData {
-    if let Some(data) = textures.get(&texture_type) {
-        data
-    } else if let TextureType::Item(_) = texture_type {
-        textures.get(&TextureType::SmallUnknown).unwrap()
-    } else {
-        textures.get(&TextureType::Unknown).unwrap()
+        backgrounds,
+        objects,
     }
 }
 
@@ -123,17 +146,17 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
 fn draw_game(app: &mut App, textures: &TextureStorage) {
     match &app.render_state {
         State::LocationChoice => {
-            draw_texture(textures.selection_background, 0., 0., WHITE);
+            draw_background(BGTextureType::LocationChoice, textures);
         }
         State::InGame(render_data) => {
-            match render_data.background {
-                Some(BackgroundType::Forest) => {
-                    draw_texture(textures.forest_background, 0., 0., WHITE)
-                }
-                None => draw_texture(textures.blank_background, 0., 0., WHITE),
-            }
+            draw_background(
+                render_data
+                    .background
+                    .map_or(BGTextureType::Blank, BGTextureType::from),
+                textures,
+            );
 
-            draw_objects(render_data, &textures.by_type);
+            draw_objects(render_data, textures);
         }
     }
 
@@ -142,7 +165,11 @@ fn draw_game(app: &mut App, textures: &TextureStorage) {
     draw_text_box(&app.text_box_text);
 }
 
-fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, TextureData>) {
+fn draw_background(texture_type: BGTextureType, textures: &TextureStorage) {
+    draw_texture(textures.lookup_background(texture_type), 0., 0., WHITE);
+}
+
+fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
     setup_camera(render_data);
     let start_x = 40.;
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
@@ -154,7 +181,7 @@ fn draw_objects(render_data: &RenderData, textures: &HashMap<TextureType, Textur
         *count_ref = count + 1;
 
         draw_object(
-            lookup_texture(textures, data.texture_type),
+            textures.lookup_texture(data.texture_type),
             data.direction,
             start_x + ((coord as i32) * 120 - count * 15) as f32,
             (450 + count * 10) as f32,
