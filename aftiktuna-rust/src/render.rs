@@ -98,6 +98,7 @@ pub async fn load_textures() -> TextureStorage {
     let path = load_texture(&texture_path("path")).await.unwrap();
     let aftik = load_texture(&texture_path("aftik")).await.unwrap();
     let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
+    let fuel_can = load_texture(&texture_path("fuel_can")).await.unwrap();
     let bat = load_texture(&texture_path("bat")).await.unwrap();
 
     let mut backgrounds = HashMap::new();
@@ -120,6 +121,10 @@ pub async fn load_textures() -> TextureStorage {
     objects.insert(TextureType::Path, TextureData::new_static(path));
     objects.insert(TextureType::Aftik, TextureData::new_directional(aftik));
     objects.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
+    objects.insert(
+        TextureType::Item(item::Type::FuelCan),
+        TextureData::new_static(fuel_can),
+    );
     objects.insert(
         TextureType::Item(item::Type::Bat),
         TextureData::new_static(bat),
