@@ -67,7 +67,9 @@ impl Buffer {
             area_view_frame(self, world, character, cache)
         };
 
-        self.captured_frames.push(frame);
+        if self.captured_frames.is_empty() || frame.has_messages() {
+            self.captured_frames.push(frame);
+        }
     }
 
     fn pop_messages(
@@ -132,6 +134,15 @@ impl Frame {
             }
         }
         text
+    }
+
+    fn has_messages(&self) -> bool {
+        match self {
+            Frame::AreaView { messages, .. } | Frame::LocationChoice(messages) => {
+                !messages.0.is_empty()
+            }
+            Frame::Ending(_) => true,
+        }
     }
 }
 
