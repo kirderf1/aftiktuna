@@ -41,25 +41,21 @@ async fn main() {
 fn init() -> App {
     let (messages, game) = game_loop::setup(Locations::new(3));
     App {
-        text_lines: messages.into_text(),
         input: String::new(),
         game,
         state: GameState::Run,
         delayed_frames: Default::default(),
-        render_state: render::State::LocationChoice,
-        text_box_text: vec![],
+        render_state: render::State::new(messages),
         show_graphical: true,
     }
 }
 
 pub struct App {
-    text_lines: Vec<String>,
     input: String,
     game: Game,
     state: GameState,
     delayed_frames: DelayedFrames,
     render_state: render::State,
-    text_box_text: Vec<String>,
     show_graphical: bool,
 }
 
@@ -109,32 +105,10 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 impl App {
     fn update_view_state(&mut self) {
         if let Some(frame) = self.delayed_frames.next_frame() {
-            self.show_frame(frame);
-        }
-    }
-
-    fn show_frame(&mut self, frame: Frame) {
-        self.text_lines.extend(frame.as_text());
-        if self.delayed_frames.is_done() && self.state != GameState::Done {
-            self.text_lines.push(String::default())
-        }
-
-        match frame {
-            Frame::AreaView {
-                render_data,
-                messages,
-                ..
-            } => {
-                self.render_state = render::State::InGame(render_data);
-                self.text_box_text = messages.into_text();
-            }
-            Frame::LocationChoice(messages) => {
-                self.render_state = render::State::LocationChoice;
-                self.text_box_text = messages.into_text();
-            }
-            Frame::Ending(stop_type) => {
-                self.text_box_text = stop_type.messages().into_text();
-            }
+            self.render_state.show_frame(
+                frame,
+                self.delayed_frames.is_done() && self.state != GameState::Done,
+            );
         }
     }
 
@@ -166,11 +140,9 @@ impl App {
     fn handle_input(&mut self) {
         let input = take(&mut self.input);
         if !input.is_empty() {
-            self.text_lines.push(format!("> {input}"));
+            self.render_state.add_to_text_log(format!("> {input}"));
             if let Err(messages) = self.game.handle_input(&input) {
-                let text = messages.into_text();
-                self.text_lines.extend(text.clone());
-                self.text_box_text = text;
+                self.render_state.show_input_error(messages);
             } else {
                 self.state = GameState::Run;
             }

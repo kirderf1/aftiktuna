@@ -2,7 +2,7 @@ use crate::App;
 use aftiktuna::area::BackgroundType;
 use aftiktuna::item;
 use aftiktuna::position::{Coord, Direction};
-use aftiktuna::view::{RenderData, TextureType};
+use aftiktuna::view::{Frame, Messages, RenderData, TextureType};
 use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
@@ -37,7 +37,58 @@ impl TextureStorage {
     }
 }
 
-pub enum State {
+pub struct State {
+    text_lines: Vec<String>,
+    view_state: ViewState,
+    text_box_text: Vec<String>,
+}
+
+impl State {
+    pub fn new(messages: Messages) -> Self {
+        Self {
+            text_lines: messages.into_text(),
+            view_state: ViewState::LocationChoice,
+            text_box_text: vec![],
+        }
+    }
+
+    pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
+        self.text_lines.extend(frame.as_text());
+        if ready_for_input {
+            self.text_lines.push(String::default())
+        }
+
+        match frame {
+            Frame::AreaView {
+                render_data,
+                messages,
+                ..
+            } => {
+                self.view_state = ViewState::InGame(render_data);
+                self.text_box_text = messages.into_text();
+            }
+            Frame::LocationChoice(messages) => {
+                self.view_state = ViewState::LocationChoice;
+                self.text_box_text = messages.into_text();
+            }
+            Frame::Ending(stop_type) => {
+                self.text_box_text = stop_type.messages().into_text();
+            }
+        }
+    }
+
+    pub fn add_to_text_log(&mut self, text: String) {
+        self.text_lines.push(text);
+    }
+
+    pub fn show_input_error(&mut self, messages: Messages) {
+        let text = messages.into_text();
+        self.text_lines.extend(text.clone());
+        self.text_box_text = text;
+    }
+}
+
+pub enum ViewState {
     LocationChoice,
     InGame(RenderData),
 }
@@ -157,7 +208,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     clear_background(BLACK);
 
     if app.show_graphical {
-        draw_game(app, textures);
+        draw_game(&app.render_state, textures);
     }
 
     egui_macroquad::ui(|ctx| ui(app, ctx));
@@ -169,16 +220,16 @@ fn default_camera_space() -> Rect {
     Rect::new(0., 0., 800., 600.)
 }
 
-fn draw_game(app: &mut App, textures: &TextureStorage) {
-    match &app.render_state {
-        State::LocationChoice => {
+fn draw_game(state: &State, textures: &TextureStorage) {
+    match &state.view_state {
+        ViewState::LocationChoice => {
             draw_background(
                 BGTextureType::LocationChoice,
                 default_camera_space(),
                 textures,
             );
         }
-        State::InGame(render_data) => {
+        ViewState::InGame(render_data) => {
             let camera_space = setup_camera(render_data);
             draw_background(
                 render_data
@@ -193,7 +244,7 @@ fn draw_game(app: &mut App, textures: &TextureStorage) {
         }
     }
 
-    draw_text_box(&app.text_box_text);
+    draw_text_box(&state.text_box_text);
 }
 
 fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &TextureStorage) {
@@ -282,7 +333,7 @@ fn ui(app: &mut App, ctx: &egui::Context) {
     egui::TopBottomPanel::bottom("input").show(ctx, |ui| input_field(app, ctx, ui));
 
     if !app.show_graphical {
-        egui::CentralPanel::default().show(ctx, |ui| text_box(app, ui));
+        egui::CentralPanel::default().show(ctx, |ui| text_box(&app.render_state, ui));
     }
 }
 
@@ -300,12 +351,12 @@ fn input_field(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
     }
 }
 
-fn text_box(app: &mut App, ui: &mut egui::Ui) {
+fn text_box(state: &State, ui: &mut egui::Ui) {
     egui::ScrollArea::vertical()
         .auto_shrink([false; 2])
         .stick_to_bottom(true)
         .show(ui, |ui| {
-            for text in &app.text_lines {
+            for text in &state.text_lines {
                 ui.label(egui::RichText::new(text).font(FONT));
             }
         });
