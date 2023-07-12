@@ -90,29 +90,37 @@ pub enum BGTexture {
 }
 
 fn texture_path(name: &str) -> String {
-    format!("assets/textures/{}.png", name)
+    format!("assets/texture/{}.png", name)
 }
 
 pub async fn load_textures() -> TextureStorage {
-    let forest_background = load_texture(&texture_path("tree_background"))
+    let forest_background = load_texture(&texture_path("background/forest"))
         .await
         .unwrap();
-    let blank_background = load_texture(&texture_path("white_space")).await.unwrap();
-    let selection_background = load_texture(&texture_path("selection_background"))
+    let blank_background = load_texture(&texture_path("background/white_space"))
+        .await
+        .unwrap();
+    let selection_background = load_texture(&texture_path("background/location_choice"))
         .await
         .unwrap();
     let unknown = load_texture(&texture_path("unknown")).await.unwrap();
     let door = load_texture(&texture_path("door")).await.unwrap();
     let path = load_texture(&texture_path("path")).await.unwrap();
-    let aftik = load_texture(&texture_path("aftik")).await.unwrap();
-    let goblin = load_texture(&texture_path("goblin")).await.unwrap();
-    let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
-    let azureclops = load_texture(&texture_path("azureclops")).await.unwrap();
-    let fuel_can = load_texture(&texture_path("fuel_can")).await.unwrap();
-    let crowbar = load_texture(&texture_path("crowbar")).await.unwrap();
-    let knife = load_texture(&texture_path("knife")).await.unwrap();
-    let bat = load_texture(&texture_path("bat")).await.unwrap();
-    let sword = load_texture(&texture_path("sword")).await.unwrap();
+    let aftik = load_texture(&texture_path("creature/aftik")).await.unwrap();
+    let goblin = load_texture(&texture_path("creature/goblin"))
+        .await
+        .unwrap();
+    let eyesaur = load_texture(&texture_path("creature/eyesaur"))
+        .await
+        .unwrap();
+    let azureclops = load_texture(&texture_path("creature/azureclops"))
+        .await
+        .unwrap();
+    let fuel_can = load_texture(&texture_path("item/fuel_can")).await.unwrap();
+    let crowbar = load_texture(&texture_path("item/crowbar")).await.unwrap();
+    let knife = load_texture(&texture_path("item/knife")).await.unwrap();
+    let bat = load_texture(&texture_path("item/bat")).await.unwrap();
+    let sword = load_texture(&texture_path("item/sword")).await.unwrap();
 
     let mut backgrounds = HashMap::new();
 
