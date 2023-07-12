@@ -38,14 +38,18 @@ pub struct TextureData {
 }
 
 impl TextureData {
-    fn new_static(texture: Texture2D) -> TextureData {
+    async fn new_static(path: &str) -> TextureData {
+        let path = texture_path(path);
+        let texture = load_texture(&path).await.unwrap();
         TextureData {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
             directional: false,
         }
     }
-    fn new_directional(texture: Texture2D) -> TextureData {
+    async fn new_directional(path: &str) -> TextureData {
+        let path = texture_path(path);
+        let texture = load_texture(&path).await.unwrap();
         TextureData {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
@@ -89,90 +93,83 @@ pub enum BGTexture {
     Repeating(Texture2D),
 }
 
+impl BGTexture {
+    async fn simple(path: &str) -> BGTexture {
+        let path = texture_path(&format!("background/{}", path));
+        let texture = load_texture(&path).await.unwrap();
+        BGTexture::Simple(texture)
+    }
+    async fn repeating(path: &str) -> BGTexture {
+        let path = texture_path(&format!("background/{}", path));
+        let texture = load_texture(&path).await.unwrap();
+        BGTexture::Repeating(texture)
+    }
+}
+
 fn texture_path(name: &str) -> String {
     format!("assets/texture/{}.png", name)
 }
 
 pub async fn load_textures() -> TextureStorage {
-    let forest_background = load_texture(&texture_path("background/forest"))
-        .await
-        .unwrap();
-    let blank_background = load_texture(&texture_path("background/white_space"))
-        .await
-        .unwrap();
-    let selection_background = load_texture(&texture_path("background/location_choice"))
-        .await
-        .unwrap();
-    let unknown = load_texture(&texture_path("unknown")).await.unwrap();
-    let door = load_texture(&texture_path("door")).await.unwrap();
-    let path = load_texture(&texture_path("path")).await.unwrap();
-    let aftik = load_texture(&texture_path("creature/aftik")).await.unwrap();
-    let goblin = load_texture(&texture_path("creature/goblin"))
-        .await
-        .unwrap();
-    let eyesaur = load_texture(&texture_path("creature/eyesaur"))
-        .await
-        .unwrap();
-    let azureclops = load_texture(&texture_path("creature/azureclops"))
-        .await
-        .unwrap();
-    let fuel_can = load_texture(&texture_path("item/fuel_can")).await.unwrap();
-    let crowbar = load_texture(&texture_path("item/crowbar")).await.unwrap();
-    let knife = load_texture(&texture_path("item/knife")).await.unwrap();
-    let bat = load_texture(&texture_path("item/bat")).await.unwrap();
-    let sword = load_texture(&texture_path("item/sword")).await.unwrap();
-
     let mut backgrounds = HashMap::new();
 
     backgrounds.insert(
         BGTextureType::LocationChoice,
-        BGTexture::Simple(selection_background),
+        BGTexture::simple("location_choice").await,
     );
-    backgrounds.insert(
-        BGTextureType::Forest,
-        BGTexture::Repeating(forest_background),
-    );
-    backgrounds.insert(BGTextureType::Blank, BGTexture::Simple(blank_background));
+    backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await);
+    backgrounds.insert(BGTextureType::Blank, BGTexture::simple("white_space").await);
 
     let mut objects = HashMap::new();
 
-    objects.insert(TextureType::Unknown, TextureData::new_static(unknown));
+    let unknown = TextureData::new_static("unknown").await;
+    let unknown_texture = unknown.texture;
+    objects.insert(TextureType::Unknown, unknown);
     objects.insert(
         TextureType::SmallUnknown,
         TextureData {
-            texture: unknown,
+            texture: unknown_texture,
             dest_size: Vec2::new(100., 100.),
             directional: false,
         },
     );
-    objects.insert(TextureType::Door, TextureData::new_static(door));
-    objects.insert(TextureType::Path, TextureData::new_static(path));
-    objects.insert(TextureType::Aftik, TextureData::new_directional(aftik));
-    objects.insert(TextureType::Goblin, TextureData::new_directional(goblin));
-    objects.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
+    objects.insert(TextureType::Door, TextureData::new_static("door").await);
+    objects.insert(TextureType::Path, TextureData::new_static("path").await);
+    objects.insert(
+        TextureType::Aftik,
+        TextureData::new_directional("creature/aftik").await,
+    );
+    objects.insert(
+        TextureType::Goblin,
+        TextureData::new_directional("creature/goblin").await,
+    );
+    objects.insert(
+        TextureType::Eyesaur,
+        TextureData::new_directional("creature/eyesaur").await,
+    );
     objects.insert(
         TextureType::Azureclops,
-        TextureData::new_directional(azureclops),
+        TextureData::new_directional("creature/azureclops").await,
     );
     objects.insert(
         TextureType::Item(item::Type::FuelCan),
-        TextureData::new_static(fuel_can),
+        TextureData::new_static("item/fuel_can").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Crowbar),
-        TextureData::new_static(crowbar),
+        TextureData::new_static("item/crowbar").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Knife),
-        TextureData::new_static(knife),
+        TextureData::new_static("item/knife").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Bat),
-        TextureData::new_static(bat),
+        TextureData::new_static("item/bat").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Sword),
-        TextureData::new_static(sword),
+        TextureData::new_static("item/sword").await,
     );
 
     TextureStorage {
