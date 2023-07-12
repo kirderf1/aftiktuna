@@ -109,7 +109,10 @@ pub async fn load_textures() -> TextureStorage {
     let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
     let azureclops = load_texture(&texture_path("azureclops")).await.unwrap();
     let fuel_can = load_texture(&texture_path("fuel_can")).await.unwrap();
+    let crowbar = load_texture(&texture_path("crowbar")).await.unwrap();
+    let knife = load_texture(&texture_path("knife")).await.unwrap();
     let bat = load_texture(&texture_path("bat")).await.unwrap();
+    let sword = load_texture(&texture_path("sword")).await.unwrap();
 
     let mut backgrounds = HashMap::new();
 
@@ -148,8 +151,20 @@ pub async fn load_textures() -> TextureStorage {
         TextureData::new_static(fuel_can),
     );
     objects.insert(
+        TextureType::Item(item::Type::Crowbar),
+        TextureData::new_static(crowbar),
+    );
+    objects.insert(
+        TextureType::Item(item::Type::Knife),
+        TextureData::new_static(knife),
+    );
+    objects.insert(
         TextureType::Item(item::Type::Bat),
         TextureData::new_static(bat),
+    );
+    objects.insert(
+        TextureType::Item(item::Type::Sword),
+        TextureData::new_static(sword),
     );
 
     TextureStorage {
