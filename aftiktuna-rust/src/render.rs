@@ -101,6 +101,7 @@ pub async fn load_textures() -> TextureStorage {
     let unknown = load_texture(&texture_path("unknown")).await.unwrap();
     let path = load_texture(&texture_path("path")).await.unwrap();
     let aftik = load_texture(&texture_path("aftik")).await.unwrap();
+    let goblin = load_texture(&texture_path("goblin")).await.unwrap();
     let eyesaur = load_texture(&texture_path("eyesaur")).await.unwrap();
     let fuel_can = load_texture(&texture_path("fuel_can")).await.unwrap();
     let bat = load_texture(&texture_path("bat")).await.unwrap();
@@ -130,6 +131,7 @@ pub async fn load_textures() -> TextureStorage {
     );
     objects.insert(TextureType::Path, TextureData::new_static(path));
     objects.insert(TextureType::Aftik, TextureData::new_directional(aftik));
+    objects.insert(TextureType::Goblin, TextureData::new_directional(goblin));
     objects.insert(TextureType::Eyesaur, TextureData::new_directional(eyesaur));
     objects.insert(
         TextureType::Item(item::Type::FuelCan),
