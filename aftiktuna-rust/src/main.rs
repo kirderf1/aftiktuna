@@ -1,3 +1,4 @@
+use crate::render::texture::load_textures;
 use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
 use aftiktuna::game_loop::{Game, TakeInput};
@@ -21,7 +22,7 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     let mut app = init();
-    let textures = render::load_textures().await;
+    let textures = load_textures().await;
 
     loop {
         app.update_view_state();
