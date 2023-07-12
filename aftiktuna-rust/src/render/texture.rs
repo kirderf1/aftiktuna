@@ -102,6 +102,7 @@ pub async fn load_textures() -> TextureStorage {
         .await
         .unwrap();
     let unknown = load_texture(&texture_path("unknown")).await.unwrap();
+    let door = load_texture(&texture_path("door")).await.unwrap();
     let path = load_texture(&texture_path("path")).await.unwrap();
     let aftik = load_texture(&texture_path("aftik")).await.unwrap();
     let goblin = load_texture(&texture_path("goblin")).await.unwrap();
@@ -133,6 +134,7 @@ pub async fn load_textures() -> TextureStorage {
             directional: false,
         },
     );
+    objects.insert(TextureType::Door, TextureData::new_static(door));
     objects.insert(TextureType::Path, TextureData::new_static(path));
     objects.insert(TextureType::Aftik, TextureData::new_directional(aftik));
     objects.insert(TextureType::Goblin, TextureData::new_directional(goblin));
