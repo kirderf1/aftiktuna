@@ -5,8 +5,8 @@ use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
 use macroquad::prelude::{
-    clamp, clear_background, draw_rectangle, draw_text, draw_texture, set_default_camera, Camera2D,
-    Color, Rect,
+    clamp, clear_background, draw_rectangle, draw_text, draw_texture, measure_text,
+    set_default_camera, Camera2D, Color, Rect,
 };
 use std::collections::HashMap;
 use texture::{BGTexture, BGTextureType, TextureStorage};
@@ -43,16 +43,20 @@ impl State {
                 ..
             } => {
                 self.view_state = ViewState::InGame(render_data);
-                self.text_box_text = messages.into_text();
+                self.set_text_box_text(messages.into_text());
             }
             Frame::LocationChoice(messages) => {
                 self.view_state = ViewState::LocationChoice;
-                self.text_box_text = messages.into_text();
+                self.set_text_box_text(messages.into_text());
             }
             Frame::Ending(stop_type) => {
-                self.text_box_text = stop_type.messages().into_text();
+                self.set_text_box_text(stop_type.messages().into_text());
             }
         }
+    }
+
+    fn set_text_box_text(&mut self, text: Vec<String>) {
+        self.text_box_text = text.into_iter().flat_map(split_text_line).collect();
     }
 
     pub fn add_to_text_log(&mut self, text: String) {
@@ -62,7 +66,7 @@ impl State {
     pub fn show_input_error(&mut self, messages: Messages) {
         let text = messages.into_text();
         self.text_lines.extend(text.clone());
-        self.text_box_text = text;
+        self.set_text_box_text(text);
     }
 }
 
@@ -161,21 +165,66 @@ fn setup_camera(render_data: &RenderData) -> Rect {
 }
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
-const TEXT_BOX_TEXT_SIZE: f32 = 16.;
+const TEXT_BOX_TEXT_SIZE: u16 = 16;
+const TEXT_BOX_MARGIN: f32 = 8.;
+const TEXT_BOX_TEXT_MAX_WIDTH: f32 = 800. - 2. * TEXT_BOX_MARGIN;
+
+fn split_text_line(line: String) -> Vec<String> {
+    if fits_in_text_box_width(&line) {
+        return vec![line];
+    }
+
+    let mut remaining_line: &str = &line;
+    let mut vec = Vec::new();
+    loop {
+        let split_index = smallest_split(remaining_line);
+        vec.push(remaining_line[..split_index].to_owned());
+        remaining_line = &remaining_line[split_index..];
+
+        if fits_in_text_box_width(remaining_line) {
+            vec.push(remaining_line.to_owned());
+            return vec;
+        }
+    }
+}
+
+fn smallest_split(line: &str) -> usize {
+    let mut last_space = 0;
+    let mut last_index = 0;
+    for (index, char) in line.char_indices() {
+        if !fits_in_text_box_width(&line[..index]) {
+            return if last_space != 0 {
+                last_space
+            } else {
+                last_index
+            };
+        }
+
+        if char.is_whitespace() {
+            last_space = index;
+        }
+        last_index = index;
+    }
+    line.len()
+}
+
+fn fits_in_text_box_width(line: &str) -> bool {
+    measure_text(line, None, TEXT_BOX_TEXT_SIZE, 1.).width <= TEXT_BOX_TEXT_MAX_WIDTH
+}
 
 fn draw_text_box(text: &Vec<String>) {
     if text.is_empty() {
         return;
     }
-    let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE);
+    let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE as f32);
     let text_box_start = 600. - 25. - text_box_size;
     draw_rectangle(0., text_box_start, 800., text_box_size, TEXT_BOX_COLOR);
     for (index, text_line) in text.iter().enumerate() {
         draw_text(
             text_line,
-            8.,
-            text_box_start + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE),
-            TEXT_BOX_TEXT_SIZE,
+            TEXT_BOX_MARGIN,
+            text_box_start + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
+            TEXT_BOX_TEXT_SIZE as f32,
             WHITE,
         );
     }
