@@ -4,7 +4,7 @@ use aftiktuna::position::Direction;
 use aftiktuna::view::TextureType;
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
-use macroquad::prelude::{draw_texture_ex, load_texture, DrawTextureParams, Texture2D};
+use macroquad::prelude::{draw_texture_ex, load_texture, Color, DrawTextureParams, Texture2D};
 use std::collections::HashMap;
 
 pub struct TextureStorage {
@@ -31,46 +31,107 @@ impl TextureStorage {
 }
 
 #[derive(Clone)]
-pub struct TextureData {
-    texture: Texture2D,
-    dest_size: Vec2,
-    directional: bool,
+pub enum TextureData {
+    Regular {
+        texture: Texture2D,
+        dest_size: Vec2,
+        directional: bool,
+    },
+    Aftik {
+        primary: Texture2D,
+        secondary: Texture2D,
+        details: Texture2D,
+    },
 }
 
 impl TextureData {
-    async fn new_static(path: &str) -> TextureData {
-        let path = texture_path(path);
-        let texture = load_texture(&path).await.unwrap();
-        TextureData {
+    async fn load_static(path: &str) -> TextureData {
+        let texture = load_texture(&texture_path(path)).await.unwrap();
+        Self::new_static(texture)
+    }
+
+    fn new_static(texture: Texture2D) -> TextureData {
+        TextureData::Regular {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
             directional: false,
         }
     }
-    async fn new_directional(path: &str) -> TextureData {
+
+    async fn load_directional(path: &str) -> TextureData {
         let path = texture_path(path);
         let texture = load_texture(&path).await.unwrap();
-        TextureData {
+        TextureData::Regular {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
             directional: true,
         }
     }
+    async fn load_aftik() -> TextureData {
+        async fn texture(suffix: &str) -> Texture2D {
+            load_texture(&texture_path(&format!("creature/aftik_{}", suffix)))
+                .await
+                .unwrap()
+        }
+        TextureData::Aftik {
+            primary: texture("primary").await,
+            secondary: texture("secondary").await,
+            details: texture("details").await,
+        }
+    }
 }
 
 pub fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
-    let size = data.dest_size;
-    draw_texture_ex(
-        data.texture,
-        x - size.x / 2.,
-        y - size.y,
-        WHITE,
-        DrawTextureParams {
-            dest_size: Some(size),
-            flip_x: data.directional && direction == Direction::Left,
-            ..Default::default()
-        },
-    );
+    match data {
+        TextureData::Regular {
+            texture,
+            dest_size,
+            directional,
+        } => {
+            draw_texture_ex(
+                *texture,
+                x - dest_size.x / 2.,
+                y - dest_size.y,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(*dest_size),
+                    flip_x: *directional && direction == Direction::Left,
+                    ..Default::default()
+                },
+            );
+        }
+        TextureData::Aftik {
+            primary,
+            secondary,
+            details,
+        } => {
+            let params = DrawTextureParams {
+                flip_x: direction == Direction::Left,
+                ..Default::default()
+            };
+            draw_texture_ex(
+                *primary,
+                x - primary.width() / 2.,
+                y - primary.height(),
+                Color::from_rgba(148, 216, 0, 255),
+                params.clone(),
+            );
+            draw_texture_ex(
+                *secondary,
+                x - secondary.width() / 2.,
+                y - secondary.height(),
+                Color::from_rgba(255, 238, 153, 255),
+                params.clone(),
+            );
+            draw_texture_ex(
+                *details,
+                x - details.width() / 2.,
+                y - details.height(),
+                WHITE,
+                params,
+            );
+        }
+    }
 }
 
 #[derive(Eq, PartialEq, Hash)]
@@ -122,54 +183,53 @@ pub async fn load_textures() -> TextureStorage {
 
     let mut objects = HashMap::new();
 
-    let unknown = TextureData::new_static("unknown").await;
-    let unknown_texture = unknown.texture;
-    objects.insert(TextureType::Unknown, unknown);
+    let unknown_texture = load_texture(&texture_path("unknown")).await.unwrap();
+    objects.insert(
+        TextureType::Unknown,
+        TextureData::new_static(unknown_texture),
+    );
     objects.insert(
         TextureType::SmallUnknown,
-        TextureData {
+        TextureData::Regular {
             texture: unknown_texture,
             dest_size: Vec2::new(100., 100.),
             directional: false,
         },
     );
-    objects.insert(TextureType::Door, TextureData::new_static("door").await);
-    objects.insert(TextureType::Path, TextureData::new_static("path").await);
-    objects.insert(
-        TextureType::Aftik,
-        TextureData::new_directional("creature/aftik").await,
-    );
+    objects.insert(TextureType::Door, TextureData::load_static("door").await);
+    objects.insert(TextureType::Path, TextureData::load_static("path").await);
+    objects.insert(TextureType::Aftik, TextureData::load_aftik().await);
     objects.insert(
         TextureType::Goblin,
-        TextureData::new_directional("creature/goblin").await,
+        TextureData::load_directional("creature/goblin").await,
     );
     objects.insert(
         TextureType::Eyesaur,
-        TextureData::new_directional("creature/eyesaur").await,
+        TextureData::load_directional("creature/eyesaur").await,
     );
     objects.insert(
         TextureType::Azureclops,
-        TextureData::new_directional("creature/azureclops").await,
+        TextureData::load_directional("creature/azureclops").await,
     );
     objects.insert(
         TextureType::Item(item::Type::FuelCan),
-        TextureData::new_static("item/fuel_can").await,
+        TextureData::load_static("item/fuel_can").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Crowbar),
-        TextureData::new_static("item/crowbar").await,
+        TextureData::load_static("item/crowbar").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Knife),
-        TextureData::new_static("item/knife").await,
+        TextureData::load_static("item/knife").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Bat),
-        TextureData::new_static("item/bat").await,
+        TextureData::load_static("item/bat").await,
     );
     objects.insert(
         TextureType::Item(item::Type::Sword),
-        TextureData::new_static("item/sword").await,
+        TextureData::load_static("item/sword").await,
     );
 
     TextureStorage {
