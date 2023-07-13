@@ -4,7 +4,8 @@ use aftiktuna::position::Direction;
 use aftiktuna::view::TextureType;
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
-use macroquad::prelude::{draw_texture_ex, load_texture, Color, DrawTextureParams, Texture2D};
+use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, Texture2D};
+use std::borrow::Borrow;
 use std::collections::HashMap;
 
 pub struct TextureStorage {
@@ -46,7 +47,7 @@ pub enum TextureData {
 
 impl TextureData {
     async fn load_static(path: &str) -> TextureData {
-        let texture = load_texture(&texture_path(path)).await.unwrap();
+        let texture = load_texture(path).await;
         Self::new_static(texture)
     }
 
@@ -59,8 +60,7 @@ impl TextureData {
     }
 
     async fn load_directional(path: &str) -> TextureData {
-        let path = texture_path(path);
-        let texture = load_texture(&path).await.unwrap();
+        let texture = load_texture(path).await;
         TextureData::Regular {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
@@ -69,9 +69,7 @@ impl TextureData {
     }
     async fn load_aftik() -> TextureData {
         async fn texture(suffix: &str) -> Texture2D {
-            load_texture(&texture_path(&format!("creature/aftik_{}", suffix)))
-                .await
-                .unwrap()
+            load_texture(format!("creature/aftik_{}", suffix)).await
         }
         TextureData::Aftik {
             primary: texture("primary").await,
@@ -156,19 +154,17 @@ pub enum BGTexture {
 
 impl BGTexture {
     async fn simple(path: &str) -> BGTexture {
-        let path = texture_path(&format!("background/{}", path));
-        let texture = load_texture(&path).await.unwrap();
-        BGTexture::Simple(texture)
+        BGTexture::Simple(load_texture(format!("background/{}", path)).await)
     }
     async fn repeating(path: &str) -> BGTexture {
-        let path = texture_path(&format!("background/{}", path));
-        let texture = load_texture(&path).await.unwrap();
-        BGTexture::Repeating(texture)
+        BGTexture::Repeating(load_texture(format!("background/{}", path)).await)
     }
 }
 
-fn texture_path(name: &str) -> String {
-    format!("assets/texture/{}.png", name)
+async fn load_texture(name: impl Borrow<str>) -> Texture2D {
+    macroquad::texture::load_texture(&format!("assets/texture/{}.png", name.borrow()))
+        .await
+        .unwrap()
 }
 
 pub async fn load_textures() -> TextureStorage {
@@ -183,7 +179,7 @@ pub async fn load_textures() -> TextureStorage {
 
     let mut objects = HashMap::new();
 
-    let unknown_texture = load_texture(&texture_path("unknown")).await.unwrap();
+    let unknown_texture = load_texture("unknown").await;
     objects.insert(
         TextureType::Unknown,
         TextureData::new_static(unknown_texture),
