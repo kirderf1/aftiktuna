@@ -4,6 +4,7 @@ use crate::area::{creature, Area, BackgroundType};
 use crate::item;
 use crate::position::Pos;
 use crate::status::Stats;
+use crate::view::AftikColor;
 use hecs::World;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -98,11 +99,17 @@ impl AreaData {
                         pair_id,
                         display_type,
                     }) => place_door(builder, pos, pair_id, symbol, *display_type)?,
-                    Some(SymbolData::Shopkeeper { items }) => {
-                        creature::place_shopkeeper(builder.world, pos, items)?
+                    Some(SymbolData::Shopkeeper { items, color }) => {
+                        creature::place_shopkeeper(builder.world, pos, items, *color)?
                     }
-                    Some(SymbolData::Recruitable { name, stats }) => {
-                        creature::place_recruitable(builder.world, pos, name, stats.clone());
+                    Some(SymbolData::Recruitable { name, stats, color }) => {
+                        creature::place_recruitable(
+                            builder.world,
+                            pos,
+                            name,
+                            stats.clone(),
+                            *color,
+                        );
                     }
                     None => place_object(builder, pos, symbol)?,
                 }
@@ -121,10 +128,12 @@ enum SymbolData {
     },
     Shopkeeper {
         items: Vec<item::Type>,
+        color: AftikColor,
     },
     Recruitable {
         name: String,
         stats: Stats,
+        color: AftikColor,
     },
 }
 

@@ -9,6 +9,7 @@ use crate::item;
 use crate::position::{Coord, Direction, Pos};
 use hecs::{Entity, World};
 pub use name::{as_grouped_text_list, NounData};
+use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::mem::take;
 
@@ -308,6 +309,7 @@ pub struct ObjectRenderData {
     pub weight: u32,
     pub texture_type: TextureType,
     pub direction: Direction,
+    pub aftik_color: Option<AftikColor>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -324,20 +326,32 @@ pub enum TextureType {
     Item(item::Type),
 }
 
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AftikColor {
+    Mint,
+    Cerulean,
+    Plum,
+    Green,
+}
+
 fn prepare_render_data(world: &World, character: Entity) -> RenderData {
     let character_pos = world.get::<&Pos>(character).unwrap();
     let area = world.get::<&Area>(character_pos.get_area()).unwrap();
 
     let mut objects: Vec<ObjectRenderData> = world
-        .query::<(&Pos, &DisplayInfo, Option<&Direction>)>()
+        .query::<(&Pos, &DisplayInfo, Option<&Direction>, Option<&AftikColor>)>()
         .iter()
-        .filter(|(_, (pos, _, _))| pos.is_in(character_pos.get_area()))
-        .map(|(_, (pos, display_info, direction))| ObjectRenderData {
-            coord: pos.get_coord(),
-            weight: display_info.weight,
-            texture_type: display_info.texture_type,
-            direction: direction.copied().unwrap_or(Direction::Right),
-        })
+        .filter(|(_, (pos, _, _, _))| pos.is_in(character_pos.get_area()))
+        .map(
+            |(_, (pos, display_info, direction, color))| ObjectRenderData {
+                coord: pos.get_coord(),
+                weight: display_info.weight,
+                texture_type: display_info.texture_type,
+                direction: direction.copied().unwrap_or(Direction::Right),
+                aftik_color: color.copied(),
+            },
+        )
         .collect();
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 

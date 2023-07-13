@@ -1,7 +1,7 @@
 use aftiktuna::area::BackgroundType;
 use aftiktuna::item;
 use aftiktuna::position::Direction;
-use aftiktuna::view::TextureType;
+use aftiktuna::view::{AftikColor, TextureType};
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
 use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, Texture2D};
@@ -79,7 +79,13 @@ impl TextureData {
     }
 }
 
-pub fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
+pub fn draw_object(
+    data: &TextureData,
+    direction: Direction,
+    color: Option<AftikColor>,
+    x: f32,
+    y: f32,
+) {
     match data {
         TextureData::Regular {
             texture,
@@ -107,18 +113,20 @@ pub fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
                 flip_x: direction == Direction::Left,
                 ..Default::default()
             };
+            let (primary_color, secondary_color) =
+                convert_to_color(color.unwrap_or(AftikColor::Mint));
             draw_texture_ex(
                 *primary,
                 x - primary.width() / 2.,
                 y - primary.height(),
-                Color::from_rgba(148, 216, 0, 255),
+                primary_color,
                 params.clone(),
             );
             draw_texture_ex(
                 *secondary,
                 x - secondary.width() / 2.,
                 y - secondary.height(),
-                Color::from_rgba(255, 238, 153, 255),
+                secondary_color,
                 params.clone(),
             );
             draw_texture_ex(
@@ -129,6 +137,27 @@ pub fn draw_object(data: &TextureData, direction: Direction, x: f32, y: f32) {
                 params,
             );
         }
+    }
+}
+
+fn convert_to_color(color: AftikColor) -> (Color, Color) {
+    match color {
+        AftikColor::Mint => (
+            Color::from_rgba(148, 216, 0, 255),
+            Color::from_rgba(255, 238, 153, 255),
+        ),
+        AftikColor::Cerulean => (
+            Color::from_rgba(84, 141, 197, 255),
+            Color::from_rgba(153, 223, 255, 255),
+        ),
+        AftikColor::Plum => (
+            Color::from_rgba(183, 98, 168, 255),
+            Color::from_rgba(255, 177, 132, 255),
+        ),
+        AftikColor::Green => (
+            Color::from_rgba(78, 218, 67, 255),
+            Color::from_rgba(192, 232, 255, 255),
+        ),
     }
 }
 

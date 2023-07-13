@@ -142,6 +142,7 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
         texture::draw_object(
             textures.lookup_texture(data.texture_type),
             data.direction,
+            data.aftik_color,
             start_x + ((coord as i32) * 120 - count * 15) as f32,
             (450 + count * 10) as f32,
         );

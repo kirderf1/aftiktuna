@@ -77,7 +77,8 @@
             "strength": 10,
             "endurance": 2,
             "agility": 9
-          }
+          },
+          "color": "plum"
         }
       }
     },
@@ -92,7 +93,8 @@
         },
         "S": {
           "type": "shopkeeper",
-          "items": [ "fuel_can", "bat", "sword" ]
+          "items": [ "fuel_can", "bat", "sword" ],
+          "color": "green"
         }
       }
     },

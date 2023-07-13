@@ -3,29 +3,37 @@ use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, Recruitable};
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, Stamina, Stats};
-use crate::view::{DisplayInfo, NameData, TextureType};
+use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use crate::{item, view};
 use hecs::{Entity, EntityBuilder, World};
 
-pub fn spawn_crew_member(world: &mut World, crew: Entity, name: &str, stats: Stats) -> Entity {
+pub fn spawn_crew_member(
+    world: &mut World,
+    crew: Entity,
+    name: &str,
+    stats: Stats,
+    color: AftikColor,
+) -> Entity {
     world.spawn(
         aftik_builder(
             view::name_display_info(TextureType::Aftik, name),
             NameData::from_name(name),
             stats,
         )
+        .add(color)
         .add(CrewMember(crew))
         .build(),
     )
 }
 
-pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats) {
+pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats, color: AftikColor) {
     world.spawn(
         aftik_builder(
             DisplayInfo::new('A', TextureType::Aftik, 10),
             NameData::from_noun("aftik", "aftiks"),
             stats,
         )
+        .add(color)
         .add(Recruitable(name.to_string()))
         .add(pos)
         .add(Direction::towards_center(pos, world))
@@ -94,6 +102,7 @@ pub fn place_shopkeeper(
     world: &mut World,
     pos: Pos,
     shop_items: &[item::Type],
+    color: AftikColor,
 ) -> Result<(), String> {
     let stock = shop_items
         .iter()
@@ -101,6 +110,7 @@ pub fn place_shopkeeper(
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
         DisplayInfo::new('S', TextureType::Aftik, 15),
+        color,
         NameData::from_noun("shopkeeper", "shopkeepers"),
         pos,
         Direction::towards_center(pos, world),

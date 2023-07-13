@@ -3,7 +3,7 @@ use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::position::{Coord, Direction, Pos};
 use crate::status::Stats;
-use crate::view::{Messages, NameData, TextureType};
+use crate::view::{AftikColor, Messages, NameData, TextureType};
 use crate::{action, item};
 use door::DoorInfo;
 use hecs::{Entity, World};
@@ -182,8 +182,15 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
 
     let crew = world.spawn((Points(10000),));
 
-    creature::spawn_crew_member(world, crew, "Cerulean", Stats::new(9, 2, 10));
-    let mint = creature::spawn_crew_member(world, crew, "Mint", Stats::new(10, 3, 8));
+    creature::spawn_crew_member(
+        world,
+        crew,
+        "Cerulean",
+        Stats::new(9, 2, 10),
+        AftikColor::Cerulean,
+    );
+    let mint =
+        creature::spawn_crew_member(world, crew, "Mint", Stats::new(10, 3, 8), AftikColor::Mint);
 
     (mint, ship)
 }
