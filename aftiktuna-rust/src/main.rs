@@ -87,17 +87,21 @@ impl DelayedFrames {
         self.remaining_frames.is_empty()
     }
 
-    fn next_frame(&mut self) -> Option<Frame> {
+    fn next_frame_after_elapsed_time(&mut self) -> Option<Frame> {
         if self
             .last_frame
             .map_or(true, |instant| instant.elapsed() >= DELAY)
         {
-            let frame = self.remaining_frames.pop()?;
-            self.last_frame = Some(Instant::now());
-            Some(frame)
+            self.next_frame()
         } else {
             None
         }
+    }
+
+    fn next_frame(&mut self) -> Option<Frame> {
+        let frame = self.remaining_frames.pop()?;
+        self.last_frame = Some(Instant::now());
+        Some(frame)
     }
 }
 
@@ -105,12 +109,25 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl App {
     fn update_view_state(&mut self) {
-        if let Some(frame) = self.delayed_frames.next_frame() {
-            self.render_state.show_frame(
-                frame,
-                self.delayed_frames.is_done() && self.state != GameState::Done,
-            );
+        let frame = if !self.show_graphical {
+            self.delayed_frames.next_frame_after_elapsed_time()
+        } else {
+            if is_mouse_button_released(MouseButton::Left) {
+                self.delayed_frames.next_frame()
+            } else {
+                None
+            }
+        };
+        if let Some(frame) = frame {
+            self.show_frame(frame);
         }
+    }
+
+    fn show_frame(&mut self, frame: Frame) {
+        self.render_state.show_frame(
+            frame,
+            self.delayed_frames.is_done() && self.state != GameState::Done,
+        );
     }
 
     fn update_game_state(&mut self) {
@@ -131,7 +148,9 @@ impl App {
 
     fn add_view_data(&mut self, view_buffer: view::Buffer) {
         self.delayed_frames = DelayedFrames::new(view_buffer);
-        self.update_view_state();
+        if let Some(frame) = self.delayed_frames.next_frame() {
+            self.show_frame(frame);
+        }
     }
 
     fn ready_to_take_input(&self) -> bool {
