@@ -305,6 +305,7 @@ pub struct RenderData {
 
 pub struct ObjectRenderData {
     pub coord: Coord,
+    pub weight: u32,
     pub texture_type: TextureType,
     pub direction: Direction,
 }
@@ -327,16 +328,18 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
     let character_pos = world.get::<&Pos>(character).unwrap();
     let area = world.get::<&Area>(character_pos.get_area()).unwrap();
 
-    let objects = world
+    let mut objects: Vec<ObjectRenderData> = world
         .query::<(&Pos, &DisplayInfo, Option<&Direction>)>()
         .iter()
         .filter(|(_, (pos, _, _))| pos.is_in(character_pos.get_area()))
         .map(|(_, (pos, display_info, direction))| ObjectRenderData {
             coord: pos.get_coord(),
+            weight: display_info.weight,
             texture_type: display_info.texture_type,
             direction: direction.copied().unwrap_or(Direction::Right),
         })
         .collect();
+    objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
     RenderData {
         size: area.size,
