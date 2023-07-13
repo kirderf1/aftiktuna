@@ -52,7 +52,7 @@
         "<": {
           "type": "door",
           "pair_id": "side",
-          "display_type": "left_path"
+          "display_type": "path"
         },
         "^": {
           "type": "door",
