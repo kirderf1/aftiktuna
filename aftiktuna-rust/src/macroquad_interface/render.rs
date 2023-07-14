@@ -14,7 +14,7 @@ use std::collections::HashMap;
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub struct State {
-    text_lines: Vec<String>,
+    text_log: Vec<String>,
     view_state: ViewState,
     text_box_text: Vec<String>,
 }
@@ -22,16 +22,16 @@ pub struct State {
 impl State {
     pub fn new(messages: Messages) -> Self {
         Self {
-            text_lines: messages.into_text(),
+            text_log: messages.into_text(),
             view_state: ViewState::LocationChoice,
             text_box_text: vec![],
         }
     }
 
     pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
-        self.text_lines.extend(frame.as_text());
+        self.text_log.extend(frame.as_text());
         if ready_for_input {
-            self.text_lines.push(String::default())
+            self.text_log.push(String::default())
         }
 
         match frame {
@@ -58,12 +58,12 @@ impl State {
     }
 
     pub fn add_to_text_log(&mut self, text: String) {
-        self.text_lines.push(text);
+        self.text_log.push(text);
     }
 
     pub fn show_input_error(&mut self, messages: Messages) {
         let text = messages.into_text();
-        self.text_lines.extend(text.clone());
+        self.text_log.extend(text.clone());
         self.set_text_box_text(text);
     }
 }
@@ -281,7 +281,7 @@ fn text_box(state: &State, ui: &mut egui::Ui) {
         .auto_shrink([false; 2])
         .stick_to_bottom(true)
         .show(ui, |ui| {
-            for text in &state.text_lines {
+            for text in &state.text_log {
                 ui.label(egui::RichText::new(text).font(FONT));
             }
         });

@@ -1,7 +1,7 @@
 use aftiktuna::area::Locations;
-use std::env;
-use macroquad::prelude::Conf;
 use aftiktuna::macroquad_interface;
+use macroquad::prelude::Conf;
+use std::env;
 
 fn config() -> Conf {
     Conf {
