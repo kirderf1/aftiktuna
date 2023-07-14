@@ -15,7 +15,7 @@ mod texture;
 
 pub async fn run(locations: Locations) {
     let mut app = init(locations);
-    let textures = texture::load_textures().await;
+    let textures = texture::load_textures().await.unwrap();
 
     loop {
         app.update_view_state();

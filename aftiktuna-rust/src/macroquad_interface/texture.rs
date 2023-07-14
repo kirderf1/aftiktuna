@@ -4,7 +4,7 @@ use crate::position::Direction;
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
-use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, Rect, Texture2D};
+use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, FileError, Rect, Texture2D};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 
@@ -47,9 +47,9 @@ pub enum TextureData {
 }
 
 impl TextureData {
-    async fn load_static(path: &str) -> TextureData {
-        let texture = load_texture(path).await;
-        Self::new_static(texture)
+    async fn load_static(path: &str) -> Result<TextureData, FileError> {
+        let texture = load_texture(path).await?;
+        Ok(Self::new_static(texture))
     }
 
     fn new_static(texture: Texture2D) -> TextureData {
@@ -60,23 +60,23 @@ impl TextureData {
         }
     }
 
-    async fn load_directional(path: &str) -> TextureData {
-        let texture = load_texture(path).await;
-        TextureData::Regular {
+    async fn load_directional(path: &str) -> Result<TextureData, FileError> {
+        let texture = load_texture(path).await?;
+        Ok(TextureData::Regular {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
             directional: true,
-        }
+        })
     }
-    async fn load_aftik() -> TextureData {
-        async fn texture(suffix: &str) -> Texture2D {
+    async fn load_aftik() -> Result<TextureData, FileError> {
+        async fn texture(suffix: &str) -> Result<Texture2D, FileError> {
             load_texture(format!("creature/aftik_{}", suffix)).await
         }
-        TextureData::Aftik {
-            primary: texture("primary").await,
-            secondary: texture("secondary").await,
-            details: texture("details").await,
-        }
+        Ok(TextureData::Aftik {
+            primary: texture("primary").await?,
+            secondary: texture("secondary").await?,
+            details: texture("details").await?,
+        })
     }
 }
 
@@ -195,33 +195,36 @@ pub enum BGTexture {
 }
 
 impl BGTexture {
-    async fn simple(path: &str) -> BGTexture {
-        BGTexture::Simple(load_texture(format!("background/{}", path)).await)
+    async fn simple(path: &str) -> Result<BGTexture, FileError> {
+        let texture = load_texture(format!("background/{}", path)).await?;
+        Ok(BGTexture::Simple(texture))
     }
-    async fn repeating(path: &str) -> BGTexture {
-        BGTexture::Repeating(load_texture(format!("background/{}", path)).await)
+    async fn repeating(path: &str) -> Result<BGTexture, FileError> {
+        let texture = load_texture(format!("background/{}", path)).await?;
+        Ok(BGTexture::Repeating(texture))
     }
 }
 
-async fn load_texture(name: impl Borrow<str>) -> Texture2D {
-    macroquad::texture::load_texture(&format!("assets/texture/{}.png", name.borrow()))
-        .await
-        .unwrap()
+async fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, FileError> {
+    macroquad::texture::load_texture(&format!("assets/texture/{}.png", name.borrow())).await
 }
 
-pub async fn load_textures() -> TextureStorage {
+pub async fn load_textures() -> Result<TextureStorage, FileError> {
     let mut backgrounds = HashMap::new();
 
     backgrounds.insert(
         BGTextureType::LocationChoice,
-        BGTexture::simple("location_choice").await,
+        BGTexture::simple("location_choice").await?,
     );
-    backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await);
-    backgrounds.insert(BGTextureType::Blank, BGTexture::simple("white_space").await);
+    backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await?);
+    backgrounds.insert(
+        BGTextureType::Blank,
+        BGTexture::simple("white_space").await?,
+    );
 
     let mut objects = HashMap::new();
 
-    let unknown_texture = load_texture("unknown").await;
+    let unknown_texture = load_texture("unknown").await?;
     objects.insert(
         TextureType::Unknown,
         TextureData::new_static(unknown_texture),
@@ -234,45 +237,45 @@ pub async fn load_textures() -> TextureStorage {
             directional: false,
         },
     );
-    objects.insert(TextureType::Door, TextureData::load_static("door").await);
-    objects.insert(TextureType::Path, TextureData::load_static("path").await);
-    objects.insert(TextureType::Aftik, TextureData::load_aftik().await);
+    objects.insert(TextureType::Door, TextureData::load_static("door").await?);
+    objects.insert(TextureType::Path, TextureData::load_static("path").await?);
+    objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
         TextureType::Goblin,
-        TextureData::load_directional("creature/goblin").await,
+        TextureData::load_directional("creature/goblin").await?,
     );
     objects.insert(
         TextureType::Eyesaur,
-        TextureData::load_directional("creature/eyesaur").await,
+        TextureData::load_directional("creature/eyesaur").await?,
     );
     objects.insert(
         TextureType::Azureclops,
-        TextureData::load_directional("creature/azureclops").await,
+        TextureData::load_directional("creature/azureclops").await?,
     );
     objects.insert(
         TextureType::Item(item::Type::FuelCan),
-        TextureData::load_static("item/fuel_can").await,
+        TextureData::load_static("item/fuel_can").await?,
     );
     objects.insert(
         TextureType::Item(item::Type::Crowbar),
-        TextureData::load_static("item/crowbar").await,
+        TextureData::load_static("item/crowbar").await?,
     );
     objects.insert(
         TextureType::Item(item::Type::Knife),
-        TextureData::load_static("item/knife").await,
+        TextureData::load_static("item/knife").await?,
     );
     objects.insert(
         TextureType::Item(item::Type::Bat),
-        TextureData::load_static("item/bat").await,
+        TextureData::load_static("item/bat").await?,
     );
     objects.insert(
         TextureType::Item(item::Type::Sword),
-        TextureData::load_static("item/sword").await,
+        TextureData::load_static("item/sword").await?,
     );
 
-    TextureStorage {
+    Ok(TextureStorage {
         backgrounds,
         objects,
-        left_mouse_icon: load_texture("left_mouse").await,
-    }
+        left_mouse_icon: load_texture("left_mouse").await?,
+    })
 }
