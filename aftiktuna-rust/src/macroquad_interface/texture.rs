@@ -1,7 +1,7 @@
-use aftiktuna::area::BackgroundType;
-use aftiktuna::item;
-use aftiktuna::position::Direction;
-use aftiktuna::view::{AftikColor, TextureType};
+use crate::area::BackgroundType;
+use crate::item;
+use crate::position::Direction;
+use crate::view::{AftikColor, TextureType};
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
 use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, Texture2D};

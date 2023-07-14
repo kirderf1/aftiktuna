@@ -4,6 +4,7 @@ pub mod area;
 mod command;
 pub mod game_loop;
 pub mod item;
+pub mod macroquad_interface;
 pub mod position;
 pub mod standard_io_interface;
 mod status;

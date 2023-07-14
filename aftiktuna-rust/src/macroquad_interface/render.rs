@@ -1,6 +1,7 @@
-use crate::App;
-use aftiktuna::position::Coord;
-use aftiktuna::view::{Frame, Messages, RenderData};
+use super::texture::{draw_object, BGTexture, BGTextureType, TextureStorage};
+use super::App;
+use crate::position::Coord;
+use crate::view::{Frame, Messages, RenderData};
 use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
@@ -9,9 +10,6 @@ use macroquad::prelude::{
     mouse_position, set_default_camera, Camera2D, Color, Rect, Vec2,
 };
 use std::collections::HashMap;
-use texture::{BGTexture, BGTextureType, TextureStorage};
-
-pub mod texture;
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
@@ -139,7 +137,7 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
         let count = *count_ref;
         *count_ref = count + 1;
 
-        texture::draw_object(
+        draw_object(
             textures.lookup_texture(data.texture_type),
             data.direction,
             data.aftik_color,
