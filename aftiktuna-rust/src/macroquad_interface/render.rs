@@ -1,7 +1,8 @@
 use super::texture::{draw_object, BGTexture, BGTextureType, TextureStorage};
 use super::App;
+use crate::macroquad_interface::texture::get_rect_for_object;
 use crate::position::Coord;
-use crate::view::{Frame, Messages, RenderData};
+use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
@@ -114,6 +115,11 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
             );
 
             draw_objects(render_data, textures);
+            draw_tooltip(
+                render_data,
+                textures,
+                Vec2::new(state.camera.x, state.camera.y),
+            );
             set_default_camera();
         }
     }
@@ -133,22 +139,68 @@ fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &T
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
+    for (pos, data) in position_objects(&render_data.objects) {
+        draw_object(
+            textures.lookup_texture(data.texture_type),
+            data.direction,
+            data.aftik_color,
+            pos.x,
+            pos.y,
+        );
+    }
+}
+
+fn draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
+    let mouse_pos = Vec2::from(mouse_position()) + camera_offset;
+    let hovered_objects = position_objects(&render_data.objects)
+        .into_iter()
+        .filter(|(pos, data)| get_rect_for_object(data, textures, *pos).contains(mouse_pos))
+        .map(|(_, data)| &data.name)
+        .collect::<Vec<_>>();
+
+    if hovered_objects.is_empty() {
+        return;
+    }
+
+    let width = hovered_objects
+        .iter()
+        .map(|object| measure_text(object, None, TEXT_BOX_TEXT_SIZE, 1.).width)
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap()
+        + 2. * TEXT_BOX_MARGIN;
+    let height = 8. + hovered_objects.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
+    draw_rectangle(mouse_pos.x, mouse_pos.y, width, height, TEXT_BOX_COLOR);
+
+    for (index, object) in hovered_objects.into_iter().enumerate() {
+        draw_text(
+            object,
+            mouse_pos.x + TEXT_BOX_MARGIN,
+            mouse_pos.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
+            TEXT_BOX_TEXT_SIZE as f32,
+            WHITE,
+        );
+    }
+}
+
+fn position_objects(objects: &Vec<ObjectRenderData>) -> Vec<(Vec2, &ObjectRenderData)> {
+    let mut positioned_objects = Vec::new();
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
-    for data in &render_data.objects {
+    for data in objects {
         let coord = data.coord;
         let count_ref = coord_counts.entry(coord).or_insert(0);
         let count = *count_ref;
         *count_ref = count + 1;
 
-        draw_object(
-            textures.lookup_texture(data.texture_type),
-            data.direction,
-            data.aftik_color,
-            coord_to_center_x(coord) - count as f32 * 15.,
-            (450 + count * 10) as f32,
-        );
+        positioned_objects.push((
+            Vec2::new(
+                coord_to_center_x(coord) - count as f32 * 15.,
+                (450 + count * 10) as f32,
+            ),
+            data,
+        ));
     }
+    positioned_objects
 }
 
 // Coordinates are mapped like this so that when the left edge of the window is 0,

@@ -308,6 +308,7 @@ pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: u32,
     pub texture_type: TextureType,
+    pub name: String,
     pub direction: Direction,
     pub aftik_color: Option<AftikColor>,
 }
@@ -344,10 +345,15 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
         .iter()
         .filter(|(_, (pos, _, _, _))| pos.is_in(character_pos.get_area()))
         .map(
-            |(_, (pos, display_info, direction, color))| ObjectRenderData {
+            |(entity, (pos, display_info, direction, color))| ObjectRenderData {
                 coord: pos.get_coord(),
                 weight: display_info.weight,
                 texture_type: display_info.texture_type,
+                name: get_name(
+                    world,
+                    entity,
+                    capitalize(NameData::find(world, entity).base()),
+                ),
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
             },

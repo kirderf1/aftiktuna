@@ -1,10 +1,10 @@
 use crate::area::BackgroundType;
 use crate::item;
 use crate::position::Direction;
-use crate::view::{AftikColor, TextureType};
+use crate::view::{AftikColor, ObjectRenderData, TextureType};
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
-use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, Texture2D};
+use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, Rect, Texture2D};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 
@@ -138,6 +138,24 @@ pub fn draw_object(
                 params,
             );
         }
+    }
+}
+
+pub fn get_rect_for_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2) -> Rect {
+    let texture = textures.lookup_texture(data.texture_type);
+    match texture {
+        TextureData::Regular { dest_size, .. } => Rect::new(
+            pos.x - dest_size.x / 2.,
+            pos.y - dest_size.y,
+            dest_size.x,
+            dest_size.y,
+        ),
+        TextureData::Aftik { primary, .. } => Rect::new(
+            pos.x - primary.width() / 2.,
+            pos.y - primary.height(),
+            primary.width(),
+            primary.height(),
+        ),
     }
 }
 
