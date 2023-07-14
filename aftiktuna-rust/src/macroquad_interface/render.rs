@@ -17,6 +17,7 @@ pub struct State {
     text_log: Vec<String>,
     view_state: ViewState,
     text_box_text: Vec<String>,
+    camera: Rect,
 }
 
 impl State {
@@ -25,6 +26,7 @@ impl State {
             text_log: messages.into_text(),
             view_state: ViewState::LocationChoice,
             text_box_text: vec![],
+            camera: default_camera_space(),
         }
     }
 
@@ -40,10 +42,12 @@ impl State {
                 messages,
                 ..
             } => {
+                self.camera = character_centered_camera(&render_data);
                 self.view_state = ViewState::InGame(render_data);
                 self.set_text_box_text(messages.into_text());
             }
             Frame::LocationChoice(messages) => {
+                self.camera = default_camera_space();
                 self.view_state = ViewState::LocationChoice;
                 self.set_text_box_text(messages.into_text());
             }
@@ -99,12 +103,12 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
             );
         }
         ViewState::InGame(render_data) => {
-            let camera_space = setup_camera(render_data);
+            set_camera(&Camera2D::from_display_rect(state.camera));
             draw_background(
                 render_data
                     .background
                     .map_or(BGTextureType::Blank, BGTextureType::from),
-                camera_space,
+                state.camera,
                 textures,
             );
 
@@ -128,7 +132,6 @@ fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &T
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
-    let start_x = 40.;
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
     for data in &render_data.objects {
@@ -141,25 +144,38 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
             textures.lookup_texture(data.texture_type),
             data.direction,
             data.aftik_color,
-            start_x + ((coord as i32) * 120 - count * 15) as f32,
+            coord_to_center_x(coord) - count as f32 * 15.,
             (450 + count * 10) as f32,
         );
     }
 }
 
-fn setup_camera(render_data: &RenderData) -> Rect {
-    let camera_target = if render_data.size <= 6 {
-        (render_data.size - 1) as f32 / 2.
+// Coordinates are mapped like this so that when the left edge of the window is 0,
+// coord 3 will be placed in the middle of the window.
+fn coord_to_center_x(coord: Coord) -> f32 {
+    40. + 120. * coord as f32
+}
+
+fn clamp_camera(camera: &mut Rect, render_data: &RenderData) {
+    camera.x = if render_data.size <= 6 {
+        (coord_to_center_x(0) + coord_to_center_x(render_data.size - 1)) / 2. - camera.w / 2.
     } else {
         clamp(
-            render_data.character_coord as f32,
-            2.5,
-            render_data.size as f32 - 3.5,
+            camera.x,
+            coord_to_center_x(0) - 100.,
+            coord_to_center_x(render_data.size - 1) + 100. - camera.w,
         )
     };
+}
 
-    let camera_space = Rect::new((camera_target - 3.) * 120., 0., 800., 600.);
-    set_camera(&Camera2D::from_display_rect(camera_space));
+fn character_centered_camera(render_data: &RenderData) -> Rect {
+    let mut camera_space = Rect::new(
+        coord_to_center_x(render_data.character_coord) - 400.,
+        0.,
+        800.,
+        600.,
+    );
+    clamp_camera(&mut camera_space, render_data);
     camera_space
 }
 
