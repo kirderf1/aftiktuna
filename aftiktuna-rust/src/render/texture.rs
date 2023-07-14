@@ -11,6 +11,7 @@ use std::collections::HashMap;
 pub struct TextureStorage {
     backgrounds: HashMap<BGTextureType, BGTexture>,
     objects: HashMap<TextureType, TextureData>,
+    pub left_mouse_icon: Texture2D,
 }
 
 impl TextureStorage {
@@ -260,5 +261,6 @@ pub async fn load_textures() -> TextureStorage {
     TextureStorage {
         backgrounds,
         objects,
+        left_mouse_icon: load_texture("left_mouse").await,
     }
 }

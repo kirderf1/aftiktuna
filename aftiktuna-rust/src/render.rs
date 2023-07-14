@@ -5,8 +5,8 @@ use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
 use macroquad::prelude::{
-    clamp, clear_background, draw_rectangle, draw_text, draw_texture, measure_text, mouse_position,
-    set_default_camera, Camera2D, Color, Rect, Vec2,
+    clamp, clear_background, draw_rectangle, draw_text, draw_texture, get_time, measure_text,
+    mouse_position, set_default_camera, Camera2D, Color, Rect, Vec2,
 };
 use std::collections::HashMap;
 use texture::{BGTexture, BGTextureType, TextureStorage};
@@ -79,7 +79,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     clear_background(BLACK);
 
     if app.show_graphical {
-        draw_game(&app.render_state, textures);
+        draw_game(&app.render_state, textures, !app.delayed_frames.is_done());
     }
 
     egui_macroquad::ui(|ctx| ui(app, ctx));
@@ -91,7 +91,7 @@ fn default_camera_space() -> Rect {
     Rect::new(0., 0., 800., 600.)
 }
 
-fn draw_game(state: &State, textures: &TextureStorage) {
+fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
     match &state.view_state {
         ViewState::LocationChoice => {
             draw_background(
@@ -115,7 +115,7 @@ fn draw_game(state: &State, textures: &TextureStorage) {
         }
     }
 
-    draw_text_box(&state.text_box_text);
+    draw_text_box(&state.text_box_text, textures, click_to_proceed);
 }
 
 fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &TextureStorage) {
@@ -223,7 +223,7 @@ fn get_text_box_dimensions(text: &Vec<String>) -> Rect {
     Rect::new(0., text_box_start, 800., text_box_size)
 }
 
-fn draw_text_box(text: &Vec<String>) {
+fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_proceed: bool) {
     if text.is_empty() {
         return;
     }
@@ -242,6 +242,16 @@ fn draw_text_box(text: &Vec<String>) {
             dimensions.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
             TEXT_BOX_TEXT_SIZE as f32,
             WHITE,
+        );
+    }
+
+    if click_to_proceed {
+        let alpha = ((get_time() * 2.).sin() + 1.) / 2.;
+        draw_texture(
+            textures.left_mouse_icon,
+            dimensions.right() - textures.left_mouse_icon.width() - 5.,
+            dimensions.top() + 5.,
+            Color::new(1., 1., 1., alpha as f32),
         );
     }
 }
