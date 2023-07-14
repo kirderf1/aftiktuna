@@ -140,13 +140,7 @@ fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &T
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
     for (pos, data) in position_objects(&render_data.objects) {
-        draw_object(
-            textures.lookup_texture(data.texture_type),
-            data.direction,
-            data.aftik_color,
-            pos.x,
-            pos.y,
-        );
+        draw_object(data, textures, pos);
     }
 }
 

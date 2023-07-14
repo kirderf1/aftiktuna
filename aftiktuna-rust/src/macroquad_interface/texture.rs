@@ -80,14 +80,8 @@ impl TextureData {
     }
 }
 
-pub fn draw_object(
-    data: &TextureData,
-    direction: Direction,
-    color: Option<AftikColor>,
-    x: f32,
-    y: f32,
-) {
-    match data {
+pub fn draw_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2) {
+    match textures.lookup_texture(data.texture_type) {
         TextureData::Regular {
             texture,
             dest_size,
@@ -95,12 +89,12 @@ pub fn draw_object(
         } => {
             draw_texture_ex(
                 *texture,
-                x - dest_size.x / 2.,
-                y - dest_size.y,
+                pos.x - dest_size.x / 2.,
+                pos.y - dest_size.y,
                 WHITE,
                 DrawTextureParams {
                     dest_size: Some(*dest_size),
-                    flip_x: *directional && direction == Direction::Left,
+                    flip_x: *directional && data.direction == Direction::Left,
                     ..Default::default()
                 },
             );
@@ -111,29 +105,29 @@ pub fn draw_object(
             details,
         } => {
             let params = DrawTextureParams {
-                flip_x: direction == Direction::Left,
+                flip_x: data.direction == Direction::Left,
                 ..Default::default()
             };
             let (primary_color, secondary_color) =
-                convert_to_color(color.unwrap_or(AftikColor::Mint));
+                convert_to_color(data.aftik_color.unwrap_or(AftikColor::Mint));
             draw_texture_ex(
                 *primary,
-                x - primary.width() / 2.,
-                y - primary.height(),
+                pos.x - primary.width() / 2.,
+                pos.y - primary.height(),
                 primary_color,
                 params.clone(),
             );
             draw_texture_ex(
                 *secondary,
-                x - secondary.width() / 2.,
-                y - secondary.height(),
+                pos.x - secondary.width() / 2.,
+                pos.y - secondary.height(),
                 secondary_color,
                 params.clone(),
             );
             draw_texture_ex(
                 *details,
-                x - details.width() / 2.,
-                y - details.height(),
+                pos.x - details.width() / 2.,
+                pos.y - details.height(),
                 WHITE,
                 params,
             );
