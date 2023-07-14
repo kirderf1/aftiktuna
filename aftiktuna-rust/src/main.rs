@@ -1,3 +1,4 @@
+use crate::render::is_mouse_at_text_box;
 use crate::render::texture::load_textures;
 use aftiktuna::area::Locations;
 use aftiktuna::game_loop;
@@ -111,12 +112,12 @@ impl App {
     fn update_view_state(&mut self) {
         let frame = if !self.show_graphical {
             self.delayed_frames.next_frame_after_elapsed_time()
+        } else if is_mouse_button_released(MouseButton::Left)
+            && is_mouse_at_text_box(&self.render_state)
+        {
+            self.delayed_frames.next_frame()
         } else {
-            if is_mouse_button_released(MouseButton::Left) {
-                self.delayed_frames.next_frame()
-            } else {
-                None
-            }
+            None
         };
         if let Some(frame) = frame {
             self.show_frame(frame);

@@ -5,8 +5,8 @@ use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
 use macroquad::prelude::{
-    clamp, clear_background, draw_rectangle, draw_text, draw_texture, measure_text,
-    set_default_camera, Camera2D, Color, Rect,
+    clamp, clear_background, draw_rectangle, draw_text, draw_texture, measure_text, mouse_position,
+    set_default_camera, Camera2D, Color, Rect, Vec2,
 };
 use std::collections::HashMap;
 use texture::{BGTexture, BGTextureType, TextureStorage};
@@ -213,18 +213,33 @@ fn fits_in_text_box_width(line: &str) -> bool {
     measure_text(line, None, TEXT_BOX_TEXT_SIZE, 1.).width <= TEXT_BOX_TEXT_MAX_WIDTH
 }
 
+pub fn is_mouse_at_text_box(state: &State) -> bool {
+    get_text_box_dimensions(&state.text_box_text).contains(Vec2::from(mouse_position()))
+}
+
+fn get_text_box_dimensions(text: &Vec<String>) -> Rect {
+    let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE as f32);
+    let text_box_start = 600. - 25. - text_box_size;
+    Rect::new(0., text_box_start, 800., text_box_size)
+}
+
 fn draw_text_box(text: &Vec<String>) {
     if text.is_empty() {
         return;
     }
-    let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE as f32);
-    let text_box_start = 600. - 25. - text_box_size;
-    draw_rectangle(0., text_box_start, 800., text_box_size, TEXT_BOX_COLOR);
+    let dimensions = get_text_box_dimensions(text);
+    draw_rectangle(
+        dimensions.x,
+        dimensions.y,
+        dimensions.w,
+        dimensions.h,
+        TEXT_BOX_COLOR,
+    );
     for (index, text_line) in text.iter().enumerate() {
         draw_text(
             text_line,
-            TEXT_BOX_MARGIN,
-            text_box_start + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
+            dimensions.x + TEXT_BOX_MARGIN,
+            dimensions.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
             TEXT_BOX_TEXT_SIZE as f32,
             WHITE,
         );
