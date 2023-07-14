@@ -336,7 +336,7 @@ fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_proceed
     }
 
     if click_to_proceed {
-        let alpha = ((get_time() * 2.).sin() + 1.) / 2.;
+        let alpha = ((get_time() * 3.).sin() + 1.) / 2.;
         draw_texture(
             textures.left_mouse_icon,
             dimensions.right() - textures.left_mouse_icon.width() - 5.,
