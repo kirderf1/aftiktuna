@@ -6,8 +6,9 @@ use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
 use macroquad::prelude::{
-    clamp, clear_background, draw_rectangle, draw_text, draw_texture, get_time, measure_text,
-    mouse_position, set_default_camera, Camera2D, Color, Rect, Vec2,
+    clamp, clear_background, draw_rectangle, draw_text, draw_texture, get_time,
+    is_mouse_button_down, is_mouse_button_pressed, measure_text, mouse_position,
+    set_default_camera, Camera2D, Color, MouseButton, Rect, Vec2,
 };
 use std::collections::HashMap;
 
@@ -18,6 +19,7 @@ pub struct State {
     view_state: ViewState,
     text_box_text: Vec<String>,
     camera: Rect,
+    last_drag_pos: Option<Vec2>,
 }
 
 impl State {
@@ -27,6 +29,7 @@ impl State {
             view_state: ViewState::LocationChoice,
             text_box_text: vec![],
             camera: default_camera_space(),
+            last_drag_pos: None,
         }
     }
 
@@ -78,6 +81,8 @@ pub enum ViewState {
 }
 
 pub fn draw(app: &mut App, textures: &TextureStorage) {
+    try_drag_camera(&mut app.render_state);
+
     clear_background(BLACK);
 
     if app.show_graphical {
@@ -87,10 +92,6 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     egui_macroquad::ui(|ctx| ui(app, ctx));
 
     egui_macroquad::draw();
-}
-
-fn default_camera_space() -> Rect {
-    Rect::new(0., 0., 800., 600.)
 }
 
 fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
@@ -156,6 +157,31 @@ fn coord_to_center_x(coord: Coord) -> f32 {
     40. + 120. * coord as f32
 }
 
+fn try_drag_camera(state: &mut State) {
+    match (&state.view_state, state.last_drag_pos) {
+        (ViewState::InGame(render_data), Some(last_pos)) => {
+            if is_mouse_button_down(MouseButton::Left) {
+                let mouse_pos: Vec2 = mouse_position().into();
+                let camera_delta = mouse_pos - last_pos;
+
+                state.camera.x -= camera_delta.x;
+                clamp_camera(&mut state.camera, render_data);
+                state.last_drag_pos = Some(mouse_pos);
+            } else {
+                state.last_drag_pos = None;
+            }
+        }
+        (ViewState::InGame(_), None) => {
+            if is_mouse_button_pressed(MouseButton::Left) && !is_mouse_at_text_box(state) {
+                state.last_drag_pos = Some(mouse_position().into());
+            }
+        }
+        _ => {
+            state.last_drag_pos = None;
+        }
+    }
+}
+
 fn clamp_camera(camera: &mut Rect, render_data: &RenderData) {
     camera.x = if render_data.size <= 6 {
         (coord_to_center_x(0) + coord_to_center_x(render_data.size - 1)) / 2. - camera.w / 2.
@@ -166,6 +192,10 @@ fn clamp_camera(camera: &mut Rect, render_data: &RenderData) {
             coord_to_center_x(render_data.size - 1) + 100. - camera.w,
         )
     };
+}
+
+fn default_camera_space() -> Rect {
+    Rect::new(0., 0., 800., 600.)
 }
 
 fn character_centered_camera(render_data: &RenderData) -> Rect {
