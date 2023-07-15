@@ -317,8 +317,8 @@ pub struct ObjectRenderData {
 pub enum TextureType {
     Unknown,
     SmallUnknown,
-    Door,
     Ship,
+    Door,
     Path,
     Aftik,
     Goblin,
