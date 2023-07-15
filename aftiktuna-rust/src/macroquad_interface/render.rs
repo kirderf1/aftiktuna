@@ -131,9 +131,9 @@ fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &T
     match textures.lookup_background(texture_type) {
         BGTexture::Simple(texture) => draw_texture(*texture, camera_space.x, 0., WHITE),
         BGTexture::Repeating(texture) => {
-            let start_x = 800. * f32::floor(camera_space.x / 800.);
+            let start_x = texture.width() * f32::floor(camera_space.x / texture.width());
             draw_texture(*texture, start_x, 0., WHITE);
-            draw_texture(*texture, start_x + 800., 0., WHITE);
+            draw_texture(*texture, start_x + texture.width(), 0., WHITE);
         }
     }
 }
