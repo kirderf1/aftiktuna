@@ -7,17 +7,20 @@
         "<": {
           "type": "door",
           "pair_id": "left",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         "^": {
           "type": "door",
           "pair_id": "mid",
-          "display_type": "mid_door"
+          "display_type": "door",
+          "adjective": "middle"
         },
         ">": {
           "type": "door",
           "pair_id": "right",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
@@ -28,12 +31,14 @@
         "<": {
           "type": "door",
           "pair_id": "left",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         ">": {
           "type": "door",
           "pair_id": "side",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
@@ -44,12 +49,14 @@
         "<": {
           "type": "door",
           "pair_id": "right",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         ">": {
           "type": "door",
           "pair_id": "side",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },

@@ -75,6 +75,13 @@ impl NounData {
         &self.singular
     }
 
+    pub fn with_adjective(&self, adjective: &str) -> NounData {
+        NounData {
+            singular: format!("{} {}", adjective, self.singular),
+            plural: format!("{} {}", adjective, self.plural),
+        }
+    }
+
     pub fn for_count(&self, count: u16) -> &str {
         if count == 1 {
             &self.singular

@@ -1,6 +1,6 @@
 use crate::action::door::BlockType;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
-use crate::area::{creature, Area, BackgroundType};
+use crate::area::{creature, door, Area, BackgroundType};
 use crate::item;
 use crate::position::Pos;
 use crate::status::Stats;
@@ -72,6 +72,7 @@ impl AreaData {
         &mut self,
         symbol: char,
         display_type: DoorType,
+        adjective: Option<door::Adjective>,
         pair_id: &str,
     ) -> &mut Self {
         self.symbols.insert(
@@ -79,6 +80,7 @@ impl AreaData {
             SymbolData::Door {
                 pair_id: pair_id.to_string(),
                 display_type,
+                adjective,
             },
         );
         self
@@ -98,7 +100,8 @@ impl AreaData {
                     Some(SymbolData::Door {
                         pair_id,
                         display_type,
-                    }) => place_door(builder, pos, pair_id, symbol, *display_type)?,
+                        adjective,
+                    }) => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
                     Some(SymbolData::Shopkeeper { items, color }) => {
                         creature::place_shopkeeper(builder.world, pos, items, *color)?
                     }
@@ -125,6 +128,7 @@ enum SymbolData {
     Door {
         pair_id: String,
         display_type: DoorType,
+        adjective: Option<door::Adjective>,
     },
     Shopkeeper {
         items: Vec<item::Type>,
@@ -187,6 +191,7 @@ fn place_door(
     pair_id: &str,
     symbol: char,
     display_type: DoorType,
+    adjective: Option<door::Adjective>,
 ) -> Result<(), String> {
     let status = builder
         .doors
@@ -196,7 +201,7 @@ fn place_door(
         pos,
         symbol,
         texture_type: display_type.texture_type(),
-        name: display_type.name_data(),
+        name: display_type.name_data(adjective),
     };
 
     *status = match status {

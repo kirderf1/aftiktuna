@@ -1,6 +1,6 @@
 use crate::action::door::{BlockType, Door};
 use crate::position::Pos;
-use crate::view::{DisplayInfo, NameData, TextureType};
+use crate::view::{DisplayInfo, NameData, NounData, TextureType};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -44,38 +44,42 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
 #[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
-    LeftDoor,
-    MidDoor,
-    RightDoor,
     Path,
-    LeftPath,
-    MidPath,
-    RightPath,
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Adjective {
+    Left,
+    Middle,
+    Right,
+}
+
+impl Adjective {
+    fn word(self) -> &'static str {
+        match self {
+            Adjective::Left => "left",
+            Adjective::Middle => "middle",
+            Adjective::Right => "right",
+        }
+    }
 }
 
 impl DoorType {
-    pub fn name_data(self) -> NameData {
-        match self {
-            DoorType::Door => NameData::from_noun("door", "doors"),
-            DoorType::LeftDoor => NameData::from_noun("left door", "left doors"),
-            DoorType::MidDoor => NameData::from_noun("middle door", "middle doors"),
-            DoorType::RightDoor => NameData::from_noun("right door", "right doors"),
-            DoorType::Path => NameData::from_noun("path", "paths"),
-            DoorType::LeftPath => NameData::from_noun("left path", "left paths"),
-            DoorType::MidPath => NameData::from_noun("middle path", "middle paths"),
-            DoorType::RightPath => NameData::from_noun("right path", "right paths"),
+    pub fn name_data(self, adjective: Option<Adjective>) -> NameData {
+        let mut noun = match self {
+            DoorType::Door => NounData::new("door", "doors"),
+            DoorType::Path => NounData::new("path", "paths"),
+        };
+        if let Some(adjective) = adjective {
+            noun = noun.with_adjective(adjective.word());
         }
+        NameData::Noun(noun)
     }
     pub fn texture_type(self) -> TextureType {
         match self {
             DoorType::Door => TextureType::Door,
-            DoorType::LeftDoor => TextureType::Door,
-            DoorType::MidDoor => TextureType::Door,
-            DoorType::RightDoor => TextureType::Door,
             DoorType::Path => TextureType::Path,
-            DoorType::LeftPath => TextureType::Path,
-            DoorType::MidPath => TextureType::Path,
-            DoorType::RightPath => TextureType::Path,
         }
     }
 }

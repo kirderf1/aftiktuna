@@ -8,7 +8,8 @@
         "<": {
           "type": "door",
           "pair_id": "aftik_house",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         "^": {
           "type": "door",
@@ -18,7 +19,8 @@
         ">": {
           "type": "door",
           "pair_id": "store",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
@@ -30,12 +32,14 @@
         "<": {
           "type": "door",
           "pair_id": "side",
-          "display_type": "left_path"
+          "display_type": "path",
+          "adjective": "left"
         },
         ">": {
           "type": "door",
           "pair_id": "road",
-          "display_type": "right_path"
+          "display_type": "path",
+          "adjective": "right"
         },
         "^": {
           "type": "door",

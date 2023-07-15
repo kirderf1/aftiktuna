@@ -7,17 +7,20 @@
         "<": {
           "type": "door",
           "pair_id": "goblin",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         "^": {
           "type": "door",
           "pair_id": "eyesaur",
-          "display_type": "mid_door"
+          "display_type": "door",
+          "adjective": "middle"
         },
         ">": {
           "type": "door",
           "pair_id": "azureclops",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },

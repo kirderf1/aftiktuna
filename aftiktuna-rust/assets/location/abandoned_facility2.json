@@ -41,17 +41,20 @@
         "<": {
           "type": "door",
           "pair_id": "corridor1",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         "^": {
           "type": "door",
           "pair_id": "entrance",
-          "display_type": "mid_door"
+          "display_type": "door",
+          "adjective": "middle"
         },
         ">": {
           "type": "door",
           "pair_id": "room1",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
@@ -62,17 +65,20 @@
         "<": {
           "type": "door",
           "pair_id": "corridor1",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         "^": {
           "type": "door",
           "pair_id": "corridor2",
-          "display_type": "mid_door"
+          "display_type": "door",
+          "adjective": "middle"
         },
         ">": {
           "type": "door",
           "pair_id": "room2",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
@@ -83,17 +89,20 @@
         "<": {
           "type": "door",
           "pair_id": "side",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         "^": {
           "type": "door",
           "pair_id": "corridor2",
-          "display_type": "mid_door"
+          "display_type": "door",
+          "adjective": "middle"
         },
         ">": {
           "type": "door",
           "pair_id": "room3",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
@@ -126,12 +135,14 @@
         "<": {
           "type": "door",
           "pair_id": "room3",
-          "display_type": "left_door"
+          "display_type": "door",
+          "adjective": "left"
         },
         ">": {
           "type": "door",
           "pair_id": "storage",
-          "display_type": "right_door"
+          "display_type": "door",
+          "adjective": "right"
         }
       }
     },
