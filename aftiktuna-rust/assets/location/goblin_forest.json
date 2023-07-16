@@ -45,7 +45,7 @@
         "^": {
           "type": "door",
           "pair_id": "shack",
-          "display_type": "door"
+          "display_type": "shack"
         },
         "<": {
           "type": "door",

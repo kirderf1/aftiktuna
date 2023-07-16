@@ -239,6 +239,7 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     );
     objects.insert(TextureType::Ship, TextureData::load_static("ship").await?);
     objects.insert(TextureType::Door, TextureData::load_static("door").await?);
+    objects.insert(TextureType::Shack, TextureData::load_static("shack").await?);
     objects.insert(TextureType::Path, TextureData::load_static("path").await?);
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
