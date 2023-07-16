@@ -104,8 +104,9 @@ impl App {
     fn update_view_state(&mut self) {
         let frame = if !self.show_graphical {
             self.delayed_frames.next_frame_after_elapsed_time()
-        } else if is_mouse_button_released(MouseButton::Left)
-            && is_mouse_at_text_box(&self.render_state)
+        } else if is_key_pressed(KeyCode::Enter)
+            || is_mouse_button_released(MouseButton::Left)
+                && is_mouse_at_text_box(&self.render_state)
         {
             self.delayed_frames.next_frame()
         } else {
