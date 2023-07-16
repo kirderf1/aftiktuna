@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use crate::action::item;
 use crate::item::{Blowtorch, Crowbar, Keycard};
 use crate::position::Pos;
@@ -6,10 +7,26 @@ use crate::{action, position};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Door {
+    pub kind: DoorKind,
     pub destination: Pos,
     pub door_pair: Entity,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum DoorKind {
+    Door,
+    Path,
+}
+
+impl DoorKind {
+    fn get_move_message(self, performer: &str) -> String {
+        match self {
+            DoorKind::Door => format!("{} entered the door into a new area.", performer),
+            DoorKind::Path => format!("{} followed the path to a new area.", performer),
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
@@ -78,12 +95,12 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
 
     position::try_move(world, aftik, door_pos)?;
 
-    let (destination, door_pair) = world
+    let door = world
         .get::<&Door>(door)
         .map_err(|_| "The door ceased being a door.".to_string())
-        .map(|door| (door.destination, door.door_pair))?;
+        .map(|door| door.deref().clone())?;
 
-    let used_keycard = if let Ok(blocking) = world.get::<&BlockType>(door_pair) {
+    let used_keycard = if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
         if *blocking == BlockType::Locked && item::is_holding::<Keycard>(world, aftik) {
             true
         } else {
@@ -93,19 +110,19 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         false
     };
 
-    world.insert_one(aftik, destination).unwrap();
-    let areas = vec![door_pos.get_area(), destination.get_area()];
+    world.insert_one(aftik, door.destination).unwrap();
+    let areas = vec![door_pos.get_area(), door.destination.get_area()];
     if used_keycard {
         action::ok_at(
             format!(
-                "Using their keycard, {} entered the door into a new area.",
-                aftik_name
+                "Using their keycard, {}",
+                door.kind.get_move_message(&aftik_name),
             ),
             areas,
         )
     } else {
         action::ok_at(
-            format!("{} entered the door into a new area.", aftik_name),
+            door.kind.get_move_message(&aftik_name),
             areas,
         )
     }

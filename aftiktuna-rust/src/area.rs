@@ -1,4 +1,4 @@
-use crate::action::door::Door;
+use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::position::{Coord, Direction, Pos};
@@ -213,12 +213,14 @@ pub fn load_location(
             pos: start_pos,
             symbol: 'v',
             texture_type: TextureType::Ship,
+            kind: DoorKind::Door,
             name: NameData::from_noun("ship", "ships"),
         },
         DoorInfo {
             pos: ship_exit,
             symbol: '^',
             texture_type: TextureType::Door,
+            kind: DoorKind::Door,
             name: NameData::from_noun("ship exit", "ship exits"),
         },
         None,

@@ -200,7 +200,8 @@ fn place_door(
     let door_info = DoorInfo {
         pos,
         symbol,
-        texture_type: display_type.texture_type(),
+        texture_type: display_type.into(),
+        kind: display_type.into(),
         name: display_type.name_data(adjective),
     };
 

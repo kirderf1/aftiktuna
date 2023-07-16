@@ -1,4 +1,4 @@
-use crate::action::door::{BlockType, Door};
+use crate::action::door::{BlockType, Door, DoorKind};
 use crate::position::Pos;
 use crate::view::{DisplayInfo, NameData, NounData, TextureType};
 use hecs::{Entity, World};
@@ -9,6 +9,7 @@ pub struct DoorInfo {
     pub pos: Pos,
     pub symbol: char,
     pub texture_type: TextureType,
+    pub kind: DoorKind,
     pub name: NameData,
 }
 
@@ -34,6 +35,7 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
         info.name,
         info.pos,
         Door {
+            kind: info.kind,
             destination,
             door_pair,
         },
@@ -50,20 +52,21 @@ pub enum DoorType {
     Path,
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Adjective {
-    Left,
-    Middle,
-    Right,
+impl From<DoorType> for TextureType {
+    fn from(value: DoorType) -> Self {
+        match value {
+            DoorType::Door => TextureType::Door,
+            DoorType::Shack | DoorType::House | DoorType::Store => TextureType::Shack,
+            DoorType::Path => TextureType::Path,
+        }
+    }
 }
 
-impl Adjective {
-    fn word(self) -> &'static str {
-        match self {
-            Adjective::Left => "left",
-            Adjective::Middle => "middle",
-            Adjective::Right => "right",
+impl From<DoorType> for DoorKind {
+    fn from(value: DoorType) -> Self {
+        match value {
+            DoorType::Door | DoorType::Shack | DoorType::House | DoorType::Store => DoorKind::Door,
+            DoorType::Path => DoorKind::Path,
         }
     }
 }
@@ -82,11 +85,22 @@ impl DoorType {
         }
         NameData::Noun(noun)
     }
-    pub fn texture_type(self) -> TextureType {
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Adjective {
+    Left,
+    Middle,
+    Right,
+}
+
+impl Adjective {
+    fn word(self) -> &'static str {
         match self {
-            DoorType::Door => TextureType::Door,
-            DoorType::Shack | DoorType::House | DoorType::Store => TextureType::Shack,
-            DoorType::Path => TextureType::Path,
+            Adjective::Left => "left",
+            Adjective::Middle => "middle",
+            Adjective::Right => "right",
         }
     }
 }
