@@ -40,7 +40,7 @@
     {
       "name": "Forest path leading to a shack",
       "background": "forest",
-      "objects": [ "^", "", "<", "", ">", "" ],
+      "objects": [ "", "^", "", "<", "", ">" ],
       "symbols": {
         "^": {
           "type": "door",

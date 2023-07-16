@@ -3,7 +3,7 @@
     {
       "name": "Village road",
       "background": "forest",
-      "objects": [ "", "<", "", "v", "", "^", "", "", ">", "" ],
+      "objects": [ "", "<", "", "", "v", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
