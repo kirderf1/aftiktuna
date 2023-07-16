@@ -45,6 +45,8 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
 pub enum DoorType {
     Door,
     Shack,
+    House,
+    Store,
     Path,
 }
 
@@ -69,7 +71,10 @@ impl Adjective {
 impl DoorType {
     pub fn name_data(self, adjective: Option<Adjective>) -> NameData {
         let mut noun = match self {
-            DoorType::Door | DoorType::Shack => NounData::new("door", "doors"),
+            DoorType::Door => NounData::new("door", "doors"),
+            DoorType::Shack => NounData::new("shack", "shacks"),
+            DoorType::House => NounData::new("house", "houses"),
+            DoorType::Store => NounData::new("store", "stores"),
             DoorType::Path => NounData::new("path", "paths"),
         };
         if let Some(adjective) = adjective {
@@ -80,7 +85,7 @@ impl DoorType {
     pub fn texture_type(self) -> TextureType {
         match self {
             DoorType::Door => TextureType::Door,
-            DoorType::Shack => TextureType::Shack,
+            DoorType::Shack | DoorType::House | DoorType::Store => TextureType::Shack,
             DoorType::Path => TextureType::Path,
         }
     }

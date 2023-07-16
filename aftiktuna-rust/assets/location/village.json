@@ -8,8 +8,7 @@
         "<": {
           "type": "door",
           "pair_id": "aftik_house",
-          "display_type": "shack",
-          "adjective": "left"
+          "display_type": "house"
         },
         "^": {
           "type": "door",
@@ -19,8 +18,7 @@
         ">": {
           "type": "door",
           "pair_id": "store",
-          "display_type": "shack",
-          "adjective": "right"
+          "display_type": "store"
         }
       }
     },
@@ -44,7 +42,7 @@
         "^": {
           "type": "door",
           "pair_id": "stuck_house",
-          "display_type": "shack"
+          "display_type": "house"
         }
       }
     },
