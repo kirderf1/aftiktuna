@@ -1,4 +1,3 @@
-use std::ops::Deref;
 use crate::action::item;
 use crate::item::{Blowtorch, Crowbar, Keycard};
 use crate::position::Pos;
@@ -6,6 +5,7 @@ use crate::view::NameData;
 use crate::{action, position};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
+use std::ops::Deref;
 
 #[derive(Clone, Debug)]
 pub struct Door {
@@ -121,10 +121,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
             areas,
         )
     } else {
-        action::ok_at(
-            door.kind.get_move_message(&aftik_name),
-            areas,
-        )
+        action::ok_at(door.kind.get_move_message(&aftik_name), areas)
     }
 }
 

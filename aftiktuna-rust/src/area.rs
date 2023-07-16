@@ -28,6 +28,7 @@ pub struct Area {
 #[serde(rename_all = "snake_case")]
 pub enum BackgroundType {
     Forest,
+    Shack,
 }
 
 #[derive(Clone, Debug)]

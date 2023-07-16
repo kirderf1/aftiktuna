@@ -58,13 +58,14 @@
         },
         "^": {
           "type": "door",
-          "pair_id": "side_house",
+          "pair_id": "shack",
           "display_type": "shack"
         }
       }
     },
     {
       "name": "House",
+      "background": "shack",
       "objects": [ "A", "", "^", "" ],
       "symbols": {
         "^": {
@@ -86,6 +87,7 @@
     },
     {
       "name": "Store",
+      "background": "shack",
       "objects": [ "^", "", "S", "" ],
       "symbols": {
         "^": {
@@ -102,6 +104,7 @@
     },
     {
       "name": "House",
+      "background": "shack",
       "objects": [ "^", "", "m", "a" ],
       "symbols": {
         "^": {
@@ -112,12 +115,13 @@
       }
     },
     {
-      "name": "House",
+      "name": "Shack",
+      "background": "shack",
       "objects": [ "^", "", "m", "B" ],
       "symbols": {
         "^": {
           "type": "door",
-          "pair_id": "side_house",
+          "pair_id": "shack",
           "display_type": "door"
         }
       }
@@ -129,6 +133,6 @@
     "aftik_house": { "block_type": null },
     "store": { "block_type": null },
     "stuck_house": { "block_type": "stuck" },
-    "side_house": { "block_type": null }
+    "shack": { "block_type": null }
   }
 }

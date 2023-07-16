@@ -177,14 +177,16 @@ fn convert_to_color(color: AftikColor) -> (Color, Color) {
 #[derive(Eq, PartialEq, Hash)]
 pub enum BGTextureType {
     LocationChoice,
-    Forest,
     Blank,
+    Forest,
+    Shack,
 }
 
 impl From<BackgroundType> for BGTextureType {
     fn from(value: BackgroundType) -> Self {
         match value {
             BackgroundType::Forest => BGTextureType::Forest,
+            BackgroundType::Shack => BGTextureType::Shack,
         }
     }
 }
@@ -216,11 +218,12 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         BGTextureType::LocationChoice,
         BGTexture::simple("location_choice").await?,
     );
-    backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await?);
     backgrounds.insert(
         BGTextureType::Blank,
         BGTexture::simple("white_space").await?,
     );
+    backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await?);
+    backgrounds.insert(BGTextureType::Shack, BGTexture::simple("shack").await?);
 
     let mut objects = HashMap::new();
 

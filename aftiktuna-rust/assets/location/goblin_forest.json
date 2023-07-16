@@ -63,6 +63,7 @@
     },
     {
       "name": "Shack",
+      "background": "shack",
       "objects": [ "af", "fE", "", "^" ],
       "symbols": {
         "^": {
