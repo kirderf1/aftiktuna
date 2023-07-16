@@ -6,8 +6,7 @@ use std::io::Write;
 use std::{io, thread, time};
 
 pub fn run(locations: Locations) {
-    let (messages, mut game) = game_loop::setup(locations);
-    messages.print_lines();
+    let mut game = game_loop::setup(locations);
 
     loop {
         let (result, view_buffer) = game.run();

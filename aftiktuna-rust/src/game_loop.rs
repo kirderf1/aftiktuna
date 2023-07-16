@@ -9,29 +9,22 @@ use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
 
-pub fn setup(locations: Locations) -> (Messages, Game) {
+pub fn setup(locations: Locations) -> Game {
     let mut world = World::new();
     let rng = thread_rng();
 
     let (controlled, ship) = area::init(&mut world);
 
-    let game = Game {
+    Game {
         world,
         rng,
         controlled,
+        has_introduced_controlled: false,
         ship,
         state: State::Prepare,
         locations,
         cache: StatusCache::default(),
-    };
-
-    (
-        Messages::from(format!(
-            "You're playing as the aftik {}.",
-            NameData::find(&game.world, game.controlled).definite()
-        )),
-        game,
-    )
+    }
 }
 
 pub struct TakeInput;
@@ -46,6 +39,7 @@ pub struct Game {
     world: World,
     rng: ThreadRng,
     controlled: Entity,
+    has_introduced_controlled: bool,
     ship: Entity,
     state: State,
     locations: Locations,
@@ -96,6 +90,14 @@ impl Game {
                         self.ship,
                         location,
                     );
+                    if !self.has_introduced_controlled {
+                        view_buffer.messages.add(format!(
+                            "You're playing as the aftik {}.",
+                            NameData::find(&self.world, self.controlled).definite()
+                        ));
+                        self.has_introduced_controlled = true;
+                    }
+
                     view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
                     self.state = State::AtLocation;
                 }

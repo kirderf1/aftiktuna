@@ -33,13 +33,13 @@ pub async fn run(locations: Locations) {
 }
 
 fn init(locations: Locations) -> App {
-    let (messages, game) = game_loop::setup(locations);
+    let game = game_loop::setup(locations);
     App {
         input: String::new(),
         game,
         state: GameState::Run,
         delayed_frames: Default::default(),
-        render_state: render::State::new(messages),
+        render_state: render::State::new(),
         show_graphical: true,
     }
 }

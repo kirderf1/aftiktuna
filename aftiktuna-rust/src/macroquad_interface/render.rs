@@ -24,9 +24,9 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(messages: Messages) -> Self {
+    pub fn new() -> Self {
         Self {
-            text_log: messages.into_text(),
+            text_log: vec![],
             view_state: ViewState::LocationChoice,
             text_box_text: vec![],
             camera: default_camera_space(),
