@@ -1,24 +1,21 @@
 use super::texture::{draw_object, BGTexture, BGTextureType, TextureStorage};
 use super::App;
 use crate::macroquad_interface::texture::get_rect_for_object;
+use crate::macroquad_interface::ui;
 use crate::position::Coord;
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
-use egui_macroquad::egui;
 use macroquad::camera::set_camera;
 use macroquad::color::{BLACK, WHITE};
 use macroquad::prelude::{
-    clamp, clear_background, draw_rectangle, draw_text, draw_texture, get_time,
-    is_mouse_button_down, is_mouse_button_pressed, measure_text, mouse_position,
-    set_default_camera, Camera2D, Color, MouseButton, Rect, Vec2,
+    clamp, clear_background, draw_texture, is_mouse_button_down, is_mouse_button_pressed,
+    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Vec2,
 };
 use std::collections::HashMap;
 
-const FONT: egui::FontId = egui::FontId::monospace(15.0);
-
 pub struct State {
-    text_log: Vec<String>,
+    pub text_log: Vec<String>,
     view_state: ViewState,
-    text_box_text: Vec<String>,
+    pub(crate) text_box_text: Vec<String>,
     camera: Rect,
     last_drag_pos: Option<Vec2>,
 }
@@ -62,7 +59,7 @@ impl State {
     }
 
     fn set_text_box_text(&mut self, text: Vec<String>) {
-        self.text_box_text = text.into_iter().flat_map(split_text_line).collect();
+        self.text_box_text = text.into_iter().flat_map(ui::split_text_line).collect();
     }
 
     pub fn add_to_text_log(&mut self, text: String) {
@@ -90,7 +87,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
         draw_game(&app.render_state, textures, !app.delayed_frames.is_done());
     }
 
-    egui_macroquad::ui(|ctx| ui(app, ctx));
+    egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));
 
     egui_macroquad::draw();
 }
@@ -115,7 +112,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
             );
 
             draw_objects(render_data, textures);
-            draw_tooltip(
+            find_and_draw_tooltip(
                 render_data,
                 textures,
                 Vec2::new(state.camera.x, state.camera.y),
@@ -124,7 +121,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
         }
     }
 
-    draw_text_box(&state.text_box_text, textures, click_to_proceed);
+    ui::draw_text_box(&state.text_box_text, textures, click_to_proceed);
 }
 
 fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &TextureStorage) {
@@ -144,7 +141,7 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
     }
 }
 
-fn draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
+fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
     let mouse_pos = Vec2::from(mouse_position()) + camera_offset;
     let hovered_objects = position_objects(&render_data.objects)
         .into_iter()
@@ -156,24 +153,7 @@ fn draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offs
         return;
     }
 
-    let width = hovered_objects
-        .iter()
-        .map(|object| measure_text(object, None, TEXT_BOX_TEXT_SIZE, 1.).width)
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap()
-        + 2. * TEXT_BOX_MARGIN;
-    let height = 8. + hovered_objects.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
-    draw_rectangle(mouse_pos.x, mouse_pos.y, width, height, TEXT_BOX_COLOR);
-
-    for (index, object) in hovered_objects.into_iter().enumerate() {
-        draw_text(
-            object,
-            mouse_pos.x + TEXT_BOX_MARGIN,
-            mouse_pos.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
-            TEXT_BOX_TEXT_SIZE as f32,
-            WHITE,
-        );
-    }
+    ui::draw_tooltip(mouse_pos, hovered_objects);
 }
 
 fn position_objects(objects: &Vec<ObjectRenderData>) -> Vec<(Vec2, &ObjectRenderData)> {
@@ -218,7 +198,7 @@ fn try_drag_camera(state: &mut State) {
             }
         }
         (ViewState::InGame(_), None) => {
-            if is_mouse_button_pressed(MouseButton::Left) && !is_mouse_at_text_box(state) {
+            if is_mouse_button_pressed(MouseButton::Left) && !ui::is_mouse_at_text_box(state) {
                 state.last_drag_pos = Some(mouse_position().into());
             }
         }
@@ -253,128 +233,4 @@ fn character_centered_camera(render_data: &RenderData) -> Rect {
     );
     clamp_camera(&mut camera_space, render_data);
     camera_space
-}
-
-const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
-const TEXT_BOX_TEXT_SIZE: u16 = 16;
-const TEXT_BOX_MARGIN: f32 = 8.;
-const TEXT_BOX_TEXT_MAX_WIDTH: f32 = 800. - 2. * TEXT_BOX_MARGIN;
-
-fn split_text_line(line: String) -> Vec<String> {
-    if fits_in_text_box_width(&line) {
-        return vec![line];
-    }
-
-    let mut remaining_line: &str = &line;
-    let mut vec = Vec::new();
-    loop {
-        let split_index = smallest_split(remaining_line);
-        vec.push(remaining_line[..split_index].to_owned());
-        remaining_line = &remaining_line[split_index..];
-
-        if fits_in_text_box_width(remaining_line) {
-            vec.push(remaining_line.to_owned());
-            return vec;
-        }
-    }
-}
-
-fn smallest_split(line: &str) -> usize {
-    let mut last_space = 0;
-    let mut last_index = 0;
-    for (index, char) in line.char_indices() {
-        if !fits_in_text_box_width(&line[..index]) {
-            return if last_space != 0 {
-                last_space
-            } else {
-                last_index
-            };
-        }
-
-        if char.is_whitespace() {
-            last_space = index;
-        }
-        last_index = index;
-    }
-    line.len()
-}
-
-fn fits_in_text_box_width(line: &str) -> bool {
-    measure_text(line, None, TEXT_BOX_TEXT_SIZE, 1.).width <= TEXT_BOX_TEXT_MAX_WIDTH
-}
-
-pub fn is_mouse_at_text_box(state: &State) -> bool {
-    get_text_box_dimensions(&state.text_box_text).contains(Vec2::from(mouse_position()))
-}
-
-fn get_text_box_dimensions(text: &Vec<String>) -> Rect {
-    let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE as f32);
-    let text_box_start = 600. - 25. - text_box_size;
-    Rect::new(0., text_box_start, 800., text_box_size)
-}
-
-fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_proceed: bool) {
-    if text.is_empty() {
-        return;
-    }
-    let dimensions = get_text_box_dimensions(text);
-    draw_rectangle(
-        dimensions.x,
-        dimensions.y,
-        dimensions.w,
-        dimensions.h,
-        TEXT_BOX_COLOR,
-    );
-    for (index, text_line) in text.iter().enumerate() {
-        draw_text(
-            text_line,
-            dimensions.x + TEXT_BOX_MARGIN,
-            dimensions.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
-            TEXT_BOX_TEXT_SIZE as f32,
-            WHITE,
-        );
-    }
-
-    if click_to_proceed {
-        let alpha = ((get_time() * 3.).sin() + 1.) / 2.;
-        draw_texture(
-            textures.left_mouse_icon,
-            dimensions.right() - textures.left_mouse_icon.width() - 5.,
-            dimensions.top() + 5.,
-            Color::new(1., 1., 1., alpha as f32),
-        );
-    }
-}
-
-fn ui(app: &mut App, ctx: &egui::Context) {
-    egui::TopBottomPanel::bottom("input").show(ctx, |ui| input_field(app, ctx, ui));
-
-    if !app.show_graphical {
-        egui::CentralPanel::default().show(ctx, |ui| text_box(&app.render_state, ui));
-    }
-}
-
-fn input_field(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
-    let response = ui.add_enabled(
-        app.ready_to_take_input(),
-        egui::TextEdit::singleline(&mut app.input)
-            .font(FONT)
-            .desired_width(f32::INFINITY),
-    );
-
-    if response.lost_focus() && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter)) {
-        app.handle_input();
-        ctx.memory_mut(|memory| memory.request_focus(response.id));
-    }
-}
-
-fn text_box(state: &State, ui: &mut egui::Ui) {
-    egui::ScrollArea::vertical()
-        .auto_shrink([false; 2])
-        .stick_to_bottom(true)
-        .show(ui, |ui| {
-            for text in &state.text_log {
-                ui.label(egui::RichText::new(text).font(FONT));
-            }
-        });
 }

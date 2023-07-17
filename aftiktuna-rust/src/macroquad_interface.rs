@@ -1,6 +1,5 @@
 use crate::area::Locations;
 use crate::game_loop::{Game, TakeInput};
-use crate::macroquad_interface::render::is_mouse_at_text_box;
 use crate::view::Frame;
 use crate::{game_loop, view};
 use macroquad::prelude::{
@@ -12,6 +11,7 @@ use std::time::Instant;
 
 mod render;
 mod texture;
+mod ui;
 
 pub async fn run(locations: Locations) {
     let mut app = init(locations);
@@ -106,7 +106,7 @@ impl App {
             self.delayed_frames.next_frame_after_elapsed_time()
         } else if is_key_pressed(KeyCode::Enter)
             || is_mouse_button_released(MouseButton::Left)
-                && is_mouse_at_text_box(&self.render_state)
+                && ui::is_mouse_at_text_box(&self.render_state)
         {
             self.delayed_frames.next_frame()
         } else {
