@@ -34,6 +34,11 @@ pub enum BackgroundType {
     Field,
     Shack,
     FacilityOutside,
+    FacilitySize3,
+    FacilitySize4,
+    FacilitySize5,
+    FacilitySize6,
+    FacilitySize7,
 }
 
 #[derive(Clone, Debug)]

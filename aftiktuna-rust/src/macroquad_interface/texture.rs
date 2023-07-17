@@ -81,10 +81,7 @@ impl TextureData {
 
     async fn load_mounted(path: &str, offset: f32) -> Result<TextureData, FileError> {
         let texture = load_texture(path).await?;
-        Ok(TextureData::Mounted {
-            texture,
-            offset,
-        })
+        Ok(TextureData::Mounted { texture, offset })
     }
 
     async fn load_aftik() -> Result<TextureData, FileError> {
@@ -100,7 +97,7 @@ impl TextureData {
 
     pub fn is_displacing(&self) -> bool {
         match self {
-            TextureData::Mounted {..} => false,
+            TextureData::Mounted { .. } => false,
             _ => true,
         }
     }
@@ -125,9 +122,7 @@ pub fn draw_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2
                 },
             );
         }
-        TextureData::Mounted {
-            texture, offset,
-        } => {
+        TextureData::Mounted { texture, offset } => {
             draw_texture(
                 *texture,
                 pos.x - texture.width() / 2.,
@@ -180,7 +175,7 @@ pub fn get_rect_for_object(data: &ObjectRenderData, textures: &TextureStorage, p
             dest_size.x,
             dest_size.y,
         ),
-        TextureData::Mounted {texture, offset} => Rect::new(
+        TextureData::Mounted { texture, offset } => Rect::new(
             pos.x - texture.width() / 2.,
             pos.y - texture.height() - offset,
             texture.width(),
@@ -308,6 +303,26 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         BackgroundType::FacilityOutside.into(),
         BGTexture::fixed("facility_outside").await?,
     );
+    backgrounds.insert(
+        BackgroundType::FacilitySize3.into(),
+        BGTexture::centered("3x_facility").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::FacilitySize4.into(),
+        BGTexture::centered("4x_facility").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::FacilitySize5.into(),
+        BGTexture::centered("5x_facility").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::FacilitySize6.into(),
+        BGTexture::centered("6x_facility").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::FacilitySize7.into(),
+        BGTexture::fixed("7x_facility").await?,
+    );
 
     let mut objects = HashMap::new();
 
@@ -331,7 +346,10 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         TextureData::load_door("ship_exit").await?,
     );
     objects.insert(TextureType::Shack, TextureData::load_door("shack").await?);
-    objects.insert(TextureType::Path, TextureData::load_mounted("path", 0.).await?);
+    objects.insert(
+        TextureType::Path,
+        TextureData::load_mounted("path", 0.).await?,
+    );
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
         TextureType::Goblin,

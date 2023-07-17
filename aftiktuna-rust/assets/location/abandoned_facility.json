@@ -20,8 +20,8 @@
     },
     {
       "name": "Field",
+      "background": "field",
       "background_offset": 0,
-      "background": "facility_outside",
       "objects": [ "^", "", "", "k", "" ],
       "symbols": {
         "^": {
@@ -33,6 +33,7 @@
     },
     {
       "name": "Entrance hall",
+      "background": "facility_size7",
       "objects": [ "", "<", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
@@ -57,6 +58,7 @@
     },
     {
       "name": "Corridor",
+      "background": "facility_size5",
       "objects": [ "<", "", "^", "E", ">" ],
       "symbols": {
         "<": {
@@ -81,6 +83,7 @@
     },
     {
       "name": "Corridor",
+      "background": "facility_size5",
       "objects": [ "<", "", "^", "", ">" ],
       "symbols": {
         "<": {
@@ -105,6 +108,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "", "c", "", "^" ],
       "symbols": {
         "^": {
@@ -116,6 +120,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "b", "", "", "^" ],
       "symbols": {
         "^": {
@@ -127,6 +132,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "^", "E", "", "f" ],
       "symbols": {
         "^": {
@@ -138,6 +144,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "ff", "Z", "^", "s" ],
       "symbols": {
         "^": {

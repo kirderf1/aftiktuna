@@ -147,7 +147,10 @@ fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, ca
     ui::draw_tooltip(mouse_pos, hovered_objects);
 }
 
-fn position_objects<'a>(objects: &'a Vec<ObjectRenderData>, textures: &TextureStorage) -> Vec<(Vec2, &'a ObjectRenderData)> {
+fn position_objects<'a>(
+    objects: &'a Vec<ObjectRenderData>,
+    textures: &TextureStorage,
+) -> Vec<(Vec2, &'a ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 

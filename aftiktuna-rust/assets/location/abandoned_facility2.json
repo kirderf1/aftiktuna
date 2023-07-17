@@ -20,8 +20,8 @@
     },
     {
       "name": "Field next to a building",
-      "background_offset": 3,
       "background": "facility_outside",
+      "background_offset": 3,
       "objects": [ "^", "", "", "", ">" ],
       "symbols": {
         "^": {
@@ -38,6 +38,7 @@
     },
     {
       "name": "Entrance hall",
+      "background": "facility_size6",
       "objects": [ "<", "E", "", "^", "a", ">" ],
       "symbols": {
         "<": {
@@ -62,6 +63,7 @@
     },
     {
       "name": "Corridor",
+      "background": "facility_size6",
       "objects": [ "<", "E", "K", "^", "", ">" ],
       "symbols": {
         "<": {
@@ -86,6 +88,7 @@
     },
     {
       "name": "Corridor",
+      "background": "facility_size5",
       "objects": [ "<", "", "^", "", ">" ],
       "symbols": {
         "<": {
@@ -110,6 +113,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "^", "", "Z", "bs" ],
       "symbols": {
         "^": {
@@ -121,6 +125,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "^", "", "m", "c" ],
       "symbols": {
         "^": {
@@ -132,6 +137,7 @@
     },
     {
       "name": "Room",
+      "background": "facility_size4",
       "objects": [ "<", "G", "f", ">" ],
       "symbols": {
         "<": {
@@ -150,6 +156,7 @@
     },
     {
       "name": "Storage Room",
+      "background": "facility_size3",
       "objects": [ "^", "aa", "ffa" ],
       "symbols": {
         "^": {
