@@ -96,10 +96,7 @@ impl TextureData {
     }
 
     pub fn is_displacing(&self) -> bool {
-        match self {
-            TextureData::Mounted { .. } => false,
-            _ => true,
-        }
+        !matches!(self, TextureData::Mounted { .. })
     }
 }
 

@@ -2,6 +2,7 @@ use crate::area::Locations;
 use crate::game_loop::{Game, TakeInput};
 use crate::view::Frame;
 use crate::{game_loop, view};
+use macroquad::miniquad::conf::Icon;
 use macroquad::prelude::{
     is_key_pressed, is_mouse_button_released, next_frame, KeyCode, MouseButton,
 };
@@ -12,6 +13,14 @@ use std::time::Instant;
 mod render;
 mod texture;
 mod ui;
+
+pub fn logo() -> Icon {
+    Icon {
+        small: *include_bytes!("../icon/icon_16x16.rgba"),
+        medium: *include_bytes!("../icon/icon_32x32.rgba"),
+        big: *include_bytes!("../icon/icon_64x64.rgba"),
+    }
+}
 
 pub async fn run(locations: Locations) {
     let mut app = init(locations);
