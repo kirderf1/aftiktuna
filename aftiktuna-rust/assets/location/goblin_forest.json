@@ -3,6 +3,7 @@
     {
       "name": "Field in front of a forest",
       "background": "forest_entrance",
+      "background_offset": 3,
       "objects": [ "", "v", "", "", "^", "", "" ],
       "symbols": {
         "^": {
@@ -15,6 +16,7 @@
     {
       "name": "Forest entrance",
       "background": "forest",
+      "background_offset": 6,
       "objects": [ "<", "", "^", "", ">" ],
       "symbols": {
         "<": {
@@ -40,6 +42,7 @@
     {
       "name": "Forest path leading to a shack",
       "background": "forest",
+      "background_offset": 3,
       "objects": [ "", "^", "", "<", "", ">" ],
       "symbols": {
         "^": {
@@ -76,6 +79,7 @@
     {
       "name": "Forest path",
       "background": "forest",
+      "background_offset": 0,
       "objects": [ "<", "", "", "G", ">" ],
       "symbols": {
         "<": {
@@ -95,6 +99,7 @@
     {
       "name": "Forest path",
       "background": "forest",
+      "background_offset": 2,
       "objects": [ "<", "B", "G", "G", "", ">" ],
       "symbols": {
         "<": {
@@ -114,6 +119,7 @@
     {
       "name": "Forest path",
       "background": "forest",
+      "background_offset": 5,
       "objects": [ "<", "", ">", "", "G", "c" ],
       "symbols": {
         "<": {
