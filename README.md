@@ -4,9 +4,7 @@ A game based on the webcomic and fictional game [\[Fortuna\]](https://cosmosdex.
 
 In its current form, this is a 1D exploration game where the goal is to obtain fuel for your ship in order to proceed from location to location.
 
-The game does not yet have any public builds available for download, so you need to compile it yourself to try it out.
-
-The java version of the game is currently the primary version. However a version in rust is being developed to explore alternative design patterns, and to compare rust as an alternative to java for this game.
+The java version is no longer being developed in favor of the rust version, which has taken over the mantle as the superior version of this game.
 
 # Contributing
 
