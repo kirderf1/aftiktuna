@@ -328,6 +328,12 @@ pub enum TextureType {
     Item(item::Type),
 }
 
+impl From<item::Type> for TextureType {
+    fn from(value: item::Type) -> Self {
+        TextureType::Item(value)
+    }
+}
+
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AftikColor {

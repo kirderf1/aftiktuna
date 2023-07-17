@@ -258,23 +258,23 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         TextureData::load_directional("creature/azureclops").await?,
     );
     objects.insert(
-        TextureType::Item(item::Type::FuelCan),
+        item::Type::FuelCan.into(),
         TextureData::load_static("item/fuel_can").await?,
     );
     objects.insert(
-        TextureType::Item(item::Type::Crowbar),
+        item::Type::Crowbar.into(),
         TextureData::load_static("item/crowbar").await?,
     );
     objects.insert(
-        TextureType::Item(item::Type::Knife),
+        item::Type::Knife.into(),
         TextureData::load_static("item/knife").await?,
     );
     objects.insert(
-        TextureType::Item(item::Type::Bat),
+        item::Type::Bat.into(),
         TextureData::load_static("item/bat").await?,
     );
     objects.insert(
-        TextureType::Item(item::Type::Sword),
+        item::Type::Sword.into(),
         TextureData::load_static("item/sword").await?,
     );
 
