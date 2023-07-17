@@ -31,6 +31,7 @@ pub enum BackgroundType {
     Ship,
     ForestEntrance,
     Forest,
+    Field,
     Shack,
     FacilityOutside,
 }

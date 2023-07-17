@@ -297,6 +297,10 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         BGTexture::repeating("forest").await?,
     );
     backgrounds.insert(
+        BackgroundType::Field.into(),
+        BGTexture::repeating("field").await?,
+    );
+    backgrounds.insert(
         BackgroundType::Shack.into(),
         BGTexture::centered("shack").await?,
     );

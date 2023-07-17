@@ -2,7 +2,8 @@
   "areas": [
     {
       "name": "Village road",
-      "background": "forest",
+      "background": "field",
+      "background_offset": 2,
       "objects": [ "", "<", "", "", "v", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
@@ -24,7 +25,8 @@
     },
     {
       "name": "Village road",
-      "background": "forest",
+      "background": "field",
+      "background_offset": 5,
       "objects": [ "", "<", "", "", "", ">", "", "", "^", "" ],
       "symbols": {
         "<": {
@@ -48,7 +50,8 @@
     },
     {
       "name": "Side path",
-      "background": "forest",
+      "background": "forest_entrance",
+      "background_offset": 6,
       "objects": [ "a", "<", "", "G", "G", "", "G", "^", "" ],
       "symbols": {
         "<": {
