@@ -79,7 +79,7 @@ impl TextureData {
         let texture = load_texture(path).await?;
         Ok(TextureData::Mounted {
             texture,
-            offset: 10.,
+            offset: 30.,
         })
     }
 
