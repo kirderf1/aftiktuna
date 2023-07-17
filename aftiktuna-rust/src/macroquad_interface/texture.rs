@@ -178,18 +178,12 @@ fn convert_to_color(color: AftikColor) -> (Color, Color) {
 pub enum BGTextureType {
     LocationChoice,
     Blank,
-    Ship,
-    Forest,
-    Shack,
+    Background(BackgroundType),
 }
 
 impl From<BackgroundType> for BGTextureType {
     fn from(value: BackgroundType) -> Self {
-        match value {
-            BackgroundType::Ship => BGTextureType::Ship,
-            BackgroundType::Forest => BGTextureType::Forest,
-            BackgroundType::Shack => BGTextureType::Shack,
-        }
+        BGTextureType::Background(value)
     }
 }
 
@@ -224,9 +218,18 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         BGTextureType::Blank,
         BGTexture::simple("white_space").await?,
     );
-    backgrounds.insert(BGTextureType::Ship, BGTexture::simple("ship").await?);
-    backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await?);
-    backgrounds.insert(BGTextureType::Shack, BGTexture::simple("shack").await?);
+    backgrounds.insert(
+        BackgroundType::Ship.into(),
+        BGTexture::simple("ship").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::Forest.into(),
+        BGTexture::repeating("forest").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::Shack.into(),
+        BGTexture::simple("shack").await?,
+    );
 
     let mut objects = HashMap::new();
 
