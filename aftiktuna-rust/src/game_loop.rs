@@ -168,7 +168,7 @@ impl Game {
             area::despawn_all_except_ship(&mut self.world, self.ship);
             self.world.get::<&mut Ship>(self.ship).unwrap().status = ShipStatus::NeedTwoCans;
             for (_, health) in self.world.query_mut::<&mut Health>() {
-                health.restore_to_full();
+                health.restore_fraction(0.5);
             }
             self.state = State::Prepare;
         } else {

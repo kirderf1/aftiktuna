@@ -44,6 +44,7 @@ impl Health {
         }
     }
 
+    #[allow(dead_code)]
     pub fn restore_to_full(&mut self) {
         self.value = self.max
     }
