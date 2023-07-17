@@ -266,6 +266,14 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         TextureData::load_static("item/crowbar").await?,
     );
     objects.insert(
+        item::Type::Blowtorch.into(),
+        TextureData::load_static("item/blowtorch").await?,
+    );
+    objects.insert(
+        item::Type::Keycard.into(),
+        TextureData::load_static("item/keycard").await?,
+    );
+    objects.insert(
         item::Type::Knife.into(),
         TextureData::load_static("item/knife").await?,
     );
@@ -276,6 +284,18 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     objects.insert(
         item::Type::Sword.into(),
         TextureData::load_static("item/sword").await?,
+    );
+    objects.insert(
+        item::Type::Medkit.into(),
+        TextureData::load_static("item/medkit").await?,
+    );
+    objects.insert(
+        item::Type::MeteorChunk.into(),
+        TextureData::load_static("item/meteor_chunk").await?,
+    );
+    objects.insert(
+        item::Type::AncientCoin.into(),
+        TextureData::load_static("item/ancient_coin").await?,
     );
 
     Ok(TextureStorage {
