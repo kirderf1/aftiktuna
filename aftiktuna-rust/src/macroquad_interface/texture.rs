@@ -76,10 +76,14 @@ impl TextureData {
     }
 
     async fn load_door(path: &str) -> Result<TextureData, FileError> {
+        Self::load_mounted(path, 30.).await
+    }
+
+    async fn load_mounted(path: &str, offset: f32) -> Result<TextureData, FileError> {
         let texture = load_texture(path).await?;
         Ok(TextureData::Mounted {
             texture,
-            offset: 30.,
+            offset,
         })
     }
 
@@ -323,7 +327,7 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         TextureData::load_door("ship_exit").await?,
     );
     objects.insert(TextureType::Shack, TextureData::load_door("shack").await?);
-    objects.insert(TextureType::Path, TextureData::load_static("path").await?);
+    objects.insert(TextureType::Path, TextureData::load_mounted("path", 0.).await?);
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
         TextureType::Goblin,
