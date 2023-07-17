@@ -27,6 +27,7 @@ pub struct Area {
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BackgroundType {
+    Ship,
     Forest,
     Shack,
 }
@@ -168,7 +169,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 4,
-        background: None,
+        background: Some(BackgroundType::Ship),
     },));
     world
         .insert_one(
@@ -220,7 +221,7 @@ pub fn load_location(
         DoorInfo {
             pos: ship_exit,
             symbol: '^',
-            texture_type: TextureType::Door,
+            texture_type: TextureType::ShipExit,
             kind: DoorKind::Door,
             name: NameData::from_noun("ship exit", "ship exits"),
         },

@@ -178,6 +178,7 @@ fn convert_to_color(color: AftikColor) -> (Color, Color) {
 pub enum BGTextureType {
     LocationChoice,
     Blank,
+    Ship,
     Forest,
     Shack,
 }
@@ -185,6 +186,7 @@ pub enum BGTextureType {
 impl From<BackgroundType> for BGTextureType {
     fn from(value: BackgroundType) -> Self {
         match value {
+            BackgroundType::Ship => BGTextureType::Ship,
             BackgroundType::Forest => BGTextureType::Forest,
             BackgroundType::Shack => BGTextureType::Shack,
         }
@@ -222,6 +224,7 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         BGTextureType::Blank,
         BGTexture::simple("white_space").await?,
     );
+    backgrounds.insert(BGTextureType::Ship, BGTexture::simple("ship").await?);
     backgrounds.insert(BGTextureType::Forest, BGTexture::repeating("forest").await?);
     backgrounds.insert(BGTextureType::Shack, BGTexture::simple("shack").await?);
 
@@ -242,6 +245,10 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     );
     objects.insert(TextureType::Ship, TextureData::load_static("ship").await?);
     objects.insert(TextureType::Door, TextureData::load_static("door").await?);
+    objects.insert(
+        TextureType::ShipExit,
+        TextureData::load_static("ship_exit").await?,
+    );
     objects.insert(TextureType::Shack, TextureData::load_static("shack").await?);
     objects.insert(TextureType::Path, TextureData::load_static("path").await?);
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);

@@ -319,6 +319,7 @@ pub enum TextureType {
     SmallUnknown,
     Ship,
     Door,
+    ShipExit,
     Shack,
     Path,
     Aftik,
