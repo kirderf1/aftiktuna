@@ -1,14 +1,14 @@
-use super::texture::{draw_object, BGTexture, BGTextureType, TextureStorage};
+use super::texture::{draw_object, BGTextureType, TextureStorage};
 use super::App;
-use crate::macroquad_interface::texture::get_rect_for_object;
+use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
 use crate::position::Coord;
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use macroquad::camera::set_camera;
-use macroquad::color::{BLACK, WHITE};
+use macroquad::color::BLACK;
 use macroquad::prelude::{
-    clamp, clear_background, draw_texture, is_mouse_button_down, is_mouse_button_pressed,
-    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Vec2,
+    clamp, clear_background, is_mouse_button_down, is_mouse_button_pressed, mouse_position,
+    set_default_camera, Camera2D, MouseButton, Rect, Vec2,
 };
 use std::collections::HashMap;
 
@@ -97,6 +97,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
         ViewState::LocationChoice => {
             draw_background(
                 BGTextureType::LocationChoice,
+                0,
                 default_camera_space(),
                 textures,
             );
@@ -107,6 +108,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                 render_data
                     .background
                     .map_or(BGTextureType::Blank, BGTextureType::from),
+                render_data.background_offset.unwrap_or(0),
                 state.camera,
                 textures,
             );
@@ -122,17 +124,6 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
     }
 
     ui::draw_text_box(&state.text_box_text, textures, click_to_proceed);
-}
-
-fn draw_background(texture_type: BGTextureType, camera_space: Rect, textures: &TextureStorage) {
-    match textures.lookup_background(texture_type) {
-        BGTexture::Simple(texture) => draw_texture(*texture, camera_space.x, 0., WHITE),
-        BGTexture::Repeating(texture) => {
-            let start_x = texture.width() * f32::floor(camera_space.x / texture.width());
-            draw_texture(*texture, start_x, 0., WHITE);
-            draw_texture(*texture, start_x + texture.width(), 0., WHITE);
-        }
-    }
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {

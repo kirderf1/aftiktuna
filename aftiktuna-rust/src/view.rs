@@ -300,6 +300,7 @@ pub fn name_display_info(texture_type: TextureType, name: &str) -> DisplayInfo {
 pub struct RenderData {
     pub size: Coord,
     pub background: Option<BackgroundType>,
+    pub background_offset: Option<Coord>,
     pub character_coord: Coord,
     pub objects: Vec<ObjectRenderData>,
 }
@@ -372,6 +373,7 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
     RenderData {
         size: area.size,
         background: area.background,
+        background_offset: area.background_offset,
         character_coord: character_pos.get_coord(),
         objects,
     }

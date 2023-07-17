@@ -22,14 +22,17 @@ pub struct Area {
     pub size: Coord,
     pub label: String,
     pub background: Option<BackgroundType>,
+    pub background_offset: Option<Coord>,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BackgroundType {
     Ship,
+    ForestEntrance,
     Forest,
     Shack,
+    FacilityOutside,
 }
 
 #[derive(Clone, Debug)]
@@ -170,6 +173,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         label: "Ship".to_string(),
         size: 4,
         background: Some(BackgroundType::Ship),
+        background_offset: None,
     },));
     world
         .insert_one(

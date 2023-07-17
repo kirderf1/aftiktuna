@@ -2,7 +2,8 @@
   "areas": [
     {
       "name": "Field in front of a building",
-      "background": "forest",
+      "background": "facility_outside",
+      "background_offset": 2,
       "objects": [ "v", "", "^", "", "", ">" ],
       "symbols": {
         "^": {
@@ -19,7 +20,8 @@
     },
     {
       "name": "Field",
-      "background": "forest",
+      "background_offset": 0,
+      "background": "facility_outside",
       "objects": [ "^", "", "", "k", "" ],
       "symbols": {
         "^": {

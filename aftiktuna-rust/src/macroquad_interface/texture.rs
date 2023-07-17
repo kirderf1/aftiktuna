@@ -1,10 +1,12 @@
 use crate::area::BackgroundType;
 use crate::item;
-use crate::position::Direction;
+use crate::position::{Coord, Direction};
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
 use macroquad::color::WHITE;
 use macroquad::math::Vec2;
-use macroquad::prelude::{draw_texture_ex, Color, DrawTextureParams, FileError, Rect, Texture2D};
+use macroquad::prelude::{
+    draw_texture, draw_texture_ex, Color, DrawTextureParams, FileError, Rect, Texture2D,
+};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 
@@ -188,18 +190,42 @@ impl From<BackgroundType> for BGTextureType {
 }
 
 pub enum BGTexture {
-    Simple(Texture2D),
+    Centered(Texture2D),
+    Fixed(Texture2D),
     Repeating(Texture2D),
 }
 
 impl BGTexture {
-    async fn simple(path: &str) -> Result<BGTexture, FileError> {
+    async fn centered(path: &str) -> Result<BGTexture, FileError> {
         let texture = load_texture(format!("background/{}", path)).await?;
-        Ok(BGTexture::Simple(texture))
+        Ok(BGTexture::Centered(texture))
+    }
+    async fn fixed(path: &str) -> Result<BGTexture, FileError> {
+        let texture = load_texture(format!("background/{}", path)).await?;
+        Ok(BGTexture::Fixed(texture))
     }
     async fn repeating(path: &str) -> Result<BGTexture, FileError> {
         let texture = load_texture(format!("background/{}", path)).await?;
         Ok(BGTexture::Repeating(texture))
+    }
+}
+
+pub fn draw_background(
+    texture_type: BGTextureType,
+    offset: Coord,
+    camera_space: Rect,
+    textures: &TextureStorage,
+) {
+    let offset = offset as f32 * 120.;
+    match textures.lookup_background(texture_type) {
+        BGTexture::Centered(texture) => draw_texture(*texture, camera_space.x - offset, 0., WHITE),
+        BGTexture::Fixed(texture) => draw_texture(*texture, -60. - offset, 0., WHITE),
+        BGTexture::Repeating(texture) => {
+            let start_x =
+                texture.width() * f32::floor((camera_space.x + offset) / texture.width()) - offset;
+            draw_texture(*texture, start_x, 0., WHITE);
+            draw_texture(*texture, start_x + texture.width(), 0., WHITE);
+        }
     }
 }
 
@@ -212,15 +238,19 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
 
     backgrounds.insert(
         BGTextureType::LocationChoice,
-        BGTexture::simple("location_choice").await?,
+        BGTexture::centered("location_choice").await?,
     );
     backgrounds.insert(
         BGTextureType::Blank,
-        BGTexture::simple("white_space").await?,
+        BGTexture::centered("white_space").await?,
     );
     backgrounds.insert(
         BackgroundType::Ship.into(),
-        BGTexture::simple("ship").await?,
+        BGTexture::centered("ship").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::ForestEntrance.into(),
+        BGTexture::repeating("forest_entrance").await?,
     );
     backgrounds.insert(
         BackgroundType::Forest.into(),
@@ -228,7 +258,11 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     );
     backgrounds.insert(
         BackgroundType::Shack.into(),
-        BGTexture::simple("shack").await?,
+        BGTexture::centered("shack").await?,
+    );
+    backgrounds.insert(
+        BackgroundType::FacilityOutside.into(),
+        BGTexture::fixed("facility_outside").await?,
     );
 
     let mut objects = HashMap::new();

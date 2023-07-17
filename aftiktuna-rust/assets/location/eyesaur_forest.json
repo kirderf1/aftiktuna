@@ -2,7 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a forest",
-      "background": "forest",
+      "background": "forest_entrance",
       "objects": [ "", "<", "", "v", "", "", ">", "" ],
       "symbols": {
         "<": {

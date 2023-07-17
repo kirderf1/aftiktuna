@@ -2,7 +2,7 @@ use crate::action::door::BlockType;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area, BackgroundType};
 use crate::item;
-use crate::position::Pos;
+use crate::position::{Coord, Pos};
 use crate::status::Stats;
 use crate::view::AftikColor;
 use hecs::World;
@@ -27,6 +27,7 @@ impl LocationData {
         self.areas.push(AreaData {
             name: name.to_string(),
             background: None,
+            background_offset: None,
             objects: objects.iter().map(ToString::to_string).collect(),
             symbols: HashMap::new(),
         });
@@ -63,6 +64,7 @@ impl LocationData {
 pub struct AreaData {
     name: String,
     background: Option<BackgroundType>,
+    background_offset: Option<Coord>,
     objects: Vec<String>,
     symbols: HashMap<char, SymbolData>,
 }
@@ -91,6 +93,7 @@ impl AreaData {
             size: self.objects.len(),
             label: self.name,
             background: self.background,
+            background_offset: self.background_offset,
         },));
 
         for (coord, objects) in self.objects.iter().enumerate() {
