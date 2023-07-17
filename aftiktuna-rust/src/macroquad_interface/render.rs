@@ -127,14 +127,14 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
-    for (pos, data) in position_objects(&render_data.objects) {
+    for (pos, data) in position_objects(&render_data.objects, textures) {
         draw_object(data, textures, pos);
     }
 }
 
 fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
     let mouse_pos = Vec2::from(mouse_position()) + camera_offset;
-    let hovered_objects = position_objects(&render_data.objects)
+    let hovered_objects = position_objects(&render_data.objects, textures)
         .into_iter()
         .filter(|(pos, data)| get_rect_for_object(data, textures, *pos).contains(mouse_pos))
         .map(|(_, data)| &data.name)
@@ -147,15 +147,20 @@ fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, ca
     ui::draw_tooltip(mouse_pos, hovered_objects);
 }
 
-fn position_objects(objects: &Vec<ObjectRenderData>) -> Vec<(Vec2, &ObjectRenderData)> {
+fn position_objects<'a>(objects: &'a Vec<ObjectRenderData>, textures: &TextureStorage) -> Vec<(Vec2, &'a ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
     for data in objects {
         let coord = data.coord;
-        let count_ref = coord_counts.entry(coord).or_insert(0);
-        let count = *count_ref;
-        *count_ref = count + 1;
+        let count = if textures.lookup_texture(data.texture_type).is_displacing() {
+            let count_ref = coord_counts.entry(coord).or_insert(0);
+            let count = *count_ref;
+            *count_ref = count + 1;
+            count
+        } else {
+            0
+        };
 
         positioned_objects.push((
             Vec2::new(

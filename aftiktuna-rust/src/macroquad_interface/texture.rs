@@ -41,6 +41,10 @@ pub enum TextureData {
         dest_size: Vec2,
         directional: bool,
     },
+    Mounted {
+        texture: Texture2D,
+        offset: f32,
+    },
     Aftik {
         primary: Texture2D,
         secondary: Texture2D,
@@ -70,6 +74,15 @@ impl TextureData {
             directional: true,
         })
     }
+
+    async fn load_door(path: &str) -> Result<TextureData, FileError> {
+        let texture = load_texture(path).await?;
+        Ok(TextureData::Mounted {
+            texture,
+            offset: 10.,
+        })
+    }
+
     async fn load_aftik() -> Result<TextureData, FileError> {
         async fn texture(suffix: &str) -> Result<Texture2D, FileError> {
             load_texture(format!("creature/aftik_{}", suffix)).await
@@ -79,6 +92,13 @@ impl TextureData {
             secondary: texture("secondary").await?,
             details: texture("details").await?,
         })
+    }
+
+    pub fn is_displacing(&self) -> bool {
+        match self {
+            TextureData::Mounted {..} => false,
+            _ => true,
+        }
     }
 }
 
@@ -99,6 +119,16 @@ pub fn draw_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2
                     flip_x: *directional && data.direction == Direction::Left,
                     ..Default::default()
                 },
+            );
+        }
+        TextureData::Mounted {
+            texture, offset,
+        } => {
+            draw_texture(
+                *texture,
+                pos.x - texture.width() / 2.,
+                pos.y - texture.height() - offset,
+                WHITE,
             );
         }
         TextureData::Aftik {
@@ -145,6 +175,12 @@ pub fn get_rect_for_object(data: &ObjectRenderData, textures: &TextureStorage, p
             pos.y - dest_size.y,
             dest_size.x,
             dest_size.y,
+        ),
+        TextureData::Mounted {texture, offset} => Rect::new(
+            pos.x - texture.width() / 2.,
+            pos.y - texture.height() - offset,
+            texture.width(),
+            texture.height(),
         ),
         TextureData::Aftik { primary, .. } => Rect::new(
             pos.x - primary.width() / 2.,
@@ -281,12 +317,12 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         },
     );
     objects.insert(TextureType::Ship, TextureData::load_static("ship").await?);
-    objects.insert(TextureType::Door, TextureData::load_static("door").await?);
+    objects.insert(TextureType::Door, TextureData::load_door("door").await?);
     objects.insert(
         TextureType::ShipExit,
-        TextureData::load_static("ship_exit").await?,
+        TextureData::load_door("ship_exit").await?,
     );
-    objects.insert(TextureType::Shack, TextureData::load_static("shack").await?);
+    objects.insert(TextureType::Shack, TextureData::load_door("shack").await?);
     objects.insert(TextureType::Path, TextureData::load_static("path").await?);
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
