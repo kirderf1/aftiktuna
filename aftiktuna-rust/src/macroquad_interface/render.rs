@@ -7,8 +7,8 @@ use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use macroquad::camera::set_camera;
 use macroquad::color::BLACK;
 use macroquad::prelude::{
-    clamp, clear_background, is_mouse_button_down, is_mouse_button_pressed, mouse_position,
-    set_default_camera, Camera2D, MouseButton, Rect, Vec2,
+    clamp, clear_background, draw_text, is_mouse_button_down, is_mouse_button_pressed,
+    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Vec2, WHITE,
 };
 use std::collections::HashMap;
 
@@ -47,6 +47,10 @@ impl State {
                 self.view_state = ViewState::InGame(render_data);
                 self.set_text_box_text(messages.into_text());
             }
+            Frame::StoreView { view, messages } => {
+                self.view_state = ViewState::Store(view.into_text());
+                self.set_text_box_text(messages.into_text());
+            }
             Frame::LocationChoice(messages) => {
                 self.camera = default_camera_space();
                 self.view_state = ViewState::LocationChoice;
@@ -76,6 +80,7 @@ impl State {
 pub enum ViewState {
     LocationChoice,
     InGame(RenderData),
+    Store(Vec<String>),
 }
 
 pub fn draw(app: &mut App, textures: &TextureStorage) {
@@ -120,6 +125,18 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                 Vec2::new(state.camera.x, state.camera.y),
             );
             set_default_camera();
+        }
+        ViewState::Store(view) => {
+            const TEXT_SIZE: f32 = 32.;
+            for (index, text_line) in view.iter().enumerate() {
+                draw_text(
+                    text_line,
+                    200.,
+                    100. + ((index + 1) as f32 * TEXT_SIZE),
+                    TEXT_SIZE,
+                    WHITE,
+                );
+            }
         }
     }
 

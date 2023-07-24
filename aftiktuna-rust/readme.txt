@@ -33,4 +33,3 @@ When trading at a store, there are the following commands:
 
 Notes:
 - "rest" doesn't heal health, instead it waits until stamina (a poorly visible stat that helps with dodging attacks) has recovered for the controlled character.
-- Interactions with the store does not yet have accompanying graphics to show what's for sale. You'll have to switch over to text-only for this one for now.

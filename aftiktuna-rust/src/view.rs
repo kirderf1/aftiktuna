@@ -107,6 +107,10 @@ pub enum Frame {
         messages: Messages,
         render_data: RenderData,
     },
+    StoreView {
+        view: Messages,
+        messages: Messages,
+    },
     LocationChoice(Messages),
     Ending(StopType),
 }
@@ -115,7 +119,7 @@ impl Frame {
     pub fn as_text(&self) -> Vec<String> {
         let mut text = Vec::new();
         match self {
-            Frame::AreaView { view, messages, .. } => {
+            Frame::AreaView { view, messages, .. } | Frame::StoreView { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.0.clone());
 
@@ -139,9 +143,9 @@ impl Frame {
 
     fn has_messages(&self) -> bool {
         match self {
-            Frame::AreaView { messages, .. } | Frame::LocationChoice(messages) => {
-                !messages.0.is_empty()
-            }
+            Frame::AreaView { messages, .. }
+            | Frame::StoreView { messages, .. }
+            | Frame::LocationChoice(messages) => !messages.0.is_empty(),
             Frame::Ending(_) => true,
         }
     }
@@ -156,10 +160,9 @@ fn shop_frame(
 ) -> Frame {
     // Use the cache in shop view before status messages so that points aren't shown in status messages too
     let view = shop_view_messages(world, character, cache, shopkeeper);
-    Frame::AreaView {
+    Frame::StoreView {
         view,
         messages: buffer.pop_messages(world, character, cache),
-        render_data: prepare_render_data(world, character),
     }
 }
 
