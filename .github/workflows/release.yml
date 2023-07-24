@@ -15,11 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Compile and release
-        uses: kirderf1/rust-build.action@f7e3e8cc74456c4ba8d9db3c0bc30fb5dd6b7c13
+        uses: kirderf1/rust-build.action@0a22e6d69637d27e8a63f5da15d5e87b2fbefc31
         with:
           RUSTTARGET: ${{ matrix.target }}
           BINARIES: "aftiktuna"
-          EXTRA_FILES: "aftiktuna-rust/readme.txt aftiktuna-rust/assets/"
+          EXTRA_FILES: "aftiktuna-rust/readme.txt aftiktuna-rust/assets"
           SRC_DIR: "aftiktuna-rust"
           PRE_BUILD: ${{ matrix.pre-build-script }}
           UPLOAD_MODE: "none"
