@@ -1,9 +1,10 @@
 on:
-  workflow_dispatch:
+  release:
+    types: [created]
 
 jobs:
   release:
-    name: Release test ${{ matrix.target }}
+    name: Release target ${{ matrix.target }}
     runs-on: ${{ matrix.runner-os }}
     strategy:
       fail-fast: false
@@ -14,9 +15,9 @@ jobs:
           - binary-suffix: ''
           - target: x86_64-pc-windows-gnu
             binary-suffix: .exe
-            setup-script: sudo apt install mingw-w64
+            setup-script: sudo apt-get install mingw-w64
           - target: x86_64-unknown-linux-gnu
-            setup-script: ./aftiktuna-rust/linux-setup.sh
+            setup-script: ./aftiktuna-rust/linux-ubuntu-setup.sh
           - target: x86_64-apple-darwin
             runner-os: macos-latest
     steps:
@@ -37,7 +38,10 @@ jobs:
           cp aftiktuna-rust/readme.txt build-output
           cp -R aftiktuna-rust/assets build-output
           cd build-output && zip -9r aftiktuna-${{ matrix.target }}.zip *
-      - name: Check output archive
-        run: |
-          unzip build-output/aftiktuna-${{ matrix.target }}.zip -d unzipped_files
-          ls unzipped_files
+      - name: Upload release archive
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build-output/aftiktuna-${{ matrix.target }}.zip
+          asset_name: aftiktuna-${{ GITHUB_REF_NAME }}-${{ matrix.target }}.zip
+          tag: ${{ github.ref }}
