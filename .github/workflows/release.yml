@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [x86_64-pc-windows-gnu, x86_64-unknown-linux-musl]
+        target: [ x86_64-pc-windows-gnu, x86_64-unknown-linux-musl, x86_64-apple-darwin ]
         include:
           - target: x86_64-unknown-linux-musl
             pre-build-script: aftiktuna-rust/linux-setup.sh
@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Compile and release
         id: rust-build
-        uses: kirderf1/rust-build.action@v1.0.0
+        uses: kirderf1/rust-build.action@v1.0.1
         with:
           RUSTTARGET: ${{ matrix.target }}
           BINARIES: "aftiktuna"
