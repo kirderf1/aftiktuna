@@ -15,6 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Compile and release
+        id: rust-build
         uses: kirderf1/rust-build.action@v1.0.0
         with:
           RUSTTARGET: ${{ matrix.target }}
@@ -25,5 +26,5 @@ jobs:
           UPLOAD_MODE: "none"
       - name: Check output archive
         run: |
-          unzip "${BUILT_ARCHIVE}" -d unzipped_files
+          unzip "${steps.rust-build.outputs.BUILT_ARCHIVE}" -d unzipped_files
           ls unzipped_files
