@@ -28,8 +28,8 @@ jobs:
           cp aftiktuna-rust/target/${{ matrix.target }}/release/aftiktuna build-output
           cp aftiktuna-rust/readme.txt build-output
           cp --recursive aftiktuna-rust/assets build-output
-          zip -9r aftiktuna-${{ matrix.target }}.zip build-output/aftiktuna build-output/readme.txt build-output/assets
+          cd build-output && zip -9r aftiktuna-${{ matrix.target }}.zip * && cd ..
       - name: Check output archive
         run: |
-          unzip aftiktuna-${{ matrix.target }}.zip -d unzipped_files
+          unzip build-output/aftiktuna-${{ matrix.target }}.zip -d unzipped_files
           ls unzipped_files
