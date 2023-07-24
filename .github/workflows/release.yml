@@ -4,18 +4,21 @@ on:
 jobs:
   release:
     name: Release test ${{ matrix.target }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner-os }}
     strategy:
       fail-fast: false
       matrix:
-        target: [ x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu ]
+        target: [ x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu, x86_64-apple-darwin ]
         include:
+          - runner-os: ubuntu-latest
+          - binary-suffix: ''
           - target: x86_64-pc-windows-gnu
             binary-suffix: .exe
             setup-script: sudo apt install mingw-w64
           - target: x86_64-unknown-linux-gnu
-            binary-suffix: ''
             setup-script: ./aftiktuna-rust/linux-setup.sh
+          - target: x86_64-apple-darwin
+            runner-os: macos-latest
     steps:
       - uses: actions/checkout@master
       - name: Setup rust toolchain
