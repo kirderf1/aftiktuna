@@ -35,7 +35,7 @@ jobs:
           mkdir build-output
           cp aftiktuna-rust/target/${{ matrix.target }}/release/aftiktuna${{ matrix.binary-suffix }} build-output
           cp aftiktuna-rust/readme.txt build-output
-          cp --recursive aftiktuna-rust/assets build-output
+          cp -R aftiktuna-rust/assets build-output
           cd build-output && zip -9r aftiktuna-${{ matrix.target }}.zip *
       - name: Check output archive
         run: |
