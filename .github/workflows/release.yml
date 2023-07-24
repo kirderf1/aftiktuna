@@ -12,9 +12,10 @@ jobs:
         include:
           - target: x86_64-pc-windows-gnu
             binary-suffix: .exe
+            setup-script: sudo apt install mingw-w64
           - target: x86_64-unknown-linux-gnu
             binary-suffix: ''
-            setup-script: aftiktuna-rust/linux-setup.sh
+            setup-script: ./aftiktuna-rust/linux-setup.sh
     steps:
       - uses: actions/checkout@master
       - name: Setup rust toolchain
@@ -23,7 +24,7 @@ jobs:
           target: ${{ matrix.target }}
       - name: Run setup script
         if: matrix.setup-script != null
-        run: ./${{ matrix.setup-script }}
+        run: ${{ matrix.setup-script }}
       - name: Build binary
         run: cargo build --manifest-path aftiktuna-rust/Cargo.toml --release --target ${{ matrix.target }} --bin aftiktuna
       - name: Package files
