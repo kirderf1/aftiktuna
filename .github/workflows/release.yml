@@ -8,9 +8,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ x86_64-unknown-linux-gnu ]
+        target: [ x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu ]
         include:
+          - target: x86_64-pc-windows-gnu
+            binary-suffix: .exe
           - target: x86_64-unknown-linux-gnu
+            binary-suffix: ''
             setup-script: aftiktuna-rust/linux-setup.sh
     steps:
       - uses: actions/checkout@master
@@ -19,16 +22,17 @@ jobs:
         with:
           target: ${{ matrix.target }}
       - name: Run setup script
-        run: "./${{ matrix.setup-script }}"
+        if: matrix.setup-script != null
+        run: ./${{ matrix.setup-script }}
       - name: Build binary
         run: cargo build --manifest-path aftiktuna-rust/Cargo.toml --release --target ${{ matrix.target }} --bin aftiktuna
       - name: Package files
         run: |
           mkdir build-output
-          cp aftiktuna-rust/target/${{ matrix.target }}/release/aftiktuna build-output
+          cp aftiktuna-rust/target/${{ matrix.target }}/release/aftiktuna${{ matrix.binary-suffix }} build-output
           cp aftiktuna-rust/readme.txt build-output
           cp --recursive aftiktuna-rust/assets build-output
-          cd build-output && zip -9r aftiktuna-${{ matrix.target }}.zip * && cd ..
+          cd build-output && zip -9r aftiktuna-${{ matrix.target }}.zip *
       - name: Check output archive
         run: |
           unzip build-output/aftiktuna-${{ matrix.target }}.zip -d unzipped_files
