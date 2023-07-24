@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Compile and release
-        uses: kirderf1/rust-build.action@0a22e6d69637d27e8a63f5da15d5e87b2fbefc31
+        uses: kirderf1/rust-build.action@v1.0.0
         with:
           RUSTTARGET: ${{ matrix.target }}
           BINARIES: "aftiktuna"
