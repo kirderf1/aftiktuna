@@ -1,3 +1,3 @@
 #!/bin/bash
 
-apk add pkgconfig libx11-dev libxi-dev mesa-dev alsa-lib-dev
+apt install pkg-config libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev

@@ -8,23 +8,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [ x86_64-pc-windows-gnu, x86_64-unknown-linux-musl, x86_64-apple-darwin ]
+        target: [ x86_64-unknown-linux-gnu ]
         include:
-          - target: x86_64-unknown-linux-musl
-            pre-build-script: aftiktuna-rust/linux-setup.sh
+          - target: x86_64-unknown-linux-gnu
+            setup-script: aftiktuna-rust/linux-setup.sh
     steps:
       - uses: actions/checkout@master
-      - name: Compile and release
-        id: rust-build
-        uses: kirderf1/rust-build.action@v1.0.1
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
-          RUSTTARGET: ${{ matrix.target }}
-          BINARIES: "aftiktuna"
-          EXTRA_FILES: "aftiktuna-rust/readme.txt aftiktuna-rust/assets"
-          SRC_DIR: "aftiktuna-rust"
-          PRE_BUILD: ${{ matrix.pre-build-script }}
-          UPLOAD_MODE: "none"
+          target: ${{ matrix.target }}
+      - name: Run setup script
+        run: "./${{ matrix.setup-script }}"
+      - name: Build binary
+        run: cargo build --release --target ${{ matrix.target }} --bin aftiktuna
+      - name: Package files
+        run: |
+          mkdir output
+          cp "aftiktuna-rust/target/${{ matrix.target }}/aftiktuna" build-output
+          cp aftiktuna-rust/readme.txt build-output
+          cp --recursive aftiktuna-rust/assets build-output
+          zip -9r "aftiktuna-${{ matrix.target }}.zip" "build-output/aftiktuna build-output/readme.txt build-output/assets"
       - name: Check output archive
         run: |
-          unzip "${{ steps.rust-build.outputs.BUILT_ARCHIVE }}" -d unzipped_files
+          unzip "aftiktuna-${{ matrix.target }}.zip" -d unzipped_files
           ls unzipped_files
