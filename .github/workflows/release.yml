@@ -14,13 +14,13 @@ jobs:
             pre-build-script: aftiktuna-rust/linux-setup.sh
     steps:
       - uses: actions/checkout@master
-      - run: cd aftiktuna-rust
       - name: Compile and release
         uses: kirderf1/rust-build.action@master
         with:
           RUSTTARGET: ${{ matrix.target }}
           BINARIES: "aftiktuna"
-          EXTRA_FILES: "readme.txt assets/"
+          EXTRA_FILES: "aftiktuna-rust/readme.txt aftiktuna-rust/assets/"
+          SRC_DIR: "aftiktuna-rust"
           PRE_BUILD: ${{ matrix.pre-build-script }}
           UPLOAD_MODE: "none"
       - name: Check output archive
