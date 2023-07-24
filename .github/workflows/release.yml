@@ -24,7 +24,7 @@ jobs:
         run: cargo build --manifest-path aftiktuna-rust/Cargo.toml --release --target ${{ matrix.target }} --bin aftiktuna
       - name: Package files
         run: |
-          mkdir output
+          mkdir build-output
           cp "aftiktuna-rust/target/${{ matrix.target }}/release/aftiktuna" build-output
           cp aftiktuna-rust/readme.txt build-output
           cp --recursive aftiktuna-rust/assets build-output
