@@ -26,5 +26,5 @@ jobs:
           UPLOAD_MODE: "none"
       - name: Check output archive
         run: |
-          unzip "${steps.rust-build.outputs.BUILT_ARCHIVE}" -d unzipped_files
+          unzip "${{ steps.rust-build.outputs.BUILT_ARCHIVE }}" -d unzipped_files
           ls unzipped_files
