@@ -43,5 +43,5 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build-output/aftiktuna-${{ matrix.target }}.zip
-          asset_name: aftiktuna-${{ GITHUB_REF_NAME }}-${{ matrix.target }}.zip
+          asset_name: aftiktuna-${{ github.ref_name }}-${{ matrix.target }}.zip
           tag: ${{ github.ref }}
