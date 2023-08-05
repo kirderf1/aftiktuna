@@ -15,7 +15,7 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
         .literal("take", |parse| {
             parse
                 .literal("all", |parse| {
-                    parse.done_or_err(|| command::action_result(Action::TakeAll))
+                    parse.done_or_err(|| take_all(world, character))
                 })
                 .or_else_remaining(|item_name| take(item_name, world, character))
         })
@@ -73,6 +73,29 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
             )
         })
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
+}
+
+fn take_all(world: &World, character: Entity) -> Result<CommandResult, String> {
+    let character_pos = *world.get::<&Pos>(character).unwrap();
+    if !world
+        .query::<&Pos>()
+        .with::<&item::Item>()
+        .iter()
+        .any(|(_, pos)| pos.is_in(character_pos.get_area()))
+    {
+        return Err("There are no items to take here.".to_string());
+    }
+
+    if world
+        .query::<&Pos>()
+        .with::<&combat::IsFoe>()
+        .iter()
+        .any(|(_, pos)| pos.is_in(character_pos.get_area()))
+    {
+        return Err("You should take care of all foes here before taking all items.".to_string());
+    }
+
+    command::action_result(Action::TakeAll)
 }
 
 fn crew_targets(world: &World) -> Vec<(String, Entity)> {
