@@ -7,7 +7,7 @@ use crate::command::CommandResult;
 use crate::position::Pos;
 use crate::status::Health;
 use crate::view::NameData;
-use crate::{command, item, status};
+use crate::{command, item, position, status};
 use hecs::{Entity, World};
 
 pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -68,9 +68,7 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
         .literal("recruit", |parse| {
             parse.match_against(
                 recruit_targets(world, character),
-                |parse, target| {
-                    parse.done_or_err(|| command::action_result(Action::Recruit(target)))
-                },
+                |parse, target| parse.done_or_err(|| recruit(world, character, target)),
                 |input| Err(format!("\"{}\" not a valid recruitment target", input)),
             )
         })
@@ -88,14 +86,18 @@ fn crew_targets(world: &World) -> Vec<(String, Entity)> {
 
 fn take(item_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     let character_pos = *world.get::<&Pos>(character).unwrap();
-    world
+    let (item, name) = world
         .query::<(&Pos, &NameData)>()
         .with::<&item::Item>()
         .iter()
         .filter(|(_, (pos, name))| pos.is_in(character_pos.get_area()) && name.matches(item_name))
         .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
-        .map(|(item, (_, name))| command::action_result(Action::TakeItem(item, name.clone())))
-        .unwrap_or_else(|| Err(format!("There is no {} here to pick up.", item_name)))
+        .map(|(item, (_, name))| (item, name.clone()))
+        .ok_or_else(|| format!("There is no {} here to pick up.", item_name))?;
+
+    check_accessible_with_message(world, character, item)?;
+
+    command::action_result(Action::TakeItem(item, name))
 }
 
 fn give(
@@ -111,15 +113,7 @@ fn give(
         ));
     }
 
-    let character_pos = world.get::<&Pos>(character).unwrap();
-    let target_pos = world.get::<&Pos>(receiver).unwrap();
-    if !character_pos.is_in(target_pos.get_area()) {
-        return Err(format!(
-            "{} can not reach {} from here.",
-            NameData::find(world, character).definite(),
-            NameData::find(world, receiver).definite()
-        ));
-    }
+    check_adjacent_accessible_with_message(world, character, receiver)?;
 
     world
         .query::<(&NameData, &Held)>()
@@ -141,10 +135,9 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
     if world
         .query::<(&NameData, &Held)>()
         .into_iter()
-        .find(|(_, (name, held))| {
+        .any(|(_, (name, held))| {
             name.matches(item_name) && held.held_by(character) && held.is_in_hand()
         })
-        .is_some()
     {
         return Err(format!(
             "{} is already wielding a {}.",
@@ -152,35 +145,51 @@ fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandRes
             item_name
         ));
     }
-    None.or_else(|| {
-        world
-            .query::<(&NameData, &Held)>()
-            .with::<&item::CanWield>()
-            .with::<&item::Item>()
-            .iter()
-            .find(|(_, (name, held))| name.matches(item_name) && held.is_in_inventory(character))
-            .map(|(item, (name, _))| command::action_result(Action::Wield(item, name.clone())))
-    })
-    .or_else(|| {
-        let character_pos = *world.get::<&Pos>(character).unwrap();
-        world
-            .query::<(&Pos, &NameData)>()
-            .with::<&item::CanWield>()
-            .with::<&item::Item>()
-            .iter()
-            .filter(|(_, (pos, name))| {
-                pos.is_in(character_pos.get_area()) && name.matches(item_name)
-            })
-            .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
-            .map(|(item, (_, name))| command::action_result(Action::Wield(item, name.clone())))
-    })
-    .unwrap_or_else(|| {
-        Err(format!(
-            "There is no {} that {} can wield.",
-            item_name,
-            NameData::find(world, character).definite()
-        ))
-    })
+
+    if let Some((item, name)) = wieldable_item_in_inventory(item_name, world, character) {
+        return command::action_result(Action::Wield(item, name));
+    }
+
+    if let Some((item, name)) = wieldable_item_from_ground(item_name, world, character) {
+        check_accessible_with_message(world, character, item)?;
+
+        return command::action_result(Action::Wield(item, name));
+    }
+    Err(format!(
+        "There is no {} that {} can wield.",
+        item_name,
+        NameData::find(world, character).definite()
+    ))
+}
+
+fn wieldable_item_in_inventory(
+    item_name: &str,
+    world: &World,
+    character: Entity,
+) -> Option<(Entity, NameData)> {
+    world
+        .query::<(&NameData, &Held)>()
+        .with::<&item::CanWield>()
+        .with::<&item::Item>()
+        .iter()
+        .find(|(_, (name, held))| name.matches(item_name) && held.is_in_inventory(character))
+        .map(|(item, (name, _))| (item, name.clone()))
+}
+
+fn wieldable_item_from_ground(
+    item_name: &str,
+    world: &World,
+    character: Entity,
+) -> Option<(Entity, NameData)> {
+    let character_pos = *world.get::<&Pos>(character).unwrap();
+    world
+        .query::<(&Pos, &NameData)>()
+        .with::<&item::CanWield>()
+        .with::<&item::Item>()
+        .iter()
+        .filter(|(_, (pos, name))| pos.is_in(character_pos.get_area()) && name.matches(item_name))
+        .min_by_key(|(_, (pos, _))| pos.distance_to(character_pos))
+        .map(|(item, (_, name))| (item, name.clone()))
 }
 
 fn use_item(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
@@ -237,24 +246,32 @@ fn use_item(world: &World, character: Entity, item_name: &str) -> Result<Command
 
 fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    world
+    let door = world
         .query::<(&Pos, &NameData)>()
         .with::<&door::Door>()
         .iter()
         .find(|(_, (pos, name))| pos.is_in(area) && name.matches(door_name))
-        .map(|(door, _)| command::crew_action(Action::EnterDoor(door)))
-        .unwrap_or_else(|| Err("There is no such door here to go through.".to_string()))
+        .map(|(door, _)| door)
+        .ok_or_else(|| "There is no such door or path here to go through.".to_string())?;
+
+    check_accessible_with_message(world, character, door)?;
+
+    command::crew_action(Action::EnterDoor(door))
 }
 
 fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    world
+    let door = world
         .query::<(&Pos, &NameData)>()
         .with::<&door::Door>()
         .iter()
         .find(|(_, (pos, name))| pos.is_in(area) && name.matches(door_name))
-        .map(|(door, _)| command::action_result(Action::ForceDoor(door)))
-        .unwrap_or_else(|| Err("There is no such door here.".to_string()))
+        .map(|(door, _)| door)
+        .ok_or_else(|| "There is no such door here.".to_string())?;
+
+    check_accessible_with_message(world, character, door)?;
+
+    command::action_result(Action::ForceDoor(door))
 }
 
 fn attack_any(world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -273,13 +290,17 @@ fn attack_any(world: &World, character: Entity) -> Result<CommandResult, String>
 
 fn attack(target_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    world
+    let target = world
         .query::<(&Pos, &NameData)>()
         .with::<&combat::IsFoe>()
         .iter()
         .find(|(_, (pos, name))| pos.is_in(area) && name.matches(target_name))
-        .map(|(target, _)| command::action_result(Action::Attack(target)))
-        .unwrap_or_else(|| Err("There is no such target here.".to_string()))
+        .map(|(target, _)| target)
+        .ok_or_else(|| "There is no such target here.".to_string())?;
+
+    check_adjacent_accessible_with_message(world, character, target)?;
+
+    command::action_result(Action::Attack(target))
 }
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -350,7 +371,16 @@ fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
         .map(|(id, _)| id)
         .next()
         .ok_or_else(|| "There is no shopkeeper to trade with here.".to_string())?;
+
+    check_adjacent_accessible_with_message(world, character, shopkeeper)?;
+
     command::action_result(Action::Trade(shopkeeper))
+}
+
+fn recruit(world: &World, character: Entity, target: Entity) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(world, character, target)?;
+
+    command::action_result(Action::Recruit(target))
 }
 
 fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
@@ -362,4 +392,77 @@ fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
         .map(|(entity, (name, _))| (name.base().to_lowercase(), entity))
         .collect::<Vec<_>>()
+}
+
+enum Inaccessible {
+    NotHere,
+    Blocked,
+}
+
+impl Inaccessible {
+    fn into_message(self, world: &World, character: Entity, target: Entity) -> String {
+        match self {
+            Inaccessible::NotHere => format!(
+                "{} can not reach {} from here.",
+                NameData::find(world, character).definite(),
+                NameData::find(world, target).definite()
+            ),
+            Inaccessible::Blocked => "Something is in the way.".to_string(),
+        }
+    }
+}
+
+fn check_accessible_with_message(
+    world: &World,
+    character: Entity,
+    target: Entity,
+) -> Result<(), String> {
+    check_accessible(world, character, target)
+        .map_err(|inaccessible| inaccessible.into_message(world, character, target))
+}
+
+fn check_adjacent_accessible_with_message(
+    world: &World,
+    character: Entity,
+    target: Entity,
+) -> Result<(), String> {
+    check_adjacent_accessible(world, character, target)
+        .map_err(|inaccessible| inaccessible.into_message(world, character, target))
+}
+
+fn check_accessible(world: &World, character: Entity, target: Entity) -> Result<(), Inaccessible> {
+    let character_pos = *world
+        .get::<&Pos>(character)
+        .map_err(|_| Inaccessible::NotHere)?;
+    let target_pos = *world
+        .get::<&Pos>(target)
+        .map_err(|_| Inaccessible::NotHere)?;
+    if !character_pos.is_in(target_pos.get_area()) {
+        return Err(Inaccessible::NotHere);
+    }
+    if position::is_blocked(world, character, character_pos, target_pos) {
+        return Err(Inaccessible::Blocked);
+    }
+    Ok(())
+}
+
+fn check_adjacent_accessible(
+    world: &World,
+    character: Entity,
+    target: Entity,
+) -> Result<(), Inaccessible> {
+    let character_pos = *world
+        .get::<&Pos>(character)
+        .map_err(|_| Inaccessible::NotHere)?;
+    let target_pos = *world
+        .get::<&Pos>(target)
+        .map_err(|_| Inaccessible::NotHere)?;
+    if !character_pos.is_in(target_pos.get_area()) {
+        return Err(Inaccessible::NotHere);
+    }
+    let target_pos = target_pos.get_adjacent_towards(character_pos);
+    if position::is_blocked(world, character, character_pos, target_pos) {
+        return Err(Inaccessible::Blocked);
+    }
+    Ok(())
 }
