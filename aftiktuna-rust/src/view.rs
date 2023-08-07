@@ -1,6 +1,7 @@
 pub use status::print_full_status;
 
 use crate::action::door::{BlockType, Door};
+use crate::action::item::get_wielded;
 use crate::action::trade;
 use crate::action::trade::Shopkeeper;
 use crate::area::{Area, BackgroundType};
@@ -315,6 +316,7 @@ pub struct ObjectRenderData {
     pub name: String,
     pub direction: Direction,
     pub aftik_color: Option<AftikColor>,
+    pub wielded_item: Option<TextureType>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -339,7 +341,7 @@ impl From<item::Type> for TextureType {
     }
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AftikColor {
     Mint,
@@ -368,6 +370,7 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
                 ),
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
+                wielded_item: find_wielded_item_texture(world, entity),
             },
         )
         .collect();
@@ -380,4 +383,12 @@ fn prepare_render_data(world: &World, character: Entity) -> RenderData {
         character_coord: character_pos.get_coord(),
         objects,
     }
+}
+
+fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureType> {
+    let item = get_wielded(world, holder)?;
+    world
+        .get::<&DisplayInfo>(item)
+        .ok()
+        .map(|info| info.texture_type)
 }

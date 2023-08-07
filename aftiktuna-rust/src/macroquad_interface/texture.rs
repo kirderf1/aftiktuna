@@ -100,8 +100,14 @@ impl TextureData {
     }
 }
 
-pub fn draw_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2) {
-    match textures.lookup_texture(data.texture_type) {
+pub fn draw_object(
+    texture_type: TextureType,
+    direction: Direction,
+    aftik_color: Option<AftikColor>,
+    textures: &TextureStorage,
+    pos: Vec2,
+) {
+    match textures.lookup_texture(texture_type) {
         TextureData::Regular {
             texture,
             dest_size,
@@ -114,7 +120,7 @@ pub fn draw_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2
                 WHITE,
                 DrawTextureParams {
                     dest_size: Some(*dest_size),
-                    flip_x: *directional && data.direction == Direction::Left,
+                    flip_x: *directional && direction == Direction::Left,
                     ..Default::default()
                 },
             );
@@ -133,11 +139,11 @@ pub fn draw_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2
             details,
         } => {
             let params = DrawTextureParams {
-                flip_x: data.direction == Direction::Left,
+                flip_x: direction == Direction::Left,
                 ..Default::default()
             };
             let (primary_color, secondary_color) =
-                convert_to_color(data.aftik_color.unwrap_or(AftikColor::Mint));
+                convert_to_color(aftik_color.unwrap_or(AftikColor::Mint));
             draw_texture_ex(
                 *primary,
                 pos.x - primary.width() / 2.,
@@ -362,43 +368,43 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     );
     objects.insert(
         item::Type::FuelCan.into(),
-        TextureData::load_static("item/fuel_can").await?,
+        TextureData::load_directional("item/fuel_can").await?,
     );
     objects.insert(
         item::Type::Crowbar.into(),
-        TextureData::load_static("item/crowbar").await?,
+        TextureData::load_directional("item/crowbar").await?,
     );
     objects.insert(
         item::Type::Blowtorch.into(),
-        TextureData::load_static("item/blowtorch").await?,
+        TextureData::load_directional("item/blowtorch").await?,
     );
     objects.insert(
         item::Type::Keycard.into(),
-        TextureData::load_static("item/keycard").await?,
+        TextureData::load_directional("item/keycard").await?,
     );
     objects.insert(
         item::Type::Knife.into(),
-        TextureData::load_static("item/knife").await?,
+        TextureData::load_directional("item/knife").await?,
     );
     objects.insert(
         item::Type::Bat.into(),
-        TextureData::load_static("item/bat").await?,
+        TextureData::load_directional("item/bat").await?,
     );
     objects.insert(
         item::Type::Sword.into(),
-        TextureData::load_static("item/sword").await?,
+        TextureData::load_directional("item/sword").await?,
     );
     objects.insert(
         item::Type::Medkit.into(),
-        TextureData::load_static("item/medkit").await?,
+        TextureData::load_directional("item/medkit").await?,
     );
     objects.insert(
         item::Type::MeteorChunk.into(),
-        TextureData::load_static("item/meteor_chunk").await?,
+        TextureData::load_directional("item/meteor_chunk").await?,
     );
     objects.insert(
         item::Type::AncientCoin.into(),
-        TextureData::load_static("item/ancient_coin").await?,
+        TextureData::load_directional("item/ancient_coin").await?,
     );
 
     Ok(TextureStorage {
