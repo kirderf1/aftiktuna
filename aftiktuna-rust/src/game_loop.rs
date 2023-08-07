@@ -1,4 +1,4 @@
-use crate::action::{item, Action, CrewMember};
+use crate::action::{combat, item, Action, CrewMember};
 use crate::area::{Locations, PickResult, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
@@ -149,7 +149,7 @@ impl Game {
     }
 
     fn tick(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
-        if self.world.get::<&Action>(self.controlled).is_err() {
+        if should_take_user_input(&self.world, self.controlled) {
             self.state = State::CommandInput;
             return Ok(());
         }
@@ -298,4 +298,28 @@ fn detect_low_health(world: &mut World, messages: &mut Messages, character: Enti
         }
     }
     command_buffer.run_on(world);
+}
+
+fn should_take_user_input(world: &World, controlled: Entity) -> bool {
+    world.get::<&Action>(controlled).is_err()
+        && !(is_wait_requested(world, controlled)
+            && is_safe(world, world.get::<&Pos>(controlled).unwrap().get_area()))
+}
+
+fn is_wait_requested(world: &World, controlled: Entity) -> bool {
+    let area = world.get::<&Pos>(controlled).unwrap().get_area();
+    world
+        .query::<&Pos>()
+        .with::<&CrewMember>()
+        .iter()
+        .filter(|(entity, pos)| *entity != controlled && pos.is_in(area))
+        .any(|(entity, _)| ai::is_requesting_wait(world, entity))
+}
+
+pub fn is_safe(world: &World, area: Entity) -> bool {
+    world
+        .query::<&Pos>()
+        .with::<&combat::IsFoe>()
+        .iter()
+        .all(|(_, pos)| !pos.is_in(area))
 }

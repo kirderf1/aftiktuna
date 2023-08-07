@@ -7,7 +7,7 @@ use crate::command::CommandResult;
 use crate::position::Pos;
 use crate::status::Health;
 use crate::view::NameData;
-use crate::{command, item, position, status};
+use crate::{command, game_loop, item, position, status};
 use hecs::{Entity, World};
 
 pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -86,12 +86,7 @@ fn take_all(world: &World, character: Entity) -> Result<CommandResult, String> {
         return Err("There are no items to take here.".to_string());
     }
 
-    if world
-        .query::<&Pos>()
-        .with::<&combat::IsFoe>()
-        .iter()
-        .any(|(_, pos)| pos.is_in(character_pos.get_area()))
-    {
+    if !game_loop::is_safe(world, character_pos.get_area()) {
         return Err("You should take care of all foes here before taking all items.".to_string());
     }
 
@@ -328,27 +323,22 @@ fn attack(target_name: &str, world: &World, character: Entity) -> Result<Command
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if world
-        .query::<&Pos>()
-        .with::<&combat::IsFoe>()
-        .iter()
-        .any(|(_, pos)| pos.is_in(area))
-    {
-        Err("This area is not safe to rest in.".to_string())
-    } else {
-        let need_rest = world
-            .get::<&status::Stamina>(character)
-            .map(|stamina| stamina.need_rest())
-            .unwrap_or(false);
+    if !game_loop::is_safe(world, area) {
+        return Err("This area is not safe to rest in.".to_string());
+    }
 
-        if need_rest {
-            command::action_result(Action::Rest(true))
-        } else {
-            Err(format!(
-                "{} is already rested.",
-                NameData::find(world, character).definite()
-            ))
-        }
+    let need_rest = world
+        .get::<&status::Stamina>(character)
+        .map(|stamina| stamina.need_rest())
+        .unwrap_or(false);
+
+    if need_rest {
+        command::action_result(Action::Rest(true))
+    } else {
+        Err(format!(
+            "{} is already rested.",
+            NameData::find(world, character).definite()
+        ))
     }
 }
 

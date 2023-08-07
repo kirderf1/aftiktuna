@@ -81,3 +81,17 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
 
     None
 }
+
+pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
+    let weapon_damage = combat::get_weapon_damage(world, entity);
+
+    for item in item::get_inventory(world, entity) {
+        if let Ok(weapon) = world.get::<&Weapon>(item) {
+            if weapon.0 > weapon_damage {
+                return true;
+            }
+        }
+    }
+
+    false
+}
