@@ -39,12 +39,10 @@ pub enum TextureData {
     Regular {
         texture: Texture2D,
         dest_size: Vec2,
+        y_offset: f32,
         wield_offset: Vec2,
         directional: bool,
-    },
-    Mounted {
-        texture: Texture2D,
-        offset: f32,
+        is_mounted: bool,
     },
     Aftik {
         primary: Texture2D,
@@ -54,15 +52,6 @@ pub enum TextureData {
 }
 
 impl TextureData {
-    async fn load_door(path: &str) -> Result<TextureData, FileError> {
-        Self::load_mounted(path, 30.).await
-    }
-
-    async fn load_mounted(path: &str, offset: f32) -> Result<TextureData, FileError> {
-        let texture = load_texture(path).await?;
-        Ok(TextureData::Mounted { texture, offset })
-    }
-
     async fn load_aftik() -> Result<TextureData, FileError> {
         async fn texture(suffix: &str) -> Result<Texture2D, FileError> {
             load_texture(format!("creature/aftik_{}", suffix)).await
@@ -75,15 +64,17 @@ impl TextureData {
     }
 
     pub fn is_displacing(&self) -> bool {
-        !matches!(self, TextureData::Mounted { .. })
+        !matches!(self, TextureData::Regular { is_mounted, .. } if *is_mounted)
     }
 }
 
 struct Builder {
     path: String,
     dest_size: Option<Vec2>,
+    y_offset: Option<f32>,
     wield_offset: Option<Vec2>,
     directional: bool,
+    is_mounted: bool,
 }
 
 impl Builder {
@@ -91,8 +82,10 @@ impl Builder {
         Builder {
             path: path.into(),
             dest_size: None,
+            y_offset: None,
             wield_offset: None,
             directional,
+            is_mounted: false,
         }
     }
 
@@ -106,6 +99,12 @@ impl Builder {
         self
     }
 
+    fn mounted(mut self, y_offset: f32) -> Self {
+        self.y_offset = Some(-y_offset);
+        self.is_mounted = true;
+        self
+    }
+
     async fn build(self) -> Result<TextureData, FileError> {
         let texture = load_texture(self.path).await?;
         Ok(TextureData::Regular {
@@ -113,8 +112,10 @@ impl Builder {
             dest_size: self
                 .dest_size
                 .unwrap_or_else(|| Vec2::new(texture.width(), texture.height())),
+            y_offset: self.y_offset.unwrap_or(0.),
             wield_offset: self.wield_offset.unwrap_or(Vec2::ZERO),
             directional: self.directional,
+            is_mounted: self.is_mounted,
         })
     }
 }
@@ -131,11 +132,13 @@ pub fn draw_object(
         TextureData::Regular {
             texture,
             dest_size,
+            y_offset,
             wield_offset,
             directional,
+            ..
         } => {
             let mut x = pos.x - dest_size.x / 2.;
-            let mut y = pos.y - dest_size.y;
+            let mut y = pos.y - dest_size.y + y_offset;
             if use_wield_offset {
                 y += wield_offset.y;
                 x += match direction {
@@ -153,14 +156,6 @@ pub fn draw_object(
                     flip_x: *directional && direction == Direction::Left,
                     ..Default::default()
                 },
-            );
-        }
-        TextureData::Mounted { texture, offset } => {
-            draw_texture(
-                *texture,
-                pos.x - texture.width() / 2.,
-                pos.y - texture.height() - offset,
-                WHITE,
             );
         }
         TextureData::Aftik {
@@ -202,17 +197,15 @@ pub fn draw_object(
 pub fn get_rect_for_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2) -> Rect {
     let texture = textures.lookup_texture(data.texture_type);
     match texture {
-        TextureData::Regular { dest_size, .. } => Rect::new(
+        TextureData::Regular {
+            dest_size,
+            y_offset,
+            ..
+        } => Rect::new(
             pos.x - dest_size.x / 2.,
-            pos.y - dest_size.y,
+            pos.y - dest_size.y + y_offset,
             dest_size.x,
             dest_size.y,
-        ),
-        TextureData::Mounted { texture, offset } => Rect::new(
-            pos.x - texture.width() / 2.,
-            pos.y - texture.height() - offset,
-            texture.width(),
-            texture.height(),
         ),
         TextureData::Aftik { primary, .. } => Rect::new(
             pos.x - primary.width() / 2.,
@@ -385,15 +378,24 @@ async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> 
         TextureType::Ship,
         Builder::new("ship", false).build().await?,
     );
-    objects.insert(TextureType::Door, TextureData::load_door("door").await?);
+    objects.insert(
+        TextureType::Door,
+        Builder::new("door", false).mounted(30.).build().await?,
+    );
     objects.insert(
         TextureType::ShipExit,
-        TextureData::load_door("ship_exit").await?,
+        Builder::new("ship_exit", false)
+            .mounted(30.)
+            .build()
+            .await?,
     );
-    objects.insert(TextureType::Shack, TextureData::load_door("shack").await?);
+    objects.insert(
+        TextureType::Shack,
+        Builder::new("shack", false).mounted(30.).build().await?,
+    );
     objects.insert(
         TextureType::Path,
-        TextureData::load_mounted("path", 0.).await?,
+        Builder::new("path", false).mounted(0.).build().await?,
     );
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
