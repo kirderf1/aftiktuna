@@ -54,40 +54,6 @@ pub enum TextureData {
 }
 
 impl TextureData {
-    async fn load_static(path: &str) -> Result<TextureData, FileError> {
-        let texture = load_texture(path).await?;
-        Ok(Self::new_static(texture))
-    }
-
-    fn new_static(texture: Texture2D) -> TextureData {
-        TextureData::Regular {
-            texture,
-            dest_size: Vec2::new(texture.width(), texture.height()),
-            wield_offset: Vec2::ZERO,
-            directional: false,
-        }
-    }
-
-    async fn load_directional(path: &str) -> Result<TextureData, FileError> {
-        let texture = load_texture(path).await?;
-        Ok(TextureData::Regular {
-            texture,
-            dest_size: Vec2::new(texture.width(), texture.height()),
-            wield_offset: Vec2::ZERO,
-            directional: true,
-        })
-    }
-
-    async fn load_wieldable(path: &str, wield_offset: Vec2) -> Result<TextureData, FileError> {
-        let texture = load_texture(path).await?;
-        Ok(TextureData::Regular {
-            texture,
-            dest_size: Vec2::new(texture.width(), texture.height()),
-            wield_offset,
-            directional: true,
-        })
-    }
-
     async fn load_door(path: &str) -> Result<TextureData, FileError> {
         Self::load_mounted(path, 30.).await
     }
@@ -110,6 +76,46 @@ impl TextureData {
 
     pub fn is_displacing(&self) -> bool {
         !matches!(self, TextureData::Mounted { .. })
+    }
+}
+
+struct Builder {
+    path: String,
+    dest_size: Option<Vec2>,
+    wield_offset: Option<Vec2>,
+    directional: bool,
+}
+
+impl Builder {
+    fn new(path: impl Into<String>, directional: bool) -> Self {
+        Builder {
+            path: path.into(),
+            dest_size: None,
+            wield_offset: None,
+            directional,
+        }
+    }
+
+    fn override_size(mut self, x: f32, y: f32) -> Self {
+        self.dest_size = Some(Vec2::new(x, y));
+        self
+    }
+
+    fn wield_offset(mut self, x: f32, y: f32) -> Self {
+        self.wield_offset = Some(Vec2::new(x, y));
+        self
+    }
+
+    async fn build(self) -> Result<TextureData, FileError> {
+        let texture = load_texture(self.path).await?;
+        Ok(TextureData::Regular {
+            texture,
+            dest_size: self
+                .dest_size
+                .unwrap_or_else(|| Vec2::new(texture.width(), texture.height())),
+            wield_offset: self.wield_offset.unwrap_or(Vec2::ZERO),
+            directional: self.directional,
+        })
     }
 }
 
@@ -353,21 +359,21 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
 
     let mut objects = HashMap::new();
 
-    let unknown_texture = load_texture("unknown").await?;
     objects.insert(
         TextureType::Unknown,
-        TextureData::new_static(unknown_texture),
+        Builder::new("unknown", false).build().await?,
     );
     objects.insert(
         TextureType::SmallUnknown,
-        TextureData::Regular {
-            texture: unknown_texture,
-            dest_size: Vec2::new(100., 100.),
-            wield_offset: Vec2::ZERO,
-            directional: false,
-        },
+        Builder::new("unknown", false)
+            .override_size(100., 100.)
+            .build()
+            .await?,
     );
-    objects.insert(TextureType::Ship, TextureData::load_static("ship").await?);
+    objects.insert(
+        TextureType::Ship,
+        Builder::new("ship", false).build().await?,
+    );
     objects.insert(TextureType::Door, TextureData::load_door("door").await?);
     objects.insert(
         TextureType::ShipExit,
@@ -381,55 +387,67 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
     objects.insert(
         TextureType::Goblin,
-        TextureData::load_directional("creature/goblin").await?,
+        Builder::new("creature/goblin", true).build().await?,
     );
     objects.insert(
         TextureType::Eyesaur,
-        TextureData::load_directional("creature/eyesaur").await?,
+        Builder::new("creature/eyesaur", true).build().await?,
     );
     objects.insert(
         TextureType::Azureclops,
-        TextureData::load_directional("creature/azureclops").await?,
+        Builder::new("creature/azureclops", true).build().await?,
     );
     objects.insert(
         item::Type::FuelCan.into(),
-        TextureData::load_directional("item/fuel_can").await?,
+        Builder::new("item/fuel_can", true).build().await?,
     );
     objects.insert(
         item::Type::Crowbar.into(),
-        TextureData::load_wieldable("item/crowbar", Vec2::new(10., -35.)).await?,
+        Builder::new("item/crowbar", true)
+            .wield_offset(10., -35.)
+            .build()
+            .await?,
     );
     objects.insert(
         item::Type::Blowtorch.into(),
-        TextureData::load_directional("item/blowtorch").await?,
+        Builder::new("item/blowtorch", true).build().await?,
     );
     objects.insert(
         item::Type::Keycard.into(),
-        TextureData::load_directional("item/keycard").await?,
+        Builder::new("item/keycard", true).build().await?,
     );
     objects.insert(
         item::Type::Knife.into(),
-        TextureData::load_wieldable("item/knife", Vec2::new(20., -40.)).await?,
+        Builder::new("item/knife", true)
+            .wield_offset(20., -40.)
+            .build()
+            .await?,
     );
     objects.insert(
         item::Type::Bat.into(),
-        TextureData::load_wieldable("item/bat", Vec2::new(30., -30.)).await?,
+        Builder::new("item/bat", true)
+            .wield_offset(30., -30.)
+            .build()
+            .await?,
     );
     objects.insert(
         item::Type::Sword.into(),
-        TextureData::load_wieldable("item/sword", Vec2::new(20., -10.)).await?,
+        Builder::new("item/sword", true)
+            .wield_offset(20., -10.)
+            .build()
+            .await?,
     );
     objects.insert(
         item::Type::Medkit.into(),
-        TextureData::load_directional("item/medkit").await?,
+        Builder::new("item/medkit", true).build().await?,
     );
     objects.insert(
         item::Type::MeteorChunk.into(),
-        TextureData::load_directional("item/meteor_chunk").await?,
+        Builder::new("item/meteor_chunk", true).build().await?,
     );
     objects.insert(
         item::Type::AncientCoin.into(),
-        TextureData::load_directional("item/ancient_coin").await?,
+        Builder::new("item/ancient_coin", true).build().await?,
     );
 
     Ok(TextureStorage {
