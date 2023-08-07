@@ -39,6 +39,7 @@ pub enum TextureData {
     Regular {
         texture: Texture2D,
         dest_size: Vec2,
+        wield_offset: Vec2,
         directional: bool,
     },
     Mounted {
@@ -62,6 +63,7 @@ impl TextureData {
         TextureData::Regular {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
+            wield_offset: Vec2::ZERO,
             directional: false,
         }
     }
@@ -71,6 +73,17 @@ impl TextureData {
         Ok(TextureData::Regular {
             texture,
             dest_size: Vec2::new(texture.width(), texture.height()),
+            wield_offset: Vec2::ZERO,
+            directional: true,
+        })
+    }
+
+    async fn load_wieldable(path: &str, wield_offset: Vec2) -> Result<TextureData, FileError> {
+        let texture = load_texture(path).await?;
+        Ok(TextureData::Regular {
+            texture,
+            dest_size: Vec2::new(texture.width(), texture.height()),
+            wield_offset,
             directional: true,
         })
     }
@@ -104,6 +117,7 @@ pub fn draw_object(
     texture_type: TextureType,
     direction: Direction,
     aftik_color: Option<AftikColor>,
+    use_wield_offset: bool,
     textures: &TextureStorage,
     pos: Vec2,
 ) {
@@ -111,12 +125,22 @@ pub fn draw_object(
         TextureData::Regular {
             texture,
             dest_size,
+            wield_offset,
             directional,
         } => {
+            let mut x = pos.x - dest_size.x / 2.;
+            let mut y = pos.y - dest_size.y;
+            if use_wield_offset {
+                y += wield_offset.y;
+                x += match direction {
+                    Direction::Left => -wield_offset.x,
+                    Direction::Right => wield_offset.x,
+                }
+            }
             draw_texture_ex(
                 *texture,
-                pos.x - dest_size.x / 2.,
-                pos.y - dest_size.y,
+                x,
+                y,
                 WHITE,
                 DrawTextureParams {
                     dest_size: Some(*dest_size),
@@ -339,6 +363,7 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         TextureData::Regular {
             texture: unknown_texture,
             dest_size: Vec2::new(100., 100.),
+            wield_offset: Vec2::ZERO,
             directional: false,
         },
     );
@@ -372,7 +397,7 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     );
     objects.insert(
         item::Type::Crowbar.into(),
-        TextureData::load_directional("item/crowbar").await?,
+        TextureData::load_wieldable("item/crowbar", Vec2::new(10., -35.)).await?,
     );
     objects.insert(
         item::Type::Blowtorch.into(),
@@ -384,15 +409,15 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
     );
     objects.insert(
         item::Type::Knife.into(),
-        TextureData::load_directional("item/knife").await?,
+        TextureData::load_wieldable("item/knife", Vec2::new(20., -40.)).await?,
     );
     objects.insert(
         item::Type::Bat.into(),
-        TextureData::load_directional("item/bat").await?,
+        TextureData::load_wieldable("item/bat", Vec2::new(30., -30.)).await?,
     );
     objects.insert(
         item::Type::Sword.into(),
-        TextureData::load_directional("item/sword").await?,
+        TextureData::load_wieldable("item/sword", Vec2::new(20., -10.)).await?,
     );
     objects.insert(
         item::Type::Medkit.into(),

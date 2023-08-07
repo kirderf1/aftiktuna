@@ -2,7 +2,7 @@ use super::texture::{draw_object, BGTextureType, TextureStorage};
 use super::App;
 use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
-use crate::position::{Coord, Direction};
+use crate::position::Coord;
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use macroquad::camera::set_camera;
 use macroquad::color::BLACK;
@@ -149,15 +149,12 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
             data.texture_type,
             data.direction,
             data.aftik_color,
+            false,
             textures,
             pos,
         );
         if let Some(item_texture) = data.wielded_item {
-            let offset = match data.direction {
-                Direction::Left => Vec2::new(-30., -30.),
-                Direction::Right => Vec2::new(30., -30.),
-            };
-            draw_object(item_texture, data.direction, None, textures, pos + offset);
+            draw_object(item_texture, data.direction, None, true, textures, pos);
         }
     }
 }
