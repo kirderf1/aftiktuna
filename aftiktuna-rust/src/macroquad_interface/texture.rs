@@ -302,6 +302,14 @@ async fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, FileError> {
 }
 
 pub async fn load_textures() -> Result<TextureStorage, FileError> {
+    Ok(TextureStorage {
+        backgrounds: load_backgrounds().await?,
+        objects: load_objects().await?,
+        left_mouse_icon: load_texture("left_mouse").await?,
+    })
+}
+
+async fn load_backgrounds() -> Result<HashMap<BGTextureType, BGTexture>, FileError> {
     let mut backgrounds = HashMap::new();
 
     backgrounds.insert(
@@ -356,7 +364,10 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         BackgroundType::FacilitySize7.into(),
         BGTexture::fixed("7x_facility").await?,
     );
+    Ok(backgrounds)
+}
 
+async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> {
     let mut objects = HashMap::new();
 
     objects.insert(
@@ -449,10 +460,5 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         item::Type::AncientCoin.into(),
         Builder::new("item/ancient_coin", true).build().await?,
     );
-
-    Ok(TextureStorage {
-        backgrounds,
-        objects,
-        left_mouse_icon: load_texture("left_mouse").await?,
-    })
+    Ok(objects)
 }
