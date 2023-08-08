@@ -9,6 +9,7 @@ use macroquad::prelude::{
 };
 use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::hash::Hash;
 
 pub struct TextureStorage {
     backgrounds: HashMap<BGTextureType, BGTexture>,
@@ -306,56 +307,68 @@ async fn load_backgrounds() -> Result<HashMap<BGTextureType, BGTexture>, FileErr
     let mut backgrounds = HashMap::new();
 
     backgrounds.insert(
-        BGTextureType::LocationChoice,
-        BGTexture::centered("location_choice").await?,
-    );
-    backgrounds.insert(
         BGTextureType::Blank,
         BGTexture::centered("white_space").await?,
     );
-    backgrounds.insert(
-        BackgroundType::Ship.into(),
-        BGTexture::centered("ship").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BGTextureType::LocationChoice,
+        BGTexture::centered("location_choice").await,
     );
-    backgrounds.insert(
-        BackgroundType::ForestEntrance.into(),
-        BGTexture::repeating("forest_entrance").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::Ship,
+        BGTexture::centered("ship").await,
     );
-    backgrounds.insert(
-        BackgroundType::Forest.into(),
-        BGTexture::repeating("forest").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::ForestEntrance,
+        BGTexture::repeating("forest_entrance").await,
     );
-    backgrounds.insert(
-        BackgroundType::Field.into(),
-        BGTexture::repeating("field").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::Forest,
+        BGTexture::repeating("forest").await,
     );
-    backgrounds.insert(
-        BackgroundType::Shack.into(),
-        BGTexture::centered("shack").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::Field,
+        BGTexture::repeating("field").await,
     );
-    backgrounds.insert(
-        BackgroundType::FacilityOutside.into(),
-        BGTexture::fixed("facility_outside").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::Shack,
+        BGTexture::centered("shack").await,
     );
-    backgrounds.insert(
-        BackgroundType::FacilitySize3.into(),
-        BGTexture::centered("3x_facility").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::FacilityOutside,
+        BGTexture::fixed("facility_outside").await,
     );
-    backgrounds.insert(
-        BackgroundType::FacilitySize4.into(),
-        BGTexture::centered("4x_facility").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::FacilitySize3,
+        BGTexture::centered("3x_facility").await,
     );
-    backgrounds.insert(
-        BackgroundType::FacilitySize5.into(),
-        BGTexture::centered("5x_facility").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::FacilitySize4,
+        BGTexture::centered("4x_facility").await,
     );
-    backgrounds.insert(
-        BackgroundType::FacilitySize6.into(),
-        BGTexture::centered("6x_facility").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::FacilitySize5,
+        BGTexture::centered("5x_facility").await,
     );
-    backgrounds.insert(
-        BackgroundType::FacilitySize7.into(),
-        BGTexture::fixed("7x_facility").await?,
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::FacilitySize6,
+        BGTexture::centered("6x_facility").await,
+    );
+    insert_or_log(
+        &mut backgrounds,
+        BackgroundType::FacilitySize7,
+        BGTexture::fixed("7x_facility").await,
     );
     Ok(backgrounds)
 }
@@ -374,93 +387,127 @@ async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> 
             .build()
             .await?,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::Ship,
-        Builder::new("ship", false).build().await?,
+        Builder::new("ship", false).build().await,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::Door,
-        Builder::new("door", false).mounted(30.).build().await?,
+        Builder::new("door", false).mounted(30.).build().await,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::ShipExit,
-        Builder::new("ship_exit", false)
-            .mounted(30.)
-            .build()
-            .await?,
+        Builder::new("ship_exit", false).mounted(30.).build().await,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::Shack,
-        Builder::new("shack", false).mounted(30.).build().await?,
+        Builder::new("shack", false).mounted(30.).build().await,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::Path,
-        Builder::new("path", false).mounted(0.).build().await?,
+        Builder::new("path", false).mounted(0.).build().await,
     );
-    objects.insert(TextureType::Aftik, TextureData::load_aftik().await?);
-    objects.insert(
+    insert_or_log(
+        &mut objects,
+        TextureType::Aftik,
+        TextureData::load_aftik().await,
+    );
+    insert_or_log(
+        &mut objects,
         TextureType::Goblin,
-        Builder::new("creature/goblin", true).build().await?,
+        Builder::new("creature/goblin", true).build().await,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::Eyesaur,
-        Builder::new("creature/eyesaur", true).build().await?,
+        Builder::new("creature/eyesaur", true).build().await,
     );
-    objects.insert(
+    insert_or_log(
+        &mut objects,
         TextureType::Azureclops,
-        Builder::new("creature/azureclops", true).build().await?,
+        Builder::new("creature/azureclops", true).build().await,
     );
-    objects.insert(
-        item::Type::FuelCan.into(),
-        Builder::new("item/fuel_can", true).build().await?,
+    insert_or_log(
+        &mut objects,
+        item::Type::FuelCan,
+        Builder::new("item/fuel_can", true).build().await,
     );
-    objects.insert(
-        item::Type::Crowbar.into(),
+    insert_or_log(
+        &mut objects,
+        item::Type::Crowbar,
         Builder::new("item/crowbar", true)
             .wield_offset(10., -35.)
             .build()
-            .await?,
+            .await,
     );
-    objects.insert(
-        item::Type::Blowtorch.into(),
-        Builder::new("item/blowtorch", true).build().await?,
+    insert_or_log(
+        &mut objects,
+        item::Type::Blowtorch,
+        Builder::new("item/blowtorch", true).build().await,
     );
-    objects.insert(
-        item::Type::Keycard.into(),
-        Builder::new("item/keycard", true).build().await?,
+    insert_or_log(
+        &mut objects,
+        item::Type::Keycard,
+        Builder::new("item/keycard", true).build().await,
     );
-    objects.insert(
-        item::Type::Knife.into(),
+    insert_or_log(
+        &mut objects,
+        item::Type::Knife,
         Builder::new("item/knife", true)
             .wield_offset(20., -40.)
             .build()
-            .await?,
+            .await,
     );
-    objects.insert(
-        item::Type::Bat.into(),
+    insert_or_log(
+        &mut objects,
+        item::Type::Bat,
         Builder::new("item/bat", true)
             .wield_offset(30., -30.)
             .build()
-            .await?,
+            .await,
     );
-    objects.insert(
-        item::Type::Sword.into(),
+    insert_or_log(
+        &mut objects,
+        item::Type::Sword,
         Builder::new("item/sword", true)
             .wield_offset(20., -10.)
             .build()
-            .await?,
+            .await,
     );
-    objects.insert(
-        item::Type::Medkit.into(),
-        Builder::new("item/medkit", true).build().await?,
+    insert_or_log(
+        &mut objects,
+        item::Type::Medkit,
+        Builder::new("item/medkit", true).build().await,
     );
-    objects.insert(
-        item::Type::MeteorChunk.into(),
-        Builder::new("item/meteor_chunk", true).build().await?,
+    insert_or_log(
+        &mut objects,
+        item::Type::MeteorChunk,
+        Builder::new("item/meteor_chunk", true).build().await,
     );
-    objects.insert(
-        item::Type::AncientCoin.into(),
-        Builder::new("item/ancient_coin", true).build().await?,
+    insert_or_log(
+        &mut objects,
+        item::Type::AncientCoin,
+        Builder::new("item/ancient_coin", true).build().await,
     );
     Ok(objects)
+}
+
+fn insert_or_log<K: Eq + Hash, V>(
+    objects: &mut HashMap<K, V>,
+    key: impl Into<K>,
+    result: Result<V, FileError>,
+) {
+    match result {
+        Ok(value) => {
+            objects.insert(key.into(), value);
+        }
+        Err(error) => {
+            eprintln!("Unable to load texture: {error}")
+        }
+    }
 }
