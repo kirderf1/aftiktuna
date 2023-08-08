@@ -1,5 +1,6 @@
 use crate::action::CrewMember;
 use crate::area::Area;
+use crate::view::NameData;
 use hecs::{Entity, World};
 use std::cmp::{max, min, Ordering};
 
@@ -90,17 +91,15 @@ pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(
         return Ok(());
     }
 
-    if is_blocked(world, entity, position, destination) {
-        Err("Something is in the way.".to_string())
-    } else {
-        world
-            .insert(
-                entity,
-                (destination, Direction::between(position, destination)),
-            )
-            .unwrap();
-        Ok(())
-    }
+    check_is_blocked(world, entity, position, destination).map_err(Blockage::into_message)?;
+
+    world
+        .insert(
+            entity,
+            (destination, Direction::between(position, destination)),
+        )
+        .unwrap();
+    Ok(())
 }
 
 pub fn try_move_adjacent(world: &mut World, entity: Entity, target: Pos) -> Result<(), String> {
@@ -115,25 +114,43 @@ pub fn try_move_adjacent(world: &mut World, entity: Entity, target: Pos) -> Resu
     }
 }
 
-pub fn is_blocked(world: &World, entity: Entity, entity_pos: Pos, target_pos: Pos) -> bool {
+pub struct Blockage(Entity, NameData);
+
+impl Blockage {
+    pub fn into_message(self) -> String {
+        format!("{} is in the way.", self.1.definite())
+    }
+}
+
+pub fn check_is_blocked(
+    world: &World,
+    entity: Entity,
+    entity_pos: Pos,
+    target_pos: Pos,
+) -> Result<(), Blockage> {
     if world.get::<&CrewMember>(entity).is_err() {
-        return false; //Only aftiks are blocked.
+        return Ok(()); //Only aftiks are blocked.
     }
 
     if entity_pos.get_coord() == target_pos.get_coord() {
-        return false;
+        return Ok(());
     }
 
     let adjacent_pos = entity_pos.get_adjacent_towards(target_pos);
     let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
     let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
-    world
+    if let Some((entity, _)) = world
         .query::<&Pos>()
         .with::<&MovementBlocking>()
         .iter()
-        .any(|(_, pos)| {
+        .find(|(_, pos)| {
             pos.is_in(entity_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
         })
+    {
+        Err(Blockage(entity, NameData::find(world, entity)))
+    } else {
+        Ok(())
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq)]

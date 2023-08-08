@@ -4,7 +4,7 @@ use crate::action::{combat, door, Action, CrewMember, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
-use crate::position::Pos;
+use crate::position::{Blockage, Pos};
 use crate::status::Health;
 use crate::view::NameData;
 use crate::{command, game_loop, item, position, status};
@@ -409,7 +409,7 @@ fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
 
 enum Inaccessible {
     NotHere,
-    Blocked,
+    Blocked(Blockage),
 }
 
 impl Inaccessible {
@@ -420,8 +420,14 @@ impl Inaccessible {
                 NameData::find(world, character).definite(),
                 NameData::find(world, target).definite()
             ),
-            Inaccessible::Blocked => "Something is in the way.".to_string(),
+            Inaccessible::Blocked(blockage) => blockage.into_message(),
         }
+    }
+}
+
+impl From<Blockage> for Inaccessible {
+    fn from(value: Blockage) -> Self {
+        Inaccessible::Blocked(value)
     }
 }
 
@@ -450,12 +456,12 @@ fn check_accessible(world: &World, character: Entity, target: Entity) -> Result<
     let target_pos = *world
         .get::<&Pos>(target)
         .map_err(|_| Inaccessible::NotHere)?;
+
     if !character_pos.is_in(target_pos.get_area()) {
         return Err(Inaccessible::NotHere);
     }
-    if position::is_blocked(world, character, character_pos, target_pos) {
-        return Err(Inaccessible::Blocked);
-    }
+    position::check_is_blocked(world, character, character_pos, target_pos)?;
+
     Ok(())
 }
 
@@ -474,8 +480,6 @@ fn check_adjacent_accessible(
         return Err(Inaccessible::NotHere);
     }
     let target_pos = target_pos.get_adjacent_towards(character_pos);
-    if position::is_blocked(world, character, character_pos, target_pos) {
-        return Err(Inaccessible::Blocked);
-    }
+    position::check_is_blocked(world, character, character_pos, target_pos)?;
     Ok(())
 }
