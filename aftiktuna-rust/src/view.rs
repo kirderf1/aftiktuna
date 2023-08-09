@@ -47,7 +47,7 @@ impl<T: AsRef<str>> From<T> for Messages {
 #[derive(Clone, Debug)]
 pub struct DisplayInfo {
     symbol: char,
-    texture_type: TextureType,
+    pub texture_type: TextureType,
     weight: u32,
 }
 
@@ -325,6 +325,7 @@ pub enum TextureType {
     SmallUnknown,
     Ship,
     Door,
+    CutDoor,
     ShipExit,
     Shack,
     Path,

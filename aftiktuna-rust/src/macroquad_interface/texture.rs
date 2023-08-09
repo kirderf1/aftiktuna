@@ -399,6 +399,11 @@ async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> 
     );
     insert_or_log(
         &mut objects,
+        TextureType::CutDoor,
+        Builder::new("cut_door", false).mounted(15.).build().await,
+    );
+    insert_or_log(
+        &mut objects,
         TextureType::ShipExit,
         Builder::new("ship_exit", false).mounted(30.).build().await,
     );
