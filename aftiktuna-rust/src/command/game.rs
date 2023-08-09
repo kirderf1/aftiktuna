@@ -328,9 +328,10 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     }
 
     let need_rest = world
-        .get::<&status::Stamina>(character)
-        .map(|stamina| stamina.need_rest())
-        .unwrap_or(false);
+        .query::<(&status::Stamina, &Pos)>()
+        .with::<&CrewMember>()
+        .iter()
+        .any(|(_, (stamina, pos))| pos.is_in(area) && stamina.need_rest());
 
     if need_rest {
         command::action_result(Action::Rest(true))

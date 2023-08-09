@@ -113,21 +113,21 @@ fn perform(
     }
 }
 
-fn rest(world: &mut World, performer: Entity, first: bool) -> Result {
+fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Result {
+    let area = world.get::<&Pos>(performer).unwrap().get_area();
+
     let need_more_rest = world
-        .get::<&status::Stamina>(performer)
-        .map(|stamina| stamina.need_more_rest())
-        .unwrap_or(false);
+        .query::<(&status::Stamina, &Pos)>()
+        .with::<&CrewMember>()
+        .iter()
+        .any(|(_, (stamina, pos))| pos.is_in(area) && stamina.need_more_rest());
 
     if need_more_rest {
         world.insert_one(performer, Rest(false)).unwrap();
     }
 
-    if first {
-        ok(format!(
-            "{} takes some time to rest up.",
-            NameData::find(world, performer).definite()
-        ))
+    if first_turn_resting {
+        ok("The crew takes some time to rest up.".to_string())
     } else {
         silent_ok()
     }
