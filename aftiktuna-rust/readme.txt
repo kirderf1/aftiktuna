@@ -32,6 +32,6 @@ When trading at a store, there are the following commands:
 - status
 
 Notes:
-- "rest" doesn't heal health, instead it waits until stamina (a poorly visible stat that helps with dodging attacks) has recovered for the controlled character.
+- "rest" doesn't heal health, instead it waits until stamina (a poorly visible stat that helps with dodging attacks) has recovered for the crew.
 - Use the mouse to drag the camera view in larger areas indicated by white arrows. You can also use the mouse to see the name of objects in view. You can't use the mouse to give commands yet (but that might be added in future versions!).
 - Save files do not exist at the moment. The game is not saved when the application is closed.
