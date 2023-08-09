@@ -122,24 +122,25 @@ pub fn draw_tooltip(mouse_pos: Vec2, hovered_objects: Vec<&String>) {
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub fn egui_ui(app: &mut App, ctx: &egui::Context) {
-    egui::TopBottomPanel::bottom("input").show(ctx, |ui| egui_input_field(app, ctx, ui));
+    egui::TopBottomPanel::bottom("input").show(ctx, |ui| egui_input_field(app, ui));
 
     if !app.show_graphical {
         egui::CentralPanel::default().show(ctx, |ui| egui_text_box(&app.render_state.text_log, ui));
     }
 }
 
-fn egui_input_field(app: &mut App, ctx: &egui::Context, ui: &mut egui::Ui) {
+fn egui_input_field(app: &mut App, ui: &mut egui::Ui) {
     let response = ui.add_enabled(
         app.ready_to_take_input(),
         egui::TextEdit::singleline(&mut app.input)
             .font(FONT)
-            .desired_width(f32::INFINITY),
+            .desired_width(f32::INFINITY)
+            .lock_focus(true),
     );
 
     if response.lost_focus() && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter)) {
         app.handle_input();
-        ctx.memory_mut(|memory| memory.request_focus(response.id));
+        response.request_focus();
     }
 }
 
