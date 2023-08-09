@@ -8,7 +8,7 @@ use macroquad::camera::set_camera;
 use macroquad::color::BLACK;
 use macroquad::prelude::{
     clamp, clear_background, draw_text, is_mouse_button_down, is_mouse_button_pressed,
-    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Texture2D, Vec2, WHITE,
+    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Vec2, WHITE,
 };
 use std::collections::HashMap;
 
