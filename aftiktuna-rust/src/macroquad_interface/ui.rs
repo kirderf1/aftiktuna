@@ -5,7 +5,10 @@ use egui_macroquad::egui;
 use macroquad::color::{Color, WHITE};
 use macroquad::input::mouse_position;
 use macroquad::math::{Rect, Vec2};
-use macroquad::prelude::{draw_rectangle, draw_text, draw_texture, get_time, measure_text};
+use macroquad::prelude::{
+    draw_rectangle, draw_text, draw_texture, draw_texture_ex, get_time, measure_text,
+    DrawTextureParams, Texture2D,
+};
 
 pub const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 pub const TEXT_BOX_TEXT_SIZE: u16 = 16;
@@ -157,4 +160,33 @@ fn egui_text_box(text_log: &Vec<String>, ui: &mut egui::Ui) {
                 ui.label(egui::RichText::new(text).font(FONT));
             }
         });
+}
+
+pub(crate) fn draw_camera_arrows(side_arrow: Texture2D, has_camera_space: [bool; 2]) {
+    let alpha = ((get_time() * 3.).sin() + 1.) / 2.;
+    let color = Color::new(1., 1., 1., alpha as f32);
+    if has_camera_space[0] {
+        draw_texture_ex(
+            side_arrow,
+            10.,
+            250. - side_arrow.height() / 2.,
+            color,
+            DrawTextureParams {
+                flip_x: true,
+                ..Default::default()
+            },
+        )
+    }
+    if has_camera_space[1] {
+        draw_texture_ex(
+            side_arrow,
+            790. - side_arrow.width(),
+            250. - side_arrow.height() / 2.,
+            color,
+            DrawTextureParams {
+                flip_x: false,
+                ..Default::default()
+            },
+        )
+    }
 }

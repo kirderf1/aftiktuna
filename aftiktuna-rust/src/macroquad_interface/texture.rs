@@ -15,6 +15,7 @@ pub struct TextureStorage {
     backgrounds: HashMap<BGTextureType, BGTexture>,
     objects: HashMap<TextureType, TextureData>,
     pub left_mouse_icon: Texture2D,
+    pub side_arrow: Texture2D,
 }
 
 impl TextureStorage {
@@ -300,6 +301,7 @@ pub async fn load_textures() -> Result<TextureStorage, FileError> {
         backgrounds: load_backgrounds().await?,
         objects: load_objects().await?,
         left_mouse_icon: load_texture("left_mouse").await?,
+        side_arrow: load_texture("side_arrow").await?,
     })
 }
 

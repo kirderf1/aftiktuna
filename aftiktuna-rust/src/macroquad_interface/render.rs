@@ -8,7 +8,7 @@ use macroquad::camera::set_camera;
 use macroquad::color::BLACK;
 use macroquad::prelude::{
     clamp, clear_background, draw_text, is_mouse_button_down, is_mouse_button_pressed,
-    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Vec2, WHITE,
+    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Texture2D, Vec2, WHITE,
 };
 use std::collections::HashMap;
 
@@ -125,6 +125,11 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                 Vec2::new(state.camera.x, state.camera.y),
             );
             set_default_camera();
+
+            ui::draw_camera_arrows(
+                textures.side_arrow,
+                has_camera_space(state.camera, render_data),
+            );
         }
         ViewState::Store(view) => {
             const TEXT_SIZE: f32 = 32.;
@@ -231,6 +236,17 @@ fn try_drag_camera(state: &mut State) {
         _ => {
             state.last_drag_pos = None;
         }
+    }
+}
+
+fn has_camera_space(camera: Rect, render_data: &RenderData) -> [bool; 2] {
+    if render_data.size <= 6 {
+        [false, false]
+    } else {
+        [
+            camera.left() > coord_to_center_x(0) - 100.,
+            camera.right() < coord_to_center_x(render_data.size - 1) + 100.,
+        ]
     }
 }
 
