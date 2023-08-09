@@ -140,7 +140,11 @@ fn egui_input_field(app: &mut App, ui: &mut egui::Ui) {
 
     if response.lost_focus() && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter)) {
         app.handle_input();
+    }
+
+    if app.request_input_focus {
         response.request_focus();
+        app.request_input_focus = false;
     }
 }
 

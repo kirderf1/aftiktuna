@@ -50,6 +50,7 @@ fn init(locations: Locations) -> App {
         delayed_frames: Default::default(),
         render_state: render::State::new(),
         show_graphical: true,
+        request_input_focus: false,
     }
 }
 
@@ -60,6 +61,7 @@ pub struct App {
     delayed_frames: DelayedFrames,
     render_state: render::State,
     show_graphical: bool,
+    request_input_focus: bool,
 }
 
 #[derive(Eq, PartialEq)]
@@ -127,10 +129,9 @@ impl App {
     }
 
     fn show_frame(&mut self, frame: Frame) {
-        self.render_state.show_frame(
-            frame,
-            self.delayed_frames.is_done() && self.state != GameState::Done,
-        );
+        let ready_for_input = self.delayed_frames.is_done() && self.state != GameState::Done;
+        self.render_state.show_frame(frame, ready_for_input);
+        self.request_input_focus = ready_for_input;
     }
 
     fn update_game_state(&mut self) {
@@ -166,6 +167,7 @@ impl App {
             self.render_state.add_to_text_log(format!("> {input}"));
             if let Err(messages) = self.game.handle_input(&input) {
                 self.render_state.show_input_error(messages);
+                self.request_input_focus = true;
             } else {
                 self.state = GameState::Run;
             }
