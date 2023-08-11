@@ -37,6 +37,7 @@ pub enum Action {
     Buy(crate::item::Type, u16),
     Sell(Vec<Entity>),
     ExitTrade,
+    OpenChest(Entity),
 }
 
 pub fn tick(world: &mut World, rng: &mut impl Rng, messages: &mut Messages, aftik: Entity) {
@@ -72,6 +73,7 @@ fn perform(
     messages: &mut Messages,
 ) {
     let result = match action {
+        OpenChest(chest) => open_chest(world, performer, chest),
         TakeItem(item, name) => item::take_item(world, performer, item, name),
         TakeAll => item::take_all(world, performer),
         GiveItem(item, receiver) => item::give_item(world, performer, item, receiver),
@@ -154,6 +156,30 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
         )
         .unwrap();
     ok(format!("{} joined the crew!", name))
+}
+
+pub struct FortunaChest;
+
+pub struct OpenedChest;
+
+fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
+    let chest_pos = *world.get::<&Pos>(chest).unwrap();
+
+    try_move_adjacent(world, performer, chest_pos)?;
+
+    if world.get::<&FortunaChest>(chest).is_err() {
+        return Err(format!(
+            "{} tried to open {}, but that is not the fortuna chest!",
+            NameData::find(world, performer).definite(),
+            NameData::find(world, chest).definite()
+        ));
+    }
+
+    world.insert_one(performer, OpenedChest).unwrap();
+    ok(format!(
+        "{} opened the fortuna chest and found the item that they desired the most.",
+        NameData::find(world, performer).definite()
+    ))
 }
 
 type Result = result::Result<Success, String>;

@@ -1,4 +1,4 @@
-use crate::action::{combat, item, Action, CrewMember};
+use crate::action::{combat, item, Action, CrewMember, OpenedChest};
 use crate::area::{Locations, PickResult, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
@@ -266,6 +266,12 @@ fn check_player_state(game: &mut Game, view_buffer: &mut view::Buffer) -> Result
             .ok_or(StopType::Lose)?;
         game.change_character(next_character, view_buffer);
     }
+
+    if game.world.get::<&OpenedChest>(game.controlled).is_ok() {
+        view_buffer.capture_view(&game.world, game.controlled, &mut game.cache);
+        return Err(StopType::Win);
+    }
+
     Ok(())
 }
 

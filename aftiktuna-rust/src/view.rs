@@ -323,6 +323,7 @@ pub struct ObjectRenderData {
 pub enum TextureType {
     Unknown,
     SmallUnknown,
+    FortunaChest,
     Ship,
     Door,
     CutDoor,

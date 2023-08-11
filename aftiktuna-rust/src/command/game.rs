@@ -1,6 +1,6 @@
 use crate::action::item::{is_holding, Held};
 use crate::action::trade::Shopkeeper;
-use crate::action::{combat, door, Action, CrewMember, Recruitable};
+use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
@@ -72,6 +72,13 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
                 |input| Err(format!("\"{}\" not a valid recruitment target", input)),
             )
         })
+        .literal("open", |parse| {
+            parse.match_against(
+                fortuna_chest_targets(world, character),
+                |parse, target| parse.done_or_err(|| open(world, character, target)),
+                |input| Err(format!("\"{}\" not a valid target", input)),
+            )
+        })
         .or_else_err(|| format!("Unexpected input: \"{}\"", input))
 }
 
@@ -99,7 +106,7 @@ fn crew_targets(world: &World) -> Vec<(String, Entity)> {
         .with::<&CrewMember>()
         .iter()
         .map(|(entity, name)| (name.base().to_lowercase(), entity))
-        .collect::<Vec<_>>()
+        .collect()
 }
 
 fn take(item_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -406,6 +413,23 @@ fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
         .map(|(entity, (name, _))| (name.base().to_lowercase(), entity))
         .collect::<Vec<_>>()
+}
+
+fn fortuna_chest_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
+    let character_pos = *world.get::<&Pos>(character).unwrap();
+    world
+        .query::<(&NameData, &Pos)>()
+        .with::<&FortunaChest>()
+        .iter()
+        .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
+        .map(|(entity, (name, _))| (name.base().to_lowercase(), entity))
+        .collect()
+}
+
+fn open(world: &World, character: Entity, chest: Entity) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(world, character, chest)?;
+
+    command::action_result(Action::OpenChest(chest))
 }
 
 enum Inaccessible {

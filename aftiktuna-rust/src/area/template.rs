@@ -1,10 +1,11 @@
 use crate::action::door::BlockType;
+use crate::action::FortunaChest;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area, BackgroundType};
 use crate::item;
 use crate::position::{Coord, Pos};
 use crate::status::Stats;
-use crate::view::AftikColor;
+use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use hecs::World;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -251,7 +252,17 @@ fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), Str
         'G' => creature::place_goblin(builder.world, pos),
         'E' => creature::place_eyesaur(builder.world, pos),
         'Z' => creature::place_azureclops(builder.world, pos),
+        '¤' => place_fortuna_chest(builder.world, pos),
         _ => return Err(format!("Unknown symbol \"{}\"", symbol)),
     }
     Ok(())
+}
+
+fn place_fortuna_chest(world: &mut World, pos: Pos) {
+    world.spawn((
+        DisplayInfo::new('¤', TextureType::FortunaChest, 20),
+        NameData::from_noun("fortuna chest", "fortuna chests"),
+        pos,
+        FortunaChest,
+    ));
 }
