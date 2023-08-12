@@ -10,7 +10,12 @@ use crate::view::NameData;
 use crate::{command, game_loop, item, position, status};
 use hecs::{Entity, World};
 
-pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
+pub fn parse(
+    input: &str,
+    world: &World,
+    character: Entity,
+    is_at_fortuna: bool,
+) -> Result<CommandResult, String> {
     Parse::new(input)
         .literal("take", |parse| {
             parse
@@ -32,7 +37,7 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
             parse.take_remaining(|item_name| wield(item_name, world, character))
         })
         .literal("use", |parse| {
-            parse.take_remaining(|item_name| use_item(world, character, item_name))
+            parse.take_remaining(|item_name| use_item(world, character, item_name, is_at_fortuna))
         })
         .literal("enter", |parse| {
             parse.take_remaining(|door_name| enter(door_name, world, character))
@@ -52,7 +57,7 @@ pub fn parse(input: &str, world: &World, character: Entity) -> Result<CommandRes
         .literal("launch", |parse| {
             parse
                 .literal("ship", |parse| {
-                    parse.done_or_err(|| launch_ship(world, character))
+                    parse.done_or_err(|| launch_ship(world, character, is_at_fortuna))
                 })
                 .or_else_err(|| "Unexpected argument after \"launch\"".to_string())
         })
@@ -217,7 +222,12 @@ fn wieldable_item_from_ground(
         .map(|(item, (_, name))| (item, name.clone()))
 }
 
-fn use_item(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
+fn use_item(
+    world: &World,
+    character: Entity,
+    item_name: &str,
+    is_at_fortuna: bool,
+) -> Result<CommandResult, String> {
     let item = world
         .query::<(&Held, &NameData)>()
         .iter()
@@ -227,7 +237,7 @@ fn use_item(world: &World, character: Entity, item_name: &str) -> Result<Command
         .0;
 
     if world.get::<&item::FuelCan>(item).is_ok() {
-        launch_ship(world, character)
+        launch_ship(world, character, is_at_fortuna)
     } else if world.get::<&item::Medkit>(item).is_ok() {
         if !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
@@ -350,7 +360,15 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     }
 }
 
-fn launch_ship(world: &World, character: Entity) -> Result<CommandResult, String> {
+fn launch_ship(
+    world: &World,
+    character: Entity,
+    is_at_fortuna: bool,
+) -> Result<CommandResult, String> {
+    if is_at_fortuna {
+        return Err("You are already at your final destination. You should find the fortuna chest before leaving!".to_string());
+    }
+
     let area = world.get::<&Pos>(character).unwrap().get_area();
     if !is_holding::<item::FuelCan>(world, character) {
         return Err(format!(

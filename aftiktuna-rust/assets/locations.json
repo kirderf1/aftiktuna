@@ -20,5 +20,8 @@
         "location/village"
       ]
     }
+  ],
+  "fortuna_locations": [
+    "location/fortuna"
   ]
 }

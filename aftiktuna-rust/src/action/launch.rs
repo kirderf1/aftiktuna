@@ -6,7 +6,11 @@ use crate::position::Pos;
 use crate::view::NameData;
 use hecs::{Entity, World};
 
-pub fn perform(world: &mut World, performer: Entity) -> action::Result {
+pub fn perform(world: &mut World, performer: Entity, is_at_fortuna: bool) -> action::Result {
+    if is_at_fortuna {
+        return Err("You can't leave fortuna yet!".to_string());
+    }
+
     let area = world.get::<&Pos>(performer).unwrap().get_area();
     let name = NameData::find(world, performer).definite();
 

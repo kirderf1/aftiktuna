@@ -40,7 +40,13 @@ pub enum Action {
     OpenChest(Entity),
 }
 
-pub fn tick(world: &mut World, rng: &mut impl Rng, messages: &mut Messages, aftik: Entity) {
+pub fn tick(
+    world: &mut World,
+    rng: &mut impl Rng,
+    messages: &mut Messages,
+    aftik: Entity,
+    is_at_fortuna: bool,
+) {
     let mut entities = world
         .query::<&status::Stats>()
         .with::<&Action>()
@@ -59,7 +65,7 @@ pub fn tick(world: &mut World, rng: &mut impl Rng, messages: &mut Messages, afti
         }
 
         if let Ok(action) = world.remove_one::<Action>(entity) {
-            perform(world, rng, entity, action, aftik, messages);
+            perform(world, rng, entity, action, aftik, messages, is_at_fortuna);
         }
     }
 }
@@ -71,6 +77,7 @@ fn perform(
     action: Action,
     controlled: Entity,
     messages: &mut Messages,
+    is_at_fortuna: bool,
 ) {
     let result = match action {
         OpenChest(chest) => open_chest(world, performer, chest),
@@ -85,7 +92,7 @@ fn perform(
         AttackNearest(target) => combat::attack_nearest(world, rng, performer, target),
         Wait => silent_ok(),
         Rest(first) => rest(world, performer, first),
-        Launch => launch::perform(world, performer),
+        Launch => launch::perform(world, performer, is_at_fortuna),
         Recruit(target) => recruit(world, performer, target),
         Trade(shopkeeper) => trade::trade(world, performer, shopkeeper),
         Buy(item_type, amount) => trade::buy(world, performer, item_type, amount),

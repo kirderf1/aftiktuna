@@ -54,37 +54,52 @@ pub enum ShipStatus {
     Launching,
 }
 
+#[derive(Eq, PartialEq)]
+enum TrackedState {
+    BeforeFortuna { remaining_locations_count: i32 },
+    AtFortuna,
+}
+
 pub struct LocationTracker {
     locations: Locations,
-    count_until_win: i32,
+    state: TrackedState,
 }
 
 impl LocationTracker {
-    pub fn new(count_until_win: i32) -> Self {
+    pub fn new(locations_before_fortuna: i32) -> Self {
         Self {
             locations: load_locations()
                 .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {}", message)),
-            count_until_win,
+            state: TrackedState::BeforeFortuna {
+                remaining_locations_count: locations_before_fortuna,
+            },
         }
     }
 
     pub fn single(location: String) -> Self {
         Self {
             locations: Locations::single(location),
-            count_until_win: 1,
+            state: TrackedState::BeforeFortuna {
+                remaining_locations_count: 1,
+            },
         }
     }
 
     pub fn next(&mut self, rng: &mut impl Rng) -> PickResult {
-        if self.count_until_win <= 0 {
-            return PickResult::None;
-        }
+        match &mut self.state {
+            TrackedState::AtFortuna => PickResult::None,
+            TrackedState::BeforeFortuna {
+                remaining_locations_count,
+            } => {
+                if *remaining_locations_count <= 0 {
+                    self.state = TrackedState::AtFortuna;
+                    return self.locations.pick_fortuna_location(rng);
+                }
 
-        let result = self.locations.next(rng);
-        if matches!(result, PickResult::Location(_)) {
-            self.count_until_win -= 1;
+                *remaining_locations_count -= 1;
+                self.locations.next(rng)
+            }
         }
-        result
     }
 
     pub fn try_make_choice(
@@ -97,8 +112,11 @@ impl LocationTracker {
             .try_choose(input)
             .ok_or_else(|| format!("Unexpected input: \"{input}\""))?;
 
-        self.count_until_win -= 1;
         Ok(self.locations.pick_from_category(category_index, rng))
+    }
+
+    pub fn is_at_fortuna(&self) -> bool {
+        self.state == TrackedState::AtFortuna
     }
 }
 
@@ -106,6 +124,7 @@ impl LocationTracker {
 #[serde(rename_all = "snake_case")]
 pub struct Locations {
     pub categories: Vec<Category>,
+    pub fortuna_locations: Vec<String>,
 }
 
 impl Locations {
@@ -115,6 +134,7 @@ impl Locations {
                 name: "test".to_string(),
                 location_names: vec![location],
             }],
+            fortuna_locations: vec![],
         }
     }
 
@@ -144,6 +164,16 @@ impl Locations {
             self.categories.remove(category_index);
         }
         chosen_location
+    }
+
+    fn pick_fortuna_location(&mut self, rng: &mut impl Rng) -> PickResult {
+        if self.fortuna_locations.is_empty() {
+            return PickResult::None;
+        }
+        let location = self
+            .fortuna_locations
+            .remove(rng.gen_range(0..self.fortuna_locations.len()));
+        PickResult::Location(location)
     }
 }
 

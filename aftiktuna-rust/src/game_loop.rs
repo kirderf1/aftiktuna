@@ -120,7 +120,12 @@ impl Game {
                 self.state = State::Load(location);
             }
             State::CommandInput => {
-                match command::try_parse_input(input, &self.world, self.controlled)? {
+                match command::try_parse_input(
+                    input,
+                    &self.world,
+                    self.controlled,
+                    self.locations.is_at_fortuna(),
+                )? {
                     CommandResult::Action(action, target) => {
                         insert_action(&mut self.world, self.controlled, action, target);
                         self.state = State::AtLocation;
@@ -193,7 +198,13 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
 
     ai::tick(world);
 
-    action::tick(world, &mut game.rng, &mut view_buffer.messages, controlled);
+    action::tick(
+        world,
+        &mut game.rng,
+        &mut view_buffer.messages,
+        controlled,
+        game.locations.is_at_fortuna(),
+    );
 
     detect_low_health(world, &mut view_buffer.messages, controlled);
 
