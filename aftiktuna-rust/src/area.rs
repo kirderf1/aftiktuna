@@ -54,55 +54,37 @@ pub enum ShipStatus {
     Launching,
 }
 
-pub struct Locations {
-    categories: Vec<Category>,
+pub struct LocationTracker {
+    locations: Locations,
     count_until_win: i32,
 }
 
-impl Locations {
+impl LocationTracker {
     pub fn new(count_until_win: i32) -> Self {
-        let categories = load_location_categories()
-            .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {}", message));
-        Locations {
-            categories,
+        Self {
+            locations: load_locations()
+                .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {}", message)),
             count_until_win,
         }
     }
 
     pub fn single(location: String) -> Self {
-        Locations {
-            categories: vec![Category {
-                name: "test".to_string(),
-                location_names: vec![location],
-            }],
+        Self {
+            locations: Locations::single(location),
             count_until_win: 1,
         }
     }
 
     pub fn next(&mut self, rng: &mut impl Rng) -> PickResult {
-        if self.count_until_win <= 0 || self.categories.is_empty() {
+        if self.count_until_win <= 0 {
             return PickResult::None;
         }
 
-        match self.pick_category(rng) {
-            Ok(category_index) => {
-                PickResult::Location(self.pick_from_category(category_index, rng))
-            }
-            Err(choice) => PickResult::Choice(choice),
+        let result = self.locations.next(rng);
+        if matches!(result, PickResult::Location(_)) {
+            self.count_until_win -= 1;
         }
-    }
-
-    fn pick_category(&self, rng: &mut impl Rng) -> Result<usize, Choice> {
-        if self.categories.len() == 1 {
-            return Ok(0);
-        }
-
-        let alternatives = index::sample(rng, self.categories.len(), 2)
-            .into_iter()
-            .map(|index| (index, self.categories[index].name.clone()))
-            .collect::<Vec<_>>();
-
-        Err(Choice(alternatives))
+        result
     }
 
     pub fn try_make_choice(
@@ -111,14 +93,49 @@ impl Locations {
         input: &str,
         rng: &mut impl Rng,
     ) -> Result<String, String> {
-        choice
+        let category_index = choice
             .try_choose(input)
-            .map(|category_index| self.pick_from_category(category_index, rng))
-            .ok_or_else(|| format!("Unexpected input: \"{input}\""))
+            .ok_or_else(|| format!("Unexpected input: \"{input}\""))?;
+
+        self.count_until_win -= 1;
+        Ok(self.locations.pick_from_category(category_index, rng))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub struct Locations {
+    pub categories: Vec<Category>,
+}
+
+impl Locations {
+    fn single(location: String) -> Self {
+        Locations {
+            categories: vec![Category {
+                name: "test".to_string(),
+                location_names: vec![location],
+            }],
+        }
+    }
+
+    fn next(&mut self, rng: &mut impl Rng) -> PickResult {
+        if self.categories.is_empty() {
+            return PickResult::None;
+        }
+
+        if self.categories.len() == 1 {
+            return PickResult::Location(self.pick_from_category(0, rng));
+        }
+
+        let alternatives = index::sample(rng, self.categories.len(), 2)
+            .into_iter()
+            .map(|index| (index, self.categories[index].name.clone()))
+            .collect::<Vec<_>>();
+
+        PickResult::Choice(Choice(alternatives))
     }
 
     fn pick_from_category(&mut self, category_index: usize, rng: &mut impl Rng) -> String {
-        self.count_until_win -= 1;
         let category = self.categories.get_mut(category_index).unwrap();
         let chosen_location = category
             .location_names
@@ -161,11 +178,10 @@ impl Choice {
     }
 }
 
-pub fn load_location_categories() -> Result<Vec<Category>, String> {
+pub fn load_locations() -> Result<Locations, String> {
     let file = File::open("assets/locations.json")
         .map_err(|error| format!("Failed to open file: {}", error))?;
-    serde_json::from_reader::<_, Vec<Category>>(file)
-        .map_err(|error| format!("Failed to parse file: {}", error))
+    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {}", error))
 }
 
 #[derive(Serialize, Deserialize)]

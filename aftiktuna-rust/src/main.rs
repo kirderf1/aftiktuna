@@ -1,4 +1,4 @@
-use aftiktuna::area::Locations;
+use aftiktuna::area::LocationTracker;
 use aftiktuna::macroquad_interface;
 use macroquad::prelude::Conf;
 
@@ -15,5 +15,5 @@ fn config() -> Conf {
 
 #[macroquad::main(config)]
 async fn main() {
-    macroquad_interface::run(Locations::new(3)).await;
+    macroquad_interface::run(LocationTracker::new(3)).await;
 }

@@ -1,5 +1,5 @@
 use crate::action::{combat, item, Action, CrewMember, OpenedChest};
-use crate::area::{Locations, PickResult, Ship, ShipStatus};
+use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::command::{CommandResult, Target};
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
@@ -9,7 +9,7 @@ use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
 
-pub fn setup(locations: Locations) -> Game {
+pub fn setup(locations: LocationTracker) -> Game {
     let mut world = World::new();
     let rng = thread_rng();
 
@@ -42,7 +42,7 @@ pub struct Game {
     has_introduced_controlled: bool,
     ship: Entity,
     state: State,
-    locations: Locations,
+    locations: LocationTracker,
     cache: StatusCache,
 }
 

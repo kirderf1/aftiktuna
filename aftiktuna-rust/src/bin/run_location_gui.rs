@@ -1,4 +1,4 @@
-use aftiktuna::area::Locations;
+use aftiktuna::area::LocationTracker;
 use aftiktuna::macroquad_interface;
 use macroquad::prelude::Conf;
 use std::env;
@@ -18,5 +18,5 @@ fn config() -> Conf {
 async fn main() {
     let args: Vec<String> = env::args().collect();
     let location = args[1].to_string();
-    macroquad_interface::run(Locations::single(location)).await;
+    macroquad_interface::run(LocationTracker::single(location)).await;
 }

@@ -1,4 +1,4 @@
-use crate::area::Locations;
+use crate::area::LocationTracker;
 use crate::game_loop::{Game, TakeInput};
 use crate::view::Frame;
 use crate::{game_loop, view};
@@ -22,7 +22,7 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(locations: Locations) {
+pub async fn run(locations: LocationTracker) {
     let mut app = init(locations);
     let textures = texture::load_textures().await.unwrap();
 
@@ -41,7 +41,7 @@ pub async fn run(locations: Locations) {
     }
 }
 
-fn init(locations: Locations) -> App {
+fn init(locations: LocationTracker) -> App {
     let game = game_loop::setup(locations);
     App {
         input: String::new(),
