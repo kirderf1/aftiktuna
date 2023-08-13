@@ -51,6 +51,7 @@ enum State {
     Prepare,
     Load(String),
     Choose(area::Choice),
+    AtLocationPreparation,
     AtLocation,
     CommandInput,
     ChangeControlled(Entity),
@@ -99,6 +100,10 @@ impl Game {
                     }
 
                     view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+                    self.state = State::AtLocationPreparation;
+                }
+                State::AtLocationPreparation => {
+                    ai::prepare_intentions(&mut self.world);
                     self.state = State::AtLocation;
                 }
                 State::AtLocation => self.tick(view_buffer)?,
@@ -178,6 +183,7 @@ impl Game {
             self.state = State::Prepare;
         } else {
             view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+            self.state = State::AtLocationPreparation;
         }
         Ok(())
     }

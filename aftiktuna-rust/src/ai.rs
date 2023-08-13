@@ -6,6 +6,41 @@ use crate::status;
 use crate::view::NameData;
 use hecs::{Entity, World};
 
+enum Intention {
+    Wield(Entity),
+}
+
+pub fn prepare_intentions(world: &mut World) {
+    let crew_members = world
+        .query::<()>()
+        .with::<&CrewMember>()
+        .iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<_>>();
+    for crew_member in crew_members {
+        prepare_intention(world, crew_member);
+    }
+}
+
+fn prepare_intention(world: &mut World, crew_member: Entity) {
+    fn pick_intention(world: &mut World, crew_member: Entity) -> Option<Intention> {
+        let weapon_damage = combat::get_weapon_damage(world, crew_member);
+
+        for item in item::get_inventory(world, crew_member) {
+            if let Ok(weapon) = world.get::<&Weapon>(item) {
+                if weapon.0 > weapon_damage {
+                    return Some(Intention::Wield(item));
+                }
+            }
+        }
+        None
+    }
+
+    if let Some(intention) = pick_intention(world, crew_member) {
+        world.insert_one(crew_member, intention).unwrap();
+    }
+}
+
 pub fn tick(world: &mut World) {
     let foes = world
         .query::<()>()
@@ -50,15 +85,16 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     }
 }
 
-fn aftik_ai(world: &mut World, aftik: Entity) {
-    if status::is_alive(aftik, world) && world.get::<&Action>(aftik).is_err() {
-        if let Some(action) = pick_aftik_action(world, aftik) {
-            world.insert_one(aftik, action).unwrap();
+fn aftik_ai(world: &mut World, crew_member: Entity) {
+    let intention = world.remove_one::<Intention>(crew_member).ok();
+    if status::is_alive(crew_member, world) && world.get::<&Action>(crew_member).is_err() {
+        if let Some(action) = pick_aftik_action(world, crew_member, intention) {
+            world.insert_one(crew_member, action).unwrap();
         }
     }
 }
 
-fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
+fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>) -> Option<Action> {
     let pos = *world.get::<&Pos>(aftik).ok()?;
     if world
         .query::<&Pos>()
@@ -69,29 +105,15 @@ fn pick_aftik_action(world: &World, aftik: Entity) -> Option<Action> {
         return Some(Action::AttackNearest(Target::Foe));
     }
 
-    let weapon_damage = combat::get_weapon_damage(world, aftik);
-
-    for item in item::get_inventory(world, aftik) {
-        if let Ok(weapon) = world.get::<&Weapon>(item) {
-            if weapon.0 > weapon_damage {
-                return Some(Action::Wield(item, NameData::find(world, item)));
-            }
-        }
+    if let Some(intention) = intention {
+        return Some(match intention {
+            Intention::Wield(item) => Action::Wield(item, NameData::find(world, item)),
+        });
     }
 
     None
 }
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
-    let weapon_damage = combat::get_weapon_damage(world, entity);
-
-    for item in item::get_inventory(world, entity) {
-        if let Ok(weapon) = world.get::<&Weapon>(item) {
-            if weapon.0 > weapon_damage {
-                return true;
-            }
-        }
-    }
-
-    false
+    world.get::<&Intention>(entity).is_ok()
 }
