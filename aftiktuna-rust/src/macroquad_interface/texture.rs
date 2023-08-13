@@ -421,6 +421,11 @@ async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> 
     );
     insert_or_log(
         &mut objects,
+        TextureType::CutShack,
+        Builder::new("cut_shack", false).mounted(15.).build().await,
+    );
+    insert_or_log(
+        &mut objects,
         TextureType::Path,
         Builder::new("path", false).mounted(0.).build().await,
     );

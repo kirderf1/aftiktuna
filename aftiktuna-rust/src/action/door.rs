@@ -179,5 +179,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
 fn set_is_cut(display_info: &mut DisplayInfo) {
     if display_info.texture_type == TextureType::Door {
         display_info.texture_type = TextureType::CutDoor;
+    } else if display_info.texture_type == TextureType::Shack {
+        display_info.texture_type = TextureType::CutShack;
     }
 }

@@ -329,6 +329,7 @@ pub enum TextureType {
     CutDoor,
     ShipExit,
     Shack,
+    CutShack,
     Path,
     Aftik,
     Goblin,
