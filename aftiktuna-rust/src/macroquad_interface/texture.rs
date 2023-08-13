@@ -391,6 +391,11 @@ async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> 
     );
     insert_or_log(
         &mut objects,
+        TextureType::FortunaChest,
+        Builder::new("fortuna_chest", false).build().await,
+    );
+    insert_or_log(
+        &mut objects,
         TextureType::Ship,
         Builder::new("ship", false).build().await,
     );
