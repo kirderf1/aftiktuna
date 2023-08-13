@@ -104,6 +104,7 @@ impl Game {
                 }
                 State::AtLocationPreparation => {
                     ai::prepare_intentions(&mut self.world);
+                    insert_wait_if_relevant(&mut self.world, self.controlled);
                     self.state = State::AtLocation;
                 }
                 State::AtLocation => self.tick(view_buffer)?,
@@ -325,8 +326,6 @@ fn detect_low_health(world: &mut World, messages: &mut Messages, character: Enti
 
 fn should_take_user_input(world: &World, controlled: Entity) -> bool {
     world.get::<&Action>(controlled).is_err()
-        && !(is_wait_requested(world, controlled)
-            && is_safe(world, world.get::<&Pos>(controlled).unwrap().get_area()))
 }
 
 fn is_wait_requested(world: &World, controlled: Entity) -> bool {
@@ -345,4 +344,13 @@ pub fn is_safe(world: &World, area: Entity) -> bool {
         .with::<&combat::IsFoe>()
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
+}
+
+fn insert_wait_if_relevant(world: &mut World, controlled: Entity) {
+    if world.get::<&Action>(controlled).is_err()
+        && is_wait_requested(world, controlled)
+        && is_safe(world, world.get::<&Pos>(controlled).unwrap().get_area())
+    {
+        world.insert_one(controlled, Action::Wait).unwrap();
+    }
 }
