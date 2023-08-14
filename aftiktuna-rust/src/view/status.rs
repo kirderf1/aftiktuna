@@ -44,8 +44,13 @@ pub fn changes_messages(
     }
 }
 
-pub fn print_points(world: &World, character: Entity, messages: &mut Messages, cache: &mut Cache) {
-    cache.points = Some(maybe_print_points(world, character, messages, None));
+pub fn fetch_points(world: &World, character: Entity, cache: &mut Cache) -> i32 {
+    let crew = world.get::<&CrewMember>(character).unwrap().0;
+    let points = world.get::<&Points>(crew).unwrap().0;
+
+    cache.points = Some(points);
+
+    points
 }
 
 fn maybe_print_points(

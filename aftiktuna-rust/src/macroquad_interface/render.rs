@@ -3,7 +3,7 @@ use super::App;
 use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
 use crate::position::Coord;
-use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
+use crate::view::{Frame, Messages, ObjectRenderData, RenderData, StoreView};
 use macroquad::camera::set_camera;
 use macroquad::color::BLACK;
 use macroquad::prelude::{
@@ -48,7 +48,7 @@ impl State {
                 self.set_text_box_text(messages.into_text());
             }
             Frame::StoreView { view, messages } => {
-                self.view_state = ViewState::Store(view.into_text());
+                self.view_state = ViewState::Store(view);
                 self.set_text_box_text(messages.into_text());
             }
             Frame::LocationChoice(choice) => {
@@ -84,7 +84,7 @@ impl State {
 pub enum ViewState {
     LocationChoice,
     InGame(RenderData),
-    Store(Vec<String>),
+    Store(StoreView),
 }
 
 pub fn draw(app: &mut App, textures: &TextureStorage) {
@@ -137,7 +137,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
         }
         ViewState::Store(view) => {
             const TEXT_SIZE: f32 = 32.;
-            for (index, text_line) in view.iter().enumerate() {
+            for (index, text_line) in view.messages().into_text().iter().enumerate() {
                 draw_text(
                     text_line,
                     200.,

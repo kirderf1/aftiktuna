@@ -3,7 +3,7 @@ pub use status::print_full_status;
 use crate::action::door::{BlockType, Door};
 use crate::action::item::get_wielded;
 use crate::action::trade;
-use crate::action::trade::Shopkeeper;
+use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::area::{Area, BackgroundType, Choice};
 use crate::game_loop::StopType;
 use crate::item;
@@ -110,7 +110,7 @@ pub enum Frame {
         render_data: RenderData,
     },
     StoreView {
-        view: Messages,
+        view: StoreView,
         messages: Messages,
     },
     LocationChoice(Choice),
@@ -125,9 +125,19 @@ impl Frame {
                 text.push("Welcome to Aftiktuna!".to_string());
                 text.push("Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string())
             }
-            Frame::AreaView { view, messages, .. } | Frame::StoreView { view, messages, .. } => {
+            Frame::AreaView { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.0.clone());
+
+                if !messages.0.is_empty() {
+                    text.push(String::default());
+
+                    text.extend(messages.0.clone());
+                }
+            }
+            Frame::StoreView { view, messages, .. } => {
+                text.push("--------------------".to_string());
+                text.extend(view.messages().0);
 
                 if !messages.0.is_empty() {
                     text.push(String::default());
@@ -157,6 +167,33 @@ impl Frame {
     }
 }
 
+pub struct StoreView {
+    items: Vec<PricedItem>,
+    points: i32,
+}
+
+impl StoreView {
+    pub fn messages(&self) -> Messages {
+        let mut messages = Messages::default();
+        let items = self
+            .items
+            .iter()
+            .map(|priced| (capitalize(priced.item.noun_data().singular()), priced.price))
+            .collect::<Vec<_>>();
+        let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
+        for (name, price) in items {
+            messages.add(format!(
+                "{} {}| {}p",
+                name,
+                " ".repeat(max_length - name.len()),
+                price
+            ));
+        }
+        messages.add(format!("Crew points: {}p", self.points));
+        messages
+    }
+}
+
 fn shop_frame(
     shopkeeper: &Shopkeeper,
     buffer: &mut Buffer,
@@ -165,9 +202,10 @@ fn shop_frame(
     cache: &mut StatusCache,
 ) -> Frame {
     // Use the cache in shop view before status messages so that points aren't shown in status messages too
-    let view = shop_view_messages(world, character, cache, shopkeeper);
+    let points = status::fetch_points(world, character, cache);
+    let items = shopkeeper.0.clone();
     Frame::StoreView {
-        view,
+        view: StoreView { items, points },
         messages: buffer.pop_messages(world, character, cache),
     }
 }
@@ -202,31 +240,6 @@ fn area_view_messages(world: &World, character: Entity) -> Messages {
     let area_size = area_info.size;
     messages.add(format!("{}:", area_info.label));
     print_area(world, &mut messages.0, area, area_size);
-    messages
-}
-
-fn shop_view_messages(
-    world: &World,
-    character: Entity,
-    cache: &mut StatusCache,
-    shopkeeper: &Shopkeeper,
-) -> Messages {
-    let mut messages = Messages::default();
-    let items = shopkeeper
-        .0
-        .iter()
-        .map(|priced| (capitalize(priced.item.noun_data().singular()), priced.price))
-        .collect::<Vec<_>>();
-    let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
-    for (name, price) in items {
-        messages.add(format!(
-            "{} {}| {}p",
-            name,
-            " ".repeat(max_length - name.len()),
-            price
-        ));
-    }
-    status::print_points(world, character, &mut messages, cache);
     messages
 }
 
