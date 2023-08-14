@@ -350,14 +350,11 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
         .iter()
         .any(|(_, (stamina, pos))| pos.is_in(area) && stamina.need_rest());
 
-    if need_rest {
-        command::action_result(Action::Rest(true))
-    } else {
-        Err(format!(
-            "{} is already rested.",
-            NameData::find(world, character).definite()
-        ))
+    if !need_rest {
+        return Err("The crew is already rested.".to_string());
     }
+
+    command::action_result(Action::Rest(true))
 }
 
 fn launch_ship(
