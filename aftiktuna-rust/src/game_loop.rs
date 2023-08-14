@@ -152,7 +152,7 @@ impl Game {
             PickResult::None => return Err(StopType::Win),
             PickResult::Location(location) => self.state = State::Load(location),
             PickResult::Choice(choice) => {
-                view_buffer.push_frame(Frame::LocationChoice(choice.present()));
+                view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
                 self.state = State::Choose(choice);
             }
         };

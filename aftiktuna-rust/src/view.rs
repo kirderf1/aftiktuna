@@ -4,7 +4,7 @@ use crate::action::door::{BlockType, Door};
 use crate::action::item::get_wielded;
 use crate::action::trade;
 use crate::action::trade::Shopkeeper;
-use crate::area::{Area, BackgroundType};
+use crate::area::{Area, BackgroundType, Choice};
 use crate::game_loop::StopType;
 use crate::item;
 use crate::position::{Coord, Direction, Pos};
@@ -112,7 +112,7 @@ pub enum Frame {
         view: Messages,
         messages: Messages,
     },
-    LocationChoice(Messages),
+    LocationChoice(Choice),
     Ending(StopType),
 }
 
@@ -130,9 +130,9 @@ impl Frame {
                     text.extend(messages.0.clone());
                 }
             }
-            Frame::LocationChoice(messages) => {
+            Frame::LocationChoice(choice) => {
                 text.push("--------------------".to_string());
-                text.extend(messages.0.clone());
+                text.extend(choice.present().0);
             }
             Frame::Ending(stop_type) => {
                 text.push(String::default());
@@ -144,9 +144,10 @@ impl Frame {
 
     fn has_messages(&self) -> bool {
         match self {
-            Frame::AreaView { messages, .. }
-            | Frame::StoreView { messages, .. }
-            | Frame::LocationChoice(messages) => !messages.0.is_empty(),
+            Frame::AreaView { messages, .. } | Frame::StoreView { messages, .. } => {
+                !messages.0.is_empty()
+            }
+            Frame::LocationChoice(_) => true,
             Frame::Ending(_) => true,
         }
     }

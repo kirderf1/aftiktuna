@@ -51,10 +51,10 @@ impl State {
                 self.view_state = ViewState::Store(view.into_text());
                 self.set_text_box_text(messages.into_text());
             }
-            Frame::LocationChoice(messages) => {
+            Frame::LocationChoice(choice) => {
                 self.camera = default_camera_space();
                 self.view_state = ViewState::LocationChoice;
-                self.set_text_box_text(messages.into_text());
+                self.set_text_box_text(choice.present().into_text());
             }
             Frame::Ending(stop_type) => {
                 self.set_text_box_text(stop_type.messages().into_text());

@@ -183,7 +183,7 @@ pub enum PickResult {
     Choice(Choice),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Choice(Vec<(usize, String)>);
 
 impl Choice {
