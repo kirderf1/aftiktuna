@@ -22,6 +22,8 @@ Currently available commands are:
 - control <character>
 - trade
 - recruit aftik
+- open fortuna chest
+
 When trading at a store, there are the following commands:
 - buy <item>
 - buy <number> <items>
