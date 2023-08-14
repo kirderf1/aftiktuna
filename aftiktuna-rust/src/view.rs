@@ -103,6 +103,7 @@ impl Buffer {
 }
 
 pub enum Frame {
+    Introduction,
     AreaView {
         view: Messages,
         messages: Messages,
@@ -120,6 +121,10 @@ impl Frame {
     pub fn as_text(&self) -> Vec<String> {
         let mut text = Vec::new();
         match self {
+            Frame::Introduction => {
+                text.push("Welcome to Aftiktuna!".to_string());
+                text.push("Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string())
+            }
             Frame::AreaView { view, messages, .. } | Frame::StoreView { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.0.clone());
@@ -147,8 +152,7 @@ impl Frame {
             Frame::AreaView { messages, .. } | Frame::StoreView { messages, .. } => {
                 !messages.0.is_empty()
             }
-            Frame::LocationChoice(_) => true,
-            Frame::Ending(_) => true,
+            Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending(_) => true,
         }
     }
 }

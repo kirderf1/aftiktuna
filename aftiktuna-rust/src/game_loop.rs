@@ -21,7 +21,7 @@ pub fn setup(locations: LocationTracker) -> Game {
         controlled,
         has_introduced_controlled: false,
         ship,
-        state: State::PrepareNextLocation,
+        state: State::Introduce,
         locations,
         cache: StatusCache::default(),
     }
@@ -48,6 +48,7 @@ pub struct Game {
 
 #[derive(Debug)]
 enum State {
+    Introduce,
     PrepareNextLocation,
     LoadLocation(String),
     ChooseLocation(area::Choice),
@@ -82,6 +83,10 @@ impl Game {
     ) -> Result<TakeInput, StopType> {
         loop {
             match &self.state {
+                State::Introduce => {
+                    view_buffer.push_frame(Frame::Introduction);
+                    self.state = State::PrepareNextLocation;
+                }
                 State::ChooseLocation(_) | State::CommandInput => return Ok(TakeInput),
                 State::PrepareNextLocation => self.prepare_next_location(view_buffer)?,
                 State::LoadLocation(location) => {

@@ -59,6 +59,10 @@ impl State {
             Frame::Ending(stop_type) => {
                 self.set_text_box_text(stop_type.messages().into_text());
             }
+            Frame::Introduction => {
+                self.view_state = ViewState::LocationChoice;
+                self.set_text_box_text(frame.as_text());
+            }
         }
     }
 

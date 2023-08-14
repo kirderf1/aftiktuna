@@ -191,7 +191,7 @@ impl Choice {
         let alternatives = &self.0;
         let mut messages = Messages::default();
         messages.add(format!(
-            "There are two destination targets: {}, {}",
+            "On the next planet, there are two destination targets: {}, {}",
             alternatives[0].1, alternatives[1].1
         ));
         messages.add("Pick the location to travel to next.");
