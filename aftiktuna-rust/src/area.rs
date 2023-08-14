@@ -258,6 +258,7 @@ pub fn load_location(
     messages: &mut Messages,
     ship: Entity,
     location_name: &str,
+    is_at_fortuna: bool,
 ) {
     let ship_exit = world.get::<&Ship>(ship).unwrap().exit_pos;
 
@@ -295,7 +296,13 @@ pub fn load_location(
         world.insert(aftik, (start_pos, direction)).unwrap();
     }
 
-    messages.add("The ship arrives at a new location, and the crew exit the ship.");
+    if is_at_fortuna {
+        messages.add(
+            "The ship arrives at the location of the fortuna chest, and the crew exit the ship.",
+        )
+    } else {
+        messages.add("The ship arrives at a new location, and the crew exit the ship.");
+    }
 }
 
 pub fn load_data(name: &str) -> Result<LocationData, String> {

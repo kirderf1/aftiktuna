@@ -90,6 +90,7 @@ impl Game {
                         &mut view_buffer.messages,
                         self.ship,
                         location,
+                        self.locations.is_at_fortuna(),
                     );
                     if !self.has_introduced_controlled {
                         view_buffer.messages.add(format!(
