@@ -21,7 +21,7 @@ pub fn setup(locations: LocationTracker) -> Game {
         controlled,
         has_introduced_controlled: false,
         ship,
-        state: State::Prepare,
+        state: State::PrepareNextLocation,
         locations,
         cache: StatusCache::default(),
     }
@@ -48,11 +48,11 @@ pub struct Game {
 
 #[derive(Debug)]
 enum State {
-    Prepare,
-    Load(String),
-    Choose(area::Choice),
-    AtLocationPreparation,
-    AtLocation,
+    PrepareNextLocation,
+    LoadLocation(String),
+    ChooseLocation(area::Choice),
+    PrepareTick,
+    Tick,
     CommandInput,
     ChangeControlled(Entity),
 }
@@ -82,9 +82,9 @@ impl Game {
     ) -> Result<TakeInput, StopType> {
         loop {
             match &self.state {
-                State::Choose(_) | State::CommandInput => return Ok(TakeInput),
-                State::Prepare => self.prepare_next_location(view_buffer)?,
-                State::Load(location) => {
+                State::ChooseLocation(_) | State::CommandInput => return Ok(TakeInput),
+                State::PrepareNextLocation => self.prepare_next_location(view_buffer)?,
+                State::LoadLocation(location) => {
                     area::load_location(
                         &mut self.world,
                         &mut view_buffer.messages,
@@ -100,18 +100,18 @@ impl Game {
                     }
 
                     view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-                    self.state = State::AtLocationPreparation;
+                    self.state = State::PrepareTick;
                 }
-                State::AtLocationPreparation => {
+                State::PrepareTick => {
                     ai::prepare_intentions(&mut self.world);
                     insert_wait_if_relevant(&mut self.world, self.controlled);
-                    self.state = State::AtLocation;
+                    self.state = State::Tick;
                 }
-                State::AtLocation => self.tick(view_buffer)?,
+                State::Tick => self.tick(view_buffer)?,
                 State::ChangeControlled(character) => {
                     self.change_character(*character, view_buffer);
                     view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-                    self.state = State::AtLocation;
+                    self.state = State::Tick;
                 }
             }
         }
@@ -119,11 +119,11 @@ impl Game {
 
     pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
         match &self.state {
-            State::Choose(choice) => {
+            State::ChooseLocation(choice) => {
                 let location = self
                     .locations
                     .try_make_choice(choice, input, &mut self.rng)?;
-                self.state = State::Load(location);
+                self.state = State::LoadLocation(location);
             }
             State::CommandInput => {
                 match command::try_parse_input(
@@ -134,7 +134,7 @@ impl Game {
                 )? {
                     CommandResult::Action(action, target) => {
                         insert_action(&mut self.world, self.controlled, action, target);
-                        self.state = State::AtLocation;
+                        self.state = State::Tick;
                     }
                     CommandResult::ChangeControlled(character) => {
                         self.state = State::ChangeControlled(character);
@@ -150,10 +150,10 @@ impl Game {
     fn prepare_next_location(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
         match self.locations.next(&mut self.rng) {
             PickResult::None => return Err(StopType::Win),
-            PickResult::Location(location) => self.state = State::Load(location),
+            PickResult::Location(location) => self.state = State::LoadLocation(location),
             PickResult::Choice(choice) => {
                 view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
-                self.state = State::Choose(choice);
+                self.state = State::ChooseLocation(choice);
             }
         };
         Ok(())
@@ -181,10 +181,10 @@ impl Game {
             for (_, health) in self.world.query_mut::<&mut Health>() {
                 health.restore_fraction(0.5);
             }
-            self.state = State::Prepare;
+            self.state = State::PrepareNextLocation;
         } else {
             view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-            self.state = State::AtLocationPreparation;
+            self.state = State::PrepareTick;
         }
         Ok(())
     }
