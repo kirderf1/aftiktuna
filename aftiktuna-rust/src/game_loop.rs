@@ -220,6 +220,7 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
     );
 
     detect_low_health(world, &mut view_buffer.messages, controlled);
+    detect_low_stamina(world, &mut view_buffer.messages, controlled);
 
     handle_aftik_deaths(world, view_buffer, controlled);
 
@@ -325,6 +326,28 @@ fn detect_low_health(world: &mut World, messages: &mut Messages, character: Enti
                     NameData::find(world, entity).definite()
                 ));
             }
+        }
+    }
+    command_buffer.run_on(world);
+}
+
+struct LowStamina;
+
+fn detect_low_stamina(world: &mut World, messages: &mut Messages, character: Entity) {
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+    let mut command_buffer = CommandBuffer::new();
+    for (entity, (pos, stamina, health)) in world.query::<(&Pos, &Stamina, &Health)>().iter() {
+        let has_tag = world.get::<&LowStamina>(entity).is_ok();
+        let visible_low_stamina = pos.is_in(area) && stamina.as_fraction() < 0.6;
+        if has_tag && !visible_low_stamina {
+            command_buffer.remove_one::<LowStamina>(entity);
+        }
+        if !has_tag && visible_low_stamina && health.is_alive() {
+            command_buffer.insert_one(entity, LowStamina);
+            messages.add(format!(
+                "{} is growing exhausted from dodging attacks.",
+                NameData::find(world, entity).definite()
+            ));
         }
     }
     command_buffer.run_on(world);
