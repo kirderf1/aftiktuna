@@ -2,10 +2,11 @@ use crate::area::LocationTracker;
 use crate::game_loop::{Game, TakeInput};
 use crate::view::Frame;
 use crate::{game_loop, view};
-use macroquad::miniquad::conf::Icon;
-use macroquad::prelude::{
-    is_key_pressed, is_mouse_button_released, next_frame, KeyCode, MouseButton,
+use egui_macroquad::macroquad::input::{
+    is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
 };
+use egui_macroquad::macroquad::miniquad::conf::Icon;
+use egui_macroquad::macroquad::window::next_frame;
 use std::mem::take;
 use std::time;
 use std::time::Instant;

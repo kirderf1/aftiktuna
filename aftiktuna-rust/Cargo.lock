@@ -30,7 +30,6 @@ version = "0.2.0"
 dependencies = [
  "egui-macroquad",
  "hecs",
- "macroquad",
  "rand",
  "serde",
  "serde_json",

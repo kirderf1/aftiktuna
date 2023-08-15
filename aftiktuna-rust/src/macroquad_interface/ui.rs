@@ -2,13 +2,15 @@ use crate::macroquad_interface::render::State as RenderState;
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::macroquad_interface::App;
 use egui_macroquad::egui;
-use macroquad::color::{Color, WHITE};
-use macroquad::input::mouse_position;
-use macroquad::math::{Rect, Vec2};
-use macroquad::prelude::{
-    draw_rectangle, draw_text, draw_texture, draw_texture_ex, get_time, measure_text,
-    DrawTextureParams, Texture2D,
+use egui_macroquad::macroquad::color::{Color, WHITE};
+use egui_macroquad::macroquad::input::mouse_position;
+use egui_macroquad::macroquad::math::{Rect, Vec2};
+use egui_macroquad::macroquad::shapes::draw_rectangle;
+use egui_macroquad::macroquad::text::{draw_text, measure_text};
+use egui_macroquad::macroquad::texture::{
+    draw_texture, draw_texture_ex, DrawTextureParams, Texture2D,
 };
+use egui_macroquad::macroquad::time::get_time;
 
 pub const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 pub const TEXT_BOX_TEXT_SIZE: u16 = 16;

@@ -2,10 +2,12 @@ use crate::area::BackgroundType;
 use crate::item;
 use crate::position::{Coord, Direction};
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
-use macroquad::color::WHITE;
-use macroquad::math::Vec2;
-use macroquad::prelude::{
-    draw_texture, draw_texture_ex, Color, DrawTextureParams, FileError, Rect, Texture2D,
+use egui_macroquad::macroquad;
+use egui_macroquad::macroquad::color::{Color, WHITE};
+use egui_macroquad::macroquad::file::FileError;
+use egui_macroquad::macroquad::math::{Rect, Vec2};
+use egui_macroquad::macroquad::texture::{
+    draw_texture, draw_texture_ex, DrawTextureParams, Texture2D,
 };
 use std::borrow::Borrow;
 use std::collections::HashMap;

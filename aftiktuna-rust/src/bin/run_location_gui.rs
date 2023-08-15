@@ -1,6 +1,7 @@
 use aftiktuna::area::LocationTracker;
 use aftiktuna::macroquad_interface;
-use macroquad::prelude::Conf;
+use egui_macroquad::macroquad;
+use egui_macroquad::macroquad::window::Conf;
 use std::env;
 
 fn config() -> Conf {

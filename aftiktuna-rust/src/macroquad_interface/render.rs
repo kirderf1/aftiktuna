@@ -4,12 +4,14 @@ use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
 use crate::position::Coord;
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData, StoreView};
-use macroquad::camera::set_camera;
-use macroquad::color::BLACK;
-use macroquad::prelude::{
-    clamp, clear_background, draw_text, is_mouse_button_down, is_mouse_button_pressed,
-    mouse_position, set_default_camera, Camera2D, MouseButton, Rect, Vec2, WHITE,
+use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
+use egui_macroquad::macroquad::color::{BLACK, WHITE};
+use egui_macroquad::macroquad::input::{
+    is_mouse_button_down, is_mouse_button_pressed, mouse_position, MouseButton,
 };
+use egui_macroquad::macroquad::math::{clamp, Rect, Vec2};
+use egui_macroquad::macroquad::text::draw_text;
+use egui_macroquad::macroquad::window::clear_background;
 use std::collections::HashMap;
 
 pub struct State {
