@@ -77,10 +77,7 @@ impl Game {
         (result, buffer)
     }
 
-    pub fn run_with_buffer(
-        &mut self,
-        view_buffer: &mut view::Buffer,
-    ) -> Result<TakeInput, StopType> {
+    fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
         loop {
             match &self.phase {
                 Phase::Introduce => {
@@ -88,7 +85,7 @@ impl Game {
                     self.phase = Phase::PrepareNextLocation;
                 }
                 Phase::ChooseLocation(_) | Phase::CommandInput => return Ok(TakeInput),
-                Phase::PrepareNextLocation => self.prepare_next_location(view_buffer)?,
+                Phase::PrepareNextLocation => prepare_next_location(self, view_buffer)?,
                 Phase::LoadLocation(location) => {
                     area::load_location(
                         &mut self.world,
@@ -113,9 +110,9 @@ impl Game {
                     insert_wait_if_relevant(&mut self.world, self.controlled);
                     self.phase = Phase::Tick;
                 }
-                Phase::Tick => self.tick(view_buffer)?,
+                Phase::Tick => tick_and_check(self, view_buffer)?,
                 Phase::ChangeControlled(character) => {
-                    self.change_character(*character, view_buffer);
+                    change_character(self, *character, view_buffer);
                     view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
                     self.phase = Phase::Tick;
                 }
@@ -152,57 +149,48 @@ impl Game {
         }
         Ok(())
     }
+}
 
-    fn prepare_next_location(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
-        match self.locations.next(&mut self.rng) {
-            PickResult::None => return Err(StopType::Win),
-            PickResult::Location(location) => self.phase = Phase::LoadLocation(location),
-            PickResult::Choice(choice) => {
-                view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
-                self.phase = Phase::ChooseLocation(choice);
-            }
-        };
-        Ok(())
-    }
-
-    fn tick(&mut self, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
-        if should_take_user_input(&self.world, self.controlled) {
-            self.phase = Phase::CommandInput;
-            return Ok(());
+fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+    match game.locations.next(&mut game.rng) {
+        PickResult::None => return Err(StopType::Win),
+        PickResult::Location(location) => game.phase = Phase::LoadLocation(location),
+        PickResult::Choice(choice) => {
+            view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
+            game.phase = Phase::ChooseLocation(choice);
         }
+    };
+    Ok(())
+}
 
-        tick(self, view_buffer);
+fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+    if should_take_user_input(&game.world, game.controlled) {
+        game.phase = Phase::CommandInput;
+        return Ok(());
+    }
 
-        check_player_state(self, view_buffer)?;
+    tick(game, view_buffer);
 
-        let area = self.world.get::<&Pos>(self.controlled).unwrap().get_area();
-        if is_ship_launching(&self.world, area) {
-            view_buffer
-                .messages
-                .add("The ship leaves for the next planet.");
-            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
+    check_player_state(game, view_buffer)?;
 
-            area::despawn_all_except_ship(&mut self.world, self.ship);
-            self.world.get::<&mut Ship>(self.ship).unwrap().status = ShipStatus::NeedTwoCans;
-            for (_, health) in self.world.query_mut::<&mut Health>() {
-                health.restore_fraction(0.5);
-            }
-            self.phase = Phase::PrepareNextLocation;
-        } else {
-            view_buffer.capture_view(&self.world, self.controlled, &mut self.cache);
-            self.phase = Phase::PrepareTick;
+    let area = game.world.get::<&Pos>(game.controlled).unwrap().get_area();
+    if is_ship_launching(&game.world, area) {
+        view_buffer
+            .messages
+            .add("The ship leaves for the next planet.");
+        view_buffer.capture_view(&game.world, game.controlled, &mut game.cache);
+
+        area::despawn_all_except_ship(&mut game.world, game.ship);
+        game.world.get::<&mut Ship>(game.ship).unwrap().status = ShipStatus::NeedTwoCans;
+        for (_, health) in game.world.query_mut::<&mut Health>() {
+            health.restore_fraction(0.5);
         }
-        Ok(())
+        game.phase = Phase::PrepareNextLocation;
+    } else {
+        view_buffer.capture_view(&game.world, game.controlled, &mut game.cache);
+        game.phase = Phase::PrepareTick;
     }
-
-    fn change_character(&mut self, character: Entity, view_buffer: &mut view::Buffer) {
-        self.controlled = character;
-
-        view_buffer.messages.add(format!(
-            "You're now playing as the aftik {}.",
-            NameData::find(&self.world, self.controlled).definite()
-        ));
-    }
+    Ok(())
 }
 
 fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
@@ -227,6 +215,15 @@ fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
+}
+
+fn change_character(game: &mut Game, character: Entity, view_buffer: &mut view::Buffer) {
+    game.controlled = character;
+
+    view_buffer.messages.add(format!(
+        "You're now playing as the aftik {}.",
+        NameData::find(&game.world, game.controlled).definite()
+    ));
 }
 
 fn insert_action(world: &mut World, controlled: Entity, action: Action, target: Target) {
@@ -289,7 +286,7 @@ fn check_player_state(game: &mut Game, view_buffer: &mut view::Buffer) -> Result
             .iter()
             .next()
             .ok_or(StopType::Lose)?;
-        game.change_character(next_character, view_buffer);
+        change_character(game, next_character, view_buffer);
     }
 
     if game.world.get::<&OpenedChest>(game.controlled).is_ok() {
