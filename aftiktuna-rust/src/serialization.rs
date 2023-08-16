@@ -5,10 +5,9 @@ use crate::action::trade::{IsTrading, Points, Shopkeeper};
 use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
 use crate::ai::Intention;
 use crate::area::{Area, Ship};
-use crate::game_loop::{LowHealth, LowStamina};
 use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon};
 use crate::position::{Direction, MovementBlocking, Pos};
-use crate::status::{Health, Stamina, Stats};
+use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::view::{AftikColor, DisplayInfo, NameData};
 use hecs::serialize::column::{
     deserialize, deserialize_column, serialize, try_serialize, try_serialize_id,
@@ -123,8 +122,8 @@ components_to_serialize!(
     Stats, Stats;
     Health, Health;
     Stamina, Stamina;
-    LowStamina, LowStamina;
     LowHealth, LowHealth;
+    LowStamina, LowStamina;
 
     CrewMember, CrewMember;
     IsFoe, IsFoe;
