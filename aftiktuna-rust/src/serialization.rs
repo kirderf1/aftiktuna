@@ -10,10 +10,7 @@ use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, 
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::view::{AftikColor, DisplayInfo, NameData};
-use hecs::serialize::column::{
-    deserialize, deserialize_column, serialize, try_serialize, try_serialize_id,
-    DeserializeContext, SerializeContext,
-};
+use hecs::serialize::column;
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
 use rmp_serde::{decode, encode};
 use serde::de::SeqAccess;
@@ -30,7 +27,7 @@ macro_rules! components_to_serialize {
             $id
             ),*
         }
-        impl DeserializeContext for OurDeserialize {
+        impl column::DeserializeContext for HecsDeserializeContext {
             fn deserialize_component_ids<'de, A>(
                 &mut self,
                 mut seq: A,
@@ -66,7 +63,7 @@ macro_rules! components_to_serialize {
                     match id {
                         $(
                         ComponentId::$id => {
-                            deserialize_column::<$comp, _>(entity_count, &mut seq, batch)?;
+                            column::deserialize_column::<$comp, _>(entity_count, &mut seq, batch)?;
                         }
                         )*
                     }
@@ -77,7 +74,7 @@ macro_rules! components_to_serialize {
         fn is_serialized_type_id(id: TypeId) -> bool {
             $(id == TypeId::of::<$comp>())||*
         }
-        impl SerializeContext for OurSerialize {
+        impl column::SerializeContext for HecsSerializeContext {
             fn component_count(&self, archetype: &Archetype) -> usize {
                 archetype
                     .component_types()
@@ -91,7 +88,7 @@ macro_rules! components_to_serialize {
                 mut out: S,
             ) -> Result<S::Ok, S::Error> {
                 $(
-                try_serialize_id::<$comp, _, _>(archetype, &ComponentId::$id, &mut out)?;
+                column::try_serialize_id::<$comp, _, _>(archetype, &ComponentId::$id, &mut out)?;
                 )*
                 out.end()
             }
@@ -102,13 +99,18 @@ macro_rules! components_to_serialize {
                 mut out: S,
             ) -> Result<S::Ok, S::Error> {
                 $(
-                try_serialize::<$comp, _>(archetype, &mut out)?;
+                column::try_serialize::<$comp, _>(archetype, &mut out)?;
                 )*
                 out.end()
             }
         }
     };
 }
+
+struct HecsSerializeContext;
+
+#[derive(Default)]
+struct HecsDeserializeContext(Vec<ComponentId>);
 
 components_to_serialize!(
     Area, Area;
@@ -155,11 +157,6 @@ components_to_serialize!(
     OpenedChest, OpenedChest;
 );
 
-#[derive(Default)]
-struct OurDeserialize(Vec<ComponentId>);
-
-struct OurSerialize;
-
 #[derive(Serialize)]
 struct SerializedData<'a> {
     world: SerializedWorld<'a>,
@@ -194,7 +191,7 @@ impl<'a> Serialize for SerializedWorld<'a> {
     where
         S: Serializer,
     {
-        serialize(self.0, &mut OurSerialize, serializer)
+        column::serialize(self.0, &mut HecsSerializeContext, serializer)
     }
 }
 
@@ -205,7 +202,8 @@ impl<'de> Deserialize<'de> for DeserializedWorld {
     where
         D: Deserializer<'de>,
     {
-        deserialize(&mut OurDeserialize::default(), deserializer).map(DeserializedWorld)
+        column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
+            .map(DeserializedWorld)
     }
 }
 
