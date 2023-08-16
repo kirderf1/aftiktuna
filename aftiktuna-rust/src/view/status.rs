@@ -3,12 +3,15 @@ use crate::action::{item, CrewMember};
 use crate::status::{Health, Stats};
 use crate::view::{capitalize, name, Messages, NameData};
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 
-#[derive(Default)]
+#[derive(Default, Serialize, Deserialize)]
 pub struct Cache {
     points: Option<i32>,
     character_cache: Option<CharacterCache>,
 }
+
+#[derive(Serialize, Deserialize)]
 struct CharacterCache {
     character_id: Entity,
     health: f32,

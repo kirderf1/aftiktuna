@@ -1,17 +1,14 @@
-use aftiktuna::{area, serialization};
-use hecs::World;
+use aftiktuna::area::LocationTracker;
+use aftiktuna::{game_loop, serialization};
 use std::io::Cursor;
 
 fn main() {
-    let mut world = World::new();
-    area::load_data("location/village")
-        .unwrap()
-        .build(&mut world)
-        .unwrap();
+    let mut game = game_loop::setup(LocationTracker::single("location/village".to_string()));
+    let _ = game.run();
     let mut cursor = Cursor::new(Vec::<u8>::new());
-    serialization::serialize_world(&world, &mut cursor);
+    serialization::serialize_game(&game, &mut cursor).unwrap();
     cursor.set_position(0);
-    let parsed_world = serialization::deserialize_world(&mut cursor);
-    assert_eq!(world.len(), parsed_world.len());
+    let parsed_game = serialization::deserialize_game(&mut cursor).unwrap();
+    assert_eq!(game.world.len(), parsed_game.world.len());
     println!("It works!");
 }

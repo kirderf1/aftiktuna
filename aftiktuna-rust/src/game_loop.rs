@@ -8,6 +8,7 @@ use crate::{action, ai, area, command, status, view};
 use hecs::{Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
+use serde::{Deserialize, Serialize};
 
 pub fn setup(locations: LocationTracker) -> Game {
     let mut world = World::new();
@@ -38,12 +39,13 @@ pub enum StopType {
 }
 
 pub struct Game {
-    world: World,
+    pub world: World,
     rng: ThreadRng,
-    state: GameState,
+    pub state: GameState,
 }
 
-struct GameState {
+#[derive(Serialize, Deserialize)]
+pub struct GameState {
     phase: Phase,
     locations: LocationTracker,
     ship: Entity,
@@ -52,7 +54,7 @@ struct GameState {
     has_introduced_controlled: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 enum Phase {
     Introduce,
     PrepareNextLocation,
@@ -74,6 +76,14 @@ impl StopType {
 }
 
 impl Game {
+    pub fn new(world: World, state: GameState) -> Self {
+        Self {
+            world,
+            rng: thread_rng(),
+            state,
+        }
+    }
+
     pub fn run(&mut self) -> (Result<TakeInput, StopType>, view::Buffer) {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);

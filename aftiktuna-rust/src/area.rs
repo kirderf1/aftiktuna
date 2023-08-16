@@ -55,12 +55,13 @@ pub enum ShipStatus {
     Launching,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, PartialEq, Serialize, Deserialize)]
 enum TrackedState {
     BeforeFortuna { remaining_locations_count: i32 },
     AtFortuna,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct LocationTracker {
     locations: Locations,
     state: TrackedState,
@@ -184,7 +185,7 @@ pub enum PickResult {
     Choice(Choice),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Choice(Vec<(usize, String)>);
 
 impl Choice {

@@ -5,6 +5,7 @@ use crate::action::trade::{IsTrading, Points, Shopkeeper};
 use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
 use crate::ai::Intention;
 use crate::area::{Area, Ship};
+use crate::game_loop::{Game, GameState};
 use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon};
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
@@ -14,9 +15,10 @@ use hecs::serialize::column::{
     DeserializeContext, SerializeContext,
 };
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
+use rmp_serde::{decode, encode};
 use serde::de::SeqAccess;
 use serde::ser::SerializeTuple;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::any::TypeId;
 use std::io::{Read, Write};
 
@@ -158,12 +160,61 @@ struct OurDeserialize(Vec<ComponentId>);
 
 struct OurSerialize;
 
-pub fn serialize_world(world: &World, writer: impl Write) {
-    let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
-    serialize(world, &mut OurSerialize, &mut serializer).unwrap();
+#[derive(Serialize)]
+struct SerializedData<'a> {
+    world: SerializedWorld<'a>,
+    state: &'a GameState,
 }
 
-pub fn deserialize_world(reader: impl Read) -> World {
+impl<'a> From<&'a Game> for SerializedData<'a> {
+    fn from(value: &'a Game) -> Self {
+        Self {
+            world: SerializedWorld(&value.world),
+            state: &value.state,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct DeserializedData {
+    world: DeserializedWorld,
+    state: GameState,
+}
+
+impl From<DeserializedData> for Game {
+    fn from(value: DeserializedData) -> Self {
+        Self::new(value.world.0, value.state)
+    }
+}
+
+struct SerializedWorld<'a>(&'a World);
+
+impl<'a> Serialize for SerializedWorld<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serialize(self.0, &mut OurSerialize, serializer)
+    }
+}
+
+struct DeserializedWorld(World);
+
+impl<'de> Deserialize<'de> for DeserializedWorld {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserialize(&mut OurDeserialize::default(), deserializer).map(DeserializedWorld)
+    }
+}
+
+pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), encode::Error> {
+    let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
+    SerializedData::from(game).serialize(&mut serializer)
+}
+
+pub fn deserialize_game(reader: impl Read) -> Result<Game, decode::Error> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
-    deserialize(&mut OurDeserialize::default(), &mut deserializer).unwrap()
+    DeserializedData::deserialize(&mut deserializer).map(Game::from)
 }
