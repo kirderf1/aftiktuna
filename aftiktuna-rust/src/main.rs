@@ -1,5 +1,5 @@
 use aftiktuna::area::LocationTracker;
-use aftiktuna::macroquad_interface;
+use aftiktuna::{game_loop, macroquad_interface};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::window::Conf;
 
@@ -16,5 +16,6 @@ fn config() -> Conf {
 
 #[macroquad::main(config)]
 async fn main() {
-    macroquad_interface::run(LocationTracker::new(3)).await;
+    let game = game_loop::setup(LocationTracker::new(3));
+    macroquad_interface::run(game).await;
 }

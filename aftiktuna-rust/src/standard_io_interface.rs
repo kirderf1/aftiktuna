@@ -1,13 +1,10 @@
-use crate::area::LocationTracker;
 use crate::game_loop::{Game, TakeInput};
+use crate::view;
 use crate::view::Frame;
-use crate::{game_loop, view};
 use std::io::Write;
 use std::{io, thread, time};
 
-pub fn run(locations: LocationTracker) {
-    let mut game = game_loop::setup(locations);
-
+pub fn run(mut game: Game) {
     loop {
         let (result, view_buffer) = game.run();
         print_buffer(view_buffer);

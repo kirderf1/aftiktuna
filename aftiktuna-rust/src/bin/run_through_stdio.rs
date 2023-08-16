@@ -1,6 +1,7 @@
 use aftiktuna::area::LocationTracker;
-use aftiktuna::standard_io_interface;
+use aftiktuna::{game_loop, standard_io_interface};
 
 fn main() {
-    standard_io_interface::run(LocationTracker::new(3));
+    let game = game_loop::setup(LocationTracker::new(3));
+    standard_io_interface::run(game);
 }

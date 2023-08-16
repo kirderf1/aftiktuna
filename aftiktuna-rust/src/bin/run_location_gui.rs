@@ -1,5 +1,5 @@
 use aftiktuna::area::LocationTracker;
-use aftiktuna::macroquad_interface;
+use aftiktuna::{game_loop, macroquad_interface};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::window::Conf;
 use std::env;
@@ -19,5 +19,6 @@ fn config() -> Conf {
 async fn main() {
     let args: Vec<String> = env::args().collect();
     let location = args[1].to_string();
-    macroquad_interface::run(LocationTracker::single(location)).await;
+    let game = game_loop::setup(LocationTracker::single(location));
+    macroquad_interface::run(game).await;
 }

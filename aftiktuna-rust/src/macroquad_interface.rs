@@ -1,7 +1,6 @@
-use crate::area::LocationTracker;
 use crate::game_loop::{Game, TakeInput};
+use crate::view;
 use crate::view::Frame;
-use crate::{game_loop, view};
 use egui_macroquad::macroquad::input::{
     is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
 };
@@ -23,8 +22,8 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(locations: LocationTracker) {
-    let mut app = init(locations);
+pub async fn run(game: Game) {
+    let mut app = init(game);
     let textures = texture::load_textures().await.unwrap();
 
     loop {
@@ -42,8 +41,7 @@ pub async fn run(locations: LocationTracker) {
     }
 }
 
-fn init(locations: LocationTracker) -> App {
-    let game = game_loop::setup(locations);
+fn init(game: Game) -> App {
     App {
         input: String::new(),
         game,
