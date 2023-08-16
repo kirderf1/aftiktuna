@@ -6,12 +6,13 @@ use crate::status::{Health, Stamina, Stats};
 use crate::view::NameData;
 use hecs::{Component, Entity, World};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct IsFoe;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum Target {
     Aftik,
     Foe,

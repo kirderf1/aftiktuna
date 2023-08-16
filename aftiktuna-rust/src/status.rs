@@ -2,7 +2,7 @@ use hecs::{ComponentError, Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Health {
     value: f32,
     max: f32,
@@ -50,7 +50,7 @@ impl Health {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Stamina {
     dodge_stamina: i16,
     max: i16,

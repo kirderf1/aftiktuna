@@ -5,8 +5,10 @@ use crate::position::Pos;
 use crate::status;
 use crate::view::NameData;
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 
-enum Intention {
+#[derive(Serialize, Deserialize)]
+pub enum Intention {
     Wield(Entity),
 }
 

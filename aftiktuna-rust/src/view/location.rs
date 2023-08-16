@@ -8,7 +8,7 @@ use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub enum TextureType {
     Unknown,
     SmallUnknown,

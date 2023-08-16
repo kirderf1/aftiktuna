@@ -5,8 +5,9 @@ use crate::status::Health;
 use crate::view::{DisplayInfo, NameData};
 use crate::{action, status};
 use hecs::{Component, Entity, World};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Held {
     holder: Entity,
     in_hand: bool,

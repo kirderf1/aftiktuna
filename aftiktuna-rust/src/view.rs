@@ -5,6 +5,7 @@ use crate::game_loop::StopType;
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
 pub use name::{as_grouped_text_list, NounData};
+use serde::{Deserialize, Serialize};
 pub use status::print_full_status;
 use std::mem::take;
 
@@ -39,7 +40,7 @@ impl<T: AsRef<str>> From<T> for Messages {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DisplayInfo {
     symbol: char,
     pub texture_type: TextureType,

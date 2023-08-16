@@ -2,11 +2,12 @@ use crate::action::CrewMember;
 use crate::area::Area;
 use crate::view::NameData;
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 use std::cmp::{max, min, Ordering};
 
 pub type Coord = usize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Pos {
     coord: Coord,
     area: Entity,
@@ -76,7 +77,7 @@ fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
     );
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
 pub struct MovementBlocking;
 
 pub fn try_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
@@ -153,7 +154,7 @@ pub fn check_is_blocked(
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq)]
+#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Direction {
     Left,
     Right,

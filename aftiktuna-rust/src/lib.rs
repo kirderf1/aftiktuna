@@ -6,6 +6,7 @@ pub mod game_loop;
 pub mod item;
 pub mod macroquad_interface;
 pub mod position;
+pub mod serialization;
 pub mod standard_io_interface;
 mod status;
 pub mod view;

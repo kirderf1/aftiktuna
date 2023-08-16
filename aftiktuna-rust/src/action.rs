@@ -4,6 +4,7 @@ use crate::view::{Messages, NameData, TextureType};
 use crate::{status, view};
 use hecs::{Entity, World};
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use std::result;
 use Action::*;
 
@@ -13,12 +14,13 @@ pub mod item;
 mod launch;
 pub mod trade;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
 
+#[derive(Serialize, Deserialize)]
 pub struct Recruitable(pub String);
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Action {
     TakeItem(Entity, NameData),
     TakeAll,
@@ -165,8 +167,10 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     ok(format!("{} joined the crew!", name))
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct FortunaChest;
 
+#[derive(Serialize, Deserialize)]
 pub struct OpenedChest;
 
 fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {

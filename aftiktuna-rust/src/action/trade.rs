@@ -5,18 +5,22 @@ use crate::position::Pos;
 use crate::view::{as_grouped_text_list, NameData};
 use crate::{action, item, position};
 use hecs::{Entity, Ref, World};
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct Points(pub i32);
 
+#[derive(Serialize, Deserialize)]
 pub struct Shopkeeper(pub Vec<PricedItem>);
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct PricedItem {
     pub item: item::Type,
     pub price: i32,
 }
 
-struct IsTrading(Entity);
+#[derive(Serialize, Deserialize)]
+pub struct IsTrading(Entity);
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
     let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;

@@ -8,6 +8,7 @@ use crate::{action, ai, area, command, status, view};
 use hecs::{CommandBuffer, Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
+use serde::{Deserialize, Serialize};
 
 pub fn setup(locations: LocationTracker) -> Game {
     let mut world = World::new();
@@ -307,7 +308,8 @@ fn is_ship_launching(world: &World, area: Entity) -> bool {
         .unwrap_or(false)
 }
 
-struct LowHealth;
+#[derive(Serialize, Deserialize)]
+pub struct LowHealth;
 
 fn detect_low_health(world: &mut World, messages: &mut Messages, character: Entity) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
@@ -331,7 +333,8 @@ fn detect_low_health(world: &mut World, messages: &mut Messages, character: Enti
     command_buffer.run_on(world);
 }
 
-struct LowStamina;
+#[derive(Serialize, Deserialize)]
+pub struct LowStamina;
 
 fn detect_low_stamina(world: &mut World, messages: &mut Messages, character: Entity) {
     let area = world.get::<&Pos>(character).unwrap().get_area();

@@ -18,6 +18,7 @@ mod door;
 mod init;
 mod template;
 
+#[derive(Serialize, Deserialize)]
 pub struct Area {
     pub size: Coord,
     pub label: String,
@@ -41,13 +42,13 @@ pub enum BackgroundType {
     FacilitySize7,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Ship {
     pub status: ShipStatus,
     pub exit_pos: Pos,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ShipStatus {
     NeedTwoCans,
     NeedOneCan,

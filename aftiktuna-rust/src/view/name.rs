@@ -1,8 +1,9 @@
 use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Data {
     Name(String),
     Noun(NounData),
@@ -57,7 +58,7 @@ impl Data {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct NounData {
     singular: String,
     plural: String,

@@ -7,14 +7,14 @@ use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Door {
     pub kind: DoorKind,
     pub destination: Pos,
     pub door_pair: Entity,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum DoorKind {
     Door,
     Path,
