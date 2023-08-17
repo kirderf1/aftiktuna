@@ -93,11 +93,8 @@ impl Buffer {
         self.captured_frames.push(frame);
     }
 
-    pub fn push_ending_frame(&mut self, world: &World, character: Entity, stop_type: StopType) {
-        self.push_frame(Frame::Ending {
-            stop_type,
-            render_data: location::prepare_render_data(world, character),
-        })
+    pub fn push_ending_frame(&mut self, _world: &World, _character: Entity, stop_type: StopType) {
+        self.push_frame(Frame::Ending { stop_type })
     }
 
     pub fn into_frames(self) -> Vec<Frame> {
@@ -119,7 +116,6 @@ pub enum Frame {
     LocationChoice(Choice),
     Ending {
         stop_type: StopType,
-        render_data: RenderData,
     },
 }
 

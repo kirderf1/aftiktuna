@@ -1,11 +1,12 @@
 use super::texture::{draw_object, BGTextureType, TextureStorage};
 use super::App;
+use crate::game_loop::StopType;
 use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
 use crate::position::Coord;
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
-use egui_macroquad::macroquad::color::{BLACK, WHITE};
+use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY, WHITE};
 use egui_macroquad::macroquad::input::{
     is_mouse_button_down, is_mouse_button_pressed, mouse_position, MouseButton,
 };
@@ -86,7 +87,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                 textures,
             );
         }
-        Frame::AreaView { render_data, .. } | Frame::Ending { render_data, .. } => {
+        Frame::AreaView { render_data, .. } => {
             set_camera(&Camera2D::from_display_rect(state.camera));
             draw_background(
                 render_data
@@ -121,6 +122,13 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                     WHITE,
                 );
             }
+        }
+        Frame::Ending { stop_type } => {
+            let color = match stop_type {
+                StopType::Win => LIGHTGRAY,
+                StopType::Lose => BLACK,
+            };
+            clear_background(color);
         }
     }
 
@@ -195,10 +203,7 @@ fn coord_to_center_x(coord: Coord) -> f32 {
 
 fn try_drag_camera(state: &mut State) {
     match (&state.current_frame, state.last_drag_pos) {
-        (
-            Frame::AreaView { render_data, .. } | Frame::Ending { render_data, .. },
-            Some(last_pos),
-        ) => {
+        (Frame::AreaView { render_data, .. }, Some(last_pos)) => {
             if is_mouse_button_down(MouseButton::Left) {
                 let mouse_pos: Vec2 = mouse_position().into();
                 let camera_delta = mouse_pos - last_pos;
@@ -210,7 +215,7 @@ fn try_drag_camera(state: &mut State) {
                 state.last_drag_pos = None;
             }
         }
-        (Frame::AreaView { .. } | Frame::Ending { .. }, None) => {
+        (Frame::AreaView { .. }, None) => {
             if is_mouse_button_pressed(MouseButton::Left) && !ui::is_mouse_at_text_box(state) {
                 state.last_drag_pos = Some(mouse_position().into());
             }
