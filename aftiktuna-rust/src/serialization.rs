@@ -17,6 +17,9 @@ use serde::de::SeqAccess;
 use serde::ser::SerializeTuple;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::any::TypeId;
+use std::fmt::{Display, Formatter};
+use std::fs::File;
+use std::io;
 use std::io::{Read, Write};
 
 macro_rules! components_to_serialize {
@@ -157,6 +160,7 @@ components_to_serialize!(
     OpenedChest, OpenedChest;
 );
 
+pub const SAVE_FILE_NAME: &str = "SAVE_FILE";
 const MAJOR_VERSION: u16 = 0;
 const MINOR_VERSION: u16 = 0;
 
@@ -216,6 +220,38 @@ impl<'de> Deserialize<'de> for DeserializedWorld {
         column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
             .map(DeserializedWorld)
     }
+}
+
+pub enum Error {
+    IO(io::Error),
+    ENCODE(encode::Error),
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::IO(error) => Display::fmt(error, f),
+            Error::ENCODE(error) => Display::fmt(error, f),
+        }
+    }
+}
+
+macro_rules! from {
+    ($id:ident, $error:ty) => {
+        impl From<$error> for Error {
+            fn from(value: $error) -> Self {
+                Error::$id(value)
+            }
+        }
+    };
+}
+
+from!(IO, io::Error);
+from!(ENCODE, encode::Error);
+
+pub fn write_game_to_save_file(game: &Game) -> Result<(), Error> {
+    serialize_game(game, File::create(SAVE_FILE_NAME)?)?;
+    Ok(())
 }
 
 pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), encode::Error> {

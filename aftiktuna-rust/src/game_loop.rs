@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 
 pub fn new_or_load() -> Game {
-    match File::open("SAVE_FILE") {
+    match File::open(serialization::SAVE_FILE_NAME) {
         Ok(file) => serialization::deserialize_game(file).unwrap(),
         Err(_) => setup_new(LocationTracker::new(3)),
     }

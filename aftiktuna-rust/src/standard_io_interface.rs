@@ -1,6 +1,6 @@
 use crate::game_loop::{Game, TakeInput};
-use crate::view;
 use crate::view::Frame;
+use crate::{serialization, view};
 use std::io::Write;
 use std::{io, thread, time};
 
@@ -24,7 +24,15 @@ pub fn run(mut game: Game) {
 fn input_loop(game: &mut Game) {
     loop {
         let input = read_input();
-        if let Err(messages) = game.handle_input(&input) {
+        if input.eq_ignore_ascii_case("save") {
+            match serialization::write_game_to_save_file(game) {
+                Ok(()) => println!(
+                    "Successfully saved the game to {}",
+                    serialization::SAVE_FILE_NAME
+                ),
+                Err(error) => println!("Unable to save the game: {}", error),
+            }
+        } else if let Err(messages) = game.handle_input(&input) {
             messages.print_lines();
         } else {
             break;
