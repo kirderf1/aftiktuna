@@ -260,7 +260,7 @@ from!(decode::Error => LoadError, LoadError::Decode);
 impl Display for LoadError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            LoadError::UnsupportedVersion(major, minor) => write!(f, "Unsupported save file format \"{major}.{minor}\". Current format version is \"{MAJOR_VERSION}.{MINOR_VERSION}\""),
+            LoadError::UnsupportedVersion(major, minor) => write!(f, "Unsupported save file format '{major}.{minor}'. Current format version is '{MAJOR_VERSION}.{MINOR_VERSION}'."),
             LoadError::Decode(error) => Display::fmt(error, f),
         }
     }
