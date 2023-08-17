@@ -39,31 +39,21 @@ impl State {
             self.text_log.push(String::default())
         }
 
+        self.set_text_box_text(frame.get_messages());
         match frame {
-            Frame::AreaView {
-                render_data,
-                messages,
-                ..
-            } => {
+            Frame::AreaView { render_data, .. } => {
                 self.camera = character_centered_camera(&render_data);
                 self.view_state = ViewState::InGame(render_data);
-                self.set_text_box_text(messages.into_text());
             }
-            Frame::StoreView { view, messages } => {
+            Frame::StoreView { view, .. } => {
                 self.view_state = ViewState::Store(view);
-                self.set_text_box_text(messages.into_text());
             }
-            Frame::LocationChoice(choice) => {
-                self.camera = default_camera_space();
+            Frame::LocationChoice(_) => {
                 self.view_state = ViewState::LocationChoice;
-                self.set_text_box_text(choice.present().into_text());
             }
-            Frame::Ending(stop_type) => {
-                self.set_text_box_text(stop_type.messages().into_text());
-            }
+            Frame::Ending(_) => {}
             Frame::Introduction => {
                 self.view_state = ViewState::LocationChoice;
-                self.set_text_box_text(frame.as_text());
             }
         }
     }

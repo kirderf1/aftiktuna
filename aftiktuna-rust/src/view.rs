@@ -118,8 +118,7 @@ impl Frame {
         let mut text = Vec::new();
         match self {
             Frame::Introduction => {
-                text.push("Welcome to Aftiktuna!".to_string());
-                text.push("Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string())
+                return intro_messages();
             }
             Frame::AreaView { view, messages, .. } => {
                 text.push("--------------------".to_string());
@@ -161,6 +160,20 @@ impl Frame {
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending(_) => true,
         }
     }
+
+    pub fn get_messages(&self) -> Vec<String> {
+        match self {
+            Frame::Introduction => intro_messages(),
+            Frame::AreaView { messages, .. } => messages.0.clone(),
+            Frame::StoreView { messages, .. } => messages.0.clone(),
+            Frame::LocationChoice(choice) => choice.present().0,
+            Frame::Ending(stop_type) => stop_type.messages().0,
+        }
+    }
+}
+
+fn intro_messages() -> Vec<String> {
+    vec!["Welcome to Aftiktuna!".to_string(),"Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string()]
 }
 
 pub struct StoreView {
