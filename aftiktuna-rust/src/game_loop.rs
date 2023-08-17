@@ -12,10 +12,10 @@ use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 
-pub fn new_or_load() -> Result<Game, LoadError> {
+pub fn new_or_load() -> Result<(Game, Vec<Frame>), LoadError> {
     match File::open(serialization::SAVE_FILE_NAME) {
         Ok(file) => serialization::load_game(file),
-        Err(_) => Ok(setup_new(LocationTracker::new(3))),
+        Err(_) => Ok((setup_new(LocationTracker::new(3)), vec![])),
     }
 }
 
@@ -41,7 +41,7 @@ pub fn setup_new(locations: LocationTracker) -> Game {
 
 pub struct TakeInput;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
 pub enum StopType {
     Win,
     Lose,

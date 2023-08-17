@@ -105,15 +105,16 @@ impl Buffer {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum Frame {
     Introduction,
     AreaView {
-        messages: Messages,
+        messages: Vec<String>,
         render_data: RenderData,
     },
     StoreView {
         view: StoreView,
-        messages: Messages,
+        messages: Vec<String>,
     },
     LocationChoice(Choice),
     Ending {
@@ -136,20 +137,20 @@ impl Frame {
                 text.push("--------------------".to_string());
                 text.extend(location::area_view_messages(render_data).0);
 
-                if !messages.0.is_empty() {
+                if !messages.is_empty() {
                     text.push(String::default());
 
-                    text.extend(messages.0.clone());
+                    text.extend(messages.clone());
                 }
             }
             Frame::StoreView { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.messages().0);
 
-                if !messages.0.is_empty() {
+                if !messages.is_empty() {
                     text.push(String::default());
 
-                    text.extend(messages.0.clone());
+                    text.extend(messages.clone());
                 }
             }
             Frame::LocationChoice(choice) => {
@@ -167,7 +168,7 @@ impl Frame {
     fn has_messages(&self) -> bool {
         match self {
             Frame::AreaView { messages, .. } | Frame::StoreView { messages, .. } => {
-                !messages.0.is_empty()
+                !messages.is_empty()
             }
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending { .. } => true,
         }
@@ -176,8 +177,8 @@ impl Frame {
     pub fn get_messages(&self) -> Vec<String> {
         match self {
             Frame::Introduction => intro_messages(),
-            Frame::AreaView { messages, .. } => messages.0.clone(),
-            Frame::StoreView { messages, .. } => messages.0.clone(),
+            Frame::AreaView { messages, .. } => messages.clone(),
+            Frame::StoreView { messages, .. } => messages.clone(),
             Frame::LocationChoice(choice) => choice.present().0,
             Frame::Ending { stop_type, .. } => stop_type.messages().0,
         }
@@ -228,7 +229,7 @@ fn shop_frame(
     let items = shopkeeper.0.clone();
     Frame::StoreView {
         view: StoreView { items, points },
-        messages: buffer.pop_messages(world, character, cache),
+        messages: buffer.pop_messages(world, character, cache).into_text(),
     }
 }
 
@@ -239,7 +240,7 @@ fn area_view_frame(
     cache: &mut StatusCache,
 ) -> Frame {
     Frame::AreaView {
-        messages: buffer.pop_messages(world, character, cache),
+        messages: buffer.pop_messages(world, character, cache).into_text(),
         render_data: location::prepare_render_data(world, character),
     }
 }

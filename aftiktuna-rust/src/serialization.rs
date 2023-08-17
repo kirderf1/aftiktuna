@@ -9,7 +9,7 @@ use crate::game_loop::{Game, GameState};
 use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon};
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
-use crate::view::{AftikColor, DisplayInfo, NameData};
+use crate::view::{AftikColor, DisplayInfo, Frame, NameData};
 use hecs::serialize::column;
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
 use rmp_serde::{decode, encode};
@@ -266,21 +266,27 @@ impl Display for LoadError {
     }
 }
 
-pub fn write_game_to_save_file(game: &Game) -> Result<(), SaveError> {
-    serialize_game(game, File::create(SAVE_FILE_NAME)?)
+pub fn write_game_to_save_file(game: &Game, frames: Vec<&Frame>) -> Result<(), SaveError> {
+    serialize_game(game, frames, File::create(SAVE_FILE_NAME)?)
 }
 
-pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), SaveError> {
+pub fn serialize_game(
+    game: &Game,
+    frames: Vec<&Frame>,
+    writer: impl Write,
+) -> Result<(), SaveError> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
     (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
     SerializedData::from(game).serialize(&mut serializer)?;
+    frames.serialize(&mut serializer)?;
     Ok(())
 }
 
-pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
+pub fn load_game(reader: impl Read) -> Result<(Game, Vec<Frame>), LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
     let data = DeserializedData::deserialize(&mut deserializer)?;
-    Ok(Game::from(data))
+    let frames = Vec::<Frame>::deserialize(&mut deserializer)?;
+    Ok((Game::from(data), frames))
 }

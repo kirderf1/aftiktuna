@@ -1,6 +1,6 @@
 use crate::game_loop::{Game, TakeInput};
+use crate::serialization;
 use crate::view::Frame;
-use crate::{serialization, view};
 use egui_macroquad::macroquad::input;
 use egui_macroquad::macroquad::input::{
     is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
@@ -24,14 +24,18 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(game: Game) {
+pub async fn run(game: Game, frames: Vec<Frame>) {
     let mut app = init(game);
+    app.add_view_data(frames);
     let textures = texture::load_textures().await.unwrap();
 
     input::prevent_quit();
     loop {
         if input::is_quit_requested() {
-            if let Err(error) = serialization::write_game_to_save_file(&app.game) {
+            let mut frames: Vec<&Frame> = app.delayed_frames.remaining_frames.iter().collect();
+            frames.push(&app.render_state.current_frame);
+            frames.reverse();
+            if let Err(error) = serialization::write_game_to_save_file(&app.game, frames) {
                 eprintln!("Failed to save game: {error}");
             } else {
                 println!("Saved the game successfully.")
@@ -89,8 +93,7 @@ struct DelayedFrames {
 }
 
 impl DelayedFrames {
-    fn new(view_buffer: view::Buffer) -> Self {
-        let mut frames = view_buffer.into_frames();
+    fn new(mut frames: Vec<Frame>) -> Self {
         frames.reverse();
         Self {
             remaining_frames: frames,
@@ -148,7 +151,7 @@ impl App {
     fn update_game_state(&mut self) {
         if self.state == GameState::Run {
             let (result, view_buffer) = self.game.run();
-            self.add_view_data(view_buffer);
+            self.add_view_data(view_buffer.into_frames());
 
             match result {
                 Ok(TakeInput) => {
@@ -161,8 +164,8 @@ impl App {
         }
     }
 
-    fn add_view_data(&mut self, view_buffer: view::Buffer) {
-        self.delayed_frames = DelayedFrames::new(view_buffer);
+    fn add_view_data(&mut self, frames: Vec<Frame>) {
+        self.delayed_frames = DelayedFrames::new(frames);
         if let Some(frame) = self.delayed_frames.next_frame() {
             self.show_frame(frame);
         }

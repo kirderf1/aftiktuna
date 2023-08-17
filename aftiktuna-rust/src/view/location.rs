@@ -100,6 +100,7 @@ fn get_name(world: &World, entity: Entity, name: String) -> String {
     name
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct RenderData {
     pub area_label: String,
     pub area_size: Coord,
@@ -109,6 +110,7 @@ pub struct RenderData {
     pub objects: Vec<ObjectRenderData>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: u32,

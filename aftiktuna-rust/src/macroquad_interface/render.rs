@@ -16,8 +16,8 @@ use std::collections::HashMap;
 
 pub struct State {
     pub text_log: Vec<String>,
-    current_frame: Frame,
-    pub(crate) text_box_text: Vec<String>,
+    pub current_frame: Frame,
+    pub text_box_text: Vec<String>,
     camera: Rect,
     last_drag_pos: Option<Vec2>,
 }
