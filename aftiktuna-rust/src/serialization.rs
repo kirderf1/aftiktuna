@@ -157,6 +157,17 @@ components_to_serialize!(
     OpenedChest, OpenedChest;
 );
 
+const MAJOR_VERSION: u16 = 0;
+const MINOR_VERSION: u16 = 0;
+
+fn verify_version(major: u16, minor: u16) -> Result<(), String> {
+    if major != MAJOR_VERSION || minor > MINOR_VERSION {
+        Err(format!("Unsupported data format \"{major}.{minor}\". Current version is \"{MAJOR_VERSION}.{MINOR_VERSION}\""))
+    } else {
+        Ok(())
+    }
+}
+
 #[derive(Serialize)]
 struct SerializedData<'a> {
     world: SerializedWorld<'a>,
@@ -209,10 +220,13 @@ impl<'de> Deserialize<'de> for DeserializedWorld {
 
 pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), encode::Error> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
+    (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
     SerializedData::from(game).serialize(&mut serializer)
 }
 
 pub fn deserialize_game(reader: impl Read) -> Result<Game, decode::Error> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
+    let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
+    verify_version(major, minor).map_err(decode::Error::Uncategorized)?;
     DeserializedData::deserialize(&mut deserializer).map(Game::from)
 }
