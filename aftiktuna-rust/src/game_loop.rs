@@ -97,7 +97,7 @@ impl Game {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);
         if let Err(stop_type) = result {
-            buffer.push_frame(Frame::Ending(stop_type));
+            buffer.push_ending_frame(&self.world, self.state.controlled, stop_type);
         }
         (result, buffer)
     }

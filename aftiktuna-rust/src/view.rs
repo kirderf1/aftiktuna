@@ -93,6 +93,13 @@ impl Buffer {
         self.captured_frames.push(frame);
     }
 
+    pub fn push_ending_frame(&mut self, world: &World, character: Entity, stop_type: StopType) {
+        self.push_frame(Frame::Ending {
+            stop_type,
+            render_data: location::prepare_render_data(world, character),
+        })
+    }
+
     pub fn into_frames(self) -> Vec<Frame> {
         self.captured_frames
     }
@@ -110,7 +117,10 @@ pub enum Frame {
         messages: Messages,
     },
     LocationChoice(Choice),
-    Ending(StopType),
+    Ending {
+        stop_type: StopType,
+        render_data: RenderData,
+    },
 }
 
 impl Frame {
@@ -144,7 +154,7 @@ impl Frame {
                 text.push("--------------------".to_string());
                 text.extend(choice.present().0);
             }
-            Frame::Ending(stop_type) => {
+            Frame::Ending { stop_type, .. } => {
                 text.push(String::default());
                 text.extend(stop_type.messages().into_text());
             }
@@ -157,7 +167,7 @@ impl Frame {
             Frame::AreaView { messages, .. } | Frame::StoreView { messages, .. } => {
                 !messages.0.is_empty()
             }
-            Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending(_) => true,
+            Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending { .. } => true,
         }
     }
 
@@ -167,7 +177,7 @@ impl Frame {
             Frame::AreaView { messages, .. } => messages.0.clone(),
             Frame::StoreView { messages, .. } => messages.0.clone(),
             Frame::LocationChoice(choice) => choice.present().0,
-            Frame::Ending(stop_type) => stop_type.messages().0,
+            Frame::Ending { stop_type, .. } => stop_type.messages().0,
         }
     }
 }

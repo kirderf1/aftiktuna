@@ -3,7 +3,7 @@ use super::App;
 use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
 use crate::position::Coord;
-use crate::view::{Frame, Messages, ObjectRenderData, RenderData, StoreView};
+use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, WHITE};
 use egui_macroquad::macroquad::input::{
@@ -16,7 +16,7 @@ use std::collections::HashMap;
 
 pub struct State {
     pub text_log: Vec<String>,
-    view_state: ViewState,
+    current_frame: Frame,
     pub(crate) text_box_text: Vec<String>,
     camera: Rect,
     last_drag_pos: Option<Vec2>,
@@ -26,7 +26,7 @@ impl State {
     pub fn new() -> Self {
         Self {
             text_log: vec![],
-            view_state: ViewState::LocationChoice,
+            current_frame: Frame::Introduction,
             text_box_text: vec![],
             camera: default_camera_space(),
             last_drag_pos: None,
@@ -34,28 +34,17 @@ impl State {
     }
 
     pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
+        if let Frame::AreaView { render_data, .. } = &frame {
+            self.camera = character_centered_camera(render_data);
+        }
+
         self.text_log.extend(frame.as_text());
         if ready_for_input {
             self.text_log.push(String::default())
         }
-
         self.set_text_box_text(frame.get_messages());
-        match frame {
-            Frame::AreaView { render_data, .. } => {
-                self.camera = character_centered_camera(&render_data);
-                self.view_state = ViewState::InGame(render_data);
-            }
-            Frame::StoreView { view, .. } => {
-                self.view_state = ViewState::Store(view);
-            }
-            Frame::LocationChoice(_) => {
-                self.view_state = ViewState::LocationChoice;
-            }
-            Frame::Ending(_) => {}
-            Frame::Introduction => {
-                self.view_state = ViewState::LocationChoice;
-            }
-        }
+
+        self.current_frame = frame;
     }
 
     fn set_text_box_text(&mut self, text: Vec<String>) {
@@ -73,12 +62,6 @@ impl State {
     }
 }
 
-pub enum ViewState {
-    LocationChoice,
-    InGame(RenderData),
-    Store(StoreView),
-}
-
 pub fn draw(app: &mut App, textures: &TextureStorage) {
     try_drag_camera(&mut app.render_state);
 
@@ -94,8 +77,8 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
 }
 
 fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
-    match &state.view_state {
-        ViewState::LocationChoice => {
+    match &state.current_frame {
+        Frame::LocationChoice(_) | Frame::Introduction => {
             draw_background(
                 BGTextureType::LocationChoice,
                 0,
@@ -103,7 +86,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                 textures,
             );
         }
-        ViewState::InGame(render_data) => {
+        Frame::AreaView { render_data, .. } | Frame::Ending { render_data, .. } => {
             set_camera(&Camera2D::from_display_rect(state.camera));
             draw_background(
                 render_data
@@ -127,7 +110,7 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
                 has_camera_space(state.camera, render_data),
             );
         }
-        ViewState::Store(view) => {
+        Frame::StoreView { view, .. } => {
             const TEXT_SIZE: f32 = 32.;
             for (index, text_line) in view.messages().into_text().iter().enumerate() {
                 draw_text(
@@ -211,8 +194,11 @@ fn coord_to_center_x(coord: Coord) -> f32 {
 }
 
 fn try_drag_camera(state: &mut State) {
-    match (&state.view_state, state.last_drag_pos) {
-        (ViewState::InGame(render_data), Some(last_pos)) => {
+    match (&state.current_frame, state.last_drag_pos) {
+        (
+            Frame::AreaView { render_data, .. } | Frame::Ending { render_data, .. },
+            Some(last_pos),
+        ) => {
             if is_mouse_button_down(MouseButton::Left) {
                 let mouse_pos: Vec2 = mouse_position().into();
                 let camera_delta = mouse_pos - last_pos;
@@ -224,7 +210,7 @@ fn try_drag_camera(state: &mut State) {
                 state.last_drag_pos = None;
             }
         }
-        (ViewState::InGame(_), None) => {
+        (Frame::AreaView { .. } | Frame::Ending { .. }, None) => {
             if is_mouse_button_pressed(MouseButton::Left) && !ui::is_mouse_at_text_box(state) {
                 state.last_drag_pos = Some(mouse_position().into());
             }
