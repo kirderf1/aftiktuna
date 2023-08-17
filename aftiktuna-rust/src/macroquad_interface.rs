@@ -1,12 +1,14 @@
 use crate::game_loop::{Game, TakeInput};
-use crate::view;
 use crate::view::Frame;
+use crate::{serialization, view};
+use egui_macroquad::macroquad::input;
 use egui_macroquad::macroquad::input::{
     is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
 };
 use egui_macroquad::macroquad::miniquad::conf::Icon;
 use egui_macroquad::macroquad::window::next_frame;
 use std::mem::take;
+use std::process::exit;
 use std::time;
 use std::time::Instant;
 
@@ -26,7 +28,17 @@ pub async fn run(game: Game) {
     let mut app = init(game);
     let textures = texture::load_textures().await.unwrap();
 
+    input::prevent_quit();
     loop {
+        if input::is_quit_requested() {
+            if let Err(error) = serialization::write_game_to_save_file(&app.game) {
+                eprintln!("Failed to save game: {error}");
+            } else {
+                println!("Saved the game successfully.")
+            }
+            exit(0);
+        }
+
         app.update_view_state();
 
         app.update_game_state();
