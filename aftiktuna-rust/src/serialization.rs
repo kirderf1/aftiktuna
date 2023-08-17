@@ -164,9 +164,9 @@ pub const SAVE_FILE_NAME: &str = "SAVE_FILE";
 const MAJOR_VERSION: u16 = 0;
 const MINOR_VERSION: u16 = 0;
 
-fn verify_version(major: u16, minor: u16) -> Result<(), String> {
+fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
     if major != MAJOR_VERSION || minor > MINOR_VERSION {
-        Err(format!("Unsupported data format \"{major}.{minor}\". Current version is \"{MAJOR_VERSION}.{MINOR_VERSION}\""))
+        Err(LoadError::UnsupportedVersion(major, minor))
     } else {
         Ok(())
     }
@@ -222,47 +222,65 @@ impl<'de> Deserialize<'de> for DeserializedWorld {
     }
 }
 
-pub enum Error {
-    IO(io::Error),
-    ENCODE(encode::Error),
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Error::IO(error) => Display::fmt(error, f),
-            Error::ENCODE(error) => Display::fmt(error, f),
-        }
-    }
-}
-
 macro_rules! from {
-    ($id:ident, $error:ty) => {
-        impl From<$error> for Error {
-            fn from(value: $error) -> Self {
-                Error::$id(value)
+    ($other_error:ty => $error:ty, $variant:expr) => {
+        impl From<$other_error> for $error {
+            fn from(value: $other_error) -> Self {
+                $variant(value)
             }
         }
     };
 }
 
-from!(IO, io::Error);
-from!(ENCODE, encode::Error);
+pub enum SaveError {
+    IO(io::Error),
+    Encode(encode::Error),
+}
 
-pub fn write_game_to_save_file(game: &Game) -> Result<(), Error> {
-    serialize_game(game, File::create(SAVE_FILE_NAME)?)?;
+from!(io::Error => SaveError, SaveError::IO);
+from!(encode::Error => SaveError, SaveError::Encode);
+
+impl Display for SaveError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SaveError::IO(error) => Display::fmt(error, f),
+            SaveError::Encode(error) => Display::fmt(error, f),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum LoadError {
+    UnsupportedVersion(u16, u16),
+    Decode(decode::Error),
+}
+
+from!(decode::Error => LoadError, LoadError::Decode);
+
+impl Display for LoadError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LoadError::UnsupportedVersion(major, minor) => write!(f, "Unsupported save file format \"{major}.{minor}\". Current format version is \"{MAJOR_VERSION}.{MINOR_VERSION}\""),
+            LoadError::Decode(error) => Display::fmt(error, f),
+        }
+    }
+}
+
+pub fn write_game_to_save_file(game: &Game) -> Result<(), SaveError> {
+    serialize_game(game, File::create(SAVE_FILE_NAME)?)
+}
+
+pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), SaveError> {
+    let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
+    (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
+    SerializedData::from(game).serialize(&mut serializer)?;
     Ok(())
 }
 
-pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), encode::Error> {
-    let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
-    (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
-    SerializedData::from(game).serialize(&mut serializer)
-}
-
-pub fn deserialize_game(reader: impl Read) -> Result<Game, decode::Error> {
+pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
-    verify_version(major, minor).map_err(decode::Error::Uncategorized)?;
-    DeserializedData::deserialize(&mut deserializer).map(Game::from)
+    verify_version(major, minor)?;
+    let data = DeserializedData::deserialize(&mut deserializer)?;
+    Ok(Game::from(data))
 }

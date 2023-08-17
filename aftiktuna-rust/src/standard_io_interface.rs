@@ -30,7 +30,7 @@ fn input_loop(game: &mut Game) {
                     "Successfully saved the game to {}",
                     serialization::SAVE_FILE_NAME
                 ),
-                Err(error) => println!("Unable to save the game: {}", error),
+                Err(error) => eprintln!("Unable to save the game: {}", error),
             }
         } else if let Err(messages) = game.handle_input(&input) {
             messages.print_lines();

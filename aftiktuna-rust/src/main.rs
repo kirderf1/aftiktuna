@@ -15,6 +15,6 @@ fn config() -> Conf {
 
 #[macroquad::main(config)]
 async fn main() {
-    let game = game_loop::new_or_load();
+    let game = game_loop::new_or_load().unwrap();
     macroquad_interface::run(game).await;
 }
