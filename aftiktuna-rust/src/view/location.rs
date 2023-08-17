@@ -42,40 +42,24 @@ pub enum AftikColor {
     Green,
 }
 
-pub(crate) fn area_view_messages(world: &World, character: Entity) -> Messages {
+pub fn area_view_messages(render_data: &RenderData) -> Messages {
     let mut messages = Messages::default();
-    let area = get_viewed_area(character, world);
-    let area_info = world.get::<&Area>(area).unwrap();
-    let area_size = area_info.size;
-    messages.add(format!("{}:", area_info.label));
-    print_area(world, &mut messages.0, area, area_size);
+    messages.add(format!("{}:", render_data.area_label));
+    print_area(&mut messages.0, render_data);
     messages
 }
 
-fn get_viewed_area(aftik: Entity, world: &World) -> Entity {
-    world.get::<&Pos>(aftik).unwrap().get_area()
-}
-
-fn print_area(world: &World, lines: &mut Vec<String>, area: Entity, area_size: Coord) {
+fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
+    let area_size = render_data.area_size;
     let mut symbols_by_pos = init_symbol_vectors(area_size);
     let mut labels = Vec::new();
 
-    for (entity, (pos, obj_type)) in world.query::<(&Pos, &DisplayInfo)>().iter() {
-        if pos.get_area() == area {
-            symbols_by_pos[pos.get_coord()].push((obj_type.symbol, obj_type.weight));
+    for object in &render_data.objects {
+        symbols_by_pos[object.coord].push((object.symbol, object.weight));
 
-            let label = format!(
-                "{}: {}",
-                obj_type.symbol,
-                get_name(
-                    world,
-                    entity,
-                    capitalize(NameData::find(world, entity).base())
-                )
-            );
-            if !labels.contains(&label) {
-                labels.push(label);
-            }
+        let label = format!("{}: {}", object.symbol, object.name,);
+        if !labels.contains(&label) {
+            labels.push(label);
         }
     }
 
@@ -117,7 +101,8 @@ fn get_name(world: &World, entity: Entity, name: String) -> String {
 }
 
 pub struct RenderData {
-    pub size: Coord,
+    pub area_label: String,
+    pub area_size: Coord,
     pub background: Option<BackgroundType>,
     pub background_offset: Option<Coord>,
     pub character_coord: Coord,
@@ -129,6 +114,7 @@ pub struct ObjectRenderData {
     pub weight: u32,
     pub texture_type: TextureType,
     pub name: String,
+    pub symbol: char,
     pub direction: Direction,
     pub aftik_color: Option<AftikColor>,
     pub wielded_item: Option<TextureType>,
@@ -152,6 +138,7 @@ pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderDat
                     entity,
                     capitalize(NameData::find(world, entity).base()),
                 ),
+                symbol: display_info.symbol,
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
                 wielded_item: find_wielded_item_texture(world, entity),
@@ -161,7 +148,8 @@ pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderDat
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
     RenderData {
-        size: area.size,
+        area_label: area.label.clone(),
+        area_size: area.size,
         background: area.background,
         background_offset: area.background_offset,
         character_coord: character_pos.get_coord(),

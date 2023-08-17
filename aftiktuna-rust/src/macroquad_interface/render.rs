@@ -222,24 +222,24 @@ fn try_drag_camera(state: &mut State) {
 }
 
 fn has_camera_space(camera: Rect, render_data: &RenderData) -> [bool; 2] {
-    if render_data.size <= 6 {
+    if render_data.area_size <= 6 {
         [false, false]
     } else {
         [
             camera.left() > coord_to_center_x(0) - 100.,
-            camera.right() < coord_to_center_x(render_data.size - 1) + 100.,
+            camera.right() < coord_to_center_x(render_data.area_size - 1) + 100.,
         ]
     }
 }
 
 fn clamp_camera(camera: &mut Rect, render_data: &RenderData) {
-    camera.x = if render_data.size <= 6 {
-        (coord_to_center_x(0) + coord_to_center_x(render_data.size - 1)) / 2. - camera.w / 2.
+    camera.x = if render_data.area_size <= 6 {
+        (coord_to_center_x(0) + coord_to_center_x(render_data.area_size - 1)) / 2. - camera.w / 2.
     } else {
         clamp(
             camera.x,
             coord_to_center_x(0) - 100.,
-            coord_to_center_x(render_data.size - 1) + 100. - camera.w,
+            coord_to_center_x(render_data.area_size - 1) + 100. - camera.w,
         )
     };
 }

@@ -108,7 +108,6 @@ impl Buffer {
 pub enum Frame {
     Introduction,
     AreaView {
-        view: Messages,
         messages: Messages,
         render_data: RenderData,
     },
@@ -130,9 +129,12 @@ impl Frame {
             Frame::Introduction => {
                 return intro_messages();
             }
-            Frame::AreaView { view, messages, .. } => {
+            Frame::AreaView {
+                messages,
+                render_data,
+            } => {
                 text.push("--------------------".to_string());
-                text.extend(view.0.clone());
+                text.extend(location::area_view_messages(render_data).0);
 
                 if !messages.0.is_empty() {
                     text.push(String::default());
@@ -186,6 +188,7 @@ fn intro_messages() -> Vec<String> {
     vec!["Welcome to Aftiktuna!".to_string(),"Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string()]
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct StoreView {
     items: Vec<PricedItem>,
     points: i32,
@@ -236,7 +239,6 @@ fn area_view_frame(
     cache: &mut StatusCache,
 ) -> Frame {
     Frame::AreaView {
-        view: location::area_view_messages(world, character),
         messages: buffer.pop_messages(world, character, cache),
         render_data: location::prepare_render_data(world, character),
     }
