@@ -41,12 +41,33 @@ pub fn setup_new(locations: LocationTracker) -> Game {
     }
 }
 
+pub enum GameResult<'a> {
+    Frame(FrameGetter<'a>),
+    Input,
+    Stop,
+}
+
+impl<'a> GameResult<'a> {
+    pub fn has_frame(&self) -> bool {
+        matches!(self, GameResult::Frame(_))
+    }
+}
+
 pub struct TakeInput;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum StopType {
     Win,
     Lose,
+}
+
+impl StopType {
+    pub fn messages(self) -> Messages {
+        match self {
+            StopType::Win => Messages::from("Congratulations, you won!"),
+            StopType::Lose => Messages::from("You lost."),
+        }
+    }
 }
 
 pub struct Game {
@@ -78,15 +99,6 @@ enum Phase {
     Stopped(StopType),
 }
 
-impl StopType {
-    pub fn messages(self) -> Messages {
-        match self {
-            StopType::Win => Messages::from("Congratulations, you won!"),
-            StopType::Lose => Messages::from("You lost."),
-        }
-    }
-}
-
 impl Game {
     pub fn new(world: World, state: GameState, frame_cache: FrameCache) -> Self {
         Self {
@@ -97,6 +109,19 @@ impl Game {
         }
     }
 
+    pub fn next_result(&mut self) -> GameResult {
+        let result = self.run();
+        if self.frame_cache.has_more_frames() {
+            GameResult::Frame(FrameGetter(&mut self.frame_cache))
+        } else {
+            match result {
+                Ok(TakeInput) => GameResult::Input,
+                Err(_) => GameResult::Stop,
+            }
+        }
+    }
+
+    #[deprecated]
     pub fn run(&mut self) -> Result<TakeInput, StopType> {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);
@@ -462,5 +487,15 @@ impl<'de> Deserialize<'de> for FrameCache {
             last_frame: None,
             remaining_frames: frames,
         })
+    }
+}
+
+// A FrameGetter should only be created under the assumption
+// that there is at least one frame available.
+pub struct FrameGetter<'a>(&'a mut FrameCache);
+
+impl<'a> FrameGetter<'a> {
+    pub fn get(self) -> Frame {
+        self.0.take_next_frame().unwrap()
     }
 }

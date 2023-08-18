@@ -1,22 +1,24 @@
-use crate::game_loop::{FrameCache, Game, TakeInput};
+use crate::game_loop::{Game, GameResult};
 use crate::serialization;
 use crate::view::Frame;
 use std::io::Write;
 use std::{io, thread, time};
 
 pub fn run(mut game: Game) {
-    print_frames(&mut game.frame_cache);
-
     loop {
-        let result = game.run();
-        print_frames(&mut game.frame_cache);
+        match game.next_result() {
+            GameResult::Frame(frame_getter) => {
+                print_frame(&frame_getter.get());
 
-        match result {
-            Ok(TakeInput) => {
+                if game.next_result().has_frame() {
+                    thread::sleep(time::Duration::from_secs(2));
+                }
+            }
+            GameResult::Input => {
                 println!();
                 input_loop(&mut game);
             }
-            Err(_) => {
+            GameResult::Stop => {
                 return;
             }
         }
@@ -51,16 +53,6 @@ fn read_input() -> String {
         .read_line(&mut input)
         .expect("Failed to read input");
     String::from(input.trim())
-}
-
-fn print_frames(frame_cache: &mut FrameCache) {
-    while let Some(frame) = frame_cache.take_next_frame() {
-        print_frame(&frame);
-
-        if frame_cache.has_more_frames() {
-            thread::sleep(time::Duration::from_secs(2));
-        }
-    }
 }
 
 fn print_frame(frame: &Frame) {
