@@ -5,7 +5,7 @@ use crate::action::trade::{IsTrading, Points, Shopkeeper};
 use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
 use crate::ai::Intention;
 use crate::area::{Area, Ship};
-use crate::game_loop::{FrameCache, Game, GameState, Phase};
+use crate::game_loop::Game;
 use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon};
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
@@ -172,62 +172,6 @@ fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
     }
 }
 
-#[derive(Serialize)]
-struct SerializedData<'a> {
-    world: SerializedWorld<'a>,
-    phase: &'a Phase,
-    state: &'a GameState,
-    frame_cache: &'a FrameCache,
-}
-
-impl<'a> From<&'a Game> for SerializedData<'a> {
-    fn from(value: &'a Game) -> Self {
-        Self {
-            world: SerializedWorld(&value.world),
-            phase: &value.phase,
-            state: &value.state,
-            frame_cache: &value.frame_cache,
-        }
-    }
-}
-
-#[derive(Deserialize)]
-struct DeserializedData {
-    world: DeserializedWorld,
-    phase: Phase,
-    state: GameState,
-    frame_cache: FrameCache,
-}
-
-impl From<DeserializedData> for Game {
-    fn from(value: DeserializedData) -> Self {
-        Self::new(value.world.0, value.phase, value.state, value.frame_cache)
-    }
-}
-
-struct SerializedWorld<'a>(&'a World);
-
-impl<'a> Serialize for SerializedWorld<'a> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        column::serialize(self.0, &mut HecsSerializeContext, serializer)
-    }
-}
-
-struct DeserializedWorld(World);
-
-impl<'de> Deserialize<'de> for DeserializedWorld {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
-            .map(DeserializedWorld)
-    }
-}
-
 macro_rules! from {
     ($other_error:ty => $error:ty, $variant:expr) => {
         impl From<$other_error> for $error {
@@ -279,7 +223,7 @@ pub fn write_game_to_save_file(game: &Game) -> Result<(), SaveError> {
 pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), SaveError> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
     (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
-    SerializedData::from(game).serialize(&mut serializer)?;
+    game.serialize(&mut serializer)?;
     Ok(())
 }
 
@@ -287,6 +231,19 @@ pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
-    let data = DeserializedData::deserialize(&mut deserializer)?;
-    Ok(Game::from(data))
+    Ok(Game::deserialize(&mut deserializer)?)
+}
+
+pub fn serialize_world<S>(world: &World, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    column::serialize(world, &mut HecsSerializeContext, serializer)
+}
+
+pub fn deserialize_world<'de, D>(deserializer: D) -> Result<World, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
 }

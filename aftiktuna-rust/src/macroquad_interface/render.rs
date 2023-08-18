@@ -72,7 +72,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
         draw_game(
             &app.render_state,
             textures,
-            app.game.frame_cache.has_more_frames(),
+            app.game.next_result().has_frame(),
         );
     }
 

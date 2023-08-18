@@ -70,12 +70,16 @@ impl StopType {
     }
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Game {
-    pub world: World,
+    #[serde(serialize_with = "serialization::serialize_world")]
+    #[serde(deserialize_with = "serialization::deserialize_world")]
+    world: World,
+    #[serde(skip)]
     rng: ThreadRng,
-    pub phase: Phase,
-    pub state: GameState,
-    pub frame_cache: FrameCache,
+    phase: Phase,
+    state: GameState,
+    frame_cache: FrameCache,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -95,16 +99,6 @@ pub enum Phase {
 }
 
 impl Game {
-    pub fn new(world: World, phase: Phase, state: GameState, frame_cache: FrameCache) -> Self {
-        Self {
-            world,
-            rng: thread_rng(),
-            phase,
-            state,
-            frame_cache,
-        }
-    }
-
     pub fn next_result(&mut self) -> GameResult {
         if self.frame_cache.has_more_frames() {
             GameResult::Frame(FrameGetter(&mut self.frame_cache))
