@@ -5,7 +5,7 @@ use crate::action::trade::{IsTrading, Points, Shopkeeper};
 use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
 use crate::ai::Intention;
 use crate::area::{Area, Ship};
-use crate::game_loop::{FrameCache, Game, GameState};
+use crate::game_loop::{FrameCache, Game, GameState, Phase};
 use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon};
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
@@ -175,6 +175,7 @@ fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
 #[derive(Serialize)]
 struct SerializedData<'a> {
     world: SerializedWorld<'a>,
+    phase: &'a Phase,
     state: &'a GameState,
     frame_cache: &'a FrameCache,
 }
@@ -183,6 +184,7 @@ impl<'a> From<&'a Game> for SerializedData<'a> {
     fn from(value: &'a Game) -> Self {
         Self {
             world: SerializedWorld(&value.world),
+            phase: &value.phase,
             state: &value.state,
             frame_cache: &value.frame_cache,
         }
@@ -192,13 +194,14 @@ impl<'a> From<&'a Game> for SerializedData<'a> {
 #[derive(Deserialize)]
 struct DeserializedData {
     world: DeserializedWorld,
+    phase: Phase,
     state: GameState,
     frame_cache: FrameCache,
 }
 
 impl From<DeserializedData> for Game {
     fn from(value: DeserializedData) -> Self {
-        Self::new(value.world.0, value.state, value.frame_cache)
+        Self::new(value.world.0, value.phase, value.state, value.frame_cache)
     }
 }
 

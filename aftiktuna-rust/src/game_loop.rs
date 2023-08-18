@@ -29,8 +29,8 @@ pub fn setup_new(locations: LocationTracker) -> Game {
     let mut game = Game {
         world,
         rng,
+        phase: Phase::CommandInput, //Should be replaced by the subsequent call to run()
         state: GameState {
-            phase: Phase::CommandInput, //Should be replaced by the subsequent call to run()
             locations,
             ship,
             controlled,
@@ -73,13 +73,13 @@ impl StopType {
 pub struct Game {
     pub world: World,
     rng: ThreadRng,
+    pub phase: Phase,
     pub state: GameState,
     pub frame_cache: FrameCache,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
-    phase: Phase,
     locations: LocationTracker,
     ship: Entity,
     controlled: Entity,
@@ -88,17 +88,18 @@ pub struct GameState {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-enum Phase {
+pub enum Phase {
     ChooseLocation(area::Choice),
     CommandInput,
     Stopped(StopType),
 }
 
 impl Game {
-    pub fn new(world: World, state: GameState, frame_cache: FrameCache) -> Self {
+    pub fn new(world: World, phase: Phase, state: GameState, frame_cache: FrameCache) -> Self {
         Self {
             world,
             rng: thread_rng(),
+            phase,
             state,
             frame_cache,
         }
@@ -108,7 +109,7 @@ impl Game {
         if self.frame_cache.has_more_frames() {
             GameResult::Frame(FrameGetter(&mut self.frame_cache))
         } else {
-            match &self.state.phase {
+            match &self.phase {
                 Phase::ChooseLocation(_) | Phase::CommandInput => GameResult::Input,
                 Phase::Stopped(_) => GameResult::Stop,
             }
@@ -116,7 +117,7 @@ impl Game {
     }
 
     pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
-        match &self.state.phase {
+        match &self.phase {
             Phase::ChooseLocation(choice) => {
                 let location =
                     self.state
@@ -156,20 +157,16 @@ enum Step {
     ChangeControlled(Entity),
 }
 
-fn run(step: Step, game: &mut Game) {
+fn run(mut step: Step, game: &mut Game) {
     let mut view_buffer = view::Buffer::default();
-    run_inner(step, game, &mut view_buffer);
-    game.frame_cache.add_new_frames(view_buffer.into_frames());
-}
-
-fn run_inner(mut step: Step, game: &mut Game, view_buffer: &mut view::Buffer) {
-    game.state.phase = loop {
-        let result = run_step(step, game, view_buffer);
+    game.phase = loop {
+        let result = run_step(step, game, &mut view_buffer);
         match result {
             Ok(next_step) => step = next_step,
             Err(phase) => break phase,
         }
-    }
+    };
+    game.frame_cache.add_new_frames(view_buffer.into_frames());
 }
 
 fn run_step(phase: Step, game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
