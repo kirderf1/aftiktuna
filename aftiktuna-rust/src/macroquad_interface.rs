@@ -1,4 +1,4 @@
-use crate::game_loop::{Game, TakeInput};
+use crate::game_loop::{FrameCache, Game, TakeInput};
 use crate::serialization;
 use crate::view::Frame;
 use egui_macroquad::macroquad::input;
@@ -24,18 +24,20 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(game: Game, frames: Vec<Frame>) {
+pub async fn run(game: Game, frame_cache: FrameCache) {
     let mut app = init(game);
-    app.add_view_data(frames);
+    app.delayed_frames.cache = frame_cache;
+    if let Some(frame) = app.delayed_frames.next_frame() {
+        app.show_frame(frame);
+    }
     let textures = texture::load_textures().await.unwrap();
 
     input::prevent_quit();
     loop {
         if input::is_quit_requested() {
-            let mut frames: Vec<&Frame> = app.delayed_frames.remaining_frames.iter().collect();
-            frames.push(&app.render_state.current_frame);
-            frames.reverse();
-            if let Err(error) = serialization::write_game_to_save_file(&app.game, frames) {
+            if let Err(error) =
+                serialization::write_game_to_save_file(&app.game, &app.delayed_frames.cache)
+            {
                 eprintln!("Failed to save game: {error}");
             } else {
                 println!("Saved the game successfully.")
@@ -88,26 +90,23 @@ enum GameState {
 
 #[derive(Default)]
 struct DelayedFrames {
-    remaining_frames: Vec<Frame>,
-    last_frame: Option<Instant>,
+    cache: FrameCache,
+    last_frame_time: Option<Instant>,
 }
 
 impl DelayedFrames {
-    fn new(mut frames: Vec<Frame>) -> Self {
-        frames.reverse();
-        Self {
-            remaining_frames: frames,
-            last_frame: None,
-        }
+    fn add_new_frames(&mut self, frames: Vec<Frame>) {
+        self.cache.add_new_frames(frames);
+        self.last_frame_time = None;
     }
 
     fn is_done(&self) -> bool {
-        self.remaining_frames.is_empty()
+        !self.cache.has_more_frames()
     }
 
     fn next_frame_after_elapsed_time(&mut self) -> Option<Frame> {
         if self
-            .last_frame
+            .last_frame_time
             .map_or(true, |instant| instant.elapsed() >= DELAY)
         {
             self.next_frame()
@@ -117,8 +116,8 @@ impl DelayedFrames {
     }
 
     fn next_frame(&mut self) -> Option<Frame> {
-        let frame = self.remaining_frames.pop()?;
-        self.last_frame = Some(Instant::now());
+        let frame = self.cache.take_next_frame()?;
+        self.last_frame_time = Some(Instant::now());
         Some(frame)
     }
 }
@@ -150,8 +149,8 @@ impl App {
 
     fn update_game_state(&mut self) {
         if self.state == GameState::Run {
-            let (result, view_buffer) = self.game.run();
-            self.add_view_data(view_buffer.into_frames());
+            let (result, frames) = self.game.run();
+            self.add_view_data(frames);
 
             match result {
                 Ok(TakeInput) => {
@@ -165,7 +164,7 @@ impl App {
     }
 
     fn add_view_data(&mut self, frames: Vec<Frame>) {
-        self.delayed_frames = DelayedFrames::new(frames);
+        self.delayed_frames.add_new_frames(frames);
         if let Some(frame) = self.delayed_frames.next_frame() {
             self.show_frame(frame);
         }

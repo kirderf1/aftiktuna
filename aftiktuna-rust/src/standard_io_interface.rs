@@ -1,21 +1,21 @@
-use crate::game_loop::{Game, TakeInput};
+use crate::game_loop::{FrameCache, Game, TakeInput};
 use crate::serialization;
 use crate::view::Frame;
 use std::io::Write;
 use std::{io, thread, time};
 
-pub fn run(mut game: Game, frames: Vec<Frame>) {
-    let mut last_frame = Frame::Introduction;
-    print_frames(frames, &mut last_frame);
+pub fn run(mut game: Game, mut frame_cache: FrameCache) {
+    print_frames(&mut frame_cache);
 
     loop {
-        let (result, view_buffer) = game.run();
-        print_frames(view_buffer.into_frames(), &mut last_frame);
+        let (result, frames) = game.run();
+        frame_cache.add_new_frames(frames);
+        print_frames(&mut frame_cache);
 
         match result {
             Ok(TakeInput) => {
                 println!();
-                input_loop(&mut game, &last_frame);
+                input_loop(&mut game, &frame_cache);
             }
             Err(_) => {
                 return;
@@ -24,11 +24,11 @@ pub fn run(mut game: Game, frames: Vec<Frame>) {
     }
 }
 
-fn input_loop(game: &mut Game, last_frame: &Frame) {
+fn input_loop(game: &mut Game, frame_cache: &FrameCache) {
     loop {
         let input = read_input();
         if input.eq_ignore_ascii_case("save") {
-            match serialization::write_game_to_save_file(game, vec![last_frame]) {
+            match serialization::write_game_to_save_file(game, frame_cache) {
                 Ok(()) => println!(
                     "Successfully saved the game to {}",
                     serialization::SAVE_FILE_NAME
@@ -54,15 +54,12 @@ fn read_input() -> String {
     String::from(input.trim())
 }
 
-fn print_frames(frames: Vec<Frame>, last_frame: &mut Frame) {
-    let mut iter = frames.into_iter();
-    while let Some(frame) = iter.next() {
+fn print_frames(frame_cache: &mut FrameCache) {
+    while let Some(frame) = frame_cache.take_next_frame() {
         print_frame(&frame);
 
-        if iter.len() > 0 {
+        if frame_cache.has_more_frames() {
             thread::sleep(time::Duration::from_secs(2));
-        } else {
-            *last_frame = frame;
         }
     }
 }

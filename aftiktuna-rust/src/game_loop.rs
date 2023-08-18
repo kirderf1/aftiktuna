@@ -9,13 +9,14 @@ use crate::{action, ai, area, command, serialization, status, view};
 use hecs::{Entity, World};
 use rand::prelude::ThreadRng;
 use rand::thread_rng;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
+use std::mem::swap;
 
-pub fn new_or_load() -> Result<(Game, Vec<Frame>), LoadError> {
+pub fn new_or_load() -> Result<(Game, FrameCache), LoadError> {
     match File::open(serialization::SAVE_FILE_NAME) {
         Ok(file) => serialization::load_game(file),
-        Err(_) => Ok((setup_new(LocationTracker::new(3)), vec![])),
+        Err(_) => Ok((setup_new(LocationTracker::new(3)), Default::default())),
     }
 }
 
@@ -94,14 +95,16 @@ impl Game {
         }
     }
 
-    pub fn run(&mut self) -> (Result<TakeInput, StopType>, view::Buffer) {
+    pub fn run(&mut self) -> (Result<TakeInput, StopType>, Vec<Frame>) {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);
         if let Err(stop_type) = result {
-            buffer.push_ending_frame(&self.world, self.state.controlled, stop_type);
-            self.state.phase = Phase::Stopped(stop_type);
+            if !matches!(self.state.phase, Phase::Stopped(_)) {
+                buffer.push_ending_frame(&self.world, self.state.controlled, stop_type);
+                self.state.phase = Phase::Stopped(stop_type);
+            }
         }
-        (result, buffer)
+        (result, buffer.into_frames())
     }
 
     fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
@@ -390,5 +393,75 @@ fn insert_wait_if_relevant(world: &mut World, controlled: Entity) {
         && is_safe(world, world.get::<&Pos>(controlled).unwrap().get_area())
     {
         world.insert_one(controlled, Action::Wait).unwrap();
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct FrameCache {
+    last_frame: Option<Frame>,
+    remaining_frames: Vec<Frame>,
+}
+
+impl FrameCache {
+    pub fn new(mut frames: Vec<Frame>) -> Self {
+        frames.reverse();
+        Self {
+            last_frame: None,
+            remaining_frames: frames,
+        }
+    }
+
+    pub fn add_new_frames(&mut self, mut frames: Vec<Frame>) {
+        frames.reverse();
+        swap(&mut self.remaining_frames, &mut frames);
+        self.remaining_frames.extend(frames);
+    }
+
+    pub fn has_more_frames(&self) -> bool {
+        !self.remaining_frames.is_empty()
+    }
+
+    pub fn take_next_frame(&mut self) -> Option<Frame> {
+        let frame = self.remaining_frames.pop();
+        if let Some(frame) = &frame {
+            self.last_frame = Some(frame.clone());
+        }
+        frame
+    }
+
+    #[deprecated]
+    pub fn frames(&self) -> Vec<&Frame> {
+        let mut frames: Vec<&Frame> = self.remaining_frames.iter().collect();
+        if let Some(frame) = &self.last_frame {
+            frames.push(frame);
+        }
+        frames.reverse();
+        frames
+    }
+}
+
+impl Serialize for FrameCache {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut frames: Vec<&Frame> = self.remaining_frames.iter().collect();
+        if let Some(frame) = &self.last_frame {
+            frames.push(frame);
+        }
+        frames.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for FrameCache {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let frames = Vec::<Frame>::deserialize(deserializer)?;
+        Ok(Self {
+            last_frame: None,
+            remaining_frames: frames,
+        })
     }
 }

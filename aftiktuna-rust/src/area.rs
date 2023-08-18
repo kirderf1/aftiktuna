@@ -26,7 +26,7 @@ pub struct Area {
     pub background_offset: Option<Coord>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BackgroundType {
     Ship,

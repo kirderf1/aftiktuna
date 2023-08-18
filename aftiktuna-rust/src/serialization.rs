@@ -5,11 +5,11 @@ use crate::action::trade::{IsTrading, Points, Shopkeeper};
 use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
 use crate::ai::Intention;
 use crate::area::{Area, Ship};
-use crate::game_loop::{Game, GameState};
+use crate::game_loop::{FrameCache, Game, GameState};
 use crate::item::{Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon};
 use crate::position::{Direction, MovementBlocking, Pos};
 use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
-use crate::view::{AftikColor, DisplayInfo, Frame, NameData};
+use crate::view::{AftikColor, DisplayInfo, NameData};
 use hecs::serialize::column;
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
 use rmp_serde::{decode, encode};
@@ -266,27 +266,27 @@ impl Display for LoadError {
     }
 }
 
-pub fn write_game_to_save_file(game: &Game, frames: Vec<&Frame>) -> Result<(), SaveError> {
-    serialize_game(game, frames, File::create(SAVE_FILE_NAME)?)
+pub fn write_game_to_save_file(game: &Game, frame_cache: &FrameCache) -> Result<(), SaveError> {
+    serialize_game(game, frame_cache, File::create(SAVE_FILE_NAME)?)
 }
 
 pub fn serialize_game(
     game: &Game,
-    frames: Vec<&Frame>,
+    frame_cache: &FrameCache,
     writer: impl Write,
 ) -> Result<(), SaveError> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
     (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
     SerializedData::from(game).serialize(&mut serializer)?;
-    frames.serialize(&mut serializer)?;
+    frame_cache.serialize(&mut serializer)?;
     Ok(())
 }
 
-pub fn load_game(reader: impl Read) -> Result<(Game, Vec<Frame>), LoadError> {
+pub fn load_game(reader: impl Read) -> Result<(Game, FrameCache), LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
     let data = DeserializedData::deserialize(&mut deserializer)?;
-    let frames = Vec::<Frame>::deserialize(&mut deserializer)?;
-    Ok((Game::from(data), frames))
+    let frame_cache = FrameCache::deserialize(&mut deserializer)?;
+    Ok((Game::from(data), frame_cache))
 }

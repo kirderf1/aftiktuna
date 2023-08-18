@@ -13,7 +13,7 @@ pub struct Points(pub i32);
 #[derive(Serialize, Deserialize)]
 pub struct Shopkeeper(pub Vec<PricedItem>);
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PricedItem {
     pub item: item::Type,
     pub price: i32,

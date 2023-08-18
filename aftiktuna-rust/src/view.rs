@@ -102,7 +102,7 @@ impl Buffer {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Frame {
     Introduction,
     AreaView {
@@ -185,7 +185,7 @@ fn intro_messages() -> Vec<String> {
     vec!["Welcome to Aftiktuna!".to_string(),"Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string()]
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StoreView {
     items: Vec<PricedItem>,
     points: i32,

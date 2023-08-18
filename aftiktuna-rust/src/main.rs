@@ -18,7 +18,7 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     match game_loop::new_or_load() {
-        Ok((game, frames)) => macroquad_interface::run(game, frames).await,
+        Ok((game, frame_cache)) => macroquad_interface::run(game, frame_cache).await,
         Err(error) => {
             show_error(vec![
                 format!("Unable to load save file: {error}"),

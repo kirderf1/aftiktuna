@@ -154,7 +154,7 @@ pub fn check_is_blocked(
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Direction {
     Left,
     Right,
