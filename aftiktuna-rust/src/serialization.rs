@@ -176,6 +176,7 @@ fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
 struct SerializedData<'a> {
     world: SerializedWorld<'a>,
     state: &'a GameState,
+    frame_cache: &'a FrameCache,
 }
 
 impl<'a> From<&'a Game> for SerializedData<'a> {
@@ -183,6 +184,7 @@ impl<'a> From<&'a Game> for SerializedData<'a> {
         Self {
             world: SerializedWorld(&value.world),
             state: &value.state,
+            frame_cache: &value.frame_cache,
         }
     }
 }
@@ -191,11 +193,12 @@ impl<'a> From<&'a Game> for SerializedData<'a> {
 struct DeserializedData {
     world: DeserializedWorld,
     state: GameState,
+    frame_cache: FrameCache,
 }
 
 impl From<DeserializedData> for Game {
     fn from(value: DeserializedData) -> Self {
-        Self::new(value.world.0, value.state)
+        Self::new(value.world.0, value.state, value.frame_cache)
     }
 }
 
@@ -266,27 +269,21 @@ impl Display for LoadError {
     }
 }
 
-pub fn write_game_to_save_file(game: &Game, frame_cache: &FrameCache) -> Result<(), SaveError> {
-    serialize_game(game, frame_cache, File::create(SAVE_FILE_NAME)?)
+pub fn write_game_to_save_file(game: &Game) -> Result<(), SaveError> {
+    serialize_game(game, File::create(SAVE_FILE_NAME)?)
 }
 
-pub fn serialize_game(
-    game: &Game,
-    frame_cache: &FrameCache,
-    writer: impl Write,
-) -> Result<(), SaveError> {
+pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), SaveError> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
     (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
     SerializedData::from(game).serialize(&mut serializer)?;
-    frame_cache.serialize(&mut serializer)?;
     Ok(())
 }
 
-pub fn load_game(reader: impl Read) -> Result<(Game, FrameCache), LoadError> {
+pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
     let data = DeserializedData::deserialize(&mut deserializer)?;
-    let frame_cache = FrameCache::deserialize(&mut deserializer)?;
-    Ok((Game::from(data), frame_cache))
+    Ok(Game::from(data))
 }

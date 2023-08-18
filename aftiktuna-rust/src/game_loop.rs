@@ -13,10 +13,10 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
 use std::mem::swap;
 
-pub fn new_or_load() -> Result<(Game, FrameCache), LoadError> {
+pub fn new_or_load() -> Result<Game, LoadError> {
     match File::open(serialization::SAVE_FILE_NAME) {
         Ok(file) => serialization::load_game(file),
-        Err(_) => Ok((setup_new(LocationTracker::new(3)), Default::default())),
+        Err(_) => Ok(setup_new(LocationTracker::new(3))),
     }
 }
 
@@ -37,6 +37,7 @@ pub fn setup_new(locations: LocationTracker) -> Game {
             status_cache: StatusCache::default(),
             has_introduced_controlled: false,
         },
+        frame_cache: FrameCache::default(),
     }
 }
 
@@ -52,6 +53,7 @@ pub struct Game {
     pub world: World,
     rng: ThreadRng,
     pub state: GameState,
+    pub frame_cache: FrameCache,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -87,15 +89,16 @@ impl StopType {
 }
 
 impl Game {
-    pub fn new(world: World, state: GameState) -> Self {
+    pub fn new(world: World, state: GameState, frame_cache: FrameCache) -> Self {
         Self {
             world,
             rng: thread_rng(),
             state,
+            frame_cache,
         }
     }
 
-    pub fn run(&mut self) -> (Result<TakeInput, StopType>, Vec<Frame>) {
+    pub fn run(&mut self) -> Result<TakeInput, StopType> {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);
         if let Err(stop_type) = result {
@@ -104,7 +107,8 @@ impl Game {
                 self.state.phase = Phase::Stopped(stop_type);
             }
         }
-        (result, buffer.into_frames())
+        self.frame_cache.add_new_frames(buffer.into_frames());
+        result
     }
 
     fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {

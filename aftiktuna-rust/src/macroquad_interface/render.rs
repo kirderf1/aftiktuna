@@ -69,7 +69,11 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     clear_background(BLACK);
 
     if app.show_graphical {
-        draw_game(&app.render_state, textures, !app.delayed_frames.is_done());
+        draw_game(
+            &app.render_state,
+            textures,
+            app.game.frame_cache.has_more_frames(),
+        );
     }
 
     egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));

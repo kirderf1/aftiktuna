@@ -4,18 +4,17 @@ use crate::view::Frame;
 use std::io::Write;
 use std::{io, thread, time};
 
-pub fn run(mut game: Game, mut frame_cache: FrameCache) {
-    print_frames(&mut frame_cache);
+pub fn run(mut game: Game) {
+    print_frames(&mut game.frame_cache);
 
     loop {
-        let (result, frames) = game.run();
-        frame_cache.add_new_frames(frames);
-        print_frames(&mut frame_cache);
+        let result = game.run();
+        print_frames(&mut game.frame_cache);
 
         match result {
             Ok(TakeInput) => {
                 println!();
-                input_loop(&mut game, &frame_cache);
+                input_loop(&mut game);
             }
             Err(_) => {
                 return;
@@ -24,11 +23,11 @@ pub fn run(mut game: Game, mut frame_cache: FrameCache) {
     }
 }
 
-fn input_loop(game: &mut Game, frame_cache: &FrameCache) {
+fn input_loop(game: &mut Game) {
     loop {
         let input = read_input();
         if input.eq_ignore_ascii_case("save") {
-            match serialization::write_game_to_save_file(game, frame_cache) {
+            match serialization::write_game_to_save_file(game) {
                 Ok(()) => println!(
                     "Successfully saved the game to {}",
                     serialization::SAVE_FILE_NAME
