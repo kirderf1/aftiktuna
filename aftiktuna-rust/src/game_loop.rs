@@ -41,7 +41,7 @@ pub fn setup_new(locations: LocationTracker) -> Game {
 
 pub struct TakeInput;
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum StopType {
     Win,
     Lose,
@@ -73,6 +73,7 @@ enum Phase {
     Tick,
     CommandInput,
     ChangeControlled(Entity),
+    Stopped(StopType),
 }
 
 impl StopType {
@@ -98,6 +99,7 @@ impl Game {
         let result = self.run_with_buffer(&mut buffer);
         if let Err(stop_type) = result {
             buffer.push_ending_frame(&self.world, self.state.controlled, stop_type);
+            self.state.phase = Phase::Stopped(stop_type);
         }
         (result, buffer)
     }
@@ -150,6 +152,7 @@ impl Game {
                     );
                     self.state.phase = Phase::Tick;
                 }
+                Phase::Stopped(stop_type) => return Err(*stop_type),
             }
         }
     }
