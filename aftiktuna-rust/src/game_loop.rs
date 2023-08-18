@@ -53,7 +53,10 @@ impl<'a> GameResult<'a> {
     }
 }
 
-pub struct TakeInput;
+enum InterruptType {
+    Input,
+    Stop,
+}
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum StopType {
@@ -92,6 +95,7 @@ enum Phase {
     ChooseLocation(area::Choice),
     CommandInput,
     Stopped(StopType),
+    #[deprecated]
     Run(RunPhase),
 }
 
@@ -120,32 +124,26 @@ impl Game {
             GameResult::Frame(FrameGetter(&mut self.frame_cache))
         } else {
             match result {
-                Ok(TakeInput) => GameResult::Input,
-                Err(_) => GameResult::Stop,
+                InterruptType::Input => GameResult::Input,
+                InterruptType::Stop => GameResult::Stop,
             }
         }
     }
 
-    fn run(&mut self) -> Result<TakeInput, StopType> {
+    fn run(&mut self) -> InterruptType {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);
-        if let Err(stop_type) = result {
-            if !matches!(self.state.phase, Phase::Stopped(_)) {
-                buffer.push_ending_frame(&self.world, self.state.controlled, stop_type);
-                self.state.phase = Phase::Stopped(stop_type);
-            }
-        }
         self.frame_cache.add_new_frames(buffer.into_frames());
         result
     }
 
-    fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
+    fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> InterruptType {
         loop {
             match &self.state.phase {
-                Phase::ChooseLocation(_) | Phase::CommandInput => return Ok(TakeInput),
-                Phase::Stopped(stop_type) => return Err(*stop_type),
+                Phase::ChooseLocation(_) | Phase::CommandInput => return InterruptType::Input,
+                Phase::Stopped(_) => return InterruptType::Stop,
                 Phase::Run(phase) => {
-                    run(phase.clone(), self, view_buffer)?;
+                    self.state.phase = run(phase.clone(), self, view_buffer);
                 }
             }
         }
@@ -183,9 +181,9 @@ impl Game {
     }
 }
 
-fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
     match phase {
-        RunPhase::PrepareNextLocation => prepare_next_location(game, view_buffer)?,
+        RunPhase::PrepareNextLocation => prepare_next_location(game, view_buffer),
         RunPhase::LoadLocation(location) => {
             area::load_location(
                 &mut game.world,
@@ -207,14 +205,14 @@ fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Resu
                 game.state.controlled,
                 &mut game.state.status_cache,
             );
-            game.state.phase = Phase::Run(RunPhase::PrepareTick);
+            Phase::Run(RunPhase::PrepareTick)
         }
         RunPhase::PrepareTick => {
             ai::prepare_intentions(&mut game.world);
             insert_wait_if_relevant(&mut game.world, game.state.controlled);
-            game.state.phase = Phase::Run(RunPhase::Tick);
+            Phase::Run(RunPhase::Tick)
         }
-        RunPhase::Tick => tick_and_check(game, view_buffer)?,
+        RunPhase::Tick => tick_and_check(game, view_buffer),
         RunPhase::ChangeControlled(character) => {
             change_character(&mut game.world, &mut game.state, character, view_buffer);
             view_buffer.capture_view(
@@ -222,33 +220,36 @@ fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Resu
                 game.state.controlled,
                 &mut game.state.status_cache,
             );
-            game.state.phase = Phase::Run(RunPhase::Tick);
+            Phase::Run(RunPhase::Tick)
         }
     }
-    Ok(())
 }
 
-fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
     match game.state.locations.next(&mut game.rng) {
-        PickResult::None => return Err(StopType::Win),
-        PickResult::Location(location) => game.state.phase = Phase::Run(RunPhase::LoadLocation(location)),
+        PickResult::None => {
+            view_buffer.push_ending_frame(&game.world, game.state.controlled, StopType::Win);
+            Phase::Stopped(StopType::Win)
+        }
+        PickResult::Location(location) => Phase::Run(RunPhase::LoadLocation(location)),
         PickResult::Choice(choice) => {
             view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
-            game.state.phase = Phase::ChooseLocation(choice);
+            Phase::ChooseLocation(choice)
         }
-    };
-    Ok(())
+    }
 }
 
-fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
     if should_take_user_input(&game.world, game.state.controlled) {
-        game.state.phase = Phase::CommandInput;
-        return Ok(());
+        return Phase::CommandInput;
     }
 
     tick(game, view_buffer);
 
-    check_player_state(&game.world, &mut game.state, view_buffer)?;
+    if let Err(stop_type) = check_player_state(&game.world, &mut game.state, view_buffer) {
+        view_buffer.push_ending_frame(&game.world, game.state.controlled, stop_type);
+        return Phase::Stopped(stop_type);
+    }
 
     let area = game
         .world
@@ -270,16 +271,15 @@ fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(),
         for (_, health) in game.world.query_mut::<&mut Health>() {
             health.restore_fraction(0.5);
         }
-        game.state.phase = Phase::Run(RunPhase::PrepareNextLocation);
+        Phase::Run(RunPhase::PrepareNextLocation)
     } else {
         view_buffer.capture_view(
             &game.world,
             game.state.controlled,
             &mut game.state.status_cache,
         );
-        game.state.phase = Phase::Run(RunPhase::PrepareTick);
+        Phase::Run(RunPhase::PrepareTick)
     }
-    Ok(())
 }
 
 fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
