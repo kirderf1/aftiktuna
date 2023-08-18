@@ -22,15 +22,14 @@ pub fn new_or_load() -> Result<Game, LoadError> {
 
 pub fn setup_new(locations: LocationTracker) -> Game {
     let mut world = World::new();
-    let rng = thread_rng();
 
     let (controlled, ship) = area::init(&mut world);
 
     let mut game = Game {
         world,
-        rng,
         phase: Phase::CommandInput, //Should be replaced by the subsequent call to run()
         state: GameState {
+            rng: thread_rng(),
             locations,
             ship,
             controlled,
@@ -75,8 +74,6 @@ pub struct Game {
     #[serde(serialize_with = "serialization::serialize_world")]
     #[serde(deserialize_with = "serialization::deserialize_world")]
     world: World,
-    #[serde(skip)]
-    rng: ThreadRng,
     phase: Phase,
     state: GameState,
     frame_cache: FrameCache,
@@ -84,6 +81,8 @@ pub struct Game {
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
+    #[serde(skip)]
+    rng: ThreadRng,
     locations: LocationTracker,
     ship: Entity,
     controlled: Entity,
@@ -116,7 +115,7 @@ impl Game {
                 let location =
                     self.state
                         .locations
-                        .try_make_choice(choice, input, &mut self.rng)?;
+                        .try_make_choice(choice, input, &mut self.state.rng)?;
                 run(Step::LoadLocation(location), self);
             }
             Phase::CommandInput => {
@@ -154,7 +153,7 @@ enum Step {
 fn run(mut step: Step, game: &mut Game) {
     let mut view_buffer = view::Buffer::default();
     game.phase = loop {
-        let result = run_step(step, game, &mut view_buffer);
+        let result = run_step(step, &mut game.world, &mut game.state, &mut view_buffer);
         match result {
             Ok(next_step) => step = next_step,
             Err(phase) => break phase,
@@ -163,54 +162,55 @@ fn run(mut step: Step, game: &mut Game) {
     game.frame_cache.add_new_frames(view_buffer.into_frames());
 }
 
-fn run_step(phase: Step, game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
+fn run_step(
+    phase: Step,
+    world: &mut World,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) -> Result<Step, Phase> {
     match phase {
-        Step::PrepareNextLocation => prepare_next_location(game, view_buffer),
+        Step::PrepareNextLocation => prepare_next_location(world, state, view_buffer),
         Step::LoadLocation(location) => {
             area::load_location(
-                &mut game.world,
+                world,
                 &mut view_buffer.messages,
-                game.state.ship,
+                state.ship,
                 &location,
-                game.state.locations.is_at_fortuna(),
+                state.locations.is_at_fortuna(),
             );
-            if !game.state.has_introduced_controlled {
+            if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
-                    NameData::find(&game.world, game.state.controlled).definite()
+                    NameData::find(world, state.controlled).definite()
                 ));
-                game.state.has_introduced_controlled = true;
+                state.has_introduced_controlled = true;
             }
 
-            view_buffer.capture_view(
-                &game.world,
-                game.state.controlled,
-                &mut game.state.status_cache,
-            );
+            view_buffer.capture_view(world, state.controlled, &mut state.status_cache);
             Ok(Step::PrepareTick)
         }
         Step::PrepareTick => {
-            ai::prepare_intentions(&mut game.world);
-            insert_wait_if_relevant(&mut game.world, game.state.controlled);
+            ai::prepare_intentions(world);
+            insert_wait_if_relevant(world, state.controlled);
             Ok(Step::Tick)
         }
-        Step::Tick => tick_and_check(game, view_buffer),
+        Step::Tick => tick_and_check(world, state, view_buffer),
         Step::ChangeControlled(character) => {
-            change_character(&game.world, &mut game.state, character, view_buffer);
-            view_buffer.capture_view(
-                &game.world,
-                game.state.controlled,
-                &mut game.state.status_cache,
-            );
+            change_character(world, state, character, view_buffer);
+            view_buffer.capture_view(world, state.controlled, &mut state.status_cache);
             Ok(Step::Tick)
         }
     }
 }
 
-fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
-    match game.state.locations.next(&mut game.rng) {
+fn prepare_next_location(
+    world: &World,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) -> Result<Step, Phase> {
+    match state.locations.next(&mut state.rng) {
         PickResult::None => {
-            view_buffer.push_ending_frame(&game.world, game.state.controlled, StopType::Win);
+            view_buffer.push_ending_frame(world, state.controlled, StopType::Win);
             Err(Phase::Stopped(StopType::Win))
         }
         PickResult::Location(location) => Ok(Step::LoadLocation(location)),
@@ -221,67 +221,56 @@ fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Res
     }
 }
 
-fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
-    if should_take_user_input(&game.world, game.state.controlled) {
+fn tick_and_check(
+    world: &mut World,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) -> Result<Step, Phase> {
+    if should_take_user_input(world, state.controlled) {
         return Err(Phase::CommandInput);
     }
 
-    tick(game, view_buffer);
+    tick(world, state, view_buffer);
 
-    if let Err(stop_type) = check_player_state(&game.world, &mut game.state, view_buffer) {
-        view_buffer.push_ending_frame(&game.world, game.state.controlled, stop_type);
+    if let Err(stop_type) = check_player_state(world, state, view_buffer) {
+        view_buffer.push_ending_frame(world, state.controlled, stop_type);
         return Err(Phase::Stopped(stop_type));
     }
 
-    let area = game
-        .world
-        .get::<&Pos>(game.state.controlled)
-        .unwrap()
-        .get_area();
-    if is_ship_launching(&game.world, area) {
+    let area = world.get::<&Pos>(state.controlled).unwrap().get_area();
+    if is_ship_launching(world, area) {
         view_buffer
             .messages
             .add("The ship leaves for the next planet.");
-        view_buffer.capture_view(
-            &game.world,
-            game.state.controlled,
-            &mut game.state.status_cache,
-        );
+        view_buffer.capture_view(world, state.controlled, &mut state.status_cache);
 
-        area::despawn_all_except_ship(&mut game.world, game.state.ship);
-        game.world.get::<&mut Ship>(game.state.ship).unwrap().status = ShipStatus::NeedTwoCans;
-        for (_, health) in game.world.query_mut::<&mut Health>() {
+        area::despawn_all_except_ship(world, state.ship);
+        world.get::<&mut Ship>(state.ship).unwrap().status = ShipStatus::NeedTwoCans;
+        for (_, health) in world.query_mut::<&mut Health>() {
             health.restore_fraction(0.5);
         }
         Ok(Step::PrepareNextLocation)
     } else {
-        view_buffer.capture_view(
-            &game.world,
-            game.state.controlled,
-            &mut game.state.status_cache,
-        );
+        view_buffer.capture_view(world, state.controlled, &mut state.status_cache);
         Ok(Step::PrepareTick)
     }
 }
 
-fn tick(game: &mut Game, view_buffer: &mut view::Buffer) {
-    let world = &mut game.world;
-    let controlled = game.state.controlled;
-
+fn tick(world: &mut World, state: &mut GameState, view_buffer: &mut view::Buffer) {
     ai::tick(world);
 
     action::tick(
         world,
-        &mut game.rng,
+        &mut state.rng,
         &mut view_buffer.messages,
-        controlled,
-        game.state.locations.is_at_fortuna(),
+        state.controlled,
+        state.locations.is_at_fortuna(),
     );
 
-    status::detect_low_health(world, &mut view_buffer.messages, controlled);
-    status::detect_low_stamina(world, &mut view_buffer.messages, controlled);
+    status::detect_low_health(world, &mut view_buffer.messages, state.controlled);
+    status::detect_low_stamina(world, &mut view_buffer.messages, state.controlled);
 
-    handle_aftik_deaths(world, view_buffer, controlled);
+    handle_aftik_deaths(world, view_buffer, state.controlled);
 
     for (_, stamina) in world.query_mut::<&mut Stamina>() {
         stamina.tick();
