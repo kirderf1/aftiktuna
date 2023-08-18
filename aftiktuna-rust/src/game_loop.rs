@@ -30,7 +30,7 @@ pub fn setup_new(locations: LocationTracker) -> Game {
         world,
         rng,
         state: GameState {
-            phase: Phase::Run(RunPhase::PrepareNextLocation),
+            phase: Phase::Run(Step::PrepareNextLocation),
             locations,
             ship,
             controlled,
@@ -96,11 +96,11 @@ enum Phase {
     CommandInput,
     Stopped(StopType),
     #[deprecated]
-    Run(RunPhase),
+    Run(Step),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-enum RunPhase {
+enum Step {
     PrepareNextLocation,
     LoadLocation(String),
     PrepareTick,
@@ -131,22 +131,18 @@ impl Game {
     }
 
     fn run(&mut self) -> InterruptType {
-        let mut buffer = Default::default();
-        let result = self.run_with_buffer(&mut buffer);
-        self.frame_cache.add_new_frames(buffer.into_frames());
-        result
-    }
-
-    fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> InterruptType {
-        loop {
+        let mut view_buffer = view::Buffer::default();
+        let result = loop {
             match &self.state.phase {
-                Phase::ChooseLocation(_) | Phase::CommandInput => return InterruptType::Input,
-                Phase::Stopped(_) => return InterruptType::Stop,
+                Phase::ChooseLocation(_) | Phase::CommandInput => break InterruptType::Input,
+                Phase::Stopped(_) => break InterruptType::Stop,
                 Phase::Run(phase) => {
-                    self.state.phase = run(phase.clone(), self, view_buffer);
+                    run(phase.clone(), self, &mut view_buffer);
                 }
             }
-        }
+        };
+        self.frame_cache.add_new_frames(view_buffer.into_frames());
+        result
     }
 
     pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
@@ -156,7 +152,7 @@ impl Game {
                     self.state
                         .locations
                         .try_make_choice(choice, input, &mut self.rng)?;
-                self.state.phase = Phase::Run(RunPhase::LoadLocation(location));
+                self.state.phase = Phase::Run(Step::LoadLocation(location));
             }
             Phase::CommandInput => {
                 match command::try_parse_input(
@@ -167,10 +163,10 @@ impl Game {
                 )? {
                     CommandResult::Action(action, target) => {
                         insert_action(&mut self.world, self.state.controlled, action, target);
-                        self.state.phase = Phase::Run(RunPhase::Tick);
+                        self.state.phase = Phase::Run(Step::Tick);
                     }
                     CommandResult::ChangeControlled(character) => {
-                        self.state.phase = Phase::Run(RunPhase::ChangeControlled(character));
+                        self.state.phase = Phase::Run(Step::ChangeControlled(character));
                     }
                     CommandResult::Info(messages) => return Err(messages),
                 }
@@ -181,10 +177,20 @@ impl Game {
     }
 }
 
-fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
+fn run(mut step: Step, game: &mut Game, view_buffer: &mut view::Buffer) {
+    game.state.phase = loop {
+        let result = run_step(step, game, view_buffer);
+        match result {
+            Ok(next_step) => step = next_step,
+            Err(phase) => break phase,
+        }
+    }
+}
+
+fn run_step(phase: Step, game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
     match phase {
-        RunPhase::PrepareNextLocation => prepare_next_location(game, view_buffer),
-        RunPhase::LoadLocation(location) => {
+        Step::PrepareNextLocation => prepare_next_location(game, view_buffer),
+        Step::LoadLocation(location) => {
             area::load_location(
                 &mut game.world,
                 &mut view_buffer.messages,
@@ -205,50 +211,50 @@ fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Phas
                 game.state.controlled,
                 &mut game.state.status_cache,
             );
-            Phase::Run(RunPhase::PrepareTick)
+            Ok(Step::PrepareTick)
         }
-        RunPhase::PrepareTick => {
+        Step::PrepareTick => {
             ai::prepare_intentions(&mut game.world);
             insert_wait_if_relevant(&mut game.world, game.state.controlled);
-            Phase::Run(RunPhase::Tick)
+            Ok(Step::Tick)
         }
-        RunPhase::Tick => tick_and_check(game, view_buffer),
-        RunPhase::ChangeControlled(character) => {
-            change_character(&mut game.world, &mut game.state, character, view_buffer);
+        Step::Tick => tick_and_check(game, view_buffer),
+        Step::ChangeControlled(character) => {
+            change_character(&game.world, &mut game.state, character, view_buffer);
             view_buffer.capture_view(
-                &mut game.world,
+                &game.world,
                 game.state.controlled,
                 &mut game.state.status_cache,
             );
-            Phase::Run(RunPhase::Tick)
+            Ok(Step::Tick)
         }
     }
 }
 
-fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
+fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
     match game.state.locations.next(&mut game.rng) {
         PickResult::None => {
             view_buffer.push_ending_frame(&game.world, game.state.controlled, StopType::Win);
-            Phase::Stopped(StopType::Win)
+            Err(Phase::Stopped(StopType::Win))
         }
-        PickResult::Location(location) => Phase::Run(RunPhase::LoadLocation(location)),
+        PickResult::Location(location) => Ok(Step::LoadLocation(location)),
         PickResult::Choice(choice) => {
             view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
-            Phase::ChooseLocation(choice)
+            Err(Phase::ChooseLocation(choice))
         }
     }
 }
 
-fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
+fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
     if should_take_user_input(&game.world, game.state.controlled) {
-        return Phase::CommandInput;
+        return Err(Phase::CommandInput);
     }
 
     tick(game, view_buffer);
 
     if let Err(stop_type) = check_player_state(&game.world, &mut game.state, view_buffer) {
         view_buffer.push_ending_frame(&game.world, game.state.controlled, stop_type);
-        return Phase::Stopped(stop_type);
+        return Err(Phase::Stopped(stop_type));
     }
 
     let area = game
@@ -271,14 +277,14 @@ fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Phase {
         for (_, health) in game.world.query_mut::<&mut Health>() {
             health.restore_fraction(0.5);
         }
-        Phase::Run(RunPhase::PrepareNextLocation)
+        Ok(Step::PrepareNextLocation)
     } else {
         view_buffer.capture_view(
             &game.world,
             game.state.controlled,
             &mut game.state.status_cache,
         );
-        Phase::Run(RunPhase::PrepareTick)
+        Ok(Step::PrepareTick)
     }
 }
 
