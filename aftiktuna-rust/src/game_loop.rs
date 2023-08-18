@@ -30,7 +30,7 @@ pub fn setup_new(locations: LocationTracker) -> Game {
         world,
         rng,
         state: GameState {
-            phase: Phase::PrepareNextLocation,
+            phase: Phase::Run(RunPhase::PrepareNextLocation),
             locations,
             ship,
             controlled,
@@ -89,14 +89,19 @@ pub struct GameState {
 
 #[derive(Debug, Serialize, Deserialize)]
 enum Phase {
+    ChooseLocation(area::Choice),
+    CommandInput,
+    Stopped(StopType),
+    Run(RunPhase),
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum RunPhase {
     PrepareNextLocation,
     LoadLocation(String),
-    ChooseLocation(area::Choice),
     PrepareTick,
     Tick,
-    CommandInput,
     ChangeControlled(Entity),
-    Stopped(StopType),
 }
 
 impl Game {
@@ -138,47 +143,10 @@ impl Game {
         loop {
             match &self.state.phase {
                 Phase::ChooseLocation(_) | Phase::CommandInput => return Ok(TakeInput),
-                Phase::PrepareNextLocation => prepare_next_location(self, view_buffer)?,
-                Phase::LoadLocation(location) => {
-                    area::load_location(
-                        &mut self.world,
-                        &mut view_buffer.messages,
-                        self.state.ship,
-                        location,
-                        self.state.locations.is_at_fortuna(),
-                    );
-                    if !self.state.has_introduced_controlled {
-                        view_buffer.messages.add(format!(
-                            "You're playing as the aftik {}.",
-                            NameData::find(&self.world, self.state.controlled).definite()
-                        ));
-                        self.state.has_introduced_controlled = true;
-                    }
-
-                    view_buffer.capture_view(
-                        &self.world,
-                        self.state.controlled,
-                        &mut self.state.status_cache,
-                    );
-                    self.state.phase = Phase::PrepareTick;
-                }
-                Phase::PrepareTick => {
-                    ai::prepare_intentions(&mut self.world);
-                    insert_wait_if_relevant(&mut self.world, self.state.controlled);
-                    self.state.phase = Phase::Tick;
-                }
-                Phase::Tick => tick_and_check(self, view_buffer)?,
-                Phase::ChangeControlled(character) => {
-                    let character = *character;
-                    change_character(&self.world, &mut self.state, character, view_buffer);
-                    view_buffer.capture_view(
-                        &self.world,
-                        self.state.controlled,
-                        &mut self.state.status_cache,
-                    );
-                    self.state.phase = Phase::Tick;
-                }
                 Phase::Stopped(stop_type) => return Err(*stop_type),
+                Phase::Run(phase) => {
+                    run(phase.clone(), self, view_buffer)?;
+                }
             }
         }
     }
@@ -190,7 +158,7 @@ impl Game {
                     self.state
                         .locations
                         .try_make_choice(choice, input, &mut self.rng)?;
-                self.state.phase = Phase::LoadLocation(location);
+                self.state.phase = Phase::Run(RunPhase::LoadLocation(location));
             }
             Phase::CommandInput => {
                 match command::try_parse_input(
@@ -201,10 +169,10 @@ impl Game {
                 )? {
                     CommandResult::Action(action, target) => {
                         insert_action(&mut self.world, self.state.controlled, action, target);
-                        self.state.phase = Phase::Tick;
+                        self.state.phase = Phase::Run(RunPhase::Tick);
                     }
                     CommandResult::ChangeControlled(character) => {
-                        self.state.phase = Phase::ChangeControlled(character);
+                        self.state.phase = Phase::Run(RunPhase::ChangeControlled(character));
                     }
                     CommandResult::Info(messages) => return Err(messages),
                 }
@@ -215,10 +183,55 @@ impl Game {
     }
 }
 
+fn run(phase: RunPhase, game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
+    match phase {
+        RunPhase::PrepareNextLocation => prepare_next_location(game, view_buffer)?,
+        RunPhase::LoadLocation(location) => {
+            area::load_location(
+                &mut game.world,
+                &mut view_buffer.messages,
+                game.state.ship,
+                &location,
+                game.state.locations.is_at_fortuna(),
+            );
+            if !game.state.has_introduced_controlled {
+                view_buffer.messages.add(format!(
+                    "You're playing as the aftik {}.",
+                    NameData::find(&game.world, game.state.controlled).definite()
+                ));
+                game.state.has_introduced_controlled = true;
+            }
+
+            view_buffer.capture_view(
+                &game.world,
+                game.state.controlled,
+                &mut game.state.status_cache,
+            );
+            game.state.phase = Phase::Run(RunPhase::PrepareTick);
+        }
+        RunPhase::PrepareTick => {
+            ai::prepare_intentions(&mut game.world);
+            insert_wait_if_relevant(&mut game.world, game.state.controlled);
+            game.state.phase = Phase::Run(RunPhase::Tick);
+        }
+        RunPhase::Tick => tick_and_check(game, view_buffer)?,
+        RunPhase::ChangeControlled(character) => {
+            change_character(&mut game.world, &mut game.state, character, view_buffer);
+            view_buffer.capture_view(
+                &mut game.world,
+                game.state.controlled,
+                &mut game.state.status_cache,
+            );
+            game.state.phase = Phase::Run(RunPhase::Tick);
+        }
+    }
+    Ok(())
+}
+
 fn prepare_next_location(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(), StopType> {
     match game.state.locations.next(&mut game.rng) {
         PickResult::None => return Err(StopType::Win),
-        PickResult::Location(location) => game.state.phase = Phase::LoadLocation(location),
+        PickResult::Location(location) => game.state.phase = Phase::Run(RunPhase::LoadLocation(location)),
         PickResult::Choice(choice) => {
             view_buffer.push_frame(Frame::LocationChoice(choice.clone()));
             game.state.phase = Phase::ChooseLocation(choice);
@@ -257,14 +270,14 @@ fn tick_and_check(game: &mut Game, view_buffer: &mut view::Buffer) -> Result<(),
         for (_, health) in game.world.query_mut::<&mut Health>() {
             health.restore_fraction(0.5);
         }
-        game.state.phase = Phase::PrepareNextLocation;
+        game.state.phase = Phase::Run(RunPhase::PrepareNextLocation);
     } else {
         view_buffer.capture_view(
             &game.world,
             game.state.controlled,
             &mut game.state.status_cache,
         );
-        game.state.phase = Phase::PrepareTick;
+        game.state.phase = Phase::Run(RunPhase::PrepareTick);
     }
     Ok(())
 }
