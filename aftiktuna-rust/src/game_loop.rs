@@ -30,14 +30,14 @@ pub fn setup_new(locations: LocationTracker) -> Game {
         world,
         rng,
         state: GameState {
-            phase: Phase::Introduce,
+            phase: Phase::PrepareNextLocation,
             locations,
             ship,
             controlled,
             status_cache: StatusCache::default(),
             has_introduced_controlled: false,
         },
-        frame_cache: FrameCache::default(),
+        frame_cache: FrameCache::new(vec![Frame::Introduction]),
     }
 }
 
@@ -68,7 +68,6 @@ pub struct GameState {
 
 #[derive(Debug, Serialize, Deserialize)]
 enum Phase {
-    Introduce,
     PrepareNextLocation,
     LoadLocation(String),
     ChooseLocation(area::Choice),
@@ -114,10 +113,6 @@ impl Game {
     fn run_with_buffer(&mut self, view_buffer: &mut view::Buffer) -> Result<TakeInput, StopType> {
         loop {
             match &self.state.phase {
-                Phase::Introduce => {
-                    view_buffer.push_frame(Frame::Introduction);
-                    self.state.phase = Phase::PrepareNextLocation;
-                }
                 Phase::ChooseLocation(_) | Phase::CommandInput => return Ok(TakeInput),
                 Phase::PrepareNextLocation => prepare_next_location(self, view_buffer)?,
                 Phase::LoadLocation(location) => {
