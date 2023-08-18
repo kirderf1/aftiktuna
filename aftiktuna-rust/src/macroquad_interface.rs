@@ -1,4 +1,4 @@
-use crate::game_loop::{Game, TakeInput};
+use crate::game_loop::{Game, GameResult};
 use crate::serialization;
 use crate::view::Frame;
 use egui_macroquad::macroquad::input;
@@ -26,9 +26,6 @@ pub fn logo() -> Icon {
 
 pub async fn run(game: Game) {
     let mut app = init(game);
-    if let Some(frame) = app.game.frame_cache.take_next_frame() {
-        app.show_frame(frame);
-    }
     let textures = texture::load_textures().await.unwrap();
 
     input::prevent_quit();
@@ -42,9 +39,7 @@ pub async fn run(game: Game) {
             exit(0);
         }
 
-        app.update_view_state();
-
-        app.update_game_state();
+        app.update_frame_state();
 
         if is_key_pressed(KeyCode::Tab) {
             app.show_graphical = !app.show_graphical;
@@ -60,95 +55,70 @@ fn init(game: Game) -> App {
     App {
         input: String::new(),
         game,
-        state: GameState::Run,
         last_frame_time: None,
         render_state: render::State::new(),
         show_graphical: true,
         request_input_focus: false,
+        show_next_frame: true,
     }
 }
 
 pub struct App {
     input: String,
     game: Game,
-    state: GameState,
     last_frame_time: Option<Instant>,
     render_state: render::State,
     show_graphical: bool,
     request_input_focus: bool,
-}
-
-#[derive(Eq, PartialEq)]
-enum GameState {
-    Input,
-    Run,
-    Done,
+    show_next_frame: bool,
 }
 
 const DELAY: time::Duration = time::Duration::from_secs(2);
 
 impl App {
-    fn update_view_state(&mut self) {
-        let frame = if !self.show_graphical {
-            if self
-                .last_frame_time
-                .map_or(true, |instant| instant.elapsed() >= DELAY)
-            {
-                self.game.frame_cache.take_next_frame()
-            } else {
-                None
-            }
-        } else if is_key_pressed(KeyCode::Enter)
-            || is_mouse_button_released(MouseButton::Left)
-                && ui::is_mouse_at_text_box(&self.render_state)
-        {
-            self.game.frame_cache.take_next_frame()
+    fn update_frame_state(&mut self) {
+        if self.show_graphical {
+            self.show_next_frame |= is_key_pressed(KeyCode::Enter)
+                || is_mouse_button_released(MouseButton::Left)
+                    && ui::is_mouse_at_text_box(&self.render_state)
         } else {
-            None
-        };
-        if let Some(frame) = frame {
-            self.show_frame(frame);
+            self.show_next_frame |= self
+                .last_frame_time
+                .map_or(true, |instant| instant.elapsed() >= DELAY);
+        }
+
+        if self.show_next_frame {
+            if let GameResult::Frame(frame_getter) = self.game.next_result() {
+                let frame = frame_getter.get();
+                self.show_frame(frame);
+            }
+            self.show_next_frame = false;
         }
     }
 
     fn show_frame(&mut self, frame: Frame) {
         self.last_frame_time = Some(Instant::now());
-        let ready_for_input =
-            !self.game.frame_cache.has_more_frames() && self.state != GameState::Done;
+        let ready_for_input = self.ready_to_take_input();
         self.render_state.show_frame(frame, ready_for_input);
         self.request_input_focus = ready_for_input;
     }
 
-    fn update_game_state(&mut self) {
-        if self.state == GameState::Run && !self.game.frame_cache.has_more_frames() {
-            match self.game.run() {
-                Ok(TakeInput) => {
-                    self.state = GameState::Input;
-                }
-                Err(_) => {
-                    self.state = GameState::Done;
-                }
-            }
-            if let Some(frame) = self.game.frame_cache.take_next_frame() {
-                self.show_frame(frame);
-            }
-        }
-    }
-
-    fn ready_to_take_input(&self) -> bool {
-        self.state == GameState::Input && !self.game.frame_cache.has_more_frames()
+    fn ready_to_take_input(&mut self) -> bool {
+        matches!(self.game.next_result(), GameResult::Input)
     }
 
     fn handle_input(&mut self) {
         let input = take(&mut self.input);
         if !input.is_empty() {
             self.render_state.add_to_text_log(format!("> {input}"));
-            if let Err(messages) = self.game.handle_input(&input) {
-                self.render_state.show_input_error(messages);
-                self.request_input_focus = true;
-            } else {
-                self.last_frame_time = None;
-                self.state = GameState::Run;
+            match self.game.handle_input(&input) {
+                Ok(()) => {
+                    self.show_next_frame = true;
+                }
+                Err(messages) => {
+                    self.render_state.show_input_error(messages);
+                    self.request_input_focus = true;
+                }
             }
         }
     }

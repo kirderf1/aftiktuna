@@ -121,8 +121,7 @@ impl Game {
         }
     }
 
-    #[deprecated]
-    pub fn run(&mut self) -> Result<TakeInput, StopType> {
+    fn run(&mut self) -> Result<TakeInput, StopType> {
         let mut buffer = Default::default();
         let result = self.run_with_buffer(&mut buffer);
         if let Err(stop_type) = result {
