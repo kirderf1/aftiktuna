@@ -26,11 +26,11 @@ pub fn setup_new(locations: LocationTracker) -> Game {
 
     let (controlled, ship) = area::init(&mut world);
 
-    Game {
+    let mut game = Game {
         world,
         rng,
         state: GameState {
-            phase: Phase::Run(Step::PrepareNextLocation),
+            phase: Phase::CommandInput, //Should be replaced by the subsequent call to run()
             locations,
             ship,
             controlled,
@@ -38,7 +38,9 @@ pub fn setup_new(locations: LocationTracker) -> Game {
             has_introduced_controlled: false,
         },
         frame_cache: FrameCache::new(vec![Frame::Introduction]),
-    }
+    };
+    run(Step::PrepareNextLocation, &mut game);
+    game
 }
 
 pub enum GameResult<'a> {
@@ -51,11 +53,6 @@ impl<'a> GameResult<'a> {
     pub fn has_frame(&self) -> bool {
         matches!(self, GameResult::Frame(_))
     }
-}
-
-enum InterruptType {
-    Input,
-    Stop,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -95,17 +92,6 @@ enum Phase {
     ChooseLocation(area::Choice),
     CommandInput,
     Stopped(StopType),
-    #[deprecated]
-    Run(Step),
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-enum Step {
-    PrepareNextLocation,
-    LoadLocation(String),
-    PrepareTick,
-    Tick,
-    ChangeControlled(Entity),
 }
 
 impl Game {
@@ -119,30 +105,14 @@ impl Game {
     }
 
     pub fn next_result(&mut self) -> GameResult {
-        let result = self.run();
         if self.frame_cache.has_more_frames() {
             GameResult::Frame(FrameGetter(&mut self.frame_cache))
         } else {
-            match result {
-                InterruptType::Input => GameResult::Input,
-                InterruptType::Stop => GameResult::Stop,
+            match &self.state.phase {
+                Phase::ChooseLocation(_) | Phase::CommandInput => GameResult::Input,
+                Phase::Stopped(_) => GameResult::Stop,
             }
         }
-    }
-
-    fn run(&mut self) -> InterruptType {
-        let mut view_buffer = view::Buffer::default();
-        let result = loop {
-            match &self.state.phase {
-                Phase::ChooseLocation(_) | Phase::CommandInput => break InterruptType::Input,
-                Phase::Stopped(_) => break InterruptType::Stop,
-                Phase::Run(phase) => {
-                    run(phase.clone(), self, &mut view_buffer);
-                }
-            }
-        };
-        self.frame_cache.add_new_frames(view_buffer.into_frames());
-        result
     }
 
     pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
@@ -152,7 +122,7 @@ impl Game {
                     self.state
                         .locations
                         .try_make_choice(choice, input, &mut self.rng)?;
-                self.state.phase = Phase::Run(Step::LoadLocation(location));
+                run(Step::LoadLocation(location), self);
             }
             Phase::CommandInput => {
                 match command::try_parse_input(
@@ -163,10 +133,10 @@ impl Game {
                 )? {
                     CommandResult::Action(action, target) => {
                         insert_action(&mut self.world, self.state.controlled, action, target);
-                        self.state.phase = Phase::Run(Step::Tick);
+                        run(Step::Tick, self);
                     }
                     CommandResult::ChangeControlled(character) => {
-                        self.state.phase = Phase::Run(Step::ChangeControlled(character));
+                        run(Step::ChangeControlled(character), self);
                     }
                     CommandResult::Info(messages) => return Err(messages),
                 }
@@ -177,7 +147,22 @@ impl Game {
     }
 }
 
-fn run(mut step: Step, game: &mut Game, view_buffer: &mut view::Buffer) {
+#[derive(Debug)]
+enum Step {
+    PrepareNextLocation,
+    LoadLocation(String),
+    PrepareTick,
+    Tick,
+    ChangeControlled(Entity),
+}
+
+fn run(step: Step, game: &mut Game) {
+    let mut view_buffer = view::Buffer::default();
+    run_inner(step, game, &mut view_buffer);
+    game.frame_cache.add_new_frames(view_buffer.into_frames());
+}
+
+fn run_inner(mut step: Step, game: &mut Game, view_buffer: &mut view::Buffer) {
     game.state.phase = loop {
         let result = run_step(step, game, view_buffer);
         match result {
