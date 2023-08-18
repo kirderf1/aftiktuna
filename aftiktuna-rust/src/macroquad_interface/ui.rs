@@ -12,9 +12,9 @@ use egui_macroquad::macroquad::texture::{
 };
 use egui_macroquad::macroquad::time::get_time;
 
-pub const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
-pub const TEXT_BOX_TEXT_SIZE: u16 = 16;
-pub const TEXT_BOX_MARGIN: f32 = 8.;
+const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
+const TEXT_BOX_TEXT_SIZE: u16 = 16;
+const TEXT_BOX_MARGIN: f32 = 12.;
 const TEXT_BOX_TEXT_MAX_WIDTH: f32 = 800. - 2. * TEXT_BOX_MARGIN;
 
 pub fn split_text_line(line: String) -> Vec<String> {
