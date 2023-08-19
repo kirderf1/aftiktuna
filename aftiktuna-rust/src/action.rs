@@ -1,9 +1,9 @@
 use crate::action::combat::Target;
+use crate::core::GameState;
 use crate::position::{try_move_adjacent, Pos};
 use crate::view::{Messages, NameData, TextureType};
 use crate::{status, view};
 use hecs::{Entity, World};
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::result;
 use Action::*;
@@ -42,14 +42,9 @@ pub enum Action {
     OpenChest(Entity),
 }
 
-pub fn tick(
-    world: &mut World,
-    rng: &mut impl Rng,
-    messages: &mut Messages,
-    aftik: Entity,
-    is_at_fortuna: bool,
-) {
-    let mut entities = world
+pub fn tick(state: &mut GameState, messages: &mut Messages) {
+    let mut entities = state
+        .world
         .query::<&status::Stats>()
         .with::<&Action>()
         .iter()
@@ -62,45 +57,40 @@ pub fn tick(
         .collect::<Vec<_>>();
 
     for entity in entities {
-        if !status::is_alive(entity, world) {
+        if !status::is_alive(entity, &state.world) {
             continue;
         }
 
-        if let Ok(action) = world.remove_one::<Action>(entity) {
-            perform(world, rng, entity, action, aftik, messages, is_at_fortuna);
+        if let Ok(action) = state.world.remove_one::<Action>(entity) {
+            perform(state, entity, action, messages);
         }
     }
 }
 
-fn perform(
-    world: &mut World,
-    rng: &mut impl Rng,
-    performer: Entity,
-    action: Action,
-    controlled: Entity,
-    messages: &mut Messages,
-    is_at_fortuna: bool,
-) {
+fn perform(state: &mut GameState, performer: Entity, action: Action, messages: &mut Messages) {
     let result = match action {
-        OpenChest(chest) => open_chest(world, performer, chest),
-        TakeItem(item, name) => item::take_item(world, performer, item, name),
-        TakeAll => item::take_all(world, performer),
-        GiveItem(item, receiver) => item::give_item(world, performer, item, receiver),
-        Wield(item, name) => item::wield(world, performer, item, name),
-        UseMedkit(item) => item::use_medkit(world, performer, item),
-        EnterDoor(door) => door::enter_door(world, performer, door),
-        ForceDoor(door) => door::force_door(world, performer, door),
-        Attack(target) => combat::attack(world, rng, performer, target),
-        AttackNearest(target) => combat::attack_nearest(world, rng, performer, target),
+        OpenChest(chest) => open_chest(&mut state.world, performer, chest),
+        TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),
+        TakeAll => item::take_all(&mut state.world, performer),
+        GiveItem(item, receiver) => item::give_item(&mut state.world, performer, item, receiver),
+        Wield(item, name) => item::wield(&mut state.world, performer, item, name),
+        UseMedkit(item) => item::use_medkit(&mut state.world, performer, item),
+        EnterDoor(door) => door::enter_door(&mut state.world, performer, door),
+        ForceDoor(door) => door::force_door(&mut state.world, performer, door),
+        Attack(target) => combat::attack(state, performer, target),
+        AttackNearest(target) => combat::attack_nearest(state, performer, target),
         Wait => silent_ok(),
-        Rest(first) => rest(world, performer, first),
-        Launch => launch::perform(world, performer, is_at_fortuna),
-        Recruit(target) => recruit(world, performer, target),
-        Trade(shopkeeper) => trade::trade(world, performer, shopkeeper),
-        Buy(item_type, amount) => trade::buy(world, performer, item_type, amount),
-        Sell(items) => trade::sell(world, performer, items),
-        ExitTrade => trade::exit(world, performer),
+        Rest(first) => rest(&mut state.world, performer, first),
+        Launch => launch::perform(state, performer),
+        Recruit(target) => recruit(&mut state.world, performer, target),
+        Trade(shopkeeper) => trade::trade(&mut state.world, performer, shopkeeper),
+        Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
+        Sell(items) => trade::sell(&mut state.world, performer, items),
+        ExitTrade => trade::exit(&mut state.world, performer),
     };
+
+    let world = &state.world;
+    let controlled = state.controlled;
     match result {
         Ok(Success::LocalMessage(message)) => {
             let performer_pos = *world.get::<&Pos>(performer).unwrap();

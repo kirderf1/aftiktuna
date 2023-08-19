@@ -1,5 +1,6 @@
 use crate::action;
 use crate::action::{item, CrewMember};
+use crate::core::GameState;
 use crate::item::Weapon;
 use crate::position::{try_move_adjacent, Pos};
 use crate::status::{Health, Stamina, Stats};
@@ -18,20 +19,16 @@ pub enum Target {
     Foe,
 }
 
-pub fn attack_nearest(
-    world: &mut World,
-    rng: &mut impl Rng,
-    attacker: Entity,
-    target: Target,
-) -> action::Result {
+pub fn attack_nearest(state: &mut GameState, attacker: Entity, target: Target) -> action::Result {
+    let world = &mut state.world;
     let pos = *world.get::<&Pos>(attacker).unwrap();
     let target = match target {
-        Target::Aftik => find_closest::<CrewMember, _>(world, pos, rng),
-        Target::Foe => find_closest::<IsFoe, _>(world, pos, rng),
+        Target::Aftik => find_closest::<CrewMember, _>(world, pos, &mut state.rng),
+        Target::Foe => find_closest::<IsFoe, _>(world, pos, &mut state.rng),
     };
 
     match target {
-        Some(target) => attack(world, rng, attacker, target),
+        Some(target) => attack(state, attacker, target),
         None => action::silent_ok(),
     }
 }
@@ -65,12 +62,8 @@ fn find_closest<T: Component, R: Rng>(world: &mut World, pos: Pos, rng: &mut R) 
     }
 }
 
-pub fn attack(
-    world: &mut World,
-    rng: &mut impl Rng,
-    attacker: Entity,
-    target: Entity,
-) -> action::Result {
+pub fn attack(state: &mut GameState, attacker: Entity, target: Entity) -> action::Result {
+    let world = &mut state.world;
     let attacker_name = NameData::find(world, attacker).definite();
     let target_name = NameData::find(world, target).definite();
     let attacker_pos = *world
@@ -92,7 +85,7 @@ pub fn attack(
 
     try_move_adjacent(world, attacker, target_pos)?;
 
-    let hit_type = roll_hit(world, attacker, target, rng);
+    let hit_type = roll_hit(world, attacker, target, &mut state.rng);
 
     if hit_type == HitType::Dodge {
         return action::ok(format!(

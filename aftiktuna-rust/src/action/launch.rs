@@ -1,16 +1,18 @@
 use crate::action;
 use crate::action::item;
 use crate::area::{Ship, ShipStatus};
+use crate::core::GameState;
 use crate::item::FuelCan;
 use crate::position::Pos;
 use crate::view::NameData;
 use hecs::{Entity, World};
 
-pub fn perform(world: &mut World, performer: Entity, is_at_fortuna: bool) -> action::Result {
-    if is_at_fortuna {
+pub fn perform(state: &mut GameState, performer: Entity) -> action::Result {
+    if state.locations.is_at_fortuna() {
         return Err("You can't leave fortuna yet!".to_string());
     }
 
+    let world = &mut state.world;
     let area = world.get::<&Pos>(performer).unwrap().get_area();
     let name = NameData::find(world, performer).definite();
 
