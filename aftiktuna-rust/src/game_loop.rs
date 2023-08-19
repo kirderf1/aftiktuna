@@ -25,21 +25,23 @@ pub fn setup_new(locations: LocationTracker) -> Game {
 
     let (controlled, ship) = area::init(&mut world);
 
-    let mut game = Game {
-        phase: Phase::CommandInput, //Should be replaced by the subsequent call to run()
-        state: GameState {
-            world,
-            rng: thread_rng(),
-            locations,
-            ship,
-            controlled,
-            status_cache: StatusCache::default(),
-            has_introduced_controlled: false,
-        },
-        frame_cache: FrameCache::new(vec![Frame::Introduction]),
+    let mut state = GameState {
+        world,
+        rng: thread_rng(),
+        locations,
+        ship,
+        controlled,
+        status_cache: StatusCache::default(),
+        has_introduced_controlled: false,
     };
-    run(Step::PrepareNextLocation, &mut game);
-    game
+    let mut frame_cache = FrameCache::new(vec![Frame::Introduction]);
+    let (phase, frames) = run(Step::PrepareNextLocation, &mut state);
+    frame_cache.add_new_frames(frames);
+    Game {
+        phase,
+        state,
+        frame_cache,
+    }
 }
 
 pub enum GameResult<'a> {
@@ -116,7 +118,9 @@ impl Game {
                     self.state
                         .locations
                         .try_make_choice(choice, input, &mut self.state.rng)?;
-                run(Step::LoadLocation(location), self);
+                let (phase, frames) = run(Step::LoadLocation(location), &mut self.state);
+                self.phase = phase;
+                self.frame_cache.add_new_frames(frames);
             }
             Phase::CommandInput => {
                 match command::try_parse_input(
@@ -127,10 +131,15 @@ impl Game {
                 )? {
                     CommandResult::Action(action, target) => {
                         insert_action(&mut self.state.world, self.state.controlled, action, target);
-                        run(Step::Tick, self);
+                        let (phase, frames) = run(Step::Tick, &mut self.state);
+                        self.phase = phase;
+                        self.frame_cache.add_new_frames(frames);
                     }
                     CommandResult::ChangeControlled(character) => {
-                        run(Step::ChangeControlled(character), self);
+                        let (phase, frames) =
+                            run(Step::ChangeControlled(character), &mut self.state);
+                        self.phase = phase;
+                        self.frame_cache.add_new_frames(frames);
                     }
                     CommandResult::Info(messages) => return Err(messages),
                 }
@@ -150,16 +159,16 @@ enum Step {
     ChangeControlled(Entity),
 }
 
-fn run(mut step: Step, game: &mut Game) {
+fn run(mut step: Step, state: &mut GameState) -> (Phase, Vec<Frame>) {
     let mut view_buffer = view::Buffer::default();
-    game.phase = loop {
-        let result = run_step(step, &mut game.state, &mut view_buffer);
+    let phase = loop {
+        let result = run_step(step, state, &mut view_buffer);
         match result {
             Ok(next_step) => step = next_step,
             Err(phase) => break phase,
         }
     };
-    game.frame_cache.add_new_frames(view_buffer.into_frames());
+    (phase, view_buffer.into_frames())
 }
 
 fn run_step(
