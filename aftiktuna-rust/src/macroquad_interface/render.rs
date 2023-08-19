@@ -1,6 +1,6 @@
 use super::texture::{draw_object, BGTextureType, TextureStorage};
 use super::App;
-use crate::game_loop::StopType;
+use crate::core::StopType;
 use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
 use crate::position::Coord;

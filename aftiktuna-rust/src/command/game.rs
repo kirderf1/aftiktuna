@@ -7,7 +7,7 @@ use crate::command::CommandResult;
 use crate::position::{Blockage, Pos};
 use crate::status::Health;
 use crate::view::NameData;
-use crate::{command, game_loop, item, position, status};
+use crate::{command, core, item, position, status};
 use hecs::{Entity, World};
 
 pub fn parse(
@@ -98,7 +98,7 @@ fn take_all(world: &World, character: Entity) -> Result<CommandResult, String> {
         return Err("There are no items to take here.".to_string());
     }
 
-    if !game_loop::is_safe(world, character_pos.get_area()) {
+    if !core::is_safe(world, character_pos.get_area()) {
         return Err("You should take care of all foes here before taking all items.".to_string());
     }
 
@@ -340,7 +340,7 @@ fn attack(target_name: &str, world: &World, character: Entity) -> Result<Command
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if !game_loop::is_safe(world, area) {
+    if !core::is_safe(world, area) {
         return Err("This area is not safe to rest in.".to_string());
     }
 

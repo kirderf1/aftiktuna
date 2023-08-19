@@ -1,7 +1,7 @@
 use crate::action::trade;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::area::Choice;
-use crate::game_loop::StopType;
+use crate::core::StopType;
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
 pub use name::{as_grouped_text_list, NounData};

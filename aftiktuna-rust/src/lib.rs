@@ -2,6 +2,7 @@ mod action;
 mod ai;
 pub mod area;
 mod command;
+mod core;
 pub mod game_loop;
 pub mod item;
 pub mod macroquad_interface;
