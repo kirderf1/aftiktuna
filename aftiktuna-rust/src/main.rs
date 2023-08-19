@@ -1,4 +1,4 @@
-use aftiktuna::{game_loop, macroquad_interface};
+use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::color::{BLACK, PINK};
 use egui_macroquad::macroquad::text::{draw_text, measure_text};
@@ -17,7 +17,7 @@ fn config() -> Conf {
 
 #[macroquad::main(config)]
 async fn main() {
-    match game_loop::new_or_load() {
+    match game_interface::new_or_load() {
         Ok(game) => macroquad_interface::run(game).await,
         Err(error) => {
             show_error(vec![

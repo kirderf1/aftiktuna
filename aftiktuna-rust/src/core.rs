@@ -1,6 +1,6 @@
 use crate::action::{combat, item, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
-use crate::game_loop::Phase;
+use crate::game_interface::Phase;
 use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{Frame, Messages, NameData, StatusCache};

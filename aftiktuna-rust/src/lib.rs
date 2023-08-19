@@ -3,7 +3,7 @@ mod ai;
 pub mod area;
 mod command;
 mod core;
-pub mod game_loop;
+pub mod game_interface;
 pub mod item;
 pub mod macroquad_interface;
 pub mod position;

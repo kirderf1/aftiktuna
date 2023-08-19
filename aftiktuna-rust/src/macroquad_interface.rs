@@ -1,4 +1,4 @@
-use crate::game_loop::{Game, GameResult};
+use crate::game_interface::{Game, GameResult};
 use crate::serialization;
 use crate::view::Frame;
 use egui_macroquad::macroquad::input;
