@@ -68,6 +68,17 @@ impl Game {
         }
     }
 
+    pub fn ready_to_take_input(&self) -> bool {
+        if self.frame_cache.has_more_frames() {
+            false
+        } else {
+            match &self.phase {
+                Phase::ChooseLocation(_) | Phase::CommandInput => true,
+                Phase::Stopped(_) => false,
+            }
+        }
+    }
+
     pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
         match &self.phase {
             Phase::ChooseLocation(choice) => {

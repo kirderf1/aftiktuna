@@ -1,7 +1,11 @@
+use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
 use crate::action::item::get_wielded;
+use crate::action::trade::Shopkeeper;
+use crate::action::{CrewMember, FortunaChest, Recruitable};
 use crate::area::{Area, BackgroundType};
 use crate::item;
+use crate::item::{CanWield, Item};
 use crate::position::{Coord, Direction, Pos};
 use crate::view::{capitalize, DisplayInfo, Messages, NameData};
 use hecs::{Entity, World};
@@ -57,7 +61,7 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
     for object in &render_data.objects {
         symbols_by_pos[object.coord].push((object.symbol, object.weight));
 
-        let label = format!("{}: {}", object.symbol, object.name,);
+        let label = format!("{}: {}", object.symbol, object.modified_name,);
         if !labels.contains(&label) {
             labels.push(label);
         }
@@ -115,11 +119,79 @@ pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: u32,
     pub texture_type: TextureType,
+    pub modified_name: String,
     pub name: String,
     pub symbol: char,
     pub direction: Direction,
     pub aftik_color: Option<AftikColor>,
     pub wielded_item: Option<TextureType>,
+    pub interactions: Vec<InteractionType>,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum InteractionType {
+    Item,
+    Wieldable,
+    Door,
+    Forceable,
+    Openable,
+    CrewMember,
+    Shopkeeper,
+    Recruitable,
+    Foe,
+}
+
+impl InteractionType {
+    pub fn commands(self, name: &str) -> Vec<String> {
+        let name = name.to_lowercase();
+        match self {
+            InteractionType::Item => vec![format!("take {name}")],
+            InteractionType::Wieldable => vec![format!("wield {name}")],
+            InteractionType::Door => vec![format!("enter {name}")],
+            InteractionType::Forceable => vec![format!("force {name}")],
+            InteractionType::Openable => vec![format!("open {name}")],
+            InteractionType::CrewMember => vec![
+                format!("control {name}"),
+                "status".to_owned(),
+                "rest".to_owned(),
+            ],
+            InteractionType::Shopkeeper => vec!["trade".to_owned()],
+            InteractionType::Recruitable => vec![format!("recruit {name}")],
+            InteractionType::Foe => vec![format!("attack {name}")],
+        }
+    }
+}
+
+fn interactions_for(entity: Entity, world: &World) -> Vec<InteractionType> {
+    let mut interactions = Vec::new();
+    if world.get::<&Item>(entity).is_ok() {
+        interactions.push(InteractionType::Item);
+    }
+    if world.get::<&CanWield>(entity).is_ok() {
+        interactions.push(InteractionType::Wieldable);
+    }
+    if let Ok(door) = world.get::<&Door>(entity) {
+        interactions.push(InteractionType::Door);
+        if world.get::<&BlockType>(door.door_pair).is_ok() {
+            interactions.push(InteractionType::Forceable);
+        }
+    }
+    if world.get::<&FortunaChest>(entity).is_ok() {
+        interactions.push(InteractionType::Openable);
+    }
+    if world.get::<&CrewMember>(entity).is_ok() {
+        interactions.push(InteractionType::CrewMember);
+    }
+    if world.get::<&Shopkeeper>(entity).is_ok() {
+        interactions.push(InteractionType::Shopkeeper);
+    }
+    if world.get::<&Recruitable>(entity).is_ok() {
+        interactions.push(InteractionType::Recruitable);
+    }
+    if world.get::<&IsFoe>(entity).is_ok() {
+        interactions.push(InteractionType::Foe);
+    }
+    interactions
 }
 
 pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderData {
@@ -135,15 +207,17 @@ pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderDat
                 coord: pos.get_coord(),
                 weight: display_info.weight,
                 texture_type: display_info.texture_type,
-                name: get_name(
+                modified_name: get_name(
                     world,
                     entity,
                     capitalize(NameData::find(world, entity).base()),
                 ),
+                name: capitalize(NameData::find(world, entity).base()),
                 symbol: display_info.symbol,
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
                 wielded_item: find_wielded_item_texture(world, entity),
+                interactions: interactions_for(entity, world),
             },
         )
         .collect();

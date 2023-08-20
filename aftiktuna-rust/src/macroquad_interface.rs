@@ -98,13 +98,9 @@ impl App {
 
     fn show_frame(&mut self, frame: Frame) {
         self.last_frame_time = Some(Instant::now());
-        let ready_for_input = self.ready_to_take_input();
+        let ready_for_input = self.game.ready_to_take_input();
         self.render_state.show_frame(frame, ready_for_input);
         self.request_input_focus = ready_for_input;
-    }
-
-    fn ready_to_take_input(&mut self) -> bool {
-        matches!(self.game.next_result(), GameResult::Input)
     }
 
     fn handle_input(&mut self) {

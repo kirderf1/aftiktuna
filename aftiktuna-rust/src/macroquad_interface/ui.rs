@@ -103,25 +103,51 @@ pub fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_pro
     }
 }
 
-pub fn draw_tooltip(mouse_pos: Vec2, hovered_objects: Vec<&String>) {
-    let width = hovered_objects
-        .iter()
-        .map(|object| measure_text(object, None, TEXT_BOX_TEXT_SIZE, 1.).width)
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap()
-        + 2. * TEXT_BOX_MARGIN;
-    let height = 8. + hovered_objects.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
-    draw_rectangle(mouse_pos.x, mouse_pos.y, width, height, TEXT_BOX_COLOR);
+pub fn draw_tooltip<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) {
+    let size = tooltip_size(pos, lines);
+    draw_rectangle(size.x, size.y, size.w, size.h, TEXT_BOX_COLOR);
 
-    for (index, object) in hovered_objects.into_iter().enumerate() {
+    for (index, line) in lines.iter().enumerate() {
         draw_text(
-            object,
-            mouse_pos.x + TEXT_BOX_MARGIN,
-            mouse_pos.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
+            line.as_ref(),
+            size.x + TEXT_BOX_MARGIN,
+            size.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
             TEXT_BOX_TEXT_SIZE as f32,
             WHITE,
         );
     }
+}
+
+pub fn clicked_tooltip_line<S: AsRef<str>>(
+    mouse_pos: Vec2,
+    pos: Vec2,
+    lines: &Vec<S>,
+) -> Option<&S> {
+    let size = tooltip_size(pos, lines);
+
+    for (index, line) in lines.iter().enumerate() {
+        let line_size = Rect::new(
+            size.x,
+            size.y + index as f32 * TEXT_BOX_TEXT_SIZE as f32,
+            size.w,
+            TEXT_BOX_TEXT_SIZE as f32,
+        );
+        if line_size.contains(mouse_pos) {
+            return Some(line);
+        }
+    }
+    None
+}
+
+fn tooltip_size<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) -> Rect {
+    let width = lines
+        .iter()
+        .map(|object| measure_text(object.as_ref(), None, TEXT_BOX_TEXT_SIZE, 1.).width)
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap()
+        + 2. * TEXT_BOX_MARGIN;
+    let height = 8. + lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
+    Rect::new(pos.x, pos.y, width, height)
 }
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
@@ -136,7 +162,7 @@ pub fn egui_ui(app: &mut App, ctx: &egui::Context) {
 
 fn egui_input_field(app: &mut App, ui: &mut egui::Ui) {
     let response = ui.add_enabled(
-        app.ready_to_take_input(),
+        app.game.ready_to_take_input(),
         egui::TextEdit::singleline(&mut app.input)
             .font(FONT)
             .desired_width(f32::INFINITY)
