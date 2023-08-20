@@ -1,6 +1,7 @@
 use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
 use crate::action::CrewMember;
+use crate::core::GameState;
 use crate::position::{Coord, Direction, Pos};
 use crate::status::Stats;
 use crate::view::{AftikColor, Messages, NameData, TextureType};
@@ -255,14 +256,9 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     (mint, ship)
 }
 
-pub fn load_location(
-    world: &mut World,
-    messages: &mut Messages,
-    ship: Entity,
-    location_name: &str,
-    is_at_fortuna: bool,
-) {
-    let ship_exit = world.get::<&Ship>(ship).unwrap().exit_pos;
+pub fn load_location(state: &mut GameState, messages: &mut Messages, location_name: &str) {
+    let world = &mut state.world;
+    let ship_exit = world.get::<&Ship>(state.ship).unwrap().exit_pos;
 
     let start_pos = load_data(location_name)
         .and_then(|location_data| location_data.build(world))
@@ -298,7 +294,7 @@ pub fn load_location(
         world.insert(aftik, (start_pos, direction)).unwrap();
     }
 
-    if is_at_fortuna {
+    if state.locations.is_at_fortuna() {
         messages.add(
             "The ship arrives at the location of the fortuna chest, and the crew exit the ship.",
         )

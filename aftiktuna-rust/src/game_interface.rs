@@ -79,28 +79,21 @@ impl Game {
                 self.phase = phase;
                 self.frame_cache.add_new_frames(frames);
             }
-            Phase::CommandInput => {
-                match command::try_parse_input(
-                    input,
-                    &self.state.world,
-                    self.state.controlled,
-                    self.state.locations.is_at_fortuna(),
-                )? {
-                    CommandResult::Action(action, target) => {
-                        insert_action(&mut self.state.world, self.state.controlled, action, target);
-                        let (phase, frames) = core::run(Step::Tick, &mut self.state);
-                        self.phase = phase;
-                        self.frame_cache.add_new_frames(frames);
-                    }
-                    CommandResult::ChangeControlled(character) => {
-                        let (phase, frames) =
-                            core::run(Step::ChangeControlled(character), &mut self.state);
-                        self.phase = phase;
-                        self.frame_cache.add_new_frames(frames);
-                    }
-                    CommandResult::Info(messages) => return Err(messages),
+            Phase::CommandInput => match command::try_parse_input(input, &self.state)? {
+                CommandResult::Action(action, target) => {
+                    insert_action(&mut self.state.world, self.state.controlled, action, target);
+                    let (phase, frames) = core::run(Step::Tick, &mut self.state);
+                    self.phase = phase;
+                    self.frame_cache.add_new_frames(frames);
                 }
-            }
+                CommandResult::ChangeControlled(character) => {
+                    let (phase, frames) =
+                        core::run(Step::ChangeControlled(character), &mut self.state);
+                    self.phase = phase;
+                    self.frame_cache.add_new_frames(frames);
+                }
+                CommandResult::Info(messages) => return Err(messages),
+            },
             state => panic!("Handling input in unexpected state {state:?}"),
         }
         Ok(())

@@ -84,13 +84,7 @@ fn run_step(
     match phase {
         Step::PrepareNextLocation => prepare_next_location(state, view_buffer),
         Step::LoadLocation(location) => {
-            area::load_location(
-                &mut state.world,
-                &mut view_buffer.messages,
-                state.ship,
-                &location,
-                state.locations.is_at_fortuna(),
-            );
+            area::load_location(state, &mut view_buffer.messages, &location);
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
@@ -99,7 +93,7 @@ fn run_step(
                 state.has_introduced_controlled = true;
             }
 
-            view_buffer.capture_view(&state.world, state.controlled, &mut state.status_cache);
+            view_buffer.capture_view(state);
             Ok(Step::PrepareTick)
         }
         Step::PrepareTick => {
@@ -110,7 +104,7 @@ fn run_step(
         Step::Tick => tick_and_check(state, view_buffer),
         Step::ChangeControlled(character) => {
             change_character(state, character, view_buffer);
-            view_buffer.capture_view(&state.world, state.controlled, &mut state.status_cache);
+            view_buffer.capture_view(state);
             Ok(Step::Tick)
         }
     }
@@ -181,7 +175,7 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         view_buffer
             .messages
             .add("The ship leaves for the next planet.");
-        view_buffer.capture_view(&state.world, state.controlled, &mut state.status_cache);
+        view_buffer.capture_view(state);
 
         area::despawn_all_except_ship(&mut state.world, state.ship);
         state.world.get::<&mut Ship>(state.ship).unwrap().status = ShipStatus::NeedTwoCans;
@@ -190,7 +184,7 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         }
         Ok(Step::PrepareNextLocation)
     } else {
-        view_buffer.capture_view(&state.world, state.controlled, &mut state.status_cache);
+        view_buffer.capture_view(state);
         Ok(Step::PrepareTick)
     }
 }
@@ -215,19 +209,16 @@ fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {
         state.controlled,
     );
 
-    handle_aftik_deaths(&mut state.world, view_buffer, state.controlled);
+    handle_aftik_deaths(state, view_buffer);
 
     for (_, stamina) in state.world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
 }
 
-fn handle_aftik_deaths(
-    world: &mut World,
-    view_buffer: &mut view::Buffer,
-    controlled_aftik: Entity,
-) {
-    let dead_crew = world
+fn handle_aftik_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    let dead_crew = state
+        .world
         .query::<&Health>()
         .with::<&CrewMember>()
         .iter()
@@ -238,17 +229,18 @@ fn handle_aftik_deaths(
     for &aftik in &dead_crew {
         view_buffer.messages.add(format!(
             "{} is dead.",
-            NameData::find(world, aftik).definite()
+            NameData::find(&state.world, aftik).definite()
         ));
     }
 
-    if !status::is_alive(controlled_aftik, world) {
-        view_buffer.capture_view(world, controlled_aftik, &mut StatusCache::default());
+    if !status::is_alive(state.controlled, &state.world) {
+        state.status_cache = StatusCache::default();
+        view_buffer.capture_view(state);
     }
 
     for aftik in dead_crew {
-        item::drop_all_items(world, aftik);
-        world.despawn(aftik).unwrap();
+        item::drop_all_items(&mut state.world, aftik);
+        state.world.despawn(aftik).unwrap();
     }
 }
 
@@ -268,7 +260,7 @@ fn check_player_state(
     }
 
     if state.world.get::<&OpenedChest>(state.controlled).is_ok() {
-        view_buffer.capture_view(&state.world, state.controlled, &mut state.status_cache);
+        view_buffer.capture_view(state);
         return Err(StopType::Win);
     }
 

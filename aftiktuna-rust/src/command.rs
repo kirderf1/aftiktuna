@@ -1,4 +1,5 @@
 use crate::action::{trade, Action};
+use crate::core::GameState;
 use crate::view;
 use crate::view::Messages;
 use hecs::{Entity, World};
@@ -28,17 +29,12 @@ fn crew_action(action: Action) -> Result<CommandResult, String> {
     Ok(CommandResult::Action(action, Target::Crew))
 }
 
-pub fn try_parse_input(
-    input: &str,
-    world: &World,
-    character: Entity,
-    is_at_fortuna: bool,
-) -> Result<CommandResult, String> {
+pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let input = input.to_lowercase();
-    if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-        store::parse(&input, world, character, shopkeeper.deref())
+    if let Some(shopkeeper) = trade::get_shop_info(&state.world, state.controlled) {
+        store::parse(&input, &state.world, state.controlled, shopkeeper.deref())
     } else {
-        game::parse(&input, world, character, is_at_fortuna)
+        game::parse(&input, state)
     }
 }
 

@@ -1,7 +1,7 @@
 use crate::action::trade;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::area::Choice;
-use crate::core::StopType;
+use crate::core::{GameState, StopType};
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
 pub use name::{as_grouped_text_list, NounData};
@@ -58,7 +58,10 @@ pub struct Buffer {
 }
 
 impl Buffer {
-    pub fn capture_view(&mut self, world: &World, character: Entity, cache: &mut StatusCache) {
+    pub fn capture_view(&mut self, state: &mut GameState) {
+        let world = &state.world;
+        let character = state.controlled;
+        let cache = &mut state.status_cache;
         let frame = if let Some(shopkeeper) = trade::get_shop_info(world, character) {
             shop_frame(&shopkeeper, self, world, character, cache)
         } else {
