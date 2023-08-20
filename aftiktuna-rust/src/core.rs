@@ -73,6 +73,10 @@ pub fn run(mut step: Step, state: &mut GameState) -> (Phase, Vec<Frame>) {
             Err(phase) => break phase,
         }
     };
+
+    #[cfg(feature = "debug_logging")]
+    serialization::check_world_components(&state.world);
+
     (phase, view_buffer.into_frames())
 }
 

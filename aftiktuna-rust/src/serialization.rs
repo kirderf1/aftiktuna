@@ -17,6 +17,7 @@ use serde::de::SeqAccess;
 use serde::ser::SerializeTuple;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::any::TypeId;
+use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io;
@@ -24,7 +25,7 @@ use std::io::{Read, Write};
 
 macro_rules! components_to_serialize {
     ($($comp:ty, $id:ident);+ $(;)?) => {
-        #[derive(Copy, Clone, Serialize, Deserialize)]
+        #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
         enum ComponentId {
             $(
             $id
@@ -76,6 +77,18 @@ macro_rules! components_to_serialize {
         }
         fn is_serialized_type_id(id: TypeId) -> bool {
             $(id == TypeId::of::<$comp>())||*
+        }
+        fn all_component_ids() -> Vec<ComponentId> {
+            vec![
+                $(ComponentId::$id,)*
+            ]
+        }
+        impl From<ComponentId> for TypeId {
+            fn from(value: ComponentId) -> Self {
+                match value {
+                    $(ComponentId::$id => TypeId::of::<$comp>(),)*
+                }
+            }
         }
         impl column::SerializeContext for HecsSerializeContext {
             fn component_count(&self, archetype: &Archetype) -> usize {
@@ -246,4 +259,31 @@ where
     D: Deserializer<'de>,
 {
     column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
+}
+
+pub fn check_world_components(world: &World) {
+    let mut set = HashSet::new();
+    for archetype in world.archetypes() {
+        if archetype.is_empty() {
+            continue;
+        }
+        for component_type in archetype.component_types() {
+            set.insert(component_type);
+        }
+    }
+
+    let absent_serialized_components = all_component_ids()
+        .into_iter()
+        .filter(|&component_id| !set.contains(&component_id.into()))
+        .collect::<Vec<_>>();
+    if !absent_serialized_components.is_empty() {
+        println!("Has unused serialized components: {absent_serialized_components:?}");
+    }
+    let non_serialized_components = set
+        .into_iter()
+        .filter(|component_type| !is_serialized_type_id(*component_type))
+        .collect::<Vec<_>>();
+    if !non_serialized_components.is_empty() {
+        println!("Has non-serialized components: {non_serialized_components:?}");
+    }
 }
