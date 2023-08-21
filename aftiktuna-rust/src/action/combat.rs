@@ -3,7 +3,7 @@ use crate::action::CrewMember;
 use crate::core::item::Weapon;
 use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{inventory, GameState};
+use crate::core::{inventory, status, GameState};
 use crate::view::NameData;
 use hecs::{Component, Entity, World};
 use rand::Rng;
@@ -69,6 +69,10 @@ pub fn attack(state: &mut GameState, attacker: Entity, target: Entity) -> action
     let attacker_pos = *world
         .get::<&Pos>(attacker)
         .expect("Expected attacker to have a position");
+
+    if !status::is_alive(target, world) {
+        return action::silent_ok();
+    }
     let target_pos = *world.get::<&Pos>(target).map_err(|_| {
         format!(
             "{} disappeared before {} could attack.",
