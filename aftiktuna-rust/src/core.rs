@@ -3,7 +3,7 @@ use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
 use crate::view::{Frame, Messages, NameData, StatusCache};
-use crate::{action, ai, area, serialization, view};
+use crate::{action, area, serialization, view};
 use hecs::{Entity, World};
 use position::Pos;
 use rand::rngs::ThreadRng;
@@ -11,6 +11,7 @@ use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use status::{Health, Stamina};
 
+pub mod ai;
 pub mod item;
 pub mod position;
 pub mod status;
