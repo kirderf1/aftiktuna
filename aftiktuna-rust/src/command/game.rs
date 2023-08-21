@@ -320,18 +320,42 @@ fn attack_any(world: &World, character: Entity) -> Result<CommandResult, String>
 }
 
 fn attack(target_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<&Pos>(character).unwrap().get_area();
-    let target = world
+    let pos = *world.get::<&Pos>(character).unwrap();
+    let targets = world
         .query::<(&Pos, &NameData)>()
         .with::<&combat::IsFoe>()
         .iter()
-        .find(|(_, (pos, name))| pos.is_in(area) && name.matches(target_name))
-        .map(|(target, _)| target)
-        .ok_or_else(|| "There is no such target here.".to_string())?;
+        .filter(|(_, (target_pos, name))| {
+            target_pos.is_in(pos.get_area()) && name.matches(target_name)
+        })
+        .map(|(target, (&pos, _))| (target, pos))
+        .collect::<Vec<_>>();
 
-    check_adjacent_accessible_with_message(world, character, target)?;
+    if targets.is_empty() {
+        return Err("There is no such target here.".to_string());
+    }
 
-    command::action_result(Action::Attack(vec![target]))
+    let target_access = targets
+        .iter()
+        .map(|&(entity, pos)| {
+            (
+                check_adjacent_accessible_with_message(world, character, entity),
+                pos,
+            )
+        })
+        .collect::<Vec<_>>();
+    if target_access.iter().all(|(result, _)| result.is_err()) {
+        return Err(target_access
+            .into_iter()
+            .min_by_key(|&(_, target_pos)| pos.distance_to(target_pos))
+            .unwrap()
+            .0
+            .unwrap_err());
+    }
+
+    command::action_result(Action::Attack(
+        targets.into_iter().map(|(entity, _)| entity).collect(),
+    ))
 }
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
