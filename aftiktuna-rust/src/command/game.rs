@@ -1,12 +1,12 @@
-use crate::action::item::{is_holding, Held};
 use crate::action::trade::Shopkeeper;
 use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
+use crate::core::inventory::Held;
 use crate::core::position::{Blockage, Pos};
 use crate::core::status::Health;
-use crate::core::{item, position, status, GameState};
+use crate::core::{inventory, item, position, status, GameState};
 use crate::view::NameData;
 use crate::{command, core};
 use hecs::{Entity, World};
@@ -358,7 +358,7 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     }
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if !is_holding::<item::FuelCan>(world, character) {
+    if !inventory::is_holding::<&item::FuelCan>(world, character) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             NameData::find(world, character).definite()

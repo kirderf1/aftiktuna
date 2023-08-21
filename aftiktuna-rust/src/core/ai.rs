@@ -1,8 +1,8 @@
 use crate::action::combat::{IsFoe, Target};
-use crate::action::{combat, item, Action, CrewMember};
+use crate::action::{combat, Action, CrewMember};
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
-use crate::core::status;
+use crate::core::{inventory, status};
 use crate::view::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -28,7 +28,7 @@ fn prepare_intention(world: &mut World, crew_member: Entity) {
     fn pick_intention(world: &mut World, crew_member: Entity) -> Option<Intention> {
         let weapon_damage = combat::get_weapon_damage(world, crew_member);
 
-        for item in item::get_inventory(world, crew_member) {
+        for item in inventory::get_inventory(world, crew_member) {
             if let Ok(weapon) = world.get::<&Weapon>(item) {
                 if weapon.0 > weapon_damage {
                     return Some(Intention::Wield(item));

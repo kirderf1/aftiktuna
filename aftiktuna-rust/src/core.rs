@@ -1,4 +1,3 @@
-use crate::action::item::drop_all_items;
 use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
@@ -12,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use status::{Health, Stamina};
 
 pub mod ai;
+pub mod inventory;
 pub mod item;
 pub mod position;
 pub mod status;
@@ -249,7 +249,7 @@ fn handle_aftik_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     }
 
     for aftik in dead_crew {
-        drop_all_items(&mut state.world, aftik);
+        inventory::drop_all_items(&mut state.world, aftik);
         state.world.despawn(aftik).unwrap();
     }
 }

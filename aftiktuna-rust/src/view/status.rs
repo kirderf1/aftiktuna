@@ -1,5 +1,6 @@
 use crate::action::trade::Points;
-use crate::action::{item, CrewMember};
+use crate::action::CrewMember;
+use crate::core::inventory;
 use crate::core::status::{Health, Stats};
 use crate::view::{capitalize, name, Messages, NameData};
 use hecs::{Entity, World};
@@ -146,7 +147,7 @@ fn print_wielded(
     messages: &mut Messages,
     prev_wielded: Option<Option<Entity>>,
 ) -> Option<Entity> {
-    let wielded = item::get_wielded(world, character);
+    let wielded = inventory::get_wielded(world, character);
 
     if Some(wielded) == prev_wielded {
         return wielded;
@@ -166,7 +167,7 @@ fn print_inventory(
     messages: &mut Messages,
     prev_inv: Option<&Vec<Entity>>,
 ) -> Vec<Entity> {
-    let mut inventory = item::get_inventory(world, character);
+    let mut inventory = inventory::get_inventory(world, character);
     inventory.sort();
 
     if Some(&inventory) == prev_inv {

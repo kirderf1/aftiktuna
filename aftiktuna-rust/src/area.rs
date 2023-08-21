@@ -1,10 +1,9 @@
-use crate::action;
 use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
-use crate::core::{item, GameState};
+use crate::core::{inventory, item, GameState};
 use crate::view::{AftikColor, Messages, NameData, TextureType};
 use door::DoorInfo;
 use hecs::{Entity, World};
@@ -322,10 +321,10 @@ pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
         .collect::<Vec<_>>();
     for entity in entities {
         world.insert_one(entity, Keep).unwrap();
-        if let Some(item) = action::item::get_wielded(world, entity) {
+        if let Some(item) = inventory::get_wielded(world, entity) {
             world.insert_one(item, Keep).unwrap();
         }
-        for item in action::item::get_inventory(world, entity) {
+        for item in inventory::get_inventory(world, entity) {
             world.insert_one(item, Keep).unwrap();
         }
         if let Ok(crew) = world

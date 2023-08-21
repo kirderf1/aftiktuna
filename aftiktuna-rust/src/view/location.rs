@@ -1,12 +1,11 @@
 use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
-use crate::action::item::get_wielded;
 use crate::action::trade::Shopkeeper;
 use crate::action::{CrewMember, FortunaChest, Recruitable};
 use crate::area::{Area, BackgroundType};
-use crate::core::item;
 use crate::core::item::{CanWield, Item};
 use crate::core::position::{Coord, Direction, Pos};
+use crate::core::{inventory, item};
 use crate::view::{capitalize, DisplayInfo, Messages, NameData};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -234,7 +233,7 @@ pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderDat
 }
 
 fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureType> {
-    let item = get_wielded(world, holder)?;
+    let item = inventory::get_wielded(world, holder)?;
     world
         .get::<&DisplayInfo>(item)
         .ok()

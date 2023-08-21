@@ -1,9 +1,9 @@
 use crate::action;
-use crate::action::{item, CrewMember};
+use crate::action::CrewMember;
 use crate::core::item::Weapon;
 use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::GameState;
+use crate::core::{inventory, GameState};
 use crate::view::NameData;
 use hecs::{Component, Entity, World};
 use rand::Rng;
@@ -153,7 +153,7 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
 }
 
 pub fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
-    item::get_wielded(world, attacker)
+    inventory::get_wielded(world, attacker)
         .and_then(|item| world.get::<&Weapon>(item).map(|weapon| weapon.0).ok())
         .unwrap_or(2.0)
 }

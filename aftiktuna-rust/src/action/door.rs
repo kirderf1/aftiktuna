@@ -1,8 +1,7 @@
 use crate::action;
-use crate::action::item;
 use crate::core::item::{Blowtorch, Crowbar, Keycard};
-use crate::core::position;
 use crate::core::position::Pos;
+use crate::core::{inventory, position};
 use crate::view::{DisplayInfo, NameData, TextureType};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -55,9 +54,9 @@ impl BlockType {
     ) -> Result<ToolUse, String> {
         match self {
             BlockType::Stuck => {
-                if item::is_holding::<Crowbar>(world, aftik) {
+                if inventory::is_holding::<&Crowbar>(world, aftik) {
                     Ok(ToolUse::Crowbar)
-                } else if item::is_holding::<Blowtorch>(world, aftik) {
+                } else if inventory::is_holding::<&Blowtorch>(world, aftik) {
                     Ok(ToolUse::Blowtorch)
                 } else {
                     Err(format!(
@@ -67,7 +66,7 @@ impl BlockType {
                 }
             }
             BlockType::Sealed | BlockType::Locked => {
-                if item::is_holding::<Blowtorch>(world, aftik) {
+                if inventory::is_holding::<&Blowtorch>(world, aftik) {
                     Ok(ToolUse::Blowtorch)
                 } else {
                     Err(format!(
@@ -119,7 +118,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         .map(|door| door.deref().clone())?;
 
     let used_keycard = if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
-        if *blocking == BlockType::Locked && item::is_holding::<Keycard>(world, aftik) {
+        if *blocking == BlockType::Locked && inventory::is_holding::<&Keycard>(world, aftik) {
             true
         } else {
             return Err(format!("The door is {}.", blocking.description()));

@@ -1,9 +1,9 @@
-use crate::action::item::Held;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::Action;
 use crate::command;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
+use crate::core::inventory::Held;
 use crate::view::NameData;
 use hecs::{Entity, World};
 
