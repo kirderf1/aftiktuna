@@ -3,7 +3,7 @@ use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, Recruitable};
 use crate::core::item;
 use crate::core::position::{Direction, MovementBlocking, Pos};
-use crate::status::{Health, Stamina, Stats};
+use crate::core::status::{Health, Stamina, Stats};
 use crate::view;
 use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use hecs::{Entity, EntityBuilder, World};

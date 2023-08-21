@@ -1,9 +1,9 @@
 use crate::action::combat::Target;
 use crate::core::item::Type as ItemType;
 use crate::core::position::{try_move_adjacent, Pos};
-use crate::core::GameState;
+use crate::core::{status, GameState};
+use crate::view;
 use crate::view::{Messages, NameData, TextureType};
-use crate::{status, view};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::result;

@@ -5,10 +5,10 @@ use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
 use crate::core::position::{Blockage, Pos};
-use crate::core::{item, position, GameState};
-use crate::status::Health;
+use crate::core::status::Health;
+use crate::core::{item, position, status, GameState};
 use crate::view::NameData;
-use crate::{command, core, status};
+use crate::{command, core};
 use hecs::{Entity, World};
 
 pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {

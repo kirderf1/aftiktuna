@@ -4,7 +4,7 @@ use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area, BackgroundType};
 use crate::core::item;
 use crate::core::position::{Coord, Pos};
-use crate::status::Stats;
+use crate::core::status::Stats;
 use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use hecs::World;
 use serde::{Deserialize, Serialize};

@@ -9,8 +9,8 @@ use crate::core::item::{
     Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon,
 };
 use crate::core::position::{Direction, MovementBlocking, Pos};
+use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::game_interface::Game;
-use crate::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::view::{AftikColor, DisplayInfo, NameData};
 use hecs::serialize::column;
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};

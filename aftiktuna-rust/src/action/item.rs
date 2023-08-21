@@ -1,9 +1,10 @@
+use crate::action;
 use crate::action::Action;
 use crate::core::item::{Item, Medkit};
 use crate::core::position::{try_move, try_move_adjacent, Pos};
-use crate::status::Health;
+use crate::core::status;
+use crate::core::status::Health;
 use crate::view::{DisplayInfo, NameData};
-use crate::{action, status};
 use hecs::{Component, Entity, World};
 use serde::{Deserialize, Serialize};
 

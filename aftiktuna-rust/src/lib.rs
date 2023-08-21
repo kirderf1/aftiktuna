@@ -7,5 +7,4 @@ pub mod game_interface;
 pub mod macroquad_interface;
 pub mod serialization;
 pub mod standard_io_interface;
-mod status;
 pub mod view;

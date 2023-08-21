@@ -2,17 +2,18 @@ use crate::action::item::drop_all_items;
 use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
-use crate::status::{Health, Stamina};
 use crate::view::{Frame, Messages, NameData, StatusCache};
-use crate::{action, ai, area, serialization, status, view};
+use crate::{action, ai, area, serialization, view};
 use hecs::{Entity, World};
 use position::Pos;
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
+use status::{Health, Stamina};
 
 pub mod item;
 pub mod position;
+pub mod status;
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
