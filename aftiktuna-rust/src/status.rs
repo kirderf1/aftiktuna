@@ -1,4 +1,4 @@
-use crate::position::Pos;
+use crate::core::position::Pos;
 use crate::view::{Messages, NameData};
 use hecs::{CommandBuffer, ComponentError, Entity, World};
 use serde::{Deserialize, Serialize};

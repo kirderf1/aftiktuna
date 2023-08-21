@@ -1,11 +1,11 @@
+use crate::action;
 use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
 use crate::action::CrewMember;
-use crate::core::GameState;
-use crate::position::{Coord, Direction, Pos};
+use crate::core::position::{Coord, Direction, Pos};
+use crate::core::{item, GameState};
 use crate::status::Stats;
 use crate::view::{AftikColor, Messages, NameData, TextureType};
-use crate::{action, item};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;

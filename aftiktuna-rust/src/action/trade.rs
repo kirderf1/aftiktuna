@@ -1,9 +1,10 @@
+use crate::action;
 use crate::action::item::Held;
 use crate::action::CrewMember;
-use crate::item::Price;
-use crate::position::Pos;
+use crate::core::item::Price;
+use crate::core::position::Pos;
+use crate::core::{item, position};
 use crate::view::{as_grouped_text_list, NameData};
-use crate::{action, item, position};
 use hecs::{Entity, Ref, World};
 use serde::{Deserialize, Serialize};
 

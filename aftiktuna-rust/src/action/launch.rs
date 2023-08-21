@@ -1,9 +1,9 @@
 use crate::action;
 use crate::action::item;
 use crate::area::{Ship, ShipStatus};
+use crate::core::item::FuelCan;
+use crate::core::position::Pos;
 use crate::core::GameState;
-use crate::item::FuelCan;
-use crate::position::Pos;
 use crate::view::NameData;
 use hecs::{Entity, World};
 

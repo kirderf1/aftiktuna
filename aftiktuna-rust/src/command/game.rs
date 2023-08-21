@@ -4,11 +4,11 @@ use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable}
 use crate::area::Ship;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
-use crate::core::GameState;
-use crate::position::{Blockage, Pos};
+use crate::core::position::{Blockage, Pos};
+use crate::core::{item, position, GameState};
 use crate::status::Health;
 use crate::view::NameData;
-use crate::{command, core, item, position, status};
+use crate::{command, core, status};
 use hecs::{Entity, World};
 
 pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {

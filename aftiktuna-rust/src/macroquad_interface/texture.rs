@@ -1,6 +1,6 @@
 use crate::area::BackgroundType;
-use crate::item;
-use crate::position::{Coord, Direction};
+use crate::core::item;
+use crate::core::position::{Coord, Direction};
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::color::{Color, WHITE};

@@ -1,14 +1,18 @@
-use crate::action::{combat, item, Action, CrewMember, OpenedChest};
+use crate::action::item::drop_all_items;
+use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
-use crate::position::Pos;
 use crate::status::{Health, Stamina};
 use crate::view::{Frame, Messages, NameData, StatusCache};
 use crate::{action, ai, area, serialization, status, view};
 use hecs::{Entity, World};
+use position::Pos;
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
+
+pub mod item;
+pub mod position;
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
@@ -243,7 +247,7 @@ fn handle_aftik_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     }
 
     for aftik in dead_crew {
-        item::drop_all_items(&mut state.world, aftik);
+        drop_all_items(&mut state.world, aftik);
         state.world.despawn(aftik).unwrap();
     }
 }

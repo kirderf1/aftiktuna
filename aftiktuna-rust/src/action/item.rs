@@ -1,6 +1,6 @@
 use crate::action::Action;
-use crate::item::{Item, Medkit};
-use crate::position::{try_move, try_move_adjacent, Pos};
+use crate::core::item::{Item, Medkit};
+use crate::core::position::{try_move, try_move_adjacent, Pos};
 use crate::status::Health;
 use crate::view::{DisplayInfo, NameData};
 use crate::{action, status};

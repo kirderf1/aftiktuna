@@ -1,5 +1,5 @@
 use crate::action::door::{BlockType, Door, DoorKind};
-use crate::position::Pos;
+use crate::core::position::Pos;
 use crate::view::{DisplayInfo, NameData, NounData, TextureType};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};

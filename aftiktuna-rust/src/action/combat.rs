@@ -1,8 +1,8 @@
 use crate::action;
 use crate::action::{item, CrewMember};
+use crate::core::item::Weapon;
+use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::GameState;
-use crate::item::Weapon;
-use crate::position::{try_move_adjacent, Pos};
 use crate::status::{Health, Stamina, Stats};
 use crate::view::NameData;
 use hecs::{Component, Entity, World};

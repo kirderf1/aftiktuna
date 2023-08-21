@@ -1,6 +1,7 @@
 use crate::action::combat::Target;
+use crate::core::item::Type as ItemType;
+use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::GameState;
-use crate::position::{try_move_adjacent, Pos};
 use crate::view::{Messages, NameData, TextureType};
 use crate::{status, view};
 use hecs::{Entity, World};
@@ -36,7 +37,7 @@ pub enum Action {
     Launch,
     Recruit(Entity),
     Trade(Entity),
-    Buy(crate::item::Type, u16),
+    Buy(ItemType, u16),
     Sell(Vec<Entity>),
     ExitTrade,
     OpenChest(Entity),

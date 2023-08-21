@@ -1,8 +1,9 @@
+use crate::action;
 use crate::action::item;
-use crate::item::{Blowtorch, Crowbar, Keycard};
-use crate::position::Pos;
+use crate::core::item::{Blowtorch, Crowbar, Keycard};
+use crate::core::position;
+use crate::core::position::Pos;
 use crate::view::{DisplayInfo, NameData, TextureType};
-use crate::{action, position};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;

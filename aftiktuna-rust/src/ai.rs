@@ -1,7 +1,7 @@
 use crate::action::combat::{IsFoe, Target};
 use crate::action::{combat, item, Action, CrewMember};
-use crate::item::Weapon;
-use crate::position::Pos;
+use crate::core::item::Weapon;
+use crate::core::position::Pos;
 use crate::status;
 use crate::view::NameData;
 use hecs::{Entity, World};

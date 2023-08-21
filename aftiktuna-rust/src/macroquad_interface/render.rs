@@ -1,9 +1,9 @@
 use super::texture::{draw_object, BGTextureType, TextureStorage};
 use super::App;
+use crate::core::position::Coord;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
 use crate::macroquad_interface::ui;
-use crate::position::Coord;
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY, WHITE};

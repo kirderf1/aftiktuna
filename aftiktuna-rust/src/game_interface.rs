@@ -1,8 +1,8 @@
 use crate::action::{Action, CrewMember};
 use crate::area::LocationTracker;
 use crate::command::{CommandResult, Target};
+use crate::core::position::Pos;
 use crate::core::{GameState, Step, StopType};
-use crate::position::Pos;
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
 use crate::{area, command, core, serialization};
