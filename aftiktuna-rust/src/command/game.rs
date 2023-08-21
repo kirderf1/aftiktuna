@@ -304,15 +304,18 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
 
 fn attack_any(world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if world
+    let foes = world
         .query::<&Pos>()
         .with::<&combat::IsFoe>()
         .iter()
-        .any(|(_, pos)| pos.is_in(area))
-    {
-        command::action_result(Action::AttackNearest(combat::Target::Foe))
-    } else {
+        .filter(|(_, pos)| pos.is_in(area))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+
+    if foes.is_empty() {
         Err("There is no appropriate target to attack here.".to_string())
+    } else {
+        command::action_result(Action::Attack(foes))
     }
 }
 
@@ -328,7 +331,7 @@ fn attack(target_name: &str, world: &World, character: Entity) -> Result<Command
 
     check_adjacent_accessible_with_message(world, character, target)?;
 
-    command::action_result(Action::Attack(target))
+    command::action_result(Action::Attack(vec![target]))
 }
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {

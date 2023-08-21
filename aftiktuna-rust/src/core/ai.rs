@@ -1,4 +1,4 @@
-use crate::action::combat::{IsFoe, Target};
+use crate::action::combat::IsFoe;
 use crate::action::{combat, Action, CrewMember};
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
@@ -75,13 +75,15 @@ fn foe_ai(world: &mut World, foe: Entity) {
 
 fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     let pos = *world.get::<&Pos>(foe).ok()?;
-    if world
+    let targets = world
         .query::<&Pos>()
         .with::<&CrewMember>()
         .iter()
-        .any(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
-    {
-        Some(Action::AttackNearest(Target::Aftik))
+        .filter(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    if !targets.is_empty() {
+        Some(Action::Attack(targets))
     } else {
         None
     }
@@ -98,13 +100,15 @@ fn aftik_ai(world: &mut World, crew_member: Entity) {
 
 fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>) -> Option<Action> {
     let pos = *world.get::<&Pos>(aftik).ok()?;
-    if world
+    let foes = world
         .query::<&Pos>()
         .with::<&IsFoe>()
         .iter()
-        .any(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
-    {
-        return Some(Action::AttackNearest(Target::Foe));
+        .filter(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    if !foes.is_empty() {
+        return Some(Action::Attack(foes));
     }
 
     if let Some(intention) = intention {

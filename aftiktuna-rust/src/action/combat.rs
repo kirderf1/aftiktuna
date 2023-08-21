@@ -5,7 +5,7 @@ use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{inventory, status, GameState};
 use crate::view::NameData;
-use hecs::{Component, Entity, World};
+use hecs::{Entity, World};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -13,56 +13,47 @@ use std::cmp::Ordering;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IsFoe;
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
-pub enum Target {
-    Aftik,
-    Foe,
-}
-
-pub fn attack_nearest(state: &mut GameState, attacker: Entity, target: Target) -> action::Result {
-    let world = &mut state.world;
-    let pos = *world.get::<&Pos>(attacker).unwrap();
-    let target = match target {
-        Target::Aftik => find_closest::<CrewMember, _>(world, pos, &mut state.rng),
-        Target::Foe => find_closest::<IsFoe, _>(world, pos, &mut state.rng),
-    };
-
-    match target {
-        Some(target) => attack(state, attacker, target),
-        None => action::silent_ok(),
+pub fn attack(state: &mut GameState, attacker: Entity, targets: Vec<Entity>) -> action::Result {
+    if targets.len() == 1 {
+        return attack_single(state, attacker, targets[0]);
     }
-}
+    let pos = *state.world.get::<&Pos>(attacker).unwrap();
 
-fn find_closest<T: Component, R: Rng>(world: &mut World, pos: Pos, rng: &mut R) -> Option<Entity> {
-    let targets = world
-        .query::<&Pos>()
-        .with::<&T>()
-        .iter()
-        .filter(|(_, other_pos)| other_pos.is_in(pos.get_area()))
+    let targets = targets
+        .into_iter()
+        .flat_map(|entity| {
+            state
+                .world
+                .get::<&Pos>(entity)
+                .ok()
+                .map(|pos| (entity, *pos))
+        })
+        .filter(|(entity, other_pos)| {
+            other_pos.is_in(pos.get_area()) && status::is_alive(*entity, &state.world)
+        })
         // collects the closest targets and also maps them to just the entity in one
-        .fold(
-            (usize::MAX, Vec::new()),
-            |mut partial, (entity, other_pos)| {
-                let distance = other_pos.distance_to(pos);
-                match distance.cmp(&partial.0) {
-                    Ordering::Less => (distance, vec![entity]),
-                    Ordering::Equal => {
-                        partial.1.push(entity);
-                        partial
-                    }
-                    Ordering::Greater => partial,
+        .fold((usize::MAX, vec![]), |mut partial, (entity, other_pos)| {
+            let distance = other_pos.distance_to(pos);
+            match distance.cmp(&partial.0) {
+                Ordering::Less => (distance, vec![entity]),
+                Ordering::Equal => {
+                    partial.1.push(entity);
+                    partial
                 }
-            },
-        )
+                Ordering::Greater => partial,
+            }
+        })
         .1;
+
     if targets.is_empty() {
-        None
+        action::silent_ok()
     } else {
-        Some(targets[rng.gen_range(0..targets.len())])
+        let target = targets[state.rng.gen_range(0..targets.len())];
+        attack_single(state, attacker, target)
     }
 }
 
-pub fn attack(state: &mut GameState, attacker: Entity, target: Entity) -> action::Result {
+fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> action::Result {
     let world = &mut state.world;
     let attacker_name = NameData::find(world, attacker).definite();
     let target_name = NameData::find(world, target).definite();

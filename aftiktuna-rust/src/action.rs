@@ -1,4 +1,3 @@
-use crate::action::combat::Target;
 use crate::core::item::Type as ItemType;
 use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::{status, GameState};
@@ -30,8 +29,7 @@ pub enum Action {
     UseMedkit(Entity),
     EnterDoor(Entity),
     ForceDoor(Entity),
-    Attack(Entity),
-    AttackNearest(Target),
+    Attack(Vec<Entity>),
     Wait,
     Rest(bool),
     Launch,
@@ -78,8 +76,7 @@ fn perform(state: &mut GameState, performer: Entity, action: Action, messages: &
         UseMedkit(item) => item::use_medkit(&mut state.world, performer, item),
         EnterDoor(door) => door::enter_door(&mut state.world, performer, door),
         ForceDoor(door) => door::force_door(&mut state.world, performer, door),
-        Attack(target) => combat::attack(state, performer, target),
-        AttackNearest(target) => combat::attack_nearest(state, performer, target),
+        Attack(targets) => combat::attack(state, performer, targets),
         Wait => silent_ok(),
         Rest(first) => rest(&mut state.world, performer, first),
         Launch => launch::perform(state, performer),
