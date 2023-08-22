@@ -20,8 +20,6 @@ pub struct State {
     pub current_frame: Frame,
     pub text_box_text: Vec<String>,
     camera: Rect,
-    last_drag_pos: Option<Vec2>,
-    command_tooltip: Option<CommandTooltip>,
 }
 
 impl State {
@@ -31,8 +29,6 @@ impl State {
             current_frame: Frame::Introduction,
             text_box_text: vec![],
             camera: default_camera_space(),
-            last_drag_pos: None,
-            command_tooltip: None,
         }
     }
 
@@ -48,7 +44,6 @@ impl State {
         self.set_text_box_text(frame.get_messages());
 
         self.current_frame = frame;
-        self.command_tooltip = None;
     }
 
     fn set_text_box_text(&mut self, text: Vec<String>) {
@@ -82,7 +77,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
             app.game.next_result().has_frame(),
         );
 
-        draw_tooltips(&app.render_state, textures);
+        draw_tooltips(&app.render_state, &app.command_tooltip, textures);
     }
 
     egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));
@@ -155,10 +150,14 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
     }
 }
 
-fn draw_tooltips(state: &State, textures: &TextureStorage) {
+fn draw_tooltips(
+    state: &State,
+    command_tooltip: &Option<CommandTooltip>,
+    textures: &TextureStorage,
+) {
     if let Frame::AreaView { render_data, .. } = &state.current_frame {
         set_camera(&Camera2D::from_display_rect(state.camera));
-        if let Some(tooltip) = &state.command_tooltip {
+        if let Some(tooltip) = command_tooltip {
             ui::draw_tooltip(tooltip.pos, &tooltip.commands);
         } else {
             find_and_draw_tooltip(
@@ -220,11 +219,8 @@ fn coord_to_center_x(coord: Coord) -> f32 {
     40. + 120. * coord as f32
 }
 
-pub fn try_drag_camera(state: &mut State) {
-    if state.command_tooltip.is_some() {
-        return;
-    }
-    match (&state.current_frame, state.last_drag_pos) {
+pub fn try_drag_camera(state: &mut State, last_drag_pos: &mut Option<Vec2>) {
+    match (&state.current_frame, *last_drag_pos) {
         (Frame::AreaView { render_data, .. }, Some(last_pos)) => {
             if is_mouse_button_down(MouseButton::Left) {
                 let mouse_pos: Vec2 = mouse_position().into();
@@ -232,18 +228,18 @@ pub fn try_drag_camera(state: &mut State) {
 
                 state.camera.x -= camera_delta.x;
                 clamp_camera(&mut state.camera, render_data);
-                state.last_drag_pos = Some(mouse_pos);
+                *last_drag_pos = Some(mouse_pos);
             } else {
-                state.last_drag_pos = None;
+                *last_drag_pos = None;
             }
         }
         (Frame::AreaView { .. }, None) => {
             if is_mouse_button_pressed(MouseButton::Left) && !ui::is_mouse_at_text_box(state) {
-                state.last_drag_pos = Some(mouse_position().into());
+                *last_drag_pos = Some(mouse_position().into());
             }
         }
         _ => {
-            state.last_drag_pos = None;
+            *last_drag_pos = None;
         }
     }
 }
@@ -286,15 +282,15 @@ fn character_centered_camera(render_data: &RenderData) -> Rect {
     camera_space
 }
 
-struct CommandTooltip {
+pub struct CommandTooltip {
     pos: Vec2,
     commands: Vec<String>,
 }
 
 pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
     let state = &mut app.render_state;
-    if !app.game.ready_to_take_input() || state.last_drag_pos.is_some() {
-        state.command_tooltip = None;
+    if !app.game.ready_to_take_input() {
+        app.command_tooltip = None;
         return;
     }
     if !is_mouse_button_pressed(MouseButton::Left) {
@@ -302,7 +298,7 @@ pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
     }
     let mouse_pos = Vec2::from(mouse_position());
     let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
-    match &state.command_tooltip {
+    match &app.command_tooltip {
         None => {
             if let Frame::AreaView { render_data, .. } = &state.current_frame {
                 let hovered_objects = position_objects(&render_data.objects, textures)
@@ -313,7 +309,7 @@ pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
                     .map(|(_, data)| data)
                     .collect::<Vec<_>>();
                 if !hovered_objects.is_empty() {
-                    state.command_tooltip = prepare_command_tooltip(offset_pos, hovered_objects);
+                    app.command_tooltip = prepare_command_tooltip(offset_pos, hovered_objects);
                 }
             }
         }
@@ -324,7 +320,7 @@ pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
                 &command_tooltip.commands,
             )
             .cloned();
-            state.command_tooltip = None;
+            app.command_tooltip = None;
             if let Some(line) = line {
                 app.input = line;
                 app.handle_input();

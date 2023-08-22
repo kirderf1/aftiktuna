@@ -1,10 +1,12 @@
 use crate::game_interface::{Game, GameResult};
+use crate::macroquad_interface::render::CommandTooltip;
 use crate::serialization;
 use crate::view::Frame;
 use egui_macroquad::macroquad::input;
 use egui_macroquad::macroquad::input::{
     is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
 };
+use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::miniquad::conf::Icon;
 use egui_macroquad::macroquad::window::next_frame;
 use std::mem::take;
@@ -43,8 +45,12 @@ pub async fn run(game: Game) {
             app.show_graphical = !app.show_graphical;
         }
 
-        render::try_tooltip_click(&mut app, &textures);
-        render::try_drag_camera(&mut app.render_state);
+        if app.last_drag_pos.is_none() {
+            render::try_tooltip_click(&mut app, &textures);
+        }
+        if app.command_tooltip.is_none() {
+            render::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
+        }
 
         app.update_frame_state();
 
@@ -60,6 +66,8 @@ fn init(game: Game) -> App {
         game,
         last_frame_time: None,
         render_state: render::State::new(),
+        last_drag_pos: None,
+        command_tooltip: None,
         show_graphical: true,
         request_input_focus: false,
         show_next_frame: true,
@@ -71,6 +79,8 @@ pub struct App {
     game: Game,
     last_frame_time: Option<Instant>,
     render_state: render::State,
+    last_drag_pos: Option<Vec2>,
+    command_tooltip: Option<CommandTooltip>,
     show_graphical: bool,
     request_input_focus: bool,
     show_next_frame: bool,
@@ -104,6 +114,7 @@ impl App {
         let ready_for_input = self.game.ready_to_take_input();
         self.render_state.show_frame(frame, ready_for_input);
         self.request_input_focus = ready_for_input;
+        self.command_tooltip = None;
     }
 
     fn handle_input(&mut self) {
