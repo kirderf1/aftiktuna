@@ -39,11 +39,14 @@ pub async fn run(game: Game) {
             exit(0);
         }
 
-        app.update_frame_state();
-
         if is_key_pressed(KeyCode::Tab) {
             app.show_graphical = !app.show_graphical;
         }
+
+        render::try_tooltip_click(&mut app, &textures);
+        render::try_drag_camera(&mut app.render_state);
+
+        app.update_frame_state();
 
         render::draw(&mut app, &textures);
 

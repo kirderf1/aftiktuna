@@ -67,9 +67,6 @@ impl State {
 }
 
 pub fn draw(app: &mut App, textures: &TextureStorage) {
-    try_tooltip_click(app, textures);
-    try_drag_camera(&mut app.render_state);
-
     clear_background(BLACK);
 
     if app.show_graphical {
@@ -214,7 +211,7 @@ fn coord_to_center_x(coord: Coord) -> f32 {
     40. + 120. * coord as f32
 }
 
-fn try_drag_camera(state: &mut State) {
+pub fn try_drag_camera(state: &mut State) {
     if state.command_tooltip.is_some() {
         return;
     }
@@ -285,7 +282,7 @@ struct CommandTooltip {
     commands: Vec<String>,
 }
 
-fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
+pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() || state.last_drag_pos.is_some() {
         state.command_tooltip = None;
