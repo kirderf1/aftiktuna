@@ -70,11 +70,19 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     clear_background(BLACK);
 
     if app.show_graphical {
-        draw_game(
-            &app.render_state,
+        draw_frame(
+            &app.render_state.current_frame,
+            app.render_state.camera,
+            textures,
+        );
+
+        ui::draw_text_box(
+            &app.render_state.text_box_text,
             textures,
             app.game.next_result().has_frame(),
         );
+
+        draw_tooltips(&app.render_state, textures);
     }
 
     egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));
@@ -82,8 +90,8 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     egui_macroquad::draw();
 }
 
-fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
-    match &state.current_frame {
+fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
+    match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
             draw_background(
                 BGTextureType::LocationChoice,
@@ -93,33 +101,21 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
             );
         }
         Frame::AreaView { render_data, .. } => {
-            set_camera(&Camera2D::from_display_rect(state.camera));
+            set_camera(&Camera2D::from_display_rect(camera));
             draw_background(
                 render_data
                     .background
                     .map_or(BGTextureType::Blank, BGTextureType::from),
                 render_data.background_offset.unwrap_or(0),
-                state.camera,
+                camera,
                 textures,
             );
 
             draw_objects(render_data, textures);
 
-            if let Some(tooltip) = &state.command_tooltip {
-                ui::draw_tooltip(tooltip.pos, &tooltip.commands);
-            } else {
-                find_and_draw_tooltip(
-                    render_data,
-                    textures,
-                    Vec2::new(state.camera.x, state.camera.y),
-                );
-            }
             set_default_camera();
 
-            ui::draw_camera_arrows(
-                textures.side_arrow,
-                has_camera_space(state.camera, render_data),
-            );
+            ui::draw_camera_arrows(textures.side_arrow, has_camera_space(camera, render_data));
         }
         Frame::StoreView { view, .. } => {
             const TEXT_SIZE: f32 = 32.;
@@ -141,8 +137,6 @@ fn draw_game(state: &State, textures: &TextureStorage, click_to_proceed: bool) {
             clear_background(color);
         }
     }
-
-    ui::draw_text_box(&state.text_box_text, textures, click_to_proceed);
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
@@ -157,6 +151,21 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
         );
         if let Some(item_texture) = data.wielded_item {
             draw_object(item_texture, data.direction, None, true, textures, pos);
+        }
+    }
+}
+
+fn draw_tooltips(state: &State, textures: &TextureStorage) {
+    if let Frame::AreaView { render_data, .. } = &state.current_frame {
+        set_camera(&Camera2D::from_display_rect(state.camera));
+        if let Some(tooltip) = &state.command_tooltip {
+            ui::draw_tooltip(tooltip.pos, &tooltip.commands);
+        } else {
+            find_and_draw_tooltip(
+                render_data,
+                textures,
+                Vec2::new(state.camera.x, state.camera.y),
+            );
         }
     }
 }
