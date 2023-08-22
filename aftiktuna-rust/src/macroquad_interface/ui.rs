@@ -12,9 +12,9 @@ use egui_macroquad::macroquad::texture::{
 };
 use egui_macroquad::macroquad::time::get_time;
 
-const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
-const TEXT_BOX_TEXT_SIZE: u16 = 16;
-const TEXT_BOX_MARGIN: f32 = 12.;
+pub const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
+pub const TEXT_BOX_TEXT_SIZE: u16 = 16;
+pub const TEXT_BOX_MARGIN: f32 = 12.;
 const TEXT_BOX_TEXT_MAX_WIDTH: f32 = 800. - 2. * TEXT_BOX_MARGIN;
 
 pub fn split_text_line(line: String) -> Vec<String> {
@@ -101,53 +101,6 @@ pub fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_pro
             Color::new(1., 1., 1., alpha as f32),
         );
     }
-}
-
-pub fn draw_tooltip<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) {
-    let size = tooltip_size(pos, lines);
-    draw_rectangle(size.x, size.y, size.w, size.h, TEXT_BOX_COLOR);
-
-    for (index, line) in lines.iter().enumerate() {
-        draw_text(
-            line.as_ref(),
-            size.x + TEXT_BOX_MARGIN,
-            size.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
-            TEXT_BOX_TEXT_SIZE as f32,
-            WHITE,
-        );
-    }
-}
-
-pub fn clicked_tooltip_line<S: AsRef<str>>(
-    mouse_pos: Vec2,
-    pos: Vec2,
-    lines: &Vec<S>,
-) -> Option<&S> {
-    let size = tooltip_size(pos, lines);
-
-    for (index, line) in lines.iter().enumerate() {
-        let line_size = Rect::new(
-            size.x,
-            size.y + index as f32 * TEXT_BOX_TEXT_SIZE as f32,
-            size.w,
-            TEXT_BOX_TEXT_SIZE as f32,
-        );
-        if line_size.contains(mouse_pos) {
-            return Some(line);
-        }
-    }
-    None
-}
-
-fn tooltip_size<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) -> Rect {
-    let width = lines
-        .iter()
-        .map(|object| measure_text(object.as_ref(), None, TEXT_BOX_TEXT_SIZE, 1.).width)
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
-        .unwrap()
-        + 2. * TEXT_BOX_MARGIN;
-    let height = 8. + lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
-    Rect::new(pos.x, pos.y, width, height)
 }
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);

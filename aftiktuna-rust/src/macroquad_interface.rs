@@ -1,5 +1,5 @@
 use crate::game_interface::{Game, GameResult};
-use crate::macroquad_interface::render::CommandTooltip;
+use crate::macroquad_interface::tooltip::CommandTooltip;
 use crate::serialization;
 use crate::view::Frame;
 use egui_macroquad::macroquad::input;
@@ -16,6 +16,7 @@ use std::time::Instant;
 
 mod render;
 mod texture;
+mod tooltip;
 mod ui;
 
 pub fn logo() -> Icon {
@@ -46,7 +47,7 @@ pub async fn run(game: Game) {
         }
 
         if app.last_drag_pos.is_none() {
-            render::try_tooltip_click(&mut app, &textures);
+            tooltip::try_tooltip_click(&mut app, &textures);
         }
         if app.command_tooltip.is_none() {
             render::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);

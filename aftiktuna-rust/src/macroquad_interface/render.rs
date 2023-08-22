@@ -2,8 +2,8 @@ use super::texture::{draw_object, BGTextureType, TextureStorage};
 use super::App;
 use crate::core::position::Coord;
 use crate::core::StopType;
-use crate::macroquad_interface::texture::{draw_background, get_rect_for_object};
-use crate::macroquad_interface::ui;
+use crate::macroquad_interface::texture::draw_background;
+use crate::macroquad_interface::{tooltip, ui};
 use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY, WHITE};
@@ -13,13 +13,13 @@ use egui_macroquad::macroquad::input::{
 use egui_macroquad::macroquad::math::{clamp, Rect, Vec2};
 use egui_macroquad::macroquad::text::draw_text;
 use egui_macroquad::macroquad::window::clear_background;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub struct State {
     pub text_log: Vec<String>,
     pub current_frame: Frame,
     pub text_box_text: Vec<String>,
-    camera: Rect,
+    pub camera: Rect,
 }
 
 impl State {
@@ -77,7 +77,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
             app.game.next_result().has_frame(),
         );
 
-        draw_tooltips(&app.render_state, &app.command_tooltip, textures);
+        tooltip::draw_tooltips(&app.render_state, &app.command_tooltip, textures);
     }
 
     egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));
@@ -150,41 +150,7 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
     }
 }
 
-fn draw_tooltips(
-    state: &State,
-    command_tooltip: &Option<CommandTooltip>,
-    textures: &TextureStorage,
-) {
-    if let Frame::AreaView { render_data, .. } = &state.current_frame {
-        set_camera(&Camera2D::from_display_rect(state.camera));
-        if let Some(tooltip) = command_tooltip {
-            ui::draw_tooltip(tooltip.pos, &tooltip.commands);
-        } else {
-            find_and_draw_tooltip(
-                render_data,
-                textures,
-                Vec2::new(state.camera.x, state.camera.y),
-            );
-        }
-    }
-}
-
-fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
-    let mouse_pos = Vec2::from(mouse_position()) + camera_offset;
-    let hovered_objects = position_objects(&render_data.objects, textures)
-        .into_iter()
-        .filter(|(pos, data)| get_rect_for_object(data, textures, *pos).contains(mouse_pos))
-        .map(|(_, data)| &data.modified_name)
-        .collect::<Vec<_>>();
-
-    if hovered_objects.is_empty() {
-        return;
-    }
-
-    ui::draw_tooltip(mouse_pos, &hovered_objects);
-}
-
-fn position_objects<'a>(
+pub fn position_objects<'a>(
     objects: &'a Vec<ObjectRenderData>,
     textures: &TextureStorage,
 ) -> Vec<(Vec2, &'a ObjectRenderData)> {
@@ -280,71 +246,4 @@ fn character_centered_camera(render_data: &RenderData) -> Rect {
     );
     clamp_camera(&mut camera_space, render_data);
     camera_space
-}
-
-pub struct CommandTooltip {
-    pos: Vec2,
-    commands: Vec<String>,
-}
-
-pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
-    let state = &mut app.render_state;
-    if !app.game.ready_to_take_input() {
-        app.command_tooltip = None;
-        return;
-    }
-    if !is_mouse_button_pressed(MouseButton::Left) {
-        return;
-    }
-    let mouse_pos = Vec2::from(mouse_position());
-    let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
-    match &app.command_tooltip {
-        None => {
-            if let Frame::AreaView { render_data, .. } = &state.current_frame {
-                let hovered_objects = position_objects(&render_data.objects, textures)
-                    .into_iter()
-                    .filter(|(pos, data)| {
-                        get_rect_for_object(data, textures, *pos).contains(offset_pos)
-                    })
-                    .map(|(_, data)| data)
-                    .collect::<Vec<_>>();
-                if !hovered_objects.is_empty() {
-                    app.command_tooltip = prepare_command_tooltip(offset_pos, hovered_objects);
-                }
-            }
-        }
-        Some(command_tooltip) => {
-            let line = ui::clicked_tooltip_line(
-                offset_pos,
-                command_tooltip.pos,
-                &command_tooltip.commands,
-            )
-            .cloned();
-            app.command_tooltip = None;
-            if let Some(line) = line {
-                app.input = line;
-                app.handle_input();
-            }
-        }
-    }
-}
-
-fn prepare_command_tooltip(pos: Vec2, objects: Vec<&ObjectRenderData>) -> Option<CommandTooltip> {
-    let mut commands = objects
-        .into_iter()
-        .flat_map(|object| {
-            object
-                .interactions
-                .iter()
-                .flat_map(|interaction| interaction.commands(&object.name))
-        })
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    commands.sort();
-    if commands.is_empty() {
-        None
-    } else {
-        Some(CommandTooltip { pos, commands })
-    }
 }
