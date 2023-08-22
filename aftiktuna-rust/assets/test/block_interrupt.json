@@ -1,0 +1,44 @@
+{
+  "areas": [
+    {
+      "name": "Room",
+      "objects": [ "v", "", "kc<", ">" ],
+      "symbols":{
+        "<": {
+          "type": "door",
+          "pair_id": "lock",
+          "display_type": "door",
+          "adjective": "left"
+        },
+        ">": {
+          "type": "door",
+          "pair_id": "stuck",
+          "display_type": "door",
+          "adjective": "right"
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "objects": [ "<", "K>", "E", "G" ],
+      "symbols":{
+        "<": {
+          "type": "door",
+          "pair_id": "lock",
+          "display_type": "door",
+          "adjective": "left"
+        },
+        ">": {
+          "type": "door",
+          "pair_id": "stuck",
+          "display_type": "door",
+          "adjective": "right"
+        }
+      }
+    }
+  ],
+  "door_pairs": {
+    "lock": { "block_type": "locked" },
+    "stuck": { "block_type": "stuck" }
+  }
+}

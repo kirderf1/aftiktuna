@@ -2,7 +2,7 @@ use crate::core::item::Type as ItemType;
 use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::{status, GameState};
 use crate::view;
-use crate::view::{Messages, NameData, TextureType};
+use crate::view::{NameData, TextureType};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::result;
@@ -41,7 +41,7 @@ pub enum Action {
     OpenChest(Entity),
 }
 
-pub fn tick(state: &mut GameState, messages: &mut Messages) {
+pub fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let mut entities = state
         .world
         .query::<&status::Stats>()
@@ -61,12 +61,17 @@ pub fn tick(state: &mut GameState, messages: &mut Messages) {
         }
 
         if let Ok(action) = state.world.remove_one::<Action>(entity) {
-            perform(state, entity, action, messages);
+            perform(state, entity, action, view_buffer);
         }
     }
 }
 
-fn perform(state: &mut GameState, performer: Entity, action: Action, messages: &mut Messages) {
+fn perform(
+    state: &mut GameState,
+    performer: Entity,
+    action: Action,
+    view_buffer: &mut view::Buffer,
+) {
     let result = match action {
         OpenChest(chest) => open_chest(&mut state.world, performer, chest),
         TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),
@@ -94,19 +99,20 @@ fn perform(state: &mut GameState, performer: Entity, action: Action, messages: &
             let performer_pos = *world.get::<&Pos>(performer).unwrap();
             let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if player_pos.is_in(performer_pos.get_area()) {
-                messages.add(message);
+                view_buffer.messages.add(message);
             }
         }
         Ok(Success::Message(message, areas)) => {
             let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if areas.contains(&player_pos.get_area()) {
-                messages.add(message);
+                view_buffer.messages.add(message);
             }
         }
         Ok(Success::Silent) => {}
         Err(message) => {
             if performer == controlled {
-                messages.add(message);
+                view_buffer.messages.add(message);
+                view_buffer.capture_view(state);
             }
         }
     }

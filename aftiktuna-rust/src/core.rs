@@ -206,7 +206,7 @@ fn should_take_user_input(world: &World, controlled: Entity) -> bool {
 fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {
     ai::tick(&mut state.world);
 
-    action::tick(state, &mut view_buffer.messages);
+    action::tick(state, view_buffer);
 
     status::detect_low_health(
         &mut state.world,
