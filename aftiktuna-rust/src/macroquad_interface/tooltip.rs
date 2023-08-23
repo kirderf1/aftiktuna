@@ -1,8 +1,8 @@
 use crate::macroquad_interface::texture::TextureStorage;
-use crate::macroquad_interface::{render, texture, ui, App};
+use crate::macroquad_interface::{render, texture, App};
 use crate::view::{Frame, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::Camera2D;
-use egui_macroquad::macroquad::color::WHITE;
+use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{camera, input, shapes, text};
@@ -13,7 +13,7 @@ pub struct CommandTooltip {
     commands: Vec<String>,
 }
 
-pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
+pub fn handle_click(app: &mut App, textures: &TextureStorage) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() {
         app.command_tooltip = None;
@@ -35,24 +35,23 @@ pub fn try_tooltip_click(app: &mut App, textures: &TextureStorage) {
                     .map(|(_, data)| data)
                     .collect::<Vec<_>>();
                 if !hovered_objects.is_empty() {
-                    app.command_tooltip = prepare_command_tooltip(offset_pos, hovered_objects);
+                    app.command_tooltip = prepare_command_data(offset_pos, hovered_objects);
                 }
             }
         }
         Some(command_tooltip) => {
-            let line =
-                clicked_tooltip_line(offset_pos, command_tooltip.pos, &command_tooltip.commands)
-                    .cloned();
-            app.command_tooltip = None;
-            if let Some(line) = line {
-                app.input = line;
+            let line_index =
+                line_index_at(offset_pos, command_tooltip.pos, &command_tooltip.commands);
+            if let Some(line_index) = line_index {
+                app.input = command_tooltip.commands[line_index].clone();
                 app.handle_input();
             }
+            app.command_tooltip = None;
         }
     }
 }
 
-fn prepare_command_tooltip(pos: Vec2, objects: Vec<&ObjectRenderData>) -> Option<CommandTooltip> {
+fn prepare_command_data(pos: Vec2, objects: Vec<&ObjectRenderData>) -> Option<CommandTooltip> {
     let mut commands = objects
         .into_iter()
         .flat_map(|object| {
@@ -72,7 +71,7 @@ fn prepare_command_tooltip(pos: Vec2, objects: Vec<&ObjectRenderData>) -> Option
     }
 }
 
-pub fn draw_tooltips(
+pub fn draw(
     state: &render::State,
     command_tooltip: &Option<CommandTooltip>,
     textures: &TextureStorage,
@@ -80,9 +79,9 @@ pub fn draw_tooltips(
     if let Frame::AreaView { render_data, .. } = &state.current_frame {
         camera::set_camera(&Camera2D::from_display_rect(state.camera));
         if let Some(tooltip) = command_tooltip {
-            draw_tooltip(tooltip.pos, &tooltip.commands);
+            draw_lines(tooltip.pos, &tooltip.commands);
         } else {
-            find_and_draw_tooltip(
+            draw_object_names(
                 render_data,
                 textures,
                 Vec2::new(state.camera.x, state.camera.y),
@@ -91,7 +90,7 @@ pub fn draw_tooltips(
     }
 }
 
-fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
+fn draw_object_names(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
     let mouse_pos = Vec2::from(input::mouse_position()) + camera_offset;
     let hovered_objects = render::position_objects(&render_data.objects, textures)
         .into_iter()
@@ -105,36 +104,40 @@ fn find_and_draw_tooltip(render_data: &RenderData, textures: &TextureStorage, ca
         return;
     }
 
-    draw_tooltip(mouse_pos, &hovered_objects);
+    draw_lines(mouse_pos, &hovered_objects);
 }
 
-fn clicked_tooltip_line<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> Option<&S> {
+const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
+const TEXT_BOX_TEXT_SIZE: u16 = 16;
+const TEXT_BOX_MARGIN: f32 = 12.;
+
+fn line_index_at<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> Option<usize> {
     let size = tooltip_size(pos, lines);
 
-    for (index, line) in lines.iter().enumerate() {
+    for index in 0..lines.len() {
         let line_size = Rect::new(
             size.x,
-            size.y + index as f32 * ui::TEXT_BOX_TEXT_SIZE as f32,
+            size.y + index as f32 * TEXT_BOX_TEXT_SIZE as f32,
             size.w,
-            ui::TEXT_BOX_TEXT_SIZE as f32,
+            TEXT_BOX_TEXT_SIZE as f32,
         );
         if line_size.contains(mouse_pos) {
-            return Some(line);
+            return Some(index);
         }
     }
     None
 }
 
-fn draw_tooltip<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) {
+fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) {
     let size = tooltip_size(pos, lines);
-    shapes::draw_rectangle(size.x, size.y, size.w, size.h, ui::TEXT_BOX_COLOR);
+    shapes::draw_rectangle(size.x, size.y, size.w, size.h, TEXT_BOX_COLOR);
 
     for (index, line) in lines.iter().enumerate() {
         text::draw_text(
             line.as_ref(),
-            size.x + ui::TEXT_BOX_MARGIN,
-            size.y + ((index + 1) as f32 * ui::TEXT_BOX_TEXT_SIZE as f32),
-            ui::TEXT_BOX_TEXT_SIZE as f32,
+            size.x + TEXT_BOX_MARGIN,
+            size.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
+            TEXT_BOX_TEXT_SIZE as f32,
             WHITE,
         );
     }
@@ -143,10 +146,10 @@ fn draw_tooltip<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) {
 fn tooltip_size<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) -> Rect {
     let width = lines
         .iter()
-        .map(|object| text::measure_text(object.as_ref(), None, ui::TEXT_BOX_TEXT_SIZE, 1.).width)
+        .map(|object| text::measure_text(object.as_ref(), None, TEXT_BOX_TEXT_SIZE, 1.).width)
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap()
-        + 2. * ui::TEXT_BOX_MARGIN;
-    let height = 8. + lines.len() as f32 * ui::TEXT_BOX_TEXT_SIZE as f32;
+        + 2. * TEXT_BOX_MARGIN;
+    let height = 8. + lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
     Rect::new(pos.x, pos.y, width, height)
 }

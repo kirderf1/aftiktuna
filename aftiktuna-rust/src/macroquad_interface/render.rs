@@ -77,7 +77,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
             app.game.next_result().has_frame(),
         );
 
-        tooltip::draw_tooltips(&app.render_state, &app.command_tooltip, textures);
+        tooltip::draw(&app.render_state, &app.command_tooltip, textures);
     }
 
     egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));

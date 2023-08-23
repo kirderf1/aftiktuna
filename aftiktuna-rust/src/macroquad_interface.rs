@@ -47,7 +47,7 @@ pub async fn run(game: Game) {
         }
 
         if app.last_drag_pos.is_none() {
-            tooltip::try_tooltip_click(&mut app, &textures);
+            tooltip::handle_click(&mut app, &textures);
         }
         if app.command_tooltip.is_none() {
             render::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
