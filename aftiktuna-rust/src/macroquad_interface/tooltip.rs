@@ -78,14 +78,19 @@ pub fn draw(
 ) {
     if let Frame::AreaView { render_data, .. } = &state.current_frame {
         camera::set_camera(&Camera2D::from_display_rect(state.camera));
+        let camera_offset = Vec2::new(state.camera.x, state.camera.y);
         if let Some(tooltip) = command_tooltip {
-            draw_lines(tooltip.pos, &tooltip.commands);
-        } else {
-            draw_object_names(
-                render_data,
-                textures,
-                Vec2::new(state.camera.x, state.camera.y),
+            draw_lines(
+                tooltip.pos,
+                &tooltip.commands,
+                line_index_at(
+                    Vec2::from(input::mouse_position()) + camera_offset,
+                    tooltip.pos,
+                    &tooltip.commands,
+                ),
             );
+        } else {
+            draw_object_names(render_data, textures, camera_offset);
         }
     }
 }
@@ -104,10 +109,11 @@ fn draw_object_names(render_data: &RenderData, textures: &TextureStorage, camera
         return;
     }
 
-    draw_lines(mouse_pos, &hovered_objects);
+    draw_lines(mouse_pos, &hovered_objects, None);
 }
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
+const TEXT_BOX_HIGHLIGHT_COLOR: Color = Color::new(0.5, 0.3, 0.6, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;
 const TEXT_BOX_MARGIN: f32 = 12.;
 
@@ -128,9 +134,29 @@ fn line_index_at<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> O
     None
 }
 
-fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) {
+fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>, highlighted_index: Option<usize>) {
     let size = tooltip_size(pos, lines);
-    shapes::draw_rectangle(size.x, size.y, size.w, size.h, TEXT_BOX_COLOR);
+    if let Some(line_index) = highlighted_index {
+        let highlight_start = line_index as f32 * TEXT_BOX_TEXT_SIZE as f32;
+        let highlight_end = (line_index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32;
+        shapes::draw_rectangle(size.x, size.y, size.w, highlight_start, TEXT_BOX_COLOR);
+        shapes::draw_rectangle(
+            size.x,
+            size.y + highlight_start,
+            size.w,
+            highlight_end - highlight_start,
+            TEXT_BOX_HIGHLIGHT_COLOR,
+        );
+        shapes::draw_rectangle(
+            size.x,
+            size.y + highlight_end,
+            size.w,
+            size.h - highlight_end,
+            TEXT_BOX_COLOR,
+        );
+    } else {
+        shapes::draw_rectangle(size.x, size.y, size.w, size.h, TEXT_BOX_COLOR);
+    }
 
     for (index, line) in lines.iter().enumerate() {
         text::draw_text(
