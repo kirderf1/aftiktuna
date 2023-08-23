@@ -3,9 +3,9 @@ use crate::action::door::{BlockType, Door};
 use crate::action::trade::Shopkeeper;
 use crate::action::{CrewMember, FortunaChest, Recruitable};
 use crate::area::{Area, BackgroundType};
-use crate::core::item::{CanWield, Item};
+use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::{inventory, item};
+use crate::core::{inventory, item, GameState};
 use crate::view::{capitalize, DisplayInfo, Messages, NameData};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -131,8 +131,10 @@ pub struct ObjectRenderData {
 pub enum InteractionType {
     Item,
     Wieldable,
+    UseMedkit,
     Door,
     Forceable,
+    LaunchShip,
     Openable,
     CrewMember,
     Controlled,
@@ -147,8 +149,10 @@ impl InteractionType {
         match self {
             InteractionType::Item => vec![format!("take {name}")],
             InteractionType::Wieldable => vec![format!("wield {name}")],
+            InteractionType::UseMedkit => vec!["use medkit".to_owned()],
             InteractionType::Door => vec![format!("enter {name}")],
             InteractionType::Forceable => vec![format!("force {name}")],
+            InteractionType::LaunchShip => vec![format!("launch ship")],
             InteractionType::Openable => vec![format!("open {name}")],
             InteractionType::CrewMember => vec![
                 format!("control {name}"),
@@ -165,7 +169,8 @@ impl InteractionType {
     }
 }
 
-fn interactions_for(entity: Entity, controlled: Entity, world: &World) -> Vec<InteractionType> {
+fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
+    let world = &state.world;
     let mut interactions = Vec::new();
     if world.get::<&Item>(entity).is_ok() {
         interactions.push(InteractionType::Item);
@@ -182,11 +187,18 @@ fn interactions_for(entity: Entity, controlled: Entity, world: &World) -> Vec<In
     if world.get::<&FortunaChest>(entity).is_ok() {
         interactions.push(InteractionType::Openable);
     }
-    if entity != controlled && world.get::<&CrewMember>(entity).is_ok() {
+    if entity != state.controlled && world.get::<&CrewMember>(entity).is_ok() {
         interactions.push(InteractionType::CrewMember);
     }
-    if entity == controlled {
+    if entity == state.controlled {
         interactions.push(InteractionType::Controlled);
+        if inventory::is_holding::<&Medkit>(world, entity) {
+            interactions.push(InteractionType::UseMedkit);
+        }
+        let area = world.get::<&Pos>(entity).unwrap().get_area();
+        if area == state.ship {
+            interactions.push(InteractionType::LaunchShip);
+        }
     }
     if world.get::<&Shopkeeper>(entity).is_ok() {
         interactions.push(InteractionType::Shopkeeper);
@@ -200,11 +212,12 @@ fn interactions_for(entity: Entity, controlled: Entity, world: &World) -> Vec<In
     interactions
 }
 
-pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderData {
-    let character_pos = world.get::<&Pos>(character).unwrap();
-    let area = world.get::<&Area>(character_pos.get_area()).unwrap();
+pub fn prepare_render_data(state: &GameState) -> RenderData {
+    let character_pos = state.world.get::<&Pos>(state.controlled).unwrap();
+    let area = state.world.get::<&Area>(character_pos.get_area()).unwrap();
 
-    let mut objects: Vec<ObjectRenderData> = world
+    let mut objects: Vec<ObjectRenderData> = state
+        .world
         .query::<(&Pos, &DisplayInfo, Option<&Direction>, Option<&AftikColor>)>()
         .iter()
         .filter(|(_, (pos, _, _, _))| pos.is_in(character_pos.get_area()))
@@ -214,16 +227,16 @@ pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderDat
                 weight: display_info.weight,
                 texture_type: display_info.texture_type,
                 modified_name: get_name(
-                    world,
+                    &state.world,
                     entity,
-                    capitalize(NameData::find(world, entity).base()),
+                    capitalize(NameData::find(&state.world, entity).base()),
                 ),
-                name: capitalize(NameData::find(world, entity).base()),
+                name: capitalize(NameData::find(&state.world, entity).base()),
                 symbol: display_info.symbol,
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
-                wielded_item: find_wielded_item_texture(world, entity),
-                interactions: interactions_for(entity, character, world),
+                wielded_item: find_wielded_item_texture(&state.world, entity),
+                interactions: interactions_for(entity, state),
             },
         )
         .collect();

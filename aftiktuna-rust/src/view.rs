@@ -59,13 +59,18 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn capture_view(&mut self, state: &mut GameState) {
-        let world = &state.world;
-        let character = state.controlled;
-        let cache = &mut state.status_cache;
-        let frame = if let Some(shopkeeper) = trade::get_shop_info(world, character) {
-            shop_frame(&shopkeeper, self, world, character, cache)
+        let shop_info = trade::get_shop_info(&state.world, state.controlled);
+        let frame = if let Some(shopkeeper) = shop_info {
+            shop_frame(
+                &shopkeeper,
+                self,
+                &state.world,
+                state.controlled,
+                &mut state.status_cache,
+            )
         } else {
-            area_view_frame(self, world, character, cache)
+            drop(shop_info);
+            area_view_frame(self, state)
         };
 
         if self.captured_frames.is_empty() || frame.has_messages() {
@@ -232,15 +237,12 @@ fn shop_frame(
     }
 }
 
-fn area_view_frame(
-    buffer: &mut Buffer,
-    world: &World,
-    character: Entity,
-    cache: &mut StatusCache,
-) -> Frame {
+fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
     Frame::AreaView {
-        messages: buffer.pop_messages(world, character, cache).into_text(),
-        render_data: location::prepare_render_data(world, character),
+        messages: buffer
+            .pop_messages(&state.world, state.controlled, &mut state.status_cache)
+            .into_text(),
+        render_data: location::prepare_render_data(state),
     }
 }
 
