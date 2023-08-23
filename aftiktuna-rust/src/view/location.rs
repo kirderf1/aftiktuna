@@ -135,6 +135,7 @@ pub enum InteractionType {
     Forceable,
     Openable,
     CrewMember,
+    Controlled,
     Shopkeeper,
     Recruitable,
     Foe,
@@ -154,6 +155,9 @@ impl InteractionType {
                 "status".to_owned(),
                 "rest".to_owned(),
             ],
+            InteractionType::Controlled => {
+                vec!["status".to_owned(), "rest".to_owned(), "wait".to_owned()]
+            }
             InteractionType::Shopkeeper => vec!["trade".to_owned()],
             InteractionType::Recruitable => vec![format!("recruit {name}")],
             InteractionType::Foe => vec![format!("attack {name}")],
@@ -161,7 +165,7 @@ impl InteractionType {
     }
 }
 
-fn interactions_for(entity: Entity, world: &World) -> Vec<InteractionType> {
+fn interactions_for(entity: Entity, controlled: Entity, world: &World) -> Vec<InteractionType> {
     let mut interactions = Vec::new();
     if world.get::<&Item>(entity).is_ok() {
         interactions.push(InteractionType::Item);
@@ -178,8 +182,11 @@ fn interactions_for(entity: Entity, world: &World) -> Vec<InteractionType> {
     if world.get::<&FortunaChest>(entity).is_ok() {
         interactions.push(InteractionType::Openable);
     }
-    if world.get::<&CrewMember>(entity).is_ok() {
+    if entity != controlled && world.get::<&CrewMember>(entity).is_ok() {
         interactions.push(InteractionType::CrewMember);
+    }
+    if entity == controlled {
+        interactions.push(InteractionType::Controlled);
     }
     if world.get::<&Shopkeeper>(entity).is_ok() {
         interactions.push(InteractionType::Shopkeeper);
@@ -216,7 +223,7 @@ pub(crate) fn prepare_render_data(world: &World, character: Entity) -> RenderDat
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
                 wielded_item: find_wielded_item_texture(world, entity),
-                interactions: interactions_for(entity, world),
+                interactions: interactions_for(entity, character, world),
             },
         )
         .collect();
