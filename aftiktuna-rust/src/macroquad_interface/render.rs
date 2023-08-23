@@ -71,6 +71,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
             textures,
         );
 
+        set_default_camera();
         ui::draw_text_box(
             &app.render_state.text_box_text,
             textures,
@@ -88,6 +89,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
 fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
+            set_default_camera();
             draw_background(
                 BGTextureType::LocationChoice,
                 0,
@@ -109,7 +111,6 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
             draw_objects(render_data, textures);
 
             set_default_camera();
-
             ui::draw_camera_arrows(textures.side_arrow, has_camera_space(camera, render_data));
         }
         Frame::StoreView { view, .. } => {
@@ -125,6 +126,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
             }
         }
         Frame::Ending { stop_type } => {
+            set_default_camera();
             let color = match stop_type {
                 StopType::Win => LIGHTGRAY,
                 StopType::Lose => BLACK,
