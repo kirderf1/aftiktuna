@@ -8,11 +8,26 @@ pub struct Item;
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct FuelCan;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Crowbar;
+#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Tool {
+    Crowbar,
+    Blowtorch,
+}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Blowtorch;
+impl Tool {
+    pub fn into_message(self, character_name: &str) -> String {
+        match self {
+            Tool::Crowbar => format!(
+                "{} used their crowbar and forced open the door.",
+                character_name
+            ),
+            Tool::Blowtorch => format!(
+                "{} used their blowtorch and cut open the door.",
+                character_name
+            ),
+        }
+    }
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Keycard;
@@ -113,10 +128,10 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
             builder.add(FuelCan);
         }
         Type::Crowbar => {
-            builder.add(Crowbar).add(CanWield).add(Weapon(3.0));
+            builder.add(Tool::Crowbar).add(CanWield).add(Weapon(3.0));
         }
         Type::Blowtorch => {
-            builder.add(Blowtorch);
+            builder.add(Tool::Blowtorch);
         }
         Type::Keycard => {
             builder.add(Keycard);

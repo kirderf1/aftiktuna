@@ -1,3 +1,4 @@
+use crate::core::item::Tool;
 use crate::core::position::Pos;
 use hecs::{Entity, Query, World};
 use serde::{Deserialize, Serialize};
@@ -42,6 +43,13 @@ pub fn is_holding<Q: Query>(world: &World, holder: Entity) -> bool {
         .with::<Q>()
         .iter()
         .any(|(_, held)| held.held_by(holder))
+}
+
+pub fn is_holding_tool(world: &World, holder: Entity, requested_tool: Tool) -> bool {
+    world
+        .query::<(&Held, &Tool)>()
+        .iter()
+        .any(|(_, (held, &tool))| held.held_by(holder) && tool == requested_tool)
 }
 
 pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {

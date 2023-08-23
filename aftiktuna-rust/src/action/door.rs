@@ -1,5 +1,5 @@
 use crate::action;
-use crate::core::item::{Blowtorch, Crowbar, Keycard};
+use crate::core::item::{Keycard, Tool};
 use crate::core::position::Pos;
 use crate::core::{inventory, position};
 use crate::view::{DisplayInfo, NameData, TextureType};
@@ -46,18 +46,13 @@ impl BlockType {
         }
     }
 
-    fn try_force(
-        self,
-        world: &mut World,
-        aftik: Entity,
-        aftik_name: &str,
-    ) -> Result<ToolUse, String> {
+    fn try_force(self, world: &mut World, aftik: Entity, aftik_name: &str) -> Result<Tool, String> {
         match self {
             BlockType::Stuck => {
-                if inventory::is_holding::<&Crowbar>(world, aftik) {
-                    Ok(ToolUse::Crowbar)
-                } else if inventory::is_holding::<&Blowtorch>(world, aftik) {
-                    Ok(ToolUse::Blowtorch)
+                if inventory::is_holding_tool(world, aftik, Tool::Crowbar) {
+                    Ok(Tool::Crowbar)
+                } else if inventory::is_holding_tool(world, aftik, Tool::Blowtorch) {
+                    Ok(Tool::Blowtorch)
                 } else {
                     Err(format!(
                         "{} needs some sort of tool to force the door open.",
@@ -66,8 +61,8 @@ impl BlockType {
                 }
             }
             BlockType::Sealed | BlockType::Locked => {
-                if inventory::is_holding::<&Blowtorch>(world, aftik) {
-                    Ok(ToolUse::Blowtorch)
+                if inventory::is_holding_tool(world, aftik, Tool::Blowtorch) {
+                    Ok(Tool::Blowtorch)
                 } else {
                     Err(format!(
                         "{} needs some sort of tool to break the door open.",
@@ -75,27 +70,6 @@ impl BlockType {
                     ))
                 }
             }
-        }
-    }
-}
-
-#[derive(Eq, PartialEq)]
-enum ToolUse {
-    Crowbar,
-    Blowtorch,
-}
-
-impl ToolUse {
-    fn into_message(self, character_name: &str) -> String {
-        match self {
-            ToolUse::Crowbar => format!(
-                "{} used their crowbar and forced open the door.",
-                character_name
-            ),
-            ToolUse::Blowtorch => format!(
-                "{} used their blowtorch and cut open the door.",
-                character_name
-            ),
         }
     }
 }
@@ -163,9 +137,9 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         .get::<&BlockType>(door_pair)
         .map_err(|_| "The door does not seem to be stuck.".to_string())?;
 
-    let tool_use = block_type.try_force(world, aftik, &aftik_name)?;
+    let tool = block_type.try_force(world, aftik, &aftik_name)?;
     world.remove_one::<BlockType>(door_pair).unwrap();
-    if tool_use == ToolUse::Blowtorch {
+    if tool == Tool::Blowtorch {
         world
             .query::<(&Door, &mut DisplayInfo)>()
             .iter()
@@ -173,7 +147,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
             .for_each(|(_, (_, display_info))| set_is_cut(display_info));
     }
 
-    action::ok(tool_use.into_message(&aftik_name))
+    action::ok(tool.into_message(&aftik_name))
 }
 
 fn set_is_cut(display_info: &mut DisplayInfo) {

@@ -5,9 +5,7 @@ use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
 use crate::area::{Area, Ship};
 use crate::core::ai::Intention;
 use crate::core::inventory::Held;
-use crate::core::item::{
-    Blowtorch, CanWield, Crowbar, FuelCan, Item, Keycard, Medkit, Price, Weapon,
-};
+use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon};
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::game_interface::Game;
@@ -164,8 +162,7 @@ components_to_serialize!(
     Item, Item;
     FuelCan, FuelCan;
     Medkit, Medkit;
-    Crowbar, Crowbar;
-    Blowtorch, Blowtorch;
+    Tool, ForceTool;
     Keycard, Keycard;
     CanWield, CanWield;
     Weapon, Weapon;
