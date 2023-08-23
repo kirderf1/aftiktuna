@@ -79,43 +79,38 @@ pub fn draw(
     if let Frame::AreaView { render_data, .. } = &state.current_frame {
         camera::set_camera(&Camera2D::from_display_rect(state.camera));
         let camera_offset = Vec2::new(state.camera.x, state.camera.y);
+        let mouse_pos = Vec2::from(input::mouse_position()) + camera_offset;
         if let Some(tooltip) = command_tooltip {
             draw_lines(
                 tooltip.pos,
                 &tooltip.commands,
-                line_index_at(
-                    Vec2::from(input::mouse_position()) + camera_offset,
-                    tooltip.pos,
-                    &tooltip.commands,
-                ),
+                line_index_at(mouse_pos, tooltip.pos, &tooltip.commands),
             );
         } else {
-            draw_object_names(render_data, textures, camera_offset);
+            let names = get_hovered_object_names(render_data, textures, mouse_pos);
+            draw_lines(mouse_pos, &names, None);
         }
     }
 }
 
-fn draw_object_names(render_data: &RenderData, textures: &TextureStorage, camera_offset: Vec2) {
-    let mouse_pos = Vec2::from(input::mouse_position()) + camera_offset;
-    let hovered_objects = render::position_objects(&render_data.objects, textures)
+fn get_hovered_object_names<'a>(
+    render_data: &'a RenderData,
+    textures: &TextureStorage,
+    mouse_pos: Vec2,
+) -> Vec<&'a String> {
+    render::position_objects(&render_data.objects, textures)
         .into_iter()
         .filter(|(pos, data)| {
             texture::get_rect_for_object(data, textures, *pos).contains(mouse_pos)
         })
         .map(|(_, data)| &data.modified_name)
-        .collect::<Vec<_>>();
-
-    if hovered_objects.is_empty() {
-        return;
-    }
-
-    draw_lines(mouse_pos, &hovered_objects, None);
+        .collect::<Vec<_>>()
 }
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 const TEXT_BOX_HIGHLIGHT_COLOR: Color = Color::new(0.5, 0.3, 0.6, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;
-const TEXT_BOX_MARGIN: f32 = 12.;
+const TEXT_BOX_MARGIN: f32 = 10.;
 
 fn line_index_at<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> Option<usize> {
     let size = tooltip_size(pos, lines);
@@ -135,6 +130,10 @@ fn line_index_at<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> O
 }
 
 fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>, highlighted_index: Option<usize>) {
+    if lines.is_empty() {
+        return;
+    }
+
     let size = tooltip_size(pos, lines);
     if let Some(line_index) = highlighted_index {
         let highlight_start = line_index as f32 * TEXT_BOX_TEXT_SIZE as f32;
@@ -162,7 +161,7 @@ fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>, highlighted_index: Optio
         text::draw_text(
             line.as_ref(),
             size.x + TEXT_BOX_MARGIN,
-            size.y + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
+            size.y - 4.0 + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
             TEXT_BOX_TEXT_SIZE as f32,
             WHITE,
         );
@@ -176,6 +175,6 @@ fn tooltip_size<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) -> Rect {
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap()
         + 2. * TEXT_BOX_MARGIN;
-    let height = 8. + lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
+    let height = lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
     Rect::new(pos.x, pos.y, width, height)
 }
