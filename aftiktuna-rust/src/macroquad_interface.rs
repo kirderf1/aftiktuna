@@ -46,11 +46,16 @@ pub async fn run(game: Game) {
             app.show_graphical = !app.show_graphical;
         }
 
-        if app.last_drag_pos.is_none() {
-            tooltip::handle_click(&mut app, &textures);
-        }
-        if app.command_tooltip.is_none() {
-            render::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
+        if app.show_graphical {
+            if app.last_drag_pos.is_none() {
+                tooltip::handle_click(&mut app, &textures);
+            }
+            if app.command_tooltip.is_none() {
+                render::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
+            }
+        } else {
+            app.last_drag_pos = None;
+            app.command_tooltip = None;
         }
 
         app.update_frame_state();
