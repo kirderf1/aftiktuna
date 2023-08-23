@@ -3,6 +3,7 @@ use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::color::{BLACK, PINK};
 use egui_macroquad::macroquad::text::{draw_text, measure_text};
 use egui_macroquad::macroquad::window::{clear_background, next_frame, Conf};
+use std::env;
 
 fn config() -> Conf {
     Conf {
@@ -17,8 +18,12 @@ fn config() -> Conf {
 
 #[macroquad::main(config)]
 async fn main() {
+    let disable_autosave = env::args().any(|arg| arg.eq("--disable-autosave"));
+    if disable_autosave {
+        println!("Running without autosave");
+    }
     match game_interface::new_or_load() {
-        Ok(game) => macroquad_interface::run(game).await,
+        Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
         Err(error) => {
             show_error(vec![
                 format!("Unable to load save file: {error}"),

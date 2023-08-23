@@ -27,13 +27,15 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(game: Game) {
+pub async fn run(game: Game, autosave: bool) {
     let mut app = init(game);
     let textures = texture::load_textures().await.unwrap();
 
-    input::prevent_quit();
+    if autosave {
+        input::prevent_quit();
+    }
     loop {
-        if input::is_quit_requested() {
+        if autosave && input::is_quit_requested() {
             if let Err(error) = serialization::write_game_to_save_file(&app.game) {
                 eprintln!("Failed to save game: {error}");
             } else {

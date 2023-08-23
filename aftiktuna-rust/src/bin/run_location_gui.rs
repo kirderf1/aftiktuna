@@ -20,5 +20,5 @@ async fn main() {
     let args: Vec<String> = env::args().collect();
     let location = args[1].to_string();
     let game = game_interface::setup_new(LocationTracker::single(location));
-    macroquad_interface::run(game).await;
+    macroquad_interface::run(game, true).await;
 }
