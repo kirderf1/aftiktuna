@@ -9,6 +9,7 @@ use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use hecs::World;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fs::File;
 
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
@@ -50,7 +51,7 @@ impl LocationData {
 
     pub fn build(self, world: &mut World) -> Result<Pos, String> {
         let mut builder = Builder::new(world, &self.door_pairs);
-        let base_symbols = builtin_symbols();
+        let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
             area.build(&mut builder, &base_symbols)?;
@@ -133,27 +134,11 @@ impl<'a> Symbols<'a> {
     }
 }
 
-fn builtin_symbols() -> HashMap<char, SymbolData> {
-    let mut map = HashMap::new();
-    map.insert('v', SymbolData::LocationEntry);
-    map.insert('¤', SymbolData::FortunaChest);
-
-    map.insert('f', SymbolData::item(item::Type::FuelCan));
-    map.insert('c', SymbolData::item(item::Type::Crowbar));
-    map.insert('b', SymbolData::item(item::Type::Blowtorch));
-    map.insert('k', SymbolData::item(item::Type::Keycard));
-    map.insert('K', SymbolData::item(item::Type::Knife));
-    map.insert('B', SymbolData::item(item::Type::Bat));
-    map.insert('s', SymbolData::item(item::Type::Sword));
-    map.insert('+', SymbolData::item(item::Type::Medkit));
-    map.insert('m', SymbolData::item(item::Type::MeteorChunk));
-    map.insert('a', SymbolData::item(item::Type::AncientCoin));
-
-    map.insert('G', SymbolData::creature(creature::Type::Goblin));
-    map.insert('E', SymbolData::creature(creature::Type::Eyesaur));
-    map.insert('Z', SymbolData::creature(creature::Type::Azureclops));
-
-    map
+fn builtin_symbols() -> Result<HashMap<char, SymbolData>, String> {
+    let file = File::open("assets/symbols.json")
+        .map_err(|error| format!("Failed to open symbols file: {error}"))?;
+    serde_json::from_reader::<_, HashMap<char, SymbolData>>(file)
+        .map_err(|error| format!("Failed to parse symbols file: {error}"))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -203,14 +188,6 @@ impl SymbolData {
             }
         }
         Ok(())
-    }
-
-    fn item(item: item::Type) -> Self {
-        Self::Item { item }
-    }
-
-    fn creature(creature: creature::Type) -> Self {
-        Self::Creature { creature }
     }
 }
 

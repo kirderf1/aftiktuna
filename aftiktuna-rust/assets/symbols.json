@@ -1,0 +1,17 @@
+{
+  "v": { "type": "location_entry" },
+  "¤": { "type": "fortuna_chest" },
+  "f": { "type": "item", "item": "fuel_can" },
+  "c": { "type": "item", "item": "crowbar" },
+  "b": { "type": "item", "item": "blowtorch" },
+  "k": { "type": "item", "item": "keycard" },
+  "K": { "type": "item", "item": "knife" },
+  "B": { "type": "item", "item": "bat" },
+  "s": { "type": "item", "item": "sword" },
+  "+": { "type": "item", "item": "medkit" },
+  "m": { "type": "item", "item": "meteor_chunk" },
+  "a": { "type": "item", "item": "ancient_coin" },
+  "G": { "type": "creature", "creature": "goblin" },
+  "E": { "type": "creature", "creature": "eyesaur" },
+  "Z": { "type": "creature", "creature": "azureclops" }
+}
