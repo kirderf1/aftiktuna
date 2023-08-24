@@ -7,6 +7,25 @@ use crate::core::status::{Health, Stamina, Stats};
 use crate::view;
 use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use hecs::{Entity, EntityBuilder, World};
+use serde::{Deserialize, Serialize};
+
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Type {
+    Goblin,
+    Eyesaur,
+    Azureclops,
+}
+
+impl Type {
+    pub fn spawn(self, world: &mut World, pos: Pos) {
+        match self {
+            Type::Goblin => place_goblin(world, pos),
+            Type::Eyesaur => place_eyesaur(world, pos),
+            Type::Azureclops => place_azureclops(world, pos),
+        }
+    }
+}
 
 pub fn spawn_crew_member(
     world: &mut World,

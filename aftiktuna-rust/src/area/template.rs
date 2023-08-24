@@ -108,7 +108,7 @@ impl AreaData {
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
                     Some(symbol_data) => symbol_data.place(builder, pos, symbol)?,
-                    None => place_object(builder, pos, symbol)?,
+                    None => Err(format!("Unknown symbol \"{}\"", symbol))?,
                 }
             }
         }
@@ -134,16 +134,43 @@ impl<'a> Symbols<'a> {
 }
 
 fn builtin_symbols() -> HashMap<char, SymbolData> {
-    HashMap::new()
+    let mut map = HashMap::new();
+    map.insert('v', SymbolData::LocationEntry);
+    map.insert('¤', SymbolData::FortunaChest);
+
+    map.insert('f', SymbolData::item(item::Type::FuelCan));
+    map.insert('c', SymbolData::item(item::Type::Crowbar));
+    map.insert('b', SymbolData::item(item::Type::Blowtorch));
+    map.insert('k', SymbolData::item(item::Type::Keycard));
+    map.insert('K', SymbolData::item(item::Type::Knife));
+    map.insert('B', SymbolData::item(item::Type::Bat));
+    map.insert('s', SymbolData::item(item::Type::Sword));
+    map.insert('+', SymbolData::item(item::Type::Medkit));
+    map.insert('m', SymbolData::item(item::Type::MeteorChunk));
+    map.insert('a', SymbolData::item(item::Type::AncientCoin));
+
+    map.insert('G', SymbolData::creature(creature::Type::Goblin));
+    map.insert('E', SymbolData::creature(creature::Type::Eyesaur));
+    map.insert('Z', SymbolData::creature(creature::Type::Azureclops));
+
+    map
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 enum SymbolData {
+    LocationEntry,
+    FortunaChest,
+    Item {
+        item: item::Type,
+    },
     Door {
         pair_id: String,
         display_type: DoorType,
         adjective: Option<door::Adjective>,
+    },
+    Creature {
+        creature: creature::Type,
     },
     Shopkeeper {
         items: Vec<item::Type>,
@@ -159,19 +186,31 @@ enum SymbolData {
 impl SymbolData {
     fn place(&self, builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
         match self {
+            SymbolData::LocationEntry => builder.set_entry(pos)?,
+            SymbolData::FortunaChest => place_fortuna_chest(builder.world, pos),
+            SymbolData::Item { item } => item.spawn(builder.world, pos),
             SymbolData::Door {
                 pair_id,
                 display_type,
                 adjective,
-            } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective),
+            } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
+            SymbolData::Creature { creature } => creature.spawn(builder.world, pos),
             SymbolData::Shopkeeper { items, color } => {
-                creature::place_shopkeeper(builder.world, pos, items, *color)
+                creature::place_shopkeeper(builder.world, pos, items, *color)?
             }
             SymbolData::Recruitable { name, stats, color } => {
-                creature::place_recruitable(builder.world, pos, name, stats.clone(), *color);
-                Ok(())
+                creature::place_recruitable(builder.world, pos, name, stats.clone(), *color)
             }
         }
+        Ok(())
+    }
+
+    fn item(item: item::Type) -> Self {
+        Self::Item { item }
+    }
+
+    fn creature(creature: creature::Type) -> Self {
+        Self::Creature { creature }
     }
 }
 
@@ -263,27 +302,6 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
             DoorStatus::Placed => {}
             _ => return Err(format!("Door pair was not fully placed: {}", pair_id)),
         }
-    }
-    Ok(())
-}
-
-fn place_object(builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
-    match symbol {
-        'v' => builder.set_entry(pos)?,
-        'f' => item::Type::FuelCan.spawn(builder.world, pos),
-        'c' => item::Type::Crowbar.spawn(builder.world, pos),
-        'b' => item::Type::Blowtorch.spawn(builder.world, pos),
-        'k' => item::Type::Keycard.spawn(builder.world, pos),
-        'K' => item::Type::Knife.spawn(builder.world, pos),
-        'B' => item::Type::Bat.spawn(builder.world, pos),
-        's' => item::Type::Sword.spawn(builder.world, pos),
-        'm' => item::Type::MeteorChunk.spawn(builder.world, pos),
-        'a' => item::Type::AncientCoin.spawn(builder.world, pos),
-        'G' => creature::place_goblin(builder.world, pos),
-        'E' => creature::place_eyesaur(builder.world, pos),
-        'Z' => creature::place_azureclops(builder.world, pos),
-        '¤' => place_fortuna_chest(builder.world, pos),
-        _ => return Err(format!("Unknown symbol \"{}\"", symbol)),
     }
     Ok(())
 }
