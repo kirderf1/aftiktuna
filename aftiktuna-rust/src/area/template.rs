@@ -50,9 +50,10 @@ impl LocationData {
 
     pub fn build(self, world: &mut World) -> Result<Pos, String> {
         let mut builder = Builder::new(world, &self.door_pairs);
+        let base_symbols = builtin_symbols();
 
         for area in self.areas {
-            area.build(&mut builder)?;
+            area.build(&mut builder, &base_symbols)?;
         }
 
         verify_placed_doors(&builder)?;
@@ -89,7 +90,11 @@ impl AreaData {
         self
     }
 
-    fn build(self, builder: &mut Builder) -> Result<(), String> {
+    fn build(
+        self,
+        builder: &mut Builder,
+        parent_symbols: &HashMap<char, SymbolData>,
+    ) -> Result<(), String> {
         let room = builder.world.spawn((Area {
             size: self.objects.len(),
             label: self.name,
@@ -97,33 +102,39 @@ impl AreaData {
             background_offset: self.background_offset,
         },));
 
+        let symbols = Symbols::new(parent_symbols, &self.symbols);
         for (coord, objects) in self.objects.iter().enumerate() {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
-                match self.symbols.get(&symbol) {
-                    Some(SymbolData::Door {
-                        pair_id,
-                        display_type,
-                        adjective,
-                    }) => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
-                    Some(SymbolData::Shopkeeper { items, color }) => {
-                        creature::place_shopkeeper(builder.world, pos, items, *color)?
-                    }
-                    Some(SymbolData::Recruitable { name, stats, color }) => {
-                        creature::place_recruitable(
-                            builder.world,
-                            pos,
-                            name,
-                            stats.clone(),
-                            *color,
-                        );
-                    }
+                match symbols.lookup(symbol) {
+                    Some(symbol_data) => symbol_data.place(builder, pos, symbol)?,
                     None => place_object(builder, pos, symbol)?,
                 }
             }
         }
         Ok(())
     }
+}
+
+struct Symbols<'a> {
+    parent_map: &'a HashMap<char, SymbolData>,
+    map: &'a HashMap<char, SymbolData>,
+}
+
+impl<'a> Symbols<'a> {
+    fn new(parent_map: &'a HashMap<char, SymbolData>, map: &'a HashMap<char, SymbolData>) -> Self {
+        Self { parent_map, map }
+    }
+
+    fn lookup(&self, symbol: char) -> Option<&'a SymbolData> {
+        self.map
+            .get(&symbol)
+            .or_else(|| self.parent_map.get(&symbol))
+    }
+}
+
+fn builtin_symbols() -> HashMap<char, SymbolData> {
+    HashMap::new()
 }
 
 #[derive(Serialize, Deserialize)]
@@ -143,6 +154,25 @@ enum SymbolData {
         stats: Stats,
         color: AftikColor,
     },
+}
+
+impl SymbolData {
+    fn place(&self, builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
+        match self {
+            SymbolData::Door {
+                pair_id,
+                display_type,
+                adjective,
+            } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective),
+            SymbolData::Shopkeeper { items, color } => {
+                creature::place_shopkeeper(builder.world, pos, items, *color)
+            }
+            SymbolData::Recruitable { name, stats, color } => {
+                creature::place_recruitable(builder.world, pos, name, stats.clone(), *color);
+                Ok(())
+            }
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]
