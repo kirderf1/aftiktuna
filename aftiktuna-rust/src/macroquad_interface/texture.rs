@@ -41,17 +41,15 @@ impl TextureStorage {
 #[derive(Clone)]
 pub enum TextureData {
     Regular {
-        texture: Texture2D,
-        dest_size: Vec2,
-        y_offset: f32,
+        layer: TextureLayer,
         wield_offset: Vec2,
         directional: bool,
         is_mounted: bool,
     },
     Aftik {
-        primary: Texture2D,
-        secondary: Texture2D,
-        details: Texture2D,
+        primary: TextureLayer,
+        secondary: TextureLayer,
+        details: TextureLayer,
     },
 }
 
@@ -61,14 +59,56 @@ impl TextureData {
             load_texture(format!("creature/aftik_{}", suffix)).await
         }
         Ok(TextureData::Aftik {
-            primary: texture("primary").await?,
-            secondary: texture("secondary").await?,
-            details: texture("details").await?,
+            primary: TextureLayer::simple(texture("primary").await?),
+            secondary: TextureLayer::simple(texture("secondary").await?),
+            details: TextureLayer::simple(texture("details").await?),
         })
     }
 
     pub fn is_displacing(&self) -> bool {
         !matches!(self, TextureData::Regular { is_mounted, .. } if *is_mounted)
+    }
+}
+
+#[derive(Clone)]
+pub struct TextureLayer {
+    texture: Texture2D,
+    dest_size: Vec2,
+    y_offset: f32,
+}
+
+impl TextureLayer {
+    fn simple(texture: Texture2D) -> Self {
+        Self {
+            texture,
+            dest_size: Vec2::new(texture.width(), texture.height()),
+            y_offset: 0.,
+        }
+    }
+
+    fn draw(&self, pos: Vec2, flip_x: bool, color: Color) {
+        let x = pos.x - self.dest_size.x / 2.;
+        let y = pos.y + self.y_offset - self.dest_size.y;
+        draw_texture_ex(
+            self.texture,
+            x,
+            y,
+            color,
+            DrawTextureParams {
+                dest_size: Some(self.dest_size),
+                flip_x,
+                ..Default::default()
+            },
+        );
+    }
+
+    fn size(&self, pos: Vec2) -> Rect {
+        Rect::new(
+            pos.x - self.dest_size.x / 2.,
+            pos.y - self.dest_size.y + self.y_offset,
+            self.dest_size.x,
+            self.dest_size.y,
+        )
     }
 }
 
@@ -112,11 +152,13 @@ impl Builder {
     async fn build(self) -> Result<TextureData, FileError> {
         let texture = load_texture(self.path).await?;
         Ok(TextureData::Regular {
-            texture,
-            dest_size: self
-                .dest_size
-                .unwrap_or_else(|| Vec2::new(texture.width(), texture.height())),
-            y_offset: self.y_offset.unwrap_or(0.),
+            layer: TextureLayer {
+                texture,
+                dest_size: self
+                    .dest_size
+                    .unwrap_or_else(|| Vec2::new(texture.width(), texture.height())),
+                y_offset: self.y_offset.unwrap_or(0.),
+            },
             wield_offset: self.wield_offset.unwrap_or(Vec2::ZERO),
             directional: self.directional,
             is_mounted: self.is_mounted,
@@ -134,66 +176,32 @@ pub fn draw_object(
 ) {
     match textures.lookup_texture(texture_type) {
         TextureData::Regular {
-            texture,
-            dest_size,
-            y_offset,
+            layer,
             wield_offset,
             directional,
             ..
         } => {
-            let mut x = pos.x - dest_size.x / 2.;
-            let mut y = pos.y - dest_size.y + y_offset;
+            let mut pos = pos;
             if use_wield_offset {
-                y += wield_offset.y;
-                x += match direction {
+                pos.y += wield_offset.y;
+                pos.x += match direction {
                     Direction::Left => -wield_offset.x,
                     Direction::Right => wield_offset.x,
                 }
             }
-            draw_texture_ex(
-                *texture,
-                x,
-                y,
-                WHITE,
-                DrawTextureParams {
-                    dest_size: Some(*dest_size),
-                    flip_x: *directional && direction == Direction::Left,
-                    ..Default::default()
-                },
-            );
+            layer.draw(pos, *directional && direction == Direction::Left, WHITE);
         }
         TextureData::Aftik {
             primary,
             secondary,
             details,
         } => {
-            let params = DrawTextureParams {
-                flip_x: direction == Direction::Left,
-                ..Default::default()
-            };
+            let flip_x = direction == Direction::Left;
             let (primary_color, secondary_color) =
                 convert_to_color(aftik_color.unwrap_or(AftikColor::Mint));
-            draw_texture_ex(
-                *primary,
-                pos.x - primary.width() / 2.,
-                pos.y - primary.height(),
-                primary_color,
-                params.clone(),
-            );
-            draw_texture_ex(
-                *secondary,
-                pos.x - secondary.width() / 2.,
-                pos.y - secondary.height(),
-                secondary_color,
-                params.clone(),
-            );
-            draw_texture_ex(
-                *details,
-                pos.x - details.width() / 2.,
-                pos.y - details.height(),
-                WHITE,
-                params,
-            );
+            primary.draw(pos, flip_x, primary_color);
+            secondary.draw(pos, flip_x, secondary_color);
+            details.draw(pos, flip_x, WHITE);
         }
     }
 }
@@ -201,22 +209,8 @@ pub fn draw_object(
 pub fn get_rect_for_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2) -> Rect {
     let texture = textures.lookup_texture(data.texture_type);
     match texture {
-        TextureData::Regular {
-            dest_size,
-            y_offset,
-            ..
-        } => Rect::new(
-            pos.x - dest_size.x / 2.,
-            pos.y - dest_size.y + y_offset,
-            dest_size.x,
-            dest_size.y,
-        ),
-        TextureData::Aftik { primary, .. } => Rect::new(
-            pos.x - primary.width() / 2.,
-            pos.y - primary.height(),
-            primary.width(),
-            primary.height(),
-        ),
+        TextureData::Regular { layer, .. } => layer.size(pos),
+        TextureData::Aftik { primary, .. } => primary.size(pos),
     }
 }
 
