@@ -1,0 +1,8 @@
+{
+  "layers": [{
+    "texture": "door",
+    "y_offset": -30
+  }],
+  "fixed": true,
+  "mounted": true
+}

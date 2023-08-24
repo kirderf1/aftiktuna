@@ -9,9 +9,14 @@ use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::texture::{
     draw_texture, draw_texture_ex, DrawTextureParams, Texture2D,
 };
+use serde::{Deserialize, Serialize};
+use serde_json::Error as JsonError;
 use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
+use std::fs::File;
 use std::hash::Hash;
+use std::io;
 
 pub struct TextureStorage {
     backgrounds: HashMap<BGTextureType, BGTexture>,
@@ -47,22 +52,6 @@ pub struct TextureData {
 }
 
 impl TextureData {
-    async fn load_aftik() -> Result<TextureData, FileError> {
-        async fn texture(suffix: &str) -> Result<Texture2D, FileError> {
-            load_texture(format!("creature/aftik_{}", suffix)).await
-        }
-        Ok(TextureData {
-            layers: vec![
-                TextureLayer::simple(texture("primary").await?, ColorSource::Primary),
-                TextureLayer::simple(texture("secondary").await?, ColorSource::Secondary),
-                TextureLayer::simple(texture("details").await?, ColorSource::Uncolored),
-            ],
-            wield_offset: Vec2::ZERO,
-            directional: true,
-            is_mounted: false,
-        })
-    }
-
     pub fn is_displacing(&self) -> bool {
         !self.is_mounted
     }
@@ -77,15 +66,6 @@ struct TextureLayer {
 }
 
 impl TextureLayer {
-    fn simple(texture: Texture2D, color: ColorSource) -> Self {
-        Self {
-            texture,
-            color,
-            dest_size: Vec2::new(texture.width(), texture.height()),
-            y_offset: 0.,
-        }
-    }
-
     fn draw(&self, pos: Vec2, flip_x: bool, aftik_color: Option<AftikColor>) {
         let x = pos.x - self.dest_size.x / 2.;
         let y = pos.y + self.y_offset - self.dest_size.y;
@@ -112,7 +92,8 @@ impl TextureLayer {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 enum ColorSource {
     Uncolored,
     Primary,
@@ -129,58 +110,9 @@ impl ColorSource {
     }
 }
 
-struct Builder {
-    path: String,
-    dest_size: Option<Vec2>,
-    y_offset: Option<f32>,
-    wield_offset: Option<Vec2>,
-    directional: bool,
-    is_mounted: bool,
-}
-
-impl Builder {
-    fn new(path: impl Into<String>, directional: bool) -> Self {
-        Builder {
-            path: path.into(),
-            dest_size: None,
-            y_offset: None,
-            wield_offset: None,
-            directional,
-            is_mounted: false,
-        }
-    }
-
-    fn override_size(mut self, x: f32, y: f32) -> Self {
-        self.dest_size = Some(Vec2::new(x, y));
-        self
-    }
-
-    fn wield_offset(mut self, x: f32, y: f32) -> Self {
-        self.wield_offset = Some(Vec2::new(x, y));
-        self
-    }
-
-    fn mounted(mut self, y_offset: f32) -> Self {
-        self.y_offset = Some(-y_offset);
-        self.is_mounted = true;
-        self
-    }
-
-    async fn build(self) -> Result<TextureData, FileError> {
-        let texture = load_texture(self.path).await?;
-        Ok(TextureData {
-            layers: vec![TextureLayer {
-                texture,
-                color: ColorSource::Uncolored,
-                dest_size: self
-                    .dest_size
-                    .unwrap_or_else(|| Vec2::new(texture.width(), texture.height())),
-                y_offset: self.y_offset.unwrap_or(0.),
-            }],
-            wield_offset: self.wield_offset.unwrap_or(Vec2::ZERO),
-            directional: self.directional,
-            is_mounted: self.is_mounted,
-        })
+impl Default for ColorSource {
+    fn default() -> Self {
+        Self::Uncolored
     }
 }
 
@@ -289,11 +221,105 @@ pub fn draw_background(
     }
 }
 
+#[derive(Serialize, Deserialize)]
+struct RawTextureData {
+    layers: Vec<RawTextureLayer>,
+    #[serde(default)]
+    wield_offset: (f32, f32),
+    #[serde(default)]
+    fixed: bool,
+    #[serde(default)]
+    mounted: bool,
+}
+
+impl RawTextureData {
+    async fn load(self) -> Result<TextureData, FileError> {
+        let mut layers = Vec::new();
+        for layer in self.layers {
+            layers.push(layer.load().await?);
+        }
+        Ok(TextureData {
+            layers,
+            wield_offset: Vec2::from(self.wield_offset),
+            directional: !self.fixed,
+            is_mounted: self.mounted,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct RawTextureLayer {
+    texture: String,
+    #[serde(default)]
+    color: ColorSource,
+    #[serde(default)]
+    size: Option<(f32, f32)>,
+    #[serde(default)]
+    y_offset: f32,
+}
+
+impl RawTextureLayer {
+    async fn load(self) -> Result<TextureLayer, FileError> {
+        let texture = load_texture(self.texture).await?;
+        Ok(TextureLayer {
+            texture,
+            color: self.color,
+            dest_size: Vec2::from(
+                self.size
+                    .unwrap_or_else(|| (texture.width(), texture.height())),
+            ),
+            y_offset: self.y_offset,
+        })
+    }
+}
+
+async fn load_texture_data(path: &str) -> Result<TextureData, Error> {
+    let file = File::open(format!("assets/texture/{path}.json"))?;
+    let data = serde_json::from_reader::<_, RawTextureData>(file)?;
+    let data = data.load().await?;
+    Ok(data)
+}
+
 async fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, FileError> {
     macroquad::texture::load_texture(&format!("assets/texture/{}.png", name.borrow())).await
 }
 
-pub async fn load_textures() -> Result<TextureStorage, FileError> {
+#[derive(Debug)]
+pub enum Error {
+    IO(io::Error),
+    Macroquad(FileError),
+    Json(JsonError),
+}
+
+impl From<io::Error> for Error {
+    fn from(value: io::Error) -> Self {
+        Error::IO(value)
+    }
+}
+
+impl From<FileError> for Error {
+    fn from(value: FileError) -> Self {
+        Error::Macroquad(value)
+    }
+}
+
+impl From<JsonError> for Error {
+    fn from(value: JsonError) -> Self {
+        Error::Json(value)
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::IO(error) => Display::fmt(error, f),
+            Error::Macroquad(error) => Display::fmt(error, f),
+            Error::Json(error) => Display::fmt(error, f),
+        }
+    }
+}
+
+pub async fn load_textures() -> Result<TextureStorage, Error> {
     Ok(TextureStorage {
         backgrounds: load_backgrounds().await?,
         objects: load_objects().await?,
@@ -372,149 +398,131 @@ async fn load_backgrounds() -> Result<HashMap<BGTextureType, BGTexture>, FileErr
     Ok(backgrounds)
 }
 
-async fn load_objects() -> Result<HashMap<TextureType, TextureData>, FileError> {
+async fn load_objects() -> Result<HashMap<TextureType, TextureData>, Error> {
     let mut objects = HashMap::new();
 
-    objects.insert(
-        TextureType::Unknown,
-        Builder::new("unknown", false).build().await?,
-    );
+    objects.insert(TextureType::Unknown, load_texture_data("unknown").await?);
     objects.insert(
         TextureType::SmallUnknown,
-        Builder::new("unknown", false)
-            .override_size(100., 100.)
-            .build()
-            .await?,
+        load_texture_data("small_unknown").await?,
     );
     insert_or_log(
         &mut objects,
         TextureType::FortunaChest,
-        Builder::new("fortuna_chest", false).build().await,
+        load_texture_data("fortuna_chest").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Ship,
-        Builder::new("ship", false).build().await,
+        load_texture_data("ship").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Door,
-        Builder::new("door", false).mounted(30.).build().await,
+        load_texture_data("door").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::CutDoor,
-        Builder::new("cut_door", false).mounted(15.).build().await,
+        load_texture_data("cut_door").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::ShipExit,
-        Builder::new("ship_exit", false).mounted(30.).build().await,
+        load_texture_data("ship_exit").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Shack,
-        Builder::new("shack", false).mounted(30.).build().await,
+        load_texture_data("shack").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::CutShack,
-        Builder::new("cut_shack", false).mounted(15.).build().await,
+        load_texture_data("cut_shack").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Path,
-        Builder::new("path", false).mounted(0.).build().await,
+        load_texture_data("path").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Aftik,
-        TextureData::load_aftik().await,
+        load_texture_data("creature/aftik").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Goblin,
-        Builder::new("creature/goblin", true).build().await,
+        load_texture_data("creature/goblin").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Eyesaur,
-        Builder::new("creature/eyesaur", true).build().await,
+        load_texture_data("creature/eyesaur").await,
     );
     insert_or_log(
         &mut objects,
         TextureType::Azureclops,
-        Builder::new("creature/azureclops", true).build().await,
+        load_texture_data("creature/azureclops").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::FuelCan,
-        Builder::new("item/fuel_can", true).build().await,
+        load_texture_data("item/fuel_can").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Crowbar,
-        Builder::new("item/crowbar", true)
-            .wield_offset(10., -35.)
-            .build()
-            .await,
+        load_texture_data("item/crowbar").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Blowtorch,
-        Builder::new("item/blowtorch", true).build().await,
+        load_texture_data("item/blowtorch").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Keycard,
-        Builder::new("item/keycard", true).build().await,
+        load_texture_data("item/keycard").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Knife,
-        Builder::new("item/knife", true)
-            .wield_offset(20., -40.)
-            .build()
-            .await,
+        load_texture_data("item/knife").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Bat,
-        Builder::new("item/bat", true)
-            .wield_offset(30., -30.)
-            .build()
-            .await,
+        load_texture_data("item/bat").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Sword,
-        Builder::new("item/sword", true)
-            .wield_offset(20., -10.)
-            .build()
-            .await,
+        load_texture_data("item/sword").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::Medkit,
-        Builder::new("item/medkit", true).build().await,
+        load_texture_data("item/medkit").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::MeteorChunk,
-        Builder::new("item/meteor_chunk", true).build().await,
+        load_texture_data("item/meteor_chunk").await,
     );
     insert_or_log(
         &mut objects,
         item::Type::AncientCoin,
-        Builder::new("item/ancient_coin", true).build().await,
+        load_texture_data("item/ancient_coin").await,
     );
     Ok(objects)
 }
 
-fn insert_or_log<K: Eq + Hash, V>(
+fn insert_or_log<K: Eq + Hash, V, D: Display>(
     objects: &mut HashMap<K, V>,
     key: impl Into<K>,
-    result: Result<V, FileError>,
+    result: Result<V, D>,
 ) {
     match result {
         Ok(value) => {
