@@ -166,9 +166,15 @@ pub fn is_safe(world: &World, area: Entity) -> bool {
 
 fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
     if should_take_user_input(&state.world, state.controlled) {
+        view_buffer.capture_view(state);
         return Err(Phase::CommandInput);
     }
 
+    let prev_area = state
+        .world
+        .get::<&Pos>(state.controlled)
+        .unwrap()
+        .get_area();
     tick(state, view_buffer);
 
     if let Err(stop_type) = check_player_state(state, view_buffer) {
@@ -194,7 +200,9 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         }
         Ok(Step::PrepareNextLocation)
     } else {
-        view_buffer.capture_view(state);
+        if area != prev_area {
+            view_buffer.capture_view(state);
+        }
         Ok(Step::PrepareTick)
     }
 }
