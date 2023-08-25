@@ -15,7 +15,6 @@ pub use template::LocationData;
 
 mod creature;
 mod door;
-mod init;
 mod template;
 
 #[derive(Serialize, Deserialize)]

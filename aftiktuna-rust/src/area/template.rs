@@ -18,37 +18,6 @@ pub struct LocationData {
 }
 
 impl LocationData {
-    pub fn new() -> Self {
-        LocationData {
-            areas: Vec::new(),
-            door_pairs: HashMap::new(),
-        }
-    }
-
-    pub fn area(&mut self, name: &str, objects: &[&str]) -> &mut AreaData {
-        self.areas.push(AreaData {
-            name: name.to_string(),
-            background: None,
-            background_offset: None,
-            objects: objects.iter().map(ToString::to_string).collect(),
-            symbols: HashMap::new(),
-        });
-        self.areas.last_mut().unwrap() //Should not be None since we just added to the vec
-    }
-
-    pub fn door(&mut self, key: &str) {
-        self.door_pairs
-            .insert(key.to_string(), DoorPairData { block_type: None });
-    }
-    pub fn blocked_door(&mut self, key: &str, block_type: BlockType) {
-        self.door_pairs.insert(
-            key.to_string(),
-            DoorPairData {
-                block_type: Some(block_type),
-            },
-        );
-    }
-
     pub fn build(self, world: &mut World) -> Result<Pos, String> {
         let mut builder = Builder::new(world, &self.door_pairs);
         let base_symbols = builtin_symbols()?;
@@ -64,7 +33,7 @@ impl LocationData {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct AreaData {
+struct AreaData {
     name: String,
     background: Option<BackgroundType>,
     background_offset: Option<Coord>,
@@ -73,24 +42,6 @@ pub struct AreaData {
 }
 
 impl AreaData {
-    pub fn door_symbol(
-        &mut self,
-        symbol: char,
-        display_type: DoorType,
-        adjective: Option<door::Adjective>,
-        pair_id: &str,
-    ) -> &mut Self {
-        self.symbols.insert(
-            symbol,
-            SymbolData::Door {
-                pair_id: pair_id.to_string(),
-                display_type,
-                adjective,
-            },
-        );
-        self
-    }
-
     fn build(
         self,
         builder: &mut Builder,
