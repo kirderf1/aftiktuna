@@ -59,8 +59,8 @@
     }
   ],
   "door_pairs": {
-    "goblin": { "block_type": null },
-    "eyesaur": { "block_type": null },
-    "azureclops": { "block_type": null }
+    "goblin": {},
+    "eyesaur": {},
+    "azureclops": {}
   }
 }

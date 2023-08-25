@@ -138,12 +138,12 @@
     }
   ],
   "door_pairs": {
-    "entrance": { "block_type": null },
-    "path1": { "block_type": null },
-    "path2": { "block_type": null },
-    "path3": { "block_type": null },
-    "path4": { "block_type": null },
-    "path5": { "block_type": null },
+    "entrance": {},
+    "path1": {},
+    "path2": {},
+    "path3": {},
+    "path4": {},
+    "path5": {},
     "shack": { "block_type": "stuck" }
   }
 }

@@ -131,11 +131,11 @@
     }
   ],
   "door_pairs": {
-    "road": { "block_type": null },
-    "side": { "block_type": null },
-    "aftik_house": { "block_type": null },
-    "store": { "block_type": null },
+    "road": {},
+    "side": {},
+    "aftik_house": {},
+    "store": {},
     "stuck_house": { "block_type": "stuck" },
-    "shack": { "block_type": null }
+    "shack": {}
   }
 }

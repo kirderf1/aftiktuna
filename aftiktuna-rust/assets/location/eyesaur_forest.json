@@ -205,16 +205,16 @@
     }
   ],
   "door_pairs": {
-    "left_entrance": { "block_type": null },
-    "right_entrance": { "block_type": null },
-    "left1": { "block_type": null },
-    "left2": { "block_type": null },
-    "mid_left1": { "block_type": null },
-    "mid_left2": { "block_type": null },
-    "right1": { "block_type": null },
-    "right2": { "block_type": null },
-    "mid_right1": { "block_type": null },
-    "mid_right2": { "block_type": null },
-    "mid": { "block_type": null }
+    "left_entrance": {},
+    "right_entrance": {},
+    "left1": {},
+    "left2": {},
+    "mid_left1": {},
+    "mid_left2": {},
+    "right1": {},
+    "right2": {},
+    "mid_right1": {},
+    "mid_right2": {},
+    "mid": {}
   }
 }

@@ -168,14 +168,14 @@
     }
   ],
   "door_pairs": {
-    "path": { "block_type": null },
-    "entrance": { "block_type": null },
+    "path": {},
+    "entrance": {},
     "side": { "block_type": "stuck" },
-    "corridor1": { "block_type": null },
-    "corridor2": { "block_type": null },
-    "room1": { "block_type": null },
-    "room2": { "block_type": null },
-    "room3": { "block_type": null },
+    "corridor1": {},
+    "corridor2": {},
+    "room1": {},
+    "room2": {},
+    "room3": {},
     "storage": { "block_type": "sealed" }
   }
 }

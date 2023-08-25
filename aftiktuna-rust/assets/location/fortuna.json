@@ -28,6 +28,6 @@
     }
   ],
   "door_pairs": {
-    "path": { "block_type": null }
+    "path": {}
   }
 }

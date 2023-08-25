@@ -156,13 +156,13 @@
     }
   ],
   "door_pairs": {
-    "path": { "block_type": null },
+    "path": {},
     "entrance": { "block_type": "locked" },
     "sealed": { "block_type": "sealed" },
-    "corridor1": { "block_type": null },
-    "corridor2": { "block_type": null },
-    "room1": { "block_type": null },
+    "corridor1": {},
+    "corridor2": {},
+    "room1": {},
     "room2": { "block_type": "stuck" },
-    "room3": { "block_type": null }
+    "room3": {}
   }
 }

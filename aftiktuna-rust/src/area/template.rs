@@ -166,6 +166,7 @@ impl SymbolData {
 
 #[derive(Serialize, Deserialize)]
 struct DoorPairData {
+    #[serde(default)]
     block_type: Option<BlockType>,
 }
 

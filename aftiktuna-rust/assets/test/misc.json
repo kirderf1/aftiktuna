@@ -75,7 +75,7 @@
   "door_pairs": {
     "left": { "block_type": "stuck" },
     "mid": { "block_type": "locked" },
-    "right": { "block_type": null },
+    "right": {},
     "side": { "block_type": "sealed" }
   }
 }
