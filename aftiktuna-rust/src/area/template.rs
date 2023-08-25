@@ -3,7 +3,7 @@ use crate::action::FortunaChest;
 use crate::area::door::{place_pair, DoorInfo, DoorType};
 use crate::area::{creature, door, Area, BackgroundType};
 use crate::core::item;
-use crate::core::position::{Coord, Pos};
+use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
 use hecs::World;
@@ -103,19 +103,26 @@ enum SymbolData {
     Door {
         pair_id: String,
         display_type: DoorType,
+        #[serde(default)]
         adjective: Option<door::Adjective>,
     },
     Creature {
         creature: creature::Type,
+        #[serde(default)]
+        direction: Option<Direction>,
     },
     Shopkeeper {
         items: Vec<item::Type>,
         color: AftikColor,
+        #[serde(default)]
+        direction: Option<Direction>,
     },
     Recruitable {
         name: String,
         stats: Stats,
         color: AftikColor,
+        #[serde(default)]
+        direction: Option<Direction>,
     },
 }
 
@@ -130,13 +137,28 @@ impl SymbolData {
                 display_type,
                 adjective,
             } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
-            SymbolData::Creature { creature } => creature.spawn(builder.world, pos),
-            SymbolData::Shopkeeper { items, color } => {
-                creature::place_shopkeeper(builder.world, pos, items, *color)?
-            }
-            SymbolData::Recruitable { name, stats, color } => {
-                creature::place_recruitable(builder.world, pos, name, stats.clone(), *color)
-            }
+            SymbolData::Creature {
+                creature,
+                direction,
+            } => creature.spawn(builder.world, pos, *direction),
+            SymbolData::Shopkeeper {
+                items,
+                color,
+                direction,
+            } => creature::place_shopkeeper(builder.world, pos, items, *color, *direction)?,
+            SymbolData::Recruitable {
+                name,
+                stats,
+                color,
+                direction,
+            } => creature::place_recruitable(
+                builder.world,
+                pos,
+                name,
+                stats.clone(),
+                *color,
+                *direction,
+            ),
         }
         Ok(())
     }

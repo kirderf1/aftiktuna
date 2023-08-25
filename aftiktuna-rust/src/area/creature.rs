@@ -18,11 +18,11 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn spawn(self, world: &mut World, pos: Pos) {
+    pub fn spawn(self, world: &mut World, pos: Pos, direction: Option<Direction>) {
         match self {
-            Type::Goblin => place_goblin(world, pos),
-            Type::Eyesaur => place_eyesaur(world, pos),
-            Type::Azureclops => place_azureclops(world, pos),
+            Type::Goblin => place_goblin(world, pos, direction),
+            Type::Eyesaur => place_eyesaur(world, pos, direction),
+            Type::Azureclops => place_azureclops(world, pos, direction),
         }
     }
 }
@@ -46,7 +46,16 @@ pub fn spawn_crew_member(
     )
 }
 
-pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats, color: AftikColor) {
+pub fn place_recruitable(
+    world: &mut World,
+    pos: Pos,
+    name: &str,
+    stats: Stats,
+    color: AftikColor,
+    direction: Option<Direction>,
+) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+
     world.spawn(
         aftik_builder(
             DisplayInfo::new('A', TextureType::Aftik, 10),
@@ -56,7 +65,7 @@ pub fn place_recruitable(world: &mut World, pos: Pos, name: &str, stats: Stats, 
         .add(color)
         .add(Recruitable(name.to_string()))
         .add(pos)
-        .add(Direction::towards_center(pos, world))
+        .add(direction)
         .build(),
     );
 }
@@ -73,13 +82,15 @@ fn aftik_builder(display_info: DisplayInfo, name_data: NameData, stats: Stats) -
     builder
 }
 
-pub fn place_goblin(world: &mut World, pos: Pos) {
+pub fn place_goblin(world: &mut World, pos: Pos, direction: Option<Direction>) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(2, 4, 10);
+
     world.spawn((
         DisplayInfo::new('G', TextureType::Goblin, 10),
         NameData::from_noun("goblin", "goblins"),
         pos,
-        Direction::towards_center(pos, world),
+        direction,
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
@@ -88,13 +99,15 @@ pub fn place_goblin(world: &mut World, pos: Pos) {
     ));
 }
 
-pub fn place_eyesaur(world: &mut World, pos: Pos) {
+pub fn place_eyesaur(world: &mut World, pos: Pos, direction: Option<Direction>) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(7, 7, 4);
+
     world.spawn((
         DisplayInfo::new('E', TextureType::Eyesaur, 10),
         NameData::from_noun("eyesaur", "eyesaurs"),
         pos,
-        Direction::towards_center(pos, world),
+        direction,
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
@@ -103,13 +116,15 @@ pub fn place_eyesaur(world: &mut World, pos: Pos) {
     ));
 }
 
-pub fn place_azureclops(world: &mut World, pos: Pos) {
+pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction>) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(15, 10, 4);
+
     world.spawn((
         DisplayInfo::new('Z', TextureType::Azureclops, 10),
         NameData::from_noun("azureclops", "azureclopses"),
         pos,
-        Direction::towards_center(pos, world),
+        direction,
         MovementBlocking,
         IsFoe,
         Health::with_max(&stats),
@@ -123,7 +138,9 @@ pub fn place_shopkeeper(
     pos: Pos,
     shop_items: &[item::Type],
     color: AftikColor,
+    direction: Option<Direction>,
 ) -> Result<(), String> {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stock = shop_items
         .iter()
         .map(|item| to_priced_item(*item))
@@ -133,7 +150,7 @@ pub fn place_shopkeeper(
         color,
         NameData::from_noun("shopkeeper", "shopkeepers"),
         pos,
-        Direction::towards_center(pos, world),
+        direction,
         Shopkeeper(stock),
     ));
     Ok(())

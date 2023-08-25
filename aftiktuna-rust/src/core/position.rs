@@ -155,8 +155,11 @@ pub fn check_is_blocked(
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Direction {
+    #[serde(alias = "Left")] // Support data format 0.0
     Left,
+    #[serde(alias = "Right")] // Support data format 0.0
     Right,
 }
 
