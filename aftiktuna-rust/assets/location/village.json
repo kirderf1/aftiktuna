@@ -3,7 +3,7 @@
     {
       "name": "Village road",
       "background": "field",
-      "background_offset": 2,
+      "background_offset": 5,
       "objects": [ "", "<", "", "", "v", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
