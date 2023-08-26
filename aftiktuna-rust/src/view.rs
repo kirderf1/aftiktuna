@@ -1,5 +1,4 @@
-use crate::action::trade;
-use crate::action::trade::{PricedItem, Shopkeeper};
+use crate::action::trade::{IsTrading, PricedItem, Shopkeeper};
 use crate::area::Choice;
 use crate::core::{GameState, StopType};
 use hecs::{Entity, World};
@@ -59,17 +58,20 @@ pub struct Buffer {
 
 impl Buffer {
     pub fn capture_view(&mut self, state: &mut GameState) {
-        let shop_info = trade::get_shop_info(&state.world, state.controlled);
-        let frame = if let Some(shopkeeper) = shop_info {
+        let frame = if let Some(shopkeeper) = state
+            .world
+            .get::<&IsTrading>(state.controlled)
+            .ok()
+            .map(|is_trading| is_trading.0)
+        {
             shop_frame(
-                &shopkeeper,
+                shopkeeper,
                 self,
                 &state.world,
                 state.controlled,
                 &mut state.status_cache,
             )
         } else {
-            drop(shop_info);
             area_view_frame(self, state)
         };
 
@@ -195,8 +197,9 @@ fn intro_messages() -> Vec<String> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StoreView {
-    items: Vec<PricedItem>,
-    points: i32,
+    pub items: Vec<PricedItem>,
+    pub points: i32,
+    pub shopkeeper_color: Option<AftikColor>,
 }
 
 impl StoreView {
@@ -222,7 +225,7 @@ impl StoreView {
 }
 
 fn shop_frame(
-    shopkeeper: &Shopkeeper,
+    shopkeeper: Entity,
     buffer: &mut Buffer,
     world: &World,
     character: Entity,
@@ -230,9 +233,17 @@ fn shop_frame(
 ) -> Frame {
     // Use the cache in shop view before status messages so that points aren't shown in status messages too
     let points = status::fetch_points(world, character, cache);
-    let items = shopkeeper.0.clone();
+    let store_info = world.get::<&Shopkeeper>(shopkeeper).unwrap();
+    let items = store_info.0.clone();
     Frame::StoreView {
-        view: StoreView { items, points },
+        view: StoreView {
+            items,
+            points,
+            shopkeeper_color: world
+                .get::<&AftikColor>(shopkeeper)
+                .ok()
+                .map(|color| *color),
+        },
         messages: buffer.pop_messages(world, character, cache).into_text(),
     }
 }

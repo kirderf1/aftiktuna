@@ -1,0 +1,7 @@
+{
+  "layers": [
+    { "texture": "portrait_primary", "color": "primary" },
+    { "texture": "portrait_secondary", "color": "secondary" },
+    { "texture": "portrait_details", "color": "uncolored" }
+  ]
+}

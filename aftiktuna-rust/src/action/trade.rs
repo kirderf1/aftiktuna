@@ -21,7 +21,7 @@ pub struct PricedItem {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct IsTrading(Entity);
+pub struct IsTrading(pub Entity);
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
     let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;

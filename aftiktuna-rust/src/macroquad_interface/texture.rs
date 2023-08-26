@@ -23,6 +23,7 @@ pub struct TextureStorage {
     objects: HashMap<TextureType, TextureData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
+    pub portrait: TextureData,
 }
 
 impl TextureStorage {
@@ -117,14 +118,12 @@ impl Default for ColorSource {
 }
 
 pub fn draw_object(
-    texture_type: TextureType,
+    data: &TextureData,
     direction: Direction,
     aftik_color: Option<AftikColor>,
     use_wield_offset: bool,
-    textures: &TextureStorage,
     pos: Vec2,
 ) {
-    let data = textures.lookup_texture(texture_type);
     let mut pos = pos;
     if use_wield_offset {
         pos.y += data.wield_offset.y;
@@ -325,6 +324,7 @@ pub async fn load_textures() -> Result<TextureStorage, Error> {
         objects: load_objects().await?,
         left_mouse_icon: load_texture("left_mouse").await?,
         side_arrow: load_texture("side_arrow").await?,
+        portrait: load_texture_data("portrait").await?,
     })
 }
 
