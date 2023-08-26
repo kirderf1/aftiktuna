@@ -237,6 +237,7 @@ impl RawTextureData {
         for layer in self.layers {
             layers.push(layer.load().await?);
         }
+        layers.reverse();
         Ok(TextureData {
             layers,
             wield_offset: Vec2::from(self.wield_offset),

@@ -1,7 +1,7 @@
 {
   "layers": [
-    { "texture": "creature/aftik_primary", "color": "primary" },
+    { "texture": "creature/aftik_details", "color": "uncolored" },
     { "texture": "creature/aftik_secondary", "color": "secondary" },
-    { "texture": "creature/aftik_details", "color": "uncolored" }
+    { "texture": "creature/aftik_primary", "color": "primary" }
   ]
 }
