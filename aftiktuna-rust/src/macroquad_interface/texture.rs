@@ -1,5 +1,4 @@
 use crate::area::BackgroundType;
-use crate::core::item;
 use crate::core::position::{Coord, Direction};
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
 use egui_macroquad::macroquad;
@@ -318,7 +317,7 @@ impl Display for Error {
 pub async fn load_textures() -> Result<TextureStorage, Error> {
     Ok(TextureStorage {
         backgrounds: load_backgrounds().await?,
-        objects: load_objects().await?,
+        objects: objects::load_all().await?,
         left_mouse_icon: load_texture("left_mouse").await?,
         side_arrow: load_texture("side_arrow").await?,
         portrait: load_texture_data("portrait").await?,
@@ -340,125 +339,60 @@ async fn load_backgrounds() -> Result<HashMap<BackgroundType, BGTexture>, Error>
     Ok(backgrounds)
 }
 
-async fn load_objects() -> Result<HashMap<TextureType, TextureData>, Error> {
-    let mut objects = HashMap::new();
+mod objects {
+    use super::{Error, TextureData};
+    use crate::core::item;
+    use crate::macroquad_interface::texture::{insert_or_log, load_texture_data};
+    use crate::view::TextureType;
+    use std::collections::HashMap;
 
-    objects.insert(TextureType::Unknown, load_texture_data("unknown").await?);
-    objects.insert(
-        TextureType::SmallUnknown,
-        load_texture_data("small_unknown").await?,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::FortunaChest,
-        load_texture_data("fortuna_chest").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Ship,
-        load_texture_data("ship").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Door,
-        load_texture_data("door").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::CutDoor,
-        load_texture_data("cut_door").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::ShipExit,
-        load_texture_data("ship_exit").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Shack,
-        load_texture_data("shack").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::CutShack,
-        load_texture_data("cut_shack").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Path,
-        load_texture_data("path").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Aftik,
-        load_texture_data("creature/aftik").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Goblin,
-        load_texture_data("creature/goblin").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Eyesaur,
-        load_texture_data("creature/eyesaur").await,
-    );
-    insert_or_log(
-        &mut objects,
-        TextureType::Azureclops,
-        load_texture_data("creature/azureclops").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::FuelCan,
-        load_texture_data("item/fuel_can").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Crowbar,
-        load_texture_data("item/crowbar").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Blowtorch,
-        load_texture_data("item/blowtorch").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Keycard,
-        load_texture_data("item/keycard").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Knife,
-        load_texture_data("item/knife").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Bat,
-        load_texture_data("item/bat").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Sword,
-        load_texture_data("item/sword").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::Medkit,
-        load_texture_data("item/medkit").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::MeteorChunk,
-        load_texture_data("item/meteor_chunk").await,
-    );
-    insert_or_log(
-        &mut objects,
-        item::Type::AncientCoin,
-        load_texture_data("item/ancient_coin").await,
-    );
-    Ok(objects)
+    pub async fn load_all() -> Result<HashMap<TextureType, TextureData>, Error> {
+        let mut objects = HashMap::new();
+
+        load(&mut objects, TextureType::Unknown, "unknown").await?;
+        load(&mut objects, TextureType::SmallUnknown, "small_unknown").await?;
+        try_load(&mut objects, TextureType::FortunaChest, "fortuna_chest").await;
+        try_load(&mut objects, TextureType::Ship, "ship").await;
+        try_load(&mut objects, TextureType::Door, "door").await;
+        try_load(&mut objects, TextureType::CutDoor, "cut_door").await;
+        try_load(&mut objects, TextureType::ShipExit, "ship_exit").await;
+        try_load(&mut objects, TextureType::Shack, "shack").await;
+        try_load(&mut objects, TextureType::CutShack, "cut_shack").await;
+        try_load(&mut objects, TextureType::Path, "path").await;
+        try_load(&mut objects, TextureType::Aftik, "creature/aftik").await;
+        try_load(&mut objects, TextureType::Goblin, "creature/goblin").await;
+        try_load(&mut objects, TextureType::Eyesaur, "creature/eyesaur").await;
+        try_load(&mut objects, TextureType::Azureclops, "creature/azureclops").await;
+        try_load(&mut objects, item::Type::FuelCan, "item/fuel_can").await;
+        try_load(&mut objects, item::Type::Crowbar, "item/crowbar").await;
+        try_load(&mut objects, item::Type::Blowtorch, "item/blowtorch").await;
+        try_load(&mut objects, item::Type::Keycard, "item/keycard").await;
+        try_load(&mut objects, item::Type::Knife, "item/knife").await;
+        try_load(&mut objects, item::Type::Bat, "item/bat").await;
+        try_load(&mut objects, item::Type::Sword, "item/sword").await;
+        try_load(&mut objects, item::Type::Medkit, "item/medkit").await;
+        try_load(&mut objects, item::Type::MeteorChunk, "item/meteor_chunk").await;
+        try_load(&mut objects, item::Type::AncientCoin, "item/ancient_coin").await;
+
+        Ok(objects)
+    }
+
+    async fn load(
+        objects: &mut HashMap<TextureType, TextureData>,
+        key: impl Into<TextureType>,
+        path: &str,
+    ) -> Result<(), Error> {
+        objects.insert(key.into(), load_texture_data(path).await?);
+        Ok(())
+    }
+
+    async fn try_load(
+        objects: &mut HashMap<TextureType, TextureData>,
+        key: impl Into<TextureType>,
+        path: &str,
+    ) {
+        insert_or_log(objects, key, load_texture_data(path).await);
+    }
 }
 
 fn insert_or_log<K: Eq + Hash, V, D: Display>(
