@@ -14,6 +14,7 @@ use std::process::exit;
 use std::time;
 use std::time::Instant;
 
+mod camera;
 mod render;
 mod store_render;
 mod texture;
@@ -54,7 +55,7 @@ pub async fn run(game: Game, autosave: bool) {
                 tooltip::handle_click(&mut app, &textures);
             }
             if app.command_tooltip.is_none() {
-                render::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
+                camera::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
             }
         } else {
             app.last_drag_pos = None;

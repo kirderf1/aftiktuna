@@ -1,19 +1,14 @@
 use super::texture::TextureStorage;
 use super::App;
 use crate::area::BackgroundType;
-use crate::core::position::Coord;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::draw_background;
-use crate::macroquad_interface::{store_render, texture, tooltip, ui};
-use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
+use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
+use crate::view::{Frame, Messages, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
-use egui_macroquad::macroquad::input::{
-    is_mouse_button_down, is_mouse_button_pressed, mouse_position, MouseButton,
-};
-use egui_macroquad::macroquad::math::{clamp, Rect, Vec2};
+use egui_macroquad::macroquad::math::Rect;
 use egui_macroquad::macroquad::window::clear_background;
-use std::collections::HashMap;
 
 pub struct State {
     pub text_log: Vec<String>,
@@ -28,13 +23,13 @@ impl State {
             text_log: vec![],
             current_frame: Frame::Introduction,
             text_box_text: vec![],
-            camera: default_camera_space(),
+            camera: camera::default_camera_space(),
         }
     }
 
     pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
         if let Frame::AreaView { render_data, .. } = &frame {
-            self.camera = character_centered_camera(render_data);
+            self.camera = camera::character_centered_camera(render_data);
         }
 
         self.text_log.extend(frame.as_text());
@@ -93,7 +88,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
             draw_background(
                 BackgroundType::LocationChoice,
                 0,
-                default_camera_space(),
+                camera::default_camera_space(),
                 textures,
             );
         }
@@ -109,7 +104,10 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
             draw_objects(render_data, textures);
 
             set_default_camera();
-            ui::draw_camera_arrows(textures.side_arrow, has_camera_space(camera, render_data));
+            ui::draw_camera_arrows(
+                textures.side_arrow,
+                camera::has_camera_space(camera, render_data),
+            );
         }
         Frame::StoreView { view, .. } => {
             store_render::draw_store_view(textures, view);
@@ -126,7 +124,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
 }
 
 fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
-    for (pos, data) in position_objects(&render_data.objects, textures) {
+    for (pos, data) in camera::position_objects(&render_data.objects, textures) {
         texture::draw_object(
             textures.lookup_texture(data.texture_type),
             data.direction,
@@ -144,102 +142,4 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
             );
         }
     }
-}
-
-pub fn position_objects<'a>(
-    objects: &'a Vec<ObjectRenderData>,
-    textures: &TextureStorage,
-) -> Vec<(Vec2, &'a ObjectRenderData)> {
-    let mut positioned_objects = Vec::new();
-    let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
-
-    for data in objects {
-        let coord = data.coord;
-        let count = if textures.lookup_texture(data.texture_type).is_displacing() {
-            let count_ref = coord_counts.entry(coord).or_insert(0);
-            let count = *count_ref;
-            *count_ref = count + 1;
-            count
-        } else {
-            0
-        };
-
-        positioned_objects.push((
-            Vec2::new(
-                coord_to_center_x(coord) - count as f32 * 15.,
-                (450 + count * 10) as f32,
-            ),
-            data,
-        ));
-    }
-    positioned_objects
-}
-
-// Coordinates are mapped like this so that when the left edge of the window is 0,
-// coord 3 will be placed in the middle of the window.
-fn coord_to_center_x(coord: Coord) -> f32 {
-    40. + 120. * coord as f32
-}
-
-pub fn try_drag_camera(state: &mut State, last_drag_pos: &mut Option<Vec2>) {
-    match (&state.current_frame, *last_drag_pos) {
-        (Frame::AreaView { render_data, .. }, Some(last_pos)) => {
-            if is_mouse_button_down(MouseButton::Left) {
-                let mouse_pos: Vec2 = mouse_position().into();
-                let camera_delta = mouse_pos - last_pos;
-
-                state.camera.x -= camera_delta.x;
-                clamp_camera(&mut state.camera, render_data);
-                *last_drag_pos = Some(mouse_pos);
-            } else {
-                *last_drag_pos = None;
-            }
-        }
-        (Frame::AreaView { .. }, None) => {
-            if is_mouse_button_pressed(MouseButton::Left) && !ui::is_mouse_at_text_box(state) {
-                *last_drag_pos = Some(mouse_position().into());
-            }
-        }
-        _ => {
-            *last_drag_pos = None;
-        }
-    }
-}
-
-fn has_camera_space(camera: Rect, render_data: &RenderData) -> [bool; 2] {
-    if render_data.area_size <= 6 {
-        [false, false]
-    } else {
-        [
-            camera.left() > coord_to_center_x(0) - 100.,
-            camera.right() < coord_to_center_x(render_data.area_size - 1) + 100.,
-        ]
-    }
-}
-
-fn clamp_camera(camera: &mut Rect, render_data: &RenderData) {
-    camera.x = if render_data.area_size <= 6 {
-        (coord_to_center_x(0) + coord_to_center_x(render_data.area_size - 1)) / 2. - camera.w / 2.
-    } else {
-        clamp(
-            camera.x,
-            coord_to_center_x(0) - 100.,
-            coord_to_center_x(render_data.area_size - 1) + 100. - camera.w,
-        )
-    };
-}
-
-fn default_camera_space() -> Rect {
-    Rect::new(0., 0., 800., 600.)
-}
-
-fn character_centered_camera(render_data: &RenderData) -> Rect {
-    let mut camera_space = Rect::new(
-        coord_to_center_x(render_data.character_coord) - 400.,
-        0.,
-        800.,
-        600.,
-    );
-    clamp_camera(&mut camera_space, render_data);
-    camera_space
 }

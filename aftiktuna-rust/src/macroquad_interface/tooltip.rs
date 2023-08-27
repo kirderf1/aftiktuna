@@ -1,11 +1,10 @@
 use crate::macroquad_interface::texture::TextureStorage;
-use crate::macroquad_interface::{render, store_render, texture, App};
+use crate::macroquad_interface::{camera, render, store_render, texture, App};
 use crate::view::{Frame, ObjectRenderData, RenderData};
-use egui_macroquad::macroquad::camera::Camera2D;
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::{camera, input, shapes, text};
+use egui_macroquad::macroquad::{camera as macroquad_camera, input, shapes, text};
 use std::collections::HashSet;
 
 pub struct CommandTooltip {
@@ -27,7 +26,7 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
         None => {
             if let Frame::AreaView { render_data, .. } = &state.current_frame {
                 let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
-                let hovered_objects = render::position_objects(&render_data.objects, textures)
+                let hovered_objects = camera::position_objects(&render_data.objects, textures)
                     .into_iter()
                     .filter(|(pos, data)| {
                         texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
@@ -83,19 +82,17 @@ pub fn draw(
     command_tooltip: &Option<CommandTooltip>,
     textures: &TextureStorage,
 ) {
+    macroquad_camera::set_default_camera();
     let mouse_pos = Vec2::from(input::mouse_position());
     if let Some(tooltip) = command_tooltip {
-        camera::set_default_camera();
         draw_lines(
             tooltip.pos,
             &tooltip.commands,
             line_index_at(mouse_pos, tooltip.pos, &tooltip.commands),
         );
     } else if let Frame::AreaView { render_data, .. } = &state.current_frame {
-        camera::set_camera(&Camera2D::from_display_rect(state.camera));
         let camera_offset = Vec2::new(state.camera.x, state.camera.y);
-        let mouse_pos = mouse_pos + camera_offset;
-        let names = get_hovered_object_names(render_data, textures, mouse_pos);
+        let names = get_hovered_object_names(render_data, textures, mouse_pos + camera_offset);
         draw_lines(mouse_pos, &names, None);
     }
 }
@@ -105,7 +102,7 @@ fn get_hovered_object_names<'a>(
     textures: &TextureStorage,
     mouse_pos: Vec2,
 ) -> Vec<&'a String> {
-    render::position_objects(&render_data.objects, textures)
+    camera::position_objects(&render_data.objects, textures)
         .into_iter()
         .filter(|(pos, data)| {
             texture::get_rect_for_object(data, textures, *pos).contains(mouse_pos)
