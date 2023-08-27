@@ -1,6 +1,7 @@
-use super::texture::{BGTextureType, TextureStorage};
+use super::texture::TextureStorage;
 use super::App;
 use crate::action::trade::PricedItem;
+use crate::area::BackgroundType;
 use crate::core::position::{Coord, Direction};
 use crate::core::StopType;
 use crate::macroquad_interface::texture::draw_background;
@@ -93,7 +94,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
             draw_background(
-                BGTextureType::LocationChoice,
+                BackgroundType::LocationChoice,
                 0,
                 default_camera_space(),
                 textures,
@@ -102,9 +103,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
         Frame::AreaView { render_data, .. } => {
             set_camera(&Camera2D::from_display_rect(camera));
             draw_background(
-                render_data
-                    .background
-                    .map_or(BGTextureType::Blank, BGTextureType::from),
+                render_data.background.unwrap_or(BackgroundType::Blank),
                 render_data.background_offset.unwrap_or(0),
                 camera,
                 textures,

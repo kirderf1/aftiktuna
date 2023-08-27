@@ -19,7 +19,7 @@ use std::hash::Hash;
 use std::io;
 
 pub struct TextureStorage {
-    backgrounds: HashMap<BGTextureType, BGTexture>,
+    backgrounds: HashMap<BackgroundType, BGTexture>,
     objects: HashMap<TextureType, TextureData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
@@ -27,10 +27,10 @@ pub struct TextureStorage {
 }
 
 impl TextureStorage {
-    pub fn lookup_background(&self, texture_type: BGTextureType) -> &BGTexture {
+    pub fn lookup_background(&self, texture_type: BackgroundType) -> &BGTexture {
         self.backgrounds
             .get(&texture_type)
-            .unwrap_or_else(|| self.backgrounds.get(&BGTextureType::Blank).unwrap())
+            .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::Blank).unwrap())
     }
 
     pub fn lookup_texture(&self, texture_type: TextureType) -> &TextureData {
@@ -167,42 +167,38 @@ fn convert_to_color(color: AftikColor) -> (Color, Color) {
     }
 }
 
-#[derive(Eq, PartialEq, Hash)]
-pub enum BGTextureType {
-    LocationChoice,
-    Blank,
-    Background(BackgroundType),
-}
-
-impl From<BackgroundType> for BGTextureType {
-    fn from(value: BackgroundType) -> Self {
-        BGTextureType::Background(value)
-    }
-}
-
 pub enum BGTexture {
     Centered(Texture2D),
     Fixed(Texture2D),
     Repeating(Texture2D),
 }
 
-impl BGTexture {
-    async fn centered(path: &str) -> Result<BGTexture, FileError> {
-        let texture = load_texture(format!("background/{}", path)).await?;
-        Ok(BGTexture::Centered(texture))
-    }
-    async fn fixed(path: &str) -> Result<BGTexture, FileError> {
-        let texture = load_texture(format!("background/{}", path)).await?;
-        Ok(BGTexture::Fixed(texture))
-    }
-    async fn repeating(path: &str) -> Result<BGTexture, FileError> {
-        let texture = load_texture(format!("background/{}", path)).await?;
-        Ok(BGTexture::Repeating(texture))
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum RawBGTexture {
+    Centered { texture: String },
+    Fixed { texture: String },
+    Repeating { texture: String },
+}
+
+impl RawBGTexture {
+    async fn load(self) -> Result<BGTexture, FileError> {
+        Ok(match self {
+            RawBGTexture::Centered { texture } => {
+                BGTexture::Centered(load_texture(format!("background/{texture}")).await?)
+            }
+            RawBGTexture::Fixed { texture } => {
+                BGTexture::Fixed(load_texture(format!("background/{texture}")).await?)
+            }
+            RawBGTexture::Repeating { texture } => {
+                BGTexture::Repeating(load_texture(format!("background/{texture}")).await?)
+            }
+        })
     }
 }
 
 pub fn draw_background(
-    texture_type: BGTextureType,
+    texture_type: BackgroundType,
     offset: Coord,
     camera_space: Rect,
     textures: &TextureStorage,
@@ -329,73 +325,18 @@ pub async fn load_textures() -> Result<TextureStorage, Error> {
     })
 }
 
-async fn load_backgrounds() -> Result<HashMap<BGTextureType, BGTexture>, FileError> {
+async fn load_backgrounds() -> Result<HashMap<BackgroundType, BGTexture>, Error> {
+    let file = File::open("assets/texture/background/backgrounds.json")?;
+    let raw_backgrounds: HashMap<BackgroundType, RawBGTexture> = serde_json::from_reader(file)?;
     let mut backgrounds = HashMap::new();
+    for (bg_type, raw_data) in raw_backgrounds {
+        insert_or_log(&mut backgrounds, bg_type, raw_data.load().await);
+    }
 
-    backgrounds.insert(
-        BGTextureType::Blank,
-        BGTexture::centered("white_space").await?,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BGTextureType::LocationChoice,
-        BGTexture::centered("location_choice").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::Ship,
-        BGTexture::centered("ship").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::ForestEntrance,
-        BGTexture::repeating("forest_entrance").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::Forest,
-        BGTexture::repeating("forest").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::Field,
-        BGTexture::repeating("field").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::Shack,
-        BGTexture::centered("shack").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::FacilityOutside,
-        BGTexture::fixed("facility_outside").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::FacilitySize3,
-        BGTexture::centered("3x_facility").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::FacilitySize4,
-        BGTexture::centered("4x_facility").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::FacilitySize5,
-        BGTexture::centered("5x_facility").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::FacilitySize6,
-        BGTexture::centered("6x_facility").await,
-    );
-    insert_or_log(
-        &mut backgrounds,
-        BackgroundType::FacilitySize7,
-        BGTexture::fixed("7x_facility").await,
-    );
+    backgrounds
+        .get(&BackgroundType::Blank)
+        .expect("Blank background texture must exist");
+
     Ok(backgrounds)
 }
 

@@ -28,6 +28,8 @@ pub struct Area {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum BackgroundType {
+    Blank,
+    LocationChoice,
     Ship,
     ForestEntrance,
     Forest,
