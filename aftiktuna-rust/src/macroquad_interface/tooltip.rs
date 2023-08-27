@@ -23,10 +23,10 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
         return;
     }
     let mouse_pos = Vec2::from(input::mouse_position());
-    let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
     match &app.command_tooltip {
         None => {
             if let Frame::AreaView { render_data, .. } = &state.current_frame {
+                let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
                 let hovered_objects = render::position_objects(&render_data.objects, textures)
                     .into_iter()
                     .filter(|(pos, data)| {
@@ -35,13 +35,20 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
                     .map(|(_, data)| data)
                     .collect::<Vec<_>>();
                 if !hovered_objects.is_empty() {
-                    app.command_tooltip = prepare_command_data(offset_pos, hovered_objects);
+                    app.command_tooltip = prepare_command_data(mouse_pos, hovered_objects);
+                }
+            } else if let Frame::StoreView { view, .. } = &state.current_frame {
+                if let Some(priced_item) = render::find_stock_at(mouse_pos, view) {
+                    app.command_tooltip = Some(CommandTooltip {
+                        pos: mouse_pos,
+                        commands: priced_item.command_suggestions(),
+                    });
                 }
             }
         }
         Some(command_tooltip) => {
             let line_index =
-                line_index_at(offset_pos, command_tooltip.pos, &command_tooltip.commands);
+                line_index_at(mouse_pos, command_tooltip.pos, &command_tooltip.commands);
             if let Some(line_index) = line_index {
                 app.input = command_tooltip.commands[line_index].clone();
                 app.handle_input();
@@ -76,20 +83,20 @@ pub fn draw(
     command_tooltip: &Option<CommandTooltip>,
     textures: &TextureStorage,
 ) {
-    if let Frame::AreaView { render_data, .. } = &state.current_frame {
+    let mouse_pos = Vec2::from(input::mouse_position());
+    if let Some(tooltip) = command_tooltip {
+        camera::set_default_camera();
+        draw_lines(
+            tooltip.pos,
+            &tooltip.commands,
+            line_index_at(mouse_pos, tooltip.pos, &tooltip.commands),
+        );
+    } else if let Frame::AreaView { render_data, .. } = &state.current_frame {
         camera::set_camera(&Camera2D::from_display_rect(state.camera));
         let camera_offset = Vec2::new(state.camera.x, state.camera.y);
-        let mouse_pos = Vec2::from(input::mouse_position()) + camera_offset;
-        if let Some(tooltip) = command_tooltip {
-            draw_lines(
-                tooltip.pos,
-                &tooltip.commands,
-                line_index_at(mouse_pos, tooltip.pos, &tooltip.commands),
-            );
-        } else {
-            let names = get_hovered_object_names(render_data, textures, mouse_pos);
-            draw_lines(mouse_pos, &names, None);
-        }
+        let mouse_pos = mouse_pos + camera_offset;
+        let names = get_hovered_object_names(render_data, textures, mouse_pos);
+        draw_lines(mouse_pos, &names, None);
     }
 }
 

@@ -1,5 +1,6 @@
 use super::texture::{BGTextureType, TextureStorage};
 use super::App;
+use crate::action::trade::PricedItem;
 use crate::core::position::{Coord, Direction};
 use crate::core::StopType;
 use crate::macroquad_interface::texture::draw_background;
@@ -250,6 +251,7 @@ fn character_centered_camera(render_data: &RenderData) -> Rect {
 const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 
 fn draw_store_view(textures: &TextureStorage, store_view: &StoreView) {
+    set_default_camera();
     clear_background(Color::from_rgba(109, 102, 67, 255));
     draw_shopkeeper_portrait(textures, store_view.shopkeeper_color);
     draw_store_stock(store_view);
@@ -266,9 +268,10 @@ fn draw_shopkeeper_portrait(textures: &TextureStorage, color: Option<AftikColor>
     );
 }
 
+const TEXT_SIZE: f32 = 32.;
+
 fn draw_store_stock(store_view: &StoreView) {
     shapes::draw_rectangle(30., 30., 400., 400., STORE_UI_COLOR);
-    const TEXT_SIZE: f32 = 32.;
     let desired_length = 15;
     for (index, priced_item) in store_view.items.iter().enumerate() {
         let name = view::capitalize(priced_item.item.noun_data().singular());
@@ -286,6 +289,15 @@ fn draw_store_stock(store_view: &StoreView) {
             WHITE,
         );
     }
+}
+
+pub fn find_stock_at(pos: Vec2, store_view: &StoreView) -> Option<&PricedItem> {
+    for (index, priced_item) in store_view.items.iter().enumerate() {
+        if Rect::new(30., 30. + (index as f32 * TEXT_SIZE), 400., TEXT_SIZE).contains(pos) {
+            return Some(priced_item);
+        }
+    }
+    None
 }
 
 fn draw_points_for_store(points: i32) {
