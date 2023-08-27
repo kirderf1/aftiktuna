@@ -1,6 +1,6 @@
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::macroquad_interface::{camera, render, store_render, texture, App};
-use crate::view::{Frame, ObjectRenderData, RenderData};
+use crate::view::{Frame, RenderData};
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -24,25 +24,19 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
     let mouse_pos = Vec2::from(input::mouse_position());
     match &app.command_tooltip {
         None => {
-            if let Frame::AreaView { render_data, .. } = &state.current_frame {
-                let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
-                let hovered_objects = camera::position_objects(&render_data.objects, textures)
+            let commands = find_raw_command_suggestions(mouse_pos, state, textures);
+            if !commands.is_empty() {
+                // Remove duplicates
+                let mut commands = commands
                     .into_iter()
-                    .filter(|(pos, data)| {
-                        texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
-                    })
-                    .map(|(_, data)| data)
+                    .collect::<HashSet<_>>()
+                    .into_iter()
                     .collect::<Vec<_>>();
-                if !hovered_objects.is_empty() {
-                    app.command_tooltip = prepare_command_data(mouse_pos, hovered_objects);
-                }
-            } else if let Frame::StoreView { view, .. } = &state.current_frame {
-                if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
-                    app.command_tooltip = Some(CommandTooltip {
-                        pos: mouse_pos,
-                        commands: priced_item.command_suggestions(),
-                    });
-                }
+                commands.sort();
+                app.command_tooltip = Some(CommandTooltip {
+                    pos: mouse_pos,
+                    commands,
+                })
             }
         }
         Some(command_tooltip) => {
@@ -57,24 +51,31 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
     }
 }
 
-fn prepare_command_data(pos: Vec2, objects: Vec<&ObjectRenderData>) -> Option<CommandTooltip> {
-    let mut commands = objects
-        .into_iter()
-        .flat_map(|object| {
-            object
-                .interactions
-                .iter()
-                .flat_map(|interaction| interaction.commands(&object.name))
-        })
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    commands.sort();
-    if commands.is_empty() {
-        None
-    } else {
-        Some(CommandTooltip { pos, commands })
+fn find_raw_command_suggestions(
+    mouse_pos: Vec2,
+    state: &render::State,
+    textures: &TextureStorage,
+) -> Vec<String> {
+    if let Frame::AreaView { render_data, .. } = &state.current_frame {
+        let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
+
+        return camera::position_objects(&render_data.objects, textures)
+            .into_iter()
+            .filter(|(pos, data)| {
+                texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
+            })
+            .flat_map(|(_, data)| {
+                data.interactions
+                    .iter()
+                    .flat_map(|interaction| interaction.commands(&data.name))
+            })
+            .collect::<Vec<_>>();
+    } else if let Frame::StoreView { view, .. } = &state.current_frame {
+        if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
+            return priced_item.command_suggestions();
+        }
     }
+    vec![]
 }
 
 pub fn draw(
