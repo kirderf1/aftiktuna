@@ -105,12 +105,23 @@ pub fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_pro
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
-pub fn egui_ui(app: &mut App, ctx: &egui::Context) {
-    egui::TopBottomPanel::bottom("input").show(ctx, |ui| egui_input_field(app, ui));
+pub fn egui_only_input(app: &mut App) {
+    egui_macroquad::ui(|ctx| input_panel(app, ctx));
 
-    if !app.show_graphical {
-        egui::CentralPanel::default().show(ctx, |ui| egui_text_box(&app.render_state.text_log, ui));
-    }
+    egui_macroquad::draw();
+}
+
+pub fn egui_full(app: &mut App) {
+    egui_macroquad::ui(|ctx| {
+        input_panel(app, ctx);
+        text_box_panel(app, ctx);
+    });
+
+    egui_macroquad::draw();
+}
+
+fn input_panel(app: &mut App, ctx: &egui::Context) {
+    egui::TopBottomPanel::bottom("input").show(ctx, |ui| egui_input_field(app, ui));
 }
 
 fn egui_input_field(app: &mut App, ui: &mut egui::Ui) {
@@ -130,6 +141,10 @@ fn egui_input_field(app: &mut App, ui: &mut egui::Ui) {
         response.request_focus();
         app.request_input_focus = false;
     }
+}
+
+fn text_box_panel(app: &mut App, ctx: &egui::Context) {
+    egui::CentralPanel::default().show(ctx, |ui| egui_text_box(&app.render_state.text_log, ui));
 }
 
 fn egui_text_box(text_log: &Vec<String>, ui: &mut egui::Ui) {

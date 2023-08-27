@@ -4,7 +4,7 @@ use crate::view::{Frame, RenderData};
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::{camera as macroquad_camera, input, shapes, text};
+use egui_macroquad::macroquad::{input, shapes, text};
 use std::collections::HashSet;
 
 pub struct CommandTooltip {
@@ -83,7 +83,6 @@ pub fn draw(
     command_tooltip: &Option<CommandTooltip>,
     textures: &TextureStorage,
 ) {
-    macroquad_camera::set_default_camera();
     let mouse_pos = Vec2::from(input::mouse_position());
     if let Some(tooltip) = command_tooltip {
         draw_lines(

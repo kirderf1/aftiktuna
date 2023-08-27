@@ -72,13 +72,12 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
             textures,
             app.game.next_result().has_frame(),
         );
-
         tooltip::draw(&app.render_state, &app.command_tooltip, textures);
+
+        ui::egui_only_input(app);
+    } else {
+        ui::egui_full(app);
     }
-
-    egui_macroquad::ui(|ctx| ui::egui_ui(app, ctx));
-
-    egui_macroquad::draw();
 }
 
 fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
