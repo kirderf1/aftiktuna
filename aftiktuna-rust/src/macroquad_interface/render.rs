@@ -1,21 +1,18 @@
 use super::texture::TextureStorage;
 use super::App;
-use crate::action::trade::PricedItem;
 use crate::area::BackgroundType;
-use crate::core::position::{Coord, Direction};
+use crate::core::position::Coord;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::draw_background;
-use crate::macroquad_interface::{texture, tooltip, ui};
-use crate::view;
-use crate::view::{AftikColor, Frame, Messages, ObjectRenderData, RenderData, StoreView};
+use crate::macroquad_interface::{store_render, texture, tooltip, ui};
+use crate::view::{Frame, Messages, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
-use egui_macroquad::macroquad::color::{Color, BLACK, LIGHTGRAY, WHITE};
+use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
 use egui_macroquad::macroquad::input::{
     is_mouse_button_down, is_mouse_button_pressed, mouse_position, MouseButton,
 };
 use egui_macroquad::macroquad::math::{clamp, Rect, Vec2};
 use egui_macroquad::macroquad::window::clear_background;
-use egui_macroquad::macroquad::{shapes, text};
 use std::collections::HashMap;
 
 pub struct State {
@@ -115,7 +112,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
             ui::draw_camera_arrows(textures.side_arrow, has_camera_space(camera, render_data));
         }
         Frame::StoreView { view, .. } => {
-            draw_store_view(textures, view);
+            store_render::draw_store_view(textures, view);
         }
         Frame::Ending { stop_type } => {
             set_default_camera();
@@ -245,62 +242,4 @@ fn character_centered_camera(render_data: &RenderData) -> Rect {
     );
     clamp_camera(&mut camera_space, render_data);
     camera_space
-}
-
-const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
-
-fn draw_store_view(textures: &TextureStorage, store_view: &StoreView) {
-    set_default_camera();
-    clear_background(Color::from_rgba(109, 102, 67, 255));
-    draw_shopkeeper_portrait(textures, store_view.shopkeeper_color);
-    draw_store_stock(store_view);
-    draw_points_for_store(store_view.points);
-}
-
-fn draw_shopkeeper_portrait(textures: &TextureStorage, color: Option<AftikColor>) {
-    texture::draw_object(
-        &textures.portrait,
-        Direction::Left,
-        color,
-        false,
-        Vec2::new(600., 600.),
-    );
-}
-
-const TEXT_SIZE: f32 = 32.;
-
-fn draw_store_stock(store_view: &StoreView) {
-    shapes::draw_rectangle(30., 30., 400., 400., STORE_UI_COLOR);
-    let desired_length = 15;
-    for (index, priced_item) in store_view.items.iter().enumerate() {
-        let name = view::capitalize(priced_item.item.noun_data().singular());
-        let text = format!(
-            "{} {}| {}p",
-            name,
-            " ".repeat(desired_length - name.len()),
-            priced_item.price
-        );
-        text::draw_text(
-            &text,
-            50.,
-            55. + (index as f32 * TEXT_SIZE),
-            TEXT_SIZE,
-            WHITE,
-        );
-    }
-}
-
-pub fn find_stock_at(pos: Vec2, store_view: &StoreView) -> Option<&PricedItem> {
-    for (index, priced_item) in store_view.items.iter().enumerate() {
-        if Rect::new(30., 30. + (index as f32 * TEXT_SIZE), 400., TEXT_SIZE).contains(pos) {
-            return Some(priced_item);
-        }
-    }
-    None
-}
-
-fn draw_points_for_store(points: i32) {
-    let text = format!("Crew points: {points}p");
-    shapes::draw_rectangle(450., 30., 320., 35., STORE_UI_COLOR);
-    text::draw_text(&text, 460., 55., 32., WHITE);
 }

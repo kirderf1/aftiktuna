@@ -15,6 +15,7 @@ use std::time;
 use std::time::Instant;
 
 mod render;
+mod store_render;
 mod texture;
 mod tooltip;
 mod ui;

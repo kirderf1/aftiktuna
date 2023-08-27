@@ -1,5 +1,5 @@
 use crate::macroquad_interface::texture::TextureStorage;
-use crate::macroquad_interface::{render, texture, App};
+use crate::macroquad_interface::{render, store_render, texture, App};
 use crate::view::{Frame, ObjectRenderData, RenderData};
 use egui_macroquad::macroquad::camera::Camera2D;
 use egui_macroquad::macroquad::color::{Color, WHITE};
@@ -38,7 +38,7 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
                     app.command_tooltip = prepare_command_data(mouse_pos, hovered_objects);
                 }
             } else if let Frame::StoreView { view, .. } = &state.current_frame {
-                if let Some(priced_item) = render::find_stock_at(mouse_pos, view) {
+                if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
                     app.command_tooltip = Some(CommandTooltip {
                         pos: mouse_pos,
                         commands: priced_item.command_suggestions(),
