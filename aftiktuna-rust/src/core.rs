@@ -18,8 +18,7 @@ pub mod status;
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
-    #[serde(serialize_with = "serialization::serialize_world")]
-    #[serde(deserialize_with = "serialization::deserialize_world")]
+    #[serde(with = "serialization::world")]
     pub world: World,
     #[serde(skip)]
     pub rng: ThreadRng,

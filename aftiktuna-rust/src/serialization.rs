@@ -15,7 +15,7 @@ use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
 use rmp_serde::{decode, encode};
 use serde::de::SeqAccess;
 use serde::ser::SerializeTuple;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::any::TypeId;
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
@@ -246,18 +246,24 @@ pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
     Ok(Game::deserialize(&mut deserializer)?)
 }
 
-pub fn serialize_world<S>(world: &World, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    column::serialize(world, &mut HecsSerializeContext, serializer)
-}
+pub mod world {
+    use hecs::serialize::column;
+    use hecs::World;
+    use serde::{Deserializer, Serializer};
 
-pub fn deserialize_world<'de, D>(deserializer: D) -> Result<World, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
+    pub fn serialize<S>(world: &World, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        column::serialize(world, &mut super::HecsSerializeContext, serializer)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<World, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        column::deserialize(&mut super::HecsDeserializeContext::default(), deserializer)
+    }
 }
 
 pub fn check_world_components(world: &World) {
