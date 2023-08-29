@@ -32,18 +32,17 @@ const TEXT_SIZE: f32 = 32.;
 
 fn draw_store_stock(store_view: &StoreView) {
     shapes::draw_rectangle(30., 30., 400., 400., STORE_UI_COLOR);
-    let desired_length = 15;
     for (index, priced_item) in store_view.items.iter().enumerate() {
-        let name = view::capitalize(priced_item.item.noun_data().singular());
-        let text = format!(
-            "{} {}| {}p",
-            name,
-            " ".repeat(desired_length - name.len()),
-            priced_item.price
+        text::draw_text(
+            &view::capitalize(priced_item.item.noun_data().singular()),
+            50.,
+            55. + (index as f32 * TEXT_SIZE),
+            TEXT_SIZE,
+            color::WHITE,
         );
         text::draw_text(
-            &text,
-            50.,
+            &format!("| {}p", priced_item.price),
+            290.,
             55. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,
             color::WHITE,
