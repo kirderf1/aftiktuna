@@ -4,7 +4,8 @@ use crate::action::CrewMember;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, GameState};
-use crate::view::{AftikColor, Messages, NameData, TextureType};
+use crate::view::name::Noun;
+use crate::view::{AftikColor, Messages, TextureType};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -271,14 +272,14 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
             symbol: 'v',
             texture_type: TextureType::Ship,
             kind: DoorKind::Door,
-            name: NameData::from_noun("ship", "ships"),
+            name: Noun::new("ship", "ships"),
         },
         DoorInfo {
             pos: ship_exit,
             symbol: '^',
             texture_type: TextureType::ShipExit,
             kind: DoorKind::Door,
-            name: NameData::from_noun("ship exit", "ship exits"),
+            name: Noun::new("ship exit", "ship exits"),
         },
         None,
     );

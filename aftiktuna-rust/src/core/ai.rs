@@ -3,7 +3,7 @@ use crate::action::{combat, Action, CrewMember};
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
 use crate::core::{inventory, status};
-use crate::view::NameData;
+use crate::view::name::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 

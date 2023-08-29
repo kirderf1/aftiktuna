@@ -9,7 +9,8 @@ use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Price, Tool, W
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::game_interface::Game;
-use crate::view::{AftikColor, DisplayInfo, NameData};
+use crate::view::name::{Name, Noun};
+use crate::view::{AftikColor, DisplayInfo};
 use hecs::serialize::column;
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
 use rmp_serde::{decode, encode};
@@ -135,7 +136,8 @@ components_to_serialize!(
     Direction, Direction;
     MovementBlocking, MovementBlocking;
 
-    NameData, NameData;
+    Name, Name;
+    Noun, Noun;
     DisplayInfo, DisplayInfo;
     AftikColor, AftikColor;
 
@@ -173,8 +175,8 @@ components_to_serialize!(
 );
 
 pub const SAVE_FILE_NAME: &str = "SAVE_FILE";
-const MAJOR_VERSION: u16 = 0;
-const MINOR_VERSION: u16 = 1;
+const MAJOR_VERSION: u16 = 1;
+const MINOR_VERSION: u16 = 0;
 
 fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
     if major != MAJOR_VERSION || minor > MINOR_VERSION {

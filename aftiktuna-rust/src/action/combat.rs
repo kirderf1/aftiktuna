@@ -4,7 +4,7 @@ use crate::core::item::Weapon;
 use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{inventory, status, GameState};
-use crate::view::NameData;
+use crate::view::name::NameData;
 use hecs::{Entity, World};
 use rand::Rng;
 use serde::{Deserialize, Serialize};

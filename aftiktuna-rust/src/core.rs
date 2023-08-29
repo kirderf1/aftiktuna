@@ -1,7 +1,8 @@
 use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
-use crate::view::{Frame, Messages, NameData, StatusCache};
+use crate::view::name::NameData;
+use crate::view::{Frame, Messages, StatusCache};
 use crate::{action, area, serialization, view};
 use hecs::{Entity, World};
 use position::Pos;

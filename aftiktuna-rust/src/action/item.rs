@@ -5,18 +5,19 @@ use crate::core::item::{Item, Medkit};
 use crate::core::position::{try_move, try_move_adjacent, Pos};
 use crate::core::status::Health;
 use crate::core::{inventory, status};
-use crate::view::{DisplayInfo, NameData};
+use crate::view::name::{NameData, NameQuery};
+use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
-        .query::<(&Pos, &NameData)>()
+        .query::<(&Pos, NameQuery)>()
         .with::<&Item>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, name_data))| (item, name_data.clone()))
+        .map(|(item, (_, query))| (item, NameData::from(query)))
         .ok_or("There are no items to take here.")?;
 
     let result = take_item(world, aftik, item, name)?;

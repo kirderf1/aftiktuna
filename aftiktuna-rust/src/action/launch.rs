@@ -3,7 +3,7 @@ use crate::area::{Ship, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::position::Pos;
 use crate::core::{inventory, GameState};
-use crate::view::NameData;
+use crate::view::name::NameData;
 use hecs::{Entity, World};
 
 pub fn perform(state: &mut GameState, performer: Entity) -> action::Result {

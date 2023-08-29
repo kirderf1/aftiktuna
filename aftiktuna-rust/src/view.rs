@@ -3,13 +3,12 @@ use crate::area::Choice;
 use crate::core::{GameState, StopType};
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
-pub use name::{as_grouped_text_list, NounData};
 use serde::{Deserialize, Serialize};
 pub use status::print_full_status;
 use std::mem::take;
 
 mod location;
-mod name;
+pub mod name;
 mod status;
 
 #[derive(Default)]
@@ -47,8 +46,6 @@ pub struct DisplayInfo {
 }
 
 pub type StatusCache = status::Cache;
-
-pub type NameData = name::Data;
 
 #[derive(Default)]
 pub struct Buffer {

@@ -4,35 +4,28 @@ use std::collections::HashMap;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum Data {
+pub enum NameData {
     Name(String),
-    Noun(NounData),
+    Noun(Noun),
 }
 
-impl Data {
-    pub fn from_name(name: &str) -> Self {
-        Data::Name(name.to_string())
-    }
-    pub fn from_noun(singular: &str, plural: &str) -> Self {
-        Data::Noun(NounData::new(singular, plural))
-    }
-
+impl NameData {
     pub fn base(&self) -> &str {
         match self {
-            Data::Name(name) => name,
-            Data::Noun(noun) => &noun.singular,
+            NameData::Name(name) => name,
+            NameData::Noun(noun) => &noun.singular,
         }
     }
     pub fn plural(&self) -> &str {
         match self {
-            Data::Name(name) => name,
-            Data::Noun(noun) => &noun.plural,
+            NameData::Name(name) => name,
+            NameData::Noun(noun) => &noun.plural,
         }
     }
     pub fn definite(&self) -> String {
         match self {
-            Data::Name(name) => name.to_string(),
-            Data::Noun(noun) => format!("the {}", noun.singular),
+            NameData::Name(name) => name.to_string(),
+            NameData::Noun(noun) => format!("the {}", noun.singular),
         }
     }
 
@@ -44,29 +37,75 @@ impl Data {
     }
     pub fn matches_with_count(&self, string: &str, count: u16) -> bool {
         match self {
-            Data::Name(name) => name,
-            Data::Noun(noun) => noun.for_count(count),
+            NameData::Name(name) => name,
+            NameData::Noun(noun) => noun.for_count(count),
         }
         .eq_ignore_ascii_case(string)
     }
 
     pub fn find(world: &World, entity: Entity) -> Self {
-        world.get::<&Data>(entity).map_or_else(
-            |_| Data::Name("???".to_string()),
-            |data| data.deref().clone(),
+        if let Ok(name) = world.get::<&Name>(entity) {
+            if name.is_known {
+                return Self::Name(name.name.to_owned());
+            }
+        }
+        world.get::<&Noun>(entity).map_or_else(
+            |_| NameData::Name("???".to_string()),
+            |noun| NameData::Noun(noun.deref().clone()),
         )
     }
 }
 
+impl<'a> From<NameQuery<'a>> for NameData {
+    fn from(query: NameQuery<'a>) -> Self {
+        if let Some(name) = query.0 {
+            if name.is_known {
+                return Self::Name(name.name.to_owned());
+            }
+        }
+        query.1.map_or_else(
+            || NameData::Name("???".to_string()),
+            |noun| NameData::Noun(noun.deref().clone()),
+        )
+    }
+}
+
+pub type NameQuery<'a> = (Option<&'a Name>, Option<&'a Noun>);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Name {
+    name: String,
+    is_known: bool,
+}
+
+impl Name {
+    pub fn known(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            is_known: true,
+        }
+    }
+    pub fn not_known(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            is_known: false,
+        }
+    }
+
+    pub fn set_is_known(&mut self) {
+        self.is_known = true;
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct NounData {
+pub struct Noun {
     singular: String,
     plural: String,
 }
 
-impl NounData {
+impl Noun {
     pub fn new(singular: &str, plural: &str) -> Self {
-        NounData {
+        Self {
             singular: singular.to_string(),
             plural: plural.to_string(),
         }
@@ -76,8 +115,8 @@ impl NounData {
         &self.singular
     }
 
-    pub fn with_adjective(&self, adjective: &str) -> NounData {
-        NounData {
+    pub fn with_adjective(&self, adjective: &str) -> Noun {
+        Noun {
             singular: format!("{} {}", adjective, self.singular),
             plural: format!("{} {}", adjective, self.plural),
         }
@@ -96,14 +135,14 @@ impl NounData {
     }
 }
 
-pub fn as_grouped_text_list(data: Vec<Data>) -> String {
+pub fn as_grouped_text_list(data: Vec<NameData>) -> String {
     let mut names = Vec::new();
     let mut nouns = HashMap::new();
 
     for name_data in data {
         match name_data {
-            Data::Name(name) => names.push(name),
-            Data::Noun(noun) => *nouns.entry(noun).or_insert(0) += 1,
+            NameData::Name(name) => names.push(name),
+            NameData::Noun(noun) => *nouns.entry(noun).or_insert(0) += 1,
         }
     }
 

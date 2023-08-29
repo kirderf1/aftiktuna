@@ -1,6 +1,7 @@
 use crate::action::door::{BlockType, Door, DoorKind};
 use crate::core::position::Pos;
-use crate::view::{DisplayInfo, NameData, NounData, TextureType};
+use crate::view::name::Noun;
+use crate::view::{DisplayInfo, TextureType};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +11,7 @@ pub struct DoorInfo {
     pub symbol: char,
     pub texture_type: TextureType,
     pub kind: DoorKind,
-    pub name: NameData,
+    pub name: Noun,
 }
 
 pub fn place_pair(
@@ -72,18 +73,19 @@ impl From<DoorType> for DoorKind {
 }
 
 impl DoorType {
-    pub fn name_data(self, adjective: Option<Adjective>) -> NameData {
-        let mut noun = match self {
-            DoorType::Door => NounData::new("door", "doors"),
-            DoorType::Shack => NounData::new("shack", "shacks"),
-            DoorType::House => NounData::new("house", "houses"),
-            DoorType::Store => NounData::new("store", "stores"),
-            DoorType::Path => NounData::new("path", "paths"),
+    pub fn noun(self, adjective: Option<Adjective>) -> Noun {
+        let noun = match self {
+            DoorType::Door => Noun::new("door", "doors"),
+            DoorType::Shack => Noun::new("shack", "shacks"),
+            DoorType::House => Noun::new("house", "houses"),
+            DoorType::Store => Noun::new("store", "stores"),
+            DoorType::Path => Noun::new("path", "paths"),
         };
         if let Some(adjective) = adjective {
-            noun = noun.with_adjective(adjective.word());
+            noun.with_adjective(adjective.word())
+        } else {
+            noun
         }
-        NameData::Noun(noun)
     }
 }
 

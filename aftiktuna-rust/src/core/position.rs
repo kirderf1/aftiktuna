@@ -1,6 +1,6 @@
 use crate::action::CrewMember;
 use crate::area::Area;
-use crate::view::NameData;
+use crate::view::name::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min, Ordering};
@@ -157,9 +157,7 @@ pub fn check_is_blocked(
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Direction {
-    #[serde(alias = "Left")] // Support data format 0.0
     Left,
-    #[serde(alias = "Right")] // Support data format 0.0
     Right,
 }
 

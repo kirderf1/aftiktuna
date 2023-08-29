@@ -1,5 +1,6 @@
 use crate::core::position::Pos;
-use crate::view::{Messages, NameData};
+use crate::view::name::NameData;
+use crate::view::Messages;
 use hecs::{CommandBuffer, ComponentError, Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;

@@ -5,7 +5,8 @@ use crate::core::item;
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::view;
-use crate::view::{AftikColor, DisplayInfo, NameData, TextureType};
+use crate::view::name::{Name, Noun};
+use crate::view::{AftikColor, DisplayInfo, TextureType};
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -37,7 +38,7 @@ pub fn spawn_crew_member(
     world.spawn(
         aftik_builder(
             view::name_display_info(TextureType::Aftik, name),
-            NameData::from_name(name),
+            Name::known(name),
             stats,
         )
         .add(color)
@@ -59,22 +60,23 @@ pub fn place_recruitable(
     world.spawn(
         aftik_builder(
             DisplayInfo::new('A', TextureType::Aftik, 10),
-            NameData::from_noun("aftik", "aftiks"),
+            Name::not_known(name),
             stats,
         )
         .add(color)
-        .add(Recruitable(name.to_string()))
+        .add(Recruitable)
         .add(pos)
         .add(direction)
         .build(),
     );
 }
 
-fn aftik_builder(display_info: DisplayInfo, name_data: NameData, stats: Stats) -> EntityBuilder {
+fn aftik_builder(display_info: DisplayInfo, name: Name, stats: Stats) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         display_info,
-        name_data,
+        Noun::new("aftik", "aftiks"),
+        name,
         Health::with_max(&stats),
         Stamina::with_max(&stats),
         stats,
@@ -88,7 +90,7 @@ pub fn place_goblin(world: &mut World, pos: Pos, direction: Option<Direction>) {
 
     world.spawn((
         DisplayInfo::new('G', TextureType::Goblin, 10),
-        NameData::from_noun("goblin", "goblins"),
+        Noun::new("goblin", "goblins"),
         pos,
         direction,
         MovementBlocking,
@@ -105,7 +107,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos, direction: Option<Direction>) 
 
     world.spawn((
         DisplayInfo::new('E', TextureType::Eyesaur, 10),
-        NameData::from_noun("eyesaur", "eyesaurs"),
+        Noun::new("eyesaur", "eyesaurs"),
         pos,
         direction,
         MovementBlocking,
@@ -122,7 +124,7 @@ pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction
 
     world.spawn((
         DisplayInfo::new('Z', TextureType::Azureclops, 10),
-        NameData::from_noun("azureclops", "azureclopses"),
+        Noun::new("azureclops", "azureclopses"),
         pos,
         direction,
         MovementBlocking,
@@ -148,7 +150,7 @@ pub fn place_shopkeeper(
     world.spawn((
         DisplayInfo::new('S', TextureType::Aftik, 15),
         color,
-        NameData::from_noun("shopkeeper", "shopkeepers"),
+        Noun::new("shopkeeper", "shopkeepers"),
         pos,
         direction,
         Shopkeeper(stock),

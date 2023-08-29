@@ -4,7 +4,8 @@ use crate::core::inventory::Held;
 use crate::core::item::Price;
 use crate::core::position::Pos;
 use crate::core::{item, position};
-use crate::view::{as_grouped_text_list, NameData};
+use crate::view::name;
+use crate::view::name::NameData;
 use hecs::{Entity, Ref, World};
 use serde::{Deserialize, Serialize};
 
@@ -119,7 +120,7 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let performer_name = NameData::find(world, performer).definite();
-    let item_list = as_grouped_text_list(
+    let item_list = name::as_grouped_text_list(
         items
             .iter()
             .map(|item| NameData::find(world, *item))

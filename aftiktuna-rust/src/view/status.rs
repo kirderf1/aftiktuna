@@ -2,7 +2,8 @@ use crate::action::trade::Points;
 use crate::action::CrewMember;
 use crate::core::inventory;
 use crate::core::status::{Health, Stats};
-use crate::view::{capitalize, name, Messages, NameData};
+use crate::view::name::NameData;
+use crate::view::{capitalize, name, Messages};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 

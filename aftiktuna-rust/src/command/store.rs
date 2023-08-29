@@ -4,7 +4,7 @@ use crate::command;
 use crate::command::parse::Parse;
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
-use crate::view::NameData;
+use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 
 pub fn parse(
@@ -86,10 +86,16 @@ fn buy(priced_item: &PricedItem, amount: u16) -> Result<CommandResult, String> {
 
 fn held_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
     let mut items = world
-        .query::<(&NameData, &Held)>()
+        .query::<(NameQuery, &Held)>()
         .iter()
         .filter(|(_, (_, held))| held.held_by(character))
-        .map(|(entity, (name, held))| (name.base().to_string(), entity, held.is_in_hand()))
+        .map(|(entity, (query, held))| {
+            (
+                NameData::from(query).base().to_string(),
+                entity,
+                held.is_in_hand(),
+            )
+        })
         .collect::<Vec<_>>();
     // Put item in hand at the end of the vec
     items.sort_by_key(|(_, _, in_hand)| *in_hand);
@@ -110,10 +116,10 @@ fn sell_count(
     item_name: &str,
 ) -> Result<CommandResult, String> {
     let mut items = world
-        .query::<(&NameData, &Held)>()
+        .query::<(NameQuery, &Held)>()
         .iter()
-        .filter(|(_, (name_data, held))| {
-            name_data.matches_with_count(item_name, count) && held.held_by(character)
+        .filter(|&(_, (query, held))| {
+            NameData::from(query).matches_with_count(item_name, count) && held.held_by(character)
         })
         .map(|(entity, (_, held))| (entity, held.is_in_hand()))
         .collect::<Vec<_>>();
@@ -142,10 +148,10 @@ fn sell_count(
 
 fn sell_all(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
     let items = world
-        .query::<(&NameData, &Held)>()
+        .query::<(NameQuery, &Held)>()
         .iter()
-        .filter(|(_, (name_data, held))| {
-            name_data.matches_plural(item_name) && held.held_by(character)
+        .filter(|&(_, (query, held))| {
+            NameData::from(query).matches_plural(item_name) && held.held_by(character)
         })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();

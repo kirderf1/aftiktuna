@@ -1,4 +1,5 @@
-use crate::view::{DisplayInfo, NameData, NounData};
+use crate::view::name::Noun;
+use crate::view::DisplayInfo;
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -65,18 +66,18 @@ impl Type {
         spawn(world, self, location);
     }
 
-    pub fn noun_data(self) -> NounData {
+    pub fn noun_data(self) -> Noun {
         match self {
-            Type::FuelCan => NounData::new("fuel can", "fuel cans"),
-            Type::Crowbar => NounData::new("crowbar", "crowbars"),
-            Type::Blowtorch => NounData::new("blowtorch", "blowtorches"),
-            Type::Keycard => NounData::new("keycard", "keycards"),
-            Type::Knife => NounData::new("knife", "knives"),
-            Type::Bat => NounData::new("bat", "bats"),
-            Type::Sword => NounData::new("sword", "swords"),
-            Type::Medkit => NounData::new("medkit", "medkits"),
-            Type::MeteorChunk => NounData::new("meteor chunk", "meteor chunks"),
-            Type::AncientCoin => NounData::new("ancient coin", "ancient coins"),
+            Type::FuelCan => Noun::new("fuel can", "fuel cans"),
+            Type::Crowbar => Noun::new("crowbar", "crowbars"),
+            Type::Blowtorch => Noun::new("blowtorch", "blowtorches"),
+            Type::Keycard => Noun::new("keycard", "keycards"),
+            Type::Knife => Noun::new("knife", "knives"),
+            Type::Bat => Noun::new("bat", "bats"),
+            Type::Sword => Noun::new("sword", "swords"),
+            Type::Medkit => Noun::new("medkit", "medkits"),
+            Type::MeteorChunk => Noun::new("meteor chunk", "meteor chunks"),
+            Type::AncientCoin => Noun::new("ancient coin", "ancient coins"),
         }
     }
 
@@ -118,7 +119,7 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         .add(location)
         .add(Item)
         .add(item_type.display_info())
-        .add(NameData::Noun(item_type.noun_data()));
+        .add(item_type.noun_data());
     if let Some(price) = item_type.price() {
         builder.add(Price(price));
     }

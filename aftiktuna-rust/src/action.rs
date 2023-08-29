@@ -2,7 +2,8 @@ use crate::core::item::Type as ItemType;
 use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::{status, GameState};
 use crate::view;
-use crate::view::{NameData, TextureType};
+use crate::view::name::{Name, NameData};
+use crate::view::TextureType;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::result;
@@ -18,7 +19,7 @@ pub mod trade;
 pub struct CrewMember(pub Entity);
 
 #[derive(Serialize, Deserialize)]
-pub struct Recruitable(pub String);
+pub struct Recruitable;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Action {
@@ -147,13 +148,16 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     }
 
     try_move_adjacent(world, performer, target_pos)?;
-    let Recruitable(name) = world.remove_one::<Recruitable>(target).unwrap();
+    world.remove_one::<Recruitable>(target).unwrap();
+    if let Ok(mut name) = world.get::<&mut Name>(target) {
+        name.set_is_known();
+    }
+    let name = NameData::find(world, target).definite();
     world
         .insert(
             target,
             (
                 view::name_display_info(TextureType::Aftik, &name),
-                NameData::Name(name.clone()),
                 CrewMember(crew),
             ),
         )
