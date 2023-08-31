@@ -6,7 +6,7 @@ use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::view;
 use crate::view::name::{Name, Noun};
-use crate::view::{AftikColor, DisplayInfo, TextureType};
+use crate::view::{AftikColor, DisplayInfo, OrderWeight, TextureType};
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -61,7 +61,7 @@ pub fn place_recruitable(
 
     world.spawn(
         aftik_builder(
-            DisplayInfo::new('A', TextureType::Aftik, 10),
+            DisplayInfo::new('A', TextureType::Aftik, OrderWeight::Creature),
             Name::not_known(name),
             stats,
         )
@@ -91,7 +91,7 @@ pub fn place_goblin(world: &mut World, pos: Pos, direction: Option<Direction>) {
     let stats = Stats::new(2, 4, 10);
 
     world.spawn((
-        DisplayInfo::new('G', TextureType::Goblin, 10),
+        DisplayInfo::new('G', TextureType::Goblin, OrderWeight::Creature),
         Noun::new("goblin", "goblins"),
         pos,
         direction,
@@ -108,7 +108,7 @@ pub fn place_eyesaur(world: &mut World, pos: Pos, direction: Option<Direction>) 
     let stats = Stats::new(7, 7, 4);
 
     world.spawn((
-        DisplayInfo::new('E', TextureType::Eyesaur, 10),
+        DisplayInfo::new('E', TextureType::Eyesaur, OrderWeight::Creature),
         Noun::new("eyesaur", "eyesaurs"),
         pos,
         direction,
@@ -125,7 +125,7 @@ pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction
     let stats = Stats::new(15, 10, 4);
 
     world.spawn((
-        DisplayInfo::new('Z', TextureType::Azureclops, 10),
+        DisplayInfo::new('Z', TextureType::Azureclops, OrderWeight::Creature),
         Noun::new("azureclops", "azureclopses"),
         pos,
         direction,
@@ -142,7 +142,7 @@ pub fn place_scarvie(world: &mut World, pos: Pos, direction: Option<Direction>) 
     let stats = Stats::new(3, 2, 8);
 
     world.spawn((
-        DisplayInfo::new('S', TextureType::Scarvie, 10),
+        DisplayInfo::new('S', TextureType::Scarvie, OrderWeight::Creature),
         Noun::new("scarvie", "scarvies"),
         pos,
         direction,
@@ -167,7 +167,7 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        DisplayInfo::new('S', TextureType::Aftik, 15),
+        DisplayInfo::new('S', TextureType::Aftik, OrderWeight::Creature),
         color,
         Noun::new("shopkeeper", "shopkeepers"),
         pos,

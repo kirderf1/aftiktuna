@@ -7,7 +7,7 @@ use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, item, GameState};
 use crate::view::name::NameData;
-use crate::view::{capitalize, DisplayInfo, Messages};
+use crate::view::{capitalize, DisplayInfo, Messages, OrderWeight};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
@@ -118,7 +118,7 @@ pub struct RenderData {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ObjectRenderData {
     pub coord: Coord,
-    pub weight: u32,
+    pub weight: OrderWeight,
     pub texture_type: TextureType,
     pub modified_name: String,
     pub name: String,

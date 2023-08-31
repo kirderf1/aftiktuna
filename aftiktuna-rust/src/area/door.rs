@@ -1,7 +1,7 @@
 use crate::action::door::{BlockType, Door, DoorKind};
 use crate::core::position::Pos;
 use crate::view::name::Noun;
-use crate::view::{DisplayInfo, TextureType};
+use crate::view::{DisplayInfo, OrderWeight, TextureType};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +32,7 @@ pub fn place_pair(
 
 fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
     world.spawn((
-        DisplayInfo::new(info.symbol, info.texture_type, 20),
+        DisplayInfo::new(info.symbol, info.texture_type, OrderWeight::Background),
         info.name,
         info.pos,
         Door {

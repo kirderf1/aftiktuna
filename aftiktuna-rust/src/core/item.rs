@@ -1,5 +1,5 @@
 use crate::view::name::Noun;
-use crate::view::DisplayInfo;
+use crate::view::{DisplayInfo, OrderWeight};
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -97,7 +97,7 @@ impl Type {
     }
 
     pub fn display_info(self) -> DisplayInfo {
-        DisplayInfo::new(self.symbol(), self.into(), 1)
+        DisplayInfo::new(self.symbol(), self.into(), OrderWeight::Item)
     }
 
     pub fn price(self) -> Option<i32> {

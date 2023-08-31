@@ -6,7 +6,7 @@ use crate::core::item;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::view::name::Noun;
-use crate::view::{AftikColor, DisplayInfo, TextureType};
+use crate::view::{AftikColor, DisplayInfo, OrderWeight, TextureType};
 use hecs::World;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -260,7 +260,7 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
 
 fn place_fortuna_chest(world: &mut World, pos: Pos) {
     world.spawn((
-        DisplayInfo::new('¤', TextureType::FortunaChest, 20),
+        DisplayInfo::new('¤', TextureType::FortunaChest, OrderWeight::Background),
         Noun::new("fortuna chest", "fortuna chests"),
         pos,
         FortunaChest,
