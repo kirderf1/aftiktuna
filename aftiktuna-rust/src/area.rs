@@ -5,7 +5,7 @@ use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, GameState};
 use crate::view::name::Noun;
-use crate::view::{AftikColor, Messages, TextureType};
+use crate::view::{AftikColor, Messages, OrderWeight, TextureType};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -253,6 +253,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     );
     let mint =
         creature::spawn_crew_member(world, crew, "Mint", Stats::new(10, 3, 8), AftikColor::Mint);
+    world.insert_one(mint, OrderWeight::Controlled).unwrap();
 
     (mint, ship)
 }

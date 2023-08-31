@@ -2,7 +2,7 @@ use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
 use crate::view::name::NameData;
-use crate::view::{Frame, Messages, StatusCache};
+use crate::view::{Frame, Messages, OrderWeight, StatusCache};
 use crate::{action, area, serialization, view};
 use hecs::{Entity, World};
 use position::Pos;
@@ -293,10 +293,17 @@ fn is_ship_launching(world: &World, area: Entity) -> bool {
 }
 
 fn change_character(state: &mut GameState, character: Entity, view_buffer: &mut view::Buffer) {
+    let _ = state
+        .world
+        .insert_one(state.controlled, OrderWeight::Creature);
+    state
+        .world
+        .insert_one(character, OrderWeight::Controlled)
+        .unwrap();
     state.controlled = character;
 
     view_buffer.messages.add(format!(
         "You're now playing as the aftik {}.",
-        NameData::find(&state.world, state.controlled).definite()
+        NameData::find(&state.world, character).definite()
     ));
 }

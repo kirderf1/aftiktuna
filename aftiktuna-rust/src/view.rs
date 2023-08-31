@@ -47,6 +47,7 @@ pub struct DisplayInfo {
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub enum OrderWeight {
     Item,
+    Controlled,
     Creature,
     Background,
 }
