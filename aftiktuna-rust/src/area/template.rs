@@ -60,7 +60,7 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
-                    Some(symbol_data) => symbol_data.place(builder, pos, symbol)?,
+                    Some(symbol_data) => symbol_data.place(builder, pos, Symbol(symbol))?,
                     None => Err(format!("Unknown symbol \"{}\"", symbol))?,
                 }
             }
@@ -128,10 +128,10 @@ enum SymbolData {
 }
 
 impl SymbolData {
-    fn place(&self, builder: &mut Builder, pos: Pos, symbol: char) -> Result<(), String> {
+    fn place(&self, builder: &mut Builder, pos: Pos, symbol: Symbol) -> Result<(), String> {
         match self {
             SymbolData::LocationEntry => builder.set_entry(pos)?,
-            SymbolData::FortunaChest => place_fortuna_chest(builder.world, pos),
+            SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
             SymbolData::Item { item } => item.spawn(builder.world, pos),
             SymbolData::Door {
                 pair_id,
@@ -141,12 +141,12 @@ impl SymbolData {
             SymbolData::Creature {
                 creature,
                 direction,
-            } => creature.spawn(builder.world, pos, *direction),
+            } => creature.spawn(builder.world, symbol, pos, *direction),
             SymbolData::Shopkeeper {
                 items,
                 color,
                 direction,
-            } => creature::place_shopkeeper(builder.world, pos, items, *color, *direction)?,
+            } => creature::place_shopkeeper(builder.world, symbol, pos, items, *color, *direction)?,
             SymbolData::Recruitable {
                 name,
                 stats,
@@ -154,6 +154,7 @@ impl SymbolData {
                 direction,
             } => creature::place_recruitable(
                 builder.world,
+                symbol,
                 pos,
                 name,
                 stats.clone(),
@@ -214,7 +215,7 @@ fn place_door(
     builder: &mut Builder,
     pos: Pos,
     pair_id: &str,
-    symbol: char,
+    symbol: Symbol,
     display_type: DoorType,
     adjective: Option<door::Adjective>,
 ) -> Result<(), String> {
@@ -258,9 +259,9 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
     Ok(())
 }
 
-fn place_fortuna_chest(world: &mut World, pos: Pos) {
+fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     world.spawn((
-        Symbol('¤'),
+        symbol,
         TextureType::FortunaChest,
         OrderWeight::Background,
         Noun::new("fortuna chest", "fortuna chests"),

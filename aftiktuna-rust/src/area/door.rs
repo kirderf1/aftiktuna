@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone)]
 pub struct DoorInfo {
     pub pos: Pos,
-    pub symbol: char,
+    pub symbol: Symbol,
     pub texture_type: TextureType,
     pub kind: DoorKind,
     pub name: Noun,
@@ -32,7 +32,7 @@ pub fn place_pair(
 
 fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
     world.spawn((
-        Symbol(info.symbol),
+        info.symbol,
         info.texture_type,
         OrderWeight::Background,
         info.name,

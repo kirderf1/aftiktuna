@@ -19,12 +19,12 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn spawn(self, world: &mut World, pos: Pos, direction: Option<Direction>) {
+    pub fn spawn(self, world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
         match self {
-            Type::Goblin => place_goblin(world, pos, direction),
-            Type::Eyesaur => place_eyesaur(world, pos, direction),
-            Type::Azureclops => place_azureclops(world, pos, direction),
-            Type::Scarvie => place_scarvie(world, pos, direction),
+            Type::Goblin => place_goblin(world, symbol, pos, direction),
+            Type::Eyesaur => place_eyesaur(world, symbol, pos, direction),
+            Type::Azureclops => place_azureclops(world, symbol, pos, direction),
+            Type::Scarvie => place_scarvie(world, symbol, pos, direction),
         }
     }
 }
@@ -46,6 +46,7 @@ pub fn spawn_crew_member(
 
 pub fn place_recruitable(
     world: &mut World,
+    symbol: Symbol,
     pos: Pos,
     name: &str,
     stats: Stats,
@@ -55,7 +56,7 @@ pub fn place_recruitable(
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
     world.spawn(
-        aftik_builder(Symbol('A'), Name::not_known(name), stats)
+        aftik_builder(symbol, Name::not_known(name), stats)
             .add(color)
             .add(Recruitable)
             .add(pos)
@@ -79,12 +80,12 @@ fn aftik_builder(symbol: Symbol, name: Name, stats: Stats) -> EntityBuilder {
     builder
 }
 
-pub fn place_goblin(world: &mut World, pos: Pos, direction: Option<Direction>) {
+pub fn place_goblin(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(2, 4, 10);
 
     world.spawn((
-        Symbol('G'),
+        symbol,
         TextureType::Goblin,
         OrderWeight::Creature,
         Noun::new("goblin", "goblins"),
@@ -98,12 +99,12 @@ pub fn place_goblin(world: &mut World, pos: Pos, direction: Option<Direction>) {
     ));
 }
 
-pub fn place_eyesaur(world: &mut World, pos: Pos, direction: Option<Direction>) {
+pub fn place_eyesaur(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(7, 7, 4);
 
     world.spawn((
-        Symbol('E'),
+        symbol,
         TextureType::Eyesaur,
         OrderWeight::Creature,
         Noun::new("eyesaur", "eyesaurs"),
@@ -117,12 +118,12 @@ pub fn place_eyesaur(world: &mut World, pos: Pos, direction: Option<Direction>) 
     ));
 }
 
-pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction>) {
+pub fn place_azureclops(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(15, 10, 4);
 
     world.spawn((
-        Symbol('Z'),
+        symbol,
         TextureType::Azureclops,
         OrderWeight::Creature,
         Noun::new("azureclops", "azureclopses"),
@@ -136,12 +137,12 @@ pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction
     ));
 }
 
-pub fn place_scarvie(world: &mut World, pos: Pos, direction: Option<Direction>) {
+pub fn place_scarvie(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(3, 2, 8);
 
     world.spawn((
-        Symbol('S'),
+        symbol,
         TextureType::Scarvie,
         OrderWeight::Creature,
         Noun::new("scarvie", "scarvies"),
@@ -157,6 +158,7 @@ pub fn place_scarvie(world: &mut World, pos: Pos, direction: Option<Direction>) 
 
 pub fn place_shopkeeper(
     world: &mut World,
+    symbol: Symbol,
     pos: Pos,
     shop_items: &[item::Type],
     color: AftikColor,
@@ -168,7 +170,7 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        Symbol('S'),
+        symbol,
         TextureType::Aftik,
         OrderWeight::Creature,
         color,

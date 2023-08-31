@@ -5,7 +5,7 @@ use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, GameState};
 use crate::view::name::Noun;
-use crate::view::{AftikColor, Messages, OrderWeight, TextureType};
+use crate::view::{AftikColor, Messages, OrderWeight, Symbol, TextureType};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -270,14 +270,14 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         world,
         DoorInfo {
             pos: start_pos,
-            symbol: 'v',
+            symbol: Symbol('v'),
             texture_type: TextureType::Ship,
             kind: DoorKind::Door,
             name: Noun::new("ship", "ships"),
         },
         DoorInfo {
             pos: ship_exit,
-            symbol: '^',
+            symbol: Symbol('^'),
             texture_type: TextureType::ShipExit,
             kind: DoorKind::Door,
             name: Noun::new("ship exit", "ship exits"),
