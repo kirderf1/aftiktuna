@@ -21,12 +21,70 @@ pub enum Type {
 
 impl Type {
     pub fn spawn(self, world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+        let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+        let stats = self.default_stats();
+        let mut builder = EntityBuilder::new();
+        builder.add_bundle((
+            symbol,
+            OrderWeight::Creature,
+            pos,
+            direction,
+            Health::with_max(&stats),
+            Stamina::with_max(&stats),
+            stats,
+        ));
         match self {
-            Type::Goblin => place_goblin(world, symbol, pos, direction),
-            Type::Eyesaur => place_eyesaur(world, symbol, pos, direction),
-            Type::Azureclops => place_azureclops(world, symbol, pos, direction),
-            Type::Scarvie => place_scarvie(world, symbol, pos, direction),
-            Type::VoraciousFrog => place_voracious_frog(world, symbol, pos, direction),
+            Type::Goblin => {
+                builder.add_bundle((
+                    TextureType::Goblin,
+                    Noun::new("goblin", "goblins"),
+                    MovementBlocking,
+                    IsFoe,
+                ));
+            }
+            Type::Eyesaur => {
+                builder.add_bundle((
+                    TextureType::Eyesaur,
+                    Noun::new("eyesaur", "eyesaurs"),
+                    MovementBlocking,
+                    IsFoe,
+                ));
+            }
+            Type::Azureclops => {
+                builder.add_bundle((
+                    TextureType::Azureclops,
+                    Noun::new("azureclops", "azureclopses"),
+                    MovementBlocking,
+                    IsFoe,
+                ));
+            }
+            Type::Scarvie => {
+                builder.add_bundle((
+                    TextureType::Scarvie,
+                    Noun::new("scarvie", "scarvies"),
+                    MovementBlocking,
+                    IsFoe,
+                ));
+            }
+            Type::VoraciousFrog => {
+                builder.add_bundle((
+                    TextureType::VoraciousFrog,
+                    Noun::new("voracious frog", "voracious frogs"),
+                    MovementBlocking,
+                    IsFoe,
+                ));
+            }
+        }
+        world.spawn(builder.build());
+    }
+
+    fn default_stats(self) -> Stats {
+        match self {
+            Type::Goblin => Stats::new(2, 4, 10),
+            Type::Eyesaur => Stats::new(7, 7, 4),
+            Type::Azureclops => Stats::new(15, 10, 4),
+            Type::Scarvie => Stats::new(3, 2, 8),
+            Type::VoraciousFrog => Stats::new(8, 8, 3),
         }
     }
 }
@@ -80,101 +138,6 @@ fn aftik_builder(symbol: Symbol, name: Name, stats: Stats) -> EntityBuilder {
         stats,
     ));
     builder
-}
-
-fn place_goblin(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stats = Stats::new(2, 4, 10);
-
-    world.spawn((
-        symbol,
-        TextureType::Goblin,
-        OrderWeight::Creature,
-        Noun::new("goblin", "goblins"),
-        pos,
-        direction,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ));
-}
-
-fn place_eyesaur(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stats = Stats::new(7, 7, 4);
-
-    world.spawn((
-        symbol,
-        TextureType::Eyesaur,
-        OrderWeight::Creature,
-        Noun::new("eyesaur", "eyesaurs"),
-        pos,
-        direction,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ));
-}
-
-fn place_azureclops(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stats = Stats::new(15, 10, 4);
-
-    world.spawn((
-        symbol,
-        TextureType::Azureclops,
-        OrderWeight::Creature,
-        Noun::new("azureclops", "azureclopses"),
-        pos,
-        direction,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ));
-}
-
-fn place_scarvie(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stats = Stats::new(3, 2, 8);
-
-    world.spawn((
-        symbol,
-        TextureType::Scarvie,
-        OrderWeight::Creature,
-        Noun::new("scarvie", "scarvies"),
-        pos,
-        direction,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ));
-}
-
-fn place_voracious_frog(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stats = Stats::new(8, 8, 3);
-
-    world.spawn((
-        symbol,
-        TextureType::VoraciousFrog,
-        OrderWeight::Creature,
-        Noun::new("voracious frog", "voracious frogs"),
-        pos,
-        direction,
-        MovementBlocking,
-        IsFoe,
-        Health::with_max(&stats),
-        Stamina::with_max(&stats),
-        stats,
-    ));
 }
 
 pub fn place_shopkeeper(
