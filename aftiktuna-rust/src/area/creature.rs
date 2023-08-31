@@ -61,7 +61,7 @@ pub fn place_recruitable(
 
     world.spawn(
         aftik_builder(
-            DisplayInfo::new('A', TextureType::Aftik, OrderWeight::Creature),
+            DisplayInfo::new('A', TextureType::Aftik),
             Name::not_known(name),
             stats,
         )
@@ -77,6 +77,7 @@ fn aftik_builder(display_info: DisplayInfo, name: Name, stats: Stats) -> EntityB
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         display_info,
+        OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
         name,
         Health::with_max(&stats),
@@ -91,7 +92,8 @@ pub fn place_goblin(world: &mut World, pos: Pos, direction: Option<Direction>) {
     let stats = Stats::new(2, 4, 10);
 
     world.spawn((
-        DisplayInfo::new('G', TextureType::Goblin, OrderWeight::Creature),
+        DisplayInfo::new('G', TextureType::Goblin),
+        OrderWeight::Creature,
         Noun::new("goblin", "goblins"),
         pos,
         direction,
@@ -108,7 +110,8 @@ pub fn place_eyesaur(world: &mut World, pos: Pos, direction: Option<Direction>) 
     let stats = Stats::new(7, 7, 4);
 
     world.spawn((
-        DisplayInfo::new('E', TextureType::Eyesaur, OrderWeight::Creature),
+        DisplayInfo::new('E', TextureType::Eyesaur),
+        OrderWeight::Creature,
         Noun::new("eyesaur", "eyesaurs"),
         pos,
         direction,
@@ -125,7 +128,8 @@ pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction
     let stats = Stats::new(15, 10, 4);
 
     world.spawn((
-        DisplayInfo::new('Z', TextureType::Azureclops, OrderWeight::Creature),
+        DisplayInfo::new('Z', TextureType::Azureclops),
+        OrderWeight::Creature,
         Noun::new("azureclops", "azureclopses"),
         pos,
         direction,
@@ -142,7 +146,8 @@ pub fn place_scarvie(world: &mut World, pos: Pos, direction: Option<Direction>) 
     let stats = Stats::new(3, 2, 8);
 
     world.spawn((
-        DisplayInfo::new('S', TextureType::Scarvie, OrderWeight::Creature),
+        DisplayInfo::new('S', TextureType::Scarvie),
+        OrderWeight::Creature,
         Noun::new("scarvie", "scarvies"),
         pos,
         direction,
@@ -167,7 +172,8 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        DisplayInfo::new('S', TextureType::Aftik, OrderWeight::Creature),
+        DisplayInfo::new('S', TextureType::Aftik),
+        OrderWeight::Creature,
         color,
         Noun::new("shopkeeper", "shopkeepers"),
         pos,

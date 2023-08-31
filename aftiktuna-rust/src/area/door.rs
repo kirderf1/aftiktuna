@@ -32,7 +32,8 @@ pub fn place_pair(
 
 fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
     world.spawn((
-        DisplayInfo::new(info.symbol, info.texture_type, OrderWeight::Background),
+        DisplayInfo::new(info.symbol, info.texture_type),
+        OrderWeight::Background,
         info.name,
         info.pos,
         Door {

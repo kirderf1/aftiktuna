@@ -97,7 +97,7 @@ impl Type {
     }
 
     pub fn display_info(self) -> DisplayInfo {
-        DisplayInfo::new(self.symbol(), self.into(), OrderWeight::Item)
+        DisplayInfo::new(self.symbol(), self.into())
     }
 
     pub fn price(self) -> Option<i32> {
@@ -119,6 +119,7 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         .add(location)
         .add(Item)
         .add(item_type.display_info())
+        .add(OrderWeight::Item)
         .add(item_type.noun_data());
     if let Some(price) = item_type.price() {
         builder.add(Price(price));

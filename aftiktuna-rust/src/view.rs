@@ -42,7 +42,6 @@ impl<T: AsRef<str>> From<T> for Messages {
 pub struct DisplayInfo {
     symbol: char,
     pub texture_type: TextureType,
-    weight: OrderWeight,
 }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
@@ -262,11 +261,10 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
 }
 
 impl DisplayInfo {
-    pub fn new(symbol: char, texture_type: TextureType, weight: OrderWeight) -> Self {
+    pub fn new(symbol: char, texture_type: TextureType) -> Self {
         DisplayInfo {
             symbol,
             texture_type,
-            weight,
         }
     }
 }
@@ -280,9 +278,5 @@ pub fn capitalize(text: impl AsRef<str>) -> String {
 }
 
 pub fn name_display_info(texture_type: TextureType, name: &str) -> DisplayInfo {
-    DisplayInfo::new(
-        name.chars().next().unwrap(),
-        texture_type,
-        OrderWeight::Creature,
-    )
+    DisplayInfo::new(name.chars().next().unwrap(), texture_type)
 }

@@ -220,13 +220,19 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
 
     let mut objects: Vec<ObjectRenderData> = state
         .world
-        .query::<(&Pos, &DisplayInfo, Option<&Direction>, Option<&AftikColor>)>()
+        .query::<(
+            &Pos,
+            &DisplayInfo,
+            Option<&OrderWeight>,
+            Option<&Direction>,
+            Option<&AftikColor>,
+        )>()
         .iter()
-        .filter(|(_, (pos, _, _, _))| pos.is_in(character_pos.get_area()))
+        .filter(|(_, (pos, _, _, _, _))| pos.is_in(character_pos.get_area()))
         .map(
-            |(entity, (pos, display_info, direction, color))| ObjectRenderData {
+            |(entity, (pos, display_info, weight, direction, color))| ObjectRenderData {
                 coord: pos.get_coord(),
-                weight: display_info.weight,
+                weight: weight.copied().unwrap_or(OrderWeight::Creature),
                 texture_type: display_info.texture_type,
                 modified_name: get_name(
                     &state.world,
