@@ -14,5 +14,6 @@
   "G": { "type": "creature", "creature": "goblin" },
   "E": { "type": "creature", "creature": "eyesaur" },
   "Z": { "type": "creature", "creature": "azureclops" },
-  "S": { "type": "creature", "creature": "scarvie" }
+  "S": { "type": "creature", "creature": "scarvie" },
+  "F": { "type": "creature", "creature": "voracious_frog" }
 }

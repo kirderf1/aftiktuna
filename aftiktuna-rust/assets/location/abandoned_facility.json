@@ -145,7 +145,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "ff", "Z", "^", "s" ],
+      "objects": [ "ff", "F", "^", "B" ],
       "symbols": {
         "^": {
           "type": "door",

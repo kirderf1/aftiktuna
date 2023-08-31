@@ -16,6 +16,7 @@ pub enum Type {
     Eyesaur,
     Azureclops,
     Scarvie,
+    VoraciousFrog,
 }
 
 impl Type {
@@ -25,6 +26,7 @@ impl Type {
             Type::Eyesaur => place_eyesaur(world, symbol, pos, direction),
             Type::Azureclops => place_azureclops(world, symbol, pos, direction),
             Type::Scarvie => place_scarvie(world, symbol, pos, direction),
+            Type::VoraciousFrog => place_voracious_frog(world, symbol, pos, direction),
         }
     }
 }
@@ -80,7 +82,7 @@ fn aftik_builder(symbol: Symbol, name: Name, stats: Stats) -> EntityBuilder {
     builder
 }
 
-pub fn place_goblin(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+fn place_goblin(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(2, 4, 10);
 
@@ -99,7 +101,7 @@ pub fn place_goblin(world: &mut World, symbol: Symbol, pos: Pos, direction: Opti
     ));
 }
 
-pub fn place_eyesaur(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+fn place_eyesaur(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(7, 7, 4);
 
@@ -118,7 +120,7 @@ pub fn place_eyesaur(world: &mut World, symbol: Symbol, pos: Pos, direction: Opt
     ));
 }
 
-pub fn place_azureclops(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+fn place_azureclops(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(15, 10, 4);
 
@@ -137,7 +139,7 @@ pub fn place_azureclops(world: &mut World, symbol: Symbol, pos: Pos, direction: 
     ));
 }
 
-pub fn place_scarvie(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+fn place_scarvie(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stats = Stats::new(3, 2, 8);
 
@@ -146,6 +148,25 @@ pub fn place_scarvie(world: &mut World, symbol: Symbol, pos: Pos, direction: Opt
         TextureType::Scarvie,
         OrderWeight::Creature,
         Noun::new("scarvie", "scarvies"),
+        pos,
+        direction,
+        MovementBlocking,
+        IsFoe,
+        Health::with_max(&stats),
+        Stamina::with_max(&stats),
+        stats,
+    ));
+}
+
+fn place_voracious_frog(world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+    let stats = Stats::new(8, 8, 3);
+
+    world.spawn((
+        symbol,
+        TextureType::VoraciousFrog,
+        OrderWeight::Creature,
+        Noun::new("voracious frog", "voracious frogs"),
         pos,
         direction,
         MovementBlocking,

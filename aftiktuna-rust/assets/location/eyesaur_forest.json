@@ -70,7 +70,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 4,
-      "objects": [ "<", "", "", ">" ],
+      "objects": [ "<", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -78,11 +78,30 @@
           "display_type": "path",
           "adjective": "left"
         },
+        "^": {
+          "type": "door",
+          "pair_id": "side_path",
+          "display_type": "path",
+          "adjective": "middle"
+        },
         ">": {
           "type": "door",
           "pair_id": "mid_left2",
           "display_type": "path",
           "adjective": "right"
+        }
+      }
+    },
+    {
+      "name": "Forest path",
+      "background": "forest",
+      "background_offset": 5,
+      "objects": [ "^", "", "", "F", "B" ],
+      "symbols": {
+        "^": {
+          "type": "door",
+          "pair_id": "side_path",
+          "display_type": "path"
         }
       }
     },
@@ -181,7 +200,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 2,
-      "objects": [ "<", "", "B", "^", "", ">", "" ],
+      "objects": [ "<", "", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -215,6 +234,7 @@
     "right2": {},
     "mid_right1": {},
     "mid_right2": {},
-    "mid": {}
+    "mid": {},
+    "side_path": {}
   }
 }

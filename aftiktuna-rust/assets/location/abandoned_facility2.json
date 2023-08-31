@@ -138,7 +138,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "<", "G", "f", ">" ],
+      "objects": [ "<", "G", "ff", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -157,7 +157,7 @@
     {
       "name": "Storage Room",
       "background": "facility_size3",
-      "objects": [ "^", "aa", "ffa" ],
+      "objects": [ "^", "aa", "fa" ],
       "symbols": {
         "^": {
           "type": "door",

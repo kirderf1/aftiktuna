@@ -1,0 +1,6 @@
+{
+  "layers": [{
+    "texture": "creature/voracious_frog",
+    "y_offset": 10
+  }]
+}

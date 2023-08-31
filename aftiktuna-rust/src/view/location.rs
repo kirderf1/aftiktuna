@@ -29,6 +29,7 @@ pub enum TextureType {
     Eyesaur,
     Azureclops,
     Scarvie,
+    VoraciousFrog,
     Item(item::Type),
 }
 
