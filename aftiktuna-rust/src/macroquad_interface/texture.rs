@@ -363,6 +363,7 @@ mod objects {
         try_load(&mut objects, TextureType::Goblin, "creature/goblin").await;
         try_load(&mut objects, TextureType::Eyesaur, "creature/eyesaur").await;
         try_load(&mut objects, TextureType::Azureclops, "creature/azureclops").await;
+        try_load(&mut objects, TextureType::Scarvie, "creature/scarvie").await;
         try_load(&mut objects, item::Type::FuelCan, "item/fuel_can").await;
         try_load(&mut objects, item::Type::Crowbar, "item/crowbar").await;
         try_load(&mut objects, item::Type::Blowtorch, "item/blowtorch").await;

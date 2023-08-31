@@ -28,6 +28,7 @@ pub enum TextureType {
     Goblin,
     Eyesaur,
     Azureclops,
+    Scarvie,
     Item(item::Type),
 }
 

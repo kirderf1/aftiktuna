@@ -16,6 +16,7 @@ pub enum Type {
     Goblin,
     Eyesaur,
     Azureclops,
+    Scarvie,
 }
 
 impl Type {
@@ -24,6 +25,7 @@ impl Type {
             Type::Goblin => place_goblin(world, pos, direction),
             Type::Eyesaur => place_eyesaur(world, pos, direction),
             Type::Azureclops => place_azureclops(world, pos, direction),
+            Type::Scarvie => place_scarvie(world, pos, direction),
         }
     }
 }
@@ -125,6 +127,23 @@ pub fn place_azureclops(world: &mut World, pos: Pos, direction: Option<Direction
     world.spawn((
         DisplayInfo::new('Z', TextureType::Azureclops, 10),
         Noun::new("azureclops", "azureclopses"),
+        pos,
+        direction,
+        MovementBlocking,
+        IsFoe,
+        Health::with_max(&stats),
+        Stamina::with_max(&stats),
+        stats,
+    ));
+}
+
+pub fn place_scarvie(world: &mut World, pos: Pos, direction: Option<Direction>) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+    let stats = Stats::new(3, 2, 8);
+
+    world.spawn((
+        DisplayInfo::new('S', TextureType::Scarvie, 10),
+        Noun::new("scarvie", "scarvies"),
         pos,
         direction,
         MovementBlocking,

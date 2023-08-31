@@ -13,5 +13,6 @@
   "a": { "type": "item", "item": "ancient_coin" },
   "G": { "type": "creature", "creature": "goblin" },
   "E": { "type": "creature", "creature": "eyesaur" },
-  "Z": { "type": "creature", "creature": "azureclops" }
+  "Z": { "type": "creature", "creature": "azureclops" },
+  "S": { "type": "creature", "creature": "scarvie" }
 }
