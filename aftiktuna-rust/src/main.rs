@@ -1,3 +1,5 @@
+use aftiktuna::game_interface::Game;
+use aftiktuna::serialization::LoadError;
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::color::{BLACK, PINK};
@@ -19,10 +21,11 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     let disable_autosave = env::args().any(|arg| arg.eq("--disable-autosave"));
+    let new_name = env::args().any(|arg| arg.eq("--new-game"));
     if disable_autosave {
         println!("Running without autosave");
     }
-    match game_interface::new_or_load() {
+    match setup_game(new_name) {
         Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
         Err(error) => {
             show_error(vec![
@@ -35,9 +38,17 @@ async fn main() {
     }
 }
 
+fn setup_game(new_game: bool) -> Result<Game, LoadError> {
+    if new_game {
+        Ok(game_interface::setup_new())
+    } else {
+        game_interface::new_or_load()
+    }
+}
+
 const TEXT_SIZE: u16 = 24;
 
-async fn show_error(messages: Vec<String>) {
+async fn show_error(messages: Vec<String>) -> ! {
     let messages = messages
         .into_iter()
         .flat_map(split_text_line)

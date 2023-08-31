@@ -14,11 +14,15 @@ use std::mem::swap;
 pub fn new_or_load() -> Result<Game, LoadError> {
     match File::open(serialization::SAVE_FILE_NAME) {
         Ok(file) => serialization::load_game(file),
-        Err(_) => Ok(setup_new(LocationTracker::new(3))),
+        Err(_) => Ok(setup_new()),
     }
 }
 
-pub fn setup_new(locations: LocationTracker) -> Game {
+pub fn setup_new() -> Game {
+    setup_new_with(LocationTracker::new(3))
+}
+
+pub fn setup_new_with(locations: LocationTracker) -> Game {
     let mut state = core::setup(locations);
     let mut frame_cache = FrameCache::new(vec![Frame::Introduction]);
     let (phase, frames) = core::run(Step::PrepareNextLocation, &mut state);

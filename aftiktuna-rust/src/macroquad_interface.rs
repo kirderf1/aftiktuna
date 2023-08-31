@@ -29,7 +29,7 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(game: Game, autosave: bool) {
+pub async fn run(game: Game, autosave: bool) -> ! {
     let mut app = init(game);
     let textures = texture::load_textures().await.unwrap();
 
