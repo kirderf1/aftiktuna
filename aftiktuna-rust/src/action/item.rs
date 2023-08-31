@@ -6,7 +6,6 @@ use crate::core::position::{try_move, try_move_adjacent, Pos};
 use crate::core::status::Health;
 use crate::core::{inventory, status};
 use crate::view::name::{NameData, NameQuery};
-use crate::view::DisplayInfo;
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
@@ -22,10 +21,11 @@ pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
 
     let result = take_item(world, aftik, item, name)?;
     if world
-        .query::<(&Pos, &DisplayInfo)>()
+        .query::<&Pos>()
+        .with::<NameQuery>()
         .with::<&Item>()
         .iter()
-        .any(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
+        .any(|(_, pos)| pos.is_in(aftik_pos.get_area()))
     {
         world.insert_one(aftik, Action::TakeAll).unwrap();
     }

@@ -7,7 +7,7 @@ use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, item, GameState};
 use crate::view::name::NameData;
-use crate::view::{capitalize, DisplayInfo, Messages, OrderWeight};
+use crate::view::{capitalize, Messages, OrderWeight, Symbol};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
@@ -222,25 +222,28 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
         .world
         .query::<(
             &Pos,
-            &DisplayInfo,
-            Option<&OrderWeight>,
-            Option<&Direction>,
-            Option<&AftikColor>,
+            (
+                &TextureType,
+                &Symbol,
+                Option<&OrderWeight>,
+                Option<&Direction>,
+                Option<&AftikColor>,
+            ),
         )>()
         .iter()
-        .filter(|(_, (pos, _, _, _, _))| pos.is_in(character_pos.get_area()))
+        .filter(|&(_, (pos, _))| pos.is_in(character_pos.get_area()))
         .map(
-            |(entity, (pos, display_info, weight, direction, color))| ObjectRenderData {
+            |(entity, (pos, (&texture_type, symbol, weight, direction, color)))| ObjectRenderData {
                 coord: pos.get_coord(),
                 weight: weight.copied().unwrap_or(OrderWeight::Creature),
-                texture_type: display_info.texture_type,
+                texture_type,
                 modified_name: get_name(
                     &state.world,
                     entity,
                     capitalize(NameData::find(&state.world, entity).base()),
                 ),
                 name: capitalize(NameData::find(&state.world, entity).base()),
-                symbol: display_info.symbol,
+                symbol: symbol.0,
                 direction: direction.copied().unwrap_or(Direction::Right),
                 aftik_color: color.copied(),
                 wielded_item: find_wielded_item_texture(&state.world, entity),
@@ -263,7 +266,7 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
 fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureType> {
     let item = inventory::get_wielded(world, holder)?;
     world
-        .get::<&DisplayInfo>(item)
+        .get::<&TextureType>(item)
         .ok()
-        .map(|info| info.texture_type)
+        .map(|texture_type| *texture_type)
 }

@@ -3,7 +3,7 @@ use crate::core::item::{Keycard, Tool};
 use crate::core::position::Pos;
 use crate::core::{inventory, position};
 use crate::view::name::NameData;
-use crate::view::{DisplayInfo, TextureType};
+use crate::view::TextureType;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
@@ -142,19 +142,19 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
     world.remove_one::<BlockType>(door_pair).unwrap();
     if tool == Tool::Blowtorch {
         world
-            .query::<(&Door, &mut DisplayInfo)>()
+            .query::<(&Door, &mut TextureType)>()
             .iter()
             .filter(|(_, (door, _))| door.door_pair == door_pair)
-            .for_each(|(_, (_, display_info))| set_is_cut(display_info));
+            .for_each(|(_, (_, texture_type))| set_is_cut(texture_type));
     }
 
     action::ok(tool.into_message(&aftik_name))
 }
 
-fn set_is_cut(display_info: &mut DisplayInfo) {
-    if display_info.texture_type == TextureType::Door {
-        display_info.texture_type = TextureType::CutDoor;
-    } else if display_info.texture_type == TextureType::Shack {
-        display_info.texture_type = TextureType::CutShack;
+fn set_is_cut(texture_type: &mut TextureType) {
+    if *texture_type == TextureType::Door {
+        *texture_type = TextureType::CutDoor;
+    } else if *texture_type == TextureType::Shack {
+        *texture_type = TextureType::CutShack;
     }
 }

@@ -3,7 +3,7 @@ use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::{status, GameState};
 use crate::view;
 use crate::view::name::{Name, NameData};
-use crate::view::TextureType;
+use crate::view::Symbol;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::result;
@@ -154,13 +154,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     }
     let name = NameData::find(world, target).definite();
     world
-        .insert(
-            target,
-            (
-                view::name_display_info(TextureType::Aftik, &name),
-                CrewMember(crew),
-            ),
-        )
+        .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
         .unwrap();
     ok(format!("{} joined the crew!", name))
 }

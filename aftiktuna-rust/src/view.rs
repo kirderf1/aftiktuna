@@ -39,9 +39,12 @@ impl<T: AsRef<str>> From<T> for Messages {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct DisplayInfo {
-    symbol: char,
-    pub texture_type: TextureType,
+pub struct Symbol(pub char);
+
+impl Symbol {
+    pub fn from_name(name: &str) -> Self {
+        Self(name.chars().next().unwrap())
+    }
 }
 
 #[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
@@ -261,23 +264,10 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
     }
 }
 
-impl DisplayInfo {
-    pub fn new(symbol: char, texture_type: TextureType) -> Self {
-        DisplayInfo {
-            symbol,
-            texture_type,
-        }
-    }
-}
-
 pub fn capitalize(text: impl AsRef<str>) -> String {
     let mut chars = text.as_ref().chars();
     match chars.next() {
         None => String::new(),
         Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),
     }
-}
-
-pub fn name_display_info(texture_type: TextureType, name: &str) -> DisplayInfo {
-    DisplayInfo::new(name.chars().next().unwrap(), texture_type)
 }

@@ -10,7 +10,7 @@ use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::game_interface::Game;
 use crate::view::name::{Name, Noun};
-use crate::view::{AftikColor, DisplayInfo};
+use crate::view::{AftikColor, OrderWeight, Symbol, TextureType};
 use hecs::serialize::column;
 use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
 use rmp_serde::{decode, encode};
@@ -138,7 +138,9 @@ components_to_serialize!(
 
     Name, Name;
     Noun, Noun;
-    DisplayInfo, DisplayInfo;
+    Symbol, Symbol;
+    TextureType, TextureType;
+    OrderWeight, OrderWeight;
     AftikColor, AftikColor;
 
     Stats, Stats;

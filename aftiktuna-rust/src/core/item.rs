@@ -1,5 +1,5 @@
 use crate::view::name::Noun;
-use crate::view::{DisplayInfo, OrderWeight};
+use crate::view::{OrderWeight, Symbol, TextureType};
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 
@@ -81,8 +81,8 @@ impl Type {
         }
     }
 
-    pub fn symbol(self) -> char {
-        match self {
+    pub fn symbol(self) -> Symbol {
+        Symbol(match self {
             Type::FuelCan => 'f',
             Type::Crowbar => 'c',
             Type::Blowtorch => 'b',
@@ -93,11 +93,7 @@ impl Type {
             Type::Medkit => '+',
             Type::MeteorChunk => 'm',
             Type::AncientCoin => 'a',
-        }
-    }
-
-    pub fn display_info(self) -> DisplayInfo {
-        DisplayInfo::new(self.symbol(), self.into())
+        })
     }
 
     pub fn price(self) -> Option<i32> {
@@ -118,7 +114,8 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
     builder
         .add(location)
         .add(Item)
-        .add(item_type.display_info())
+        .add(item_type.symbol())
+        .add(TextureType::from(item_type))
         .add(OrderWeight::Item)
         .add(item_type.noun_data());
     if let Some(price) = item_type.price() {
