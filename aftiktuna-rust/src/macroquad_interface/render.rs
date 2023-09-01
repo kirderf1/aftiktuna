@@ -94,7 +94,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
         Frame::AreaView { render_data, .. } => {
             set_camera(&Camera2D::from_display_rect(camera));
             draw_background(
-                render_data.background.unwrap_or(BackgroundType::Blank),
+                render_data.background.unwrap_or_default(),
                 render_data.background_offset.unwrap_or(0),
                 camera,
                 textures,

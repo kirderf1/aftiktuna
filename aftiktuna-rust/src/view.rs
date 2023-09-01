@@ -208,7 +208,12 @@ pub struct StoreView {
     pub items: Vec<PricedItem>,
     pub points: i32,
     pub shopkeeper_color: Option<AftikColor>,
+    #[serde(default = "shack_background")] // Compatibility with 1.0
     pub background: BackgroundType,
+}
+
+fn shack_background() -> BackgroundType {
+    BackgroundType::Shack
 }
 
 impl StoreView {
@@ -257,7 +262,7 @@ fn shop_frame(
                 .get::<&Area>(area)
                 .unwrap()
                 .background
-                .unwrap_or(BackgroundType::Blank),
+                .unwrap_or_default(),
         },
         messages: buffer.pop_messages(world, character, cache).into_text(),
     }

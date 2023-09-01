@@ -39,9 +39,10 @@ impl From<item::Type> for TextureType {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AftikColor {
+    #[default]
     Mint,
     Cerulean,
     Plum,

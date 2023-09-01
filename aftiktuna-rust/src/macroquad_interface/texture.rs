@@ -92,9 +92,10 @@ impl TextureLayer {
     }
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ColorSource {
+    #[default]
     Uncolored,
     Primary,
     Secondary,
@@ -104,15 +105,9 @@ impl ColorSource {
     fn get_color(self, aftik_color: Option<AftikColor>) -> Color {
         match self {
             ColorSource::Uncolored => WHITE,
-            ColorSource::Primary => convert_to_color(aftik_color.unwrap_or(AftikColor::Mint)).0,
-            ColorSource::Secondary => convert_to_color(aftik_color.unwrap_or(AftikColor::Mint)).1,
+            ColorSource::Primary => convert_to_color(aftik_color.unwrap_or_default()).0,
+            ColorSource::Secondary => convert_to_color(aftik_color.unwrap_or_default()).1,
         }
-    }
-}
-
-impl Default for ColorSource {
-    fn default() -> Self {
-        Self::Uncolored
     }
 }
 
