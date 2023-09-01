@@ -96,20 +96,18 @@ fn perform(
     let world = &state.world;
     let controlled = state.controlled;
     match result {
-        Ok(Success::LocalMessage(message)) => {
-            let performer_pos = *world.get::<&Pos>(performer).unwrap();
-            let player_pos = *world.get::<&Pos>(controlled).unwrap();
-            if player_pos.is_in(performer_pos.get_area()) {
-                view_buffer.messages.add(message);
-            }
-        }
-        Ok(Success::Message(message, areas)) => {
+        Ok(Success { message: None, .. }) => {}
+        Ok(Success {
+            message: Some(message),
+            areas,
+        }) => {
+            let areas =
+                areas.unwrap_or_else(|| vec![world.get::<&Pos>(performer).unwrap().get_area()]);
             let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if areas.contains(&player_pos.get_area()) {
                 view_buffer.messages.add(message);
             }
         }
-        Ok(Success::Silent) => {}
         Err(message) => {
             if performer == controlled {
                 view_buffer.messages.add(message);
@@ -187,20 +185,28 @@ fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
 
 type Result = result::Result<Success, String>;
 
-pub enum Success {
-    LocalMessage(String),
-    Message(String, Vec<Entity>),
-    Silent,
+pub struct Success {
+    message: Option<String>,
+    areas: Option<Vec<Entity>>,
 }
 
 fn ok(message: String) -> Result {
-    Ok(Success::LocalMessage(message))
+    Ok(Success {
+        message: Some(message),
+        areas: None,
+    })
 }
 
 fn ok_at(message: String, areas: Vec<Entity>) -> Result {
-    Ok(Success::Message(message, areas))
+    Ok(Success {
+        message: Some(message),
+        areas: Some(areas),
+    })
 }
 
 fn silent_ok() -> Result {
-    Ok(Success::Silent)
+    Ok(Success {
+        message: None,
+        areas: None,
+    })
 }
