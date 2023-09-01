@@ -246,7 +246,7 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
                 ),
                 name: capitalize(NameData::find(&state.world, entity).base()),
                 symbol: symbol.0,
-                direction: direction.copied().unwrap_or(Direction::Right),
+                direction: direction.copied().unwrap_or_default(),
                 aftik_color: color.copied(),
                 wielded_item: find_wielded_item_texture(&state.world, entity),
                 interactions: interactions_for(entity, state),

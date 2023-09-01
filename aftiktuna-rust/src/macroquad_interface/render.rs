@@ -1,14 +1,15 @@
 use super::texture::TextureStorage;
 use super::App;
 use crate::area::BackgroundType;
+use crate::core::position::Direction;
 use crate::core::StopType;
-use crate::macroquad_interface::texture::draw_background;
+use crate::macroquad_interface::texture::{draw_background, BGData, TextureData};
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
-use crate::view::{Frame, Messages, RenderData};
+use crate::view::{AftikColor, Frame, Messages, RenderData};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
-use egui_macroquad::macroquad::math::Rect;
-use egui_macroquad::macroquad::window::clear_background;
+use egui_macroquad::macroquad::math::{Rect, Vec2};
+use egui_macroquad::macroquad::window;
 
 pub struct State {
     pub text_log: Vec<String>,
@@ -57,7 +58,7 @@ impl State {
 }
 
 pub fn draw(app: &mut App, textures: &TextureStorage) {
-    clear_background(BLACK);
+    window::clear_background(BLACK);
 
     if app.show_graphical {
         draw_frame(
@@ -108,6 +109,19 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
                 camera::has_camera_space(camera, render_data),
             );
         }
+        &Frame::Dialogue {
+            background,
+            color,
+            direction,
+            ..
+        } => {
+            draw_dialogue_frame(
+                textures.lookup_background(background),
+                &textures.portrait,
+                color,
+                direction,
+            );
+        }
         Frame::StoreView { view, .. } => {
             store_render::draw_store_view(textures, view);
         }
@@ -117,7 +131,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
                 StopType::Win => LIGHTGRAY,
                 StopType::Lose => BLACK,
             };
-            clear_background(color);
+            window::clear_background(color);
         }
     }
 }
@@ -141,4 +155,19 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
             );
         }
     }
+}
+
+fn draw_dialogue_frame(
+    background: &BGData,
+    portrait: &TextureData,
+    color: Option<AftikColor>,
+    direction: Direction,
+) {
+    set_default_camera();
+    window::clear_background(background.color);
+    let pos = match direction {
+        Direction::Left => Vec2::new(500., 600.),
+        Direction::Right => Vec2::new(300., 600.),
+    };
+    texture::draw_object(portrait, direction, color, false, pos);
 }

@@ -1,11 +1,12 @@
 use crate::action;
-use crate::action::Action;
+use crate::action::{Action, Success};
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
 use crate::core::position::{try_move, try_move_adjacent, Pos};
 use crate::core::status::Health;
 use crate::core::{inventory, status};
 use crate::view::name::{NameData, NameQuery};
+use crate::view::Frame;
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
@@ -100,10 +101,19 @@ pub fn give_item(
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
 
-    action::ok(format!(
-        "\"Here, hold on to this.\" {performer_name} gave {receiver_name} a {}.",
-        NameData::find(world, item).base()
-    ))
+    let frames = vec![Frame::new_dialogue(
+        world,
+        performer,
+        vec!["\"Here, hold on to this.\"".to_owned()],
+    )];
+    Ok(Success {
+        message: Some(format!(
+            "{performer_name} gave {receiver_name} a {}.",
+            NameData::find(world, item).base()
+        )),
+        areas: None,
+        extra_frames: Some(frames),
+    })
 }
 
 pub fn wield(

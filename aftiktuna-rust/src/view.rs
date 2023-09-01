@@ -1,7 +1,8 @@
 use crate::action::trade::{IsTrading, PricedItem, Shopkeeper};
 use crate::area::{Area, BackgroundType, Choice};
-use crate::core::position::Pos;
+use crate::core::position::{Direction, Pos};
 use crate::core::{GameState, StopType};
+use crate::view::name::NameData;
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
 use serde::{Deserialize, Serialize};
@@ -127,6 +128,13 @@ pub enum Frame {
         messages: Vec<String>,
         render_data: RenderData,
     },
+    Dialogue {
+        messages: Vec<String>,
+        background: BackgroundType,
+        speaker: NameData,
+        color: Option<AftikColor>,
+        direction: Direction,
+    },
     StoreView {
         view: StoreView,
         messages: Vec<String>,
@@ -157,6 +165,12 @@ impl Frame {
                     text.extend(messages.clone());
                 }
             }
+            Frame::Dialogue {
+                messages, speaker, ..
+            } => {
+                text.push(format!("{}:", capitalize(speaker.definite())));
+                text.extend(messages.clone());
+            }
             Frame::StoreView { view, messages, .. } => {
                 text.push("--------------------".to_string());
                 text.extend(view.messages().0);
@@ -181,9 +195,9 @@ impl Frame {
 
     fn has_messages(&self) -> bool {
         match self {
-            Frame::AreaView { messages, .. } | Frame::StoreView { messages, .. } => {
-                !messages.is_empty()
-            }
+            Frame::AreaView { messages, .. }
+            | Frame::Dialogue { messages, .. }
+            | Frame::StoreView { messages, .. } => !messages.is_empty(),
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending { .. } => true,
         }
     }
@@ -192,9 +206,28 @@ impl Frame {
         match self {
             Frame::Introduction => intro_messages(),
             Frame::AreaView { messages, .. } => messages.clone(),
+            Frame::Dialogue { messages, .. } => messages.clone(),
             Frame::StoreView { messages, .. } => messages.clone(),
             Frame::LocationChoice(choice) => choice.present().0,
             Frame::Ending { stop_type, .. } => stop_type.messages().0,
+        }
+    }
+
+    pub fn new_dialogue(world: &World, character: Entity, messages: Vec<String>) -> Self {
+        let area = world.get::<&Pos>(character).unwrap().get_area();
+        Self::Dialogue {
+            messages,
+            background: world
+                .get::<&Area>(area)
+                .unwrap()
+                .background
+                .unwrap_or_default(),
+            speaker: NameData::find(world, character),
+            color: world.get::<&AftikColor>(character).ok().map(|color| *color),
+            direction: world
+                .get::<&Direction>(character)
+                .map(|direction| *direction)
+                .unwrap_or_default(),
         }
     }
 }

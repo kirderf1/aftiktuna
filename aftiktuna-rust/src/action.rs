@@ -3,7 +3,7 @@ use crate::core::position::{try_move_adjacent, Pos};
 use crate::core::{status, GameState};
 use crate::view;
 use crate::view::name::{Name, NameData};
-use crate::view::Symbol;
+use crate::view::{Frame, Symbol};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::result;
@@ -96,16 +96,28 @@ fn perform(
     let world = &state.world;
     let controlled = state.controlled;
     match result {
-        Ok(Success { message: None, .. }) => {}
         Ok(Success {
-            message: Some(message),
+            message: None,
+            extra_frames: None,
+            ..
+        }) => {}
+        Ok(Success {
+            message,
             areas,
+            extra_frames,
         }) => {
             let areas =
                 areas.unwrap_or_else(|| vec![world.get::<&Pos>(performer).unwrap().get_area()]);
             let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if areas.contains(&player_pos.get_area()) {
-                view_buffer.messages.add(message);
+                if let Some(extra_frames) = extra_frames {
+                    extra_frames
+                        .into_iter()
+                        .for_each(|frame| view_buffer.push_frame(frame));
+                }
+                if let Some(message) = message {
+                    view_buffer.messages.add(message);
+                }
             }
         }
         Err(message) => {
@@ -154,7 +166,19 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     world
         .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
         .unwrap();
-    ok(format!("\"Hi! Do you want to join me in the search for Fortuna?\" \"Sure, I'll join you!\" {name} joined the crew!"))
+    let frames = vec![
+        Frame::new_dialogue(
+            world,
+            performer,
+            vec!["\"Hi! Do you want to join me in the search for Fortuna?\"".to_owned()],
+        ),
+        Frame::new_dialogue(world, target, vec!["\"Sure, I'll join you!\"".to_owned()]),
+    ];
+    Ok(Success {
+        message: Some(format!("{name} joined the crew!")),
+        areas: None,
+        extra_frames: Some(frames),
+    })
 }
 
 #[derive(Serialize, Deserialize)]
@@ -188,12 +212,14 @@ type Result = result::Result<Success, String>;
 pub struct Success {
     message: Option<String>,
     areas: Option<Vec<Entity>>,
+    extra_frames: Option<Vec<Frame>>,
 }
 
 fn ok(message: String) -> Result {
     Ok(Success {
         message: Some(message),
         areas: None,
+        extra_frames: None,
     })
 }
 
@@ -201,6 +227,7 @@ fn ok_at(message: String, areas: Vec<Entity>) -> Result {
     Ok(Success {
         message: Some(message),
         areas: Some(areas),
+        extra_frames: None,
     })
 }
 
@@ -208,5 +235,6 @@ fn silent_ok() -> Result {
     Ok(Success {
         message: None,
         areas: None,
+        extra_frames: None,
     })
 }
