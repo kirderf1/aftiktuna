@@ -44,7 +44,7 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action
 
     let shop_pos = *world
         .get::<&Pos>(shopkeeper)
-        .map_err(|_| format!("{} lost track of the shopkeeper.", performer_name))?;
+        .map_err(|_| format!("{performer_name} lost track of the shopkeeper."))?;
     world.get::<&Shopkeeper>(shopkeeper).unwrap();
 
     position::try_move_adjacent(world, performer, shop_pos)?;
@@ -52,8 +52,7 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 
     action::ok(format!(
-        "{} starts trading with the shopkeeper.",
-        performer_name,
+        "{performer_name} starts trading with the shopkeeper. \"Welcome to the store. What do you want to buy?\"",
     ))
 }
 

@@ -156,7 +156,7 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
     world
         .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
         .unwrap();
-    ok(format!("{} joined the crew!", name))
+    ok(format!("\"Hi! Do you want to join me in the search for Fortuna?\" \"Sure, I'll join you!\" {name} joined the crew!"))
 }
 
 #[derive(Serialize, Deserialize)]

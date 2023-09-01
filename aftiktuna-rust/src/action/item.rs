@@ -71,8 +71,7 @@ pub fn give_item(
         .is_none()
     {
         return Err(format!(
-            "{} lost track of the item they were going to give.",
-            performer_name
+            "{performer_name} lost track of the item they were going to give."
         ));
     }
 
@@ -80,23 +79,18 @@ pub fn give_item(
         .get::<&Pos>(performer)
         .expect("Expected performer to have a position");
     let receiver_pos = *world.get::<&Pos>(receiver).map_err(|_| {
-        format!(
-            "{} disappeared before {} could interact with them.",
-            receiver_name, performer_name
-        )
+        format!("{receiver_name} disappeared before {performer_name} could interact with them.",)
     })?;
 
     if !performer_pos.is_in(receiver_pos.get_area()) {
         return Err(format!(
-            "{} left before {} could interact with them.",
-            receiver_name, performer_name
+            "{receiver_name} left before {performer_name} could interact with them.",
         ));
     }
 
     if !status::is_alive(receiver, world) {
         return Err(format!(
-            "{} died before they could be given an item.",
-            receiver_name
+            "{receiver_name} died before they could be given an item."
         ));
     }
 
@@ -107,9 +101,7 @@ pub fn give_item(
         .unwrap();
 
     action::ok(format!(
-        "{} gave {} a {}.",
-        performer_name,
-        receiver_name,
+        "\"Here, hold on to this.\" {performer_name} gave {receiver_name} a {}.",
         NameData::find(world, item).base()
     ))
 }
