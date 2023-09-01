@@ -12,7 +12,7 @@ const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 
 pub fn draw_store_view(textures: &TextureStorage, store_view: &StoreView) {
     camera::set_default_camera();
-    window::clear_background(Color::from_rgba(109, 102, 67, 255));
+    window::clear_background(textures.lookup_background(store_view.background).color);
     draw_shopkeeper_portrait(textures, store_view.shopkeeper_color);
     draw_store_stock(store_view);
     draw_points_for_store(store_view.points);

@@ -1,15 +1,67 @@
 {
-  "blank": { "type": "centered", "texture": "white_space" },
-  "location_choice": { "type": "centered", "texture": "location_choice" },
-  "ship": { "type": "centered", "texture": "ship" },
-  "forest_entrance": { "type": "repeating", "texture": "forest_entrance" },
-  "forest": { "type": "repeating", "texture": "forest" },
-  "field": { "type": "repeating", "texture": "field" },
-  "shack": { "type": "centered", "texture": "shack" },
-  "facility_outside": { "type": "fixed", "texture": "facility_outside" },
-  "facility_size3": { "type": "centered", "texture": "3x_facility" },
-  "facility_size4": { "type": "centered", "texture": "4x_facility" },
-  "facility_size5": { "type": "centered", "texture": "5x_facility" },
-  "facility_size6": { "type": "centered", "texture": "6x_facility" },
-  "facility_size7": { "type": "fixed", "texture": "7x_facility" }
+  "blank": {
+    "type": "centered",
+    "texture": "white_space",
+    "color": [ 216, 216, 216 ]
+  },
+  "location_choice": {
+    "type": "centered",
+    "texture": "location_choice",
+    "color": [ 0, 0, 0 ]
+  },
+  "ship": {
+    "type": "centered",
+    "texture": "ship",
+    "color": [ 153, 153, 153 ]
+  },
+  "forest_entrance": {
+    "type": "repeating",
+    "texture": "forest_entrance",
+    "color": [ 55, 85, 96 ]
+  },
+  "forest": {
+    "type": "repeating",
+    "texture": "forest",
+    "color": [ 55, 85, 96 ]
+  },
+  "field": {
+    "type": "repeating",
+    "texture": "field",
+    "color": [ 64, 156, 206 ]
+  },
+  "shack": {
+    "type": "centered",
+    "texture": "shack",
+    "color": [ 109, 102, 67 ]
+  },
+  "facility_outside": {
+    "type": "fixed",
+    "texture": "facility_outside",
+    "color": [ 64, 156, 206 ]
+  },
+  "facility_size3": {
+    "type": "centered",
+    "texture": "3x_facility",
+    "color": [ 153, 153, 153 ]
+  },
+  "facility_size4": {
+    "type": "centered",
+    "texture": "4x_facility",
+    "color": [ 153, 153, 153 ]
+  },
+  "facility_size5": {
+    "type": "centered",
+    "texture": "5x_facility",
+    "color": [ 153, 153, 153 ]
+  },
+  "facility_size6": {
+    "type": "centered",
+    "texture": "6x_facility",
+    "color": [ 153, 153, 153 ]
+  },
+  "facility_size7": {
+    "type": "fixed",
+    "texture": "7x_facility",
+    "color": [ 153, 153, 153 ]
+  }
 }

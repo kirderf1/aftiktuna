@@ -18,7 +18,7 @@ use std::hash::Hash;
 use std::io;
 
 pub struct TextureStorage {
-    backgrounds: HashMap<BackgroundType, BGTexture>,
+    backgrounds: HashMap<BackgroundType, BGData>,
     objects: HashMap<TextureType, TextureData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
@@ -26,7 +26,7 @@ pub struct TextureStorage {
 }
 
 impl TextureStorage {
-    pub fn lookup_background(&self, texture_type: BackgroundType) -> &BGTexture {
+    pub fn lookup_background(&self, texture_type: BackgroundType) -> &BGData {
         self.backgrounds
             .get(&texture_type)
             .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::Blank).unwrap())
@@ -166,10 +166,32 @@ fn convert_to_color(color: AftikColor) -> (Color, Color) {
     }
 }
 
-pub enum BGTexture {
+pub struct BGData {
+    texture: BGTexture,
+    pub color: Color,
+}
+
+enum BGTexture {
     Centered(Texture2D),
     Fixed(Texture2D),
     Repeating(Texture2D),
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+struct RawBGData {
+    #[serde(flatten)]
+    texture: RawBGTexture,
+    color: [u8; 3],
+}
+
+impl RawBGData {
+    async fn load(self) -> Result<BGData, FileError> {
+        Ok(BGData {
+            texture: self.texture.load().await?,
+            color: [self.color[0], self.color[1], self.color[2], 255].into(),
+        })
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -203,14 +225,14 @@ pub fn draw_background(
     textures: &TextureStorage,
 ) {
     let offset = offset as f32 * 120.;
-    match textures.lookup_background(texture_type) {
-        BGTexture::Centered(texture) => draw_texture(*texture, camera_space.x - offset, 0., WHITE),
-        BGTexture::Fixed(texture) => draw_texture(*texture, -60. - offset, 0., WHITE),
+    match textures.lookup_background(texture_type).texture {
+        BGTexture::Centered(texture) => draw_texture(texture, camera_space.x - offset, 0., WHITE),
+        BGTexture::Fixed(texture) => draw_texture(texture, -60. - offset, 0., WHITE),
         BGTexture::Repeating(texture) => {
             let start_x =
                 texture.width() * f32::floor((camera_space.x + offset) / texture.width()) - offset;
-            draw_texture(*texture, start_x, 0., WHITE);
-            draw_texture(*texture, start_x + texture.width(), 0., WHITE);
+            draw_texture(texture, start_x, 0., WHITE);
+            draw_texture(texture, start_x + texture.width(), 0., WHITE);
         }
     }
 }
@@ -324,9 +346,9 @@ pub async fn load_textures() -> Result<TextureStorage, Error> {
     })
 }
 
-async fn load_backgrounds() -> Result<HashMap<BackgroundType, BGTexture>, Error> {
+async fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
     let file = File::open("assets/texture/background/backgrounds.json")?;
-    let raw_backgrounds: HashMap<BackgroundType, RawBGTexture> = serde_json::from_reader(file)?;
+    let raw_backgrounds: HashMap<BackgroundType, RawBGData> = serde_json::from_reader(file)?;
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
         insert_or_log(&mut backgrounds, bg_type, raw_data.load().await);

@@ -1,5 +1,6 @@
 use crate::action::trade::{IsTrading, PricedItem, Shopkeeper};
-use crate::area::Choice;
+use crate::area::{Area, BackgroundType, Choice};
+use crate::core::position::Pos;
 use crate::core::{GameState, StopType};
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
@@ -207,6 +208,7 @@ pub struct StoreView {
     pub items: Vec<PricedItem>,
     pub points: i32,
     pub shopkeeper_color: Option<AftikColor>,
+    pub background: BackgroundType,
 }
 
 impl StoreView {
@@ -238,6 +240,7 @@ fn shop_frame(
     character: Entity,
     cache: &mut StatusCache,
 ) -> Frame {
+    let area = world.get::<&Pos>(shopkeeper).unwrap().get_area();
     // Use the cache in shop view before status messages so that points aren't shown in status messages too
     let points = status::fetch_points(world, character, cache);
     let store_info = world.get::<&Shopkeeper>(shopkeeper).unwrap();
@@ -250,6 +253,11 @@ fn shop_frame(
                 .get::<&AftikColor>(shopkeeper)
                 .ok()
                 .map(|color| *color),
+            background: world
+                .get::<&Area>(area)
+                .unwrap()
+                .background
+                .unwrap_or(BackgroundType::Blank),
         },
         messages: buffer.pop_messages(world, character, cache).into_text(),
     }
