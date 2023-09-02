@@ -1,12 +1,13 @@
+mod item;
+
 use crate::action::trade::Shopkeeper;
 use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
-use crate::core::inventory::Held;
+use crate::core::item::FuelCan;
 use crate::core::position::{Blockage, Pos};
-use crate::core::status::Health;
-use crate::core::{inventory, item, position, status, GameState};
+use crate::core::{inventory, position, status, GameState};
 use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
 use hecs::{Entity, World};
@@ -16,29 +17,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let character = state.controlled;
     let parse = Parse::new(input);
     first_match_or!(
-        parse.literal("take", |parse| {
-            first_match_or!(
-                parse.literal("all", |parse| {
-                    parse.done_or_err(|| take_all(world, character))
-                });
-                parse.take_remaining(|item_name| take(item_name, world, character))
-            )
-        }),
-        parse.literal("give", |parse| {
-            parse.match_against(
-                crew_targets(world),
-                |parse, receiver| {
-                    parse.take_remaining(|item_name| give(receiver, item_name, world, character))
-                },
-                |input| Err(format!("\"{input}\" not a valid target")),
-            )
-        }),
-        parse.literal("wield", |parse| {
-            parse.take_remaining(|item_name| wield(item_name, world, character))
-        }),
-        parse.literal("use", |parse| {
-            parse.take_remaining(|item_name| use_item(state, item_name))
-        }),
+        item::commands(&parse, state),
         parse.literal("enter", |parse| {
             parse.take_remaining(|door_name| enter(door_name, world, character))
         }),
@@ -86,202 +65,6 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         });
         Err(format!("Unexpected input: \"{input}\""))
     )
-}
-
-fn take_all(world: &World, character: Entity) -> Result<CommandResult, String> {
-    let character_pos = *world.get::<&Pos>(character).unwrap();
-    if !world
-        .query::<&Pos>()
-        .with::<&item::Item>()
-        .iter()
-        .any(|(_, pos)| pos.is_in(character_pos.get_area()))
-    {
-        return Err("There are no items to take here.".to_string());
-    }
-
-    if !core::is_safe(world, character_pos.get_area()) {
-        return Err("You should take care of all foes here before taking all items.".to_string());
-    }
-
-    command::action_result(Action::TakeAll)
-}
-
-fn crew_targets(world: &World) -> Vec<(String, Entity)> {
-    world
-        .query::<NameQuery>()
-        .with::<&CrewMember>()
-        .iter()
-        .map(|(entity, query)| (NameData::from(query).base().to_lowercase(), entity))
-        .collect()
-}
-
-fn take(item_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
-    let character_pos = *world.get::<&Pos>(character).unwrap();
-    let (item, name) = world
-        .query::<(&Pos, NameQuery)>()
-        .with::<&item::Item>()
-        .iter()
-        .map(|(item, (&pos, query))| (item, pos, NameData::from(query)))
-        .filter(|(_, pos, name)| pos.is_in(character_pos.get_area()) && name.matches(item_name))
-        .min_by_key(|(_, pos, _)| pos.distance_to(character_pos))
-        .map(|(item, _, name)| (item, name))
-        .ok_or_else(|| format!("There is no {} here to pick up.", item_name))?;
-
-    check_accessible_with_message(world, character, item)?;
-
-    command::action_result(Action::TakeItem(item, name))
-}
-
-fn give(
-    receiver: Entity,
-    item_name: &str,
-    world: &World,
-    character: Entity,
-) -> Result<CommandResult, String> {
-    if character == receiver {
-        return Err(format!(
-            "{} can't give an item to themselves.",
-            NameData::find(world, character).definite()
-        ));
-    }
-
-    check_adjacent_accessible_with_message(world, character, receiver)?;
-
-    world
-        .query::<(NameQuery, &Held)>()
-        .with::<&item::Item>()
-        .iter()
-        .filter(|&(_, (query, held))| {
-            NameData::from(query).matches(item_name) && held.held_by(character)
-        })
-        .min_by_key(|(_, (_, held))| held.is_in_hand())
-        .map(|(item, _)| command::action_result(Action::GiveItem(item, receiver)))
-        .unwrap_or_else(|| {
-            Err(format!(
-                "{} has no {} to give.",
-                NameData::find(world, character).definite(),
-                item_name,
-            ))
-        })
-}
-
-fn wield(item_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
-    if world
-        .query::<(NameQuery, &Held)>()
-        .into_iter()
-        .any(|(_, (query, held))| {
-            NameData::from(query).matches(item_name) && held.held_by(character) && held.is_in_hand()
-        })
-    {
-        return Err(format!(
-            "{} is already wielding a {}.",
-            NameData::find(world, character).definite(),
-            item_name
-        ));
-    }
-
-    if let Some((item, name)) = wieldable_item_in_inventory(item_name, world, character) {
-        return command::action_result(Action::Wield(item, name));
-    }
-
-    if let Some((item, name)) = wieldable_item_from_ground(item_name, world, character) {
-        check_accessible_with_message(world, character, item)?;
-
-        return command::action_result(Action::Wield(item, name));
-    }
-    Err(format!(
-        "There is no {} that {} can wield.",
-        item_name,
-        NameData::find(world, character).definite()
-    ))
-}
-
-fn wieldable_item_in_inventory(
-    item_name: &str,
-    world: &World,
-    character: Entity,
-) -> Option<(Entity, NameData)> {
-    world
-        .query::<(NameQuery, &Held)>()
-        .with::<&item::CanWield>()
-        .with::<&item::Item>()
-        .iter()
-        .map(|(item, (query, held))| (item, NameData::from(query), held))
-        .find(|(_, name, held)| name.matches(item_name) && held.is_in_inventory(character))
-        .map(|(item, name, _)| (item, name))
-}
-
-fn wieldable_item_from_ground(
-    item_name: &str,
-    world: &World,
-    character: Entity,
-) -> Option<(Entity, NameData)> {
-    let character_pos = *world.get::<&Pos>(character).unwrap();
-    world
-        .query::<(&Pos, NameQuery)>()
-        .with::<&item::CanWield>()
-        .with::<&item::Item>()
-        .iter()
-        .map(|(item, (&pos, query))| (item, pos, NameData::from(query)))
-        .filter(|(_, pos, name)| pos.is_in(character_pos.get_area()) && name.matches(item_name))
-        .min_by_key(|(_, pos, _)| pos.distance_to(character_pos))
-        .map(|(item, _, name)| (item, name))
-}
-
-fn use_item(state: &GameState, item_name: &str) -> Result<CommandResult, String> {
-    let world = &state.world;
-    let character = state.controlled;
-    let item = world
-        .query::<(&Held, NameQuery)>()
-        .iter()
-        .filter(|&(_, (held, query))| {
-            held.held_by(character) && NameData::from(query).matches(item_name)
-        })
-        .max_by_key(|(_, (held, _))| held.is_in_hand())
-        .ok_or_else(|| format!("No held item by the name \"{}\".", item_name))?
-        .0;
-
-    if world.get::<&item::FuelCan>(item).is_ok() {
-        launch_ship(state)
-    } else if world.get::<&item::Medkit>(item).is_ok() {
-        if !world.get::<&Health>(character).unwrap().is_hurt() {
-            return Err(format!(
-                "{} is not hurt, and does not need to use the medkit.",
-                NameData::find(world, character).definite()
-            ));
-        }
-        command::action_result(Action::UseMedkit(item))
-    } else if world.get::<&item::Keycard>(item).is_ok() {
-        let area = world.get::<&Pos>(character).unwrap().get_area();
-        let (door, _) = world
-            .query::<(&Pos, &door::Door)>()
-            .into_iter()
-            .find(|(_, (door_pos, door))| {
-                door_pos.is_in(area)
-                    && world
-                        .get::<&door::BlockType>(door.door_pair)
-                        .map_or(false, |block_type| door::BlockType::Locked.eq(&block_type))
-            })
-            .ok_or_else(|| {
-                "There is no accessible door here that requires a keycard.".to_string()
-            })?;
-
-        command::crew_action(Action::EnterDoor(door))
-    } else if world.get::<&item::CanWield>(item).is_ok() {
-        if world
-            .get::<&Held>(item)
-            .map_or(false, |held| held.is_in_hand())
-        {
-            Err(format!(
-                "{} is already being held.",
-                NameData::find(world, item).definite()
-            ))
-        } else {
-            command::action_result(Action::Wield(item, NameData::find(world, item)))
-        }
-    } else {
-        Err("The item can not be used in any meaningful way.".to_string())
-    }
 }
 
 fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -397,7 +180,7 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     }
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if !inventory::is_holding::<&item::FuelCan>(world, character) {
+    if !inventory::is_holding::<&FuelCan>(world, character) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             NameData::find(world, character).definite()

@@ -101,7 +101,7 @@ impl<'a> Parse<'a> {
 }
 
 macro_rules! first_match {
-    ($($option:expr),+) => {
+    ($($option:expr),+ $(,)?) => {
         $(
         if let Some(result) = $option {
             Some(result)
