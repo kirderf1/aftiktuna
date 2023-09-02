@@ -11,7 +11,7 @@ impl<'a> Parse<'a> {
         Parse { input, start: 0 }
     }
 
-    pub fn try_empty<R, F: FnOnce() -> R>(&self, closure: F) -> Option<R> {
+    pub fn empty<R, F: FnOnce() -> R>(&self, closure: F) -> Option<R> {
         if self.active_input().is_empty() {
             Some(closure())
         } else {
@@ -19,11 +19,11 @@ impl<'a> Parse<'a> {
         }
     }
 
-    pub fn try_literal<R, F: FnOnce(Parse) -> R>(&self, word: &str, on_match: F) -> Option<R> {
+    pub fn literal<R, F: FnOnce(Parse) -> R>(&self, word: &str, on_match: F) -> Option<R> {
         self.try_advance(word).map(on_match)
     }
 
-    pub fn try_numeric<R, F: FnOnce(Parse, N) -> R, N: FromStr>(&self, on_match: F) -> Option<R> {
+    pub fn numeric<R, F: FnOnce(Parse, N) -> R, N: FromStr>(&self, on_match: F) -> Option<R> {
         let (word, parse) = self.next_word();
         str::parse(word).map(|number| on_match(parse, number)).ok()
     }
@@ -100,30 +100,30 @@ impl<'a> Parse<'a> {
     }
 }
 
-macro_rules! return_if_some {
-    ($value:expr) => {
-        if let Some(result) = $value {
-            return result;
+macro_rules! first_match {
+    ($($option:expr),+) => {
+        $(
+        if let Some(result) = $option {
+            Some(result)
         }
-    };
+        )else*
+        else {
+            None
+        }
+    }
 }
 
-macro_rules! empty {
-    ($parse:expr, $on_match:expr) => {
-        $crate::command::parse::return_if_some!($parse.try_empty($on_match));
-    };
+macro_rules! first_match_or {
+    ($($option:expr),+ ; $err:expr) => {
+        $(
+        if let Some(result) = $option {
+            result
+        }
+        )else*
+        else {
+            $err
+        }
+    }
 }
 
-macro_rules! literal {
-    ($parse:expr, $word:expr, $on_match:expr) => {
-        $crate::command::parse::return_if_some!($parse.try_literal($word, $on_match));
-    };
-}
-
-macro_rules! numeric {
-    ($parse:expr, $on_match:expr) => {
-        $crate::command::parse::return_if_some!($parse.try_numeric($on_match));
-    };
-}
-
-pub(crate) use {empty, literal, numeric, return_if_some};
+pub(crate) use {first_match, first_match_or};
