@@ -1,7 +1,8 @@
+mod combat;
 mod item;
 
 use crate::action::trade::Shopkeeper;
-use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable};
+use crate::action::{door, Action, CrewMember, FortunaChest, Recruitable};
 use crate::area::Ship;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
@@ -24,12 +25,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         parse.literal("force", |parse| {
             parse.take_remaining(|door_name| force(door_name, world, character))
         }),
-        parse.literal("attack", |parse| {
-            first_match_or!(
-                parse.empty(|| attack_any(world, character));
-                parse.take_remaining(|target_name| attack(target_name, world, character))
-            )
-        }),
+        combat::commands(&parse, state),
         parse.literal("wait", |parse| {
             parse.done_or_err(|| command::action_result(Action::Wait))
         }),
@@ -95,62 +91,6 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
     check_accessible_with_message(world, character, door)?;
 
     command::action_result(Action::ForceDoor(door))
-}
-
-fn attack_any(world: &World, character: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<&Pos>(character).unwrap().get_area();
-    let foes = world
-        .query::<&Pos>()
-        .with::<&combat::IsFoe>()
-        .iter()
-        .filter(|(_, pos)| pos.is_in(area))
-        .map(|(entity, _)| entity)
-        .collect::<Vec<_>>();
-
-    if foes.is_empty() {
-        Err("There is no appropriate target to attack here.".to_string())
-    } else {
-        command::action_result(Action::Attack(foes))
-    }
-}
-
-fn attack(target_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
-    let pos = *world.get::<&Pos>(character).unwrap();
-    let targets = world
-        .query::<(&Pos, NameQuery)>()
-        .with::<&combat::IsFoe>()
-        .iter()
-        .filter(|&(_, (target_pos, query))| {
-            target_pos.is_in(pos.get_area()) && NameData::from(query).matches(target_name)
-        })
-        .map(|(target, (&pos, _))| (target, pos))
-        .collect::<Vec<_>>();
-
-    if targets.is_empty() {
-        return Err("There is no such target here.".to_string());
-    }
-
-    let target_access = targets
-        .iter()
-        .map(|&(entity, pos)| {
-            (
-                check_adjacent_accessible_with_message(world, character, entity),
-                pos,
-            )
-        })
-        .collect::<Vec<_>>();
-    if target_access.iter().all(|(result, _)| result.is_err()) {
-        return Err(target_access
-            .into_iter()
-            .min_by_key(|&(_, target_pos)| pos.distance_to(target_pos))
-            .unwrap()
-            .0
-            .unwrap_err());
-    }
-
-    command::action_result(Action::Attack(
-        targets.into_iter().map(|(entity, _)| entity).collect(),
-    ))
 }
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
