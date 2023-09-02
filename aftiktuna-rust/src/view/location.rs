@@ -162,12 +162,15 @@ impl InteractionType {
                 format!("control {name}"),
                 "status".to_owned(),
                 "rest".to_owned(),
+                format!("talk to {name}"),
             ],
             InteractionType::Controlled => {
                 vec!["status".to_owned(), "rest".to_owned(), "wait".to_owned()]
             }
             InteractionType::Shopkeeper => vec!["trade".to_owned()],
-            InteractionType::Recruitable => vec![format!("recruit {name}")],
+            InteractionType::Recruitable => {
+                vec![format!("recruit {name}"), format!("talk to {name}")]
+            }
             InteractionType::Foe => vec![format!("attack {name}")],
         }
     }

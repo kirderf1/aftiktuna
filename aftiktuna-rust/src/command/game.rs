@@ -11,7 +11,7 @@ use crate::core::position::{Blockage, Pos};
 use crate::core::{inventory, position, status, GameState};
 use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
-use hecs::{Entity, World};
+use hecs::{Entity, Or, World};
 
 pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let world = &state.world;
@@ -41,6 +41,18 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         }),
         parse.literal("control", |parse| {
             parse.take_remaining(|target_name| control(world, character, target_name))
+        }),
+        parse.literal("talk", |parse| {
+            first_match_or!(
+                parse.literal("to", |parse| {
+                    parse.match_against(
+                        talk_targets(state),
+                        |parse, target| parse.done_or_err(|| talk_to(state, target)),
+                        |input| Err(format!("\"{input}\" not a valid target")),
+                    )
+                });
+                Err("Unexpected argument after \"talk\"".to_string())
+            )
         }),
         parse.literal("trade", |parse| {
             parse.done_or_err(|| trade(world, character))
@@ -164,6 +176,24 @@ fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
     check_adjacent_accessible_with_message(world, character, shopkeeper)?;
 
     command::action_result(Action::Trade(shopkeeper))
+}
+
+fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
+    let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+    state
+        .world
+        .query::<(NameQuery, &Pos)>()
+        .with::<Or<&CrewMember, &Recruitable>>()
+        .iter()
+        .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
+        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
+        .collect::<Vec<_>>()
+}
+
+fn talk_to(state: &GameState, target: Entity) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(&state.world, state.controlled, target)?;
+
+    command::action_result(Action::TalkTo(target))
 }
 
 fn recruit(world: &World, character: Entity, target: Entity) -> Result<CommandResult, String> {

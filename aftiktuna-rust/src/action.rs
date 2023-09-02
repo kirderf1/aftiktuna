@@ -34,6 +34,7 @@ pub enum Action {
     Wait,
     Rest(bool),
     Launch,
+    TalkTo(Entity),
     Recruit(Entity),
     Trade(Entity),
     Buy(ItemType, u16),
@@ -86,6 +87,7 @@ fn perform(
         Wait => silent_ok(),
         Rest(first) => rest(&mut state.world, performer, first),
         Launch => launch::perform(state, performer),
+        TalkTo(target) => talk_to(&mut state.world, performer, target),
         Recruit(target) => recruit(&mut state.world, performer, target),
         Trade(shopkeeper) => trade::trade(&mut state.world, performer, shopkeeper),
         Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
@@ -147,6 +149,25 @@ fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Resul
     } else {
         silent_ok()
     }
+}
+
+fn talk_to(world: &mut World, performer: Entity, target: Entity) -> Result {
+    if !status::is_alive(target, world) {
+        return silent_ok();
+    }
+    let target_pos = *world.get::<&Pos>(target).unwrap();
+
+    try_move_adjacent(world, performer, target_pos)?;
+
+    let frames = vec![
+        Frame::new_dialogue(world, performer, vec!["\"Hi!\"".to_owned()]),
+        Frame::new_dialogue(world, target, vec!["\"Hello!\"".to_owned()]),
+    ];
+    Ok(Success {
+        message: None,
+        areas: None,
+        extra_frames: Some(frames),
+    })
 }
 
 fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
