@@ -11,16 +11,21 @@ impl<'a> Parse<'a> {
         Parse { input, start: 0 }
     }
 
+    pub fn try_empty<R, F: FnOnce() -> R>(&self, closure: F) -> Option<R> {
+        if self.active_input().is_empty() {
+            Some(closure())
+        } else {
+            None
+        }
+    }
+
     pub fn try_literal<R, F: FnOnce(Parse) -> R>(&self, word: &str, on_match: F) -> Option<R> {
         self.try_advance(word).map(on_match)
     }
 
-    pub fn done<R, F: FnOnce() -> R>(self, closure: F) -> Partial<'a, R> {
-        if self.active_input().is_empty() {
-            Partial::Matched(closure())
-        } else {
-            Partial::UnMatched(self)
-        }
+    pub fn try_numeric<R, F: FnOnce(Parse, N) -> R, N: FromStr>(&self, on_match: F) -> Option<R> {
+        let (word, parse) = self.next_word();
+        str::parse(word).map(|number| on_match(parse, number)).ok()
     }
 
     pub fn done_or_err<R, F: FnOnce() -> Result<R, String>>(self, done: F) -> Result<R, String> {
@@ -36,13 +41,6 @@ impl<'a> Parse<'a> {
 
     pub fn take_remaining<R, F: FnOnce(&str) -> R>(self, closure: F) -> R {
         closure(self.active_input())
-    }
-
-    pub fn numeric<R, F: FnOnce(Parse, N) -> R, N: FromStr>(self, closure: F) -> Partial<'a, R> {
-        let (word, parse) = self.next_word();
-        str::parse(word)
-            .map(|number| Partial::Matched(closure(parse, number)))
-            .unwrap_or_else(|_| Partial::UnMatched(self))
     }
 
     pub fn match_against<A, F, E, R>(self, vec: Vec<(String, A)>, success: F, failure: E) -> R
@@ -102,36 +100,17 @@ impl<'a> Parse<'a> {
     }
 }
 
-pub enum Partial<'a, R> {
-    UnMatched(Parse<'a>),
-    Matched(R),
-}
-
-impl<'a, R> Partial<'a, R> {
-    pub fn or_else_remaining<F: FnOnce(&str) -> R>(self, closure: F) -> R {
-        match self {
-            Partial::UnMatched(parse) => parse.take_remaining(closure),
-            Partial::Matched(r) => r,
-        }
-    }
-
-    pub fn match_against<A, F, E>(self, vec: Vec<(String, A)>, success: F, failure: E) -> R
-    where
-        F: FnOnce(Parse, A) -> R,
-        E: FnOnce(&str) -> R,
-    {
-        match self {
-            Partial::UnMatched(parse) => parse.match_against(vec, success, failure),
-            Partial::Matched(r) => r,
-        }
-    }
-}
-
 macro_rules! return_if_some {
     ($value:expr) => {
         if let Some(result) = $value {
             return result;
         }
+    };
+}
+
+macro_rules! empty {
+    ($parse:expr, $on_match:expr) => {
+        $crate::command::parse::return_if_some!($parse.try_empty($on_match));
     };
 }
 
@@ -141,5 +120,10 @@ macro_rules! literal {
     };
 }
 
-pub(crate) use literal;
-pub(crate) use return_if_some;
+macro_rules! numeric {
+    ($parse:expr, $on_match:expr) => {
+        $crate::command::parse::return_if_some!($parse.try_numeric($on_match));
+    };
+}
+
+pub(crate) use {empty, literal, numeric, return_if_some};

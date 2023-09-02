@@ -1,7 +1,7 @@
 use crate::action::trade::Shopkeeper;
 use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable};
 use crate::area::Ship;
-use crate::command::parse::{literal, Parse};
+use crate::command::parse::{empty, literal, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::core::position::{Blockage, Pos};
@@ -46,9 +46,8 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         parse.take_remaining(|door_name| force(door_name, world, character))
     });
     literal!(parse, "attack", |parse| {
-        parse
-            .done(|| attack_any(world, character))
-            .or_else_remaining(|target_name| attack(target_name, world, character))
+        empty!(parse, || attack_any(world, character));
+        parse.take_remaining(|target_name| attack(target_name, world, character))
     });
     literal!(parse, "wait", |parse| {
         parse.done_or_err(|| command::action_result(Action::Wait))

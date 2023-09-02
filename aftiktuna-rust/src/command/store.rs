@@ -1,7 +1,7 @@
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::Action;
 use crate::command;
-use crate::command::parse::{literal, Parse};
+use crate::command::parse::{literal, numeric, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::view::name::{NameData, NameQuery};
@@ -15,37 +15,35 @@ pub fn parse(
 ) -> Result<CommandResult, String> {
     let parse = Parse::new(input);
     literal!(parse, "buy", |parse| {
-        parse
-            .numeric(|parse, amount| {
-                parse.match_against(
-                    store_entries(shopkeeper, amount),
-                    |parse, item| parse.done_or_err(|| buy(item, amount)),
-                    |input| Err(format!("\"{input}\" does not match an item in the store.")),
-                )
-            })
-            .match_against(
-                store_entries(shopkeeper, 1),
-                |parse, item| parse.done_or_err(|| buy(item, 1)),
+        numeric!(parse, |parse, amount| {
+            parse.match_against(
+                store_entries(shopkeeper, amount),
+                |parse, item| parse.done_or_err(|| buy(item, amount)),
                 |input| Err(format!("\"{input}\" does not match an item in the store.")),
             )
+        });
+        parse.match_against(
+            store_entries(shopkeeper, 1),
+            |parse, item| parse.done_or_err(|| buy(item, 1)),
+            |input| Err(format!("\"{input}\" does not match an item in the store.")),
+        )
     });
     literal!(parse, "sell", |parse| {
         literal!(parse, "all", |parse| {
             parse.take_remaining(|item_name| sell_all(world, character, item_name))
         });
-        parse
-            .numeric(|parse, count| {
-                parse.take_remaining(|item_name| sell_count(world, character, count, item_name))
-            })
-            .match_against(
-                held_items(world, character),
-                |parse, item| parse.done_or_err(|| sell(item)),
-                |input| {
-                    Err(format!(
-                        "\"{input}\" does not match an item in your inventory.",
-                    ))
-                },
-            )
+        numeric!(parse, |parse, count| {
+            parse.take_remaining(|item_name| sell_count(world, character, count, item_name))
+        });
+        parse.match_against(
+            held_items(world, character),
+            |parse, item| parse.done_or_err(|| sell(item)),
+            |input| {
+                Err(format!(
+                    "\"{input}\" does not match an item in your inventory.",
+                ))
+            },
+        )
     });
     literal!(parse, "exit", |parse| {
         parse.done_or_err(|| command::action_result(Action::ExitTrade))
