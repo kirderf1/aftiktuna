@@ -1,7 +1,7 @@
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::Action;
 use crate::command;
-use crate::command::parse::Parse;
+use crate::command::parse::{literal, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::view::name::{NameData, NameQuery};
@@ -13,58 +13,47 @@ pub fn parse(
     character: Entity,
     shopkeeper: &Shopkeeper,
 ) -> Result<CommandResult, String> {
-    Parse::new(input)
-        .literal("buy", |parse| {
-            parse
-                .numeric(|parse, amount| {
-                    parse.match_against(
-                        store_entries(shopkeeper, amount),
-                        |parse, item| parse.done_or_err(|| buy(item, amount)),
-                        |input| {
-                            Err(format!(
-                                "\"{}\" does not match an item in the store.",
-                                input
-                            ))
-                        },
-                    )
-                })
-                .match_against(
-                    store_entries(shopkeeper, 1),
-                    |parse, item| parse.done_or_err(|| buy(item, 1)),
-                    |input| {
-                        Err(format!(
-                            "\"{}\" does not match an item in the store.",
-                            input
-                        ))
-                    },
+    let parse = Parse::new(input);
+    literal!(parse, "buy", |parse| {
+        parse
+            .numeric(|parse, amount| {
+                parse.match_against(
+                    store_entries(shopkeeper, amount),
+                    |parse, item| parse.done_or_err(|| buy(item, amount)),
+                    |input| Err(format!("\"{input}\" does not match an item in the store.")),
                 )
-        })
-        .literal("sell", |parse| {
-            parse
-                .numeric(|parse, count| {
-                    parse.take_remaining(|item_name| sell_count(world, character, count, item_name))
-                })
-                .literal("all", |parse| {
-                    parse.take_remaining(|item_name| sell_all(world, character, item_name))
-                })
-                .match_against(
-                    held_items(world, character),
-                    |parse, item| parse.done_or_err(|| sell(item)),
-                    |input| {
-                        Err(format!(
-                            "\"{}\" does not match an item in your inventory.",
-                            input
-                        ))
-                    },
-                )
-        })
-        .literal("exit", |parse| {
-            parse.done_or_err(|| command::action_result(Action::ExitTrade))
-        })
-        .literal("status", |parse| {
-            parse.done_or_err(|| command::status(world, character))
-        })
-        .or_else_err(|| format!("Unexpected input: \"{}\"", input))
+            })
+            .match_against(
+                store_entries(shopkeeper, 1),
+                |parse, item| parse.done_or_err(|| buy(item, 1)),
+                |input| Err(format!("\"{input}\" does not match an item in the store.")),
+            )
+    });
+    literal!(parse, "sell", |parse| {
+        literal!(parse, "all", |parse| {
+            parse.take_remaining(|item_name| sell_all(world, character, item_name))
+        });
+        parse
+            .numeric(|parse, count| {
+                parse.take_remaining(|item_name| sell_count(world, character, count, item_name))
+            })
+            .match_against(
+                held_items(world, character),
+                |parse, item| parse.done_or_err(|| sell(item)),
+                |input| {
+                    Err(format!(
+                        "\"{input}\" does not match an item in your inventory.",
+                    ))
+                },
+            )
+    });
+    literal!(parse, "exit", |parse| {
+        parse.done_or_err(|| command::action_result(Action::ExitTrade))
+    });
+    literal!(parse, "status", |parse| {
+        parse.done_or_err(|| command::status(world, character))
+    });
+    Err(format!("Unexpected input: \"{input}\""))
 }
 
 fn store_entries(shopkeeper: &Shopkeeper, amount: u16) -> Vec<(String, &PricedItem)> {

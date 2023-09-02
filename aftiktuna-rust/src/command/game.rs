@@ -1,7 +1,7 @@
 use crate::action::trade::Shopkeeper;
 use crate::action::{combat, door, Action, CrewMember, FortunaChest, Recruitable};
 use crate::area::Ship;
-use crate::command::parse::Parse;
+use crate::command::parse::{literal, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::core::position::{Blockage, Pos};
@@ -14,73 +14,76 @@ use hecs::{Entity, World};
 pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
-    Parse::new(input)
-        .literal("take", |parse| {
-            parse
-                .literal("all", |parse| {
-                    parse.done_or_err(|| take_all(world, character))
-                })
-                .or_else_remaining(|item_name| take(item_name, world, character))
-        })
-        .literal("give", |parse| {
-            parse.match_against(
-                crew_targets(world),
-                |parse, receiver| {
-                    parse.take_remaining(|item_name| give(receiver, item_name, world, character))
-                },
-                |input| Err(format!("\"{}\" not a valid target", input)),
-            )
-        })
-        .literal("wield", |parse| {
-            parse.take_remaining(|item_name| wield(item_name, world, character))
-        })
-        .literal("use", |parse| {
-            parse.take_remaining(|item_name| use_item(state, item_name))
-        })
-        .literal("enter", |parse| {
-            parse.take_remaining(|door_name| enter(door_name, world, character))
-        })
-        .literal("force", |parse| {
-            parse.take_remaining(|door_name| force(door_name, world, character))
-        })
-        .literal("attack", |parse| {
-            parse
-                .done(|| attack_any(world, character))
-                .or_else_remaining(|target_name| attack(target_name, world, character))
-        })
-        .literal("wait", |parse| {
-            parse.done_or_err(|| command::action_result(Action::Wait))
-        })
-        .literal("rest", |parse| parse.done_or_err(|| rest(world, character)))
-        .literal("launch", |parse| {
-            parse
-                .literal("ship", |parse| parse.done_or_err(|| launch_ship(state)))
-                .or_else_err(|| "Unexpected argument after \"launch\"".to_string())
-        })
-        .literal("status", |parse| {
-            parse.done_or_err(|| command::status(world, character))
-        })
-        .literal("control", |parse| {
-            parse.take_remaining(|target_name| control(world, character, target_name))
-        })
-        .literal("trade", |parse| {
-            parse.done_or_err(|| trade(world, character))
-        })
-        .literal("recruit", |parse| {
-            parse.match_against(
-                recruit_targets(world, character),
-                |parse, target| parse.done_or_err(|| recruit(world, character, target)),
-                |input| Err(format!("\"{}\" not a valid recruitment target", input)),
-            )
-        })
-        .literal("open", |parse| {
-            parse.match_against(
-                fortuna_chest_targets(world, character),
-                |parse, target| parse.done_or_err(|| open(world, character, target)),
-                |input| Err(format!("\"{}\" not a valid target", input)),
-            )
-        })
-        .or_else_err(|| format!("Unexpected input: \"{}\"", input))
+    let parse = Parse::new(input);
+    literal!(parse, "take", |parse| {
+        literal!(parse, "all", |parse| {
+            parse.done_or_err(|| take_all(world, character))
+        });
+        parse.take_remaining(|item_name| take(item_name, world, character))
+    });
+    literal!(parse, "give", |parse| {
+        parse.match_against(
+            crew_targets(world),
+            |parse, receiver| {
+                parse.take_remaining(|item_name| give(receiver, item_name, world, character))
+            },
+            |input| Err(format!("\"{input}\" not a valid target")),
+        )
+    });
+    literal!(parse, "wield", |parse| {
+        parse.take_remaining(|item_name| wield(item_name, world, character))
+    });
+    literal!(parse, "wield", |parse| {
+        parse.take_remaining(|item_name| wield(item_name, world, character))
+    });
+    literal!(parse, "use", |parse| {
+        parse.take_remaining(|item_name| use_item(state, item_name))
+    });
+    literal!(parse, "enter", |parse| {
+        parse.take_remaining(|door_name| enter(door_name, world, character))
+    });
+    literal!(parse, "force", |parse| {
+        parse.take_remaining(|door_name| force(door_name, world, character))
+    });
+    literal!(parse, "attack", |parse| {
+        parse
+            .done(|| attack_any(world, character))
+            .or_else_remaining(|target_name| attack(target_name, world, character))
+    });
+    literal!(parse, "wait", |parse| {
+        parse.done_or_err(|| command::action_result(Action::Wait))
+    });
+    literal!(parse, "rest", |parse| parse
+        .done_or_err(|| rest(world, character)));
+    literal!(parse, "launch", |parse| {
+        literal!(parse, "ship", |parse| parse
+            .done_or_err(|| launch_ship(state)));
+        Err("Unexpected argument after \"launch\"".to_string())
+    });
+    literal!(parse, "status", |parse| {
+        parse.done_or_err(|| command::status(world, character))
+    });
+    literal!(parse, "control", |parse| {
+        parse.take_remaining(|target_name| control(world, character, target_name))
+    });
+    literal!(parse, "trade", |parse| {
+        parse.done_or_err(|| trade(world, character))
+    });
+    literal!(parse, "recruit", |parse| {
+        parse.match_against(
+            recruit_targets(world, character),
+            |parse, target| parse.done_or_err(|| recruit(world, character, target)),
+            |input| Err(format!("\"{input}\" not a valid recruitment target")),
+        )
+    });
+    literal!(parse, "open", |parse| {
+        parse.match_against(
+            fortuna_chest_targets(world, character),
+            |parse, target| parse.done_or_err(|| open(world, character, target)),
+            |input| Err(format!("\"{input}\" not a valid target")),
+        )
+    });
+    Err(format!("Unexpected input: \"{input}\""))
 }
 
 fn take_all(world: &World, character: Entity) -> Result<CommandResult, String> {

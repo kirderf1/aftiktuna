@@ -11,10 +11,8 @@ impl<'a> Parse<'a> {
         Parse { input, start: 0 }
     }
 
-    pub fn literal<R, F: FnOnce(Parse) -> R>(self, word: &str, closure: F) -> Partial<'a, R> {
-        self.try_advance(word)
-            .map(closure)
-            .map_or(Partial::UnMatched(self), Partial::Matched)
+    pub fn try_literal<R, F: FnOnce(Parse) -> R>(&self, word: &str, on_match: F) -> Option<R> {
+        self.try_advance(word).map(on_match)
     }
 
     pub fn done<R, F: FnOnce() -> R>(self, closure: F) -> Partial<'a, R> {
@@ -110,13 +108,6 @@ pub enum Partial<'a, R> {
 }
 
 impl<'a, R> Partial<'a, R> {
-    pub fn literal<F: FnOnce(Parse) -> R>(self, word: &str, closure: F) -> Self {
-        match self {
-            Partial::UnMatched(parse) => parse.literal(word, closure),
-            Partial::Matched(r) => Partial::Matched(r),
-        }
-    }
-
     pub fn or_else_remaining<F: FnOnce(&str) -> R>(self, closure: F) -> R {
         match self {
             Partial::UnMatched(parse) => parse.take_remaining(closure),
@@ -136,11 +127,19 @@ impl<'a, R> Partial<'a, R> {
     }
 }
 
-impl<'a, T, E> Partial<'a, Result<T, E>> {
-    pub fn or_else_err<F: FnOnce() -> E>(self, closure: F) -> Result<T, E> {
-        match self {
-            Partial::UnMatched(_) => Err(closure()),
-            Partial::Matched(r) => r,
+macro_rules! return_if_some {
+    ($value:expr) => {
+        if let Some(result) = $value {
+            return result;
         }
-    }
+    };
 }
+
+macro_rules! literal {
+    ($parse:expr, $word:expr, $on_match:expr) => {
+        $crate::command::parse::return_if_some!($parse.try_literal($word, $on_match));
+    };
+}
+
+pub(crate) use literal;
+pub(crate) use return_if_some;
