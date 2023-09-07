@@ -11,7 +11,7 @@ use Action::*;
 
 pub mod combat;
 pub mod door;
-pub mod item;
+mod item;
 mod launch;
 pub mod trade;
 
@@ -74,11 +74,12 @@ fn perform(
     action: Action,
     view_buffer: &mut view::Buffer,
 ) {
+    let context = Context { state, view_buffer };
     let result = match action {
         OpenChest(chest) => open_chest(&mut state.world, performer, chest),
         TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),
         TakeAll => item::take_all(&mut state.world, performer),
-        GiveItem(item, receiver) => item::give_item(&mut state.world, performer, item, receiver),
+        GiveItem(item, receiver) => item::give_item(context, performer, item, receiver),
         Wield(item, name) => item::wield(&mut state.world, performer, item, name),
         UseMedkit(item) => item::use_medkit(&mut state.world, performer, item),
         EnterDoor(door) => door::enter_door(&mut state.world, performer, door),
@@ -87,8 +88,8 @@ fn perform(
         Wait => silent_ok(),
         Rest(first) => rest(&mut state.world, performer, first),
         Launch => launch::perform(state, performer),
-        TalkTo(target) => talk_to(&mut state.world, performer, target),
-        Recruit(target) => recruit(&mut state.world, performer, target),
+        TalkTo(target) => talk_to(context, performer, target),
+        Recruit(target) => recruit(context, performer, target),
         Trade(shopkeeper) => trade::trade(&mut state.world, performer, shopkeeper),
         Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
         Sell(items) => trade::sell(&mut state.world, performer, items),
@@ -98,28 +99,16 @@ fn perform(
     let world = &state.world;
     let controlled = state.controlled;
     match result {
+        Ok(Success { message: None, .. }) => {}
         Ok(Success {
-            message: None,
-            extra_frames: None,
-            ..
-        }) => {}
-        Ok(Success {
-            message,
+            message: Some(message),
             areas,
-            extra_frames,
         }) => {
             let areas =
                 areas.unwrap_or_else(|| vec![world.get::<&Pos>(performer).unwrap().get_area()]);
             let player_pos = *world.get::<&Pos>(controlled).unwrap();
             if areas.contains(&player_pos.get_area()) {
-                if let Some(extra_frames) = extra_frames {
-                    extra_frames
-                        .into_iter()
-                        .for_each(|frame| view_buffer.push_frame(frame));
-                }
-                if let Some(message) = message {
-                    view_buffer.messages.add(message);
-                }
+                view_buffer.messages.add(message);
             }
         }
         Err(message) => {
@@ -127,6 +116,25 @@ fn perform(
                 view_buffer.messages.add(message);
                 view_buffer.capture_view(state);
             }
+        }
+    }
+}
+
+struct Context<'a> {
+    state: &'a mut GameState,
+    view_buffer: &'a mut view::Buffer,
+}
+
+impl<'a> Context<'a> {
+    fn mut_world(&mut self) -> &mut World {
+        &mut self.state.world
+    }
+    fn add_dialogue(&mut self, frames: Vec<Frame>) {
+        if !self.view_buffer.messages.0.is_empty() {
+            self.view_buffer.capture_view(self.state);
+        }
+        for frame in frames {
+            self.view_buffer.push_frame(frame);
         }
     }
 }
@@ -151,7 +159,8 @@ fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Resul
     }
 }
 
-fn talk_to(world: &mut World, performer: Entity, target: Entity) -> Result {
+fn talk_to(mut context: Context, performer: Entity, target: Entity) -> Result {
+    let world = context.mut_world();
     if !status::is_alive(target, world) {
         return silent_ok();
     }
@@ -163,14 +172,12 @@ fn talk_to(world: &mut World, performer: Entity, target: Entity) -> Result {
         Frame::new_dialogue(world, performer, vec!["\"Hi!\"".to_owned()]),
         Frame::new_dialogue(world, target, vec!["\"Hello!\"".to_owned()]),
     ];
-    Ok(Success {
-        message: None,
-        areas: None,
-        extra_frames: Some(frames),
-    })
+    context.add_dialogue(frames);
+    silent_ok()
 }
 
-fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
+fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
+    let world = context.mut_world();
     let target_pos = *world.get::<&Pos>(target).unwrap();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
@@ -195,11 +202,8 @@ fn recruit(world: &mut World, performer: Entity, target: Entity) -> Result {
         ),
         Frame::new_dialogue(world, target, vec!["\"Sure, I'll join you!\"".to_owned()]),
     ];
-    Ok(Success {
-        message: Some(format!("{name} joined the crew!")),
-        areas: None,
-        extra_frames: Some(frames),
-    })
+    context.add_dialogue(frames);
+    ok(format!("{name} joined the crew!"))
 }
 
 #[derive(Serialize, Deserialize)]
@@ -233,14 +237,12 @@ type Result = result::Result<Success, String>;
 pub struct Success {
     message: Option<String>,
     areas: Option<Vec<Entity>>,
-    extra_frames: Option<Vec<Frame>>,
 }
 
 fn ok(message: String) -> Result {
     Ok(Success {
         message: Some(message),
         areas: None,
-        extra_frames: None,
     })
 }
 
@@ -248,7 +250,6 @@ fn ok_at(message: String, areas: Vec<Entity>) -> Result {
     Ok(Success {
         message: Some(message),
         areas: Some(areas),
-        extra_frames: None,
     })
 }
 
@@ -256,6 +257,5 @@ fn silent_ok() -> Result {
     Ok(Success {
         message: None,
         areas: None,
-        extra_frames: None,
     })
 }

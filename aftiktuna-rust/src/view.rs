@@ -14,7 +14,7 @@ pub mod name;
 mod status;
 
 #[derive(Default)]
-pub struct Messages(Vec<String>);
+pub struct Messages(pub Vec<String>);
 
 impl Messages {
     pub fn add(&mut self, message: impl AsRef<str>) {

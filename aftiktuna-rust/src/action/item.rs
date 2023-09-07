@@ -1,5 +1,5 @@
 use crate::action;
-use crate::action::{Action, Success};
+use crate::action::Action;
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
 use crate::core::position::{try_move, try_move_adjacent, Pos};
@@ -56,12 +56,13 @@ pub fn take_item(
     ))
 }
 
-pub fn give_item(
-    world: &mut World,
+pub(super) fn give_item(
+    mut context: super::Context,
     performer: Entity,
     item: Entity,
     receiver: Entity,
 ) -> action::Result {
+    let world = context.mut_world();
     let performer_name = NameData::find(world, performer).definite();
     let receiver_name = NameData::find(world, receiver).definite();
 
@@ -95,25 +96,24 @@ pub fn give_item(
         ));
     }
 
+    let frames = vec![Frame::new_dialogue(
+        world,
+        performer,
+        vec!["\"Here, hold on to this.\"".to_owned()],
+    )];
+    context.add_dialogue(frames);
+    let world = context.mut_world();
+
     try_move_adjacent(world, performer, receiver_pos)?;
 
     world
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
 
-    let frames = vec![Frame::new_dialogue(
-        world,
-        performer,
-        vec!["\"Here, hold on to this.\"".to_owned()],
-    )];
-    Ok(Success {
-        message: Some(format!(
-            "{performer_name} gave {receiver_name} a {}.",
-            NameData::find(world, item).base()
-        )),
-        areas: None,
-        extra_frames: Some(frames),
-    })
+    super::ok(format!(
+        "{performer_name} gave {receiver_name} a {}.",
+        NameData::find(world, item).base()
+    ))
 }
 
 pub fn wield(
