@@ -1,15 +1,16 @@
 use crate::core::item::Type as ItemType;
-use crate::core::position::{Blockage, Pos};
+use crate::core::position::Pos;
 use crate::core::{position, status, GameState};
 use crate::view;
-use crate::view::name::{Name, NameData};
-use crate::view::{Frame, Symbol};
+use crate::view::name::NameData;
+use crate::view::Frame;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::result;
 use Action::*;
 
 pub mod combat;
+mod dialogue;
 pub mod door;
 mod item;
 mod launch;
@@ -88,8 +89,8 @@ fn perform(
         Wait => silent_ok(),
         Rest(first) => rest(&mut state.world, performer, first),
         Launch => launch::perform(state, performer),
-        TalkTo(target) => talk_to(context, performer, target),
-        Recruit(target) => recruit(context, performer, target),
+        TalkTo(target) => dialogue::talk_to(context, performer, target),
+        Recruit(target) => dialogue::recruit(context, performer, target),
         Trade(shopkeeper) => trade::trade(&mut state.world, performer, shopkeeper),
         Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
         Sell(items) => trade::sell(&mut state.world, performer, items),
@@ -161,66 +162,6 @@ fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Resul
     } else {
         silent_ok()
     }
-}
-
-fn talk_to(mut context: Context, performer: Entity, target: Entity) -> Result {
-    let world = context.mut_world();
-    if !status::is_alive(target, world) {
-        return silent_ok();
-    }
-    let target_pos = *world.get::<&Pos>(target).unwrap();
-
-    let movement = position::prepare_move_adjacent(world, performer, target_pos)
-        .map_err(Blockage::into_message)?;
-
-    context.capture_frame_for_dialogue();
-
-    movement.perform(context.mut_world()).unwrap();
-
-    context.add_dialogue(performer, "\"Hi!\"");
-    context.add_dialogue(target, "\"Hello!\"");
-
-    let world = context.mut_world();
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
-    ok(format!(
-        "{performer_name} finishes talking with {target_name}."
-    ))
-}
-
-fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
-    let world = context.mut_world();
-    let target_pos = *world.get::<&Pos>(target).unwrap();
-    let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let crew_size = world.query::<&CrewMember>().iter().count();
-    if crew_size >= 2 {
-        return Err("There is not enough room for another crew member.".to_string());
-    }
-
-    let movement = position::prepare_move_adjacent(world, performer, target_pos)
-        .map_err(Blockage::into_message)?;
-
-    context.capture_frame_for_dialogue();
-
-    movement.perform(context.mut_world()).unwrap();
-
-    context.add_dialogue(
-        performer,
-        "\"Hi! Do you want to join me in the search for Fortuna?\"",
-    );
-    context.add_dialogue(target, "\"Sure, I'll join you!\"");
-
-    let world = context.mut_world();
-    world.remove_one::<Recruitable>(target).unwrap();
-    if let Ok(mut name) = world.get::<&mut Name>(target) {
-        name.set_is_known();
-    }
-    let name = NameData::find(world, target).definite();
-    world
-        .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
-        .unwrap();
-
-    ok(format!("{name} joined the crew!"))
 }
 
 #[derive(Serialize, Deserialize)]
