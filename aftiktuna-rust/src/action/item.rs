@@ -2,7 +2,7 @@ use crate::action;
 use crate::action::Action;
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
-use crate::core::position::Pos;
+use crate::core::position::{Blockage, Pos};
 use crate::core::status::Health;
 use crate::core::{inventory, position, status};
 use crate::view::name::{NameData, NameQuery};
@@ -96,6 +96,9 @@ pub(super) fn give_item(
         ));
     }
 
+    let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
+        .map_err(Blockage::into_message)?;
+
     let frames = vec![Frame::new_dialogue(
         world,
         performer,
@@ -104,7 +107,7 @@ pub(super) fn give_item(
     context.add_dialogue(frames);
     let world = context.mut_world();
 
-    position::move_adjacent(world, performer, receiver_pos)?;
+    movement.perform(world).unwrap();
 
     world
         .insert_one(item, Held::in_inventory(receiver))

@@ -1,5 +1,5 @@
 use crate::core::item::Type as ItemType;
-use crate::core::position::Pos;
+use crate::core::position::{Blockage, Pos};
 use crate::core::{position, status, GameState};
 use crate::view;
 use crate::view::name::{Name, NameData};
@@ -166,13 +166,17 @@ fn talk_to(mut context: Context, performer: Entity, target: Entity) -> Result {
     }
     let target_pos = *world.get::<&Pos>(target).unwrap();
 
-    position::move_adjacent(world, performer, target_pos)?;
+    let movement = position::prepare_move_adjacent(world, performer, target_pos)
+        .map_err(Blockage::into_message)?;
 
     let frames = vec![
         Frame::new_dialogue(world, performer, vec!["\"Hi!\"".to_owned()]),
         Frame::new_dialogue(world, target, vec!["\"Hello!\"".to_owned()]),
     ];
     context.add_dialogue(frames);
+
+    movement.perform(context.mut_world()).unwrap();
+
     silent_ok()
 }
 
@@ -185,15 +189,9 @@ fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
         return Err("There is not enough room for another crew member.".to_string());
     }
 
-    position::move_adjacent(world, performer, target_pos)?;
-    world.remove_one::<Recruitable>(target).unwrap();
-    if let Ok(mut name) = world.get::<&mut Name>(target) {
-        name.set_is_known();
-    }
-    let name = NameData::find(world, target).definite();
-    world
-        .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
-        .unwrap();
+    let movement = position::prepare_move_adjacent(world, performer, target_pos)
+        .map_err(Blockage::into_message)?;
+
     let frames = vec![
         Frame::new_dialogue(
             world,
@@ -203,6 +201,18 @@ fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
         Frame::new_dialogue(world, target, vec!["\"Sure, I'll join you!\"".to_owned()]),
     ];
     context.add_dialogue(frames);
+
+    let world = context.mut_world();
+    movement.perform(world).unwrap();
+    world.remove_one::<Recruitable>(target).unwrap();
+    if let Ok(mut name) = world.get::<&mut Name>(target) {
+        name.set_is_known();
+    }
+    let name = NameData::find(world, target).definite();
+    world
+        .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
+        .unwrap();
+
     ok(format!("{name} joined the crew!"))
 }
 
