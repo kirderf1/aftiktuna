@@ -69,13 +69,26 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
         performer,
         "\"Hi! Do you want to join me in the search for Fortuna?\"",
     );
-    context.add_dialogue(target, "\"Sure, I'll join you!\"");
+    if context
+        .mut_world()
+        .get::<&Name>(target)
+        .ok()
+        .map_or(false, |name| !name.is_known)
+    {
+        let mut name_ref = context.mut_world().get::<&mut Name>(target).unwrap();
+        name_ref.is_known = true;
+        let name_string = name_ref.name.clone();
+        drop(name_ref);
+        context.add_dialogue(
+            target,
+            format!("\"Sure, I'll join you! My name is {name_string}.\""),
+        );
+    } else {
+        context.add_dialogue(target, "\"Sure, I'll join you!\"");
+    }
 
     let world = context.mut_world();
     world.remove_one::<Recruitable>(target).unwrap();
-    if let Ok(mut name) = world.get::<&mut Name>(target) {
-        name.is_known = true;
-    }
     let name = NameData::find(world, target).definite();
     world
         .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
