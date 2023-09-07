@@ -129,13 +129,17 @@ impl<'a> Context<'a> {
     fn mut_world(&mut self) -> &mut World {
         &mut self.state.world
     }
-    fn add_dialogue(&mut self, frames: Vec<Frame>) {
+    fn capture_frame_for_dialogue(&mut self) {
         if !self.view_buffer.messages.0.is_empty() {
             self.view_buffer.capture_view(self.state);
         }
-        for frame in frames {
-            self.view_buffer.push_frame(frame);
-        }
+    }
+    fn add_dialogue(&mut self, target: Entity, message: impl ToString) {
+        self.view_buffer.push_frame(Frame::new_dialogue(
+            &self.state.world,
+            target,
+            vec![message.to_string()],
+        ));
     }
 }
 
@@ -169,15 +173,14 @@ fn talk_to(mut context: Context, performer: Entity, target: Entity) -> Result {
     let movement = position::prepare_move_adjacent(world, performer, target_pos)
         .map_err(Blockage::into_message)?;
 
-    let frames = vec![
-        Frame::new_dialogue(world, performer, vec!["\"Hi!\"".to_owned()]),
-        Frame::new_dialogue(world, target, vec!["\"Hello!\"".to_owned()]),
-    ];
-    context.add_dialogue(frames);
+    context.capture_frame_for_dialogue();
+
+    movement.perform(context.mut_world()).unwrap();
+
+    context.add_dialogue(performer, "\"Hi!\"");
+    context.add_dialogue(target, "\"Hello!\"");
 
     let world = context.mut_world();
-    movement.perform(world).unwrap();
-
     let performer_name = NameData::find(world, performer).definite();
     let target_name = NameData::find(world, target).definite();
     ok(format!(
@@ -197,18 +200,17 @@ fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
     let movement = position::prepare_move_adjacent(world, performer, target_pos)
         .map_err(Blockage::into_message)?;
 
-    let frames = vec![
-        Frame::new_dialogue(
-            world,
-            performer,
-            vec!["\"Hi! Do you want to join me in the search for Fortuna?\"".to_owned()],
-        ),
-        Frame::new_dialogue(world, target, vec!["\"Sure, I'll join you!\"".to_owned()]),
-    ];
-    context.add_dialogue(frames);
+    context.capture_frame_for_dialogue();
+
+    movement.perform(context.mut_world()).unwrap();
+
+    context.add_dialogue(
+        performer,
+        "\"Hi! Do you want to join me in the search for Fortuna?\"",
+    );
+    context.add_dialogue(target, "\"Sure, I'll join you!\"");
 
     let world = context.mut_world();
-    movement.perform(world).unwrap();
     world.remove_one::<Recruitable>(target).unwrap();
     if let Ok(mut name) = world.get::<&mut Name>(target) {
         name.set_is_known();

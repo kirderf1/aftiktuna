@@ -6,7 +6,6 @@ use crate::core::position::{Blockage, Pos};
 use crate::core::status::Health;
 use crate::core::{inventory, position, status};
 use crate::view::name::{NameData, NameQuery};
-use crate::view::Frame;
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
@@ -99,16 +98,13 @@ pub(super) fn give_item(
     let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
         .map_err(Blockage::into_message)?;
 
-    let frames = vec![Frame::new_dialogue(
-        world,
-        performer,
-        vec!["\"Here, hold on to this.\"".to_owned()],
-    )];
-    context.add_dialogue(frames);
+    context.capture_frame_for_dialogue();
+
+    movement.perform(context.mut_world()).unwrap();
+
+    context.add_dialogue(performer, "\"Here, hold on to this.\"");
+
     let world = context.mut_world();
-
-    movement.perform(world).unwrap();
-
     world
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
