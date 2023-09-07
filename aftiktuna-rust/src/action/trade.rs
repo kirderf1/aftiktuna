@@ -47,7 +47,7 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action
         .map_err(|_| format!("{performer_name} lost track of the shopkeeper."))?;
     world.get::<&Shopkeeper>(shopkeeper).unwrap();
 
-    position::try_move_adjacent(world, performer, shop_pos)?;
+    position::move_adjacent(world, performer, shop_pos)?;
 
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 

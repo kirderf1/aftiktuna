@@ -1,6 +1,6 @@
 use crate::core::item::Type as ItemType;
-use crate::core::position::{try_move_adjacent, Pos};
-use crate::core::{status, GameState};
+use crate::core::position::Pos;
+use crate::core::{position, status, GameState};
 use crate::view;
 use crate::view::name::{Name, NameData};
 use crate::view::{Frame, Symbol};
@@ -166,7 +166,7 @@ fn talk_to(mut context: Context, performer: Entity, target: Entity) -> Result {
     }
     let target_pos = *world.get::<&Pos>(target).unwrap();
 
-    try_move_adjacent(world, performer, target_pos)?;
+    position::move_adjacent(world, performer, target_pos)?;
 
     let frames = vec![
         Frame::new_dialogue(world, performer, vec!["\"Hi!\"".to_owned()]),
@@ -185,7 +185,7 @@ fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
         return Err("There is not enough room for another crew member.".to_string());
     }
 
-    try_move_adjacent(world, performer, target_pos)?;
+    position::move_adjacent(world, performer, target_pos)?;
     world.remove_one::<Recruitable>(target).unwrap();
     if let Ok(mut name) = world.get::<&mut Name>(target) {
         name.set_is_known();
@@ -215,7 +215,7 @@ pub struct OpenedChest;
 fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
     let chest_pos = *world.get::<&Pos>(chest).unwrap();
 
-    try_move_adjacent(world, performer, chest_pos)?;
+    position::move_adjacent(world, performer, chest_pos)?;
 
     if world.get::<&FortunaChest>(chest).is_err() {
         return Err(format!(

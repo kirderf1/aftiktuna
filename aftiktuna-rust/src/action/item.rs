@@ -2,9 +2,9 @@ use crate::action;
 use crate::action::Action;
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
-use crate::core::position::{try_move, try_move_adjacent, Pos};
+use crate::core::position::Pos;
 use crate::core::status::Health;
-use crate::core::{inventory, status};
+use crate::core::{inventory, position, status};
 use crate::view::name::{NameData, NameQuery};
 use crate::view::Frame;
 use hecs::{Entity, World};
@@ -44,7 +44,7 @@ pub fn take_item(
         .get::<&Pos>(item)
         .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
 
-    try_move(world, performer, item_pos)?;
+    position::move_to(world, performer, item_pos)?;
     world
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
@@ -104,7 +104,7 @@ pub(super) fn give_item(
     context.add_dialogue(frames);
     let world = context.mut_world();
 
-    try_move_adjacent(world, performer, receiver_pos)?;
+    position::move_adjacent(world, performer, receiver_pos)?;
 
     world
         .insert_one(item, Held::in_inventory(receiver))
@@ -137,7 +137,7 @@ pub fn wield(
         let item_pos = *world
             .get::<&Pos>(item)
             .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
-        try_move(world, performer, item_pos)?;
+        position::move_to(world, performer, item_pos)?;
 
         inventory::unwield_if_needed(world, performer);
         world

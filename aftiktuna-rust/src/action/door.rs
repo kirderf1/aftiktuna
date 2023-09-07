@@ -85,7 +85,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         return Err(format!("{} cannot reach the door from here.", aftik_name));
     }
 
-    position::try_move(world, aftik, door_pos)?;
+    position::move_to(world, aftik, door_pos)?;
 
     let door = world
         .get::<&Door>(door)
@@ -127,7 +127,7 @@ pub fn force_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         return Err(format!("{} cannot reach the door from here.", aftik_name));
     }
 
-    position::try_move(world, aftik, door_pos)?;
+    position::move_to(world, aftik, door_pos)?;
 
     let door_pair = world
         .get::<&Door>(door)

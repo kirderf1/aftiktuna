@@ -1,9 +1,9 @@
 use crate::action;
 use crate::action::CrewMember;
 use crate::core::item::Weapon;
-use crate::core::position::{try_move_adjacent, Pos};
+use crate::core::position::Pos;
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{inventory, status, GameState};
+use crate::core::{inventory, position, status, GameState};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use rand::Rng;
@@ -78,7 +78,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
         ));
     }
 
-    try_move_adjacent(world, attacker, target_pos)?;
+    position::move_adjacent(world, attacker, target_pos)?;
 
     let hit_type = roll_hit(world, attacker, target, &mut state.rng);
 
