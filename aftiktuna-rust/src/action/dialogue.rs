@@ -20,8 +20,7 @@ pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -
 
     movement.perform(context.mut_world()).unwrap();
 
-    context.add_dialogue(performer, "\"Hi!\"");
-    context.add_dialogue(target, "\"Hello!\"");
+    talk_dialogue(&mut context, performer, target);
 
     let world = context.mut_world();
     let performer_name = NameData::find(world, performer).definite();
@@ -29,6 +28,25 @@ pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -
     action::ok(format!(
         "{performer_name} finishes talking with {target_name}."
     ))
+}
+
+fn talk_dialogue(context: &mut Context, performer: Entity, target: Entity) {
+    if context
+        .mut_world()
+        .get::<&Name>(target)
+        .ok()
+        .map_or(false, |name| !name.is_known)
+    {
+        let mut name_ref = context.mut_world().get::<&mut Name>(target).unwrap();
+        name_ref.is_known = true;
+        let name_string = name_ref.name.clone();
+        drop(name_ref);
+        context.add_dialogue(performer, "\"Hi! What is your name?\"");
+        context.add_dialogue(target, format!("\"My name is {name_string}.\""));
+    } else {
+        context.add_dialogue(performer, "\"Hi!\"");
+        context.add_dialogue(target, "\"Hello!\"");
+    }
 }
 
 pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -> action::Result {
@@ -56,7 +74,7 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
     let world = context.mut_world();
     world.remove_one::<Recruitable>(target).unwrap();
     if let Ok(mut name) = world.get::<&mut Name>(target) {
-        name.set_is_known();
+        name.is_known = true;
     }
     let name = NameData::find(world, target).definite();
     world

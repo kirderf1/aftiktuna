@@ -74,8 +74,8 @@ pub type NameQuery<'a> = (Option<&'a Name>, Option<&'a Noun>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Name {
-    name: String,
-    is_known: bool,
+    pub name: String,
+    pub is_known: bool,
 }
 
 impl Name {
@@ -90,10 +90,6 @@ impl Name {
             name: name.to_owned(),
             is_known: false,
         }
-    }
-
-    pub fn set_is_known(&mut self) {
-        self.is_known = true;
     }
 }
 
