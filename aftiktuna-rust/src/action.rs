@@ -175,9 +175,14 @@ fn talk_to(mut context: Context, performer: Entity, target: Entity) -> Result {
     ];
     context.add_dialogue(frames);
 
-    movement.perform(context.mut_world()).unwrap();
+    let world = context.mut_world();
+    movement.perform(world).unwrap();
 
-    silent_ok()
+    let performer_name = NameData::find(world, performer).definite();
+    let target_name = NameData::find(world, target).definite();
+    ok(format!(
+        "{performer_name} finishes talking with {target_name}."
+    ))
 }
 
 fn recruit(mut context: Context, performer: Entity, target: Entity) -> Result {
