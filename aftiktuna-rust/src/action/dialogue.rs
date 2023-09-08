@@ -1,6 +1,7 @@
 use crate::action;
 use crate::action::{Context, CrewMember, Recruitable, Waiting};
 use crate::core::position::{Blockage, Direction, Pos};
+use crate::core::status::Health;
 use crate::core::{position, status};
 use crate::view::name::{Name, NameData};
 use crate::view::Symbol;
@@ -51,6 +52,25 @@ fn talk_dialogue(context: &mut Context, performer: Entity, target: Entity) {
         drop(name_ref);
         context.add_dialogue(performer, "\"Hi! What is your name?\"");
         context.add_dialogue(target, format!("\"My name is {name_string}.\""));
+    } else if context.mut_world().get::<&Recruitable>(target).is_ok() {
+        context.add_dialogue(performer, "\"Hi!\"");
+        context.add_dialogue(
+            target,
+            "\"Hello! I wish I could leave this place and go on an adventure.\"",
+        );
+    } else if context.mut_world().get::<&Waiting>(target).is_ok() {
+        context.add_dialogue(performer, "\"Hi!\"");
+        context.add_dialogue(
+            target,
+            "\"Hello! I'll continue to wait here until you tell me otherwise.\"",
+        );
+    } else if context
+        .mut_world()
+        .get::<&Health>(target)
+        .map_or(false, |health| health.as_fraction() < 0.5)
+    {
+        context.add_dialogue(performer, "\"Hi!\"");
+        context.add_dialogue(target, "\"Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.\"");
     } else {
         context.add_dialogue(performer, "\"Hi!\"");
         context.add_dialogue(target, "\"Hello!\"");
