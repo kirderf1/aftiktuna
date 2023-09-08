@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub enum Intention {
     Wield(Entity),
+    Force(Entity),
 }
 
 pub fn prepare_intentions(world: &mut World) {
@@ -114,6 +115,7 @@ fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>)
     if let Some(intention) = intention {
         return Some(match intention {
             Intention::Wield(item) => Action::Wield(item, NameData::find(world, item)),
+            Intention::Force(door) => Action::ForceDoor(door, true),
         });
     }
 

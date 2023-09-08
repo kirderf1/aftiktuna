@@ -98,7 +98,7 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
 
     check_accessible_with_message(world, character, door)?;
 
-    command::action_result(Action::ForceDoor(door))
+    command::action_result(Action::ForceDoor(door, false))
 }
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
