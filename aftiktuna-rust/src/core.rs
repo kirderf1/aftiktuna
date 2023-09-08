@@ -1,7 +1,7 @@
 use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
-use crate::view::name::NameData;
+use crate::view::name::{NameData, NameQuery};
 use crate::view::{Frame, Messages, OrderWeight, StatusCache};
 use crate::{action, area, serialization, view};
 use hecs::{Entity, World};
@@ -191,6 +191,18 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         view_buffer
             .messages
             .add("The ship leaves for the next planet.");
+
+        for (_, (_, query)) in state
+            .world
+            .query::<(&Pos, NameQuery)>()
+            .with::<&CrewMember>()
+            .iter()
+            .filter(|(_, (pos, _))| !pos.is_in(state.ship))
+        {
+            let name = NameData::from(query).definite();
+            view_buffer.messages.add(format!("{name} was left behind."))
+        }
+
         view_buffer.capture_view(state);
 
         area::despawn_all_except_ship(&mut state.world, state.ship);
