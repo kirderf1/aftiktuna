@@ -3,7 +3,7 @@ mod item;
 
 use crate::action::trade::Shopkeeper;
 use crate::action::{door, Action, CrewMember, FortunaChest, Recruitable};
-use crate::area::Ship;
+use crate::area::{Ship, ShipStatus};
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::item::FuelCan;
@@ -161,18 +161,21 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     }
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if !inventory::is_holding::<&FuelCan>(world, character) {
+    let need_fuel = world
+        .get::<&Ship>(area)
+        .map(|ship| ship.status == ShipStatus::NeedTwoCans || ship.status == ShipStatus::NeedOneCan)
+        .map_err(|_| {
+            format!(
+                "{} needs to be in the ship in order to launch it.",
+                NameData::find(world, character).definite()
+            )
+        })?;
+    if need_fuel && !inventory::is_holding::<&FuelCan>(world, character) {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             NameData::find(world, character).definite()
         ));
     }
-    world.get::<&Ship>(area).map_err(|_| {
-        format!(
-            "{} needs to be in the ship in order to launch it.",
-            NameData::find(world, character).definite()
-        )
-    })?;
     command::action_result(Action::Launch)
 }
 

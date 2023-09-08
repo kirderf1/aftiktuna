@@ -135,7 +135,7 @@ pub(super) fn tell_to_wait(
     context.add_dialogue(performer, "Please wait here for now.");
     context.add_dialogue(
         target,
-        "Sure thing. Just tell me when I should follow along again",
+        "Sure thing. Just tell me when I should follow along again.",
     );
 
     context.mut_world().insert_one(target, Waiting).unwrap();

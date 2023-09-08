@@ -55,6 +55,7 @@ pub struct Ship {
 pub enum ShipStatus {
     NeedTwoCans,
     NeedOneCan,
+    Refueled,
     Launching,
 }
 
