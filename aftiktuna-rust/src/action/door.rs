@@ -2,7 +2,7 @@ use crate::action::{Context, CrewMember};
 use crate::core::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
-use crate::core::{inventory, position};
+use crate::core::{inventory, position, GameState};
 use crate::view::name::NameData;
 use crate::view::TextureType;
 use crate::{action, core};
@@ -74,14 +74,15 @@ impl BlockType {
     }
 }
 
-pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Result {
+pub fn enter_door(state: &mut GameState, aftik: Entity, door: Entity) -> action::Result {
+    let world = &mut state.world;
     let aftik_name = NameData::find(world, aftik).definite();
     let door_pos = *world
         .get::<&Pos>(door)
         .ok()
-        .ok_or_else(|| format!("{} lost track of the door.", aftik_name))?;
+        .ok_or_else(|| format!("{aftik_name} lost track of the door."))?;
     if Ok(door_pos.get_area()) != world.get::<&Pos>(aftik).map(|pos| pos.get_area()) {
-        return Err(format!("{} cannot reach the door from here.", aftik_name));
+        return Err(format!("{aftik_name} cannot reach the door from here."));
     }
 
     position::move_to(world, aftik, door_pos)?;
@@ -98,7 +99,7 @@ pub fn enter_door(world: &mut World, aftik: Entity, door: Entity) -> action::Res
         if block_type == BlockType::Locked && inventory::is_holding::<&Keycard>(world, aftik) {
             true
         } else {
-            on_door_failure(world, aftik, door, block_type);
+            on_door_failure(state, aftik, door, block_type);
             return Err(format!("The door is {}.", block_type.description()));
         }
     } else {
@@ -156,7 +157,7 @@ pub(super) fn force_door(
 
     match block_type.try_force(world, performer, &performer_name) {
         Err(message) => {
-            on_door_failure(world, performer, door, block_type);
+            on_door_failure(context.state, performer, door, block_type);
             Err(message)
         }
         Ok(tool) => {
@@ -182,9 +183,10 @@ fn set_is_cut(texture_type: &mut TextureType) {
     }
 }
 
-fn on_door_failure(world: &mut World, performer: Entity, door: Entity, block_type: BlockType) {
+fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block_type: BlockType) {
+    let world = &mut state.world;
     let area = world.get::<&Pos>(performer).unwrap().get_area();
-    if !core::is_safe(world, performer) {
+    if !core::is_safe(world, area) {
         return;
     }
 
@@ -193,7 +195,7 @@ fn on_door_failure(world: &mut World, performer: Entity, door: Entity, block_typ
         .with::<&CrewMember>()
         .iter()
         .find(|&(crew_member, pos)| {
-            crew_member != performer
+            crew_member != state.controlled
                 && pos.is_in(area)
                 && block_type
                     .usable_tools()

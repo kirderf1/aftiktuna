@@ -88,7 +88,7 @@ fn perform(
         GiveItem(item, receiver) => item::give_item(context, performer, item, receiver),
         Wield(item, name) => item::wield(&mut state.world, performer, item, name),
         UseMedkit(item) => item::use_medkit(&mut state.world, performer, item),
-        EnterDoor(door) => door::enter_door(&mut state.world, performer, door),
+        EnterDoor(door) => door::enter_door(state, performer, door),
         ForceDoor(door, assisting) => door::force_door(context, performer, door, assisting),
         Attack(targets) => combat::attack(state, performer, targets),
         Wait => silent_ok(),
