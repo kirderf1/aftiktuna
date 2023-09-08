@@ -40,7 +40,11 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             parse.done_or_err(|| command::status(world, character))
         }),
         parse.literal("control", |parse| {
-            parse.take_remaining(|target_name| control(world, character, target_name))
+            parse.match_against(
+                crew_targets(world),
+                |parse, target| parse.done_or_err(|| control(character, target)),
+                |_| Err("There is no crew member by that name.".to_string()),
+            )
         }),
         parse.literal("talk", |parse| {
             first_match_or!(
@@ -179,18 +183,11 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     command::action_result(Action::Launch)
 }
 
-fn control(world: &World, character: Entity, target_name: &str) -> Result<CommandResult, String> {
-    let (new_character, _) = world
-        .query::<NameQuery>()
-        .with::<&CrewMember>()
-        .iter()
-        .find(|&(_, query)| NameData::from(query).matches(target_name))
-        .ok_or_else(|| "There is no crew member by that name.".to_string())?;
-
-    if new_character == character {
+fn control(character: Entity, target: Entity) -> Result<CommandResult, String> {
+    if target == character {
         Err("You're already in control of them.".to_string())
     } else {
-        Ok(CommandResult::ChangeControlled(new_character))
+        Ok(CommandResult::ChangeControlled(target))
     }
 }
 
