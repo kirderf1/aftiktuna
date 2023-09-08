@@ -1,8 +1,5 @@
-mod combat;
-mod item;
-
 use crate::action::trade::Shopkeeper;
-use crate::action::{door, Action, CrewMember, FortunaChest, Recruitable};
+use crate::action::{door, Action, CrewMember, FortunaChest};
 use crate::area::{Ship, ShipStatus};
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
@@ -11,7 +8,11 @@ use crate::core::position::{Blockage, Pos};
 use crate::core::{inventory, position, status, GameState};
 use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
-use hecs::{Entity, Or, World};
+use hecs::{Entity, World};
+
+mod combat;
+mod dialogue;
+mod item;
 
 pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let world = &state.world;
@@ -26,6 +27,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             parse.take_remaining(|door_name| force(door_name, world, character))
         }),
         combat::commands(&parse, state),
+        dialogue::commands(&parse, state),
         parse.literal("wait", |parse| {
             parse.done_or_err(|| command::action_result(Action::Wait))
         }),
@@ -46,47 +48,8 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
                 |_| Err("There is no crew member by that name.".to_string()),
             )
         }),
-        parse.literal("talk", |parse| {
-            first_match_or!(
-                parse.literal("to", |parse| {
-                    parse.match_against(
-                        talk_targets(state),
-                        |parse, target| parse.done_or_err(|| talk_to(state, target)),
-                        |input| Err(format!("\"{input}\" not a valid target")),
-                    )
-                });
-                Err("Unexpected argument after \"talk\"".to_string())
-            )
-        }),
         parse.literal("trade", |parse| {
             parse.done_or_err(|| trade(world, character))
-        }),
-        parse.literal("recruit", |parse| {
-            parse.match_against(
-                recruit_targets(world, character),
-                |parse, target| parse.done_or_err(|| recruit(world, character, target)),
-                |input| Err(format!("\"{input}\" not a valid recruitment target")),
-            )
-        }),
-        parse.literal("tell", |parse| {
-            parse.match_against(
-                crew_targets(world),
-                |parse, target| {
-                    first_match_or!(
-                        parse.literal("to", |parse| {
-                            first_match_or!(
-                                parse.literal("wait", |parse|
-                                    parse.done_or_err(|| tell_to_wait(state, target))),
-                                parse.literal("follow", |parse|
-                                    parse.done_or_err(|| tell_to_follow(state, target)));
-                                Err("Unexpected argument".to_string())
-                            )
-                        });
-                        Err("Unexpected argument".to_string())
-                    )
-                },
-                |input| Err(format!("\"{input}\" not a valid target")),
-            )
         }),
         parse.literal("open", |parse| {
             parse.match_against(
@@ -205,81 +168,6 @@ fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
     check_adjacent_accessible_with_message(world, character, shopkeeper)?;
 
     command::action_result(Action::Trade(shopkeeper))
-}
-
-fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
-    let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
-    state
-        .world
-        .query::<(NameQuery, &Pos)>()
-        .with::<Or<&CrewMember, &Recruitable>>()
-        .iter()
-        .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
-        .collect::<Vec<_>>()
-}
-
-fn talk_to(state: &GameState, target: Entity) -> Result<CommandResult, String> {
-    check_adjacent_accessible_with_message(&state.world, state.controlled, target)?;
-
-    command::action_result(Action::TalkTo(target))
-}
-
-fn recruit(world: &World, character: Entity, target: Entity) -> Result<CommandResult, String> {
-    check_adjacent_accessible_with_message(world, character, target)?;
-
-    command::action_result(Action::Recruit(target))
-}
-
-fn tell_to_wait(state: &GameState, target: Entity) -> Result<CommandResult, String> {
-    if state.controlled == target {
-        return Err(format!(
-            "{} can't give an order to themselves.",
-            NameData::find(&state.world, state.controlled).definite()
-        ));
-    }
-    let controlled_pos = state.world.get::<&Pos>(state.controlled).unwrap();
-    let target_pos = state.world.get::<&Pos>(target).unwrap();
-    if !controlled_pos.is_in(target_pos.get_area()) {
-        return Err(format!(
-            "{} can't tell {} to do things from here.",
-            NameData::find(&state.world, state.controlled).definite(),
-            NameData::find(&state.world, target).definite()
-        ));
-    }
-
-    command::action_result(Action::TellToWait(target))
-}
-
-fn tell_to_follow(state: &GameState, target: Entity) -> Result<CommandResult, String> {
-    if state.controlled == target {
-        return Err(format!(
-            "{} can't give an order to themselves.",
-            NameData::find(&state.world, state.controlled).definite()
-        ));
-    }
-    let controlled_pos = state.world.get::<&Pos>(state.controlled).unwrap();
-    let target_pos = state.world.get::<&Pos>(target).unwrap();
-    if !controlled_pos.is_in(target_pos.get_area()) {
-        return Err(format!(
-            "{} can't tell {} to do things from here.",
-            NameData::find(&state.world, state.controlled).definite(),
-            NameData::find(&state.world, target).definite()
-        ));
-    }
-
-    command::action_result(Action::TellToFollow(target))
-}
-
-fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
-    let character_pos = *world.get::<&Pos>(character).unwrap();
-    world
-        .query::<(NameQuery, &Pos)>()
-        .with::<&Recruitable>()
-        .iter()
-        .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
-        .collect::<Vec<_>>()
 }
 
 fn fortuna_chest_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
