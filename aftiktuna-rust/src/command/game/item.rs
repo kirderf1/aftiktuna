@@ -1,5 +1,5 @@
 use crate::action::door::{BlockType, Door};
-use crate::action::{Action, CrewMember};
+use crate::action::Action;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
@@ -23,7 +23,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
         }),
         parse.literal("give", |parse| {
             parse.match_against(
-                crew_targets(&state.world),
+                super::crew_targets(&state.world),
                 |parse, receiver| {
                     parse.take_remaining(|item_name| give(receiver, item_name, state))
                 },
@@ -56,15 +56,6 @@ fn take_all(state: &GameState) -> Result<CommandResult, String> {
     }
 
     command::action_result(Action::TakeAll)
-}
-
-fn crew_targets(world: &World) -> Vec<(String, Entity)> {
-    world
-        .query::<NameQuery>()
-        .with::<&CrewMember>()
-        .iter()
-        .map(|(entity, query)| (NameData::from(query).base().to_lowercase(), entity))
-        .collect()
 }
 
 fn take(item_name: &str, state: &GameState) -> Result<CommandResult, String> {

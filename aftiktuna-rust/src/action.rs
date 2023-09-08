@@ -20,6 +20,9 @@ pub mod trade;
 pub struct CrewMember(pub Entity);
 
 #[derive(Serialize, Deserialize)]
+pub struct Waiting;
+
+#[derive(Serialize, Deserialize)]
 pub struct Recruitable;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -37,6 +40,8 @@ pub enum Action {
     Launch,
     TalkTo(Entity),
     Recruit(Entity),
+    TellToWait(Entity),
+    TellToFollow(Entity),
     Trade(Entity),
     Buy(ItemType, u16),
     Sell(Vec<Entity>),
@@ -91,6 +96,8 @@ fn perform(
         Launch => launch::perform(state, performer),
         TalkTo(target) => dialogue::talk_to(context, performer, target),
         Recruit(target) => dialogue::recruit(context, performer, target),
+        TellToWait(target) => dialogue::tell_to_wait(context, performer, target),
+        TellToFollow(target) => dialogue::tell_to_follow(context, performer, target),
         Trade(shopkeeper) => trade::trade(&mut state.world, performer, shopkeeper),
         Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
         Sell(items) => trade::sell(&mut state.world, performer, items),

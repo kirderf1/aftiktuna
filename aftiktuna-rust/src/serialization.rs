@@ -1,7 +1,7 @@
 use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade::{IsTrading, Points, Shopkeeper};
-use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable};
+use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable, Waiting};
 use crate::area::{Area, Ship};
 use crate::core::ai::Intention;
 use crate::core::inventory::Held;
@@ -153,6 +153,7 @@ components_to_serialize!(
     IsFoe, IsFoe;
     Action, Action;
     Intention, Intention;
+    Waiting, Waiting;
 
     Recruitable, Recruitable;
     Shopkeeper, Shopkeeper;

@@ -1,6 +1,6 @@
 use crate::action;
-use crate::action::{Context, CrewMember, Recruitable};
-use crate::core::position::{Blockage, Pos};
+use crate::action::{Context, CrewMember, Recruitable, Waiting};
+use crate::core::position::{Blockage, Direction, Pos};
 use crate::core::{position, status};
 use crate::view::name::{Name, NameData};
 use crate::view::Symbol;
@@ -95,4 +95,85 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
         .unwrap();
 
     action::ok(format!("{name} joined the crew!"))
+}
+
+pub(super) fn tell_to_wait(
+    mut context: Context,
+    performer: Entity,
+    target: Entity,
+) -> action::Result {
+    if !status::is_alive(target, context.mut_world())
+        || context.mut_world().get::<&Waiting>(target).is_ok()
+    {
+        return action::silent_ok();
+    }
+
+    let performer_pos = *context.mut_world().get::<&Pos>(performer).unwrap();
+    let target_pos = *context.mut_world().get::<&Pos>(target).unwrap();
+
+    context.capture_frame_for_dialogue();
+
+    if performer_pos != target_pos {
+        context
+            .mut_world()
+            .insert_one(performer, Direction::between(performer_pos, target_pos))
+            .unwrap();
+        context
+            .mut_world()
+            .insert_one(target, Direction::between(target_pos, performer_pos))
+            .unwrap();
+    }
+
+    context.add_dialogue(performer, "Please wait here for now.");
+    context.add_dialogue(
+        target,
+        "Sure thing. Just tell me when I should follow along again",
+    );
+
+    context.mut_world().insert_one(target, Waiting).unwrap();
+
+    let performer_name = NameData::find(context.mut_world(), performer).definite();
+    let target_name = NameData::find(context.mut_world(), target).definite();
+    action::ok(format!(
+        "{performer_name} finishes talking with {target_name}."
+    ))
+}
+
+pub(super) fn tell_to_follow(
+    mut context: Context,
+    performer: Entity,
+    target: Entity,
+) -> action::Result {
+    if !status::is_alive(target, context.mut_world())
+        || context.mut_world().get::<&Waiting>(target).is_err()
+    {
+        return action::silent_ok();
+    }
+
+    let performer_pos = *context.mut_world().get::<&Pos>(performer).unwrap();
+    let target_pos = *context.mut_world().get::<&Pos>(target).unwrap();
+
+    context.capture_frame_for_dialogue();
+
+    if performer_pos != target_pos {
+        context
+            .mut_world()
+            .insert_one(performer, Direction::between(performer_pos, target_pos))
+            .unwrap();
+        context
+            .mut_world()
+            .insert_one(target, Direction::between(target_pos, performer_pos))
+            .unwrap();
+    }
+
+    context.add_dialogue(performer, "Time to go, please follow me.");
+    context.add_dialogue(target, "Alright, let's go!");
+
+    context.mut_world().remove_one::<Waiting>(target).unwrap();
+
+    let performer_name = NameData::find(context.mut_world(), performer).definite();
+    let target_name = NameData::find(context.mut_world(), target).definite();
+    action::ok(format!(
+        "{performer_name} finishes talking with {target_name}."
+    ))
 }

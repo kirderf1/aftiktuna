@@ -1,4 +1,4 @@
-use crate::action::{Action, CrewMember};
+use crate::action::{Action, CrewMember, Waiting};
 use crate::area::LocationTracker;
 use crate::command::{CommandResult, Target};
 use crate::core::position::Pos;
@@ -6,7 +6,7 @@ use crate::core::{GameState, Step, StopType};
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
 use crate::{area, command, core, serialization};
-use hecs::{Entity, World};
+use hecs::Satisfies;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
 use std::mem::swap;
@@ -96,7 +96,7 @@ impl Game {
             }
             Phase::CommandInput => match command::try_parse_input(input, &self.state)? {
                 CommandResult::Action(action, target) => {
-                    insert_action(&mut self.state.world, self.state.controlled, action, target);
+                    insert_action(&mut self.state, action, target);
                     let (phase, frames) = core::run(Step::Tick, &mut self.state);
                     self.phase = phase;
                     self.frame_cache.add_new_frames(frames);
@@ -115,7 +115,9 @@ impl Game {
     }
 }
 
-fn insert_action(world: &mut World, controlled: Entity, action: Action, target: Target) {
+fn insert_action(state: &mut GameState, action: Action, target: Target) {
+    let world = &mut state.world;
+    let controlled = state.controlled;
     match target {
         Target::Controlled => {
             world.insert_one(controlled, action).unwrap();
@@ -123,10 +125,12 @@ fn insert_action(world: &mut World, controlled: Entity, action: Action, target: 
         Target::Crew => {
             let area = world.get::<&Pos>(controlled).unwrap().get_area();
             let aftiks = world
-                .query::<&Pos>()
+                .query::<(&Pos, Satisfies<&Waiting>)>()
                 .with::<&CrewMember>()
                 .iter()
-                .filter(|(_, pos)| pos.is_in(area))
+                .filter(|&(entity, (pos, is_waiting))| {
+                    pos.is_in(area) && (entity == controlled || !is_waiting)
+                })
                 .map(|(aftik, _)| aftik)
                 .collect::<Vec<_>>();
             for aftik in aftiks {

@@ -1,7 +1,7 @@
 use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade::Shopkeeper;
-use crate::action::{CrewMember, FortunaChest, Recruitable};
+use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
 use crate::area::{Area, BackgroundType};
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
@@ -144,6 +144,8 @@ pub enum InteractionType {
     Controlled,
     Shopkeeper,
     Recruitable,
+    Waiting,
+    Following,
     Foe,
 }
 
@@ -171,6 +173,8 @@ impl InteractionType {
             InteractionType::Recruitable => {
                 vec![format!("recruit {name}"), format!("talk to {name}")]
             }
+            InteractionType::Waiting => vec![format!("tell {name} to follow")],
+            InteractionType::Following => vec![format!("tell {name} to wait")],
             InteractionType::Foe => vec![format!("attack {name}")],
         }
     }
@@ -196,6 +200,11 @@ fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
     }
     if entity != state.controlled && world.get::<&CrewMember>(entity).is_ok() {
         interactions.push(InteractionType::CrewMember);
+        if world.get::<&Waiting>(entity).is_ok() {
+            interactions.push(InteractionType::Waiting);
+        } else {
+            interactions.push(InteractionType::Following);
+        }
     }
     if entity == state.controlled {
         interactions.push(InteractionType::Controlled);

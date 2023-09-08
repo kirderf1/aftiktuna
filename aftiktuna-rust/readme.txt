@@ -22,6 +22,9 @@ Currently available commands are:
 - control <character>
 - trade
 - recruit aftik
+- talk to <character>
+- tell <character> to wait
+- tell <character> to follow
 - open fortuna chest
 
 When trading at a store, there are the following commands:

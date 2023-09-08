@@ -64,6 +64,26 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
                 |input| Err(format!("\"{input}\" not a valid recruitment target")),
             )
         }),
+        parse.literal("tell", |parse| {
+            parse.match_against(
+                crew_targets(world),
+                |parse, target| {
+                    first_match_or!(
+                        parse.literal("to", |parse| {
+                            first_match_or!(
+                                parse.literal("wait", |parse|
+                                    parse.done_or_err(|| tell_to_wait(state, target))),
+                                parse.literal("follow", |parse|
+                                    parse.done_or_err(|| tell_to_follow(state, target)));
+                                Err("Unexpected argument".to_string())
+                            )
+                        });
+                        Err("Unexpected argument".to_string())
+                    )
+                },
+                |input| Err(format!("\"{input}\" not a valid target")),
+            )
+        }),
         parse.literal("open", |parse| {
             parse.match_against(
                 fortuna_chest_targets(world, character),
@@ -73,6 +93,15 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         });
         Err(format!("Unexpected input: \"{input}\""))
     )
+}
+
+fn crew_targets(world: &World) -> Vec<(String, Entity)> {
+    world
+        .query::<NameQuery>()
+        .with::<&CrewMember>()
+        .iter()
+        .map(|(entity, query)| (NameData::from(query).base().to_lowercase(), entity))
+        .collect()
 }
 
 fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
@@ -200,6 +229,46 @@ fn recruit(world: &World, character: Entity, target: Entity) -> Result<CommandRe
     check_adjacent_accessible_with_message(world, character, target)?;
 
     command::action_result(Action::Recruit(target))
+}
+
+fn tell_to_wait(state: &GameState, target: Entity) -> Result<CommandResult, String> {
+    if state.controlled == target {
+        return Err(format!(
+            "{} can't give an order to themselves.",
+            NameData::find(&state.world, state.controlled).definite()
+        ));
+    }
+    let controlled_pos = state.world.get::<&Pos>(state.controlled).unwrap();
+    let target_pos = state.world.get::<&Pos>(target).unwrap();
+    if !controlled_pos.is_in(target_pos.get_area()) {
+        return Err(format!(
+            "{} can't tell {} to do things from here.",
+            NameData::find(&state.world, state.controlled).definite(),
+            NameData::find(&state.world, target).definite()
+        ));
+    }
+
+    command::action_result(Action::TellToWait(target))
+}
+
+fn tell_to_follow(state: &GameState, target: Entity) -> Result<CommandResult, String> {
+    if state.controlled == target {
+        return Err(format!(
+            "{} can't give an order to themselves.",
+            NameData::find(&state.world, state.controlled).definite()
+        ));
+    }
+    let controlled_pos = state.world.get::<&Pos>(state.controlled).unwrap();
+    let target_pos = state.world.get::<&Pos>(target).unwrap();
+    if !controlled_pos.is_in(target_pos.get_area()) {
+        return Err(format!(
+            "{} can't tell {} to do things from here.",
+            NameData::find(&state.world, state.controlled).definite(),
+            NameData::find(&state.world, target).definite()
+        ));
+    }
+
+    command::action_result(Action::TellToFollow(target))
 }
 
 fn recruit_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
