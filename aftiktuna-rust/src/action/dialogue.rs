@@ -11,6 +11,8 @@ pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -
     if !status::is_alive(target, world) {
         return action::silent_ok();
     }
+
+    let performer_pos = *world.get::<&Pos>(performer).unwrap();
     let target_pos = *world.get::<&Pos>(target).unwrap();
 
     let movement = position::prepare_move_adjacent(world, performer, target_pos)
@@ -18,7 +20,13 @@ pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -
 
     context.capture_frame_for_dialogue();
 
-    movement.perform(context.mut_world()).unwrap();
+    if performer_pos != target_pos {
+        movement.perform(context.mut_world()).unwrap();
+        context
+            .mut_world()
+            .insert_one(target, Direction::between(target_pos, performer_pos))
+            .unwrap();
+    }
 
     talk_dialogue(&mut context, performer, target);
 
