@@ -31,7 +31,7 @@ pub fn logo() -> Icon {
 
 pub async fn run(game: Game, autosave: bool) -> ! {
     let mut app = init(game);
-    let textures = texture::load_textures().await.unwrap();
+    let textures = texture::load_textures().unwrap();
 
     if autosave {
         input::prevent_quit();

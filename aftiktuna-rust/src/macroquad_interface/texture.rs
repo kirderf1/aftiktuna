@@ -1,10 +1,10 @@
 use crate::core::area::BackgroundType;
 use crate::core::position::{Coord, Direction};
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
-use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
+use egui_macroquad::macroquad::prelude::ImageFormat;
 use egui_macroquad::macroquad::texture::{
     draw_texture, draw_texture_ex, DrawTextureParams, Texture2D,
 };
@@ -17,6 +17,7 @@ use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::hash::Hash;
 use std::io;
+use std::io::Read;
 
 pub struct TextureStorage {
     backgrounds: HashMap<BackgroundType, BGData>,
@@ -194,10 +195,10 @@ struct RawBGData {
 }
 
 impl RawBGData {
-    async fn load(self) -> Result<BGData, FileError> {
+    fn load(self) -> Result<BGData, io::Error> {
         Ok(BGData {
-            texture: self.texture.load().await?,
-            portrait: self.portrait.load().await?,
+            texture: self.texture.load()?,
+            portrait: self.portrait.load()?,
         })
     }
 }
@@ -211,16 +212,16 @@ enum RawBGTexture {
 }
 
 impl RawBGTexture {
-    async fn load(self) -> Result<BGTexture, FileError> {
+    fn load(self) -> Result<BGTexture, io::Error> {
         Ok(match self {
             RawBGTexture::Centered { texture } => {
-                BGTexture::Centered(load_texture(format!("background/{texture}")).await?)
+                BGTexture::Centered(load_texture(format!("background/{texture}"))?)
             }
             RawBGTexture::Fixed { texture } => {
-                BGTexture::Fixed(load_texture(format!("background/{texture}")).await?)
+                BGTexture::Fixed(load_texture(format!("background/{texture}"))?)
             }
             RawBGTexture::Repeating { texture } => {
-                BGTexture::Repeating(load_texture(format!("background/{texture}")).await?)
+                BGTexture::Repeating(load_texture(format!("background/{texture}"))?)
             }
         })
     }
@@ -235,13 +236,13 @@ enum RawBGPortrait {
 }
 
 impl RawBGPortrait {
-    async fn load(self) -> Result<BGPortrait, FileError> {
+    fn load(self) -> Result<BGPortrait, io::Error> {
         Ok(match self {
             RawBGPortrait::Color(color) => {
                 BGPortrait::Color([color[0], color[1], color[2], 255].into())
             }
             RawBGPortrait::Texture(texture) => {
-                BGPortrait::Texture(load_texture(format!("background/{texture}")).await?)
+                BGPortrait::Texture(load_texture(format!("background/{texture}"))?)
             }
         })
     }
@@ -285,10 +286,10 @@ struct RawTextureData {
 }
 
 impl RawTextureData {
-    async fn load(self) -> Result<TextureData, FileError> {
+    fn load(self) -> Result<TextureData, io::Error> {
         let mut layers = Vec::new();
         for layer in self.layers {
-            layers.push(layer.load().await?);
+            layers.push(layer.load()?);
         }
         layers.reverse();
         Ok(TextureData {
@@ -314,8 +315,8 @@ struct RawTextureLayer {
 }
 
 impl RawTextureLayer {
-    async fn load(self) -> Result<TextureLayer, FileError> {
-        let texture = load_texture(self.texture).await?;
+    fn load(self) -> Result<TextureLayer, io::Error> {
+        let texture = load_texture(self.texture)?;
         Ok(TextureLayer {
             texture,
             color: self.color,
@@ -329,15 +330,22 @@ impl RawTextureLayer {
     }
 }
 
-async fn load_texture_data(path: &str) -> Result<TextureData, Error> {
+fn load_texture_data(path: &str) -> Result<TextureData, Error> {
     let file = File::open(format!("assets/texture/{path}.json"))?;
     let data = serde_json::from_reader::<_, RawTextureData>(file)?;
-    let data = data.load().await?;
+    let data = data.load()?;
     Ok(data)
 }
 
-async fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, FileError> {
-    macroquad::texture::load_texture(&format!("assets/texture/{}.png", name.borrow())).await
+fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, io::Error> {
+    let path = format!("assets/texture/{}.png", name.borrow());
+
+    let mut bytes = vec![];
+    File::open(path)?.read_to_end(&mut bytes)?;
+    Ok(Texture2D::from_file_with_format(
+        &bytes,
+        Some(ImageFormat::Png),
+    ))
 }
 
 #[derive(Debug)]
@@ -375,22 +383,22 @@ impl Display for Error {
     }
 }
 
-pub async fn load_textures() -> Result<TextureStorage, Error> {
+pub fn load_textures() -> Result<TextureStorage, Error> {
     Ok(TextureStorage {
-        backgrounds: load_backgrounds().await?,
-        objects: objects::load_all().await?,
-        left_mouse_icon: load_texture("left_mouse").await?,
-        side_arrow: load_texture("side_arrow").await?,
-        portrait: load_texture_data("portrait").await?,
+        backgrounds: load_backgrounds()?,
+        objects: objects::load_all()?,
+        left_mouse_icon: load_texture("left_mouse")?,
+        side_arrow: load_texture("side_arrow")?,
+        portrait: load_texture_data("portrait")?,
     })
 }
 
-async fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
+fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
     let file = File::open("assets/texture/background/backgrounds.json")?;
     let raw_backgrounds: HashMap<BackgroundType, RawBGData> = serde_json::from_reader(file)?;
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
-        insert_or_log(&mut backgrounds, bg_type, raw_data.load().await);
+        insert_or_log(&mut backgrounds, bg_type, raw_data.load());
     }
 
     backgrounds
@@ -407,58 +415,57 @@ mod objects {
     use crate::view::TextureType;
     use std::collections::HashMap;
 
-    pub async fn load_all() -> Result<HashMap<TextureType, TextureData>, Error> {
+    pub fn load_all() -> Result<HashMap<TextureType, TextureData>, Error> {
         let mut objects = HashMap::new();
 
-        load(&mut objects, TextureType::Unknown, "unknown").await?;
-        load(&mut objects, TextureType::SmallUnknown, "small_unknown").await?;
-        try_load(&mut objects, TextureType::FortunaChest, "fortuna_chest").await;
-        try_load(&mut objects, TextureType::Ship, "ship").await;
-        try_load(&mut objects, TextureType::ShipControls, "ship_controls").await;
-        try_load(&mut objects, TextureType::Door, "door").await;
-        try_load(&mut objects, TextureType::ShipExit, "ship_exit").await;
-        try_load(&mut objects, TextureType::Shack, "shack").await;
-        try_load(&mut objects, TextureType::Path, "path").await;
-        try_load(&mut objects, TextureType::Aftik, "creature/aftik").await;
-        try_load(&mut objects, TextureType::Goblin, "creature/goblin").await;
-        try_load(&mut objects, TextureType::Eyesaur, "creature/eyesaur").await;
-        try_load(&mut objects, TextureType::Azureclops, "creature/azureclops").await;
-        try_load(&mut objects, TextureType::Scarvie, "creature/scarvie").await;
+        load(&mut objects, TextureType::Unknown, "unknown")?;
+        load(&mut objects, TextureType::SmallUnknown, "small_unknown")?;
+        try_load(&mut objects, TextureType::FortunaChest, "fortuna_chest");
+        try_load(&mut objects, TextureType::Ship, "ship");
+        try_load(&mut objects, TextureType::ShipControls, "ship_controls");
+        try_load(&mut objects, TextureType::Door, "door");
+        try_load(&mut objects, TextureType::ShipExit, "ship_exit");
+        try_load(&mut objects, TextureType::Shack, "shack");
+        try_load(&mut objects, TextureType::Path, "path");
+        try_load(&mut objects, TextureType::Aftik, "creature/aftik");
+        try_load(&mut objects, TextureType::Goblin, "creature/goblin");
+        try_load(&mut objects, TextureType::Eyesaur, "creature/eyesaur");
+        try_load(&mut objects, TextureType::Azureclops, "creature/azureclops");
+        try_load(&mut objects, TextureType::Scarvie, "creature/scarvie");
         try_load(
             &mut objects,
             TextureType::VoraciousFrog,
             "creature/voracious_frog",
-        )
-        .await;
-        try_load(&mut objects, item::Type::FuelCan, "item/fuel_can").await;
-        try_load(&mut objects, item::Type::Crowbar, "item/crowbar").await;
-        try_load(&mut objects, item::Type::Blowtorch, "item/blowtorch").await;
-        try_load(&mut objects, item::Type::Keycard, "item/keycard").await;
-        try_load(&mut objects, item::Type::Knife, "item/knife").await;
-        try_load(&mut objects, item::Type::Bat, "item/bat").await;
-        try_load(&mut objects, item::Type::Sword, "item/sword").await;
-        try_load(&mut objects, item::Type::Medkit, "item/medkit").await;
-        try_load(&mut objects, item::Type::MeteorChunk, "item/meteor_chunk").await;
-        try_load(&mut objects, item::Type::AncientCoin, "item/ancient_coin").await;
+        );
+        try_load(&mut objects, item::Type::FuelCan, "item/fuel_can");
+        try_load(&mut objects, item::Type::Crowbar, "item/crowbar");
+        try_load(&mut objects, item::Type::Blowtorch, "item/blowtorch");
+        try_load(&mut objects, item::Type::Keycard, "item/keycard");
+        try_load(&mut objects, item::Type::Knife, "item/knife");
+        try_load(&mut objects, item::Type::Bat, "item/bat");
+        try_load(&mut objects, item::Type::Sword, "item/sword");
+        try_load(&mut objects, item::Type::Medkit, "item/medkit");
+        try_load(&mut objects, item::Type::MeteorChunk, "item/meteor_chunk");
+        try_load(&mut objects, item::Type::AncientCoin, "item/ancient_coin");
 
         Ok(objects)
     }
 
-    async fn load(
+    fn load(
         objects: &mut HashMap<TextureType, TextureData>,
         key: impl Into<TextureType>,
         path: &str,
     ) -> Result<(), Error> {
-        objects.insert(key.into(), load_texture_data(path).await?);
+        objects.insert(key.into(), load_texture_data(path)?);
         Ok(())
     }
 
-    async fn try_load(
+    fn try_load(
         objects: &mut HashMap<TextureType, TextureData>,
         key: impl Into<TextureType>,
         path: &str,
     ) {
-        insert_or_log(objects, key, load_texture_data(path).await);
+        insert_or_log(objects, key, load_texture_data(path));
     }
 }
 
