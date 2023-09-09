@@ -34,11 +34,11 @@ impl TextureStorage {
             .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::Blank).unwrap())
     }
 
-    pub fn lookup_texture(&mut self, texture_type: TextureType) -> &TextureData {
-        if !self.objects.contains_key(&texture_type) {
+    pub fn lookup_texture(&mut self, texture_type: &TextureType) -> &TextureData {
+        if !self.objects.contains_key(texture_type) {
             objects::load_or_default(&mut self.objects, texture_type);
         }
-        self.objects.get(&texture_type).unwrap()
+        self.objects.get(texture_type).unwrap()
     }
 }
 
@@ -146,7 +146,7 @@ pub fn get_rect_for_object(
     textures: &mut TextureStorage,
     pos: Vec2,
 ) -> Rect {
-    let data = textures.lookup_texture(data.texture_type);
+    let data = textures.lookup_texture(&data.texture_type);
     data.layers[0].size(pos)
 }
 
@@ -417,35 +417,35 @@ mod objects {
     pub fn prepare() -> Result<HashMap<TextureType, TextureData>, Error> {
         let mut objects = HashMap::new();
 
-        load(&mut objects, TextureType::Unknown)?;
-        load(&mut objects, TextureType::SmallUnknown)?;
+        load(&mut objects, TextureType::unknown())?;
+        load(&mut objects, TextureType::small_unknown())?;
 
         Ok(objects)
     }
 
     fn load(
         objects: &mut HashMap<TextureType, TextureData>,
-        key: impl Into<TextureType>,
+        texture_type: TextureType,
     ) -> Result<(), Error> {
-        let key = key.into();
-        objects.insert(key, load_texture_data(key.path())?);
+        let data = load_texture_data(texture_type.path())?;
+        objects.insert(texture_type, data);
         Ok(())
     }
 
     pub fn load_or_default(
         objects: &mut HashMap<TextureType, TextureData>,
-        texture_type: TextureType,
+        texture_type: &TextureType,
     ) {
         let path = texture_type.path();
         let texture_data = load_texture_data(path).unwrap_or_else(|error| {
             eprintln!("Unable to load texture data \"{path}\": {error}");
-            if matches!(texture_type, TextureType::Item(_)) {
-                objects.get(&TextureType::SmallUnknown).unwrap().clone()
+            if texture_type.path().starts_with("item/") {
+                objects.get(&TextureType::small_unknown()).unwrap().clone()
             } else {
-                objects.get(&TextureType::Unknown).unwrap().clone()
+                objects.get(&TextureType::unknown()).unwrap().clone()
             }
         });
-        objects.insert(texture_type, texture_data);
+        objects.insert(texture_type.clone(), texture_data);
     }
 }
 

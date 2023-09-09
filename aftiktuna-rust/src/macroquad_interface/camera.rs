@@ -16,7 +16,7 @@ pub fn position_objects<'a>(
 
     for data in objects {
         let coord = data.coord;
-        let count = if textures.lookup_texture(data.texture_type).is_displacing() {
+        let count = if textures.lookup_texture(&data.texture_type).is_displacing() {
             let count_ref = coord_counts.entry(coord).or_insert(0);
             let count = *count_ref;
             *count_ref = count + 1;

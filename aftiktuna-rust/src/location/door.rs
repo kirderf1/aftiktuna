@@ -58,9 +58,9 @@ pub enum DoorType {
 impl From<DoorType> for TextureType {
     fn from(value: DoorType) -> Self {
         match value {
-            DoorType::Door => TextureType::Door,
-            DoorType::Shack | DoorType::House | DoorType::Store => TextureType::Shack,
-            DoorType::Path => TextureType::Path,
+            DoorType::Door => TextureType::new("door"),
+            DoorType::Shack | DoorType::House | DoorType::Store => TextureType::new("shack"),
+            DoorType::Path => TextureType::new("path"),
         }
     }
 }

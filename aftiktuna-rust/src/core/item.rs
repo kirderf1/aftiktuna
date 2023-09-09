@@ -107,6 +107,38 @@ impl Type {
             _ => None,
         }
     }
+
+    pub fn texture_type(self) -> TextureType {
+        TextureType::new(match self {
+            Self::FuelCan => "item/fuel_can",
+            Self::Crowbar => "item/crowbar",
+            Self::Blowtorch => "item/blowtorch",
+            Self::Keycard => "item/keycard",
+            Self::Knife => "item/knife",
+            Self::Bat => "item/bat",
+            Self::Sword => "item/sword",
+            Self::Medkit => "item/medkit",
+            Self::MeteorChunk => "item/meteor_chunk",
+            Self::AncientCoin => "item/ancient_coin",
+        })
+    }
+}
+
+impl From<Type> for TextureType {
+    fn from(item: Type) -> Self {
+        TextureType::item(match item {
+            Type::FuelCan => "fuel_can",
+            Type::Crowbar => "crowbar",
+            Type::Blowtorch => "blowtorch",
+            Type::Keycard => "keycard",
+            Type::Knife => "knife",
+            Type::Bat => "bat",
+            Type::Sword => "sword",
+            Type::Medkit => "medkit",
+            Type::MeteorChunk => "meteor_chunk",
+            Type::AncientCoin => "ancient_coin",
+        })
+    }
 }
 
 pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> Entity {

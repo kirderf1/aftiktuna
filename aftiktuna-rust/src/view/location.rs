@@ -5,70 +5,42 @@ use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
 use crate::core::area::{Area, BackgroundType, ShipControls};
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::{inventory, item, GameState};
+use crate::core::{inventory, GameState};
 use crate::view::name::NameData;
 use crate::view::{capitalize, Messages, OrderWeight, Symbol};
 use hecs::{Entity, Satisfies, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
+use std::ops::Deref;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub enum TextureType {
-    Unknown,
-    SmallUnknown,
-    FortunaChest,
-    Ship,
-    ShipControls,
-    Door,
-    ShipExit,
-    Shack,
-    Path,
-    Aftik,
-    Goblin,
-    Eyesaur,
-    Azureclops,
-    Scarvie,
-    VoraciousFrog,
-    Item(item::Type),
-}
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct TextureType(String);
 
 impl TextureType {
-    pub fn path(self) -> &'static str {
-        match self {
-            TextureType::Unknown => "unknown",
-            TextureType::SmallUnknown => "small_unknown",
-            TextureType::FortunaChest => "fortuna_chest",
-            TextureType::Ship => "ship",
-            TextureType::ShipControls => "ship_controls",
-            TextureType::Door => "door",
-            TextureType::ShipExit => "ship_exit",
-            TextureType::Shack => "shack",
-            TextureType::Path => "path",
-            TextureType::Aftik => "creature/aftik",
-            TextureType::Goblin => "creature/goblin",
-            TextureType::Eyesaur => "creature/eyesaur",
-            TextureType::Azureclops => "creature/azureclops",
-            TextureType::Scarvie => "creature/scarvie",
-            TextureType::VoraciousFrog => "creature/voracious_frog",
-            TextureType::Item(item) => match item {
-                item::Type::FuelCan => "item/fuel_can",
-                item::Type::Crowbar => "item/crowbar",
-                item::Type::Blowtorch => "item/blowtorch",
-                item::Type::Keycard => "item/keycard",
-                item::Type::Knife => "item/knife",
-                item::Type::Bat => "item/bat",
-                item::Type::Sword => "item/sword",
-                item::Type::Medkit => "item/medkit",
-                item::Type::MeteorChunk => "item/meteor_chunk",
-                item::Type::AncientCoin => "item/ancient_coin",
-            },
-        }
+    pub fn unknown() -> Self {
+        Self::new("unknown")
     }
-}
+    pub fn small_unknown() -> Self {
+        Self::new("small_unknown")
+    }
+    pub fn aftik() -> Self {
+        Self::creature("aftik")
+    }
 
-impl From<item::Type> for TextureType {
-    fn from(value: item::Type) -> Self {
-        TextureType::Item(value)
+    pub fn new(name: &str) -> Self {
+        Self(name.to_owned())
+    }
+
+    pub fn item(name: &str) -> Self {
+        Self(format!("item/{name}"))
+    }
+
+    pub fn creature(name: &str) -> Self {
+        Self(format!("creature/{name}"))
+    }
+
+    pub fn path(&self) -> &str {
+        &self.0
     }
 }
 
@@ -281,11 +253,11 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
         .iter()
         .filter(|&(_, (pos, _))| pos.is_in(character_pos.get_area()))
         .map(
-            |(entity, (pos, (&texture_type, &symbol, weight, direction, color, is_cut)))| {
+            |(entity, (pos, (texture_type, &symbol, weight, direction, color, is_cut)))| {
                 ObjectRenderData {
                     coord: pos.get_coord(),
                     weight: weight.copied().unwrap_or(OrderWeight::Creature),
-                    texture_type,
+                    texture_type: texture_type.clone(),
                     modified_name: get_name(
                         &state.world,
                         entity,
@@ -319,5 +291,5 @@ fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureTyp
     world
         .get::<&TextureType>(item)
         .ok()
-        .map(|texture_type| *texture_type)
+        .map(|texture_type| texture_type.deref().clone())
 }

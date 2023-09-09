@@ -139,14 +139,14 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
 fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
     for (pos, data) in camera::position_objects(&render_data.objects, textures) {
         texture::draw_object(
-            textures.lookup_texture(data.texture_type),
+            textures.lookup_texture(&data.texture_type),
             data.direction,
             data.aftik_color,
             data.is_cut,
             false,
             pos,
         );
-        if let Some(item_texture) = data.wielded_item {
+        if let Some(item_texture) = &data.wielded_item {
             texture::draw_object(
                 textures.lookup_texture(item_texture),
                 data.direction,

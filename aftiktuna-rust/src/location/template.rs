@@ -263,7 +263,7 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
 fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     world.spawn((
         symbol,
-        TextureType::FortunaChest,
+        TextureType::new("fortuna_chest"),
         OrderWeight::Background,
         Noun::new("fortuna chest", "fortuna chests"),
         pos,

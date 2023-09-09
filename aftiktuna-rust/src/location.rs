@@ -205,7 +205,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     item::Type::Medkit.spawn(world, Pos::new(ship, 1, world));
     world.spawn((
         Symbol('#'),
-        TextureType::ShipControls,
+        TextureType::new("ship_controls"),
         OrderWeight::Background,
         Noun::new("ship controls", "ship controls"),
         Pos::new(ship, 0, world),
@@ -241,14 +241,14 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         DoorInfo {
             pos: start_pos,
             symbol: Symbol('v'),
-            texture_type: TextureType::Ship,
+            texture_type: TextureType::new("ship"),
             kind: DoorKind::Door,
             name: Noun::new("ship", "ships"),
         },
         DoorInfo {
             pos: ship_exit,
             symbol: Symbol('^'),
-            texture_type: TextureType::ShipExit,
+            texture_type: TextureType::new("ship_exit"),
             kind: DoorKind::Door,
             name: Noun::new("ship exit", "ship exits"),
         },

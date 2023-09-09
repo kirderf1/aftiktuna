@@ -36,7 +36,7 @@ impl Type {
         match self {
             Type::Goblin => {
                 builder.add_bundle((
-                    TextureType::Goblin,
+                    TextureType::creature("goblin"),
                     Noun::new("goblin", "goblins"),
                     MovementBlocking,
                     IsFoe,
@@ -44,7 +44,7 @@ impl Type {
             }
             Type::Eyesaur => {
                 builder.add_bundle((
-                    TextureType::Eyesaur,
+                    TextureType::creature("eyesaur"),
                     Noun::new("eyesaur", "eyesaurs"),
                     MovementBlocking,
                     IsFoe,
@@ -52,7 +52,7 @@ impl Type {
             }
             Type::Azureclops => {
                 builder.add_bundle((
-                    TextureType::Azureclops,
+                    TextureType::creature("azureclops"),
                     Noun::new("azureclops", "azureclopses"),
                     MovementBlocking,
                     IsFoe,
@@ -60,7 +60,7 @@ impl Type {
             }
             Type::Scarvie => {
                 builder.add_bundle((
-                    TextureType::Scarvie,
+                    TextureType::creature("scarvie"),
                     Noun::new("scarvie", "scarvies"),
                     MovementBlocking,
                     IsFoe,
@@ -68,7 +68,7 @@ impl Type {
             }
             Type::VoraciousFrog => {
                 builder.add_bundle((
-                    TextureType::VoraciousFrog,
+                    TextureType::creature("voracious_frog"),
                     Noun::new("voracious frog", "voracious frogs"),
                     MovementBlocking,
                     IsFoe,
@@ -129,7 +129,7 @@ fn aftik_builder(symbol: Symbol, name: Name, stats: Stats) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         symbol,
-        TextureType::Aftik,
+        TextureType::creature("aftik"),
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
         name,
@@ -155,7 +155,7 @@ pub fn place_shopkeeper(
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
         symbol,
-        TextureType::Aftik,
+        TextureType::aftik(),
         OrderWeight::Creature,
         color,
         Noun::new("shopkeeper", "shopkeepers"),
