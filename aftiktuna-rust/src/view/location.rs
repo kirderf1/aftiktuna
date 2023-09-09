@@ -32,6 +32,40 @@ pub enum TextureType {
     Item(item::Type),
 }
 
+impl TextureType {
+    pub fn path(self) -> &'static str {
+        match self {
+            TextureType::Unknown => "unknown",
+            TextureType::SmallUnknown => "small_unknown",
+            TextureType::FortunaChest => "fortuna_chest",
+            TextureType::Ship => "ship",
+            TextureType::ShipControls => "ship_controls",
+            TextureType::Door => "door",
+            TextureType::ShipExit => "ship_exit",
+            TextureType::Shack => "shack",
+            TextureType::Path => "path",
+            TextureType::Aftik => "creature/aftik",
+            TextureType::Goblin => "creature/goblin",
+            TextureType::Eyesaur => "creature/eyesaur",
+            TextureType::Azureclops => "creature/azureclops",
+            TextureType::Scarvie => "creature/scarvie",
+            TextureType::VoraciousFrog => "creature/voracious_frog",
+            TextureType::Item(item) => match item {
+                item::Type::FuelCan => "item/fuel_can",
+                item::Type::Crowbar => "item/crowbar",
+                item::Type::Blowtorch => "item/blowtorch",
+                item::Type::Keycard => "item/keycard",
+                item::Type::Knife => "item/knife",
+                item::Type::Bat => "item/bat",
+                item::Type::Sword => "item/sword",
+                item::Type::Medkit => "item/medkit",
+                item::Type::MeteorChunk => "item/meteor_chunk",
+                item::Type::AncientCoin => "item/ancient_coin",
+            },
+        }
+    }
+}
+
 impl From<item::Type> for TextureType {
     fn from(value: item::Type) -> Self {
         TextureType::Item(value)

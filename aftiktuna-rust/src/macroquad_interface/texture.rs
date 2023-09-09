@@ -418,35 +418,31 @@ mod objects {
     pub fn load_all() -> Result<HashMap<TextureType, TextureData>, Error> {
         let mut objects = HashMap::new();
 
-        load(&mut objects, TextureType::Unknown, "unknown")?;
-        load(&mut objects, TextureType::SmallUnknown, "small_unknown")?;
-        try_load(&mut objects, TextureType::FortunaChest, "fortuna_chest");
-        try_load(&mut objects, TextureType::Ship, "ship");
-        try_load(&mut objects, TextureType::ShipControls, "ship_controls");
-        try_load(&mut objects, TextureType::Door, "door");
-        try_load(&mut objects, TextureType::ShipExit, "ship_exit");
-        try_load(&mut objects, TextureType::Shack, "shack");
-        try_load(&mut objects, TextureType::Path, "path");
-        try_load(&mut objects, TextureType::Aftik, "creature/aftik");
-        try_load(&mut objects, TextureType::Goblin, "creature/goblin");
-        try_load(&mut objects, TextureType::Eyesaur, "creature/eyesaur");
-        try_load(&mut objects, TextureType::Azureclops, "creature/azureclops");
-        try_load(&mut objects, TextureType::Scarvie, "creature/scarvie");
-        try_load(
-            &mut objects,
-            TextureType::VoraciousFrog,
-            "creature/voracious_frog",
-        );
-        try_load(&mut objects, item::Type::FuelCan, "item/fuel_can");
-        try_load(&mut objects, item::Type::Crowbar, "item/crowbar");
-        try_load(&mut objects, item::Type::Blowtorch, "item/blowtorch");
-        try_load(&mut objects, item::Type::Keycard, "item/keycard");
-        try_load(&mut objects, item::Type::Knife, "item/knife");
-        try_load(&mut objects, item::Type::Bat, "item/bat");
-        try_load(&mut objects, item::Type::Sword, "item/sword");
-        try_load(&mut objects, item::Type::Medkit, "item/medkit");
-        try_load(&mut objects, item::Type::MeteorChunk, "item/meteor_chunk");
-        try_load(&mut objects, item::Type::AncientCoin, "item/ancient_coin");
+        load(&mut objects, TextureType::Unknown)?;
+        load(&mut objects, TextureType::SmallUnknown)?;
+        try_load(&mut objects, TextureType::FortunaChest);
+        try_load(&mut objects, TextureType::Ship);
+        try_load(&mut objects, TextureType::ShipControls);
+        try_load(&mut objects, TextureType::Door);
+        try_load(&mut objects, TextureType::ShipExit);
+        try_load(&mut objects, TextureType::Shack);
+        try_load(&mut objects, TextureType::Path);
+        try_load(&mut objects, TextureType::Aftik);
+        try_load(&mut objects, TextureType::Goblin);
+        try_load(&mut objects, TextureType::Eyesaur);
+        try_load(&mut objects, TextureType::Azureclops);
+        try_load(&mut objects, TextureType::Scarvie);
+        try_load(&mut objects, TextureType::VoraciousFrog);
+        try_load(&mut objects, item::Type::FuelCan);
+        try_load(&mut objects, item::Type::Crowbar);
+        try_load(&mut objects, item::Type::Blowtorch);
+        try_load(&mut objects, item::Type::Keycard);
+        try_load(&mut objects, item::Type::Knife);
+        try_load(&mut objects, item::Type::Bat);
+        try_load(&mut objects, item::Type::Sword);
+        try_load(&mut objects, item::Type::Medkit);
+        try_load(&mut objects, item::Type::MeteorChunk);
+        try_load(&mut objects, item::Type::AncientCoin);
 
         Ok(objects)
     }
@@ -454,32 +450,29 @@ mod objects {
     fn load(
         objects: &mut HashMap<TextureType, TextureData>,
         key: impl Into<TextureType>,
-        path: &str,
     ) -> Result<(), Error> {
-        objects.insert(key.into(), load_texture_data(path)?);
+        let key = key.into();
+        objects.insert(key, load_texture_data(key.path())?);
         Ok(())
     }
 
-    fn try_load(
-        objects: &mut HashMap<TextureType, TextureData>,
-        key: impl Into<TextureType>,
-        path: &str,
-    ) {
-        insert_or_log(objects, key, load_texture_data(path));
+    fn try_load(objects: &mut HashMap<TextureType, TextureData>, key: impl Into<TextureType>) {
+        let key = key.into();
+        insert_or_log(objects, key, load_texture_data(key.path()));
     }
 }
 
 fn insert_or_log<K: Eq + Hash, V, D: Display>(
     objects: &mut HashMap<K, V>,
-    key: impl Into<K>,
+    key: K,
     result: Result<V, D>,
 ) {
     match result {
         Ok(value) => {
-            objects.insert(key.into(), value);
+            objects.insert(key, value);
         }
         Err(error) => {
-            eprintln!("Unable to load texture: {error}")
+            eprintln!("Unable to load texture: {error}");
         }
     }
 }
