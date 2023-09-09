@@ -4,13 +4,13 @@ use crate::core::position::{Direction, Pos};
 use crate::core::{GameState, StopType};
 use crate::location::Choice;
 use crate::view::name::NameData;
+pub use area::{AftikColor, ObjectRenderData, RenderData, TextureType};
 use hecs::{Entity, World};
-pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};
 use serde::{Deserialize, Serialize};
 pub use status::print_full_status;
 use std::mem::take;
 
-mod location;
+mod area;
 pub mod name;
 mod status;
 
@@ -158,7 +158,7 @@ impl Frame {
                 render_data,
             } => {
                 text.push("--------------------".to_string());
-                text.extend(location::area_view_messages(render_data).0);
+                text.extend(area::area_view_messages(render_data).0);
 
                 if !messages.is_empty() {
                     text.push(String::default());
@@ -299,7 +299,7 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
         messages: buffer
             .pop_messages(&state.world, state.controlled, &mut state.status_cache)
             .into_text(),
-        render_data: location::prepare_render_data(state),
+        render_data: area::prepare_render_data(state),
     }
 }
 
