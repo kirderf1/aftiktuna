@@ -1,37 +1,90 @@
-use crate::action::combat::IsFoe;
-use crate::action::door::{BlockType, Door, IsCut};
-use crate::action::trade::{IsTrading, Points, Shopkeeper};
-use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable, Waiting};
-use crate::core::ai::Intention;
-use crate::core::area::{Area, Ship, ShipControls};
-use crate::core::inventory::Held;
-use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon};
-use crate::core::position::{Direction, MovementBlocking, Pos};
-use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
 use crate::game_interface::Game;
-use crate::view::name::{Name, Noun};
-use crate::view::{AftikColor, OrderWeight, Symbol, TextureType};
-use hecs::serialize::column;
-use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
+use hecs::World;
 use rmp_serde::{decode, encode};
-use serde::de::SeqAccess;
-use serde::ser::SerializeTuple;
 use serde::{Deserialize, Serialize};
-use std::any::TypeId;
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
 
-macro_rules! components_to_serialize {
-    ($($comp:ty, $id:ident);+ $(;)?) => {
+macro_rules! world_serialization {
+    ($($comp:ty, $id:ident);* $(;)?) => {
+        use hecs::serialize::column;
+        use hecs::{Archetype, ColumnBatchBuilder, ColumnBatchType, World};
+        use serde::de::SeqAccess;
+        use serde::ser::SerializeTuple;
+        use serde::{Deserialize, Deserializer, Serialize, Serializer};
+        use std::any::TypeId;
+
+        pub fn serialize<S: Serializer>(world: &World, serializer: S) -> Result<S::Ok, S::Error>
+        {
+            column::serialize(world, &mut HecsSerializeContext, serializer)
+        }
+
+        pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<World, D::Error>
+        {
+            column::deserialize(&mut HecsDeserializeContext::default(), deserializer)
+        }
+
         #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-        enum ComponentId {
+        pub(super) enum ComponentId {
             $(
             $id
             ),*
         }
+        pub(super) fn is_serialized_type_id(id: TypeId) -> bool {
+            $(id == TypeId::of::<$comp>())||*
+        }
+        pub(super) fn all_component_ids() -> Vec<ComponentId> {
+            vec![
+                $(ComponentId::$id,)*
+            ]
+        }
+        impl From<ComponentId> for TypeId {
+            fn from(value: ComponentId) -> Self {
+                match value {
+                    $(ComponentId::$id => TypeId::of::<$comp>(),)*
+                }
+            }
+        }
+
+        struct HecsSerializeContext;
+
+        impl column::SerializeContext for HecsSerializeContext {
+            fn component_count(&self, archetype: &Archetype) -> usize {
+                archetype
+                    .component_types()
+                    .filter(|&id| is_serialized_type_id(id))
+                    .count()
+            }
+
+            fn serialize_component_ids<S: SerializeTuple>(
+                &mut self,
+                archetype: &Archetype,
+                mut out: S,
+            ) -> Result<S::Ok, S::Error> {
+                $(
+                column::try_serialize_id::<$comp, _, _>(archetype, &ComponentId::$id, &mut out)?;
+                )*
+                out.end()
+            }
+
+            fn serialize_components<S: SerializeTuple>(
+                &mut self,
+                archetype: &Archetype,
+                mut out: S,
+            ) -> Result<S::Ok, S::Error> {
+                $(
+                column::try_serialize::<$comp, _>(archetype, &mut out)?;
+                )*
+                out.end()
+            }
+        }
+
+        #[derive(Default)]
+        struct HecsDeserializeContext(Vec<ComponentId>);
+
         impl column::DeserializeContext for HecsDeserializeContext {
             fn deserialize_component_ids<'de, A>(
                 &mut self,
@@ -76,108 +129,73 @@ macro_rules! components_to_serialize {
                 Ok(())
             }
         }
-        fn is_serialized_type_id(id: TypeId) -> bool {
-            $(id == TypeId::of::<$comp>())||*
-        }
-        fn all_component_ids() -> Vec<ComponentId> {
-            vec![
-                $(ComponentId::$id,)*
-            ]
-        }
-        impl From<ComponentId> for TypeId {
-            fn from(value: ComponentId) -> Self {
-                match value {
-                    $(ComponentId::$id => TypeId::of::<$comp>(),)*
-                }
-            }
-        }
-        impl column::SerializeContext for HecsSerializeContext {
-            fn component_count(&self, archetype: &Archetype) -> usize {
-                archetype
-                    .component_types()
-                    .filter(|&id| is_serialized_type_id(id))
-                    .count()
-            }
-
-            fn serialize_component_ids<S: SerializeTuple>(
-                &mut self,
-                archetype: &Archetype,
-                mut out: S,
-            ) -> Result<S::Ok, S::Error> {
-                $(
-                column::try_serialize_id::<$comp, _, _>(archetype, &ComponentId::$id, &mut out)?;
-                )*
-                out.end()
-            }
-
-            fn serialize_components<S: SerializeTuple>(
-                &mut self,
-                archetype: &Archetype,
-                mut out: S,
-            ) -> Result<S::Ok, S::Error> {
-                $(
-                column::try_serialize::<$comp, _>(archetype, &mut out)?;
-                )*
-                out.end()
-            }
-        }
     };
 }
 
-struct HecsSerializeContext;
+pub mod world {
+    use crate::action::combat::IsFoe;
+    use crate::action::door::{BlockType, Door, IsCut};
+    use crate::action::trade::{IsTrading, Points, Shopkeeper};
+    use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable, Waiting};
+    use crate::core::ai::Intention;
+    use crate::core::area::{Area, Ship, ShipControls};
+    use crate::core::inventory::Held;
+    use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon};
+    use crate::core::position::{Direction, MovementBlocking, Pos};
+    use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
+    use crate::view::name::{Name, Noun};
+    use crate::view::{AftikColor, OrderWeight, Symbol, TextureType};
 
-#[derive(Default)]
-struct HecsDeserializeContext(Vec<ComponentId>);
+    world_serialization!(
+        Area, Area;
+        Ship, Ship;
+        ShipControls, ShipControls;
+        Pos, Pos;
+        Direction, Direction;
+        MovementBlocking, MovementBlocking;
 
-components_to_serialize!(
-    Area, Area;
-    Ship, Ship;
-    ShipControls, ShipControls;
-    Pos, Pos;
-    Direction, Direction;
-    MovementBlocking, MovementBlocking;
+        Name, Name;
+        Noun, Noun;
+        Symbol, Symbol;
+        TextureType, TextureType;
+        OrderWeight, OrderWeight;
+        AftikColor, AftikColor;
 
-    Name, Name;
-    Noun, Noun;
-    Symbol, Symbol;
-    TextureType, TextureType;
-    OrderWeight, OrderWeight;
-    AftikColor, AftikColor;
+        Stats, Stats;
+        Health, Health;
+        Stamina, Stamina;
+        LowHealth, LowHealth;
+        LowStamina, LowStamina;
 
-    Stats, Stats;
-    Health, Health;
-    Stamina, Stamina;
-    LowHealth, LowHealth;
-    LowStamina, LowStamina;
+        CrewMember, CrewMember;
+        IsFoe, IsFoe;
+        Action, Action;
+        Intention, Intention;
+        Waiting, Waiting;
 
-    CrewMember, CrewMember;
-    IsFoe, IsFoe;
-    Action, Action;
-    Intention, Intention;
-    Waiting, Waiting;
+        Recruitable, Recruitable;
+        Shopkeeper, Shopkeeper;
+        IsTrading, IsTrading;
+        Points, Points;
 
-    Recruitable, Recruitable;
-    Shopkeeper, Shopkeeper;
-    IsTrading, IsTrading;
-    Points, Points;
+        Door, Door;
+        IsCut, IsCut;
+        BlockType, BlockType;
 
-    Door, Door;
-    IsCut, IsCut;
-    BlockType, BlockType;
+        Held, Held;
+        Item, Item;
+        FuelCan, FuelCan;
+        Medkit, Medkit;
+        Tool, ForceTool;
+        Keycard, Keycard;
+        CanWield, CanWield;
+        Weapon, Weapon;
+        Price, Price;
 
-    Held, Held;
-    Item, Item;
-    FuelCan, FuelCan;
-    Medkit, Medkit;
-    Tool, ForceTool;
-    Keycard, Keycard;
-    CanWield, CanWield;
-    Weapon, Weapon;
-    Price, Price;
-
-    FortunaChest, FortunaChest;
-    OpenedChest, OpenedChest;
-);
+        FortunaChest, FortunaChest;
+        OpenedChest, OpenedChest;
+    );
+}
 
 pub const SAVE_FILE_NAME: &str = "SAVE_FILE";
 const MAJOR_VERSION: u16 = 2;
@@ -253,26 +271,6 @@ pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
     Ok(Game::deserialize(&mut deserializer)?)
 }
 
-pub mod world {
-    use hecs::serialize::column;
-    use hecs::World;
-    use serde::{Deserializer, Serializer};
-
-    pub fn serialize<S>(world: &World, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        column::serialize(world, &mut super::HecsSerializeContext, serializer)
-    }
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<World, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        column::deserialize(&mut super::HecsDeserializeContext::default(), deserializer)
-    }
-}
-
 pub fn check_world_components(world: &World) {
     let mut set = HashSet::new();
     for archetype in world.archetypes() {
@@ -284,7 +282,7 @@ pub fn check_world_components(world: &World) {
         }
     }
 
-    let absent_serialized_components = all_component_ids()
+    let absent_serialized_components = world::all_component_ids()
         .into_iter()
         .filter(|&component_id| !set.contains(&component_id.into()))
         .collect::<Vec<_>>();
@@ -293,7 +291,7 @@ pub fn check_world_components(world: &World) {
     }
     let non_serialized_components = set
         .into_iter()
-        .filter(|component_type| !is_serialized_type_id(*component_type))
+        .filter(|component_type| !world::is_serialized_type_id(*component_type))
         .collect::<Vec<_>>();
     if !non_serialized_components.is_empty() {
         println!("Has non-serialized components: {non_serialized_components:?}");
