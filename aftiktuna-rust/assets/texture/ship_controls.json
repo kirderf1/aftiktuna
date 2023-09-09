@@ -1,0 +1,6 @@
+{
+  "layers": [{
+    "texture": "ship_controls",
+    "y_offset": 45
+  }]
+}

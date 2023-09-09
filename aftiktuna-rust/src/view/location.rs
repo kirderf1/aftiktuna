@@ -2,7 +2,7 @@ use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade::Shopkeeper;
 use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
-use crate::area::{Area, BackgroundType};
+use crate::area::{Area, BackgroundType, ShipControls};
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, item, GameState};
@@ -18,6 +18,7 @@ pub enum TextureType {
     SmallUnknown,
     FortunaChest,
     Ship,
+    ShipControls,
     Door,
     CutDoor,
     ShipExit,
@@ -138,7 +139,7 @@ pub enum InteractionType {
     UseMedkit,
     Door,
     Forceable,
-    LaunchShip,
+    ShipControls,
     Openable,
     CrewMember,
     Controlled,
@@ -158,7 +159,7 @@ impl InteractionType {
             InteractionType::UseMedkit => vec!["use medkit".to_owned()],
             InteractionType::Door => vec![format!("enter {name}")],
             InteractionType::Forceable => vec![format!("force {name}")],
-            InteractionType::LaunchShip => vec![format!("launch ship")],
+            InteractionType::ShipControls => vec![format!("launch ship")],
             InteractionType::Openable => vec![format!("open {name}")],
             InteractionType::CrewMember => vec![
                 format!("control {name}"),
@@ -211,10 +212,9 @@ fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
         if inventory::is_holding::<&Medkit>(world, entity) {
             interactions.push(InteractionType::UseMedkit);
         }
-        let area = world.get::<&Pos>(entity).unwrap().get_area();
-        if area == state.ship {
-            interactions.push(InteractionType::LaunchShip);
-        }
+    }
+    if world.get::<&ShipControls>(entity).is_ok() {
+        interactions.push(InteractionType::ShipControls);
     }
     if world.get::<&Shopkeeper>(entity).is_ok() {
         interactions.push(InteractionType::Shopkeeper);

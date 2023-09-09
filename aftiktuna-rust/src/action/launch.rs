@@ -1,9 +1,9 @@
 use crate::action;
 use crate::action::CrewMember;
-use crate::area::{Ship, ShipStatus};
+use crate::area::{Ship, ShipControls, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::position::Pos;
-use crate::core::{inventory, GameState};
+use crate::core::{inventory, position, GameState};
 use crate::view::name::{NameData, NameQuery};
 use hecs::Entity;
 
@@ -20,6 +20,19 @@ pub fn perform(state: &mut GameState, performer: Entity) -> action::Result {
         .get::<&Ship>(area)
         .map_err(|_| "Tried to launch the ship without being in the ship.".to_string())?
         .status;
+
+    let controls_pos = state
+        .world
+        .query::<&Pos>()
+        .with::<&ShipControls>()
+        .iter()
+        .map(|(_, pos)| *pos)
+        .find(|pos| pos.is_in(area));
+    if let Some(controls_pos) = controls_pos {
+        position::move_adjacent(&mut state.world, performer, controls_pos)?;
+    } else {
+        return Err("The ship is missing its controls.".to_string());
+    }
 
     let (new_status, message) = match status {
         ShipStatus::NeedTwoCans => on_need_two_cans(state, performer, &name),

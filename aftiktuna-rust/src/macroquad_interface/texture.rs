@@ -404,6 +404,7 @@ mod objects {
         load(&mut objects, TextureType::SmallUnknown, "small_unknown").await?;
         try_load(&mut objects, TextureType::FortunaChest, "fortuna_chest").await;
         try_load(&mut objects, TextureType::Ship, "ship").await;
+        try_load(&mut objects, TextureType::ShipControls, "ship_controls").await;
         try_load(&mut objects, TextureType::Door, "door").await;
         try_load(&mut objects, TextureType::CutDoor, "cut_door").await;
         try_load(&mut objects, TextureType::ShipExit, "ship_exit").await;

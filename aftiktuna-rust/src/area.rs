@@ -59,6 +59,9 @@ pub enum ShipStatus {
     Launching,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct ShipControls;
+
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
 enum TrackedState {
     BeforeFortuna { remaining_locations_count: i32 },
@@ -229,7 +232,7 @@ pub struct Category {
 pub fn init(world: &mut World) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
-        size: 4,
+        size: 5,
         background: Some(BackgroundType::Ship),
         background_offset: None,
     },));
@@ -243,6 +246,14 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         )
         .unwrap();
     item::Type::Medkit.spawn(world, Pos::new(ship, 1, world));
+    world.spawn((
+        Symbol('#'),
+        TextureType::ShipControls,
+        OrderWeight::Background,
+        Noun::new("ship controls", "ship controls"),
+        Pos::new(ship, 0, world),
+        ShipControls,
+    ));
 
     let crew = world.spawn((Points(10000),));
 
