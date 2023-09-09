@@ -210,7 +210,7 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         location::despawn_all_except_ship(&mut state.world, state.ship);
         state.world.get::<&mut Ship>(state.ship).unwrap().status = ShipStatus::NeedTwoCans;
         for (_, health) in state.world.query_mut::<&mut Health>() {
-            health.restore_fraction(0.5);
+            health.restore_fraction(0.33);
         }
         Ok(Step::PrepareNextLocation)
     } else {
