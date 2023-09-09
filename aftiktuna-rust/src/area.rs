@@ -22,7 +22,7 @@ mod template;
 pub struct Area {
     pub size: Coord,
     pub label: String,
-    pub background: Option<BackgroundType>,
+    pub background: BackgroundType,
     pub background_offset: Option<Coord>,
 }
 
@@ -233,7 +233,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 5,
-        background: Some(BackgroundType::Ship),
+        background: BackgroundType::Ship,
         background_offset: None,
     },));
     world

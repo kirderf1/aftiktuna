@@ -217,11 +217,7 @@ impl Frame {
         let area = world.get::<&Pos>(character).unwrap().get_area();
         Self::Dialogue {
             messages,
-            background: world
-                .get::<&Area>(area)
-                .unwrap()
-                .background
-                .unwrap_or_default(),
+            background: world.get::<&Area>(area).unwrap().background,
             speaker: NameData::find(world, character),
             color: world.get::<&AftikColor>(character).ok().map(|color| *color),
             direction: world
@@ -291,11 +287,7 @@ fn shop_frame(
                 .get::<&AftikColor>(shopkeeper)
                 .ok()
                 .map(|color| *color),
-            background: world
-                .get::<&Area>(area)
-                .unwrap()
-                .background
-                .unwrap_or_default(),
+            background: world.get::<&Area>(area).unwrap().background,
         },
         messages: buffer.pop_messages(world, character, cache).into_text(),
     }

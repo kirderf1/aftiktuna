@@ -36,7 +36,8 @@ impl LocationData {
 #[derive(Serialize, Deserialize)]
 struct AreaData {
     name: String,
-    background: Option<BackgroundType>,
+    #[serde(default)]
+    background: BackgroundType,
     background_offset: Option<Coord>,
     objects: Vec<String>,
     symbols: HashMap<char, SymbolData>,

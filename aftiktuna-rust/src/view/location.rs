@@ -112,7 +112,7 @@ fn get_name(world: &World, entity: Entity, name: String) -> String {
 pub struct RenderData {
     pub area_label: String,
     pub area_size: Coord,
-    pub background: Option<BackgroundType>,
+    pub background: BackgroundType,
     pub background_offset: Option<Coord>,
     pub character_coord: Coord,
     pub objects: Vec<ObjectRenderData>,
