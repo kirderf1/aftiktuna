@@ -142,6 +142,7 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
             textures.lookup_texture(data.texture_type),
             data.direction,
             data.aftik_color,
+            data.is_cut,
             false,
             pos,
         );
@@ -150,6 +151,7 @@ fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
                 textures.lookup_texture(item_texture),
                 data.direction,
                 None,
+                false,
                 true,
                 pos,
             );
@@ -169,5 +171,5 @@ fn draw_dialogue_frame(
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),
     };
-    texture::draw_object(portrait, direction, color, false, pos);
+    texture::draw_object(portrait, direction, color, false, false, pos);
 }

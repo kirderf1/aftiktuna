@@ -24,6 +24,7 @@ fn draw_shopkeeper_portrait(textures: &TextureStorage, color: Option<AftikColor>
         Direction::Left,
         color,
         false,
+        false,
         Vec2::new(600., 600.),
     );
 }

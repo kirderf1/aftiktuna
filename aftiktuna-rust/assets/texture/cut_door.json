@@ -1,8 +1,0 @@
-{
-  "layers": [{
-    "texture": "cut_door",
-    "y_offset": -15
-  }],
-  "fixed": true,
-  "mounted": true
-}

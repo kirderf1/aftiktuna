@@ -64,10 +64,15 @@ struct TextureLayer {
     color: ColorSource,
     dest_size: Vec2,
     y_offset: f32,
+    if_cut: Option<bool>,
 }
 
 impl TextureLayer {
-    fn draw(&self, pos: Vec2, flip_x: bool, aftik_color: Option<AftikColor>) {
+    fn draw(&self, pos: Vec2, flip_x: bool, aftik_color: Option<AftikColor>, is_cut: bool) {
+        if self.if_cut.is_some() && self.if_cut != Some(is_cut) {
+            return;
+        }
+
         let x = pos.x - self.dest_size.x / 2.;
         let y = pos.y + self.y_offset - self.dest_size.y;
         draw_texture_ex(
@@ -116,6 +121,7 @@ pub fn draw_object(
     data: &TextureData,
     direction: Direction,
     aftik_color: Option<AftikColor>,
+    is_cut: bool,
     use_wield_offset: bool,
     pos: Vec2,
 ) {
@@ -132,6 +138,7 @@ pub fn draw_object(
             pos,
             data.directional && direction == Direction::Left,
             aftik_color,
+            is_cut,
         );
     }
 }
@@ -302,6 +309,8 @@ struct RawTextureLayer {
     size: Option<(f32, f32)>,
     #[serde(default)]
     y_offset: f32,
+    #[serde(default)]
+    if_cut: Option<bool>,
 }
 
 impl RawTextureLayer {
@@ -315,6 +324,7 @@ impl RawTextureLayer {
                     .unwrap_or_else(|| (texture.width(), texture.height())),
             ),
             y_offset: self.y_offset,
+            if_cut: self.if_cut,
         })
     }
 }
@@ -406,10 +416,8 @@ mod objects {
         try_load(&mut objects, TextureType::Ship, "ship").await;
         try_load(&mut objects, TextureType::ShipControls, "ship_controls").await;
         try_load(&mut objects, TextureType::Door, "door").await;
-        try_load(&mut objects, TextureType::CutDoor, "cut_door").await;
         try_load(&mut objects, TextureType::ShipExit, "ship_exit").await;
         try_load(&mut objects, TextureType::Shack, "shack").await;
-        try_load(&mut objects, TextureType::CutShack, "cut_shack").await;
         try_load(&mut objects, TextureType::Path, "path").await;
         try_load(&mut objects, TextureType::Aftik, "creature/aftik").await;
         try_load(&mut objects, TextureType::Goblin, "creature/goblin").await;

@@ -1,5 +1,5 @@
 use crate::action::combat::IsFoe;
-use crate::action::door::{BlockType, Door};
+use crate::action::door::{BlockType, Door, IsCut};
 use crate::action::trade::Shopkeeper;
 use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
 use crate::core::area::{Area, BackgroundType, ShipControls};
@@ -8,7 +8,7 @@ use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, item, GameState};
 use crate::view::name::NameData;
 use crate::view::{capitalize, Messages, OrderWeight, Symbol};
-use hecs::{Entity, World};
+use hecs::{Entity, Satisfies, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 
@@ -20,10 +20,8 @@ pub enum TextureType {
     Ship,
     ShipControls,
     Door,
-    CutDoor,
     ShipExit,
     Shack,
-    CutShack,
     Path,
     Aftik,
     Goblin,
@@ -63,9 +61,9 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
     let mut labels = Vec::new();
 
     for object in &render_data.objects {
-        symbols_by_pos[object.coord].push((object.symbol, object.weight));
+        symbols_by_pos[object.coord].push((object.symbol.0, object.weight));
 
-        let label = format!("{}: {}", object.symbol, object.modified_name,);
+        let label = format!("{}: {}", object.symbol.0, object.modified_name,);
         if !labels.contains(&label) {
             labels.push(label);
         }
@@ -80,8 +78,8 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
         let base_symbol = if row == 0 { '_' } else { ' ' };
         let mut symbols = vec![base_symbol; area_size];
         for pos in 0..area_size {
-            if let Some(symbol) = symbols_by_pos[pos].get(row) {
-                symbols[pos] = symbol.0;
+            if let Some(&(symbol, _)) = symbols_by_pos[pos].get(row) {
+                symbols[pos] = symbol;
             }
         }
         lines.push(symbols.iter().collect::<String>());
@@ -125,11 +123,12 @@ pub struct ObjectRenderData {
     pub texture_type: TextureType,
     pub modified_name: String,
     pub name: String,
-    pub symbol: char,
+    pub symbol: Symbol,
     pub direction: Direction,
     pub aftik_color: Option<AftikColor>,
     pub wielded_item: Option<TextureType>,
     pub interactions: Vec<InteractionType>,
+    pub is_cut: bool,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -242,26 +241,30 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
                 Option<&OrderWeight>,
                 Option<&Direction>,
                 Option<&AftikColor>,
+                Satisfies<&IsCut>,
             ),
         )>()
         .iter()
         .filter(|&(_, (pos, _))| pos.is_in(character_pos.get_area()))
         .map(
-            |(entity, (pos, (&texture_type, symbol, weight, direction, color)))| ObjectRenderData {
-                coord: pos.get_coord(),
-                weight: weight.copied().unwrap_or(OrderWeight::Creature),
-                texture_type,
-                modified_name: get_name(
-                    &state.world,
-                    entity,
-                    capitalize(NameData::find(&state.world, entity).base()),
-                ),
-                name: capitalize(NameData::find(&state.world, entity).base()),
-                symbol: symbol.0,
-                direction: direction.copied().unwrap_or_default(),
-                aftik_color: color.copied(),
-                wielded_item: find_wielded_item_texture(&state.world, entity),
-                interactions: interactions_for(entity, state),
+            |(entity, (pos, (&texture_type, &symbol, weight, direction, color, is_cut)))| {
+                ObjectRenderData {
+                    coord: pos.get_coord(),
+                    weight: weight.copied().unwrap_or(OrderWeight::Creature),
+                    texture_type,
+                    modified_name: get_name(
+                        &state.world,
+                        entity,
+                        capitalize(NameData::find(&state.world, entity).base()),
+                    ),
+                    name: capitalize(NameData::find(&state.world, entity).base()),
+                    symbol,
+                    direction: direction.copied().unwrap_or_default(),
+                    aftik_color: color.copied(),
+                    wielded_item: find_wielded_item_texture(&state.world, entity),
+                    interactions: interactions_for(entity, state),
+                    is_cut,
+                }
             },
         )
         .collect();

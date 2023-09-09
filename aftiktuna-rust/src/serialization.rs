@@ -1,9 +1,9 @@
 use crate::action::combat::IsFoe;
-use crate::action::door::{BlockType, Door};
+use crate::action::door::{BlockType, Door, IsCut};
 use crate::action::trade::{IsTrading, Points, Shopkeeper};
 use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable, Waiting};
 use crate::core::ai::Intention;
-use crate::core::area::{Area, Ship};
+use crate::core::area::{Area, Ship, ShipControls};
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon};
 use crate::core::position::{Direction, MovementBlocking, Pos};
@@ -132,6 +132,7 @@ struct HecsDeserializeContext(Vec<ComponentId>);
 components_to_serialize!(
     Area, Area;
     Ship, Ship;
+    ShipControls, ShipControls;
     Pos, Pos;
     Direction, Direction;
     MovementBlocking, MovementBlocking;
@@ -161,6 +162,7 @@ components_to_serialize!(
     Points, Points;
 
     Door, Door;
+    IsCut, IsCut;
     BlockType, BlockType;
 
     Held, Held;

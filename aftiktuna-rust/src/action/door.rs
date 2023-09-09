@@ -4,7 +4,6 @@ use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
 use crate::core::{inventory, position, GameState};
 use crate::view::name::NameData;
-use crate::view::TextureType;
 use crate::{action, core};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -31,6 +30,9 @@ impl DoorKind {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct IsCut;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -163,23 +165,19 @@ pub(super) fn force_door(
         Ok(tool) => {
             world.remove_one::<BlockType>(door_pair).unwrap();
             if tool == Tool::Blowtorch {
-                world
-                    .query::<(&Door, &mut TextureType)>()
+                let doors = world
+                    .query::<&Door>()
                     .iter()
-                    .filter(|(_, (door, _))| door.door_pair == door_pair)
-                    .for_each(|(_, (_, texture_type))| set_is_cut(texture_type));
+                    .filter(|&(_, door)| door.door_pair == door_pair)
+                    .map(|(entity, _)| entity)
+                    .collect::<Vec<_>>();
+                for door in doors {
+                    world.insert_one(door, IsCut).unwrap();
+                }
             }
 
             action::ok(tool.into_message(&performer_name))
         }
-    }
-}
-
-fn set_is_cut(texture_type: &mut TextureType) {
-    if *texture_type == TextureType::Door {
-        *texture_type = TextureType::CutDoor;
-    } else if *texture_type == TextureType::Shack {
-        *texture_type = TextureType::CutShack;
     }
 }
 

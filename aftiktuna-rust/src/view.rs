@@ -41,7 +41,7 @@ impl<T: AsRef<str>> From<T> for Messages {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub struct Symbol(pub char);
 
 impl Symbol {
