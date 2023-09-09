@@ -9,7 +9,7 @@ use std::collections::HashMap;
 
 pub fn position_objects<'a>(
     objects: &'a Vec<ObjectRenderData>,
-    textures: &TextureStorage,
+    textures: &mut TextureStorage,
 ) -> Vec<(Vec2, &'a ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();

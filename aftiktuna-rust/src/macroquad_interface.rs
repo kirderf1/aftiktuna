@@ -31,7 +31,7 @@ pub fn logo() -> Icon {
 
 pub async fn run(game: Game, autosave: bool) -> ! {
     let mut app = init(game);
-    let textures = texture::load_textures().unwrap();
+    let mut textures = texture::load_textures().unwrap();
 
     if autosave {
         input::prevent_quit();
@@ -52,7 +52,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         if app.show_graphical {
             if app.last_drag_pos.is_none() {
-                tooltip::handle_click(&mut app, &textures);
+                tooltip::handle_click(&mut app, &mut textures);
             }
             if app.command_tooltip.is_none() {
                 camera::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
@@ -64,9 +64,9 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         app.update_frame_state();
 
-        render::draw(&mut app, &textures);
+        render::draw(&mut app, &mut textures);
 
-        next_frame().await
+        next_frame().await;
     }
 }
 

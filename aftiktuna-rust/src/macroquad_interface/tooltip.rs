@@ -12,7 +12,7 @@ pub struct CommandTooltip {
     commands: Vec<String>,
 }
 
-pub fn handle_click(app: &mut App, textures: &TextureStorage) {
+pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() {
         app.command_tooltip = None;
@@ -54,7 +54,7 @@ pub fn handle_click(app: &mut App, textures: &TextureStorage) {
 fn find_raw_command_suggestions(
     mouse_pos: Vec2,
     state: &render::State,
-    textures: &TextureStorage,
+    textures: &mut TextureStorage,
 ) -> Vec<String> {
     if let Frame::AreaView { render_data, .. } = &state.current_frame {
         let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
@@ -81,7 +81,7 @@ fn find_raw_command_suggestions(
 pub fn draw(
     state: &render::State,
     command_tooltip: &Option<CommandTooltip>,
-    textures: &TextureStorage,
+    textures: &mut TextureStorage,
 ) {
     let mouse_pos = Vec2::from(input::mouse_position());
     if let Some(tooltip) = command_tooltip {
@@ -99,7 +99,7 @@ pub fn draw(
 
 fn get_hovered_object_names<'a>(
     render_data: &'a RenderData,
-    textures: &TextureStorage,
+    textures: &mut TextureStorage,
     mouse_pos: Vec2,
 ) -> Vec<&'a String> {
     camera::position_objects(&render_data.objects, textures)

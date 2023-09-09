@@ -34,14 +34,11 @@ impl TextureStorage {
             .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::Blank).unwrap())
     }
 
-    pub fn lookup_texture(&self, texture_type: TextureType) -> &TextureData {
-        if let Some(data) = self.objects.get(&texture_type) {
-            data
-        } else if let TextureType::Item(_) = texture_type {
-            self.objects.get(&TextureType::SmallUnknown).unwrap()
-        } else {
-            self.objects.get(&TextureType::Unknown).unwrap()
+    pub fn lookup_texture(&mut self, texture_type: TextureType) -> &TextureData {
+        if !self.objects.contains_key(&texture_type) {
+            objects::load_or_default(&mut self.objects, texture_type);
         }
+        self.objects.get(&texture_type).unwrap()
     }
 }
 
@@ -144,7 +141,11 @@ pub fn draw_object(
     }
 }
 
-pub fn get_rect_for_object(data: &ObjectRenderData, textures: &TextureStorage, pos: Vec2) -> Rect {
+pub fn get_rect_for_object(
+    data: &ObjectRenderData,
+    textures: &mut TextureStorage,
+    pos: Vec2,
+) -> Rect {
     let data = textures.lookup_texture(data.texture_type);
     data.layers[0].size(pos)
 }
@@ -386,7 +387,7 @@ impl Display for Error {
 pub fn load_textures() -> Result<TextureStorage, Error> {
     Ok(TextureStorage {
         backgrounds: load_backgrounds()?,
-        objects: objects::load_all()?,
+        objects: objects::prepare()?,
         left_mouse_icon: load_texture("left_mouse")?,
         side_arrow: load_texture("side_arrow")?,
         portrait: load_texture_data("portrait")?,
@@ -409,40 +410,15 @@ fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
 }
 
 mod objects {
-    use super::{Error, TextureData};
-    use crate::core::item;
-    use crate::macroquad_interface::texture::{insert_or_log, load_texture_data};
+    use super::{load_texture_data, Error, TextureData};
     use crate::view::TextureType;
     use std::collections::HashMap;
 
-    pub fn load_all() -> Result<HashMap<TextureType, TextureData>, Error> {
+    pub fn prepare() -> Result<HashMap<TextureType, TextureData>, Error> {
         let mut objects = HashMap::new();
 
         load(&mut objects, TextureType::Unknown)?;
         load(&mut objects, TextureType::SmallUnknown)?;
-        try_load(&mut objects, TextureType::FortunaChest);
-        try_load(&mut objects, TextureType::Ship);
-        try_load(&mut objects, TextureType::ShipControls);
-        try_load(&mut objects, TextureType::Door);
-        try_load(&mut objects, TextureType::ShipExit);
-        try_load(&mut objects, TextureType::Shack);
-        try_load(&mut objects, TextureType::Path);
-        try_load(&mut objects, TextureType::Aftik);
-        try_load(&mut objects, TextureType::Goblin);
-        try_load(&mut objects, TextureType::Eyesaur);
-        try_load(&mut objects, TextureType::Azureclops);
-        try_load(&mut objects, TextureType::Scarvie);
-        try_load(&mut objects, TextureType::VoraciousFrog);
-        try_load(&mut objects, item::Type::FuelCan);
-        try_load(&mut objects, item::Type::Crowbar);
-        try_load(&mut objects, item::Type::Blowtorch);
-        try_load(&mut objects, item::Type::Keycard);
-        try_load(&mut objects, item::Type::Knife);
-        try_load(&mut objects, item::Type::Bat);
-        try_load(&mut objects, item::Type::Sword);
-        try_load(&mut objects, item::Type::Medkit);
-        try_load(&mut objects, item::Type::MeteorChunk);
-        try_load(&mut objects, item::Type::AncientCoin);
 
         Ok(objects)
     }
@@ -456,9 +432,20 @@ mod objects {
         Ok(())
     }
 
-    fn try_load(objects: &mut HashMap<TextureType, TextureData>, key: impl Into<TextureType>) {
-        let key = key.into();
-        insert_or_log(objects, key, load_texture_data(key.path()));
+    pub fn load_or_default(
+        objects: &mut HashMap<TextureType, TextureData>,
+        texture_type: TextureType,
+    ) {
+        let path = texture_type.path();
+        let texture_data = load_texture_data(path).unwrap_or_else(|error| {
+            eprintln!("Unable to load texture data \"{path}\": {error}");
+            if matches!(texture_type, TextureType::Item(_)) {
+                objects.get(&TextureType::SmallUnknown).unwrap().clone()
+            } else {
+                objects.get(&TextureType::Unknown).unwrap().clone()
+            }
+        });
+        objects.insert(texture_type, texture_data);
     }
 }
 

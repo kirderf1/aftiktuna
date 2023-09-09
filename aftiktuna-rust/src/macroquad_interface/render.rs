@@ -57,7 +57,7 @@ impl State {
     }
 }
 
-pub fn draw(app: &mut App, textures: &TextureStorage) {
+pub fn draw(app: &mut App, textures: &mut TextureStorage) {
     window::clear_background(BLACK);
 
     if app.show_graphical {
@@ -81,7 +81,7 @@ pub fn draw(app: &mut App, textures: &TextureStorage) {
     }
 }
 
-fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
+fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
@@ -136,7 +136,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &TextureStorage) {
     }
 }
 
-fn draw_objects(render_data: &RenderData, textures: &TextureStorage) {
+fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
     for (pos, data) in camera::position_objects(&render_data.objects, textures) {
         texture::draw_object(
             textures.lookup_texture(data.texture_type),
