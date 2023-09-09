@@ -8,6 +8,7 @@ use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::texture::{
     draw_texture, draw_texture_ex, DrawTextureParams, Texture2D,
 };
+use egui_macroquad::macroquad::window;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as JsonError;
 use std::borrow::Borrow;
@@ -163,7 +164,7 @@ fn convert_to_color(color: AftikColor) -> (Color, Color) {
 
 pub struct BGData {
     texture: BGTexture,
-    pub color: Color,
+    portrait: BGPortrait,
 }
 
 enum BGTexture {
@@ -172,26 +173,31 @@ enum BGTexture {
     Repeating(Texture2D),
 }
 
+enum BGPortrait {
+    Color(Color),
+    Texture(Texture2D),
+}
+
 #[derive(Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
 struct RawBGData {
     #[serde(flatten)]
     texture: RawBGTexture,
-    color: [u8; 3],
+    #[serde(flatten)]
+    portrait: RawBGPortrait,
 }
 
 impl RawBGData {
     async fn load(self) -> Result<BGData, FileError> {
         Ok(BGData {
             texture: self.texture.load().await?,
-            color: [self.color[0], self.color[1], self.color[2], 255].into(),
+            portrait: self.portrait.load().await?,
         })
     }
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum RawBGTexture {
+enum RawBGTexture {
     Centered { texture: String },
     Fixed { texture: String },
     Repeating { texture: String },
@@ -213,6 +219,27 @@ impl RawBGTexture {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+enum RawBGPortrait {
+    #[serde(rename = "portrait_color")]
+    Color([u8; 3]),
+    #[serde(rename = "portrait_texture")]
+    Texture(String),
+}
+
+impl RawBGPortrait {
+    async fn load(self) -> Result<BGPortrait, FileError> {
+        Ok(match self {
+            RawBGPortrait::Color(color) => {
+                BGPortrait::Color([color[0], color[1], color[2], 255].into())
+            }
+            RawBGPortrait::Texture(texture) => {
+                BGPortrait::Texture(load_texture(format!("background/{texture}")).await?)
+            }
+        })
+    }
+}
+
 pub fn draw_background(
     texture_type: BackgroundType,
     offset: Coord,
@@ -229,6 +256,13 @@ pub fn draw_background(
             draw_texture(texture, start_x, 0., WHITE);
             draw_texture(texture, start_x + texture.width(), 0., WHITE);
         }
+    }
+}
+
+pub fn draw_background_portrait(background_data: &BGData) {
+    match background_data.portrait {
+        BGPortrait::Color(color) => window::clear_background(color),
+        BGPortrait::Texture(texture) => draw_texture(texture, 0., 0., WHITE),
     }
 }
 

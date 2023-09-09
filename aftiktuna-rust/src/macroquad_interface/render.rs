@@ -164,7 +164,7 @@ fn draw_dialogue_frame(
     direction: Direction,
 ) {
     set_default_camera();
-    window::clear_background(background.color);
+    texture::draw_background_portrait(background);
     let pos = match direction {
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),

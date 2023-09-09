@@ -2,66 +2,66 @@
   "blank": {
     "type": "centered",
     "texture": "white_space",
-    "color": [ 216, 216, 216 ]
+    "portrait_color": [ 216, 216, 216 ]
   },
   "location_choice": {
     "type": "centered",
     "texture": "location_choice",
-    "color": [ 0, 0, 0 ]
+    "portrait_color": [ 0, 0, 0 ]
   },
   "ship": {
     "type": "centered",
     "texture": "ship",
-    "color": [ 153, 153, 153 ]
+    "portrait_color": [ 153, 153, 153 ]
   },
   "forest_entrance": {
     "type": "repeating",
     "texture": "forest_entrance",
-    "color": [ 55, 85, 96 ]
+    "portrait_texture": "forest_portrait"
   },
   "forest": {
     "type": "repeating",
     "texture": "forest",
-    "color": [ 55, 85, 96 ]
+    "portrait_texture": "forest_portrait"
   },
   "field": {
     "type": "repeating",
     "texture": "field",
-    "color": [ 64, 156, 206 ]
+    "portrait_texture": "field_portrait"
   },
   "shack": {
     "type": "centered",
     "texture": "shack",
-    "color": [ 109, 102, 67 ]
+    "portrait_color": [ 109, 102, 67 ]
   },
   "facility_outside": {
     "type": "fixed",
     "texture": "facility_outside",
-    "color": [ 64, 156, 206 ]
+    "portrait_texture": "field_portrait"
   },
   "facility_size3": {
     "type": "centered",
     "texture": "3x_facility",
-    "color": [ 153, 153, 153 ]
+    "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size4": {
     "type": "centered",
     "texture": "4x_facility",
-    "color": [ 153, 153, 153 ]
+    "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size5": {
     "type": "centered",
     "texture": "5x_facility",
-    "color": [ 153, 153, 153 ]
+    "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size6": {
     "type": "centered",
     "texture": "6x_facility",
-    "color": [ 153, 153, 153 ]
+    "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size7": {
     "type": "fixed",
     "texture": "7x_facility",
-    "color": [ 153, 153, 153 ]
+    "portrait_color": [ 153, 153, 153 ]
   }
 }
