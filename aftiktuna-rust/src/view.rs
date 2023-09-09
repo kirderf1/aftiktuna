@@ -1,7 +1,8 @@
 use crate::action::trade::{IsTrading, PricedItem, Shopkeeper};
-use crate::area::{Area, BackgroundType, Choice};
+use crate::core::area::{Area, BackgroundType};
 use crate::core::position::{Direction, Pos};
 use crate::core::{GameState, StopType};
+use crate::location::Choice;
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 pub use location::{AftikColor, ObjectRenderData, RenderData, TextureType};

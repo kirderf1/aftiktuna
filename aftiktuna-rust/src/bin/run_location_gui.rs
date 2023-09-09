@@ -1,4 +1,4 @@
-use aftiktuna::area::LocationTracker;
+use aftiktuna::location::LocationTracker;
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::window::Conf;

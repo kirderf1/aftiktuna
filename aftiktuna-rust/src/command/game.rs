@@ -1,8 +1,8 @@
 use crate::action::trade::Shopkeeper;
 use crate::action::{door, Action, CrewMember, FortunaChest};
-use crate::area::{Ship, ShipStatus};
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
+use crate::core::area::{Ship, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::position::{Blockage, Pos};
 use crate::core::{inventory, position, status, GameState};

@@ -1,7 +1,8 @@
 use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
 use crate::action::CrewMember;
-use crate::core::position::{Coord, Direction, Pos};
+use crate::core::area::{Area, BackgroundType, Ship, ShipControls, ShipStatus};
+use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, GameState};
 use crate::view::name::Noun;
@@ -17,50 +18,6 @@ pub use template::LocationData;
 mod creature;
 mod door;
 mod template;
-
-#[derive(Serialize, Deserialize)]
-pub struct Area {
-    pub size: Coord,
-    pub label: String,
-    pub background: BackgroundType,
-    pub background_offset: Option<Coord>,
-}
-
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BackgroundType {
-    #[default]
-    Blank,
-    LocationChoice,
-    Ship,
-    ForestEntrance,
-    Forest,
-    Field,
-    Shack,
-    FacilityOutside,
-    FacilitySize3,
-    FacilitySize4,
-    FacilitySize5,
-    FacilitySize6,
-    FacilitySize7,
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Ship {
-    pub status: ShipStatus,
-    pub exit_pos: Pos,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum ShipStatus {
-    NeedTwoCans,
-    NeedOneCan,
-    Refueled,
-    Launching,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct ShipControls;
 
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
 enum TrackedState {

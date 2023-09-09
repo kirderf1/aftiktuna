@@ -1,11 +1,11 @@
 use crate::action::{Action, CrewMember, Waiting};
-use crate::area::LocationTracker;
 use crate::command::{CommandResult, Target};
 use crate::core::position::Pos;
 use crate::core::{GameState, Step, StopType};
+use crate::location::LocationTracker;
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
-use crate::{area, command, core, serialization};
+use crate::{command, core, location, serialization};
 use hecs::Satisfies;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
@@ -55,7 +55,7 @@ pub struct Game {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub enum Phase {
-    ChooseLocation(area::Choice),
+    ChooseLocation(location::Choice),
     CommandInput,
     Stopped(StopType),
 }

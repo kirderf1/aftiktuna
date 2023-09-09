@@ -1,9 +1,10 @@
 use crate::action::{combat, Action, CrewMember, OpenedChest};
-use crate::area::{LocationTracker, PickResult, Ship, ShipStatus};
 use crate::game_interface::Phase;
+use crate::location::{LocationTracker, PickResult};
 use crate::view::name::{NameData, NameQuery};
 use crate::view::{Frame, Messages, OrderWeight, StatusCache};
-use crate::{action, area, serialization, view};
+use crate::{action, location, serialization, view};
+use area::{Ship, ShipStatus};
 use hecs::{Entity, World};
 use position::Pos;
 use rand::rngs::ThreadRng;
@@ -12,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use status::{Health, Stamina};
 
 pub mod ai;
+pub mod area;
 pub mod inventory;
 pub mod item;
 pub mod position;
@@ -33,7 +35,7 @@ pub struct GameState {
 pub fn setup(locations: LocationTracker) -> GameState {
     let mut world = World::new();
 
-    let (controlled, ship) = area::init(&mut world);
+    let (controlled, ship) = location::init(&mut world);
 
     GameState {
         world,
@@ -94,7 +96,7 @@ fn run_step(
     match phase {
         Step::PrepareNextLocation => prepare_next_location(state, view_buffer),
         Step::LoadLocation(location) => {
-            area::load_location(state, &mut view_buffer.messages, &location);
+            location::load_location(state, &mut view_buffer.messages, &location);
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
@@ -200,12 +202,12 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
             .filter(|(_, (pos, _))| !pos.is_in(state.ship))
         {
             let name = NameData::from(query).definite();
-            view_buffer.messages.add(format!("{name} was left behind."))
+            view_buffer.messages.add(format!("{name} was left behind."));
         }
 
         view_buffer.capture_view(state);
 
-        area::despawn_all_except_ship(&mut state.world, state.ship);
+        location::despawn_all_except_ship(&mut state.world, state.ship);
         state.world.get::<&mut Ship>(state.ship).unwrap().status = ShipStatus::NeedTwoCans;
         for (_, health) in state.world.query_mut::<&mut Health>() {
             health.restore_fraction(0.5);

@@ -1,6 +1,6 @@
 use super::texture::TextureStorage;
 use super::App;
-use crate::area::BackgroundType;
+use crate::core::area::BackgroundType;
 use crate::core::position::Direction;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::{draw_background, BGData, TextureData};

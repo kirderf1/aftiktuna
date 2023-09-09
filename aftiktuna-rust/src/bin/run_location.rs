@@ -1,4 +1,4 @@
-use aftiktuna::area::LocationTracker;
+use aftiktuna::location::LocationTracker;
 use aftiktuna::{game_interface, standard_io_interface};
 use std::env;
 

@@ -1,4 +1,4 @@
-use crate::area::BackgroundType;
+use crate::core::area::BackgroundType;
 use crate::core::position::{Coord, Direction};
 use crate::view::{AftikColor, ObjectRenderData, TextureType};
 use egui_macroquad::macroquad;

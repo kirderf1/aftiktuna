@@ -1,10 +1,10 @@
 use crate::action::door::BlockType;
 use crate::action::FortunaChest;
-use crate::area::door::{place_pair, DoorInfo, DoorType};
-use crate::area::{creature, door, Area, BackgroundType};
 use crate::core::item;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
+use crate::location::door::{place_pair, DoorInfo, DoorType};
+use crate::location::{creature, door, Area, BackgroundType};
 use crate::view::name::Noun;
 use crate::view::{AftikColor, OrderWeight, Symbol, TextureType};
 use hecs::World;

@@ -2,7 +2,7 @@ use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade::Shopkeeper;
 use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
-use crate::area::{Area, BackgroundType, ShipControls};
+use crate::core::area::{Area, BackgroundType, ShipControls};
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, item, GameState};

@@ -1,6 +1,6 @@
 use crate::action;
 use crate::action::CrewMember;
-use crate::area::{Ship, ShipControls, ShipStatus};
+use crate::core::area::{Ship, ShipControls, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::position::Pos;
 use crate::core::{inventory, position, GameState};

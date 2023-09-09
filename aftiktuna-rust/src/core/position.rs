@@ -1,5 +1,5 @@
 use crate::action::CrewMember;
-use crate::area::Area;
+use crate::core::area::Area;
 use crate::view::name::NameData;
 use hecs::{Entity, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
