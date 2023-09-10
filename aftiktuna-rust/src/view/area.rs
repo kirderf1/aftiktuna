@@ -6,6 +6,7 @@ use crate::core::area::{Area, BackgroundType, ShipControls};
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, GameState};
+use crate::deref_clone;
 use crate::view::name::NameData;
 use crate::view::{capitalize, Messages, OrderWeight, Symbol};
 use hecs::{Entity, World};
@@ -269,6 +270,7 @@ fn build_object_data(
     symbol: Symbol,
 ) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
+    let name_data = NameData::find_for_ref(entity_ref);
     ObjectRenderData {
         coord: pos.get_coord(),
         weight: entity_ref
@@ -279,12 +281,8 @@ fn build_object_data(
             .get::<&TextureType>()
             .map(deref_clone)
             .unwrap_or_default(),
-        modified_name: get_name(
-            &state.world,
-            entity,
-            capitalize(NameData::find(&state.world, entity).base()),
-        ),
-        name: capitalize(NameData::find(&state.world, entity).base()),
+        modified_name: get_name(&state.world, entity, capitalize(name_data.base())),
+        name: capitalize(name_data.base()),
         symbol,
         direction: entity_ref
             .get::<&Direction>()
@@ -295,10 +293,6 @@ fn build_object_data(
         interactions: interactions_for(entity, state),
         is_cut: entity_ref.satisfies::<&IsCut>(),
     }
-}
-
-fn deref_clone<T: Clone>(value: impl Deref<Target = T>) -> T {
-    value.deref().clone()
 }
 
 fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureType> {

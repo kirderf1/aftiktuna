@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
@@ -44,29 +44,41 @@ impl NameData {
     }
 
     pub fn find(world: &World, entity: Entity) -> Self {
-        if let Ok(name) = world.get::<&Name>(entity) {
+        world
+            .entity(entity)
+            .map(Self::find_for_ref)
+            .unwrap_or_default()
+    }
+
+    pub fn find_for_ref(entity_ref: EntityRef) -> Self {
+        if let Some(name) = entity_ref.get::<&Name>() {
             if name.is_known {
-                return Self::Name(name.name.to_owned());
+                return Self::Name(name.name.clone());
             }
         }
-        world.get::<&Noun>(entity).map_or_else(
-            |_| NameData::Name("???".to_string()),
-            |noun| NameData::Noun(noun.deref().clone()),
-        )
+        entity_ref
+            .get::<&Noun>()
+            .map(|noun| NameData::Noun(noun.deref().clone()))
+            .unwrap_or_default()
+    }
+}
+
+impl Default for NameData {
+    fn default() -> Self {
+        Self::Name("???".to_owned())
     }
 }
 
 impl<'a> From<NameQuery<'a>> for NameData {
     fn from(query: NameQuery<'a>) -> Self {
-        if let Some(name) = query.0 {
+        let (name, noun) = query;
+        if let Some(name) = name {
             if name.is_known {
-                return Self::Name(name.name.to_owned());
+                return Self::Name(name.name.clone());
             }
         }
-        query.1.map_or_else(
-            || NameData::Name("???".to_string()),
-            |noun| NameData::Noun(noun.deref().clone()),
-        )
+        noun.map(|noun| NameData::Noun(noun.clone()))
+            .unwrap_or_default()
     }
 }
 
