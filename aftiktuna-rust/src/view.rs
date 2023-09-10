@@ -50,10 +50,11 @@ impl Symbol {
     }
 }
 
-#[derive(Copy, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
 pub enum OrderWeight {
     Item,
     Controlled,
+    #[default]
     Creature,
     Background,
 }

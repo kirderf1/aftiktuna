@@ -44,6 +44,12 @@ impl TextureType {
     }
 }
 
+impl Default for TextureType {
+    fn default() -> Self {
+        Self::unknown()
+    }
+}
+
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AftikColor {
@@ -256,7 +262,7 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
             |(entity, (pos, (texture_type, &symbol, weight, direction, color, is_cut)))| {
                 ObjectRenderData {
                     coord: pos.get_coord(),
-                    weight: weight.copied().unwrap_or(OrderWeight::Creature),
+                    weight: weight.copied().unwrap_or_default(),
                     texture_type: texture_type.clone(),
                     modified_name: get_name(
                         &state.world,
