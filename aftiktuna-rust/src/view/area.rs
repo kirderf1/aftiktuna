@@ -194,26 +194,28 @@ impl InteractionType {
 }
 
 fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
-    let world = &state.world;
     let mut interactions = Vec::new();
-    if world.get::<&Item>(entity).is_ok() {
+    let world = &state.world;
+    let entity_ref = world.entity(entity).unwrap();
+
+    if entity_ref.satisfies::<&Item>() {
         interactions.push(InteractionType::Item);
     }
-    if world.get::<&CanWield>(entity).is_ok() {
+    if entity_ref.satisfies::<&CanWield>() {
         interactions.push(InteractionType::Wieldable);
     }
-    if let Ok(door) = world.get::<&Door>(entity) {
+    if let Some(door) = entity_ref.get::<&Door>() {
         interactions.push(InteractionType::Door);
         if world.get::<&BlockType>(door.door_pair).is_ok() {
             interactions.push(InteractionType::Forceable);
         }
     }
-    if world.get::<&FortunaChest>(entity).is_ok() {
+    if entity_ref.satisfies::<&FortunaChest>() {
         interactions.push(InteractionType::Openable);
     }
-    if entity != state.controlled && world.get::<&CrewMember>(entity).is_ok() {
+    if entity != state.controlled && entity_ref.satisfies::<&CrewMember>() {
         interactions.push(InteractionType::CrewMember);
-        if world.get::<&Waiting>(entity).is_ok() {
+        if entity_ref.satisfies::<&Waiting>() {
             interactions.push(InteractionType::Waiting);
         } else {
             interactions.push(InteractionType::Following);
@@ -225,16 +227,16 @@ fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
             interactions.push(InteractionType::UseMedkit);
         }
     }
-    if world.get::<&ShipControls>(entity).is_ok() {
+    if entity_ref.satisfies::<&ShipControls>() {
         interactions.push(InteractionType::ShipControls);
     }
-    if world.get::<&Shopkeeper>(entity).is_ok() {
+    if entity_ref.satisfies::<&Shopkeeper>() {
         interactions.push(InteractionType::Shopkeeper);
     }
-    if world.get::<&Recruitable>(entity).is_ok() {
+    if entity_ref.satisfies::<&Recruitable>() {
         interactions.push(InteractionType::Recruitable);
     }
-    if world.get::<&IsFoe>(entity).is_ok() {
+    if entity_ref.satisfies::<&IsFoe>() {
         interactions.push(InteractionType::Foe);
     }
     interactions
