@@ -8,7 +8,7 @@ use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{inventory, GameState};
 use crate::view::name::NameData;
 use crate::view::{capitalize, Messages, OrderWeight, Symbol};
-use hecs::{Entity, Satisfies, World};
+use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::ops::Deref;
@@ -245,40 +245,10 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
 
     let mut objects: Vec<ObjectRenderData> = state
         .world
-        .query::<(
-            &Pos,
-            (
-                &TextureType,
-                &Symbol,
-                Option<&OrderWeight>,
-                Option<&Direction>,
-                Option<&AftikColor>,
-                Satisfies<&IsCut>,
-            ),
-        )>()
+        .query::<(&Pos, &Symbol)>()
         .iter()
         .filter(|&(_, (pos, _))| pos.is_in(character_pos.get_area()))
-        .map(
-            |(entity, (pos, (texture_type, &symbol, weight, direction, color, is_cut)))| {
-                ObjectRenderData {
-                    coord: pos.get_coord(),
-                    weight: weight.copied().unwrap_or_default(),
-                    texture_type: texture_type.clone(),
-                    modified_name: get_name(
-                        &state.world,
-                        entity,
-                        capitalize(NameData::find(&state.world, entity).base()),
-                    ),
-                    name: capitalize(NameData::find(&state.world, entity).base()),
-                    symbol,
-                    direction: direction.copied().unwrap_or_default(),
-                    aftik_color: color.copied(),
-                    wielded_item: find_wielded_item_texture(&state.world, entity),
-                    interactions: interactions_for(entity, state),
-                    is_cut,
-                }
-            },
-        )
+        .map(|(entity, (pos, &symbol))| build_object_data(state, entity, pos, symbol))
         .collect();
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
@@ -290,6 +260,45 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
         character_coord: character_pos.get_coord(),
         objects,
     }
+}
+
+fn build_object_data(
+    state: &GameState,
+    entity: Entity,
+    pos: &Pos,
+    symbol: Symbol,
+) -> ObjectRenderData {
+    let entity_ref = state.world.entity(entity).unwrap();
+    ObjectRenderData {
+        coord: pos.get_coord(),
+        weight: entity_ref
+            .get::<&OrderWeight>()
+            .map(deref_clone)
+            .unwrap_or_default(),
+        texture_type: entity_ref
+            .get::<&TextureType>()
+            .map(deref_clone)
+            .unwrap_or_default(),
+        modified_name: get_name(
+            &state.world,
+            entity,
+            capitalize(NameData::find(&state.world, entity).base()),
+        ),
+        name: capitalize(NameData::find(&state.world, entity).base()),
+        symbol,
+        direction: entity_ref
+            .get::<&Direction>()
+            .map(deref_clone)
+            .unwrap_or_default(),
+        aftik_color: entity_ref.get::<&AftikColor>().map(deref_clone),
+        wielded_item: find_wielded_item_texture(&state.world, entity),
+        interactions: interactions_for(entity, state),
+        is_cut: entity_ref.satisfies::<&IsCut>(),
+    }
+}
+
+fn deref_clone<T: Clone>(value: impl Deref<Target = T>) -> T {
+    value.deref().clone()
 }
 
 fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureType> {
