@@ -9,23 +9,25 @@ pub struct Area {
     pub background_offset: Option<Coord>,
 }
 
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BackgroundType {
-    #[default]
-    Blank,
-    LocationChoice,
-    Ship,
-    ForestEntrance,
-    Forest,
-    Field,
-    Shack,
-    FacilityOutside,
-    FacilitySize3,
-    FacilitySize4,
-    FacilitySize5,
-    FacilitySize6,
-    FacilitySize7,
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct BackgroundType(String);
+
+impl BackgroundType {
+    pub fn blank() -> Self {
+        Self::new("blank")
+    }
+    pub fn location_choice() -> Self {
+        Self::new("location_choice")
+    }
+    pub fn new(name: &str) -> Self {
+        Self(name.to_owned())
+    }
+}
+
+impl Default for BackgroundType {
+    fn default() -> Self {
+        Self::blank()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

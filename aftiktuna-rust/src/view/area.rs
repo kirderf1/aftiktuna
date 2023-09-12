@@ -258,7 +258,7 @@ pub fn prepare_render_data(state: &GameState) -> RenderData {
     RenderData {
         area_label: area.label.clone(),
         area_size: area.size,
-        background: area.background,
+        background: area.background.clone(),
         background_offset: area.background_offset,
         character_coord: character_pos.get_coord(),
         objects,

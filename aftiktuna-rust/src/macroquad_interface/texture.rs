@@ -28,10 +28,10 @@ pub struct TextureStorage {
 }
 
 impl TextureStorage {
-    pub fn lookup_background(&self, texture_type: BackgroundType) -> &BGData {
+    pub fn lookup_background(&self, texture_type: &BackgroundType) -> &BGData {
         self.backgrounds
-            .get(&texture_type)
-            .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::Blank).unwrap())
+            .get(texture_type)
+            .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::blank()).unwrap())
     }
 
     pub fn lookup_texture(&mut self, texture_type: &TextureType) -> &TextureData {
@@ -250,7 +250,7 @@ impl RawBGPortrait {
 }
 
 pub fn draw_background(
-    texture_type: BackgroundType,
+    texture_type: &BackgroundType,
     offset: Coord,
     camera_space: Rect,
     textures: &TextureStorage,
@@ -403,7 +403,7 @@ fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
     }
 
     backgrounds
-        .get(&BackgroundType::Blank)
+        .get(&BackgroundType::blank())
         .expect("Blank background texture must exist");
 
     Ok(backgrounds)

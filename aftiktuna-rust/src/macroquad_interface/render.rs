@@ -86,7 +86,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
             draw_background(
-                BackgroundType::LocationChoice,
+                &BackgroundType::location_choice(),
                 0,
                 camera::default_camera_space(),
                 textures,
@@ -95,7 +95,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
         Frame::AreaView { render_data, .. } => {
             set_camera(&Camera2D::from_display_rect(camera));
             draw_background(
-                render_data.background,
+                &render_data.background,
                 render_data.background_offset.unwrap_or(0),
                 camera,
                 textures,
@@ -109,7 +109,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
                 camera::has_camera_space(camera, render_data),
             );
         }
-        &Frame::Dialogue {
+        Frame::Dialogue {
             background,
             color,
             direction,
@@ -118,8 +118,8 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
             draw_dialogue_frame(
                 textures.lookup_background(background),
                 &textures.portrait,
-                color,
-                direction,
+                *color,
+                *direction,
             );
         }
         Frame::StoreView { view, .. } => {

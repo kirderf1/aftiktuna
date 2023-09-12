@@ -219,7 +219,7 @@ impl Frame {
         let area = world.get::<&Pos>(character).unwrap().get_area();
         Self::Dialogue {
             messages,
-            background: world.get::<&Area>(area).unwrap().background,
+            background: world.get::<&Area>(area).unwrap().background.clone(),
             speaker: NameData::find(world, character),
             color: world.get::<&AftikColor>(character).ok().map(|color| *color),
             direction: world
@@ -239,12 +239,7 @@ pub struct StoreView {
     pub items: Vec<PricedItem>,
     pub points: i32,
     pub shopkeeper_color: Option<AftikColor>,
-    #[serde(default = "shack_background")] // Compatibility with 1.0
     pub background: BackgroundType,
-}
-
-fn shack_background() -> BackgroundType {
-    BackgroundType::Shack
 }
 
 impl StoreView {
@@ -289,7 +284,7 @@ fn shop_frame(
                 .get::<&AftikColor>(shopkeeper)
                 .ok()
                 .map(|color| *color),
-            background: world.get::<&Area>(area).unwrap().background,
+            background: world.get::<&Area>(area).unwrap().background.clone(),
         },
         messages: buffer.pop_messages(world, character, cache).into_text(),
     }

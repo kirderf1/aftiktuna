@@ -190,7 +190,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 5,
-        background: BackgroundType::Ship,
+        background: BackgroundType::new("ship"),
         background_offset: None,
     },));
     world
