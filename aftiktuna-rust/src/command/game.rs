@@ -32,6 +32,12 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             parse.done_or_err(|| command::action_result(Action::Wait))
         }),
         parse.literal("rest", |parse| parse.done_or_err(|| rest(world, character))),
+        parse.literal("refuel", |parse| {
+            first_match_or!(
+                parse.literal("ship", |parse| parse.done_or_err(|| refuel_ship(state)));
+                Err("Unexpected argument after \"refuel\"".to_string())
+            )
+        }),
         parse.literal("launch", |parse| {
             first_match_or!(
                 parse.literal("ship", |parse| parse.done_or_err(|| launch_ship(state)));
@@ -118,6 +124,32 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     }
 
     command::action_result(Action::Rest(true))
+}
+
+fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
+    let world = &state.world;
+    let character = state.controlled;
+
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+    let need_fuel = world
+        .get::<&Ship>(area)
+        .map(|ship| matches!(ship.status, ShipStatus::NeedFuel(_)))
+        .map_err(|_| {
+            format!(
+                "{} needs to be in the ship in order to refuel it.",
+                NameData::find(world, character).definite()
+            )
+        })?;
+    if !need_fuel {
+        return Err("The ship is already refueled.".to_string());
+    }
+    if !inventory::is_holding::<&FuelCan>(world, character) {
+        return Err(format!(
+            "{} needs a fuel can to refuel the ship.",
+            NameData::find(world, character).definite()
+        ));
+    }
+    command::action_result(Action::Refuel)
 }
 
 fn launch_ship(state: &GameState) -> Result<CommandResult, String> {

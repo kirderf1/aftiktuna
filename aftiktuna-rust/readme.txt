@@ -17,6 +17,7 @@ Currently available commands are:
 - attack
 - wait
 - rest
+- refuel ship
 - launch ship
 - status
 - control <character>

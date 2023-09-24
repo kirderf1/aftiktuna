@@ -7,6 +7,38 @@ use crate::core::{inventory, position, GameState};
 use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 
+pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
+    let area = state.world.get::<&Pos>(performer).unwrap().get_area();
+
+    let (status, controls_pos) = lookup_ship_state(&state.world, area)?;
+
+    position::move_adjacent(&mut state.world, performer, controls_pos)?;
+
+    let name = NameData::find(&state.world, performer).definite();
+    let (new_status, message) = match status {
+        ShipStatus::NeedFuel(amount) => match try_refuel(amount, &mut state.world, performer) {
+            RefuelResult::Incomplete(amount) => (
+                ShipStatus::NeedFuel(amount),
+                incomplete_refuel_message(amount, &name),
+            ),
+            RefuelResult::Complete => (ShipStatus::Refueled, format!("{name} refueled the ship.")),
+        },
+        ShipStatus::Refueled => {
+            return Err(format!(
+                "{name} is unable to refuel the ship as it is already refueled."
+            ))
+        }
+        ShipStatus::Launching => return action::silent_ok(),
+    };
+
+    if status != new_status {
+        //The ship area should still exist since it existed before
+        state.world.get::<&mut Ship>(area).unwrap().status = new_status;
+    }
+
+    action::ok(message)
+}
+
 pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
     if state.locations.is_at_fortuna() {
         return Err("You can't leave fortuna yet!".to_string());
