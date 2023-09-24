@@ -191,7 +191,7 @@ fn use_item(state: &GameState, item_name: &str) -> Result<CommandResult, String>
         .0;
 
     if world.get::<&FuelCan>(item).is_ok() {
-        super::launch_ship(state)
+        super::refuel_ship(state)
     } else if world.get::<&Medkit>(item).is_ok() {
         if !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
