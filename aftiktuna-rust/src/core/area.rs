@@ -37,9 +37,14 @@ pub struct Ship {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum FuelAmount {
+    OneCan,
+    TwoCans,
+}
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum ShipStatus {
-    NeedTwoCans,
-    NeedOneCan,
+    NeedFuel(FuelAmount),
     Refueled,
     Launching,
 }

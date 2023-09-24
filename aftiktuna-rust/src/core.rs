@@ -1,4 +1,5 @@
 use crate::action::{combat, Action, CrewMember, OpenedChest};
+use crate::core::area::FuelAmount;
 use crate::game_interface::Phase;
 use crate::location::{LocationTracker, PickResult};
 use crate::view::name::{NameData, NameQuery};
@@ -208,7 +209,8 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         view_buffer.capture_view(state);
 
         location::despawn_all_except_ship(&mut state.world, state.ship);
-        state.world.get::<&mut Ship>(state.ship).unwrap().status = ShipStatus::NeedTwoCans;
+        state.world.get::<&mut Ship>(state.ship).unwrap().status =
+            ShipStatus::NeedFuel(FuelAmount::TwoCans);
         for (_, health) in state.world.query_mut::<&mut Health>() {
             health.restore_fraction(0.33);
         }

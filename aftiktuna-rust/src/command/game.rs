@@ -130,7 +130,7 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let need_fuel = world
         .get::<&Ship>(area)
-        .map(|ship| ship.status == ShipStatus::NeedTwoCans || ship.status == ShipStatus::NeedOneCan)
+        .map(|ship| matches!(ship.status, ShipStatus::NeedFuel(_)))
         .map_err(|_| {
             format!(
                 "{} needs to be in the ship in order to launch it.",

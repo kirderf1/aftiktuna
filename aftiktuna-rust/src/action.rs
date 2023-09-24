@@ -13,7 +13,7 @@ pub mod combat;
 mod dialogue;
 pub mod door;
 mod item;
-mod launch;
+mod ship;
 pub mod trade;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -93,7 +93,7 @@ fn perform(
         Attack(targets) => combat::attack(state, performer, targets),
         Wait => silent_ok(),
         Rest(first) => rest(&mut state.world, performer, first),
-        Launch => launch::perform(state, performer),
+        Launch => ship::launch(state, performer),
         TalkTo(target) => dialogue::talk_to(context, performer, target),
         Recruit(target) => dialogue::recruit(context, performer, target),
         TellToWait(target) => dialogue::tell_to_wait(context, performer, target),

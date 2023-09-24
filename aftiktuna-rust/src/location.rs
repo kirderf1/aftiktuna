@@ -1,7 +1,7 @@
 use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
 use crate::action::CrewMember;
-use crate::core::area::{Area, BackgroundType, Ship, ShipControls, ShipStatus};
+use crate::core::area::{Area, BackgroundType, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, GameState};
@@ -197,7 +197,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         .insert_one(
             ship,
             Ship {
-                status: ShipStatus::NeedTwoCans,
+                status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
                 exit_pos: Pos::new(ship, 3, world),
             },
         )
