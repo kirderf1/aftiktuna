@@ -46,7 +46,6 @@ impl TextureStorage {
 pub struct TextureData {
     layers: Vec<TextureLayer>,
     wield_offset: Vec2,
-    directional: bool,
     is_mounted: bool,
 }
 
@@ -62,6 +61,7 @@ struct TextureLayer {
     color: ColorSource,
     dest_size: Vec2,
     y_offset: f32,
+    directional: bool,
     if_cut: Option<bool>,
     if_alive: Option<bool>,
 }
@@ -70,7 +70,7 @@ impl TextureLayer {
     fn draw(
         &self,
         pos: Vec2,
-        flip_x: bool,
+        direction: Direction,
         aftik_color: Option<AftikColor>,
         is_cut: bool,
         is_alive: bool,
@@ -88,7 +88,7 @@ impl TextureLayer {
             self.color.get_color(aftik_color),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
-                flip_x,
+                flip_x: self.directional && direction == Direction::Left,
                 ..Default::default()
             },
         );
@@ -146,13 +146,7 @@ pub fn draw_object(
         }
     }
     for layer in &data.layers {
-        layer.draw(
-            pos,
-            data.directional && direction == Direction::Left,
-            aftik_color,
-            is_cut,
-            is_alive,
-        );
+        layer.draw(pos, direction, aftik_color, is_cut, is_alive);
     }
 }
 
@@ -301,8 +295,6 @@ struct RawTextureData {
     #[serde(default)]
     wield_offset: (f32, f32),
     #[serde(default)]
-    fixed: bool,
-    #[serde(default)]
     mounted: bool,
 }
 
@@ -316,7 +308,6 @@ impl RawTextureData {
         Ok(TextureData {
             layers,
             wield_offset: Vec2::from(self.wield_offset),
-            directional: !self.fixed,
             is_mounted: self.mounted,
         })
     }
@@ -331,6 +322,8 @@ struct RawTextureLayer {
     size: Option<(f32, f32)>,
     #[serde(default)]
     y_offset: f32,
+    #[serde(default)]
+    fixed: bool,
     #[serde(default)]
     if_cut: Option<bool>,
     #[serde(default)]
@@ -348,6 +341,7 @@ impl RawTextureLayer {
                     .unwrap_or_else(|| (texture.width(), texture.height())),
             ),
             y_offset: self.y_offset,
+            directional: !self.fixed,
             if_cut: self.if_cut,
             if_alive: self.if_alive,
         })

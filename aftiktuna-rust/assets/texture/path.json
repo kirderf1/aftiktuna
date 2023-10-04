@@ -1,5 +1,4 @@
 {
-  "layers": [{ "texture": "path" }],
-  "fixed": true,
+  "layers": [{ "texture": "path", "fixed": true }],
   "mounted": true
 }

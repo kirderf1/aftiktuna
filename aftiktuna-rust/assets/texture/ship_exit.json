@@ -1,8 +1,4 @@
 {
-  "layers": [{
-    "texture": "ship_exit",
-    "y_offset": -30
-  }],
-  "fixed": true,
+  "layers": [{ "texture": "ship_exit", "y_offset": -30, "fixed": true }],
   "mounted": true
 }

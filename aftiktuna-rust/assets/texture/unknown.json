@@ -1,4 +1,3 @@
 {
-  "layers": [{ "texture": "unknown" }],
-  "fixed": true
+  "layers": [{ "texture": "unknown", "fixed": true }]
 }
