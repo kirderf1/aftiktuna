@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Food ration item
 - Defined prices for more items types, allowing more items as stock in stores or to be sold to stores
 - Command suggestions on click for location choice
+- Crew members remain as corpses after dying
 
 ### Changed
 
