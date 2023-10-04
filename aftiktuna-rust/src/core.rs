@@ -252,9 +252,9 @@ fn handle_aftik_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
         view_buffer.capture_view(state);
     }
 
-    for aftik in dead_crew {
-        inventory::drop_all_items(&mut state.world, aftik);
-        state.world.despawn(aftik).unwrap();
+    for character in dead_crew {
+        inventory::drop_all_items(&mut state.world, character);
+        state.world.remove_one::<CrewMember>(character).unwrap();
     }
 }
 
