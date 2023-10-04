@@ -1,7 +1,10 @@
 {
   "layers": [
-    { "texture": "creature/aftik_details", "color": "uncolored" },
-    { "texture": "creature/aftik_secondary", "color": "secondary" },
-    { "texture": "creature/aftik_primary", "color": "primary" }
+    { "texture": "creature/aftik_details", "color": "uncolored", "if_alive": true },
+    { "texture": "creature/aftik_secondary", "color": "secondary", "if_alive": true },
+    { "texture": "creature/aftik_primary", "color": "primary", "if_alive": true },
+    { "texture": "creature/aftik_corpse_details", "color": "uncolored", "if_alive": false },
+    { "texture": "creature/aftik_corpse_secondary", "color": "secondary", "if_alive": false },
+    { "texture": "creature/aftik_corpse_primary", "color": "primary", "if_alive": false }
   ]
 }

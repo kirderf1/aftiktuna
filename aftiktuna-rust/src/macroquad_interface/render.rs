@@ -143,18 +143,22 @@ fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
             data.direction,
             data.aftik_color,
             data.is_cut,
+            data.is_alive,
             false,
             pos,
         );
-        if let Some(item_texture) = &data.wielded_item {
-            texture::draw_object(
-                textures.lookup_texture(item_texture),
-                data.direction,
-                None,
-                false,
-                true,
-                pos,
-            );
+        if data.is_alive {
+            if let Some(item_texture) = &data.wielded_item {
+                texture::draw_object(
+                    textures.lookup_texture(item_texture),
+                    data.direction,
+                    None,
+                    false,
+                    true,
+                    true,
+                    pos,
+                );
+            }
         }
     }
 }
@@ -171,5 +175,5 @@ fn draw_dialogue_frame(
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),
     };
-    texture::draw_object(portrait, direction, color, false, false, pos);
+    texture::draw_object(portrait, direction, color, false, true, false, pos);
 }

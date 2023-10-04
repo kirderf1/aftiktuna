@@ -5,6 +5,7 @@ use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
 use crate::core::area::{Area, BackgroundType, ShipControls};
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::position::{Coord, Direction, Pos};
+use crate::core::status::Health;
 use crate::core::{inventory, GameState};
 use crate::deref_clone;
 use crate::view::name::NameData;
@@ -142,6 +143,7 @@ pub struct ObjectRenderData {
     pub wielded_item: Option<TextureType>,
     pub interactions: Vec<InteractionType>,
     pub is_cut: bool,
+    pub is_alive: bool,
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -296,6 +298,9 @@ fn build_object_data(
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: interactions_for(entity, state),
         is_cut: entity_ref.satisfies::<&IsCut>(),
+        is_alive: entity_ref
+            .get::<&Health>()
+            .map_or(true, |health| health.is_alive()),
     }
 }
 

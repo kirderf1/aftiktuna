@@ -63,11 +63,21 @@ struct TextureLayer {
     dest_size: Vec2,
     y_offset: f32,
     if_cut: Option<bool>,
+    if_alive: Option<bool>,
 }
 
 impl TextureLayer {
-    fn draw(&self, pos: Vec2, flip_x: bool, aftik_color: Option<AftikColor>, is_cut: bool) {
-        if self.if_cut.is_some() && self.if_cut != Some(is_cut) {
+    fn draw(
+        &self,
+        pos: Vec2,
+        flip_x: bool,
+        aftik_color: Option<AftikColor>,
+        is_cut: bool,
+        is_alive: bool,
+    ) {
+        if self.if_cut.is_some() && self.if_cut != Some(is_cut)
+            || self.if_alive.is_some() && self.if_alive != Some(is_alive)
+        {
             return;
         }
 
@@ -120,6 +130,7 @@ pub fn draw_object(
     direction: Direction,
     aftik_color: Option<AftikColor>,
     is_cut: bool,
+    is_alive: bool,
     use_wield_offset: bool,
     pos: Vec2,
 ) {
@@ -137,6 +148,7 @@ pub fn draw_object(
             data.directional && direction == Direction::Left,
             aftik_color,
             is_cut,
+            is_alive,
         );
     }
 }
@@ -313,6 +325,8 @@ struct RawTextureLayer {
     y_offset: f32,
     #[serde(default)]
     if_cut: Option<bool>,
+    #[serde(default)]
+    if_alive: Option<bool>,
 }
 
 impl RawTextureLayer {
@@ -327,6 +341,7 @@ impl RawTextureLayer {
             ),
             y_offset: self.y_offset,
             if_cut: self.if_cut,
+            if_alive: self.if_alive,
         })
     }
 }
