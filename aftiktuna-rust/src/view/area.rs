@@ -171,7 +171,9 @@ impl InteractionType {
             InteractionType::UseMedkit => vec!["use medkit".to_owned()],
             InteractionType::Door => vec![format!("enter {name}")],
             InteractionType::Forceable => vec![format!("force {name}")],
-            InteractionType::ShipControls => vec!["launch ship".to_owned(), "refuel ship".to_owned()],
+            InteractionType::ShipControls => {
+                vec!["launch ship".to_owned(), "refuel ship".to_owned()]
+            }
             InteractionType::Openable => vec![format!("open {name}")],
             InteractionType::CrewMember => vec![
                 format!("control {name}"),

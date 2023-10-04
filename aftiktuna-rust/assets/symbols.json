@@ -2,6 +2,7 @@
   "v": { "type": "location_entry" },
   "¤": { "type": "fortuna_chest" },
   "f": { "type": "item", "item": "fuel_can" },
+  "%": { "type": "item", "item": "food_ration" },
   "c": { "type": "item", "item": "crowbar" },
   "b": { "type": "item", "item": "blowtorch" },
   "k": { "type": "item", "item": "keycard" },

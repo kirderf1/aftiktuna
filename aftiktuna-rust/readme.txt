@@ -38,7 +38,8 @@ When trading at a store, there are the following commands:
 - status
 
 Notes:
-- "rest" doesn't heal health, instead it waits until stamina (a poorly visible stat that helps with dodging attacks) has recovered for the crew.
+- "rest" doesn't recover health, instead it waits until stamina (a stat that helps with dodging attacks) has recovered for the crew.
+- Health is partially recovered when moving from one location to another as long as the crew has food rations to consume for it. This happens automatically, and it doesn't matter which character is holding the food rations.
 - Use the mouse to drag the camera view in larger areas indicated by white arrows.
 - You can also use the mouse to see the name of objects in view.
 - You can click game objects to get a list of command suggestions. Note that this does not cover all possible commands that you might want to do.

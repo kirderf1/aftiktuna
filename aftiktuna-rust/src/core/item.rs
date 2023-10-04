@@ -9,6 +9,9 @@ pub struct Item;
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct FuelCan;
 
+#[derive(Serialize, Deserialize)]
+pub struct FoodRation;
+
 #[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Tool {
     Crowbar,
@@ -50,6 +53,7 @@ pub struct Price(pub i32);
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     FuelCan,
+    FoodRation,
     Crowbar,
     Blowtorch,
     Keycard,
@@ -69,6 +73,7 @@ impl Type {
     pub fn noun_data(self) -> Noun {
         match self {
             Type::FuelCan => Noun::new("fuel can", "fuel cans"),
+            Type::FoodRation => Noun::new("food ration", "food rations"),
             Type::Crowbar => Noun::new("crowbar", "crowbars"),
             Type::Blowtorch => Noun::new("blowtorch", "blowtorches"),
             Type::Keycard => Noun::new("keycard", "keycards"),
@@ -84,6 +89,7 @@ impl Type {
     pub fn symbol(self) -> Symbol {
         Symbol(match self {
             Type::FuelCan => 'f',
+            Type::FoodRation => '%',
             Type::Crowbar => 'c',
             Type::Blowtorch => 'b',
             Type::Keycard => 'k',
@@ -113,6 +119,7 @@ impl From<Type> for TextureType {
     fn from(item: Type) -> Self {
         TextureType::item(match item {
             Type::FuelCan => "fuel_can",
+            Type::FoodRation => "food_ration",
             Type::Crowbar => "crowbar",
             Type::Blowtorch => "blowtorch",
             Type::Keycard => "keycard",
@@ -128,13 +135,14 @@ impl From<Type> for TextureType {
 
 pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> Entity {
     let mut builder = EntityBuilder::new();
-    builder
-        .add(location)
-        .add(Item)
-        .add(item_type.symbol())
-        .add(TextureType::from(item_type))
-        .add(OrderWeight::Item)
-        .add(item_type.noun_data());
+    builder.add_bundle((
+        location,
+        Item,
+        item_type.symbol(),
+        TextureType::from(item_type),
+        OrderWeight::Item,
+        item_type.noun_data(),
+    ));
     if let Some(price) = item_type.price() {
         builder.add(Price(price));
     }
@@ -143,8 +151,11 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         Type::FuelCan => {
             builder.add(FuelCan);
         }
+        Type::FoodRation => {
+            builder.add(FoodRation);
+        }
         Type::Crowbar => {
-            builder.add(Tool::Crowbar).add(CanWield).add(Weapon(3.0));
+            builder.add_bundle((Tool::Crowbar, CanWield, Weapon(3.0)));
         }
         Type::Blowtorch => {
             builder.add(Tool::Blowtorch);
@@ -153,13 +164,13 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
             builder.add(Keycard);
         }
         Type::Knife => {
-            builder.add(CanWield).add(Weapon(3.0));
+            builder.add_bundle((CanWield, Weapon(3.0)));
         }
         Type::Bat => {
-            builder.add(CanWield).add(Weapon(4.0));
+            builder.add_bundle((CanWield, Weapon(4.0)));
         }
         Type::Sword => {
-            builder.add(CanWield).add(Weapon(5.0));
+            builder.add_bundle((CanWield, Weapon(5.0)));
         }
         Type::Medkit => {
             builder.add(Medkit);

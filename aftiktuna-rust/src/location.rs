@@ -199,6 +199,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
             Ship {
                 status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
                 exit_pos: Pos::new(ship, 3, world),
+                item_pos: Pos::new(ship, 4, world),
             },
         )
         .unwrap();

@@ -1,5 +1,7 @@
 use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::core::area::FuelAmount;
+use crate::core::inventory::Held;
+use crate::core::item::FoodRation;
 use crate::game_interface::Phase;
 use crate::location::{LocationTracker, PickResult};
 use crate::view::name::{NameData, NameQuery};
@@ -191,29 +193,7 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         .unwrap()
         .get_area();
     if is_ship_launching(&state.world, area) {
-        view_buffer
-            .messages
-            .add("The ship leaves for the next planet.");
-
-        for (_, (_, query)) in state
-            .world
-            .query::<(&Pos, NameQuery)>()
-            .with::<&CrewMember>()
-            .iter()
-            .filter(|(_, (pos, _))| !pos.is_in(state.ship))
-        {
-            let name = NameData::from(query).definite();
-            view_buffer.messages.add(format!("{name} was left behind."));
-        }
-
-        view_buffer.capture_view(state);
-
-        location::despawn_all_except_ship(&mut state.world, state.ship);
-        state.world.get::<&mut Ship>(state.ship).unwrap().status =
-            ShipStatus::NeedFuel(FuelAmount::TwoCans);
-        for (_, health) in state.world.query_mut::<&mut Health>() {
-            health.restore_fraction(0.33);
-        }
+        leave_location(state, view_buffer);
         Ok(Step::PrepareNextLocation)
     } else {
         if area != prev_area {
@@ -306,6 +286,103 @@ fn is_ship_launching(world: &World, area: Entity) -> bool {
         .get::<&Ship>(area)
         .map(|ship| ship.status == ShipStatus::Launching)
         .unwrap_or(false)
+}
+
+fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    deposit_items_to_ship(state);
+
+    view_buffer
+        .messages
+        .add("The ship leaves for the next planet.");
+
+    for (_, (_, query)) in state
+        .world
+        .query::<(&Pos, NameQuery)>()
+        .with::<&CrewMember>()
+        .iter()
+        .filter(|(_, (pos, _))| !pos.is_in(state.ship))
+    {
+        let name = NameData::from(query).definite();
+        view_buffer.messages.add(format!("{name} was left behind."));
+    }
+    consume_rations_healing(state, &mut view_buffer.messages);
+
+    view_buffer.capture_view(state);
+
+    location::despawn_all_except_ship(&mut state.world, state.ship);
+    state.world.get::<&mut Ship>(state.ship).unwrap().status =
+        ShipStatus::NeedFuel(FuelAmount::TwoCans);
+}
+
+fn deposit_items_to_ship(state: &mut GameState) {
+    let crew_in_ship = state
+        .world
+        .query::<&Pos>()
+        .with::<&CrewMember>()
+        .iter()
+        .filter(|&(_, pos)| pos.is_in(state.ship))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    let items = state
+        .world
+        .query::<&Held>()
+        .with::<&FoodRation>()
+        .iter()
+        .filter(|&(_, held)| crew_in_ship.iter().any(|&entity| held.held_by(entity)))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    let item_pos = state.world.get::<&Ship>(state.ship).unwrap().item_pos;
+    for item in items {
+        state.world.exchange_one::<Held, _>(item, item_pos).unwrap();
+    }
+}
+
+fn consume_rations_healing(state: &mut GameState, messages: &mut Messages) {
+    let mut crew_candidates = state
+        .world
+        .query::<&Health>()
+        .with::<&CrewMember>()
+        .iter()
+        .filter(|&(_, health)| health.is_hurt())
+        .map(|(entity, health)| (entity, health.as_fraction()))
+        .collect::<Vec<_>>();
+    crew_candidates.sort_by(|(_, a), (_, b)| a.total_cmp(b));
+    let mut crew_eating_rations = Vec::new();
+
+    for (crew_candidate, _) in crew_candidates {
+        let ration = state
+            .world
+            .query::<&Pos>()
+            .with::<&FoodRation>()
+            .iter()
+            .find(|&(_, pos)| pos.is_in(state.ship))
+            .map(|(entity, _)| entity);
+        if let Some(ration) = ration {
+            state.world.despawn(ration).unwrap();
+            state
+                .world
+                .get::<&mut Health>(crew_candidate)
+                .unwrap()
+                .restore_fraction(0.33);
+            crew_eating_rations.push(crew_candidate);
+        } else {
+            break;
+        }
+    }
+    let crew_eating_rations = crew_eating_rations
+        .into_iter()
+        .map(|entity| NameData::find(&state.world, entity).definite())
+        .collect::<Vec<_>>();
+    if !crew_eating_rations.is_empty() {
+        if let [name] = &crew_eating_rations[..] {
+            messages.add(format!("{name} ate a food ration to recover some health."));
+        } else {
+            let names = crew_eating_rations.join(" and ");
+            messages.add(format!(
+                "{names} ate a food ration each to recover some health.",
+            ));
+        }
+    }
 }
 
 fn change_character(state: &mut GameState, character: Entity, view_buffer: &mut view::Buffer) {

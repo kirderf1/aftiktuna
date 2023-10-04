@@ -34,6 +34,7 @@ impl Default for BackgroundType {
 pub struct Ship {
     pub status: ShipStatus,
     pub exit_pos: Pos,
+    pub item_pos: Pos,
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

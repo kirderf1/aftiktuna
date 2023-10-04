@@ -140,7 +140,9 @@ pub mod world {
     use crate::core::ai::Intention;
     use crate::core::area::{Area, Ship, ShipControls};
     use crate::core::inventory::Held;
-    use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon};
+    use crate::core::item::{
+        CanWield, FoodRation, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon,
+    };
     use crate::core::position::{Direction, MovementBlocking, Pos};
     use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
     use crate::view::name::{Name, Noun};
@@ -185,6 +187,7 @@ pub mod world {
         Held, Held;
         Item, Item;
         FuelCan, FuelCan;
+        FoodRation, FoodRation;
         Medkit, Medkit;
         Tool, ForceTool;
         Keycard, Keycard;
