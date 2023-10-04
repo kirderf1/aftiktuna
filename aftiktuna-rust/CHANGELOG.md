@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 2.0, making it incompatible with previous save files
 - Ship controls object, which is the target of the "launch ship" command
+- "refuel ship" command
 
 ### Changed
 
@@ -18,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The cut variant for doors is now handled through texture layers in the same texture data file instead of with separate texture data files
 - Object textures are now loaded lazily instead of all at once
 - Background types are no longer hardcoded, making it possible to introduce new types with just the background data file and location files
+- "use fuel can" is now equivalent to "refuel ship" instead of "launch ship"
 
 ### Contributors for this release
 
