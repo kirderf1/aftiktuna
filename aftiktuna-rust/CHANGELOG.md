@@ -8,13 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Save format version 2.0, making it incompatible with previous save files
 - Ship controls object, which is the target of the "launch ship" command
 - "refuel ship" command
 - Food ration item
+- Defined prices for more items types, allowing more items as stock in stores or to be sold to stores
 
 ### Changed
 
+- Save format version 2.0, making it incompatible with previous save files
 - Reduced healing when moving from one location to the next
 - Healing between locations now requires a food ration 
 - Increase the price of swords
@@ -31,7 +32,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Save format version 1.1
 - Dialogue frames with "recruit" and "give" commands
 - Dialogue (kind of) with "trade" command
 - New commands "talk to <target>", "tell <target> to wait", "tell <target> to follow"
@@ -41,6 +41,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Save format version 1.1
 - Background render data now includes data on background used for dialogue frames
 - Update aftik textures
 
@@ -52,7 +53,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Save format version 1.0, making it incompatible with previous save files
 - New creatures Scarvies and Voracious frogs
 - Textured store graphics with command suggestions on click to replace the placeholder store graphic
 - New types of symbol data for location data files
@@ -63,6 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- Save format version 1.0, making it incompatible with previous save files
 - Adjustments to existing locations
 - Adjusted various textures, including some outdoor background textures and creature texture sizes
 - Controlled character now drawn over other crew members in the same position

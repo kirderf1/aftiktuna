@@ -105,9 +105,13 @@ impl Type {
     pub fn price(self) -> Option<i32> {
         match self {
             Type::FuelCan => Some(3500),
+            Type::FoodRation => Some(500),
+            Type::Crowbar => Some(2000),
+            Type::Blowtorch => Some(7000),
             Type::Knife => Some(300),
             Type::Bat => Some(1000),
             Type::Sword => Some(5000),
+            Type::Medkit => Some(4000),
             Type::MeteorChunk => Some(2500),
             Type::AncientCoin => Some(500),
             _ => None,
