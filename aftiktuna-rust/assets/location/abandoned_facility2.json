@@ -157,7 +157,7 @@
     {
       "name": "Storage Room",
       "background": "facility_size3",
-      "objects": [ "^", "aa", "fa" ],
+      "objects": [ "^", "aa", "f%" ],
       "symbols": {
         "^": {
           "type": "door",

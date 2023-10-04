@@ -100,7 +100,7 @@
         },
         "S": {
           "type": "shopkeeper",
-          "items": [ "fuel_can", "bat", "sword" ],
+          "items": [ "fuel_can", "bat", "sword", "food_ration" ],
           "color": "green"
         }
       }

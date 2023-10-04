@@ -133,7 +133,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "E", "", "f" ],
+      "objects": [ "^", "E", "", "f%" ],
       "symbols": {
         "^": {
           "type": "door",

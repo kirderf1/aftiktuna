@@ -204,6 +204,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         )
         .unwrap();
     item::Type::Medkit.spawn(world, Pos::new(ship, 1, world));
+    item::Type::FoodRation.spawn(world, Pos::new(ship, 4, world));
     world.spawn((
         Symbol('#'),
         TextureType::new("ship_controls"),

@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Object textures are now loaded lazily instead of all at once
 - Background types are no longer hardcoded, making it possible to introduce new types with just the background data file and location files
 - "use fuel can" is now equivalent to "refuel ship" instead of "launch ship"
+- Updated items in all locations to add some food availability
 
 ### Contributors for this release
 
