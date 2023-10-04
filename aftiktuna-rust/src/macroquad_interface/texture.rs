@@ -75,9 +75,7 @@ impl TextureLayer {
         is_cut: bool,
         is_alive: bool,
     ) {
-        if self.if_cut.is_some() && self.if_cut != Some(is_cut)
-            || self.if_alive.is_some() && self.if_alive != Some(is_alive)
-        {
+        if !self.is_active(is_cut, is_alive) {
             return;
         }
 
@@ -103,6 +101,11 @@ impl TextureLayer {
             self.dest_size.x,
             self.dest_size.y,
         )
+    }
+
+    fn is_active(&self, is_cut: bool, is_alive: bool) -> bool {
+        (self.if_cut.is_none() || self.if_cut == Some(is_cut))
+            && (self.if_alive.is_none() || self.if_alive == Some(is_alive))
     }
 }
 
@@ -154,12 +157,17 @@ pub fn draw_object(
 }
 
 pub fn get_rect_for_object(
-    data: &ObjectRenderData,
+    object_data: &ObjectRenderData,
     textures: &mut TextureStorage,
     pos: Vec2,
 ) -> Rect {
-    let data = textures.lookup_texture(&data.texture_type);
-    data.layers[0].size(pos)
+    let data = textures.lookup_texture(&object_data.texture_type);
+    data.layers
+        .iter()
+        .filter(|&layer| layer.is_active(object_data.is_cut, object_data.is_alive))
+        .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
+            rect.combine_with(layer.size(pos))
+        })
 }
 
 fn convert_to_color(color: AftikColor) -> (Color, Color) {
