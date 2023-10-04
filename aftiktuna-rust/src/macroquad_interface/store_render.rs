@@ -3,7 +3,8 @@ use crate::core::position::Direction;
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::view;
-use crate::view::{AftikColor, StoreView};
+use crate::view::area::{AftikColor, RenderProperties};
+use crate::view::StoreView;
 use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{camera, color, shapes, text};
@@ -18,13 +19,14 @@ pub fn draw_store_view(textures: &TextureStorage, store_view: &StoreView) {
     draw_points_for_store(store_view.points);
 }
 
-fn draw_shopkeeper_portrait(textures: &TextureStorage, color: Option<AftikColor>) {
+fn draw_shopkeeper_portrait(textures: &TextureStorage, aftik_color: Option<AftikColor>) {
     texture::draw_object(
         &textures.portrait,
-        Direction::Left,
-        color,
-        false,
-        true,
+        &RenderProperties {
+            direction: Direction::Left,
+            aftik_color,
+            ..RenderProperties::default()
+        },
         false,
         Vec2::new(600., 600.),
     );

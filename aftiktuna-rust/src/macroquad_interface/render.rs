@@ -5,7 +5,8 @@ use crate::core::position::Direction;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::{draw_background, BGData, TextureData};
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
-use crate::view::{AftikColor, Frame, Messages, RenderData};
+use crate::view::area::{AftikColor, RenderData, RenderProperties};
+use crate::view::{Frame, Messages};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -140,21 +141,18 @@ fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
     for (pos, data) in camera::position_objects(&render_data.objects, textures) {
         texture::draw_object(
             textures.lookup_texture(&data.texture_type),
-            data.direction,
-            data.aftik_color,
-            data.is_cut,
-            data.is_alive,
+            &data.properties,
             false,
             pos,
         );
-        if data.is_alive {
+        if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(
                     textures.lookup_texture(item_texture),
-                    data.direction,
-                    None,
-                    false,
-                    true,
+                    &RenderProperties {
+                        direction: data.properties.direction,
+                        ..RenderProperties::default()
+                    },
                     true,
                     pos,
                 );
@@ -166,7 +164,7 @@ fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
 fn draw_dialogue_frame(
     background: &BGData,
     portrait: &TextureData,
-    color: Option<AftikColor>,
+    aftik_color: Option<AftikColor>,
     direction: Direction,
 ) {
     set_default_camera();
@@ -175,5 +173,14 @@ fn draw_dialogue_frame(
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),
     };
-    texture::draw_object(portrait, direction, color, false, true, false, pos);
+    texture::draw_object(
+        portrait,
+        &RenderProperties {
+            direction,
+            aftik_color,
+            ..RenderProperties::default()
+        },
+        false,
+        pos,
+    );
 }

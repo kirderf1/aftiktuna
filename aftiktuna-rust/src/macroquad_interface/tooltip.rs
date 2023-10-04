@@ -1,6 +1,7 @@
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::macroquad_interface::{camera, render, store_render, texture, App};
-use crate::view::{Frame, RenderData};
+use crate::view::area::RenderData;
+use crate::view::Frame;
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};

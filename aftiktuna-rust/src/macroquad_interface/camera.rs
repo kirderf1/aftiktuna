@@ -1,7 +1,8 @@
 use crate::core::position::Coord;
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::macroquad_interface::{render, ui};
-use crate::view::{Frame, ObjectRenderData, RenderData};
+use crate::view::area::{ObjectRenderData, RenderData};
+use crate::view::Frame;
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{input, math};

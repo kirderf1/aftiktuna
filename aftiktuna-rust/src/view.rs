@@ -4,13 +4,13 @@ use crate::core::position::{Direction, Pos};
 use crate::core::{GameState, StopType};
 use crate::location::Choice;
 use crate::view::name::NameData;
-pub use area::{AftikColor, ObjectRenderData, RenderData, TextureType};
+use area::{AftikColor, RenderData};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 pub use status::print_full_status;
 use std::mem::take;
 
-mod area;
+pub mod area;
 pub mod name;
 mod status;
 

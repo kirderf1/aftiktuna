@@ -62,7 +62,7 @@ pub enum AftikColor {
     Green,
 }
 
-pub fn area_view_messages(render_data: &RenderData) -> Messages {
+pub(super) fn area_view_messages(render_data: &RenderData) -> Messages {
     let mut messages = Messages::default();
     messages.add(format!("{}:", render_data.area_label));
     print_area(&mut messages.0, render_data);
@@ -138,12 +138,29 @@ pub struct ObjectRenderData {
     pub modified_name: String,
     pub name: String,
     pub symbol: Symbol,
-    pub direction: Direction,
-    pub aftik_color: Option<AftikColor>,
     pub wielded_item: Option<TextureType>,
     pub interactions: Vec<InteractionType>,
+    #[serde(flatten)]
+    pub properties: RenderProperties,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RenderProperties {
+    pub direction: Direction,
+    pub aftik_color: Option<AftikColor>,
     pub is_cut: bool,
     pub is_alive: bool,
+}
+
+impl Default for RenderProperties {
+    fn default() -> Self {
+        Self {
+            direction: Direction::Right,
+            aftik_color: None,
+            is_cut: false,
+            is_alive: true,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
@@ -246,7 +263,7 @@ fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
     interactions
 }
 
-pub fn prepare_render_data(state: &GameState) -> RenderData {
+pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
     let character_pos = state.world.get::<&Pos>(state.controlled).unwrap();
     let area = state.world.get::<&Area>(character_pos.get_area()).unwrap();
 
@@ -277,6 +294,17 @@ fn build_object_data(
 ) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
     let name_data = NameData::find_for_ref(entity_ref);
+    let properties = RenderProperties {
+        direction: entity_ref
+            .get::<&Direction>()
+            .map(deref_clone)
+            .unwrap_or_default(),
+        aftik_color: entity_ref.get::<&AftikColor>().map(deref_clone),
+        is_cut: entity_ref.satisfies::<&IsCut>(),
+        is_alive: entity_ref
+            .get::<&Health>()
+            .map_or(true, |health| health.is_alive()),
+    };
     ObjectRenderData {
         coord: pos.get_coord(),
         weight: entity_ref
@@ -290,17 +318,9 @@ fn build_object_data(
         modified_name: get_name(&state.world, entity, capitalize(name_data.base())),
         name: capitalize(name_data.base()),
         symbol,
-        direction: entity_ref
-            .get::<&Direction>()
-            .map(deref_clone)
-            .unwrap_or_default(),
-        aftik_color: entity_ref.get::<&AftikColor>().map(deref_clone),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: interactions_for(entity, state),
-        is_cut: entity_ref.satisfies::<&IsCut>(),
-        is_alive: entity_ref
-            .get::<&Health>()
-            .map_or(true, |health| health.is_alive()),
+        properties,
     }
 }
 

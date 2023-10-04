@@ -1,6 +1,7 @@
 use crate::core::area::BackgroundType;
 use crate::core::position::{Coord, Direction};
-use crate::view::{AftikColor, ObjectRenderData, TextureType};
+use crate::view::area::RenderProperties;
+use crate::view::area::{AftikColor, ObjectRenderData, TextureType};
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -67,15 +68,8 @@ struct TextureLayer {
 }
 
 impl TextureLayer {
-    fn draw(
-        &self,
-        pos: Vec2,
-        direction: Direction,
-        aftik_color: Option<AftikColor>,
-        is_cut: bool,
-        is_alive: bool,
-    ) {
-        if !self.is_active(is_cut, is_alive) {
+    fn draw(&self, pos: Vec2, properties: &RenderProperties) {
+        if !self.is_active(properties) {
             return;
         }
 
@@ -85,10 +79,10 @@ impl TextureLayer {
             self.texture,
             x,
             y,
-            self.color.get_color(aftik_color),
+            self.color.get_color(properties.aftik_color),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
-                flip_x: self.directional && direction == Direction::Left,
+                flip_x: self.directional && properties.direction == Direction::Left,
                 ..Default::default()
             },
         );
@@ -103,9 +97,9 @@ impl TextureLayer {
         )
     }
 
-    fn is_active(&self, is_cut: bool, is_alive: bool) -> bool {
-        (self.if_cut.is_none() || self.if_cut == Some(is_cut))
-            && (self.if_alive.is_none() || self.if_alive == Some(is_alive))
+    fn is_active(&self, properties: &RenderProperties) -> bool {
+        (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
+            && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
     }
 }
 
@@ -130,23 +124,20 @@ impl ColorSource {
 
 pub fn draw_object(
     data: &TextureData,
-    direction: Direction,
-    aftik_color: Option<AftikColor>,
-    is_cut: bool,
-    is_alive: bool,
+    properties: &RenderProperties,
     use_wield_offset: bool,
     pos: Vec2,
 ) {
     let mut pos = pos;
     if use_wield_offset {
         pos.y += data.wield_offset.y;
-        pos.x += match direction {
+        pos.x += match properties.direction {
             Direction::Left => -data.wield_offset.x,
             Direction::Right => data.wield_offset.x,
         }
     }
     for layer in &data.layers {
-        layer.draw(pos, direction, aftik_color, is_cut, is_alive);
+        layer.draw(pos, properties);
     }
 }
 
@@ -158,7 +149,7 @@ pub fn get_rect_for_object(
     let data = textures.lookup_texture(&object_data.texture_type);
     data.layers
         .iter()
-        .filter(|&layer| layer.is_active(object_data.is_cut, object_data.is_alive))
+        .filter(|&layer| layer.is_active(&object_data.properties))
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
             rect.combine_with(layer.size(pos))
         })
@@ -428,7 +419,7 @@ fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
 
 mod objects {
     use super::{load_texture_data, Error, TextureData};
-    use crate::view::TextureType;
+    use crate::view::area::TextureType;
     use std::collections::HashMap;
 
     pub fn prepare() -> Result<HashMap<TextureType, TextureData>, Error> {
