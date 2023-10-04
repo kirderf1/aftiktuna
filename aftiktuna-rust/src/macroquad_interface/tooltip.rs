@@ -36,7 +36,7 @@ pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
                 app.command_tooltip = Some(CommandTooltip {
                     pos: mouse_pos,
                     commands,
-                })
+                });
             }
         }
         Some(command_tooltip) => {
@@ -56,25 +56,33 @@ fn find_raw_command_suggestions(
     state: &render::State,
     textures: &mut TextureStorage,
 ) -> Vec<String> {
-    if let Frame::AreaView { render_data, .. } = &state.current_frame {
-        let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
+    match &state.current_frame {
+        Frame::AreaView { render_data, .. } => {
+            let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
 
-        return camera::position_objects(&render_data.objects, textures)
-            .into_iter()
-            .filter(|(pos, data)| {
-                texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
-            })
-            .flat_map(|(_, data)| {
-                data.interactions
-                    .iter()
-                    .flat_map(|interaction| interaction.commands(&data.name))
-            })
-            .collect::<Vec<_>>();
-    } else if let Frame::StoreView { view, .. } = &state.current_frame {
-        if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
-            return priced_item.command_suggestions();
+            return camera::position_objects(&render_data.objects, textures)
+                .into_iter()
+                .filter(|(pos, data)| {
+                    texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
+                })
+                .flat_map(|(_, data)| {
+                    data.interactions
+                        .iter()
+                        .flat_map(|interaction| interaction.commands(&data.name))
+                })
+                .collect::<Vec<_>>();
         }
+        Frame::StoreView { view, .. } => {
+            if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
+                return priced_item.command_suggestions();
+            }
+        }
+        Frame::LocationChoice(choice) => {
+            return choice.alternatives();
+        }
+        _ => {}
     }
+
     vec![]
 }
 

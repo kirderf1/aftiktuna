@@ -163,6 +163,10 @@ impl Choice {
         messages.add("Pick the location to travel to next.");
         messages
     }
+
+    pub fn alternatives(&self) -> Vec<String> {
+        self.0.iter().map(|(_, name)| name.clone()).collect()
+    }
 }
 
 impl Choice {
