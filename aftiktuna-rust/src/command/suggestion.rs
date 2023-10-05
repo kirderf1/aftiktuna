@@ -30,6 +30,15 @@ impl Suggestion {
     fn is_empty(&self) -> bool {
         matches!(self, Suggestion::Recursive(_, suggestions) if suggestions.is_empty())
     }
+
+    fn flatten(self) -> Self {
+        match self {
+            Suggestion::Recursive(_, suggestions) if suggestions.len() == 1 => {
+                suggestions.into_iter().next().unwrap()
+            }
+            suggestion => suggestion,
+        }
+    }
 }
 
 impl PartialEq for Suggestion {
@@ -207,6 +216,7 @@ pub fn sorted_without_duplicates(
     let mut suggestions = suggestions
         .into_iter()
         .filter(|suggestion| !suggestion.is_empty())
+        .map(Suggestion::flatten)
         .collect::<HashSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
