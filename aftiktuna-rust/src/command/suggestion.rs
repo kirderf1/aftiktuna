@@ -27,7 +27,7 @@ pub enum InteractionType {
 }
 
 impl InteractionType {
-    pub fn commands(self, name: &str) -> Vec<String> {
+    pub fn commands(self, name: &str, inventory: &Vec<String>) -> Vec<String> {
         let name = name.to_lowercase();
         match self {
             InteractionType::Item => vec![format!("take {name}")],
@@ -39,12 +39,18 @@ impl InteractionType {
                 vec!["launch ship".to_owned(), "refuel ship".to_owned()]
             }
             InteractionType::Openable => vec![format!("open {name}")],
-            InteractionType::CrewMember => vec![
-                format!("control {name}"),
-                "status".to_owned(),
-                "rest".to_owned(),
-                format!("talk to {name}"),
-            ],
+            InteractionType::CrewMember => {
+                let mut suggestions = vec![
+                    format!("control {name}"),
+                    "status".to_owned(),
+                    "rest".to_owned(),
+                    format!("talk to {name}"),
+                ];
+                if !inventory.is_empty() {
+                    suggestions.extend(inventory.iter().map(|item| format!("give {name} {item}")));
+                }
+                suggestions
+            }
             InteractionType::Controlled => {
                 vec!["status".to_owned(), "rest".to_owned(), "wait".to_owned()]
             }

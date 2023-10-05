@@ -68,9 +68,9 @@ fn find_raw_command_suggestions(
                     texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
                 })
                 .flat_map(|(_, data)| {
-                    data.interactions
-                        .iter()
-                        .flat_map(|interaction| interaction.commands(&data.name))
+                    data.interactions.iter().flat_map(|interaction| {
+                        interaction.commands(&data.name, &render_data.inventory)
+                    })
                 })
                 .collect::<Vec<_>>();
         }

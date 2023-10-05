@@ -125,6 +125,7 @@ pub struct RenderData {
     pub background: BackgroundType,
     pub background_offset: Option<Coord>,
     pub character_coord: Coord,
+    pub inventory: Vec<String>,
     pub objects: Vec<ObjectRenderData>,
 }
 
@@ -174,12 +175,17 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
         .collect();
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
+    let inventory = inventory::get_held(&state.world, state.controlled)
+        .into_iter()
+        .map(|item| NameData::find(&state.world, item).base().to_string())
+        .collect();
     RenderData {
         area_label: area.label.clone(),
         area_size: area.size,
         background: area.background.clone(),
         background_offset: area.background_offset,
         character_coord: character_pos.get_coord(),
+        inventory,
         objects,
     }
 }
