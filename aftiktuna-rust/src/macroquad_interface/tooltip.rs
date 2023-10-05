@@ -1,4 +1,5 @@
 use crate::command::suggestion;
+use crate::command::suggestion::Suggestion;
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::macroquad_interface::{camera, render, store_render, texture, App};
 use crate::view::area::RenderData;
@@ -7,11 +8,32 @@ use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{input, shapes, text};
-use std::collections::HashSet;
+
+trait TextRepresentable {
+    fn as_text(&self) -> &str;
+}
+
+impl TextRepresentable for String {
+    fn as_text(&self) -> &str {
+        self
+    }
+}
+
+impl TextRepresentable for Suggestion {
+    fn as_text(&self) -> &str {
+        self.text()
+    }
+}
+
+impl<T: TextRepresentable> TextRepresentable for &T {
+    fn as_text(&self) -> &str {
+        (*self).as_text()
+    }
+}
 
 pub struct CommandTooltip {
     pos: Vec2,
-    commands: Vec<String>,
+    commands: Vec<Suggestion>,
 }
 
 pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
@@ -28,16 +50,9 @@ pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
         None => {
             let commands = find_raw_command_suggestions(mouse_pos, state, textures);
             if !commands.is_empty() {
-                // Remove duplicates
-                let mut commands = commands
-                    .into_iter()
-                    .collect::<HashSet<_>>()
-                    .into_iter()
-                    .collect::<Vec<_>>();
-                commands.sort();
                 app.command_tooltip = Some(CommandTooltip {
                     pos: mouse_pos,
-                    commands,
+                    commands: suggestion::sorted_without_duplicates(commands),
                 });
             }
         }
@@ -45,10 +60,22 @@ pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
             let line_index =
                 line_index_at(mouse_pos, command_tooltip.pos, &command_tooltip.commands);
             if let Some(line_index) = line_index {
-                app.input = command_tooltip.commands[line_index].clone();
-                app.handle_input();
+                match &command_tooltip.commands[line_index] {
+                    Suggestion::Simple(command) => {
+                        app.input = command.clone();
+                        app.handle_input();
+                        app.command_tooltip = None;
+                    }
+                    Suggestion::Recursive(_, suggestions) => {
+                        app.command_tooltip = Some(CommandTooltip {
+                            pos: command_tooltip.pos,
+                            commands: suggestions.clone(),
+                        });
+                    }
+                }
+            } else {
+                app.command_tooltip = None;
             }
-            app.command_tooltip = None;
         }
     }
 }
@@ -57,7 +84,7 @@ fn find_raw_command_suggestions(
     mouse_pos: Vec2,
     state: &render::State,
     textures: &mut TextureStorage,
-) -> Vec<String> {
+) -> Vec<Suggestion> {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
             let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
@@ -80,7 +107,7 @@ fn find_raw_command_suggestions(
             }
         }
         Frame::LocationChoice(choice) => {
-            return choice.alternatives();
+            return suggestion::for_location_choice(choice);
         }
         _ => {}
     }
@@ -126,7 +153,11 @@ const TEXT_BOX_HIGHLIGHT_COLOR: Color = Color::new(0.5, 0.3, 0.6, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;
 const TEXT_BOX_MARGIN: f32 = 10.;
 
-fn line_index_at<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> Option<usize> {
+fn line_index_at<S: TextRepresentable>(
+    mouse_pos: Vec2,
+    pos: Vec2,
+    lines: &Vec<S>,
+) -> Option<usize> {
     let size = tooltip_size(pos, lines);
 
     for index in 0..lines.len() {
@@ -143,7 +174,7 @@ fn line_index_at<S: AsRef<str>>(mouse_pos: Vec2, pos: Vec2, lines: &Vec<S>) -> O
     None
 }
 
-fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>, highlighted_index: Option<usize>) {
+fn draw_lines<S: TextRepresentable>(pos: Vec2, lines: &Vec<S>, highlighted_index: Option<usize>) {
     if lines.is_empty() {
         return;
     }
@@ -173,7 +204,7 @@ fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>, highlighted_index: Optio
 
     for (index, line) in lines.iter().enumerate() {
         text::draw_text(
-            line.as_ref(),
+            line.as_text(),
             size.x + TEXT_BOX_MARGIN,
             size.y - 4.0 + ((index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32),
             TEXT_BOX_TEXT_SIZE as f32,
@@ -182,10 +213,10 @@ fn draw_lines<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>, highlighted_index: Optio
     }
 }
 
-fn tooltip_size<S: AsRef<str>>(pos: Vec2, lines: &Vec<S>) -> Rect {
+fn tooltip_size<S: TextRepresentable>(pos: Vec2, lines: &Vec<S>) -> Rect {
     let width = lines
         .iter()
-        .map(|object| text::measure_text(object.as_ref(), None, TEXT_BOX_TEXT_SIZE, 1.).width)
+        .map(|object| text::measure_text(object.as_text(), None, TEXT_BOX_TEXT_SIZE, 1.).width)
         .max_by(|a, b| a.partial_cmp(b).unwrap())
         .unwrap()
         + 2. * TEXT_BOX_MARGIN;
