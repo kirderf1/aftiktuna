@@ -29,6 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - "use fuel can" is now equivalent to "refuel ship" instead of "launch ship"
 - Updated items in all locations to add some food availability
 
+### Fixed
+
+- Clamp tooltip position so that tooltips does not extend outside the right edge of the game window
+
 ### Contributors for this release
 
 - kirderf1

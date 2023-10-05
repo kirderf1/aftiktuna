@@ -221,5 +221,5 @@ fn tooltip_size<S: TextRepresentable>(pos: Vec2, lines: &Vec<S>) -> Rect {
         .unwrap()
         + 2. * TEXT_BOX_MARGIN;
     let height = lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
-    Rect::new(pos.x, pos.y, width, height)
+    Rect::new(f32::min(pos.x, 800. - width), pos.y, width, height)
 }
