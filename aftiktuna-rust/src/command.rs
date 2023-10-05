@@ -8,6 +8,7 @@ use std::ops::Deref;
 mod game;
 mod parse;
 mod store;
+pub mod suggestion;
 
 #[derive(Copy, Clone)]
 pub enum Target {

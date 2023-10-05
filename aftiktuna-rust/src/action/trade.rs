@@ -21,16 +21,6 @@ pub struct PricedItem {
     pub price: i32,
 }
 
-impl PricedItem {
-    pub fn command_suggestions(&self) -> Vec<String> {
-        vec![
-            format!("buy {}", self.item.noun_data().singular()),
-            "status".to_owned(),
-            "exit".to_owned(),
-        ]
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct IsTrading(pub Entity);
 

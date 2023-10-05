@@ -1,3 +1,4 @@
+use crate::command::suggestion;
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::macroquad_interface::{camera, render, store_render, texture, App};
 use crate::view::area::RenderData;
@@ -75,7 +76,7 @@ fn find_raw_command_suggestions(
         }
         Frame::StoreView { view, .. } => {
             if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
-                return priced_item.command_suggestions();
+                return suggestion::for_priced_item(priced_item);
             }
         }
         Frame::LocationChoice(choice) => {
