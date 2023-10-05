@@ -1,9 +1,11 @@
 use crate::action::trade::{IsTrading, PricedItem, Shopkeeper};
 use crate::core::area::{Area, BackgroundType};
+use crate::core::inventory::Held;
+use crate::core::item::Price;
 use crate::core::position::{Direction, Pos};
 use crate::core::{GameState, StopType};
 use crate::location::Choice;
-use crate::view::name::NameData;
+use crate::view::name::{NameData, NameQuery};
 use area::{AftikColor, RenderData};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -237,9 +239,10 @@ fn intro_messages() -> Vec<String> {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct StoreView {
     pub items: Vec<PricedItem>,
-    pub points: i32,
     pub shopkeeper_color: Option<AftikColor>,
     pub background: BackgroundType,
+    pub points: i32,
+    pub sellable_items: Vec<String>,
 }
 
 impl StoreView {
@@ -276,15 +279,23 @@ fn shop_frame(
     let points = status::fetch_points(world, character, cache);
     let store_info = world.get::<&Shopkeeper>(shopkeeper).unwrap();
     let items = store_info.0.clone();
+    let sellable_items = world
+        .query::<(&Held, NameQuery)>()
+        .with::<&Price>()
+        .iter()
+        .filter(|(_, (held, _))| held.held_by(character))
+        .map(|(_, (_, query))| NameData::from(query).base().to_string())
+        .collect();
     Frame::StoreView {
         view: StoreView {
             items,
-            points,
             shopkeeper_color: world
                 .get::<&AftikColor>(shopkeeper)
                 .ok()
                 .map(|color| *color),
             background: world.get::<&Area>(area).unwrap().background.clone(),
+            points,
+            sellable_items,
         },
         messages: buffer.pop_messages(world, character, cache).into_text(),
     }

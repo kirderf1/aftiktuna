@@ -103,7 +103,7 @@ fn find_raw_command_suggestions(
         }
         Frame::StoreView { view, .. } => {
             if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
-                return suggestion::for_priced_item(priced_item);
+                return suggestion::for_priced_item(priced_item, &view.sellable_items);
             }
         }
         Frame::LocationChoice(choice) => {

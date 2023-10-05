@@ -194,11 +194,12 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     interactions
 }
 
-pub fn for_priced_item(priced_item: &PricedItem) -> Vec<Suggestion> {
+pub fn for_priced_item(priced_item: &PricedItem, sellable_items: &[String]) -> Vec<Suggestion> {
     vec![
         simple!("buy {}", priced_item.item.noun_data().singular()),
         simple!("status"),
         simple!("exit"),
+        recursive!(sellable_items.iter(), "sell {}"),
     ]
 }
 
