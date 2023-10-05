@@ -242,7 +242,7 @@ pub struct StoreView {
     pub shopkeeper_color: Option<AftikColor>,
     pub background: BackgroundType,
     pub points: i32,
-    pub sellable_items: Vec<String>,
+    pub sellable_items: Vec<NameData>,
 }
 
 impl StoreView {
@@ -284,7 +284,7 @@ fn shop_frame(
         .with::<&Price>()
         .iter()
         .filter(|(_, (held, _))| held.held_by(character))
-        .map(|(_, (_, query))| NameData::from(query).base().to_string())
+        .map(|(_, (_, query))| NameData::from(query))
         .collect();
     Frame::StoreView {
         view: StoreView {

@@ -7,6 +7,7 @@ use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::{inventory, GameState};
 use crate::location::Choice;
 use crate::view::area::ItemProfile;
+use crate::view::name::NameData;
 use hecs::Entity;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -194,12 +195,23 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     interactions
 }
 
-pub fn for_priced_item(priced_item: &PricedItem, sellable_items: &[String]) -> Vec<Suggestion> {
+pub fn for_priced_item(priced_item: &PricedItem, sellable_items: &[NameData]) -> Vec<Suggestion> {
     vec![
         simple!("buy {}", priced_item.item.noun_data().singular()),
         simple!("status"),
         simple!("exit"),
-        recursive!(sellable_items.iter(), "sell {}"),
+        recursive!(sellable_items.iter().map(NameData::base), "sell {}"),
+        recursive!(
+            sellable_items
+                .iter()
+                .filter(|name| sellable_items
+                    .iter()
+                    .filter(|other_name| other_name == name)
+                    .count()
+                    > 1)
+                .map(NameData::plural),
+            "sell all {}"
+        ),
     ]
 }
 
