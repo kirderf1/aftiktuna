@@ -6,6 +6,7 @@ use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::{inventory, GameState};
 use crate::location::Choice;
+use crate::view::area::ItemProfile;
 use hecs::Entity;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -24,6 +25,10 @@ impl Suggestion {
             Suggestion::Simple(command) => command,
             Suggestion::Recursive(text, _) => text,
         }
+    }
+
+    fn is_empty(&self) -> bool {
+        matches!(self, Suggestion::Recursive(_, suggestions) if suggestions.is_empty())
     }
 }
 
@@ -61,7 +66,7 @@ macro_rules! recursive {
     ($elements:expr, $($tokens:tt)*) => {
         Suggestion::Recursive(
             format!($($tokens)*, "_"),
-            sorted_without_duplicates($elements.iter().map(|element| simple!($($tokens)*, element))),
+            sorted_without_duplicates($elements.map(|element| simple!($($tokens)*, element))),
         )
     };
 }
@@ -85,7 +90,7 @@ pub enum InteractionType {
 }
 
 impl InteractionType {
-    pub fn commands(self, name: &str, inventory: &Vec<String>) -> Vec<Suggestion> {
+    pub fn commands(self, name: &str, inventory: &[ItemProfile]) -> Vec<Suggestion> {
         let name = name.to_lowercase();
         match self {
             InteractionType::Item => vec![simple!("take {name}")],
@@ -98,19 +103,27 @@ impl InteractionType {
             }
             InteractionType::Openable => vec![simple!("open {name}")],
             InteractionType::CrewMember => {
-                let mut suggestions = vec![
+                vec![
                     simple!("control {name}"),
                     simple!("status"),
                     simple!("rest"),
                     simple!("talk to {name}"),
-                ];
-                if !inventory.is_empty() {
-                    suggestions.push(recursive!(inventory, "give {name} {}"));
-                }
-                suggestions
+                    recursive!(inventory.iter().map(ItemProfile::name), "give {name} {}"),
+                ]
             }
             InteractionType::Controlled => {
-                vec![simple!("status"), simple!("rest"), simple!("wait")]
+                vec![
+                    simple!("status"),
+                    simple!("rest"),
+                    simple!("wait"),
+                    recursive!(
+                        inventory
+                            .iter()
+                            .filter(|item| item.is_wieldable && !item.is_wielded)
+                            .map(ItemProfile::name),
+                        "wield {}"
+                    ),
+                ]
             }
             InteractionType::Shopkeeper => vec![simple!("trade")],
             InteractionType::Recruitable => {
@@ -193,6 +206,7 @@ pub fn sorted_without_duplicates(
 ) -> Vec<Suggestion> {
     let mut suggestions = suggestions
         .into_iter()
+        .filter(|suggestion| !suggestion.is_empty())
         .collect::<HashSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();

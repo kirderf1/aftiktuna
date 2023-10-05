@@ -2,13 +2,15 @@ use crate::action::door::{BlockType, Door, IsCut};
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundType};
+use crate::core::inventory::Held;
+use crate::core::item::CanWield;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{inventory, GameState};
 use crate::deref_clone;
 use crate::view::name::NameData;
 use crate::view::{capitalize, Messages, OrderWeight, Symbol};
-use hecs::{Entity, World};
+use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::ops::Deref;
@@ -125,7 +127,7 @@ pub struct RenderData {
     pub background: BackgroundType,
     pub background_offset: Option<Coord>,
     pub character_coord: Coord,
-    pub inventory: Vec<String>,
+    pub inventory: Vec<ItemProfile>,
     pub objects: Vec<ObjectRenderData>,
 }
 
@@ -162,6 +164,27 @@ impl Default for RenderProperties {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ItemProfile {
+    pub name: String,
+    pub is_wieldable: bool,
+    pub is_wielded: bool,
+}
+
+impl ItemProfile {
+    fn create(item: EntityRef) -> Self {
+        Self {
+            name: NameData::find_for_ref(item).base().to_string(),
+            is_wieldable: item.satisfies::<&CanWield>(),
+            is_wielded: item.get::<&Held>().map_or(false, |held| held.is_in_hand()),
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+}
+
 pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
     let character_pos = state.world.get::<&Pos>(state.controlled).unwrap();
     let area = state.world.get::<&Area>(character_pos.get_area()).unwrap();
@@ -177,7 +200,7 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
 
     let inventory = inventory::get_held(&state.world, state.controlled)
         .into_iter()
-        .map(|item| NameData::find(&state.world, item).base().to_string())
+        .map(|item| ItemProfile::create(state.world.entity(item).unwrap()))
         .collect();
     RenderData {
         area_label: area.label.clone(),
