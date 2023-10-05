@@ -120,7 +120,7 @@
     {
       "name": "Shack",
       "background": "shack",
-      "objects": [ "^", "", "m", "B" ],
+      "objects": [ "^", "", "m", "%" ],
       "symbols": {
         "^": {
           "type": "door",
