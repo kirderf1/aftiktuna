@@ -7,27 +7,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+## [v0.6.0] - 2023-10-05
+
 ### Added
 
+- Food ration item
+- Crew members remain as corpses after dying
 - Ship controls object, which is the target of the "launch ship" command
 - "refuel ship" command
-- Food ration item
-- Defined prices for more items types, allowing more items as stock in stores or to be sold to stores
 - Command suggestions on click for location choice
 - Command suggestions on click for "give", "wield", "sell" and "sell all"
-- Crew members remain as corpses after dying
+- Defined prices for more items types, allowing more items as stock in stores or to be sold to stores
 
 ### Changed
 
 - Save format version 2.0, making it incompatible with previous save files
-- Reduced healing when moving from one location to the next
-- Healing between locations now requires a food ration 
-- Increase the price of swords
-- The cut variant for doors is now handled through texture layers in the same texture data file instead of with separate texture data files
-- Object textures are now loaded lazily instead of all at once
-- Background types are no longer hardcoded, making it possible to introduce new types with just the background data file and location files
 - "use fuel can" is now equivalent to "refuel ship" instead of "launch ship"
+- Reduced healing when moving from one location to the next
+- Healing between locations now requires a food ration
 - Updated items in all locations to add some food availability
+- Increase the price of swords
+- Background types are no longer hardcoded, making it possible to introduce new types with just the background data file and location files
+- Object textures are now loaded lazily instead of all at once
+- The cut variant for doors is now handled through texture layers in the same texture data file instead of with separate texture data files
 
 ### Fixed
 
