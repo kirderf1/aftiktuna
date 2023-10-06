@@ -43,24 +43,6 @@ impl<T: AsRef<str>> From<T> for Messages {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub struct Symbol(pub char);
-
-impl Symbol {
-    pub fn from_name(name: &str) -> Self {
-        Self(name.chars().next().unwrap())
-    }
-}
-
-#[derive(Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
-pub enum OrderWeight {
-    Item,
-    Controlled,
-    #[default]
-    Creature,
-    Background,
-}
-
 pub type StatusCache = status::Cache;
 
 #[derive(Default)]

@@ -1,8 +1,7 @@
 use crate::action::door::{BlockType, Door, DoorKind};
 use crate::core::position::Pos;
-use crate::view::area::TextureType;
+use crate::view::area::{OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
-use crate::view::{OrderWeight, Symbol};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 

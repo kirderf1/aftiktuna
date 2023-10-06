@@ -4,9 +4,8 @@ use crate::action::{CrewMember, Recruitable};
 use crate::core::item;
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::view::area::{AftikColor, TextureType};
+use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::{Name, Noun};
-use crate::view::{OrderWeight, Symbol};
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 

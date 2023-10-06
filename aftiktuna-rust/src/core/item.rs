@@ -1,6 +1,5 @@
-use crate::view::area::TextureType;
+use crate::view::area::{OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
-use crate::view::{OrderWeight, Symbol};
 use hecs::{Component, Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 

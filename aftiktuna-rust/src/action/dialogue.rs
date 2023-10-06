@@ -3,8 +3,8 @@ use crate::action::{Context, CrewMember, Recruitable, Waiting};
 use crate::core::position::{Blockage, Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{position, status};
+use crate::view::area::Symbol;
 use crate::view::name::{Name, NameData};
-use crate::view::Symbol;
 use hecs::Entity;
 
 pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -> action::Result {

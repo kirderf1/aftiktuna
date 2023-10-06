@@ -9,7 +9,7 @@ use crate::core::status::Health;
 use crate::core::{inventory, GameState};
 use crate::deref_clone;
 use crate::view::name::NameData;
-use crate::view::{capitalize, Messages, OrderWeight, Symbol};
+use crate::view::{capitalize, Messages};
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
@@ -50,6 +50,24 @@ impl Default for TextureType {
     fn default() -> Self {
         Self::unknown()
     }
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct Symbol(pub char);
+
+impl Symbol {
+    pub fn from_name(name: &str) -> Self {
+        Self(name.chars().next().unwrap())
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
+pub enum OrderWeight {
+    Item,
+    Controlled,
+    #[default]
+    Creature,
+    Background,
 }
 
 #[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]

@@ -5,9 +5,9 @@ use crate::core::area::{Area, BackgroundType, FuelAmount, Ship, ShipControls, Sh
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, GameState};
-use crate::view::area::{AftikColor, TextureType};
+use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
-use crate::view::{Messages, OrderWeight, Symbol};
+use crate::view::Messages;
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
