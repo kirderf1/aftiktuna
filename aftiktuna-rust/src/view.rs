@@ -1,13 +1,11 @@
-use crate::action::trade::{IsTrading, PricedItem, Shopkeeper};
+use crate::action::trade::IsTrading;
 use crate::core::area::{Area, BackgroundType};
-use crate::core::inventory::Held;
-use crate::core::item::Price;
 use crate::core::position::{Direction, Pos};
 use crate::core::{GameState, StopType};
 use crate::location::Choice;
-use crate::view::name::{NameData, NameQuery};
 use area::{AftikColor, RenderData};
 use hecs::{Entity, World};
+use name::NameData;
 use serde::{Deserialize, Serialize};
 pub use status::print_full_status;
 use std::mem::take;
@@ -55,6 +53,91 @@ mod text {
 
 pub use text::{capitalize, Messages};
 
+mod store {
+    use super::area::AftikColor;
+    use super::name::{NameData, NameQuery};
+    use super::{status, text, Buffer, Frame, Messages, StatusCache};
+    use crate::action::trade::{PricedItem, Shopkeeper};
+    use crate::core::area::{Area, BackgroundType};
+    use crate::core::inventory::Held;
+    use crate::core::item::Price;
+    use crate::core::position::Pos;
+    use hecs::{Entity, World};
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct StoreView {
+        pub items: Vec<PricedItem>,
+        pub shopkeeper_color: Option<AftikColor>,
+        pub background: BackgroundType,
+        pub points: i32,
+        pub sellable_items: Vec<NameData>,
+    }
+
+    impl StoreView {
+        pub fn messages(&self) -> Messages {
+            let mut messages = Messages::default();
+            let items = self
+                .items
+                .iter()
+                .map(|priced| {
+                    (
+                        text::capitalize(priced.item.noun_data().singular()),
+                        priced.price,
+                    )
+                })
+                .collect::<Vec<_>>();
+            let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
+            for (name, price) in items {
+                messages.add(format!(
+                    "{} {}| {}p",
+                    name,
+                    " ".repeat(max_length - name.len()),
+                    price
+                ));
+            }
+            messages.add(format!("Crew points: {}p", self.points));
+            messages
+        }
+    }
+
+    pub fn store_frame(
+        shopkeeper: Entity,
+        buffer: &mut Buffer,
+        world: &World,
+        character: Entity,
+        cache: &mut StatusCache,
+    ) -> Frame {
+        let area = world.get::<&Pos>(shopkeeper).unwrap().get_area();
+        // Use the cache in shop view before status messages so that points aren't shown in status messages too
+        let points = status::fetch_points(world, character, cache);
+        let store_info = world.get::<&Shopkeeper>(shopkeeper).unwrap();
+        let items = store_info.0.clone();
+        let sellable_items = world
+            .query::<(&Held, NameQuery)>()
+            .with::<&Price>()
+            .iter()
+            .filter(|(_, (held, _))| held.held_by(character))
+            .map(|(_, (_, query))| NameData::from(query))
+            .collect();
+        Frame::StoreView {
+            view: StoreView {
+                items,
+                shopkeeper_color: world
+                    .get::<&AftikColor>(shopkeeper)
+                    .ok()
+                    .map(|color| *color),
+                background: world.get::<&Area>(area).unwrap().background.clone(),
+                points,
+                sellable_items,
+            },
+            messages: buffer.pop_messages(world, character, cache).into_text(),
+        }
+    }
+}
+
+pub use store::StoreView;
+
 pub type StatusCache = status::Cache;
 
 #[derive(Default)]
@@ -71,7 +154,7 @@ impl Buffer {
             .ok()
             .map(|is_trading| is_trading.0)
         {
-            shop_frame(
+            store::store_frame(
                 shopkeeper,
                 self,
                 &state.world,
@@ -228,71 +311,6 @@ impl Frame {
 
 fn intro_messages() -> Vec<String> {
     vec!["Welcome to Aftiktuna!".to_string(),"Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string()]
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct StoreView {
-    pub items: Vec<PricedItem>,
-    pub shopkeeper_color: Option<AftikColor>,
-    pub background: BackgroundType,
-    pub points: i32,
-    pub sellable_items: Vec<NameData>,
-}
-
-impl StoreView {
-    pub fn messages(&self) -> Messages {
-        let mut messages = Messages::default();
-        let items = self
-            .items
-            .iter()
-            .map(|priced| (capitalize(priced.item.noun_data().singular()), priced.price))
-            .collect::<Vec<_>>();
-        let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
-        for (name, price) in items {
-            messages.add(format!(
-                "{} {}| {}p",
-                name,
-                " ".repeat(max_length - name.len()),
-                price
-            ));
-        }
-        messages.add(format!("Crew points: {}p", self.points));
-        messages
-    }
-}
-
-fn shop_frame(
-    shopkeeper: Entity,
-    buffer: &mut Buffer,
-    world: &World,
-    character: Entity,
-    cache: &mut StatusCache,
-) -> Frame {
-    let area = world.get::<&Pos>(shopkeeper).unwrap().get_area();
-    // Use the cache in shop view before status messages so that points aren't shown in status messages too
-    let points = status::fetch_points(world, character, cache);
-    let store_info = world.get::<&Shopkeeper>(shopkeeper).unwrap();
-    let items = store_info.0.clone();
-    let sellable_items = world
-        .query::<(&Held, NameQuery)>()
-        .with::<&Price>()
-        .iter()
-        .filter(|(_, (held, _))| held.held_by(character))
-        .map(|(_, (_, query))| NameData::from(query))
-        .collect();
-    Frame::StoreView {
-        view: StoreView {
-            items,
-            shopkeeper_color: world
-                .get::<&AftikColor>(shopkeeper)
-                .ok()
-                .map(|color| *color),
-            background: world.get::<&Area>(area).unwrap().background.clone(),
-            points,
-            sellable_items,
-        },
-        messages: buffer.pop_messages(world, character, cache).into_text(),
-    }
 }
 
 fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
