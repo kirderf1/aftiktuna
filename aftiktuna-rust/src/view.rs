@@ -16,32 +16,44 @@ pub mod area;
 pub mod name;
 mod status;
 
-#[derive(Default)]
-pub struct Messages(pub Vec<String>);
+mod text {
+    #[derive(Default)]
+    pub struct Messages(pub Vec<String>);
 
-impl Messages {
-    pub fn add(&mut self, message: impl AsRef<str>) {
-        self.0.push(capitalize(message));
-    }
+    impl Messages {
+        pub fn add(&mut self, message: impl AsRef<str>) {
+            self.0.push(capitalize(message));
+        }
 
-    pub fn print_lines(self) {
-        for line in self.0 {
-            println!("{line}");
+        pub fn print_lines(self) {
+            for line in self.0 {
+                println!("{line}");
+            }
+        }
+
+        pub fn into_text(self) -> Vec<String> {
+            self.0
         }
     }
 
-    pub fn into_text(self) -> Vec<String> {
-        self.0
+    impl<T: AsRef<str>> From<T> for Messages {
+        fn from(value: T) -> Self {
+            let mut messages = Self::default();
+            messages.add(value);
+            messages
+        }
+    }
+
+    pub fn capitalize(text: impl AsRef<str>) -> String {
+        let mut chars = text.as_ref().chars();
+        match chars.next() {
+            None => String::new(),
+            Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),
+        }
     }
 }
 
-impl<T: AsRef<str>> From<T> for Messages {
-    fn from(value: T) -> Self {
-        let mut messages = Self::default();
-        messages.add(value);
-        messages
-    }
-}
+pub use text::{capitalize, Messages};
 
 pub type StatusCache = status::Cache;
 
@@ -289,13 +301,5 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
             .pop_messages(&state.world, state.controlled, &mut state.status_cache)
             .into_text(),
         render_data: area::prepare_render_data(state),
-    }
-}
-
-pub fn capitalize(text: impl AsRef<str>) -> String {
-    let mut chars = text.as_ref().chars();
-    match chars.next() {
-        None => String::new(),
-        Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),
     }
 }
