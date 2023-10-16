@@ -107,7 +107,7 @@ impl Type {
             Type::FuelCan => Some(3500),
             Type::FoodRation => Some(500),
             Type::Crowbar => Some(2000),
-            Type::Blowtorch => Some(7000),
+            Type::Blowtorch => Some(6000),
             Type::Knife => Some(300),
             Type::Bat => Some(1000),
             Type::Sword => Some(5000),

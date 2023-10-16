@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Locations now use random loot
+- Reduced value of blowtorches
 
 ### Contributors for this release
 
