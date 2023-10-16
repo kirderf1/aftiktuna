@@ -103,7 +103,7 @@ impl InteractionType {
     pub fn commands(self, name: &str, inventory: &[ItemProfile]) -> Vec<Suggestion> {
         let name = name.to_lowercase();
         match self {
-            InteractionType::Item => vec![simple!("take {name}")],
+            InteractionType::Item => vec![simple!("take {name}"), simple!("check {name}")],
             InteractionType::Wieldable => vec![simple!("wield {name}")],
             InteractionType::UseMedkit => vec![simple!("use medkit")],
             InteractionType::Door => vec![simple!("enter {name}")],
@@ -133,6 +133,7 @@ impl InteractionType {
                             .map(ItemProfile::name),
                         "wield {}"
                     ),
+                    recursive!(inventory.iter().map(ItemProfile::name), "check {}"),
                 ]
             }
             InteractionType::Shopkeeper => vec![simple!("trade")],

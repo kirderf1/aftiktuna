@@ -1,6 +1,7 @@
 use crate::view::area::{OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
-use hecs::{Component, Entity, EntityBuilder, World};
+use crate::view::Messages;
+use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -182,4 +183,35 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         _ => {}
     };
     world.spawn(builder.build())
+}
+
+pub fn description(item_ref: EntityRef) -> Messages {
+    let mut messages = Messages::default();
+    messages.add(format!("{}:", item_ref.get::<&Noun>().unwrap().singular()));
+
+    if let Some(weapon) = item_ref.get::<&Weapon>() {
+        messages.add(format!("Weapon value: {}", weapon.0));
+    }
+    if item_ref.satisfies::<&FuelCan>() {
+        messages.add("Used to refuel the ship.");
+    }
+    if item_ref.satisfies::<&FoodRation>() {
+        messages.add("May be eaten by crew members while travelling to their next location to recover health.");
+    }
+    if let Some(tool) = item_ref.get::<&Tool>() {
+        messages.add(match *tool {
+            Tool::Crowbar => "Used to force open doors that are stuck.",
+            Tool::Blowtorch => "Used to cut apart any door that won't open.",
+        });
+    }
+    if item_ref.satisfies::<&Keycard>() {
+        messages.add("Used to let the holder pass through a locked door.");
+    }
+    if item_ref.satisfies::<&Medkit>() {
+        messages.add("Used to recover some health of the user.");
+    }
+    if item_ref.satisfies::<&Price>() {
+        messages.add("Can be sold in a store.");
+    }
+    messages
 }

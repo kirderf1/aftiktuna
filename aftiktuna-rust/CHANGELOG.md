@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Loot symbol for location definitions which spawns an item from a builtin loot table
+- "check <item>" command, which gives information on an item
 
 ### Changed
 

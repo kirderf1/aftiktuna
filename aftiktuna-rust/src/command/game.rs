@@ -3,6 +3,7 @@ use crate::action::{door, Action, CrewMember, FortunaChest};
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::area::{Ship, ShipStatus};
+use crate::core::inventory::Held;
 use crate::core::item::FuelCan;
 use crate::core::position::{Blockage, Pos};
 use crate::core::{inventory, position, status, GameState};
@@ -46,6 +47,13 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         }),
         parse.literal("status", |parse| {
             parse.done_or_err(|| command::status(world, character))
+        }),
+        parse.literal("check", |parse| {
+            parse.match_against(
+                check_item_targets(world, character),
+                |parse, item| parse.done_or_err(|| check(world, item)),
+                |_| Err("No item by that name.".to_string()),
+            )
         }),
         parse.literal("control", |parse| {
             parse.match_against(
@@ -217,6 +225,37 @@ fn open(world: &World, character: Entity, chest: Entity) -> Result<CommandResult
     check_adjacent_accessible_with_message(world, character, chest)?;
 
     command::action_result(Action::OpenChest(chest))
+}
+
+fn check_item_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
+    let mut targets = held_item_targets(world, character);
+    targets.extend(placed_item_targets(world, character));
+    targets
+}
+
+fn placed_item_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+    world
+        .query::<(&Pos, NameQuery)>()
+        .iter()
+        .filter(|&(_, (pos, _))| pos.is_in(area))
+        .map(|(entity, (_, query))| (NameData::from(query).base().to_lowercase(), entity))
+        .collect()
+}
+
+fn held_item_targets(world: &World, holder: Entity) -> Vec<(String, Entity)> {
+    world
+        .query::<(&Held, NameQuery)>()
+        .iter()
+        .filter(|&(_, (held, _))| held.held_by(holder))
+        .map(|(entity, (_, query))| (NameData::from(query).base().to_lowercase(), entity))
+        .collect()
+}
+
+fn check(world: &World, item: Entity) -> Result<CommandResult, String> {
+    Ok(CommandResult::Info(core::item::description(
+        world.entity(item).unwrap(),
+    )))
 }
 
 enum Inaccessible {
