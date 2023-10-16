@@ -52,7 +52,7 @@
       "name": "Side path",
       "background": "forest_entrance",
       "background_offset": 6,
-      "objects": [ "a", "<", "", "S", "S", "", "S", "^", "" ],
+      "objects": [ "?", "<", "", "S", "S", "", "S", "^", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -108,7 +108,7 @@
     {
       "name": "House",
       "background": "shack",
-      "objects": [ "^", "", "m", "a" ],
+      "objects": [ "^", "", "?", "a" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -120,7 +120,7 @@
     {
       "name": "Shack",
       "background": "shack",
-      "objects": [ "^", "", "m", "%" ],
+      "objects": [ "^", "", "?", "?" ],
       "symbols": {
         "^": {
           "type": "door",

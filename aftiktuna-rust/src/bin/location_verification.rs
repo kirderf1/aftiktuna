@@ -13,8 +13,9 @@ fn verify_locations(locations: location::Locations) {
     for category in locations.categories {
         for location_name in category.location_names {
             let mut world = World::new();
+            let mut rng = rand::thread_rng();
             if let Err(message) = location::load_data(&location_name)
-                .and_then(|location_data| location_data.build(&mut world))
+                .and_then(|location_data| location_data.build(&mut world, &mut rng))
             {
                 println!("Failed to load location \"{}\": {}", location_name, message);
                 failure_count += 1;

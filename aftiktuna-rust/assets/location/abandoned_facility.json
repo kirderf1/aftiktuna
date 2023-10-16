@@ -34,7 +34,7 @@
     {
       "name": "Entrance hall",
       "background": "facility_size7",
-      "objects": [ "", "<", "", "^", "", ">", "" ],
+      "objects": [ "?", "<", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -133,7 +133,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "E", "", "f%" ],
+      "objects": [ "^", "E", "", "f?" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -145,7 +145,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "ff", "F", "^", "B" ],
+      "objects": [ "ff", "F", "^", "?" ],
       "symbols": {
         "^": {
           "type": "door",

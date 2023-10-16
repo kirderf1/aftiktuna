@@ -96,7 +96,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 5,
-      "objects": [ "^", "", "", "F", "B" ],
+      "objects": [ "^", "", "", "F", "?" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -109,7 +109,7 @@
       "name": "Forest entrance",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "<", "", "^", "K", ">", "" ],
+      "objects": [ "<", "", "^", "?", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -161,7 +161,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "^", "m", "E", "E", "bf%" ],
+      "objects": [ "^", "?", "E", "E", "bf?" ],
       "symbols": {
         "^": {
           "type": "door",

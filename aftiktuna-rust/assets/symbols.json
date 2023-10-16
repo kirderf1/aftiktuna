@@ -1,6 +1,7 @@
 {
   "v": { "type": "location_entry" },
   "¤": { "type": "fortuna_chest" },
+  "?": { "type": "loot" },
   "f": { "type": "item", "item": "fuel_can" },
   "%": { "type": "item", "item": "food_ration" },
   "c": { "type": "item", "item": "crowbar" },

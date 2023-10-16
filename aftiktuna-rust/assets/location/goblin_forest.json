@@ -67,7 +67,7 @@
     {
       "name": "Shack",
       "background": "shack",
-      "objects": [ "af", "fE", "", "^" ],
+      "objects": [ "?f", "fE", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -106,7 +106,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 1,
-      "objects": [ "%", "S", "", "", "^" ],
+      "objects": [ "?", "S", "", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -119,7 +119,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 0,
-      "objects": [ "<", "B", "G", "G", "", ">" ],
+      "objects": [ "<", "?", "G", "G", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",

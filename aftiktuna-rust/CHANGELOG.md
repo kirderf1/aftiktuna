@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Loot symbol for location definitions which spawns an item from a builtin loot table
+
+### Changed
+
+- Locations now use random loot
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.6.0] - 2023-10-05
 

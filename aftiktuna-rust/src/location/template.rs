@@ -8,6 +8,8 @@ use crate::location::{creature, door, Area, BackgroundType};
 use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use hecs::World;
+use rand::distributions::WeightedIndex;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
@@ -19,12 +21,12 @@ pub struct LocationData {
 }
 
 impl LocationData {
-    pub fn build(self, world: &mut World) -> Result<Pos, String> {
+    pub fn build(self, world: &mut World, rng: &mut impl Rng) -> Result<Pos, String> {
         let mut builder = Builder::new(world, &self.door_pairs);
         let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
-            area.build(&mut builder, &base_symbols)?;
+            area.build(&mut builder, &base_symbols, rng)?;
         }
 
         verify_placed_doors(&builder)?;
@@ -48,6 +50,7 @@ impl AreaData {
         self,
         builder: &mut Builder,
         parent_symbols: &HashMap<char, SymbolData>,
+        rng: &mut impl Rng,
     ) -> Result<(), String> {
         let room = builder.world.spawn((Area {
             size: self.objects.len(),
@@ -61,8 +64,8 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
-                    Some(symbol_data) => symbol_data.place(builder, pos, Symbol(symbol))?,
-                    None => Err(format!("Unknown symbol \"{}\"", symbol))?,
+                    Some(symbol_data) => symbol_data.place(builder, rng, pos, Symbol(symbol))?,
+                    None => Err(format!("Unknown symbol \"{symbol}\""))?,
                 }
             }
         }
@@ -102,6 +105,7 @@ enum SymbolData {
     Item {
         item: item::Type,
     },
+    Loot,
     Door {
         pair_id: String,
         display_type: DoorType,
@@ -129,11 +133,21 @@ enum SymbolData {
 }
 
 impl SymbolData {
-    fn place(&self, builder: &mut Builder, pos: Pos, symbol: Symbol) -> Result<(), String> {
+    fn place(
+        &self,
+        builder: &mut Builder,
+        rng: &mut impl Rng,
+        pos: Pos,
+        symbol: Symbol,
+    ) -> Result<(), String> {
         match self {
             SymbolData::LocationEntry => builder.set_entry(pos)?,
             SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
             SymbolData::Item { item } => item.spawn(builder.world, pos),
+            SymbolData::Loot => {
+                let item = random_loot(rng);
+                item.spawn(builder.world, pos);
+            }
             SymbolData::Door {
                 pair_id,
                 display_type,
@@ -269,4 +283,24 @@ fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
         pos,
         FortunaChest,
     ));
+}
+
+macro_rules! unzip {
+    ($($item:expr, $weight:expr);* $(;)?) => {
+        ([$($item),*], [$($weight),*])
+    }
+}
+
+fn random_loot(rng: &mut impl Rng) -> item::Type {
+    let (items, weights) = unzip!(
+        item::Type::FoodRation, 20;
+        item::Type::Crowbar, 3;
+        item::Type::Knife, 7;
+        item::Type::Bat, 4;
+        item::Type::Medkit, 2;
+        item::Type::MeteorChunk, 5;
+        item::Type::AncientCoin, 10;
+    );
+    let index_distribution = WeightedIndex::new(weights).unwrap();
+    items[rng.sample(index_distribution)]
 }

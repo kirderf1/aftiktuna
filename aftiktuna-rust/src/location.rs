@@ -240,7 +240,7 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
     let ship_exit = world.get::<&Ship>(state.ship).unwrap().exit_pos;
 
     let start_pos = load_data(location_name)
-        .and_then(|location_data| location_data.build(world))
+        .and_then(|location_data| location_data.build(world, &mut state.rng))
         .unwrap_or_else(|message| panic!("Error loading location {}: {}", location_name, message));
 
     door::place_pair(
