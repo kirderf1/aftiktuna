@@ -10,11 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Loot symbol for location definitions which spawns an item from a builtin loot table
+- Builtin loot tables "regular" and "valuable"
 - "check <item>" command, which gives information on an item
 
 ### Changed
 
 - Locations now use random loot
+- Other minor adjustments to locations
 - Reduced value of blowtorches
 
 ### Contributors for this release

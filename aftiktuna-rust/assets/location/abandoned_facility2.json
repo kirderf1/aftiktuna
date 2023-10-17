@@ -64,7 +64,7 @@
     {
       "name": "Corridor",
       "background": "facility_size6",
-      "objects": [ "<", "E", "K", "^", "", ">" ],
+      "objects": [ "<", "E", "?", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -114,7 +114,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "", "Z", "bs" ],
+      "objects": [ "^", "", "Z", "!!" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -157,7 +157,7 @@
     {
       "name": "Storage Room",
       "background": "facility_size3",
-      "objects": [ "^", "?", "f?" ],
+      "objects": [ "^", "?", "f!" ],
       "symbols": {
         "^": {
           "type": "door",

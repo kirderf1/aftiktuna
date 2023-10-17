@@ -211,7 +211,7 @@ pub fn description(item_ref: EntityRef) -> Messages {
         messages.add("Used to recover some health of the user.");
     }
     if item_ref.satisfies::<&Price>() {
-        messages.add("Can be sold in a store.");
+        messages.add("Can be sold at a store.");
     }
     messages
 }

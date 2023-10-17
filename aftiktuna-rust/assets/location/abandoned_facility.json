@@ -22,7 +22,7 @@
       "name": "Field",
       "background": "field",
       "background_offset": 0,
-      "objects": [ "^", "", "", "k", "" ],
+      "objects": [ "^", "", "S", "k", "" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -109,7 +109,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "", "c", "", "^" ],
+      "objects": [ "", "?", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -133,7 +133,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "E", "", "f?" ],
+      "objects": [ "^", "E", "", "f!" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -145,7 +145,7 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "ff", "F", "^", "?" ],
+      "objects": [ "ff", "F", "^", "!" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -162,7 +162,7 @@
     "corridor1": {},
     "corridor2": {},
     "room1": {},
-    "room2": { "block_type": "stuck" },
+    "room2": {},
     "room3": {}
   }
 }

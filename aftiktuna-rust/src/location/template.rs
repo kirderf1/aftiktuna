@@ -105,7 +105,9 @@ enum SymbolData {
     Item {
         item: item::Type,
     },
-    Loot,
+    Loot {
+        table: LootTable,
+    },
     Door {
         pair_id: String,
         display_type: DoorType,
@@ -144,8 +146,8 @@ impl SymbolData {
             SymbolData::LocationEntry => builder.set_entry(pos)?,
             SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
             SymbolData::Item { item } => item.spawn(builder.world, pos),
-            SymbolData::Loot => {
-                let item = random_loot(rng);
+            SymbolData::Loot { table } => {
+                let item = table.random_loot(rng);
                 item.spawn(builder.world, pos);
             }
             SymbolData::Door {
@@ -291,16 +293,40 @@ macro_rules! unzip {
     }
 }
 
-fn random_loot(rng: &mut impl Rng) -> item::Type {
-    let (items, weights) = unzip!(
-        item::Type::FoodRation, 20;
-        item::Type::Crowbar, 3;
-        item::Type::Knife, 7;
-        item::Type::Bat, 4;
-        item::Type::Medkit, 2;
-        item::Type::MeteorChunk, 5;
-        item::Type::AncientCoin, 10;
-    );
-    let index_distribution = WeightedIndex::new(weights).unwrap();
-    items[rng.sample(index_distribution)]
+#[derive(Copy, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum LootTable {
+    Regular,
+    Valuable,
+}
+
+impl LootTable {
+    fn random_loot(self, rng: &mut impl Rng) -> item::Type {
+        match self {
+            LootTable::Regular => {
+                let (items, weights) = unzip!(
+                    item::Type::FoodRation, 20;
+                    item::Type::Crowbar, 2;
+                    item::Type::Knife, 7;
+                    item::Type::Bat, 4;
+                    item::Type::MeteorChunk, 2;
+                    item::Type::AncientCoin, 10;
+                );
+                let index_distribution = WeightedIndex::new(weights).unwrap();
+                items[rng.sample(index_distribution)]
+            }
+            LootTable::Valuable => {
+                let (items, weights) = unzip!(
+                    item::Type::Crowbar, 5;
+                    item::Type::Blowtorch, 3;
+                    item::Type::Bat, 5;
+                    item::Type::Sword, 2;
+                    item::Type::Medkit, 4;
+                    item::Type::MeteorChunk, 8;
+                );
+                let index_distribution = WeightedIndex::new(weights).unwrap();
+                items[rng.sample(index_distribution)]
+            }
+        }
+    }
 }

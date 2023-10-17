@@ -161,7 +161,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "^", "?", "E", "E", "bf?" ],
+      "objects": [ "^", "?", "E", "E", "!f?" ],
       "symbols": {
         "^": {
           "type": "door",
