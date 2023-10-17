@@ -1,0 +1,33 @@
+{
+  "areas": [
+    {
+      "name": "Field",
+      "background": "field",
+      "background_offset": 5,
+      "objects": [ "", "v", "", "", "^" ],
+      "symbols": {
+        "^": {
+          "type": "door",
+          "pair_id": "path",
+          "display_type": "path"
+        }
+      }
+    },
+    {
+      "name": "Field",
+      "background": "field",
+      "background_offset": 0,
+      "objects": [ "^", "", "G", "G", "", "S", "¤", "" ],
+      "symbols": {
+        "^": {
+          "type": "door",
+          "pair_id": "path",
+          "display_type": "path"
+        }
+      }
+    }
+  ],
+  "door_pairs": {
+    "path": {}
+  }
+}

@@ -22,6 +22,7 @@
     }
   ],
   "fortuna_locations": [
-    "location/fortuna"
+    "location/fortuna",
+    "location/fortuna2"
   ]
 }
