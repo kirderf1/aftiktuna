@@ -1,4 +1,5 @@
 use crate::core::position::{Coord, Pos};
+use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -52,3 +53,7 @@ pub enum ShipStatus {
 
 #[derive(Serialize, Deserialize)]
 pub struct ShipControls;
+
+pub fn is_ship(area: Entity, world: &World) -> bool {
+    world.satisfies::<&Ship>(area).unwrap_or(false)
+}

@@ -1,8 +1,9 @@
 use crate::action;
+use crate::action::door::GoingToShip;
 use crate::action::{Context, CrewMember, Recruitable, Waiting};
 use crate::core::position::{Blockage, Direction, Pos};
 use crate::core::status::Health;
-use crate::core::{position, status};
+use crate::core::{area, position, status};
 use crate::view::area::Symbol;
 use crate::view::name::{Name, NameData};
 use hecs::Entity;
@@ -131,7 +132,7 @@ pub(super) fn tell_to_wait(
     target: Entity,
 ) -> action::Result {
     if !status::is_alive(target, context.mut_world())
-        || context.mut_world().get::<&Waiting>(target).is_ok()
+        || context.mut_world().satisfies::<&Waiting>(target).unwrap()
     {
         return action::silent_ok();
     }
@@ -167,13 +168,65 @@ pub(super) fn tell_to_wait(
     ))
 }
 
+pub(super) fn tell_to_wait_at_ship(
+    mut context: Context,
+    performer: Entity,
+    target: Entity,
+) -> action::Result {
+    if !status::is_alive(target, context.mut_world())
+        || context
+            .mut_world()
+            .satisfies::<&GoingToShip>(target)
+            .unwrap()
+    {
+        return action::silent_ok();
+    }
+
+    let performer_pos = *context.mut_world().get::<&Pos>(performer).unwrap();
+    let target_pos = *context.mut_world().get::<&Pos>(target).unwrap();
+
+    if area::is_ship(target_pos.get_area(), context.mut_world()) {
+        return Err("They are already at the ship.".to_string());
+    }
+
+    context.capture_frame_for_dialogue();
+
+    if performer_pos != target_pos {
+        context
+            .mut_world()
+            .insert_one(performer, Direction::between(performer_pos, target_pos))
+            .unwrap();
+        context
+            .mut_world()
+            .insert_one(target, Direction::between(target_pos, performer_pos))
+            .unwrap();
+    }
+
+    context.add_dialogue(performer, "Please go back and wait at the ship.");
+    context.add_dialogue(
+        target,
+        "Sure thing. I will go and wait at the ship for now.",
+    );
+
+    context
+        .mut_world()
+        .insert(target, (Waiting, GoingToShip))
+        .unwrap();
+
+    let performer_name = NameData::find(context.mut_world(), performer).definite();
+    let target_name = NameData::find(context.mut_world(), target).definite();
+    action::ok(format!(
+        "{performer_name} finishes talking with {target_name}."
+    ))
+}
+
 pub(super) fn tell_to_follow(
     mut context: Context,
     performer: Entity,
     target: Entity,
 ) -> action::Result {
     if !status::is_alive(target, context.mut_world())
-        || context.mut_world().get::<&Waiting>(target).is_err()
+        || !context.mut_world().satisfies::<&Waiting>(target).unwrap()
     {
         return action::silent_ok();
     }

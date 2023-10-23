@@ -3,7 +3,7 @@ use crate::command;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::position::Pos;
-use crate::core::GameState;
+use crate::core::{area, GameState};
 use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, Or};
 
@@ -33,21 +33,33 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                 super::crew_targets(&state.world),
                 |parse, target| {
                     first_match_or!(
-                        parse.literal("to", |parse| {
-                            first_match_or!(
-                                parse.literal("wait", |parse|
-                                    parse.done_or_err(|| tell_to_wait(state, target))),
-                                parse.literal("follow", |parse|
-                                    parse.done_or_err(|| tell_to_follow(state, target)));
-                                parse.default_err()
-                            )
-                        });
+                        parse.literal("to", |parse|
+                            subcommands_for_tell(parse, state, target));
                         parse.default_err()
                     )
                 },
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         }),
+    )
+}
+
+fn subcommands_for_tell(
+    parse: Parse,
+    state: &GameState,
+    target: Entity,
+) -> Result<CommandResult, String> {
+    first_match_or!(
+        parse.literal("wait", |parse|
+            first_match_or!(
+                parse.literal("at ship", |parse|
+                    parse.done_or_err(|| tell_to_wait_at_ship(state, target)));
+                parse.done_or_err(|| tell_to_wait(state, target))
+            )
+        ),
+        parse.literal("follow", |parse|
+            parse.done_or_err(|| tell_to_follow(state, target)));
+        parse.default_err()
     )
 }
 
@@ -105,6 +117,29 @@ fn tell_to_wait(state: &GameState, target: Entity) -> Result<CommandResult, Stri
     }
 
     command::action_result(Action::TellToWait(target))
+}
+
+fn tell_to_wait_at_ship(state: &GameState, target: Entity) -> Result<CommandResult, String> {
+    if state.controlled == target {
+        return Err(format!(
+            "{} can't give an order to themselves.",
+            NameData::find(&state.world, state.controlled).definite()
+        ));
+    }
+    let controlled_pos = state.world.get::<&Pos>(state.controlled).unwrap();
+    let target_pos = state.world.get::<&Pos>(target).unwrap();
+    if !controlled_pos.is_in(target_pos.get_area()) {
+        return Err(format!(
+            "{} can't tell {} to do things from here.",
+            NameData::find(&state.world, state.controlled).definite(),
+            NameData::find(&state.world, target).definite()
+        ));
+    }
+    if area::is_ship(target_pos.get_area(), &state.world) {
+        return Err("They are already at the ship.".to_string());
+    }
+
+    command::action_result(Action::TellToWaitAtShip(target))
 }
 
 fn tell_to_follow(state: &GameState, target: Entity) -> Result<CommandResult, String> {

@@ -118,6 +118,7 @@ impl InteractionType {
                     simple!("status"),
                     simple!("rest"),
                     simple!("talk to {name}"),
+                    simple!("tell {name} to wait at ship"),
                     recursive!(inventory.iter().map(ItemProfile::name), "give {name} {}"),
                 ]
             }

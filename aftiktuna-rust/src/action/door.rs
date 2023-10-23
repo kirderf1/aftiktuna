@@ -1,9 +1,8 @@
 use crate::action::{Context, CrewMember};
 use crate::core::ai::Intention;
-use crate::core::area::Ship;
 use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
-use crate::core::{inventory, position, GameState};
+use crate::core::{area, inventory, position, GameState};
 use crate::view::name::NameData;
 use crate::{action, core};
 use hecs::{Entity, World};
@@ -216,28 +215,24 @@ pub struct GoingToShip;
 pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Result {
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
-    if is_ship(area, world) {
+    if area::is_ship(area, world) {
         let _ = world.remove_one::<GoingToShip>(performer);
         return action::silent_ok();
     }
 
-    let path = find_path_towards(world, area, |area| is_ship(area, world))
+    let path = find_path_towards(world, area, |area| area::is_ship(area, world))
         .ok_or_else(|| "Could not find a path to the ship.".to_string())?;
 
     let result = enter_door(context.state, performer, path);
 
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
-    if result.is_ok() && core::is_safe(world, area) && !is_ship(area, world) {
+    if result.is_ok() && core::is_safe(world, area) && !area::is_ship(area, world) {
         world.insert_one(performer, GoingToShip).unwrap();
     } else {
         let _ = world.remove_one::<GoingToShip>(performer);
     }
     result
-}
-
-fn is_ship(area: Entity, world: &World) -> bool {
-    world.satisfies::<&Ship>(area).unwrap_or(false)
 }
 
 struct PathSearchEntry {

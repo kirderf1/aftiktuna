@@ -6,7 +6,7 @@ use crate::core::area::{Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FuelCan;
 use crate::core::position::{Blockage, Pos};
-use crate::core::{inventory, position, status, GameState};
+use crate::core::{area, inventory, position, status, GameState};
 use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
 use hecs::{Entity, World};
@@ -125,7 +125,7 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
 
 fn go_to_ship(world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if world.satisfies::<&Ship>(area).unwrap() {
+    if area::is_ship(area, world) {
         return Err("You are already at the ship.".to_string());
     }
     command::crew_action(Action::GoToShip)
