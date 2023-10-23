@@ -56,6 +56,18 @@ impl<'a> Parse<'a> {
             .unwrap_or_else(|| failure(self.active_input()))
     }
 
+    pub fn default_err<R>(&self) -> Result<R, String> {
+        let consumed = self.consumed_input();
+        let remaining = self.active_input();
+        if consumed.is_empty() {
+            Err(format!("Unexpected input: \"{remaining}\""))
+        } else {
+            Err(format!(
+                "Unexpected input after \"{consumed}\": \"{remaining}\""
+            ))
+        }
+    }
+
     fn active_input(&self) -> &'a str {
         &self.input[self.start..]
     }

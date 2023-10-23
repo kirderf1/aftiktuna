@@ -32,7 +32,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
                 parse.literal("ship", |parse|
                     parse.done_or_err(|| go_to_ship(world, character))
                 );
-                Err("Unexpected argument after \"go to\"".to_string())
+                parse.default_err()
             )
         ),
         combat::commands(&parse, state),
@@ -44,13 +44,13 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         parse.literal("refuel", |parse| {
             first_match_or!(
                 parse.literal("ship", |parse| parse.done_or_err(|| refuel_ship(state)));
-                Err("Unexpected argument after \"refuel\"".to_string())
+                parse.default_err()
             )
         }),
         parse.literal("launch", |parse| {
             first_match_or!(
                 parse.literal("ship", |parse| parse.done_or_err(|| launch_ship(state)));
-                Err("Unexpected argument after \"launch\"".to_string())
+                parse.default_err()
             )
         }),
         parse.literal("status", |parse| {
@@ -60,14 +60,14 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             parse.match_against(
                 check_item_targets(world, character),
                 |parse, item| parse.done_or_err(|| check(world, item)),
-                |_| Err("No item by that name.".to_string()),
+                |input| Err(format!("There is no item by the name \"{input}\" here.")),
             )
         }),
         parse.literal("control", |parse| {
             parse.match_against(
                 crew_targets(world),
                 |parse, target| parse.done_or_err(|| control(character, target)),
-                |_| Err("There is no crew member by that name.".to_string()),
+                |input| Err(format!("There is no crew member by the name \"{input}\".")),
             )
         }),
         parse.literal("trade", |parse| {
@@ -77,10 +77,10 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             parse.match_against(
                 fortuna_chest_targets(world, character),
                 |parse, target| parse.done_or_err(|| open(world, character, target)),
-                |input| Err(format!("\"{input}\" not a valid target")),
+                |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         });
-        Err(format!("Unexpected input: \"{input}\""))
+        parse.default_err()
     )
 }
 

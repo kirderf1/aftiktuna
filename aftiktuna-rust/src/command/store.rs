@@ -56,7 +56,7 @@ pub fn parse(
         parse.literal("status", |parse| {
             parse.done_or_err(|| command::status(world, character))
         });
-        Err(format!("Unexpected input: \"{input}\""))
+        parse.default_err()
     )
 }
 

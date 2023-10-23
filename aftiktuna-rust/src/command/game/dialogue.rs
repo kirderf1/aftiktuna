@@ -15,17 +15,17 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                     parse.match_against(
                         talk_targets(state),
                         |parse, target| parse.done_or_err(|| talk_to(state, target)),
-                        |input| Err(format!("\"{input}\" not a valid target")),
+                        |input| Err(format!("\"{input}\" is not a valid target.")),
                     )
                 });
-                Err("Unexpected argument after \"talk\"".to_string())
+                parse.default_err()
             )
         }),
         parse.literal("recruit", |parse| {
             parse.match_against(
                 recruit_targets(state),
                 |parse, target| parse.done_or_err(|| recruit(state, target)),
-                |input| Err(format!("\"{input}\" not a valid recruitment target")),
+                |input| Err(format!("\"{input}\" is not a valid recruitment target.")),
             )
         }),
         parse.literal("tell", |parse| {
@@ -39,13 +39,13 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                                     parse.done_or_err(|| tell_to_wait(state, target))),
                                 parse.literal("follow", |parse|
                                     parse.done_or_err(|| tell_to_follow(state, target)));
-                                Err("Unexpected argument".to_string())
+                                parse.default_err()
                             )
                         });
-                        Err("Unexpected argument".to_string())
+                        parse.default_err()
                     )
                 },
-                |input| Err(format!("\"{input}\" not a valid target")),
+                |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         }),
     )

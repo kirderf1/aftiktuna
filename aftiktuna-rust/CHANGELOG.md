@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Locations now use random loot
 - Other minor adjustments to locations
 - Reduced value of blowtorches
+- Tweaked some command parsing error messages
 
 ### Contributors for this release
 

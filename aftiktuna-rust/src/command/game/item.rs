@@ -27,7 +27,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                 |parse, receiver| {
                     parse.take_remaining(|item_name| give(receiver, item_name, state))
                 },
-                |input| Err(format!("\"{input}\" not a valid target")),
+                |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         }),
         parse.literal("wield", |parse| {
