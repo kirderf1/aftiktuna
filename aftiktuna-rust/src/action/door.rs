@@ -1,4 +1,4 @@
-use crate::action::{Action, Context, CrewMember};
+use crate::action::{Context, CrewMember};
 use crate::core::ai::Intention;
 use crate::core::area::Ship;
 use crate::core::item::{Keycard, Tool};
@@ -210,10 +210,14 @@ fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block
     }
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct GoingToShip;
+
 pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Result {
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
     if is_ship(area, world) {
+        let _ = world.remove_one::<GoingToShip>(performer);
         return action::silent_ok();
     }
 
@@ -221,9 +225,13 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
         .ok_or_else(|| "Could not find a path to the ship.".to_string())?;
 
     let result = enter_door(context.state, performer, path);
+
     let world = context.mut_world();
-    if result.is_ok() && core::is_safe(world, area) {
-        world.insert_one(performer, Action::GoToShip).unwrap();
+    let area = world.get::<&Pos>(performer).unwrap().get_area();
+    if result.is_ok() && core::is_safe(world, area) && !is_ship(area, world) {
+        world.insert_one(performer, GoingToShip).unwrap();
+    } else {
+        let _ = world.remove_one::<GoingToShip>(performer);
     }
     result
 }

@@ -1,4 +1,5 @@
 use crate::action::combat::IsFoe;
+use crate::action::door::GoingToShip;
 use crate::action::{combat, Action, CrewMember};
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
@@ -22,6 +23,10 @@ pub fn prepare_intentions(world: &mut World) {
         .collect::<Vec<_>>();
     for crew_member in crew_members {
         prepare_intention(world, crew_member);
+
+        if world.satisfies::<&GoingToShip>(crew_member).unwrap() {
+            world.insert_one(crew_member, Action::GoToShip).unwrap();
+        }
     }
 }
 

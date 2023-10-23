@@ -146,7 +146,7 @@ macro_rules! world_serialization {
 
 pub mod world {
     use crate::action::combat::IsFoe;
-    use crate::action::door::{BlockType, Door, IsCut};
+    use crate::action::door::{BlockType, Door, GoingToShip, IsCut};
     use crate::action::trade::{IsTrading, Points, Shopkeeper};
     use crate::action::{Action, CrewMember, FortunaChest, OpenedChest, Recruitable, Waiting};
     use crate::core::ai::Intention;
@@ -186,6 +186,7 @@ pub mod world {
         Action, Action;
         Intention, Intention;
         Waiting, Waiting;
+        GoingToShip, GoingToShip;
 
         Recruitable, Recruitable;
         Shopkeeper, Shopkeeper;
