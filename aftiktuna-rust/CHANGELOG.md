@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Loot symbol for location definitions which spawns an item from a builtin loot table
 - Builtin loot tables "regular" and "valuable"
 - "check <item>" command, which gives information on an item
+- "go to ship" command
+- New alternative for fortuna encounter
 
 ### Changed
 

@@ -126,6 +126,7 @@ impl InteractionType {
                     simple!("status"),
                     simple!("rest"),
                     simple!("wait"),
+                    simple!("go to ship"),
                     recursive!(
                         inventory
                             .iter()

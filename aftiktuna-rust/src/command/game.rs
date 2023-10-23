@@ -27,6 +27,14 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         parse.literal("force", |parse| {
             parse.take_remaining(|door_name| force(door_name, world, character))
         }),
+        parse.literal("go to", |parse|
+            first_match_or!(
+                parse.literal("ship", |parse|
+                    parse.done_or_err(|| go_to_ship(world, character))
+                );
+                Err("Unexpected argument after \"go to\"".to_string())
+            )
+        ),
         combat::commands(&parse, state),
         dialogue::commands(&parse, state),
         parse.literal("wait", |parse| {
@@ -113,6 +121,14 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
     check_accessible_with_message(world, character, door)?;
 
     command::action_result(Action::ForceDoor(door, false))
+}
+
+fn go_to_ship(world: &World, character: Entity) -> Result<CommandResult, String> {
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+    if world.satisfies::<&Ship>(area).unwrap() {
+        return Err("You are already at the ship.".to_string());
+    }
+    command::crew_action(Action::GoToShip)
 }
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {

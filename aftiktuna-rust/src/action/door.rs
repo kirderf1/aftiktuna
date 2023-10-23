@@ -1,5 +1,6 @@
-use crate::action::{Context, CrewMember};
+use crate::action::{Action, Context, CrewMember};
 use crate::core::ai::Intention;
+use crate::core::area::Ship;
 use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
 use crate::core::{inventory, position, GameState};
@@ -7,6 +8,7 @@ use crate::view::name::NameData;
 use crate::{action, core};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -206,4 +208,82 @@ fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block
             .insert_one(crew_member, Intention::Force(door))
             .unwrap();
     }
+}
+
+pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Result {
+    let world = context.mut_world();
+    let area = world.get::<&Pos>(performer).unwrap().get_area();
+    if is_ship(area, world) {
+        return action::silent_ok();
+    }
+
+    let path = find_path_towards(world, area, |area| is_ship(area, world))
+        .ok_or_else(|| "Could not find a path to the ship.".to_string())?;
+
+    let result = enter_door(context.state, performer, path);
+    let world = context.mut_world();
+    if result.is_ok() && core::is_safe(world, area) {
+        world.insert_one(performer, Action::GoToShip).unwrap();
+    }
+    result
+}
+
+fn is_ship(area: Entity, world: &World) -> bool {
+    world.satisfies::<&Ship>(area).unwrap_or(false)
+}
+
+struct PathSearchEntry {
+    path: Entity,
+    area: Entity,
+}
+
+impl PathSearchEntry {
+    fn start(path_entity: Entity, path: &Door) -> Self {
+        Self {
+            path: path_entity,
+            area: path.destination.get_area(),
+        }
+    }
+
+    fn next(&self, path: &Door) -> Self {
+        Self {
+            path: self.path,
+            area: path.destination.get_area(),
+        }
+    }
+}
+
+fn find_path_towards(
+    world: &World,
+    area: Entity,
+    predicate: impl Fn(Entity) -> bool,
+) -> Option<Entity> {
+    let mut entries = world
+        .query::<(&Pos, &Door)>()
+        .iter()
+        .filter(|&(_, (pos, _))| pos.is_in(area))
+        .map(|(entity, (_, path))| PathSearchEntry::start(entity, path))
+        .collect::<Vec<_>>();
+    let mut checked_areas = HashSet::from([area]);
+
+    while !entries.is_empty() {
+        let mut new_entries = vec![];
+        for entry in entries {
+            if checked_areas.insert(entry.area) {
+                if predicate(entry.area) {
+                    return Some(entry.path);
+                }
+                new_entries.extend(
+                    world
+                        .query::<(&Pos, &Door)>()
+                        .iter()
+                        .filter(|&(_, (pos, _))| pos.is_in(entry.area))
+                        .map(|(_, (_, path))| entry.next(path)),
+                );
+            }
+        }
+        entries = new_entries;
+    }
+
+    None
 }
