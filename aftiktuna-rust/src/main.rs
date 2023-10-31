@@ -1,10 +1,12 @@
-use aftiktuna::game_interface::Game;
 use aftiktuna::serialization::LoadError;
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
-use egui_macroquad::macroquad::color::{BLACK, PINK};
-use egui_macroquad::macroquad::text::{draw_text, measure_text};
-use egui_macroquad::macroquad::window::{clear_background, next_frame, Conf};
+use egui_macroquad::macroquad::color::Color;
+use egui_macroquad::macroquad::math::Vec2;
+use egui_macroquad::macroquad::ui::widgets::Button;
+use egui_macroquad::macroquad::ui::Skin;
+use egui_macroquad::macroquad::window::Conf;
+use egui_macroquad::macroquad::{color, text, ui, window};
 use std::env;
 
 fn config() -> Conf {
@@ -25,93 +27,146 @@ async fn main() {
     if disable_autosave {
         println!("Running without autosave");
     }
-    match setup_game(new_name) {
-        Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
-        Err(error) => {
-            show_error(vec![
-                format!("Unable to load save file: {error}"),
-                "Consider deleting the savefile or using a different version of Aftiktuna."
-                    .to_owned(),
-            ])
-            .await
-        }
-    }
-}
-
-fn setup_game(new_game: bool) -> Result<Game, LoadError> {
-    if new_game {
-        Ok(game_interface::setup_new())
+    if new_name {
+        let game = game_interface::setup_new();
+        macroquad_interface::run(game, !disable_autosave).await;
     } else {
-        game_interface::new_or_load()
+        menu(disable_autosave).await;
     }
 }
 
-const TEXT_SIZE: u16 = 24;
+async fn menu(disable_autosave: bool) -> ! {
+    fn button(y: f32, text: &str) -> Button {
+        let size = Vec2::new(200., 60.);
+        Button::new(text)
+            .size(size)
+            .position(Vec2::new(400. - size.x / 2., y))
+    }
 
-async fn show_error(messages: Vec<String>) -> ! {
-    let messages = messages
-        .into_iter()
-        .flat_map(split_text_line)
-        .collect::<Vec<_>>();
+    let button_style = ui::root_ui()
+        .style_builder()
+        .color(Color::new(0.2, 0.1, 0.4, 0.6))
+        .color_hovered(Color::new(0.5, 0.3, 0.6, 0.6))
+        .text_color(color::WHITE)
+        .text_color_hovered(color::WHITE)
+        .font_size(32)
+        .build();
+
+    let skin = Skin {
+        button_style,
+        ..ui::root_ui().default_skin()
+    };
+
     loop {
-        clear_background(BLACK);
+        window::clear_background(color::BLACK);
 
-        let mut y = 200.;
-        for message in &messages {
-            let text_size = measure_text(message, None, TEXT_SIZE, 1.);
-            draw_text(
-                message,
-                (800. - text_size.width) / 2.,
-                y,
-                TEXT_SIZE as f32,
-                PINK,
-            );
-            y += TEXT_SIZE as f32;
+        draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
+
+        let mut ui = ui::root_ui();
+        ui.push_skin(&skin);
+
+        if button(350., "New Game").ui(&mut ui) {
+            let game = game_interface::setup_new();
+            macroquad_interface::run(game, !disable_autosave).await;
         }
 
-        next_frame().await;
+        if button(450., "Load Game").ui(&mut ui) {
+            match game_interface::load() {
+                Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
+                Err(error) => {
+                    let recommendation = if matches!(error, LoadError::UnsupportedVersion(_, _)) {
+                        "Consider starting a new game or using a different version of Aftiktuna."
+                    } else {
+                        "Consider starting a new game."
+                    };
+                    error_view::show(vec![
+                        format!("Unable to load save file: {error}"),
+                        recommendation.to_string(),
+                    ])
+                    .await;
+                }
+            }
+        }
+        ui.pop_skin();
+
+        window::next_frame().await;
     }
 }
 
-fn split_text_line(line: String) -> Vec<String> {
-    if fits_on_screen(&line) {
-        return vec![line];
-    }
-
-    let mut remaining_line: &str = &line;
-    let mut vec = Vec::new();
-    loop {
-        let split_index = smallest_split(remaining_line);
-        vec.push(remaining_line[..split_index].to_owned());
-        remaining_line = &remaining_line[split_index..];
-
-        if fits_on_screen(remaining_line) {
-            vec.push(remaining_line.to_owned());
-            return vec;
-        }
-    }
+fn draw_centered_text(text: &str, y: f32, font_size: u16, color: Color) {
+    let text_size = text::measure_text(text, None, font_size, 1.);
+    text::draw_text(
+        text,
+        (800. - text_size.width) / 2.,
+        y,
+        font_size as f32,
+        color,
+    );
 }
 
-fn fits_on_screen(line: &str) -> bool {
-    measure_text(line, None, TEXT_SIZE, 1.).width <= 700.
-}
+mod error_view {
+    use egui_macroquad::macroquad::{color, text, window};
 
-fn smallest_split(line: &str) -> usize {
-    let mut last_space = 0;
-    let mut last_index = 0;
-    for (index, char) in line.char_indices() {
-        if !fits_on_screen(&line[..index]) {
-            return if last_space != 0 {
-                last_space
-            } else {
-                last_index
-            };
-        }
+    const TEXT_SIZE: u16 = 24;
 
-        if char.is_whitespace() {
-            last_space = index;
+    pub async fn show(messages: Vec<String>) -> ! {
+        let messages = messages
+            .into_iter()
+            .flat_map(split_text_line)
+            .collect::<Vec<_>>();
+        loop {
+            window::clear_background(color::BLACK);
+
+            let mut y = 200.;
+            for message in &messages {
+                super::draw_centered_text(message, y, TEXT_SIZE, color::PINK);
+                y += TEXT_SIZE as f32;
+            }
+
+            window::next_frame().await;
         }
-        last_index = index;
     }
-    line.len()
+
+    fn split_text_line(line: String) -> Vec<String> {
+        if fits_on_screen(&line) {
+            return vec![line];
+        }
+
+        let mut remaining_line: &str = &line;
+        let mut vec = Vec::new();
+        loop {
+            let split_index = smallest_split(remaining_line);
+            vec.push(remaining_line[..split_index].to_owned());
+            remaining_line = &remaining_line[split_index..];
+
+            if fits_on_screen(remaining_line) {
+                vec.push(remaining_line.to_owned());
+                return vec;
+            }
+        }
+    }
+
+    fn fits_on_screen(line: &str) -> bool {
+        text::measure_text(line, None, TEXT_SIZE, 1.).width <= 700.
+    }
+
+    fn smallest_split(line: &str) -> usize {
+        let mut last_space = 0;
+        let mut last_index = 0;
+        for (index, char) in line.char_indices() {
+            if !fits_on_screen(&line[..index]) {
+                return if last_space != 0 {
+                    last_space
+                } else {
+                    last_index
+                };
+            }
+
+            if char.is_whitespace() {
+                last_space = index;
+            }
+            last_index = index;
+        }
+        line.len()
+    }
 }

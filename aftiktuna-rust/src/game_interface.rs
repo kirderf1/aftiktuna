@@ -18,6 +18,11 @@ pub fn new_or_load() -> Result<Game, LoadError> {
     }
 }
 
+pub fn load() -> Result<Game, LoadError> {
+    let file = File::open(serialization::SAVE_FILE_NAME)?;
+    serialization::load_game(file)
+}
+
 pub fn setup_new() -> Game {
     setup_new_with(LocationTracker::new(3))
 }
