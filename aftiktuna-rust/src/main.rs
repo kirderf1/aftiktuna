@@ -62,15 +62,14 @@ async fn menu(disable_autosave: bool) -> ! {
 
         draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
 
-        let mut ui = ui::root_ui();
-        ui.push_skin(&skin);
+        ui::root_ui().push_skin(&skin);
 
-        if button(350., "New Game").ui(&mut ui) {
+        if button(350., "New Game").ui(&mut ui::root_ui()) {
             let game = game_interface::setup_new();
             macroquad_interface::run(game, !disable_autosave).await;
         }
 
-        if button(450., "Load Game").ui(&mut ui) {
+        if button(450., "Load Game").ui(&mut ui::root_ui()) {
             match game_interface::load() {
                 Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
                 Err(error) => {
@@ -87,7 +86,7 @@ async fn menu(disable_autosave: bool) -> ! {
                 }
             }
         }
-        ui.pop_skin();
+        ui::root_ui().pop_skin();
 
         window::next_frame().await;
     }
