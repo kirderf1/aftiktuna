@@ -28,14 +28,49 @@ async fn main() {
         println!("Running without autosave");
     }
     if new_name {
-        let game = game_interface::setup_new();
-        macroquad_interface::run(game, !disable_autosave).await;
-    } else {
-        menu(disable_autosave).await;
+        return run_new_game(disable_autosave).await;
+    }
+
+    let action = run_menu().await;
+    match action {
+        MenuAction::NewGame => {
+            run_new_game(disable_autosave).await;
+        }
+        MenuAction::LoadGame => {
+            run_load_game(disable_autosave).await;
+        }
     }
 }
 
-async fn menu(disable_autosave: bool) -> ! {
+async fn run_new_game(disable_autosave: bool) -> ! {
+    let game = game_interface::setup_new();
+    macroquad_interface::run(game, !disable_autosave).await
+}
+
+async fn run_load_game(disable_autosave: bool) -> ! {
+    match game_interface::load() {
+        Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
+        Err(error) => {
+            let recommendation = if matches!(error, LoadError::UnsupportedVersion(_, _)) {
+                "Consider starting a new game or using a different version of Aftiktuna."
+            } else {
+                "Consider starting a new game."
+            };
+            error_view::show(vec![
+                format!("Unable to load save file: {error}"),
+                recommendation.to_string(),
+            ])
+            .await
+        }
+    }
+}
+
+enum MenuAction {
+    NewGame,
+    LoadGame,
+}
+
+async fn run_menu() -> MenuAction {
     fn button(y: f32, text: &str) -> Button {
         let size = Vec2::new(200., 60.);
         Button::new(text)
@@ -65,26 +100,11 @@ async fn menu(disable_autosave: bool) -> ! {
         ui::root_ui().push_skin(&skin);
 
         if button(350., "New Game").ui(&mut ui::root_ui()) {
-            let game = game_interface::setup_new();
-            macroquad_interface::run(game, !disable_autosave).await;
+            return MenuAction::NewGame;
         }
 
         if button(450., "Load Game").ui(&mut ui::root_ui()) {
-            match game_interface::load() {
-                Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
-                Err(error) => {
-                    let recommendation = if matches!(error, LoadError::UnsupportedVersion(_, _)) {
-                        "Consider starting a new game or using a different version of Aftiktuna."
-                    } else {
-                        "Consider starting a new game."
-                    };
-                    error_view::show(vec![
-                        format!("Unable to load save file: {error}"),
-                        recommendation.to_string(),
-                    ])
-                    .await;
-                }
-            }
+            return MenuAction::LoadGame;
         }
         ui::root_ui().pop_skin();
 
