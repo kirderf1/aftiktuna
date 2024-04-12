@@ -362,6 +362,7 @@ pub enum Error {
     IO(io::Error),
     Macroquad(FileError),
     Json(JsonError),
+    MissingBlankBackground,
 }
 
 impl From<io::Error> for Error {
@@ -388,6 +389,9 @@ impl Display for Error {
             Error::IO(error) => Display::fmt(error, f),
             Error::Macroquad(error) => Display::fmt(error, f),
             Error::Json(error) => Display::fmt(error, f),
+            Error::MissingBlankBackground => {
+                Display::fmt("Missing Background: Blank background texture must exist", f)
+            }
         }
     }
 }
@@ -412,7 +416,7 @@ fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
 
     backgrounds
         .get(&BackgroundType::blank())
-        .expect("Blank background texture must exist");
+        .ok_or(Error::MissingBlankBackground)?;
 
     Ok(backgrounds)
 }
