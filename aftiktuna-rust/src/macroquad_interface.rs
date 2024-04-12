@@ -2,13 +2,13 @@ use crate::game_interface::{Game, GameResult};
 use crate::macroquad_interface::tooltip::CommandTooltip;
 use crate::serialization;
 use crate::view::Frame;
-use egui_macroquad::macroquad::input;
+use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::input::{
     is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
 };
 use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::miniquad::conf::Icon;
-use egui_macroquad::macroquad::window::next_frame;
+use egui_macroquad::macroquad::{color, input, text, window};
 use std::mem::take;
 use std::process::exit;
 use std::time;
@@ -31,6 +31,11 @@ pub fn logo() -> Icon {
 
 pub async fn run(game: Game, autosave: bool) -> ! {
     let mut app = init(game);
+
+    window::clear_background(color::BLACK);
+    draw_centered_text("Loading textures...", 300., 32, color::LIGHTGRAY);
+    window::next_frame().await;
+
     let mut textures = texture::load_textures().unwrap();
 
     if autosave {
@@ -66,7 +71,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         render::draw(&mut app, &mut textures);
 
-        next_frame().await;
+        window::next_frame().await;
     }
 }
 
@@ -142,4 +147,15 @@ impl App {
             }
         }
     }
+}
+
+pub fn draw_centered_text(text: &str, y: f32, font_size: u16, color: Color) {
+    let text_size = text::measure_text(text, None, font_size, 1.);
+    text::draw_text(
+        text,
+        (800. - text_size.width) / 2.,
+        y,
+        font_size as f32,
+        color,
+    );
 }

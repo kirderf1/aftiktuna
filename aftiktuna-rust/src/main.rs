@@ -6,7 +6,7 @@ use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::ui::widgets::Button;
 use egui_macroquad::macroquad::ui::Skin;
 use egui_macroquad::macroquad::window::Conf;
-use egui_macroquad::macroquad::{color, text, ui, window};
+use egui_macroquad::macroquad::{color, ui, window};
 use std::env;
 
 fn config() -> Conf {
@@ -92,38 +92,33 @@ async fn run_menu() -> MenuAction {
         ..ui::root_ui().default_skin()
     };
 
+    let mut action = None;
     loop {
         window::clear_background(color::BLACK);
 
-        draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
+        macroquad_interface::draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
 
         ui::root_ui().push_skin(&skin);
 
         if button(350., "New Game").ui(&mut ui::root_ui()) {
-            return MenuAction::NewGame;
+            action = Some(MenuAction::NewGame);
         }
 
         if button(450., "Load Game").ui(&mut ui::root_ui()) {
-            return MenuAction::LoadGame;
+            action = Some(MenuAction::LoadGame);
         }
         ui::root_ui().pop_skin();
 
         window::next_frame().await;
+
+        if let Some(action) = action {
+            return action;
+        }
     }
 }
 
-fn draw_centered_text(text: &str, y: f32, font_size: u16, color: Color) {
-    let text_size = text::measure_text(text, None, font_size, 1.);
-    text::draw_text(
-        text,
-        (800. - text_size.width) / 2.,
-        y,
-        font_size as f32,
-        color,
-    );
-}
-
 mod error_view {
+    use aftiktuna::macroquad_interface;
     use egui_macroquad::macroquad::{color, text, window};
 
     const TEXT_SIZE: u16 = 24;
@@ -138,7 +133,7 @@ mod error_view {
 
             let mut y = 200.;
             for message in &messages {
-                super::draw_centered_text(message, y, TEXT_SIZE, color::PINK);
+                macroquad_interface::draw_centered_text(message, y, TEXT_SIZE, color::PINK);
                 y += TEXT_SIZE as f32;
             }
 
