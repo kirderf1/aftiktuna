@@ -1,3 +1,4 @@
+use aftiktuna::macroquad_interface::error_view;
 use aftiktuna::serialization::LoadError;
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
@@ -114,73 +115,5 @@ async fn run_menu() -> MenuAction {
         if let Some(action) = action {
             return action;
         }
-    }
-}
-
-mod error_view {
-    use aftiktuna::macroquad_interface;
-    use egui_macroquad::macroquad::{color, text, window};
-
-    const TEXT_SIZE: u16 = 24;
-
-    pub async fn show(messages: Vec<String>) -> ! {
-        let messages = messages
-            .into_iter()
-            .flat_map(split_text_line)
-            .collect::<Vec<_>>();
-        loop {
-            window::clear_background(color::BLACK);
-
-            let mut y = 200.;
-            for message in &messages {
-                macroquad_interface::draw_centered_text(message, y, TEXT_SIZE, color::PINK);
-                y += TEXT_SIZE as f32;
-            }
-
-            window::next_frame().await;
-        }
-    }
-
-    fn split_text_line(line: String) -> Vec<String> {
-        if fits_on_screen(&line) {
-            return vec![line];
-        }
-
-        let mut remaining_line: &str = &line;
-        let mut vec = Vec::new();
-        loop {
-            let split_index = smallest_split(remaining_line);
-            vec.push(remaining_line[..split_index].to_owned());
-            remaining_line = &remaining_line[split_index..];
-
-            if fits_on_screen(remaining_line) {
-                vec.push(remaining_line.to_owned());
-                return vec;
-            }
-        }
-    }
-
-    fn fits_on_screen(line: &str) -> bool {
-        text::measure_text(line, None, TEXT_SIZE, 1.).width <= 700.
-    }
-
-    fn smallest_split(line: &str) -> usize {
-        let mut last_space = 0;
-        let mut last_index = 0;
-        for (index, char) in line.char_indices() {
-            if !fits_on_screen(&line[..index]) {
-                return if last_space != 0 {
-                    last_space
-                } else {
-                    last_index
-                };
-            }
-
-            if char.is_whitespace() {
-                last_space = index;
-            }
-            last_index = index;
-        }
-        line.len()
     }
 }
