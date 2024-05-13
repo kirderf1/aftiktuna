@@ -73,9 +73,9 @@ pub fn tick(world: &mut World) {
 
 fn foe_ai(world: &mut World, foe: Entity) {
     if status::is_alive(foe, world) && world.get::<&Action>(foe).is_err() {
-        if let Some(action) = pick_foe_action(world, foe) {
-            world.insert_one(foe, action).unwrap();
-        }
+        let action = pick_foe_action(world, foe).unwrap_or(Action::Wait);
+
+        world.insert_one(foe, action).unwrap();
     }
 }
 
@@ -98,9 +98,9 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
 fn aftik_ai(world: &mut World, crew_member: Entity) {
     let intention = world.remove_one::<Intention>(crew_member).ok();
     if status::is_alive(crew_member, world) && world.get::<&Action>(crew_member).is_err() {
-        if let Some(action) = pick_aftik_action(world, crew_member, intention) {
-            world.insert_one(crew_member, action).unwrap();
-        }
+        let action = pick_aftik_action(world, crew_member, intention).unwrap_or(Action::Wait);
+
+        world.insert_one(crew_member, action).unwrap();
     }
 }
 
