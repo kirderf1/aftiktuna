@@ -1,12 +1,12 @@
 use hecs::{Entity, Satisfies, World};
 
-use crate::action::{self, Action, OpenedChest};
+use crate::action::{self, Action};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, ai, inventory, status, CrewMember, GameState, StopType};
+use crate::core::{self, ai, inventory, status, CrewMember, GameState, OpenedChest, StopType};
 use crate::game_interface::Phase;
 use crate::location::{self, PickResult};
 use crate::view::area::OrderWeight;

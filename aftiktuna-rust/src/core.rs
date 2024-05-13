@@ -18,6 +18,18 @@ pub mod status;
 pub struct CrewMember(pub Entity);
 
 #[derive(Serialize, Deserialize)]
+pub struct Waiting;
+
+#[derive(Serialize, Deserialize)]
+pub struct Recruitable;
+
+#[derive(Serialize, Deserialize)]
+pub struct FortunaChest;
+
+#[derive(Serialize, Deserialize)]
+pub struct OpenedChest;
+
+#[derive(Serialize, Deserialize)]
 pub struct GameState {
     #[serde(with = "serialization::world")]
     pub world: World,

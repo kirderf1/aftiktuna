@@ -1,6 +1,6 @@
 use crate::core::item::Type as ItemType;
 use crate::core::position::Pos;
-use crate::core::{position, status, CrewMember, GameState};
+use crate::core::{position, status, CrewMember, FortunaChest, GameState, OpenedChest};
 use crate::view;
 use crate::view::name::NameData;
 use crate::view::Frame;
@@ -15,12 +15,6 @@ pub mod door;
 mod item;
 mod ship;
 pub mod trade;
-
-#[derive(Serialize, Deserialize)]
-pub struct Waiting;
-
-#[derive(Serialize, Deserialize)]
-pub struct Recruitable;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum Action {
@@ -178,12 +172,6 @@ fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Resul
         silent_ok()
     }
 }
-
-#[derive(Serialize, Deserialize)]
-pub struct FortunaChest;
-
-#[derive(Serialize, Deserialize)]
-pub struct OpenedChest;
 
 fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
     let chest_pos = *world.get::<&Pos>(chest).unwrap();

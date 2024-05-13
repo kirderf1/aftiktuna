@@ -1,9 +1,9 @@
-use crate::action::{Action, Recruitable};
+use crate::action::Action;
 use crate::command;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::position::Pos;
-use crate::core::{area, CrewMember, GameState};
+use crate::core::{area, CrewMember, GameState, Recruitable};
 use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, Or};
 
