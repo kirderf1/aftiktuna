@@ -1,8 +1,8 @@
-use crate::action::combat::IsFoe;
 use crate::action::Action;
 use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
+use crate::core::ai::IsFoe;
 use crate::core::position::Pos;
 use crate::core::GameState;
 use crate::view::name::{NameData, NameQuery};

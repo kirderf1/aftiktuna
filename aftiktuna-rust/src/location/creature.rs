@@ -1,6 +1,6 @@
-use crate::action::combat::IsFoe;
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, Recruitable};
+use crate::core::ai::IsFoe;
 use crate::core::item;
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};

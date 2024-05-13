@@ -7,11 +7,7 @@ use crate::core::{inventory, position, status, GameState};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use rand::Rng;
-use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct IsFoe;
 
 pub fn attack(state: &mut GameState, attacker: Entity, targets: Vec<Entity>) -> action::Result {
     if targets.len() == 1 {

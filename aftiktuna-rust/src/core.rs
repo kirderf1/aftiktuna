@@ -1,5 +1,4 @@
-use crate::action::combat::IsFoe;
-use crate::action::{combat, Action, CrewMember, OpenedChest};
+use crate::action::{Action, CrewMember, OpenedChest};
 use crate::core::area::FuelAmount;
 use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
@@ -168,7 +167,7 @@ fn is_wait_requested(world: &World, controlled: Entity) -> bool {
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world
         .query::<&Pos>()
-        .with::<&combat::IsFoe>()
+        .with::<&ai::IsFoe>()
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
 }
@@ -301,7 +300,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
         if state
             .world
-            .query_one::<Satisfies<&IsFoe>>(entity)
+            .query_one::<Satisfies<&ai::IsFoe>>(entity)
             .unwrap()
             .get()
             .unwrap()

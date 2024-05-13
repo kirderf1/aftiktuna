@@ -1,7 +1,7 @@
-use crate::action::combat::IsFoe;
 use crate::action::door::{BlockType, Door};
 use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::action::{CrewMember, FortunaChest, Recruitable, Waiting};
+use crate::core::ai::IsFoe;
 use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::{inventory, GameState};

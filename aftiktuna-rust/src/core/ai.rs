@@ -1,4 +1,3 @@
-use crate::action::combat::IsFoe;
 use crate::action::door::GoingToShip;
 use crate::action::{combat, Action, CrewMember};
 use crate::core::item::Weapon;
@@ -7,6 +6,9 @@ use crate::core::{inventory, status};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct IsFoe;
 
 #[derive(Serialize, Deserialize)]
 pub enum Intention {
