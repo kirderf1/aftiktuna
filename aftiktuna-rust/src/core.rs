@@ -1,5 +1,5 @@
 use crate::location::LocationTracker;
-use crate::view::{Messages, StatusCache};
+use crate::view::StatusCache;
 use crate::{location, serialization};
 use hecs::{Entity, World};
 use position::Pos;
@@ -62,15 +62,6 @@ pub fn setup(locations: LocationTracker) -> GameState {
 pub enum StopType {
     Win,
     Lose,
-}
-
-impl StopType {
-    pub fn messages(self) -> Messages {
-        match self {
-            StopType::Win => Messages::from("Congratulations, you won!"),
-            StopType::Lose => Messages::from("You lost."),
-        }
-    }
 }
 
 pub fn is_safe(world: &World, area: Entity) -> bool {

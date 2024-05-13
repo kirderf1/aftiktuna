@@ -268,7 +268,7 @@ impl Frame {
             }
             Frame::Ending { stop_type, .. } => {
                 text.push(String::default());
-                text.extend(stop_type.messages().into_text());
+                text.extend(stop_type_messages(*stop_type).into_text());
             }
         }
         text
@@ -290,7 +290,7 @@ impl Frame {
             Frame::Dialogue { messages, .. } => messages.clone(),
             Frame::StoreView { messages, .. } => messages.clone(),
             Frame::LocationChoice(choice) => choice.present().0,
-            Frame::Ending { stop_type, .. } => stop_type.messages().0,
+            Frame::Ending { stop_type, .. } => stop_type_messages(*stop_type).into_text(),
         }
     }
 
@@ -306,6 +306,13 @@ impl Frame {
                 .map(|direction| *direction)
                 .unwrap_or_default(),
         }
+    }
+}
+
+pub fn stop_type_messages(stop_type: StopType) -> Messages {
+    match stop_type {
+        StopType::Win => Messages::from("Congratulations, you won!"),
+        StopType::Lose => Messages::from("You lost."),
     }
 }
 
