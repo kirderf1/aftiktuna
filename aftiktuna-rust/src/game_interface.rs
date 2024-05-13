@@ -1,11 +1,12 @@
 use crate::action::{Action, Waiting};
 use crate::command::{CommandResult, Target};
 use crate::core::position::Pos;
-use crate::core::{CrewMember, GameState, Step, StopType};
+use crate::core::{self, CrewMember, GameState, StopType};
+use crate::game_loop::{self, Step};
 use crate::location::LocationTracker;
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
-use crate::{command, core, location, serialization};
+use crate::{command, location, serialization};
 use hecs::Satisfies;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
@@ -30,7 +31,7 @@ pub fn setup_new() -> Game {
 pub fn setup_new_with(locations: LocationTracker) -> Game {
     let mut state = core::setup(locations);
     let mut frame_cache = FrameCache::new(vec![Frame::Introduction]);
-    let (phase, frames) = core::run(Step::PrepareNextLocation, &mut state);
+    let (phase, frames) = game_loop::run(Step::PrepareNextLocation, &mut state);
     frame_cache.add_new_frames(frames);
     Game {
         phase,
@@ -95,20 +96,20 @@ impl Game {
                     self.state
                         .locations
                         .try_make_choice(choice, input, &mut self.state.rng)?;
-                let (phase, frames) = core::run(Step::LoadLocation(location), &mut self.state);
+                let (phase, frames) = game_loop::run(Step::LoadLocation(location), &mut self.state);
                 self.phase = phase;
                 self.frame_cache.add_new_frames(frames);
             }
             Phase::CommandInput => match command::try_parse_input(input, &self.state)? {
                 CommandResult::Action(action, target) => {
                     insert_action(&mut self.state, action, target);
-                    let (phase, frames) = core::run(Step::Tick, &mut self.state);
+                    let (phase, frames) = game_loop::run(Step::Tick, &mut self.state);
                     self.phase = phase;
                     self.frame_cache.add_new_frames(frames);
                 }
                 CommandResult::ChangeControlled(character) => {
                     let (phase, frames) =
-                        core::run(Step::ChangeControlled(character), &mut self.state);
+                        game_loop::run(Step::ChangeControlled(character), &mut self.state);
                     self.phase = phase;
                     self.frame_cache.add_new_frames(frames);
                 }
