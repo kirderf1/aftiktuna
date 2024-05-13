@@ -30,6 +30,21 @@ pub struct FortunaChest;
 pub struct OpenedChest;
 
 #[derive(Serialize, Deserialize)]
+pub struct Points(pub i32);
+
+#[derive(Serialize, Deserialize)]
+pub struct Shopkeeper(pub Vec<PricedItem>);
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PricedItem {
+    pub item: item::Type,
+    pub price: i32,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct IsTrading(pub Entity);
+
+#[derive(Serialize, Deserialize)]
 pub struct GameState {
     #[serde(with = "serialization::world")]
     pub world: World,

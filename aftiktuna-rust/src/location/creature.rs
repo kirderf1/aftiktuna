@@ -1,8 +1,7 @@
-use crate::action::trade::{PricedItem, Shopkeeper};
 use crate::core::ai::IsFoe;
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{item, CrewMember, Recruitable};
+use crate::core::{item, CrewMember, PricedItem, Recruitable, Shopkeeper};
 use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::{Name, Noun};
 use hecs::{Entity, EntityBuilder, World};

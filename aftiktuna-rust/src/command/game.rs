@@ -1,4 +1,3 @@
-use crate::action::trade::Shopkeeper;
 use crate::action::{door, Action};
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
@@ -6,7 +5,9 @@ use crate::core::area::{Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FuelCan;
 use crate::core::position::{Blockage, Pos};
-use crate::core::{area, inventory, position, status, CrewMember, FortunaChest, GameState};
+use crate::core::{
+    area, inventory, position, status, CrewMember, FortunaChest, GameState, Shopkeeper,
+};
 use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
 use hecs::{Entity, World};

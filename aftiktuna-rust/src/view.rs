@@ -1,7 +1,6 @@
-use crate::action::trade::IsTrading;
 use crate::core::area::{Area, BackgroundType};
 use crate::core::position::{Direction, Pos};
-use crate::core::{GameState, StopType};
+use crate::core::{GameState, IsTrading, StopType};
 use crate::location::Choice;
 use area::{AftikColor, RenderData};
 use hecs::{Entity, World};
@@ -57,11 +56,11 @@ mod store {
     use super::area::AftikColor;
     use super::name::{NameData, NameQuery};
     use super::{status, text, Buffer, Frame, Messages, StatusCache};
-    use crate::action::trade::{PricedItem, Shopkeeper};
     use crate::core::area::{Area, BackgroundType};
     use crate::core::inventory::Held;
     use crate::core::item::Price;
     use crate::core::position::Pos;
+    use crate::core::{PricedItem, Shopkeeper};
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};
 

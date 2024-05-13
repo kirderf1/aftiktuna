@@ -1,5 +1,5 @@
-use crate::action::trade::PricedItem;
 use crate::core::position::Direction;
+use crate::core::PricedItem;
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::TextureStorage;
 use crate::view;

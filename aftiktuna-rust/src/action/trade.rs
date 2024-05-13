@@ -3,26 +3,10 @@ use crate::action::CrewMember;
 use crate::core::inventory::Held;
 use crate::core::item::Price;
 use crate::core::position::Pos;
-use crate::core::{item, position};
+use crate::core::{item, position, IsTrading, Points, PricedItem, Shopkeeper};
 use crate::view::name;
 use crate::view::name::NameData;
 use hecs::{Entity, Ref, World};
-use serde::{Deserialize, Serialize};
-
-#[derive(Serialize, Deserialize)]
-pub struct Points(pub i32);
-
-#[derive(Serialize, Deserialize)]
-pub struct Shopkeeper(pub Vec<PricedItem>);
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PricedItem {
-    pub item: item::Type,
-    pub price: i32,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct IsTrading(pub Entity);
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
     let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;

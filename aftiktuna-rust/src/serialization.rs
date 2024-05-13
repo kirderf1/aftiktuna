@@ -146,7 +146,6 @@ macro_rules! world_serialization {
 
 pub mod world {
     use crate::action::door::{BlockType, Door, GoingToShip, IsCut};
-    use crate::action::trade::{IsTrading, Points, Shopkeeper};
     use crate::action::Action;
     use crate::core::ai::{Intention, IsFoe};
     use crate::core::area::{Area, Ship, ShipControls};
@@ -156,7 +155,9 @@ pub mod world {
     };
     use crate::core::position::{Direction, MovementBlocking, Pos};
     use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
-    use crate::core::{CrewMember, FortunaChest, OpenedChest, Recruitable, Waiting};
+    use crate::core::{
+        CrewMember, FortunaChest, IsTrading, OpenedChest, Points, Recruitable, Shopkeeper, Waiting,
+    };
     use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
     use crate::view::name::{Name, Noun};
 
