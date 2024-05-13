@@ -1,3 +1,4 @@
+use crate::action::combat::IsFoe;
 use crate::action::{combat, Action, CrewMember, OpenedChest};
 use crate::core::area::FuelAmount;
 use crate::core::inventory::Held;
@@ -9,12 +10,14 @@ use crate::view::name::{NameData, NameQuery};
 use crate::view::{Frame, Messages, StatusCache};
 use crate::{action, location, serialization, view};
 use area::{Ship, ShipStatus};
-use hecs::{Entity, World};
+use hecs::{Entity, Satisfies, World};
 use position::Pos;
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 use status::{Health, Stamina};
+
+use self::position::Direction;
 
 pub mod ai;
 pub mod area;
@@ -188,6 +191,8 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         return Err(Phase::Stopped(stop_type));
     }
 
+    handle_was_waiting(state, view_buffer);
+
     let area = state
         .world
         .get::<&Pos>(state.controlled)
@@ -280,6 +285,42 @@ fn check_player_state(
     }
 
     Ok(())
+}
+
+fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    let player_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+
+    let entities = state
+        .world
+        .query::<()>()
+        .with::<&action::WasWaiting>()
+        .iter()
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    for entity in entities {
+        let pos = *state.world.get::<&Pos>(entity).unwrap();
+        if state
+            .world
+            .query_one::<Satisfies<&IsFoe>>(entity)
+            .unwrap()
+            .get()
+            .unwrap()
+            && pos.is_in(player_pos.get_area())
+        {
+            state
+                .world
+                .insert_one(entity, Direction::between(pos, player_pos))
+                .unwrap();
+            view_buffer.messages.add(format!(
+                "{} moves in to attack.",
+                NameData::find(&state.world, entity).definite()
+            ));
+        }
+        state
+            .world
+            .remove_one::<action::WasWaiting>(entity)
+            .unwrap();
+    }
 }
 
 fn is_ship_launching(world: &World, area: Entity) -> bool {

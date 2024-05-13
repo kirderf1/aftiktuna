@@ -95,7 +95,10 @@ fn perform(
         ForceDoor(door, assisting) => door::force_door(context, performer, door, assisting),
         GoToShip => door::go_to_ship(context, performer),
         Attack(targets) => combat::attack(state, performer, targets),
-        Wait => silent_ok(),
+        Wait => {
+            state.world.insert_one(performer, WasWaiting).unwrap();
+            silent_ok()
+        }
         Rest(first) => rest(&mut state.world, performer, first),
         Refuel => ship::refuel(state, performer),
         Launch => ship::launch(state, performer),
@@ -133,6 +136,8 @@ fn perform(
         }
     }
 }
+
+pub struct WasWaiting;
 
 struct Context<'a> {
     state: &'a mut GameState,
