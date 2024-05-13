@@ -1,6 +1,6 @@
 use crate::core::item::Type as ItemType;
 use crate::core::position::Pos;
-use crate::core::{position, status, GameState};
+use crate::core::{position, status, CrewMember, GameState};
 use crate::view;
 use crate::view::name::NameData;
 use crate::view::Frame;
@@ -15,9 +15,6 @@ pub mod door;
 mod item;
 mod ship;
 pub mod trade;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CrewMember(pub Entity);
 
 #[derive(Serialize, Deserialize)]
 pub struct Waiting;

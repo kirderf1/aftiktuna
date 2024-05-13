@@ -1,4 +1,4 @@
-use crate::action::{Action, CrewMember, OpenedChest};
+use crate::action::{Action, OpenedChest};
 use crate::core::area::FuelAmount;
 use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
@@ -24,6 +24,9 @@ pub mod inventory;
 pub mod item;
 pub mod position;
 pub mod status;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CrewMember(pub Entity);
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {

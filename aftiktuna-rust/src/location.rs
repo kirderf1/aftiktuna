@@ -1,10 +1,9 @@
 use crate::action::door::{Door, DoorKind};
 use crate::action::trade::Points;
-use crate::action::CrewMember;
 use crate::core::area::{Area, BackgroundType, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
-use crate::core::{inventory, item, GameState};
+use crate::core::{inventory, item, CrewMember, GameState};
 use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use crate::view::Messages;

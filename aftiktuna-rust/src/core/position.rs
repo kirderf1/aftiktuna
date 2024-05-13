@@ -1,9 +1,10 @@
-use crate::action::CrewMember;
 use crate::core::area::Area;
 use crate::view::name::NameData;
 use hecs::{Entity, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min, Ordering};
+
+use super::CrewMember;
 
 pub type Coord = usize;
 

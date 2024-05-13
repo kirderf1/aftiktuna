@@ -1,7 +1,6 @@
 use crate::action::trade::Points;
-use crate::action::CrewMember;
-use crate::core::inventory;
 use crate::core::status::{Health, Stats};
+use crate::core::{inventory, CrewMember};
 use crate::view::name::NameData;
 use crate::view::{capitalize, name, Messages};
 use hecs::{Entity, World};
