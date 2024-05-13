@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - "go to ship" command
 - "tell _ to wait at ship" command
 - New alternative for fortuna encounter
+- Very basic texture loading screen
 
 ### Changed
 
@@ -23,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Other minor adjustments to locations
 - Reduced value of blowtorches
 - Tweaked some command parsing error messages
+- Encountering a foe now comes with a message and the foe turning to face the character
+- Texture loading errors are now displayed in the game window
 
 ### Contributors for this release
 
