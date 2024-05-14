@@ -1,4 +1,7 @@
 use hecs::{Entity, Satisfies, World};
+use rand::rngs::ThreadRng;
+use rand::thread_rng;
+use serde::{Deserialize, Serialize};
 
 use crate::action::{self, Action};
 use crate::ai;
@@ -7,12 +10,42 @@ use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, inventory, status, CrewMember, GameState, OpenedChest, StopType};
+use crate::core::{self, inventory, status, CrewMember, OpenedChest, StopType};
 use crate::game_interface::Phase;
-use crate::location::{self, PickResult};
+use crate::location::{self, LocationTracker, PickResult};
+use crate::serialization;
 use crate::view::area::OrderWeight;
 use crate::view::name::{NameData, NameQuery};
 use crate::view::{self, Frame, Messages, StatusCache};
+
+#[derive(Serialize, Deserialize)]
+pub struct GameState {
+    #[serde(with = "serialization::world")]
+    pub world: World,
+    #[serde(skip)]
+    pub rng: ThreadRng,
+    pub locations: LocationTracker,
+    pub ship: Entity,
+    pub controlled: Entity,
+    pub status_cache: StatusCache,
+    pub has_introduced_controlled: bool,
+}
+
+pub fn setup(locations: LocationTracker) -> GameState {
+    let mut world = World::new();
+
+    let (controlled, ship) = location::init(&mut world);
+
+    GameState {
+        world,
+        rng: thread_rng(),
+        locations,
+        ship,
+        controlled,
+        status_cache: StatusCache::default(),
+        has_introduced_controlled: false,
+    }
+}
 
 #[derive(Debug)]
 pub enum Step {

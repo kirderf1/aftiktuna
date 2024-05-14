@@ -3,7 +3,8 @@ use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::position::Pos;
-use crate::core::{GameState, IsFoe};
+use crate::core::IsFoe;
+use crate::game_loop::GameState;
 use crate::view::name::{NameData, NameQuery};
 
 pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {

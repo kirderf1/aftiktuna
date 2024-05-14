@@ -1,5 +1,5 @@
 use crate::action::{trade, Action};
-use crate::core::GameState;
+use crate::game_loop::GameState;
 use crate::view;
 use crate::view::Messages;
 use hecs::{Entity, World};

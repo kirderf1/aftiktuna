@@ -2,9 +2,8 @@ use crate::action::{Context, CrewMember};
 use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
-use crate::core::{
-    area, inventory, position, BlockType, Door, DoorKind, GameState, GoingToShip, IsCut,
-};
+use crate::core::{area, inventory, position, BlockType, Door, DoorKind, GoingToShip, IsCut};
+use crate::game_loop::GameState;
 use crate::view::name::NameData;
 use crate::{action, core};
 use hecs::{Entity, World};

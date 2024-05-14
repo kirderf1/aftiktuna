@@ -3,7 +3,8 @@ use crate::action::CrewMember;
 use crate::core::area::{FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::position::Pos;
-use crate::core::{inventory, position, GameState};
+use crate::core::{inventory, position};
+use crate::game_loop::GameState;
 use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 

@@ -3,7 +3,8 @@ use crate::command;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::position::Pos;
-use crate::core::{area, CrewMember, GameState, Recruitable};
+use crate::core::{area, CrewMember, Recruitable};
+use crate::game_loop::GameState;
 use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, Or};
 

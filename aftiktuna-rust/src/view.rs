@@ -1,6 +1,7 @@
 use crate::core::area::{Area, BackgroundType};
 use crate::core::position::{Direction, Pos};
-use crate::core::{GameState, IsTrading, StopType};
+use crate::core::{IsTrading, StopType};
+use crate::game_loop::GameState;
 use crate::location::Choice;
 use area::{AftikColor, RenderData};
 use hecs::{Entity, World};

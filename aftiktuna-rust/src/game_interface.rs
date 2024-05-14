@@ -1,8 +1,8 @@
 use crate::action::Action;
 use crate::command::{CommandResult, Target};
 use crate::core::position::Pos;
-use crate::core::{self, CrewMember, GameState, StopType, Waiting};
-use crate::game_loop::{self, Step};
+use crate::core::{CrewMember, StopType, Waiting};
+use crate::game_loop::{self, GameState, Step};
 use crate::location::LocationTracker;
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
@@ -29,7 +29,7 @@ pub fn setup_new() -> Game {
 }
 
 pub fn setup_new_with(locations: LocationTracker) -> Game {
-    let mut state = core::setup(locations);
+    let mut state = game_loop::setup(locations);
     let mut frame_cache = FrameCache::new(vec![Frame::Introduction]);
     let (phase, frames) = game_loop::run(Step::PrepareNextLocation, &mut state);
     frame_cache.add_new_frames(frames);

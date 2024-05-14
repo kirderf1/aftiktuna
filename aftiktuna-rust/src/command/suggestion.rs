@@ -1,9 +1,10 @@
 use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::{
-    inventory, BlockType, CrewMember, Door, FortunaChest, GameState, IsFoe, PricedItem,
-    Recruitable, Shopkeeper, Waiting,
+    inventory, BlockType, CrewMember, Door, FortunaChest, IsFoe, PricedItem, Recruitable,
+    Shopkeeper, Waiting,
 };
+use crate::game_loop::GameState;
 use crate::location::Choice;
 use crate::view::area::ItemProfile;
 use crate::view::name::NameData;

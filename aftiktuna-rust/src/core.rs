@@ -1,10 +1,4 @@
-use crate::location::LocationTracker;
-use crate::view::StatusCache;
-use crate::{location, serialization};
 use hecs::{Entity, World};
-use position::Pos;
-use rand::rngs::ThreadRng;
-use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
 pub mod area;
@@ -49,7 +43,7 @@ pub struct IsTrading(pub Entity);
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Door {
     pub kind: DoorKind,
-    pub destination: Pos,
+    pub destination: position::Pos,
     pub door_pair: Entity,
 }
 
@@ -90,35 +84,6 @@ impl BlockType {
 #[derive(Serialize, Deserialize)]
 pub struct GoingToShip;
 
-#[derive(Serialize, Deserialize)]
-pub struct GameState {
-    #[serde(with = "serialization::world")]
-    pub world: World,
-    #[serde(skip)]
-    pub rng: ThreadRng,
-    pub locations: LocationTracker,
-    pub ship: Entity,
-    pub controlled: Entity,
-    pub status_cache: StatusCache,
-    pub has_introduced_controlled: bool,
-}
-
-pub fn setup(locations: LocationTracker) -> GameState {
-    let mut world = World::new();
-
-    let (controlled, ship) = location::init(&mut world);
-
-    GameState {
-        world,
-        rng: thread_rng(),
-        locations,
-        ship,
-        controlled,
-        status_cache: StatusCache::default(),
-        has_introduced_controlled: false,
-    }
-}
-
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum StopType {
     Win,
@@ -127,7 +92,7 @@ pub enum StopType {
 
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world
-        .query::<&Pos>()
+        .query::<&position::Pos>()
         .with::<&IsFoe>()
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
