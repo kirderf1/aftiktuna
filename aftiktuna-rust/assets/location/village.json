@@ -52,7 +52,7 @@
       "name": "Side path",
       "background": "forest_entrance",
       "background_offset": 6,
-      "objects": [ "?", "<", "", "S", "S", "", "S", "^", "" ],
+      "objects": [ "?", "<", "", "S", "E", "", "S", "^", "" ],
       "symbols": {
         "<": {
           "type": "door",

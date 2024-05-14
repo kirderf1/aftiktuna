@@ -17,7 +17,7 @@
       "name": "Field",
       "background": "field",
       "background_offset": 0,
-      "objects": [ "^", "", "S", "", "", "Z", "¤", "" ],
+      "objects": [ "^", "", "G", "", "", "Z", "¤", "" ],
       "symbols": {
         "^": {
           "type": "door",
