@@ -46,6 +46,50 @@ pub struct PricedItem {
 #[derive(Serialize, Deserialize)]
 pub struct IsTrading(pub Entity);
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Door {
+    pub kind: DoorKind,
+    pub destination: Pos,
+    pub door_pair: Entity,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum DoorKind {
+    Door,
+    Path,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct IsCut;
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum BlockType {
+    Stuck,
+    Sealed,
+    Locked,
+}
+
+impl BlockType {
+    pub fn description(self) -> &'static str {
+        match self {
+            BlockType::Stuck => "stuck",
+            BlockType::Sealed => "sealed shut",
+            BlockType::Locked => "locked",
+        }
+    }
+
+    pub fn usable_tools(self) -> Vec<item::Tool> {
+        match self {
+            BlockType::Stuck => vec![item::Tool::Crowbar, item::Tool::Blowtorch],
+            BlockType::Sealed | BlockType::Locked => vec![item::Tool::Blowtorch],
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GoingToShip;
+
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
     #[serde(with = "serialization::world")]

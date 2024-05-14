@@ -1,7 +1,6 @@
-use crate::action::door::BlockType;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
-use crate::core::{item, FortunaChest};
+use crate::core::{item, BlockType, FortunaChest};
 use crate::location::door::{place_pair, DoorInfo, DoorType};
 use crate::location::{creature, door, Area, BackgroundType};
 use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};

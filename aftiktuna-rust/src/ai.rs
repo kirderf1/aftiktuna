@@ -1,8 +1,7 @@
-use crate::action::door::GoingToShip;
 use crate::action::Action;
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, CrewMember, IsFoe};
+use crate::core::{self, inventory, status, CrewMember, GoingToShip, IsFoe};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};

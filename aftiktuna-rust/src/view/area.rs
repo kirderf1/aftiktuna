@@ -1,4 +1,3 @@
-use crate::action::door::{BlockType, Door, IsCut};
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundType};
@@ -6,7 +5,7 @@ use crate::core::inventory::Held;
 use crate::core::item::CanWield;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Health;
-use crate::core::{inventory, GameState};
+use crate::core::{inventory, BlockType, Door, GameState, IsCut};
 use crate::deref_clone;
 use crate::view::name::NameData;
 use crate::view::{capitalize, Messages};

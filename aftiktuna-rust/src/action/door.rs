@@ -2,82 +2,44 @@ use crate::action::{Context, CrewMember};
 use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
-use crate::core::{area, inventory, position, GameState};
+use crate::core::{
+    area, inventory, position, BlockType, Door, DoorKind, GameState, GoingToShip, IsCut,
+};
 use crate::view::name::NameData;
 use crate::{action, core};
 use hecs::{Entity, World};
-use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::ops::Deref;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Door {
-    pub kind: DoorKind,
-    pub destination: Pos,
-    pub door_pair: Entity,
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub enum DoorKind {
-    Door,
-    Path,
-}
-
-impl DoorKind {
-    fn get_move_message(self, performer: &str) -> String {
-        match self {
-            DoorKind::Door => format!("{} entered the door into a new area.", performer),
-            DoorKind::Path => format!("{} followed the path to a new area.", performer),
-        }
+fn move_message(door_kind: DoorKind, performer: &str) -> String {
+    match door_kind {
+        DoorKind::Door => format!("{performer} entered the door into a new area."),
+        DoorKind::Path => format!("{performer} followed the path to a new area."),
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct IsCut;
-
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum BlockType {
-    Stuck,
-    Sealed,
-    Locked,
-}
-
-impl BlockType {
-    pub fn description(self) -> &'static str {
-        match self {
-            BlockType::Stuck => "stuck",
-            BlockType::Sealed => "sealed shut",
-            BlockType::Locked => "locked",
+fn check_tool_for_forcing(
+    block_type: BlockType,
+    world: &World,
+    performer: Entity,
+    performer_name: &str,
+) -> Result<Tool, String> {
+    for tool in block_type.usable_tools() {
+        if inventory::is_holding_tool(world, performer, tool) {
+            return Ok(tool);
         }
     }
-
-    fn usable_tools(self) -> Vec<Tool> {
-        match self {
-            BlockType::Stuck => vec![Tool::Crowbar, Tool::Blowtorch],
-
-            BlockType::Sealed | BlockType::Locked => vec![Tool::Blowtorch],
-        }
-    }
-
-    fn try_force(self, world: &World, aftik: Entity, aftik_name: &str) -> Result<Tool, String> {
-        for tool in self.usable_tools() {
-            if inventory::is_holding_tool(world, aftik, tool) {
-                return Ok(tool);
-            }
-        }
-        match self {
-            BlockType::Stuck => Err(format!(
-                "{aftik_name} needs some sort of tool to force the door open.",
-            )),
-            BlockType::Sealed | BlockType::Locked => Err(format!(
-                "{aftik_name} needs some sort of tool to break the door open.",
-            )),
-        }
+    match block_type {
+        BlockType::Stuck => Err(format!(
+            "{performer_name} needs some sort of tool to force the door open.",
+        )),
+        BlockType::Sealed | BlockType::Locked => Err(format!(
+            "{performer_name} needs some sort of tool to break the door open.",
+        )),
     }
 }
 
-pub fn enter_door(state: &mut GameState, aftik: Entity, door: Entity) -> action::Result {
+pub(super) fn enter_door(state: &mut GameState, aftik: Entity, door: Entity) -> action::Result {
     let world = &mut state.world;
     let aftik_name = NameData::find(world, aftik).definite();
     let door_pos = *world
@@ -115,12 +77,12 @@ pub fn enter_door(state: &mut GameState, aftik: Entity, door: Entity) -> action:
         action::ok_at(
             format!(
                 "Using their keycard, {}",
-                door_data.kind.get_move_message(&aftik_name),
+                move_message(door_data.kind, &aftik_name),
             ),
             areas,
         )
     } else {
-        action::ok_at(door_data.kind.get_move_message(&aftik_name), areas)
+        action::ok_at(move_message(door_data.kind, &aftik_name), areas)
     }
 }
 
@@ -158,7 +120,7 @@ pub(super) fn force_door(
         .get::<&BlockType>(door_pair)
         .map_err(|_| "The door does not seem to be stuck.".to_string())?;
 
-    match block_type.try_force(world, performer, &performer_name) {
+    match check_tool_for_forcing(block_type, world, performer, &performer_name) {
         Err(message) => {
             on_door_failure(context.state, performer, door, block_type);
             Err(message)
@@ -208,9 +170,6 @@ fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block
             .unwrap();
     }
 }
-
-#[derive(Serialize, Deserialize)]
-pub struct GoingToShip;
 
 pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Result {
     let world = context.mut_world();

@@ -11,7 +11,7 @@ use Action::*;
 
 mod combat;
 mod dialogue;
-pub mod door;
+mod door;
 mod item;
 mod ship;
 pub mod trade;

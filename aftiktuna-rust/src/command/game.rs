@@ -1,4 +1,4 @@
-use crate::action::{door, Action};
+use crate::action::Action;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::area::{Ship, ShipStatus};
@@ -98,7 +98,7 @@ fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let door = world
         .query::<(&Pos, NameQuery)>()
-        .with::<&door::Door>()
+        .with::<&core::Door>()
         .iter()
         .find(|&(_, (pos, query))| pos.is_in(area) && NameData::from(query).matches(door_name))
         .map(|(door, _)| door)
@@ -113,7 +113,7 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let door = world
         .query::<(&Pos, NameQuery)>()
-        .with::<&door::Door>()
+        .with::<&core::Door>()
         .iter()
         .find(|&(_, (pos, query))| pos.is_in(area) && NameData::from(query).matches(door_name))
         .map(|(door, _)| door)

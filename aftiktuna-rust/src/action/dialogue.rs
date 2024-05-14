@@ -1,9 +1,8 @@
 use crate::action;
-use crate::action::door::GoingToShip;
 use crate::action::Context;
 use crate::core::position::{Blockage, Direction, Pos};
 use crate::core::status::Health;
-use crate::core::{area, position, status, CrewMember, Recruitable, Waiting};
+use crate::core::{area, position, status, CrewMember, GoingToShip, Recruitable, Waiting};
 use crate::view::area::Symbol;
 use crate::view::name::{Name, NameData};
 use hecs::Entity;

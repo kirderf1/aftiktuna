@@ -1,5 +1,5 @@
-use crate::action::door::{BlockType, Door, DoorKind};
 use crate::core::position::Pos;
+use crate::core::{BlockType, Door, DoorKind};
 use crate::view::area::{OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use hecs::{Entity, World};
