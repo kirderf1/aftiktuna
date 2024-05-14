@@ -2,13 +2,13 @@ use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::{
     inventory, Aggressive, BlockType, CrewMember, Door, FortunaChest, PricedItem, Recruitable,
-    Shopkeeper, Waiting,
+    Shopkeeper, Threatening, Waiting,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;
 use crate::view::area::ItemProfile;
 use crate::view::name::NameData;
-use hecs::Entity;
+use hecs::{Entity, Or};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -192,7 +192,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&Recruitable>() {
         interactions.push(InteractionType::Recruitable);
     }
-    if entity_ref.satisfies::<&Aggressive>() {
+    if entity_ref.satisfies::<Or<&Aggressive, &Threatening>>() {
         interactions.push(InteractionType::Foe);
     }
     interactions

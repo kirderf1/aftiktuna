@@ -1,9 +1,9 @@
 use crate::action::Action;
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, Aggressive, CrewMember, GoingToShip};
+use crate::core::{self, inventory, status, Aggressive, CrewMember, GoingToShip, Threatening};
 use crate::view::name::NameData;
-use hecs::{Entity, World};
+use hecs::{Entity, Or, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -50,7 +50,7 @@ fn prepare_intention(world: &mut World, crew_member: Entity) {
 pub fn tick(world: &mut World) {
     let foes = world
         .query::<()>()
-        .with::<&Aggressive>()
+        .with::<Or<&Aggressive, &Threatening>>()
         .iter()
         .map(|(entity, ())| entity)
         .collect::<Vec<_>>();
@@ -78,19 +78,21 @@ fn foe_ai(world: &mut World, foe: Entity) {
 }
 
 fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
-    let pos = *world.get::<&Pos>(foe).ok()?;
-    let targets = world
-        .query::<&Pos>()
-        .with::<&CrewMember>()
-        .iter()
-        .filter(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
-        .map(|(entity, _)| entity)
-        .collect::<Vec<_>>();
-    if !targets.is_empty() {
-        Some(Action::Attack(targets))
-    } else {
-        None
+    if world.satisfies::<&Aggressive>(foe).unwrap() {
+        let pos = *world.get::<&Pos>(foe).ok()?;
+        let targets = world
+            .query::<&Pos>()
+            .with::<&CrewMember>()
+            .iter()
+            .filter(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
+            .map(|(entity, _)| entity)
+            .collect::<Vec<_>>();
+        if !targets.is_empty() {
+            return Some(Action::Attack(targets));
+        }
     }
+
+    None
 }
 
 fn aftik_ai(world: &mut World, crew_member: Entity) {

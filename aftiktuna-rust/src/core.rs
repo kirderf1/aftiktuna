@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::{Entity, Or, World};
 use serde::{Deserialize, Serialize};
 
 pub mod area;
@@ -12,6 +12,9 @@ pub struct CrewMember(pub Entity);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Aggressive;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Threatening;
 
 #[derive(Serialize, Deserialize)]
 pub struct Waiting;
@@ -93,7 +96,7 @@ pub enum StopType {
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world
         .query::<&position::Pos>()
-        .with::<&Aggressive>()
+        .with::<Or<&Aggressive, &Threatening>>()
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
 }

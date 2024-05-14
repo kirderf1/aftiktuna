@@ -1,13 +1,13 @@
 use crate::core::area::{Area, BackgroundType, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
-use crate::core::{inventory, item, CrewMember, Door, DoorKind, Points};
+use crate::core::{inventory, item, Aggressive, CrewMember, Door, DoorKind, Points, Threatening};
 use crate::game_loop::GameState;
 use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use crate::view::Messages;
 use door::DoorInfo;
-use hecs::{Entity, World};
+use hecs::{CommandBuffer, Entity, World};
 use rand::seq::index;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -270,6 +270,20 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
     for aftik in aftiks {
         world.insert(aftik, (start_pos, direction)).unwrap();
     }
+
+    let mut buffer = CommandBuffer::new();
+    for (entity, pos) in world.query::<&Pos>().with::<&Threatening>().iter() {
+        if world
+            .query::<&Pos>()
+            .with::<&Aggressive>()
+            .iter()
+            .any(|(_, other_pos)| other_pos.is_in(pos.get_area()))
+        {
+            buffer.remove_one::<Threatening>(entity);
+            buffer.insert_one(entity, Aggressive);
+        }
+    }
+    buffer.run_on(world);
 
     if state.locations.is_at_fortuna() {
         messages.add(

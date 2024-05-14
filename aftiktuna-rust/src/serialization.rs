@@ -181,6 +181,7 @@ pub mod world {
 
         core::CrewMember, CrewMember;
         core::Aggressive, IsFoe;
+        core::Threatening, Threatening;
         Action, Action;
         ai::Intention, Intention;
         core::Waiting, Waiting;

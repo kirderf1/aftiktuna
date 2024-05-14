@@ -1,4 +1,4 @@
-use hecs::{Entity, Satisfies, World};
+use hecs::{Entity, World};
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
@@ -268,22 +268,28 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .collect::<Vec<_>>();
     for entity in entities {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
-        if state
-            .world
-            .query_one::<Satisfies<&core::Aggressive>>(entity)
-            .unwrap()
-            .get()
-            .unwrap()
-            && pos.is_in(player_pos.get_area())
-        {
-            state
-                .world
-                .insert_one(entity, Direction::between(pos, player_pos))
-                .unwrap();
-            view_buffer.messages.add(format!(
-                "{} moves in to attack.",
-                NameData::find(&state.world, entity).definite()
-            ));
+        if pos.is_in(player_pos.get_area()) {
+            if state.world.satisfies::<&core::Threatening>(entity).unwrap() {
+                state
+                    .world
+                    .insert_one(entity, Direction::between(pos, player_pos))
+                    .unwrap();
+                view_buffer.messages.add(format!(
+                    "{} makes a threatening pose.",
+                    NameData::find(&state.world, entity).definite()
+                ));
+            }
+
+            if state.world.satisfies::<&core::Aggressive>(entity).unwrap() {
+                state
+                    .world
+                    .insert_one(entity, Direction::between(pos, player_pos))
+                    .unwrap();
+                view_buffer.messages.add(format!(
+                    "{} moves in to attack.",
+                    NameData::find(&state.world, entity).definite()
+                ));
+            }
         }
         state
             .world

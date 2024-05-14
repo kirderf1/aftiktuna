@@ -1,6 +1,6 @@
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{item, Aggressive, CrewMember, PricedItem, Recruitable, Shopkeeper};
+use crate::core::{item, Aggressive, CrewMember, PricedItem, Recruitable, Shopkeeper, Threatening};
 use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::{Name, Noun};
 use hecs::{Entity, EntityBuilder, World};
@@ -36,7 +36,7 @@ impl Type {
                     TextureType::creature("goblin"),
                     Noun::new("goblin", "goblins"),
                     MovementBlocking,
-                    Aggressive,
+                    Threatening,
                 ));
             }
             Type::Eyesaur => {
@@ -44,7 +44,7 @@ impl Type {
                     TextureType::creature("eyesaur"),
                     Noun::new("eyesaur", "eyesaurs"),
                     MovementBlocking,
-                    Aggressive,
+                    Threatening,
                 ));
             }
             Type::Azureclops => {
@@ -60,7 +60,7 @@ impl Type {
                     TextureType::creature("scarvie"),
                     Noun::new("scarvie", "scarvies"),
                     MovementBlocking,
-                    Aggressive,
+                    Threatening,
                 ));
             }
             Type::VoraciousFrog => {
