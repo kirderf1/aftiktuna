@@ -7,7 +7,6 @@ use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
-pub mod ai;
 pub mod area;
 pub mod inventory;
 pub mod item;
@@ -16,6 +15,9 @@ pub mod status;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct IsFoe;
 
 #[derive(Serialize, Deserialize)]
 pub struct Waiting;
@@ -82,7 +84,7 @@ pub enum StopType {
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world
         .query::<&Pos>()
-        .with::<&ai::IsFoe>()
+        .with::<&IsFoe>()
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
 }

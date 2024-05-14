@@ -1,12 +1,13 @@
 use hecs::{Entity, Satisfies, World};
 
 use crate::action::{self, Action};
+use crate::ai;
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, ai, inventory, status, CrewMember, GameState, OpenedChest, StopType};
+use crate::core::{self, inventory, status, CrewMember, GameState, OpenedChest, StopType};
 use crate::game_interface::Phase;
 use crate::location::{self, PickResult};
 use crate::view::area::OrderWeight;
@@ -236,7 +237,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
         if state
             .world
-            .query_one::<Satisfies<&ai::IsFoe>>(entity)
+            .query_one::<Satisfies<&core::IsFoe>>(entity)
             .unwrap()
             .get()
             .unwrap()

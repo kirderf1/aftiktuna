@@ -1,5 +1,5 @@
 use crate::action::{Context, CrewMember};
-use crate::core::ai::Intention;
+use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::position::{Blockage, Pos};
 use crate::core::{area, inventory, position, GameState};
