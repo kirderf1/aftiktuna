@@ -78,17 +78,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
         ));
     }
 
-    let entities_turning_aggressive = world
-        .query::<&Pos>()
-        .with::<&core::Threatening>()
-        .iter()
-        .filter(|(_, pos)| pos.is_in(attacker_pos.get_area()))
-        .map(|(entity, _)| entity)
-        .collect::<Vec<_>>();
-    for entity in entities_turning_aggressive {
-        world.remove_one::<core::Threatening>(entity).unwrap();
-        world.insert_one(entity, core::Aggressive).unwrap();
-    }
+    core::trigger_aggression_in_area(world, attacker_pos.get_area());
 
     position::move_adjacent(world, attacker, target_pos)?;
 

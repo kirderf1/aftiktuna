@@ -4,7 +4,7 @@ use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
 use crate::core::position::{Blockage, Pos};
 use crate::core::status::Health;
-use crate::core::{inventory, position, status};
+use crate::core::{self, inventory, position, status};
 use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 
@@ -47,6 +47,8 @@ pub fn take_item(
     world
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
+
+    core::trigger_aggression_in_area(world, item_pos.get_area());
 
     action::ok(format!(
         "{} picked up {}.",

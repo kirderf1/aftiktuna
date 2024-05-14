@@ -1,4 +1,4 @@
-use hecs::{Entity, Or, World};
+use hecs::{CommandBuffer, Entity, Or, World};
 use serde::{Deserialize, Serialize};
 
 pub mod area;
@@ -105,4 +105,19 @@ pub fn get_wielded_weapon_modifier(world: &World, attacker: Entity) -> f32 {
     inventory::get_wielded(world, attacker)
         .and_then(|item| world.get::<&item::Weapon>(item).map(|weapon| weapon.0).ok())
         .unwrap_or(2.0)
+}
+
+pub fn trigger_aggression_in_area(world: &mut World, area: Entity) {
+    let mut buffer = CommandBuffer::new();
+    for entity in world
+        .query::<&position::Pos>()
+        .with::<&Threatening>()
+        .iter()
+        .filter(|(_, pos)| pos.is_in(area))
+        .map(|(entity, _)| entity)
+    {
+        buffer.remove_one::<Threatening>(entity);
+        buffer.insert_one(entity, Aggressive);
+    }
+    buffer.run_on(world);
 }
