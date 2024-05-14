@@ -86,3 +86,9 @@ pub fn is_safe(world: &World, area: Entity) -> bool {
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
 }
+
+pub fn get_wielded_weapon_modifier(world: &World, attacker: Entity) -> f32 {
+    inventory::get_wielded(world, attacker)
+        .and_then(|item| world.get::<&item::Weapon>(item).map(|weapon| weapon.0).ok())
+        .unwrap_or(2.0)
+}

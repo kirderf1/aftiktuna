@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use std::result;
 use Action::*;
 
-pub mod combat;
+mod combat;
 mod dialogue;
 pub mod door;
 mod item;

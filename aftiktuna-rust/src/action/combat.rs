@@ -1,15 +1,18 @@
 use crate::action;
 use crate::action::CrewMember;
-use crate::core::item::Weapon;
 use crate::core::position::Pos;
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{inventory, position, status, GameState};
+use crate::core::{self, position, status, GameState};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use rand::Rng;
 use std::cmp::Ordering;
 
-pub fn attack(state: &mut GameState, attacker: Entity, targets: Vec<Entity>) -> action::Result {
+pub(super) fn attack(
+    state: &mut GameState,
+    attacker: Entity,
+    targets: Vec<Entity>,
+) -> action::Result {
     if targets.len() == 1 {
         return attack_single(state, attacker, targets[0]);
     }
@@ -126,7 +129,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     }
 }
 
-pub fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
+fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
     if let Ok(mut health) = world.get::<&mut Health>(target) {
         health.take_damage(damage)
     } else {
@@ -140,13 +143,7 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .expect("Expected attacker to have stats attached")
         .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
-    get_weapon_damage(world, attacker) * strength_mod
-}
-
-pub fn get_weapon_damage(world: &World, attacker: Entity) -> f32 {
-    inventory::get_wielded(world, attacker)
-        .and_then(|item| world.get::<&Weapon>(item).map(|weapon| weapon.0).ok())
-        .unwrap_or(2.0)
+    core::get_wielded_weapon_modifier(world, attacker) * strength_mod
 }
 
 fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut impl Rng) -> HitType {

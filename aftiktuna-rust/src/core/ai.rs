@@ -1,8 +1,8 @@
 use crate::action::door::GoingToShip;
-use crate::action::{combat, Action};
+use crate::action::Action;
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
-use crate::core::{inventory, status, CrewMember};
+use crate::core::{self, inventory, status, CrewMember};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -34,7 +34,7 @@ pub fn prepare_intentions(world: &mut World) {
 
 fn prepare_intention(world: &mut World, crew_member: Entity) {
     fn pick_intention(world: &mut World, crew_member: Entity) -> Option<Intention> {
-        let weapon_damage = combat::get_weapon_damage(world, crew_member);
+        let weapon_damage = core::get_wielded_weapon_modifier(world, crew_member);
 
         for item in inventory::get_inventory(world, crew_member) {
             if let Ok(weapon) = world.get::<&Weapon>(item) {
