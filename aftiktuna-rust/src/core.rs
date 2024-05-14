@@ -11,7 +11,7 @@ pub mod status;
 pub struct CrewMember(pub Entity);
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct IsFoe;
+pub struct Aggressive;
 
 #[derive(Serialize, Deserialize)]
 pub struct Waiting;
@@ -93,7 +93,7 @@ pub enum StopType {
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world
         .query::<&position::Pos>()
-        .with::<&IsFoe>()
+        .with::<&Aggressive>()
         .iter()
         .all(|(_, pos)| !pos.is_in(area))
 }

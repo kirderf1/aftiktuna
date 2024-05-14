@@ -270,7 +270,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
         if state
             .world
-            .query_one::<Satisfies<&core::IsFoe>>(entity)
+            .query_one::<Satisfies<&core::Aggressive>>(entity)
             .unwrap()
             .get()
             .unwrap()

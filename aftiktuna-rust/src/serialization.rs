@@ -180,7 +180,7 @@ pub mod world {
         LowStamina, LowStamina;
 
         core::CrewMember, CrewMember;
-        core::IsFoe, IsFoe;
+        core::Aggressive, IsFoe;
         Action, Action;
         ai::Intention, Intention;
         core::Waiting, Waiting;

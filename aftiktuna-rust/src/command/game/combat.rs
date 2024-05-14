@@ -3,7 +3,7 @@ use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::position::Pos;
-use crate::core::IsFoe;
+use crate::core::Aggressive;
 use crate::game_loop::GameState;
 use crate::view::name::{NameData, NameQuery};
 
@@ -25,7 +25,7 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
     let foes = state
         .world
         .query::<&Pos>()
-        .with::<&IsFoe>()
+        .with::<&Aggressive>()
         .iter()
         .filter(|(_, pos)| pos.is_in(area))
         .map(|(entity, _)| entity)
@@ -43,7 +43,7 @@ fn attack(target_name: &str, state: &GameState) -> Result<CommandResult, String>
     let targets = state
         .world
         .query::<(&Pos, NameQuery)>()
-        .with::<&IsFoe>()
+        .with::<&Aggressive>()
         .iter()
         .filter(|&(_, (target_pos, query))| {
             target_pos.is_in(pos.get_area()) && NameData::from(query).matches(target_name)

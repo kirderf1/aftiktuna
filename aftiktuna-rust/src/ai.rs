@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::core::item::Weapon;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, CrewMember, GoingToShip, IsFoe};
+use crate::core::{self, inventory, status, Aggressive, CrewMember, GoingToShip};
 use crate::view::name::NameData;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -50,7 +50,7 @@ fn prepare_intention(world: &mut World, crew_member: Entity) {
 pub fn tick(world: &mut World) {
     let foes = world
         .query::<()>()
-        .with::<&IsFoe>()
+        .with::<&Aggressive>()
         .iter()
         .map(|(entity, ())| entity)
         .collect::<Vec<_>>();
@@ -106,7 +106,7 @@ fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>)
     let pos = *world.get::<&Pos>(aftik).ok()?;
     let foes = world
         .query::<&Pos>()
-        .with::<&IsFoe>()
+        .with::<&Aggressive>()
         .iter()
         .filter(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
         .map(|(entity, _)| entity)
