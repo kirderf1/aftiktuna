@@ -1,5 +1,5 @@
 use crate::macroquad_interface::render::State as RenderState;
-use crate::macroquad_interface::texture::TextureStorage;
+use crate::macroquad_interface::texture::RenderAssets;
 use crate::macroquad_interface::App;
 use egui_macroquad::egui;
 use egui_macroquad::macroquad::color::{Color, WHITE};
@@ -70,7 +70,7 @@ fn get_text_box_dimensions(text: &Vec<String>) -> Rect {
     Rect::new(0., text_box_start, 800., text_box_size)
 }
 
-pub fn draw_text_box(text: &Vec<String>, textures: &TextureStorage, click_to_proceed: bool) {
+pub fn draw_text_box(text: &Vec<String>, textures: &RenderAssets, click_to_proceed: bool) {
     if text.is_empty() {
         return;
     }

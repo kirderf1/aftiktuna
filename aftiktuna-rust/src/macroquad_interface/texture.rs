@@ -20,15 +20,16 @@ use std::hash::Hash;
 use std::io;
 use std::io::Read;
 
-pub struct TextureStorage {
+pub struct RenderAssets {
     backgrounds: HashMap<BackgroundType, BGData>,
     pub object_textures: LazilyLoadedObjectTextures,
+    pub aftik_colors: HashMap<AftikColor, AftikColorData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
     pub portrait: TextureData,
 }
 
-impl TextureStorage {
+impl RenderAssets {
     pub fn lookup_background(&self, texture_type: &BackgroundType) -> &BGData {
         self.backgrounds
             .get(texture_type)
@@ -78,7 +79,7 @@ impl TextureLayer {
         &self,
         pos: Vec2,
         properties: &RenderProperties,
-        color_map: &HashMap<AftikColor, AftikColorData>,
+        aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
     ) {
         if !self.is_active(properties) {
             return;
@@ -90,7 +91,8 @@ impl TextureLayer {
             self.texture,
             x,
             y,
-            self.color.get_color(properties.aftik_color, color_map),
+            self.color
+                .get_color(properties.aftik_color, aftik_colors_map),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
                 flip_x: self.directional && properties.direction == Direction::Left,
@@ -127,10 +129,10 @@ impl ColorSource {
     fn get_color(
         self,
         aftik_color: Option<AftikColor>,
-        color_map: &HashMap<AftikColor, AftikColorData>,
+        aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
     ) -> Color {
         let aftik_color_data = || {
-            color_map
+            aftik_colors_map
                 .get(&aftik_color.unwrap_or_default())
                 .unwrap_or(&DEFAULT_COLOR)
         };
@@ -148,7 +150,7 @@ pub fn draw_object(
     properties: &RenderProperties,
     use_wield_offset: bool,
     pos: Vec2,
-    color_map: &HashMap<AftikColor, AftikColorData>,
+    aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
 ) {
     let mut pos = pos;
     if use_wield_offset {
@@ -159,16 +161,16 @@ pub fn draw_object(
         }
     }
     for layer in &data.layers {
-        layer.draw(pos, properties, color_map);
+        layer.draw(pos, properties, aftik_colors_map);
     }
 }
 
 pub fn get_rect_for_object(
     object_data: &ObjectRenderData,
-    textures: &mut TextureStorage,
+    assets: &mut RenderAssets,
     pos: Vec2,
 ) -> Rect {
-    let data = textures
+    let data = assets
         .object_textures
         .lookup_texture(&object_data.texture_type);
     data.layers
@@ -289,10 +291,10 @@ pub fn draw_background(
     texture_type: &BackgroundType,
     offset: Coord,
     camera_space: Rect,
-    textures: &TextureStorage,
+    assets: &RenderAssets,
 ) {
     let offset = offset as f32 * 120.;
-    match textures.lookup_background(texture_type).texture {
+    match assets.lookup_background(texture_type).texture {
         BGTexture::Centered(texture) => draw_texture(texture, camera_space.x - offset, 0., WHITE),
         BGTexture::Fixed(texture) => draw_texture(texture, -60. - offset, 0., WHITE),
         BGTexture::Repeating(texture) => {
@@ -427,10 +429,11 @@ impl Display for Error {
     }
 }
 
-pub fn load_textures() -> Result<TextureStorage, Error> {
-    Ok(TextureStorage {
+pub fn load_assets() -> Result<RenderAssets, Error> {
+    Ok(RenderAssets {
         backgrounds: load_backgrounds()?,
         object_textures: objects::prepare()?,
+        aftik_colors: load_aftik_color_data()?,
         left_mouse_icon: load_texture("left_mouse")?,
         side_arrow: load_texture("side_arrow")?,
         portrait: load_texture_data("portrait")?,

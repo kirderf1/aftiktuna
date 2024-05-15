@@ -1,6 +1,6 @@
 use crate::command::suggestion;
 use crate::command::suggestion::Suggestion;
-use crate::macroquad_interface::texture::TextureStorage;
+use crate::macroquad_interface::texture::RenderAssets;
 use crate::macroquad_interface::{camera, render, store_render, texture, App};
 use crate::view::area::RenderData;
 use crate::view::Frame;
@@ -36,7 +36,7 @@ pub struct CommandTooltip {
     commands: Vec<Suggestion>,
 }
 
-pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
+pub fn handle_click(app: &mut App, assets: &mut RenderAssets) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() {
         app.command_tooltip = None;
@@ -48,7 +48,7 @@ pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
     let mouse_pos = Vec2::from(input::mouse_position());
     match &app.command_tooltip {
         None => {
-            let commands = find_raw_command_suggestions(mouse_pos, state, textures);
+            let commands = find_raw_command_suggestions(mouse_pos, state, assets);
             if !commands.is_empty() {
                 app.command_tooltip = Some(CommandTooltip {
                     pos: mouse_pos,
@@ -83,16 +83,16 @@ pub fn handle_click(app: &mut App, textures: &mut TextureStorage) {
 fn find_raw_command_suggestions(
     mouse_pos: Vec2,
     state: &render::State,
-    textures: &mut TextureStorage,
+    assets: &mut RenderAssets,
 ) -> Vec<Suggestion> {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
             let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
 
-            return camera::position_objects(&render_data.objects, textures)
+            return camera::position_objects(&render_data.objects, assets)
                 .into_iter()
                 .filter(|(pos, data)| {
-                    texture::get_rect_for_object(data, textures, *pos).contains(offset_pos)
+                    texture::get_rect_for_object(data, assets, *pos).contains(offset_pos)
                 })
                 .flat_map(|(_, data)| {
                     data.interactions.iter().flat_map(|interaction| {
@@ -118,7 +118,7 @@ fn find_raw_command_suggestions(
 pub fn draw(
     state: &render::State,
     command_tooltip: &Option<CommandTooltip>,
-    textures: &mut TextureStorage,
+    assets: &mut RenderAssets,
 ) {
     let mouse_pos = Vec2::from(input::mouse_position());
     if let Some(tooltip) = command_tooltip {
@@ -129,21 +129,19 @@ pub fn draw(
         );
     } else if let Frame::AreaView { render_data, .. } = &state.current_frame {
         let camera_offset = Vec2::new(state.camera.x, state.camera.y);
-        let names = get_hovered_object_names(render_data, textures, mouse_pos + camera_offset);
+        let names = get_hovered_object_names(render_data, assets, mouse_pos + camera_offset);
         draw_lines(mouse_pos, &names, None);
     }
 }
 
 fn get_hovered_object_names<'a>(
     render_data: &'a RenderData,
-    textures: &mut TextureStorage,
+    assets: &mut RenderAssets,
     mouse_pos: Vec2,
 ) -> Vec<&'a String> {
-    camera::position_objects(&render_data.objects, textures)
+    camera::position_objects(&render_data.objects, assets)
         .into_iter()
-        .filter(|(pos, data)| {
-            texture::get_rect_for_object(data, textures, *pos).contains(mouse_pos)
-        })
+        .filter(|(pos, data)| texture::get_rect_for_object(data, assets, *pos).contains(mouse_pos))
         .map(|(_, data)| &data.modified_name)
         .collect::<Vec<_>>()
 }

@@ -1,9 +1,7 @@
-use std::collections::HashMap;
-
 use crate::core::position::Direction;
 use crate::core::PricedItem;
 use crate::macroquad_interface::texture;
-use crate::macroquad_interface::texture::TextureStorage;
+use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;
 use crate::view::area::{AftikColor, RenderProperties};
 use crate::view::StoreView;
@@ -11,29 +9,19 @@ use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{camera, color, shapes, text};
 
-use super::texture::AftikColorData;
-
 const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 
-pub fn draw_store_view(
-    textures: &TextureStorage,
-    color_map: &HashMap<AftikColor, AftikColorData>,
-    store_view: &StoreView,
-) {
+pub fn draw_store_view(assets: &RenderAssets, store_view: &StoreView) {
     camera::set_default_camera();
-    texture::draw_background_portrait(textures.lookup_background(&store_view.background));
-    draw_shopkeeper_portrait(textures, color_map, store_view.shopkeeper_color);
+    texture::draw_background_portrait(assets.lookup_background(&store_view.background));
+    draw_shopkeeper_portrait(assets, store_view.shopkeeper_color);
     draw_store_stock(store_view);
     draw_points_for_store(store_view.points);
 }
 
-fn draw_shopkeeper_portrait(
-    textures: &TextureStorage,
-    color_map: &HashMap<AftikColor, AftikColorData>,
-    aftik_color: Option<AftikColor>,
-) {
+fn draw_shopkeeper_portrait(assets: &RenderAssets, aftik_color: Option<AftikColor>) {
     texture::draw_object(
-        &textures.portrait,
+        &assets.portrait,
         &RenderProperties {
             direction: Direction::Left,
             aftik_color,
@@ -41,7 +29,7 @@ fn draw_shopkeeper_portrait(
         },
         false,
         Vec2::new(600., 600.),
-        color_map,
+        &assets.aftik_colors,
     );
 }
 

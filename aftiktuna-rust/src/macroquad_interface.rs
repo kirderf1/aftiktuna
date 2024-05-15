@@ -103,26 +103,11 @@ pub async fn run(game: Game, autosave: bool) -> ! {
     draw_centered_text("Loading textures...", 300., 32, color::LIGHTGRAY);
     window::next_frame().await;
 
-    let textures = texture::load_textures();
-    let mut textures = match textures {
-        Ok(textures) => textures,
+    let assets = texture::load_assets();
+    let mut assets = match assets {
+        Ok(assets) => assets,
         Err(error) => {
-            error_view::show(vec![
-                format!("Unable to load textures:"),
-                format!("{error}"),
-            ])
-            .await
-        }
-    };
-    let color_map = texture::load_aftik_color_data();
-    let color_map = match color_map {
-        Ok(color_map) => color_map,
-        Err(error) => {
-            error_view::show(vec![
-                format!("Unable to load aftik colors:"),
-                format!("{error}"),
-            ])
-            .await
+            error_view::show(vec![format!("Unable to load assets:"), format!("{error}")]).await
         }
     };
 
@@ -145,7 +130,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         if app.show_graphical {
             if app.last_drag_pos.is_none() {
-                tooltip::handle_click(&mut app, &mut textures);
+                tooltip::handle_click(&mut app, &mut assets);
             }
             if app.command_tooltip.is_none() {
                 camera::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
@@ -157,7 +142,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         app.update_frame_state();
 
-        render::draw(&mut app, &mut textures, &color_map);
+        render::draw(&mut app, &mut assets);
 
         window::next_frame().await;
     }

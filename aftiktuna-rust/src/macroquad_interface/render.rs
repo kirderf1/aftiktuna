@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::texture::{AftikColorData, TextureStorage};
+use super::texture::{AftikColorData, RenderAssets};
 use super::App;
 use crate::core::area::BackgroundType;
 use crate::core::position::Direction;
@@ -60,28 +60,23 @@ impl State {
     }
 }
 
-pub fn draw(
-    app: &mut App,
-    textures: &mut TextureStorage,
-    color_map: &HashMap<AftikColor, AftikColorData>,
-) {
+pub fn draw(app: &mut App, assets: &mut RenderAssets) {
     window::clear_background(BLACK);
 
     if app.show_graphical {
         draw_frame(
             &app.render_state.current_frame,
             app.render_state.camera,
-            textures,
-            color_map,
+            assets,
         );
 
         set_default_camera();
         ui::draw_text_box(
             &app.render_state.text_box_text,
-            textures,
+            assets,
             app.game.next_result().has_frame(),
         );
-        tooltip::draw(&app.render_state, &app.command_tooltip, textures);
+        tooltip::draw(&app.render_state, &app.command_tooltip, assets);
 
         ui::egui_only_input(app);
     } else {
@@ -89,12 +84,7 @@ pub fn draw(
     }
 }
 
-fn draw_frame(
-    frame: &Frame,
-    camera: Rect,
-    textures: &mut TextureStorage,
-    color_map: &HashMap<AftikColor, AftikColorData>,
-) {
+fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
@@ -102,7 +92,7 @@ fn draw_frame(
                 &BackgroundType::location_choice(),
                 0,
                 camera::default_camera_space(),
-                textures,
+                assets,
             );
         }
         Frame::AreaView { render_data, .. } => {
@@ -111,14 +101,14 @@ fn draw_frame(
                 &render_data.background,
                 render_data.background_offset.unwrap_or(0),
                 camera,
-                textures,
+                assets,
             );
 
-            draw_objects(render_data, textures, color_map);
+            draw_objects(render_data, assets);
 
             set_default_camera();
             ui::draw_camera_arrows(
-                textures.side_arrow,
+                assets.side_arrow,
                 camera::has_camera_space(camera, render_data),
             );
         }
@@ -129,15 +119,15 @@ fn draw_frame(
             ..
         } => {
             draw_dialogue_frame(
-                textures.lookup_background(background),
-                &textures.portrait,
+                assets.lookup_background(background),
+                &assets.portrait,
                 *color,
                 *direction,
-                color_map,
+                &assets.aftik_colors,
             );
         }
         Frame::StoreView { view, .. } => {
-            store_render::draw_store_view(textures, color_map, view);
+            store_render::draw_store_view(assets, view);
         }
         Frame::Ending { stop_type } => {
             set_default_camera();
@@ -150,30 +140,26 @@ fn draw_frame(
     }
 }
 
-fn draw_objects(
-    render_data: &RenderData,
-    textures: &mut TextureStorage,
-    color_map: &HashMap<AftikColor, AftikColorData>,
-) {
-    for (pos, data) in camera::position_objects(&render_data.objects, textures) {
+fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
+    for (pos, data) in camera::position_objects(&render_data.objects, assets) {
         texture::draw_object(
-            textures.object_textures.lookup_texture(&data.texture_type),
+            assets.object_textures.lookup_texture(&data.texture_type),
             &data.properties,
             false,
             pos,
-            color_map,
+            &assets.aftik_colors,
         );
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(
-                    textures.object_textures.lookup_texture(item_texture),
+                    assets.object_textures.lookup_texture(item_texture),
                     &RenderProperties {
                         direction: data.properties.direction,
                         ..RenderProperties::default()
                     },
                     true,
                     pos,
-                    color_map,
+                    &assets.aftik_colors,
                 );
             }
         }
@@ -185,7 +171,7 @@ fn draw_dialogue_frame(
     portrait: &TextureData,
     aftik_color: Option<AftikColor>,
     direction: Direction,
-    color_map: &HashMap<AftikColor, AftikColorData>,
+    aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
 ) {
     set_default_camera();
     texture::draw_background_portrait(background);
@@ -202,6 +188,6 @@ fn draw_dialogue_frame(
         },
         false,
         pos,
-        color_map,
+        aftik_colors_map,
     );
 }

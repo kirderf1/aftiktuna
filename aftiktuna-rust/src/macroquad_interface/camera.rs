@@ -1,5 +1,5 @@
 use crate::core::position::Coord;
-use crate::macroquad_interface::texture::TextureStorage;
+use crate::macroquad_interface::texture::RenderAssets;
 use crate::macroquad_interface::{render, ui};
 use crate::view::area::{ObjectRenderData, RenderData};
 use crate::view::Frame;
@@ -10,14 +10,14 @@ use std::collections::HashMap;
 
 pub fn position_objects<'a>(
     objects: &'a Vec<ObjectRenderData>,
-    textures: &mut TextureStorage,
+    assets: &mut RenderAssets,
 ) -> Vec<(Vec2, &'a ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
     for data in objects {
         let coord = data.coord;
-        let count = if textures
+        let count = if assets
             .object_textures
             .lookup_texture(&data.texture_type)
             .is_displacing()
