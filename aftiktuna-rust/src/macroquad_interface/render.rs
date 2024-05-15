@@ -157,7 +157,7 @@ fn draw_objects(
 ) {
     for (pos, data) in camera::position_objects(&render_data.objects, textures) {
         texture::draw_object(
-            textures.lookup_texture(&data.texture_type),
+            textures.object_textures.lookup_texture(&data.texture_type),
             &data.properties,
             false,
             pos,
@@ -166,7 +166,7 @@ fn draw_objects(
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(
-                    textures.lookup_texture(item_texture),
+                    textures.object_textures.lookup_texture(item_texture),
                     &RenderProperties {
                         direction: data.properties.direction,
                         ..RenderProperties::default()

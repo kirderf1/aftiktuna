@@ -22,7 +22,7 @@ use std::io::Read;
 
 pub struct TextureStorage {
     backgrounds: HashMap<BackgroundType, BGData>,
-    objects: HashMap<TextureType, TextureData>,
+    pub object_textures: LazilyLoadedObjectTextures,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
     pub portrait: TextureData,
@@ -34,12 +34,18 @@ impl TextureStorage {
             .get(texture_type)
             .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::blank()).unwrap())
     }
+}
 
+pub struct LazilyLoadedObjectTextures {
+    loaded_textures: HashMap<TextureType, TextureData>,
+}
+
+impl LazilyLoadedObjectTextures {
     pub fn lookup_texture(&mut self, texture_type: &TextureType) -> &TextureData {
-        if !self.objects.contains_key(texture_type) {
-            objects::load_or_default(&mut self.objects, texture_type);
+        if !self.loaded_textures.contains_key(texture_type) {
+            objects::load_or_default(&mut self.loaded_textures, texture_type);
         }
-        self.objects.get(texture_type).unwrap()
+        self.loaded_textures.get(texture_type).unwrap()
     }
 }
 
@@ -162,7 +168,9 @@ pub fn get_rect_for_object(
     textures: &mut TextureStorage,
     pos: Vec2,
 ) -> Rect {
-    let data = textures.lookup_texture(&object_data.texture_type);
+    let data = textures
+        .object_textures
+        .lookup_texture(&object_data.texture_type);
     data.layers
         .iter()
         .filter(|&layer| layer.is_active(&object_data.properties))
@@ -422,7 +430,7 @@ impl Display for Error {
 pub fn load_textures() -> Result<TextureStorage, Error> {
     Ok(TextureStorage {
         backgrounds: load_backgrounds()?,
-        objects: objects::prepare()?,
+        object_textures: objects::prepare()?,
         left_mouse_icon: load_texture("left_mouse")?,
         side_arrow: load_texture("side_arrow")?,
         portrait: load_texture_data("portrait")?,
@@ -445,17 +453,19 @@ fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
 }
 
 mod objects {
-    use super::{load_texture_data, Error, TextureData};
+    use super::{load_texture_data, Error, LazilyLoadedObjectTextures, TextureData};
     use crate::view::area::TextureType;
     use std::collections::HashMap;
 
-    pub fn prepare() -> Result<HashMap<TextureType, TextureData>, Error> {
-        let mut objects = HashMap::new();
+    pub fn prepare() -> Result<LazilyLoadedObjectTextures, Error> {
+        let mut textures = HashMap::new();
 
-        load(&mut objects, TextureType::unknown())?;
-        load(&mut objects, TextureType::small_unknown())?;
+        load(&mut textures, TextureType::unknown())?;
+        load(&mut textures, TextureType::small_unknown())?;
 
-        Ok(objects)
+        Ok(LazilyLoadedObjectTextures {
+            loaded_textures: textures,
+        })
     }
 
     fn load(
