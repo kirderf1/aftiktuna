@@ -68,7 +68,12 @@ struct TextureLayer {
 }
 
 impl TextureLayer {
-    fn draw(&self, pos: Vec2, properties: &RenderProperties) {
+    fn draw(
+        &self,
+        pos: Vec2,
+        properties: &RenderProperties,
+        color_map: &HashMap<AftikColor, AftikColorData>,
+    ) {
         if !self.is_active(properties) {
             return;
         }
@@ -79,7 +84,7 @@ impl TextureLayer {
             self.texture,
             x,
             y,
-            self.color.get_color(properties.aftik_color),
+            self.color.get_color(properties.aftik_color, color_map),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
                 flip_x: self.directional && properties.direction == Direction::Left,
@@ -113,15 +118,21 @@ enum ColorSource {
 }
 
 impl ColorSource {
-    fn get_color(self, aftik_color: Option<AftikColor>) -> Color {
+    fn get_color(
+        self,
+        aftik_color: Option<AftikColor>,
+        color_map: &HashMap<AftikColor, AftikColorData>,
+    ) -> Color {
+        let aftik_color_data = || {
+            color_map
+                .get(&aftik_color.unwrap_or_default())
+                .unwrap_or(&DEFAULT_COLOR)
+        };
+
         match self {
             ColorSource::Uncolored => WHITE,
-            ColorSource::Primary => convert_to_color(aftik_color.unwrap_or_default())
-                .primary_color
-                .into(),
-            ColorSource::Secondary => convert_to_color(aftik_color.unwrap_or_default())
-                .secondary_color
-                .into(),
+            ColorSource::Primary => aftik_color_data().primary_color.into(),
+            ColorSource::Secondary => aftik_color_data().secondary_color.into(),
         }
     }
 }
@@ -131,6 +142,7 @@ pub fn draw_object(
     properties: &RenderProperties,
     use_wield_offset: bool,
     pos: Vec2,
+    color_map: &HashMap<AftikColor, AftikColorData>,
 ) {
     let mut pos = pos;
     if use_wield_offset {
@@ -141,7 +153,7 @@ pub fn draw_object(
         }
     }
     for layer in &data.layers {
-        layer.draw(pos, properties);
+        layer.draw(pos, properties, color_map);
     }
 }
 
@@ -159,11 +171,22 @@ pub fn get_rect_for_object(
         })
 }
 
-struct AftikColorData {
+const DEFAULT_COLOR: AftikColorData = AftikColorData {
+    primary_color: RGBColor {
+        r: 255,
+        g: 255,
+        b: 255,
+    },
+    secondary_color: RGBColor { r: 0, g: 0, b: 0 },
+};
+
+#[derive(Deserialize)]
+pub struct AftikColorData {
     primary_color: RGBColor,
     secondary_color: RGBColor,
 }
 
+#[derive(Clone, Copy, Deserialize)]
 struct RGBColor {
     r: u8,
     g: u8,
@@ -173,27 +196,6 @@ struct RGBColor {
 impl From<RGBColor> for Color {
     fn from(value: RGBColor) -> Self {
         Color::from_rgba(value.r, value.g, value.b, 255)
-    }
-}
-
-fn convert_to_color(color: AftikColor) -> AftikColorData {
-    match color {
-        AftikColor::Mint => AftikColorData {
-            primary_color: RGBColor { r: 148, g: 216, b: 0 },
-            secondary_color: RGBColor { r: 255, g: 238, b: 153 },
-        },
-        AftikColor::Cerulean => AftikColorData {
-            primary_color: RGBColor { r: 84, g: 141, b: 197 },
-            secondary_color: RGBColor { r: 153, g: 223, b: 255 },
-        },
-        AftikColor::Plum => AftikColorData {
-            primary_color: RGBColor { r: 183, g: 98, b: 168 },
-            secondary_color: RGBColor { r: 255, g: 177, b: 132 },
-        },
-        AftikColor::Green => AftikColorData {
-            primary_color: RGBColor { r: 78, g: 218, b: 67 },
-            secondary_color: RGBColor { r: 192, g: 232, b: 255 },
-        },
     }
 }
 
@@ -480,6 +482,14 @@ mod objects {
         });
         objects.insert(texture_type.clone(), texture_data);
     }
+}
+
+pub fn load_aftik_color_data() -> Result<HashMap<AftikColor, AftikColorData>, Error> {
+    let file = File::open("assets/aftik_colors.json")?;
+    Ok(serde_json::from_reader::<
+        _,
+        HashMap<AftikColor, AftikColorData>,
+    >(file)?)
 }
 
 fn insert_or_log<K: Eq + Hash, V, D: Display>(

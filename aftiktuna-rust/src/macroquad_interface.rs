@@ -114,6 +114,17 @@ pub async fn run(game: Game, autosave: bool) -> ! {
             .await
         }
     };
+    let color_map = texture::load_aftik_color_data();
+    let color_map = match color_map {
+        Ok(color_map) => color_map,
+        Err(error) => {
+            error_view::show(vec![
+                format!("Unable to load aftik colors:"),
+                format!("{error}"),
+            ])
+            .await
+        }
+    };
 
     if autosave {
         input::prevent_quit();
@@ -146,7 +157,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         app.update_frame_state();
 
-        render::draw(&mut app, &mut textures);
+        render::draw(&mut app, &mut textures, &color_map);
 
         window::next_frame().await;
     }

@@ -1,4 +1,6 @@
-use super::texture::TextureStorage;
+use std::collections::HashMap;
+
+use super::texture::{AftikColorData, TextureStorage};
 use super::App;
 use crate::core::area::BackgroundType;
 use crate::core::position::Direction;
@@ -58,7 +60,11 @@ impl State {
     }
 }
 
-pub fn draw(app: &mut App, textures: &mut TextureStorage) {
+pub fn draw(
+    app: &mut App,
+    textures: &mut TextureStorage,
+    color_map: &HashMap<AftikColor, AftikColorData>,
+) {
     window::clear_background(BLACK);
 
     if app.show_graphical {
@@ -66,6 +72,7 @@ pub fn draw(app: &mut App, textures: &mut TextureStorage) {
             &app.render_state.current_frame,
             app.render_state.camera,
             textures,
+            color_map,
         );
 
         set_default_camera();
@@ -82,7 +89,12 @@ pub fn draw(app: &mut App, textures: &mut TextureStorage) {
     }
 }
 
-fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
+fn draw_frame(
+    frame: &Frame,
+    camera: Rect,
+    textures: &mut TextureStorage,
+    color_map: &HashMap<AftikColor, AftikColorData>,
+) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
@@ -102,7 +114,7 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
                 textures,
             );
 
-            draw_objects(render_data, textures);
+            draw_objects(render_data, textures, color_map);
 
             set_default_camera();
             ui::draw_camera_arrows(
@@ -121,10 +133,11 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
                 &textures.portrait,
                 *color,
                 *direction,
+                color_map,
             );
         }
         Frame::StoreView { view, .. } => {
-            store_render::draw_store_view(textures, view);
+            store_render::draw_store_view(textures, color_map, view);
         }
         Frame::Ending { stop_type } => {
             set_default_camera();
@@ -137,13 +150,18 @@ fn draw_frame(frame: &Frame, camera: Rect, textures: &mut TextureStorage) {
     }
 }
 
-fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
+fn draw_objects(
+    render_data: &RenderData,
+    textures: &mut TextureStorage,
+    color_map: &HashMap<AftikColor, AftikColorData>,
+) {
     for (pos, data) in camera::position_objects(&render_data.objects, textures) {
         texture::draw_object(
             textures.lookup_texture(&data.texture_type),
             &data.properties,
             false,
             pos,
+            color_map,
         );
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
@@ -155,6 +173,7 @@ fn draw_objects(render_data: &RenderData, textures: &mut TextureStorage) {
                     },
                     true,
                     pos,
+                    color_map,
                 );
             }
         }
@@ -166,6 +185,7 @@ fn draw_dialogue_frame(
     portrait: &TextureData,
     aftik_color: Option<AftikColor>,
     direction: Direction,
+    color_map: &HashMap<AftikColor, AftikColorData>,
 ) {
     set_default_camera();
     texture::draw_background_portrait(background);
@@ -182,5 +202,6 @@ fn draw_dialogue_frame(
         },
         false,
         pos,
+        color_map,
     );
 }

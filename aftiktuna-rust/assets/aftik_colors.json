@@ -1,0 +1,18 @@
+{
+    "mint": {
+        "primary_color": { "r": 148, "g": 216, "b": 0 },
+        "secondary_color": { "r": 255, "g": 238, "b": 153 }
+    },
+    "cerulean": {
+        "primary_color": { "r": 84, "g": 141, "b": 197 },
+        "secondary_color": { "r": 153, "g": 223, "b": 255 }
+    },
+    "plum": {
+        "primary_color": { "r": 183, "g": 98, "b": 168 },
+        "secondary_color": { "r": 255, "g": 177, "b": 132 }
+    },
+    "green": {
+        "primary_color": { "r": 78, "g": 218, "b": 67 },
+        "secondary_color": { "r": 192, "g": 232, "b": 255 }
+    }
+}
