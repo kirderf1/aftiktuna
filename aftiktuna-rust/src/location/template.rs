@@ -7,6 +7,7 @@ use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use hecs::World;
 use rand::distributions::WeightedIndex;
+use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -29,7 +30,7 @@ impl LocationData {
 
         verify_placed_doors(&builder)?;
 
-        builder.get_entry()
+        builder.get_random_entry_pos(rng)
     }
 }
 
@@ -141,7 +142,7 @@ impl SymbolData {
         symbol: Symbol,
     ) -> Result<(), String> {
         match self {
-            SymbolData::LocationEntry => builder.set_entry(pos)?,
+            SymbolData::LocationEntry => builder.add_entry_pos(pos),
             SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
             SymbolData::Item { item } => item.spawn(builder.world, pos),
             SymbolData::Loot { table } => {
@@ -189,7 +190,7 @@ struct DoorPairData {
 
 struct Builder<'a> {
     world: &'a mut World,
-    entry: Option<Pos>,
+    entry_positions: Vec<Pos>,
     doors: HashMap<String, DoorStatus<'a>>,
 }
 
@@ -197,7 +198,7 @@ impl<'a> Builder<'a> {
     fn new(world: &'a mut World, door_pairs: &'a HashMap<String, DoorPairData>) -> Self {
         Builder {
             world,
-            entry: None,
+            entry_positions: Vec::new(),
             doors: door_pairs
                 .iter()
                 .map(|(key, data)| (key.to_string(), DoorStatus::None(data)))
@@ -205,18 +206,15 @@ impl<'a> Builder<'a> {
         }
     }
 
-    fn get_entry(&self) -> Result<Pos, String> {
-        self.entry
+    fn get_random_entry_pos(&self, rng: &mut impl Rng) -> Result<Pos, String> {
+        self.entry_positions
+            .choose(rng)
+            .copied()
             .ok_or_else(|| "No entry point was set!".to_string())
     }
 
-    fn set_entry(&mut self, pos: Pos) -> Result<(), String> {
-        if self.entry.is_some() {
-            Err("Entry has already been set!".to_string())
-        } else {
-            self.entry = Some(pos);
-            Ok(())
-        }
+    fn add_entry_pos(&mut self, pos: Pos) {
+        self.entry_positions.push(pos);
     }
 }
 

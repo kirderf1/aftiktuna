@@ -22,7 +22,7 @@
       "name": "Field next to a building",
       "background": "facility_outside",
       "background_offset": 3,
-      "objects": [ "^", "", "", "", ">" ],
+      "objects": [ "^", "", "v", "", ">" ],
       "symbols": {
         "^": {
           "type": "door",

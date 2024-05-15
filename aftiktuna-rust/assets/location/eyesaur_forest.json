@@ -4,7 +4,7 @@
       "name": "Field in front of a forest",
       "background": "forest_entrance",
       "background_offset": 6,
-      "objects": [ "", "<", "", "v", "", "", ">", "" ],
+      "objects": [ "", "<", "", "v", "v", "", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",

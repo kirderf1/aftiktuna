@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tweaked some command parsing error messages
 - Encountering a foe now comes with a message and the foe turning to face the character
 - Certain creatures do not start attacking immediately
+- Some locations now have multiple possible landing spots
 - Texture loading errors are now displayed in the game window
 
 ### Contributors for this release
