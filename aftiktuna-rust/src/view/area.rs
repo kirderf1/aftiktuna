@@ -70,14 +70,14 @@ pub enum OrderWeight {
     Background,
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum AftikColor {
-    #[default]
-    Mint,
-    Cerulean,
-    Plum,
-    Green,
+pub struct AftikColorId(String);
+
+impl AftikColorId {
+    pub fn new(name: &str) -> Self {
+        AftikColorId(name.to_owned())
+    }
 }
 
 pub(super) fn area_view_messages(render_data: &RenderData) -> Messages {
@@ -166,7 +166,7 @@ pub struct ObjectRenderData {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RenderProperties {
     pub direction: Direction,
-    pub aftik_color: Option<AftikColor>,
+    pub aftik_color: Option<AftikColorId>,
     pub is_cut: bool,
     pub is_alive: bool,
 }
@@ -244,7 +244,7 @@ fn build_object_data(
             .get::<&Direction>()
             .map(deref_clone)
             .unwrap_or_default(),
-        aftik_color: entity_ref.get::<&AftikColor>().map(deref_clone),
+        aftik_color: entity_ref.get::<&AftikColorId>().map(deref_clone),
         is_cut: entity_ref.satisfies::<&IsCut>(),
         is_alive: entity_ref
             .get::<&Health>()

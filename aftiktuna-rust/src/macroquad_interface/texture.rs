@@ -1,7 +1,7 @@
 use crate::core::area::BackgroundType;
 use crate::core::position::{Coord, Direction};
 use crate::view::area::RenderProperties;
-use crate::view::area::{AftikColor, ObjectRenderData, TextureType};
+use crate::view::area::{AftikColorId, ObjectRenderData, TextureType};
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -23,7 +23,7 @@ use std::io::Read;
 pub struct RenderAssets {
     backgrounds: HashMap<BackgroundType, BGData>,
     pub object_textures: LazilyLoadedObjectTextures,
-    pub aftik_colors: HashMap<AftikColor, AftikColorData>,
+    pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
     pub portrait: TextureData,
@@ -79,7 +79,7 @@ impl TextureLayer {
         &self,
         pos: Vec2,
         properties: &RenderProperties,
-        aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
+        aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
     ) {
         if !self.is_active(properties) {
             return;
@@ -92,7 +92,7 @@ impl TextureLayer {
             x,
             y,
             self.color
-                .get_color(properties.aftik_color, aftik_colors_map),
+                .get_color(properties.aftik_color.clone(), aftik_colors_map),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
                 flip_x: self.directional && properties.direction == Direction::Left,
@@ -128,8 +128,8 @@ enum ColorSource {
 impl ColorSource {
     fn get_color(
         self,
-        aftik_color: Option<AftikColor>,
-        aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
+        aftik_color: Option<AftikColorId>,
+        aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
     ) -> Color {
         let aftik_color_data = || {
             aftik_colors_map
@@ -150,7 +150,7 @@ pub fn draw_object(
     properties: &RenderProperties,
     use_wield_offset: bool,
     pos: Vec2,
-    aftik_colors_map: &HashMap<AftikColor, AftikColorData>,
+    aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
 ) {
     let mut pos = pos;
     if use_wield_offset {
@@ -497,11 +497,11 @@ mod objects {
     }
 }
 
-pub fn load_aftik_color_data() -> Result<HashMap<AftikColor, AftikColorData>, Error> {
+pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorData>, Error> {
     let file = File::open("assets/aftik_colors.json")?;
     Ok(serde_json::from_reader::<
         _,
-        HashMap<AftikColor, AftikColorData>,
+        HashMap<AftikColorId, AftikColorData>,
     >(file)?)
 }
 

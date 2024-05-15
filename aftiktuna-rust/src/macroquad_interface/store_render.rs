@@ -3,7 +3,7 @@ use crate::core::PricedItem;
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;
-use crate::view::area::{AftikColor, RenderProperties};
+use crate::view::area::{AftikColorId, RenderProperties};
 use crate::view::StoreView;
 use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -14,12 +14,12 @@ const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 pub fn draw_store_view(assets: &RenderAssets, store_view: &StoreView) {
     camera::set_default_camera();
     texture::draw_background_portrait(assets.lookup_background(&store_view.background));
-    draw_shopkeeper_portrait(assets, store_view.shopkeeper_color);
+    draw_shopkeeper_portrait(assets, store_view.shopkeeper_color.clone());
     draw_store_stock(store_view);
     draw_points_for_store(store_view.points);
 }
 
-fn draw_shopkeeper_portrait(assets: &RenderAssets, aftik_color: Option<AftikColor>) {
+fn draw_shopkeeper_portrait(assets: &RenderAssets, aftik_color: Option<AftikColorId>) {
     texture::draw_object(
         &assets.portrait,
         &RenderProperties {

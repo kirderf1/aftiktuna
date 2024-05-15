@@ -1,7 +1,7 @@
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{item, Aggressive, CrewMember, PricedItem, Recruitable, Shopkeeper, Threatening};
-use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
+use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
 use crate::view::name::{Name, Noun};
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
@@ -91,7 +91,7 @@ pub fn spawn_crew_member(
     crew: Entity,
     name: &str,
     stats: Stats,
-    color: AftikColor,
+    color: AftikColorId,
 ) -> Entity {
     world.spawn(
         aftik_builder(Symbol::from_name(name), Name::known(name), stats)
@@ -107,7 +107,7 @@ pub fn place_recruitable(
     pos: Pos,
     name: &str,
     stats: Stats,
-    color: AftikColor,
+    color: AftikColorId,
     direction: Option<Direction>,
 ) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
@@ -142,7 +142,7 @@ pub fn place_shopkeeper(
     symbol: Symbol,
     pos: Pos,
     shop_items: &[item::Type],
-    color: AftikColor,
+    color: AftikColorId,
     direction: Option<Direction>,
 ) -> Result<(), String> {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));

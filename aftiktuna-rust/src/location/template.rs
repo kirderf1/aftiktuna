@@ -3,7 +3,7 @@ use crate::core::status::Stats;
 use crate::core::{item, BlockType, FortunaChest};
 use crate::location::door::{place_pair, DoorInfo, DoorType};
 use crate::location::{creature, door, Area, BackgroundType};
-use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
+use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use hecs::World;
 use rand::distributions::WeightedIndex;
@@ -120,14 +120,14 @@ enum SymbolData {
     },
     Shopkeeper {
         items: Vec<item::Type>,
-        color: AftikColor,
+        color: AftikColorId,
         #[serde(default)]
         direction: Option<Direction>,
     },
     Recruitable {
         name: String,
         stats: Stats,
-        color: AftikColor,
+        color: AftikColorId,
         #[serde(default)]
         direction: Option<Direction>,
     },
@@ -162,7 +162,14 @@ impl SymbolData {
                 items,
                 color,
                 direction,
-            } => creature::place_shopkeeper(builder.world, symbol, pos, items, *color, *direction)?,
+            } => creature::place_shopkeeper(
+                builder.world,
+                symbol,
+                pos,
+                items,
+                color.clone(),
+                *direction,
+            )?,
             SymbolData::Recruitable {
                 name,
                 stats,
@@ -174,7 +181,7 @@ impl SymbolData {
                 pos,
                 name,
                 stats.clone(),
-                *color,
+                color.clone(),
                 *direction,
             ),
         }

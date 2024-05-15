@@ -26,7 +26,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Reduced value of blowtorches
 - Tweaked some command parsing error messages
 - Encountering a foe now comes with a message and the foe turning to face the character
-- Certain creatures do not start attacking immediately
+- Certain creatures will now not start attacking immediately
+- Aftik colors are no longer hardcoded, and their color values are now defined in "aftik_colors.json"
 - Some locations now have multiple possible landing spots
 - Texture loading errors are now displayed in the game window
 

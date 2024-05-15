@@ -3,7 +3,7 @@ use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, Aggressive, CrewMember, Door, DoorKind, Points, Threatening};
 use crate::game_loop::GameState;
-use crate::view::area::{AftikColor, OrderWeight, Symbol, TextureType};
+use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
 use crate::view::name::Noun;
 use crate::view::Messages;
 use door::DoorInfo;
@@ -224,10 +224,15 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         crew,
         "Cerulean",
         Stats::new(9, 2, 10),
-        AftikColor::Cerulean,
+        AftikColorId::new("cerulean"),
     );
-    let mint =
-        creature::spawn_crew_member(world, crew, "Mint", Stats::new(10, 3, 8), AftikColor::Mint);
+    let mint = creature::spawn_crew_member(
+        world,
+        crew,
+        "Mint",
+        Stats::new(10, 3, 8),
+        AftikColorId::new("mint"),
+    );
     world.insert_one(mint, OrderWeight::Controlled).unwrap();
 
     (mint, ship)

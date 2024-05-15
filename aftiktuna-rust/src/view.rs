@@ -1,9 +1,10 @@
 use crate::core::area::{Area, BackgroundType};
 use crate::core::position::{Direction, Pos};
 use crate::core::{IsTrading, StopType};
+use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::location::Choice;
-use area::{AftikColor, RenderData};
+use area::{AftikColorId, RenderData};
 use hecs::{Entity, World};
 use name::NameData;
 use serde::{Deserialize, Serialize};
@@ -54,7 +55,7 @@ mod text {
 pub use text::{capitalize, Messages};
 
 mod store {
-    use super::area::AftikColor;
+    use super::area::AftikColorId;
     use super::name::{NameData, NameQuery};
     use super::{status, text, Buffer, Frame, Messages, StatusCache};
     use crate::core::area::{Area, BackgroundType};
@@ -62,13 +63,14 @@ mod store {
     use crate::core::item::Price;
     use crate::core::position::Pos;
     use crate::core::{PricedItem, Shopkeeper};
+    use crate::deref_clone;
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct StoreView {
         pub items: Vec<PricedItem>,
-        pub shopkeeper_color: Option<AftikColor>,
+        pub shopkeeper_color: Option<AftikColorId>,
         pub background: BackgroundType,
         pub points: i32,
         pub sellable_items: Vec<NameData>,
@@ -123,10 +125,7 @@ mod store {
         Frame::StoreView {
             view: StoreView {
                 items,
-                shopkeeper_color: world
-                    .get::<&AftikColor>(shopkeeper)
-                    .ok()
-                    .map(|color| *color),
+                shopkeeper_color: world.get::<&AftikColorId>(shopkeeper).ok().map(deref_clone),
                 background: world.get::<&Area>(area).unwrap().background.clone(),
                 points,
                 sellable_items,
@@ -213,7 +212,7 @@ pub enum Frame {
         messages: Vec<String>,
         background: BackgroundType,
         speaker: NameData,
-        color: Option<AftikColor>,
+        color: Option<AftikColorId>,
         direction: Direction,
     },
     StoreView {
@@ -300,7 +299,7 @@ impl Frame {
             messages,
             background: world.get::<&Area>(area).unwrap().background.clone(),
             speaker: NameData::find(world, character),
-            color: world.get::<&AftikColor>(character).ok().map(|color| *color),
+            color: world.get::<&AftikColorId>(character).ok().map(deref_clone),
             direction: world
                 .get::<&Direction>(character)
                 .map(|direction| *direction)
