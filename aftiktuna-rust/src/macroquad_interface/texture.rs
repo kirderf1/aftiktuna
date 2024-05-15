@@ -116,8 +116,12 @@ impl ColorSource {
     fn get_color(self, aftik_color: Option<AftikColor>) -> Color {
         match self {
             ColorSource::Uncolored => WHITE,
-            ColorSource::Primary => convert_to_color(aftik_color.unwrap_or_default()).0,
-            ColorSource::Secondary => convert_to_color(aftik_color.unwrap_or_default()).1,
+            ColorSource::Primary => convert_to_color(aftik_color.unwrap_or_default())
+                .primary_color
+                .into(),
+            ColorSource::Secondary => convert_to_color(aftik_color.unwrap_or_default())
+                .secondary_color
+                .into(),
         }
     }
 }
@@ -155,24 +159,41 @@ pub fn get_rect_for_object(
         })
 }
 
-fn convert_to_color(color: AftikColor) -> (Color, Color) {
+struct AftikColorData {
+    primary_color: RGBColor,
+    secondary_color: RGBColor,
+}
+
+struct RGBColor {
+    r: u8,
+    g: u8,
+    b: u8,
+}
+
+impl From<RGBColor> for Color {
+    fn from(value: RGBColor) -> Self {
+        Color::from_rgba(value.r, value.g, value.b, 255)
+    }
+}
+
+fn convert_to_color(color: AftikColor) -> AftikColorData {
     match color {
-        AftikColor::Mint => (
-            Color::from_rgba(148, 216, 0, 255),
-            Color::from_rgba(255, 238, 153, 255),
-        ),
-        AftikColor::Cerulean => (
-            Color::from_rgba(84, 141, 197, 255),
-            Color::from_rgba(153, 223, 255, 255),
-        ),
-        AftikColor::Plum => (
-            Color::from_rgba(183, 98, 168, 255),
-            Color::from_rgba(255, 177, 132, 255),
-        ),
-        AftikColor::Green => (
-            Color::from_rgba(78, 218, 67, 255),
-            Color::from_rgba(192, 232, 255, 255),
-        ),
+        AftikColor::Mint => AftikColorData {
+            primary_color: RGBColor { r: 148, g: 216, b: 0 },
+            secondary_color: RGBColor { r: 255, g: 238, b: 153 },
+        },
+        AftikColor::Cerulean => AftikColorData {
+            primary_color: RGBColor { r: 84, g: 141, b: 197 },
+            secondary_color: RGBColor { r: 153, g: 223, b: 255 },
+        },
+        AftikColor::Plum => AftikColorData {
+            primary_color: RGBColor { r: 183, g: 98, b: 168 },
+            secondary_color: RGBColor { r: 255, g: 177, b: 132 },
+        },
+        AftikColor::Green => AftikColorData {
+            primary_color: RGBColor { r: 78, g: 218, b: 67 },
+            secondary_color: RGBColor { r: 192, g: 232, b: 255 },
+        },
     }
 }
 
