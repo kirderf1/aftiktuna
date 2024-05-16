@@ -78,7 +78,7 @@ impl TextureLayer {
         &self,
         pos: Vec2,
         properties: &RenderProperties,
-        aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
+        aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
     ) {
         if !self.is_active(properties) {
             return;
@@ -91,7 +91,7 @@ impl TextureLayer {
             x,
             y,
             self.color
-                .get_color(properties.aftik_color.clone(), aftik_colors_map),
+                .get_color(properties.aftik_color.as_ref(), aftik_colors_map),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
                 flip_x: self.directional && properties.direction == Direction::Left,
@@ -127,19 +127,33 @@ enum ColorSource {
 impl ColorSource {
     fn get_color(
         self,
-        aftik_color: Option<AftikColorId>,
-        aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
+        aftik_color: Option<&AftikColorId>,
+        aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
     ) -> Color {
-        let aftik_color_data = || {
-            aftik_colors_map
-                .get(&aftik_color.unwrap_or_default())
-                .unwrap_or(&DEFAULT_COLOR)
+        let mut aftik_color_data = || {
+            aftik_color.map_or(DEFAULT_COLOR, |aftik_color| {
+                lookup_or_log_aftik_color(aftik_color, aftik_colors_map)
+            })
         };
 
         match self {
             ColorSource::Uncolored => WHITE,
             ColorSource::Primary => aftik_color_data().primary_color.into(),
             ColorSource::Secondary => aftik_color_data().secondary_color.into(),
+        }
+    }
+}
+
+fn lookup_or_log_aftik_color(
+    aftik_color: &AftikColorId,
+    aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
+) -> AftikColorData {
+    match aftik_colors_map.get(aftik_color) {
+        Some(color_data) => color_data.clone(),
+        None => {
+            eprintln!("Missing aftik color data for color {aftik_color:?}!");
+            aftik_colors_map.insert(aftik_color.clone(), DEFAULT_COLOR);
+            DEFAULT_COLOR
         }
     }
 }
@@ -161,7 +175,7 @@ pub fn draw_object(
         }
     }
     for layer in &data.layers {
-        layer.draw(pos, properties, &assets.aftik_colors);
+        layer.draw(pos, properties, &mut assets.aftik_colors);
     }
 }
 
@@ -190,7 +204,7 @@ const DEFAULT_COLOR: AftikColorData = AftikColorData {
     secondary_color: RGBColor { r: 0, g: 0, b: 0 },
 };
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct AftikColorData {
     primary_color: RGBColor,
     secondary_color: RGBColor,
