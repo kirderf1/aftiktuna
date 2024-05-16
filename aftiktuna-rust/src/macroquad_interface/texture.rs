@@ -370,7 +370,7 @@ struct RawTextureLayer {
 
 impl RawTextureLayer {
     fn load(self) -> Result<TextureLayer, io::Error> {
-        let texture = load_texture(self.texture)?;
+        let texture = load_texture(format!("object/{}", self.texture))?;
         Ok(TextureLayer {
             texture,
             color: self.color,
@@ -387,7 +387,7 @@ impl RawTextureLayer {
 }
 
 fn load_texture_data(path: &str) -> Result<TextureData, Error> {
-    let file = File::open(format!("assets/texture/{path}.json"))?;
+    let file = File::open(format!("assets/texture/object/{path}.json"))?;
     let data = serde_json::from_reader::<_, RawTextureData>(file)?;
     let data = data.load()?;
     Ok(data)
