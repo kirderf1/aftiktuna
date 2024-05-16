@@ -26,7 +26,6 @@ pub struct RenderAssets {
     pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
-    pub portrait: TextureData,
 }
 
 impl RenderAssets {
@@ -436,7 +435,6 @@ pub fn load_assets() -> Result<RenderAssets, Error> {
         aftik_colors: load_aftik_color_data()?,
         left_mouse_icon: load_texture("left_mouse")?,
         side_arrow: load_texture("side_arrow")?,
-        portrait: load_texture_data("portrait")?,
     })
 }
 

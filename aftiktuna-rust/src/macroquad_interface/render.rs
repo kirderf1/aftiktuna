@@ -1,13 +1,11 @@
-use std::collections::HashMap;
-
-use super::texture::{AftikColorData, RenderAssets};
+use super::texture::RenderAssets;
 use super::App;
 use crate::core::area::BackgroundType;
 use crate::core::position::Direction;
 use crate::core::StopType;
-use crate::macroquad_interface::texture::{draw_background, BGData, TextureData};
+use crate::macroquad_interface::texture::draw_background;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
-use crate::view::area::{AftikColorId, RenderData, RenderProperties};
+use crate::view::area::{AftikColorId, RenderData, RenderProperties, TextureType};
 use crate::view::{Frame, Messages};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
@@ -118,13 +116,7 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
             direction,
             ..
         } => {
-            draw_dialogue_frame(
-                assets.lookup_background(background),
-                &assets.portrait,
-                color.clone(),
-                *direction,
-                &assets.aftik_colors,
-            );
+            draw_dialogue_frame(background, color.clone(), *direction, assets);
         }
         Frame::StoreView { view, .. } => {
             store_render::draw_store_view(assets, view);
@@ -167,20 +159,21 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 }
 
 fn draw_dialogue_frame(
-    background: &BGData,
-    portrait: &TextureData,
+    background: &BackgroundType,
     aftik_color: Option<AftikColorId>,
     direction: Direction,
-    aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
+    assets: &mut RenderAssets,
 ) {
     set_default_camera();
-    texture::draw_background_portrait(background);
+    texture::draw_background_portrait(assets.lookup_background(background));
     let pos = match direction {
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),
     };
     texture::draw_object(
-        portrait,
+        assets
+            .object_textures
+            .lookup_texture(&TextureType::portrait()),
         &RenderProperties {
             direction,
             aftik_color,
@@ -188,6 +181,6 @@ fn draw_dialogue_frame(
         },
         false,
         pos,
-        aftik_colors_map,
+        &assets.aftik_colors,
     );
 }

@@ -25,6 +25,11 @@ impl TextureType {
     pub fn small_unknown() -> Self {
         Self::new("small_unknown")
     }
+
+    pub fn portrait() -> Self {
+        Self::new("portrait")
+    }
+
     pub fn aftik() -> Self {
         Self::creature("aftik")
     }
