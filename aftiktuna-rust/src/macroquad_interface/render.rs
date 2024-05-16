@@ -134,24 +134,18 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
 
 fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
     for (pos, data) in camera::position_objects(&render_data.objects, assets) {
-        texture::draw_object(
-            assets.object_textures.lookup_texture(&data.texture_type),
-            &data.properties,
-            false,
-            pos,
-            &assets.aftik_colors,
-        );
+        texture::draw_object(&data.texture_type, &data.properties, false, pos, assets);
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(
-                    assets.object_textures.lookup_texture(item_texture),
+                    item_texture,
                     &RenderProperties {
                         direction: data.properties.direction,
                         ..RenderProperties::default()
                     },
                     true,
                     pos,
-                    &assets.aftik_colors,
+                    assets,
                 );
             }
         }
@@ -159,21 +153,19 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 }
 
 fn draw_dialogue_frame(
-    background: &BackgroundType,
+    background_type: &BackgroundType,
     aftik_color: Option<AftikColorId>,
     direction: Direction,
     assets: &mut RenderAssets,
 ) {
     set_default_camera();
-    texture::draw_background_portrait(assets.lookup_background(background));
+    texture::draw_background_portrait(background_type, assets);
     let pos = match direction {
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),
     };
     texture::draw_object(
-        assets
-            .object_textures
-            .lookup_texture(&TextureType::portrait()),
+        &TextureType::portrait(),
         &RenderProperties {
             direction,
             aftik_color,
@@ -181,6 +173,6 @@ fn draw_dialogue_frame(
         },
         false,
         pos,
-        &assets.aftik_colors,
+        assets,
     );
 }

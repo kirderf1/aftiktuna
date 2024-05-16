@@ -23,7 +23,7 @@ use std::io::Read;
 pub struct RenderAssets {
     backgrounds: HashMap<BackgroundType, BGData>,
     pub object_textures: LazilyLoadedObjectTextures,
-    pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
+    aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
 }
@@ -145,12 +145,13 @@ impl ColorSource {
 }
 
 pub fn draw_object(
-    data: &TextureData,
+    texture_type: &TextureType,
     properties: &RenderProperties,
     use_wield_offset: bool,
     pos: Vec2,
-    aftik_colors_map: &HashMap<AftikColorId, AftikColorData>,
+    assets: &mut RenderAssets,
 ) {
+    let data = assets.object_textures.lookup_texture(texture_type);
     let mut pos = pos;
     if use_wield_offset {
         pos.y += data.wield_offset.y;
@@ -160,7 +161,7 @@ pub fn draw_object(
         }
     }
     for layer in &data.layers {
-        layer.draw(pos, properties, aftik_colors_map);
+        layer.draw(pos, properties, &assets.aftik_colors);
     }
 }
 
@@ -305,8 +306,8 @@ pub fn draw_background(
     }
 }
 
-pub fn draw_background_portrait(background_data: &BGData) {
-    match background_data.portrait {
+pub fn draw_background_portrait(background_type: &BackgroundType, assets: &RenderAssets) {
+    match assets.lookup_background(background_type).portrait {
         BGPortrait::Color(color) => window::clear_background(color),
         BGPortrait::Texture(texture) => draw_texture(texture, 0., 0., WHITE),
     }

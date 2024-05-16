@@ -13,7 +13,7 @@ const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 
 pub fn draw_store_view(assets: &mut RenderAssets, store_view: &StoreView) {
     camera::set_default_camera();
-    texture::draw_background_portrait(assets.lookup_background(&store_view.background));
+    texture::draw_background_portrait(&store_view.background, assets);
     draw_shopkeeper_portrait(assets, store_view.shopkeeper_color.clone());
     draw_store_stock(store_view);
     draw_points_for_store(store_view.points);
@@ -21,9 +21,7 @@ pub fn draw_store_view(assets: &mut RenderAssets, store_view: &StoreView) {
 
 fn draw_shopkeeper_portrait(assets: &mut RenderAssets, aftik_color: Option<AftikColorId>) {
     texture::draw_object(
-        assets
-            .object_textures
-            .lookup_texture(&TextureType::portrait()),
+        &TextureType::portrait(),
         &RenderProperties {
             direction: Direction::Left,
             aftik_color,
@@ -31,7 +29,7 @@ fn draw_shopkeeper_portrait(assets: &mut RenderAssets, aftik_color: Option<Aftik
         },
         false,
         Vec2::new(600., 600.),
-        &assets.aftik_colors,
+        assets,
     );
 }
 
