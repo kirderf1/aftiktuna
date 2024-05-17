@@ -63,7 +63,7 @@ pub struct Symbol(pub char);
 
 impl Symbol {
     pub fn from_name(name: &str) -> Self {
-        Self(name.chars().next().unwrap())
+        Self(name.chars().next().unwrap().to_ascii_uppercase())
     }
 }
 
@@ -250,10 +250,10 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
 
     let mut objects: Vec<ObjectRenderData> = state
         .world
-        .query::<(&Pos, &Symbol)>()
+        .query::<&Pos>()
         .iter()
-        .filter(|&(_, (pos, _))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (pos, &symbol))| build_object_data(state, entity, pos, symbol))
+        .filter(|&(_, pos)| pos.is_in(character_pos.get_area()))
+        .map(|(entity, pos)| build_object_data(state, entity, pos))
         .collect();
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
@@ -272,12 +272,7 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
     }
 }
 
-fn build_object_data(
-    state: &GameState,
-    entity: Entity,
-    pos: &Pos,
-    symbol: Symbol,
-) -> ObjectRenderData {
+fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
     let name_data = NameData::find_for_ref(entity_ref);
     let properties = RenderProperties {
@@ -303,7 +298,10 @@ fn build_object_data(
             .unwrap_or_default(),
         modified_name: get_name(&state.world, entity, capitalize(name_data.base())),
         name: capitalize(name_data.base()),
-        symbol,
+        symbol: entity_ref
+            .get::<&Symbol>()
+            .map(deref_clone)
+            .unwrap_or_else(|| Symbol::from_name(name_data.base())),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: suggestion::interactions_for(entity, state),
         properties,

@@ -94,7 +94,7 @@ pub fn spawn_crew_member(
     color: AftikColorId,
 ) -> Entity {
     world.spawn(
-        aftik_builder(Symbol::from_name(name), Name::known(name), stats)
+        aftik_builder(Name::known(name), stats)
             .add(color)
             .add(CrewMember(crew))
             .build(),
@@ -103,7 +103,6 @@ pub fn spawn_crew_member(
 
 pub fn place_recruitable(
     world: &mut World,
-    symbol: Symbol,
     pos: Pos,
     name: &str,
     stats: Stats,
@@ -113,7 +112,7 @@ pub fn place_recruitable(
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
     world.spawn(
-        aftik_builder(symbol, Name::not_known(name), stats)
+        aftik_builder(Name::not_known(name), stats)
             .add(color)
             .add(Recruitable)
             .add(pos)
@@ -122,10 +121,9 @@ pub fn place_recruitable(
     );
 }
 
-fn aftik_builder(symbol: Symbol, name: Name, stats: Stats) -> EntityBuilder {
+fn aftik_builder(name: Name, stats: Stats) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
-        symbol,
         TextureType::creature("aftik"),
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
@@ -139,7 +137,6 @@ fn aftik_builder(symbol: Symbol, name: Name, stats: Stats) -> EntityBuilder {
 
 pub fn place_shopkeeper(
     world: &mut World,
-    symbol: Symbol,
     pos: Pos,
     shop_items: &[item::Type],
     color: AftikColorId,
@@ -151,7 +148,6 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        symbol,
         TextureType::aftik(),
         OrderWeight::Creature,
         color,

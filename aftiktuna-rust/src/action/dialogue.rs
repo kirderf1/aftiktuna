@@ -3,7 +3,6 @@ use crate::action::Context;
 use crate::core::position::{Blockage, Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{area, position, status, CrewMember, GoingToShip, Recruitable, Waiting};
-use crate::view::area::Symbol;
 use crate::view::name::{Name, NameData};
 use hecs::Entity;
 
@@ -118,9 +117,7 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
     let world = context.mut_world();
     world.remove_one::<Recruitable>(target).unwrap();
     let name = NameData::find(world, target).definite();
-    world
-        .insert(target, (Symbol::from_name(&name), CrewMember(crew)))
-        .unwrap();
+    world.insert_one(target, CrewMember(crew)).unwrap();
 
     action::ok(format!("{name} joined the crew!"))
 }

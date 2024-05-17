@@ -162,14 +162,7 @@ impl SymbolData {
                 items,
                 color,
                 direction,
-            } => creature::place_shopkeeper(
-                builder.world,
-                symbol,
-                pos,
-                items,
-                color.clone(),
-                *direction,
-            )?,
+            } => creature::place_shopkeeper(builder.world, pos, items, color.clone(), *direction)?,
             SymbolData::Recruitable {
                 name,
                 stats,
@@ -177,7 +170,6 @@ impl SymbolData {
                 direction,
             } => creature::place_recruitable(
                 builder.world,
-                symbol,
                 pos,
                 name,
                 stats.clone(),
