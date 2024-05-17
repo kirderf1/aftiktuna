@@ -1,8 +1,8 @@
 use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::{
-    inventory, Aggressive, BlockType, CrewMember, Door, FortunaChest, PricedItem, Recruitable,
-    Shopkeeper, Threatening, Waiting,
+    inventory, status, Aggressive, BlockType, CrewMember, Door, FortunaChest, PricedItem,
+    Recruitable, Shopkeeper, Threatening, Waiting,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;
@@ -192,7 +192,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&Recruitable>() {
         interactions.push(InteractionType::Recruitable);
     }
-    if entity_ref.satisfies::<Or<&Aggressive, &Threatening>>() {
+    if entity_ref.satisfies::<Or<&Aggressive, &Threatening>>() && status::is_alive(entity, world) {
         interactions.push(InteractionType::Foe);
     }
     interactions

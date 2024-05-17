@@ -1,8 +1,7 @@
 use crate::action;
-use crate::action::CrewMember;
-use crate::core::position::Pos;
+use crate::core::position::{MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{self, position, status};
+use crate::core::{self, position, status, Aggressive, Threatening};
 use crate::game_loop::GameState;
 use crate::view::name::NameData;
 use hecs::{Entity, World};
@@ -104,9 +103,9 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     );
 
     if killed {
-        if world.get::<&CrewMember>(target).is_err() {
-            world.despawn(target).unwrap();
-        }
+        let _ = world.remove_one::<MovementBlocking>(target);
+        let _ = world.remove_one::<Aggressive>(target);
+        let _ = world.remove_one::<Threatening>(target);
 
         if hit_type == HitType::GrazingHit {
             action::ok(format!(

@@ -5,7 +5,7 @@ use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::position::Pos;
-use crate::core::{Aggressive, Threatening};
+use crate::core::{status, Aggressive, Threatening};
 use crate::game_loop::GameState;
 use crate::view::name::{NameData, NameQuery};
 
@@ -29,7 +29,7 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
         .query::<&Pos>()
         .with::<Or<&Aggressive, &Threatening>>()
         .iter()
-        .filter(|(_, pos)| pos.is_in(area))
+        .filter(|&(entity, pos)| pos.is_in(area) && status::is_alive(entity, &state.world))
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
 
@@ -47,10 +47,12 @@ fn attack(target_name: &str, state: &GameState) -> Result<CommandResult, String>
         .query::<(&Pos, NameQuery)>()
         .with::<Or<&Aggressive, &Threatening>>()
         .iter()
-        .filter(|&(_, (target_pos, query))| {
-            target_pos.is_in(pos.get_area()) && NameData::from(query).matches(target_name)
+        .filter(|&(entity, (target_pos, query))| {
+            target_pos.is_in(pos.get_area())
+                && status::is_alive(entity, &state.world)
+                && NameData::from(query).matches(target_name)
         })
-        .map(|(target, (&pos, _))| (target, pos))
+        .map(|(entity, (&pos, _))| (entity, pos))
         .collect::<Vec<_>>();
 
     if targets.is_empty() {

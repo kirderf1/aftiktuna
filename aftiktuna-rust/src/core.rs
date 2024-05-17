@@ -98,7 +98,7 @@ pub fn is_safe(world: &World, area: Entity) -> bool {
         .query::<&position::Pos>()
         .with::<Or<&Aggressive, &Threatening>>()
         .iter()
-        .all(|(_, pos)| !pos.is_in(area))
+        .all(|(entity, pos)| !pos.is_in(area) || !status::is_alive(entity, world))
 }
 
 pub fn get_wielded_weapon_modifier(world: &World, attacker: Entity) -> f32 {

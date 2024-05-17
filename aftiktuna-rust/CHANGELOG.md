@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 2.1
 - The displayed name of dead creatures is now prefixed as "Corpse of ..."
+- Non-crew creatures now remain as corpses when they die
 - Locations now use random loot
 - Other minor adjustments to locations
 - Reduced value of blowtorches

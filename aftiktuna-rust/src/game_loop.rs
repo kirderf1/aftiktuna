@@ -268,7 +268,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .collect::<Vec<_>>();
     for entity in entities {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
-        if pos.is_in(player_pos.get_area()) {
+        if pos.is_in(player_pos.get_area()) && status::is_alive(entity, &state.world) {
             if state.world.satisfies::<&core::Threatening>(entity).unwrap() {
                 state
                     .world

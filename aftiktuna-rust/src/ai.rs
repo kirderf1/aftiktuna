@@ -110,7 +110,9 @@ fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>)
         .query::<&Pos>()
         .with::<&Aggressive>()
         .iter()
-        .filter(|(_, foe_pos)| foe_pos.is_in(pos.get_area()))
+        .filter(|&(entity, foe_pos)| {
+            foe_pos.is_in(pos.get_area()) && status::is_alive(entity, world)
+        })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     if !foes.is_empty() {
