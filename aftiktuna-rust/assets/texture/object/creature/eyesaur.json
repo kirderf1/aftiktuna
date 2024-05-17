@@ -1,3 +1,6 @@
 {
-  "layers": [{ "texture": "creature/eyesaur", "if_alive": true }]
+  "layers": [
+    { "texture": "creature/eyesaur", "if_alive": true },
+    { "texture": "creature/eyesaur_corpse", "y_offset": 10, "if_alive": false }
+  ]
 }
