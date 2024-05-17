@@ -31,6 +31,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Some locations now have multiple possible landing spots
 - Texture loading errors are now displayed in the game window
 
+### Fixed
+
+- Reassign symbols on conflict between labels in the textual version of the game
+
 ### Contributors for this release
 
 - kirderf1

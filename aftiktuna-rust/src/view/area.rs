@@ -13,6 +13,7 @@ use crate::view::{capitalize, Messages};
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
+use std::collections::HashMap;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -57,7 +58,7 @@ impl Default for TextureType {
     }
 }
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Symbol(pub char);
 
 impl Symbol {
@@ -94,16 +95,14 @@ pub(super) fn area_view_messages(render_data: &RenderData) -> Messages {
 
 fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
     let area_size = render_data.area_size;
-    let mut symbols_by_pos = init_symbol_vectors(area_size);
-    let mut labels = Vec::new();
+    let mut symbols_by_pos: Vec<Vec<(Symbol, OrderWeight)>> = init_symbol_vectors(area_size);
+    let mut labels: HashMap<Symbol, String> = HashMap::new();
 
     for object in &render_data.objects {
-        symbols_by_pos[object.coord].push((object.symbol.0, object.weight));
+        let symbol =
+            insert_label_at_available_symbol(object.symbol, &object.modified_name, &mut labels);
 
-        let label = format!("{}: {}", object.symbol.0, object.modified_name,);
-        if !labels.contains(&label) {
-            labels.push(label);
-        }
+        symbols_by_pos[object.coord].push((symbol, object.weight));
     }
 
     for symbol_column in &mut symbols_by_pos {
@@ -116,11 +115,17 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
         let mut symbols = vec![base_symbol; area_size];
         for pos in 0..area_size {
             if let Some(&(symbol, _)) = symbols_by_pos[pos].get(row) {
-                symbols[pos] = symbol;
+                symbols[pos] = symbol.0;
             }
         }
         lines.push(symbols.iter().collect::<String>());
     }
+
+    let mut labels = labels
+        .into_iter()
+        .map(|(Symbol(c), label)| format!("{c}: {label}"))
+        .collect::<Vec<_>>();
+    labels.sort();
     for labels in labels.chunks(3) {
         lines.push(labels.join("   "));
     }
@@ -132,6 +137,37 @@ fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
         symbols.push(Vec::new());
     }
     symbols
+}
+
+const BACKUP_CHARS: [char; 56] = [
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
+    'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'A', 'B', 'C', 'D', 'E',
+    'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+];
+
+fn insert_label_at_available_symbol(
+    original_symbol: Symbol,
+    label: &str,
+    labels: &mut HashMap<Symbol, String>,
+) -> Symbol {
+    for symbol in [original_symbol]
+        .into_iter()
+        .chain(BACKUP_CHARS.into_iter().map::<Symbol, _>(Symbol))
+    {
+        let existing_label = labels.get(&symbol);
+
+        if existing_label.is_none() {
+            labels.insert(symbol, label.to_owned());
+            return symbol;
+        }
+        let existing_label = existing_label.unwrap();
+        if existing_label.eq(label) {
+            return symbol;
+        }
+    }
+
+    eprintln!("Too many unique symbols. Some symbols will overlap.");
+    original_symbol
 }
 
 fn get_name(world: &World, entity: Entity, name: String) -> String {
