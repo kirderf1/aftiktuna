@@ -4,7 +4,7 @@ use crate::core::area::{Area, BackgroundType};
 use crate::core::inventory::Held;
 use crate::core::item::CanWield;
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::status::Health;
+use crate::core::status::{self, Health};
 use crate::core::{inventory, BlockType, Door, IsCut};
 use crate::deref_clone;
 use crate::game_loop::GameState;
@@ -173,9 +173,14 @@ fn insert_label_at_available_symbol(
 fn get_name(world: &World, entity: Entity, name: String) -> String {
     if let Ok(door_pair) = world.get::<&Door>(entity).map(|door| door.door_pair) {
         if let Ok(blocking) = world.get::<&BlockType>(door_pair) {
-            return format!("{} ({})", name, blocking.description());
+            return format!("{name} ({})", blocking.description());
         }
     }
+
+    if !status::is_alive(entity, world) {
+        return format!("Corpse of {name}");
+    }
+
     name
 }
 
