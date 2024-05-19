@@ -1,3 +1,6 @@
 {
-  "layers": [{ "texture": "creature/scarvie", "if_alive": true }]
+  "layers": [
+    { "texture": "creature/scarvie", "if_alive": true },
+    { "texture": "creature/scarvie_corpse", "y_offset": 5, "if_alive": false }
+  ]
 }
