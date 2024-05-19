@@ -1,3 +1,6 @@
 {
-  "layers": [{ "texture": "creature/goblin", "if_alive": true }]
+  "layers": [
+    { "texture": "creature/goblin", "if_alive": true },
+    { "texture": "creature/goblin_corpse", "if_alive": false }
+  ]
 }
