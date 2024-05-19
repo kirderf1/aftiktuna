@@ -145,9 +145,10 @@ pub fn wield(
             .exchange_one::<Pos, _>(item, Held::in_hand(performer))
             .expect("Tried moving item");
 
+        core::trigger_aggression_in_area(world, item_pos.get_area());
+
         action::ok(format!(
-            "{} picked up and wielded {}.",
-            performer_name,
+            "{performer_name} picked up and wielded {}.",
             item_name.definite()
         ))
     }
