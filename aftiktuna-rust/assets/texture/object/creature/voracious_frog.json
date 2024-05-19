@@ -1,5 +1,6 @@
 {
   "layers": [
-    { "texture": "creature/voracious_frog", "y_offset": 10, "if_alive": true }
+    { "texture": "creature/voracious_frog", "y_offset": 10, "if_alive": true },
+    { "texture": "creature/voracious_frog_corpse", "y_offset": 5, "if_alive": false }
   ]
 }
