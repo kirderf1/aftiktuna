@@ -1,18 +1,17 @@
+use self::area::RenderData;
+pub use self::status::print_full_status;
 use crate::core::area::{Area, BackgroundId};
+use crate::core::name::NameData;
 use crate::core::position::{Direction, Pos};
 use crate::core::{AftikColorId, IsTrading, StopType};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::location::Choice;
-use area::RenderData;
 use hecs::{Entity, World};
-use name::NameData;
 use serde::{Deserialize, Serialize};
-pub use status::print_full_status;
 use std::mem::take;
 
 pub mod area;
-pub mod name;
 mod status;
 
 mod text {
@@ -55,11 +54,11 @@ mod text {
 pub use text::{capitalize, Messages};
 
 mod store {
-    use super::name::{NameData, NameQuery};
     use super::{status, text, Buffer, Frame, Messages, StatusCache};
     use crate::core::area::{Area, BackgroundId};
     use crate::core::inventory::Held;
     use crate::core::item::Price;
+    use crate::core::name::{NameData, NameQuery};
     use crate::core::position::Pos;
     use crate::core::{AftikColorId, PricedItem, Shopkeeper};
     use crate::deref_clone;

@@ -4,10 +4,10 @@ use crate::command::CommandResult;
 use crate::core::area::{Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FuelCan;
+use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::{area, inventory, position, status, CrewMember, FortunaChest, Shopkeeper};
 use crate::game_loop::GameState;
-use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
 use hecs::{Entity, World};
 

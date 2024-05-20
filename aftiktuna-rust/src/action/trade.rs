@@ -2,10 +2,9 @@ use crate::action;
 use crate::action::CrewMember;
 use crate::core::inventory::Held;
 use crate::core::item::Price;
+use crate::core::name::{self, NameData};
 use crate::core::position::Pos;
 use crate::core::{item, position, IsTrading, Points, PricedItem, Shopkeeper};
-use crate::view::name;
-use crate::view::name::NameData;
 use hecs::{Entity, Ref, World};
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {

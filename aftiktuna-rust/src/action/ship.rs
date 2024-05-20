@@ -2,10 +2,10 @@ use crate::action;
 use crate::action::CrewMember;
 use crate::core::area::{FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::item::FuelCan;
+use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::{inventory, position};
 use crate::game_loop::GameState;
-use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 
 pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {

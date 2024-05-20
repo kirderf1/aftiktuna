@@ -1,5 +1,5 @@
-use crate::core::area::Area;
-use crate::view::name::NameData;
+use super::area::Area;
+use super::name::NameData;
 use hecs::{Entity, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min, Ordering};

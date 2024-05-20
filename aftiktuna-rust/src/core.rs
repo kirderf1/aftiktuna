@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub mod area;
 pub mod inventory;
 pub mod item;
+pub mod name;
 pub mod position;
 pub mod status;
 

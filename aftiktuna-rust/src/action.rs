@@ -1,9 +1,9 @@
 use crate::core::item::Type as ItemType;
+use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::{position, status, CrewMember, FortunaChest, OpenedChest};
 use crate::game_loop::GameState;
 use crate::view;
-use crate::view::name::NameData;
 use crate::view::Frame;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};

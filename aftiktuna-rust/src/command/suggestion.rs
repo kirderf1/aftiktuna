@@ -1,5 +1,6 @@
 use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
+use crate::core::name::NameData;
 use crate::core::{
     inventory, status, Aggressive, BlockType, CrewMember, Door, FortunaChest, PricedItem,
     Recruitable, Shopkeeper, Threatening, Waiting,
@@ -7,7 +8,6 @@ use crate::core::{
 use crate::game_loop::GameState;
 use crate::location::Choice;
 use crate::view::area::ItemProfile;
-use crate::view::name::NameData;
 use hecs::{Entity, Or};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;

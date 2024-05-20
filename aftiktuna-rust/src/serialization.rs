@@ -147,7 +147,6 @@ macro_rules! world_serialization {
 pub mod world {
     use crate::action::Action;
     use crate::ai;
-    use crate::core;
     use crate::core::area::{Area, Ship, ShipControls};
     use crate::core::inventory::Held;
     use crate::core::item::{
@@ -155,7 +154,7 @@ pub mod world {
     };
     use crate::core::position::{Direction, MovementBlocking, Pos};
     use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
-    use crate::view::name::{Name, Noun};
+    use crate::core::{self, name};
 
     world_serialization!(
         Area, Area;
@@ -165,8 +164,8 @@ pub mod world {
         Direction, Direction;
         MovementBlocking, MovementBlocking;
 
-        Name, Name;
-        Noun, Noun;
+        name::Name, Name;
+        name::Noun, Noun;
         core::Symbol, Symbol;
         core::ModelId, TextureType;
         core::OrderWeight, OrderWeight;

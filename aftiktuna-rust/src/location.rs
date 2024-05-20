@@ -1,4 +1,5 @@
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
+use crate::core::name::Noun;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{
@@ -6,7 +7,6 @@ use crate::core::{
     Points, Symbol, Threatening,
 };
 use crate::game_loop::GameState;
-use crate::view::name::Noun;
 use crate::view::Messages;
 use door::DoorInfo;
 use hecs::{CommandBuffer, Entity, World};

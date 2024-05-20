@@ -3,11 +3,11 @@ use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit};
+use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::Health;
 use crate::core::{BlockType, Door};
 use crate::game_loop::GameState;
-use crate::view::name::{NameData, NameQuery};
 use crate::{command, core};
 use hecs::{Entity, World};
 

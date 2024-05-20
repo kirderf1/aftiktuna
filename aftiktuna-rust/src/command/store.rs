@@ -3,8 +3,8 @@ use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
+use crate::core::name::{NameData, NameQuery};
 use crate::core::{PricedItem, Shopkeeper};
-use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 
 pub fn parse(

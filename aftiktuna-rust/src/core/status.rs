@@ -1,5 +1,5 @@
-use crate::core::position::Pos;
-use crate::view::name::NameData;
+use super::name::NameData;
+use super::position::Pos;
 use crate::view::Messages;
 use hecs::{CommandBuffer, ComponentError, Entity, World};
 use serde::{Deserialize, Serialize};

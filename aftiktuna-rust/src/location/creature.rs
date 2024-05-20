@@ -1,10 +1,10 @@
+use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{
     item, AftikColorId, Aggressive, CrewMember, ModelId, OrderWeight, PricedItem, Recruitable,
     Shopkeeper, Symbol, Threatening,
 };
-use crate::view::name::{Name, Noun};
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
 

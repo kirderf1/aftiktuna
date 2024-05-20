@@ -1,9 +1,9 @@
 use crate::action;
 use crate::action::Context;
+use crate::core::name::{Name, NameData};
 use crate::core::position::{Blockage, Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{area, position, status, CrewMember, GoingToShip, Recruitable, Waiting};
-use crate::view::name::{Name, NameData};
 use hecs::Entity;
 
 pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -> action::Result {

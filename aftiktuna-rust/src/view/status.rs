@@ -1,7 +1,7 @@
+use crate::core::name::{self, NameData};
 use crate::core::status::{Health, Stats};
 use crate::core::{inventory, CrewMember, Points};
-use crate::view::name::NameData;
-use crate::view::{capitalize, name, Messages};
+use crate::view::{capitalize, Messages};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 

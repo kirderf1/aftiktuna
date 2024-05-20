@@ -2,10 +2,10 @@ use crate::action;
 use crate::action::Action;
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
+use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::status::Health;
 use crate::core::{self, inventory, position, status};
-use crate::view::name::{NameData, NameQuery};
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {

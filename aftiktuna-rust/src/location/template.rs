@@ -1,9 +1,9 @@
+use super::door::{place_pair, DoorInfo, DoorType};
+use super::{creature, door, Area, BackgroundId};
+use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{item, AftikColorId, BlockType, FortunaChest, ModelId, OrderWeight, Symbol};
-use crate::location::door::{place_pair, DoorInfo, DoorType};
-use crate::location::{creature, door, Area, BackgroundId};
-use crate::view::name::Noun;
 use hecs::World;
 use rand::distributions::WeightedIndex;
 use rand::seq::SliceRandom;
