@@ -8,7 +8,7 @@ use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::texture::Texture2D;
 use serde::{Deserialize, Serialize};
 
-use crate::core::area::BackgroundType;
+use crate::core::area::BackgroundId;
 
 pub struct BGData {
     pub texture: BGTexture,
@@ -88,16 +88,16 @@ impl RawBGPortrait {
     }
 }
 
-pub fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, super::Error> {
+pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {
     let file = File::open("assets/texture/background/backgrounds.json")?;
-    let raw_backgrounds: HashMap<BackgroundType, RawBGData> = serde_json::from_reader(file)?;
+    let raw_backgrounds: HashMap<BackgroundId, RawBGData> = serde_json::from_reader(file)?;
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
         insert_or_log(&mut backgrounds, bg_type, raw_data.load());
     }
 
     backgrounds
-        .get(&BackgroundType::blank())
+        .get(&BackgroundId::blank())
         .ok_or(super::Error::MissingBlankBackground)?;
 
     Ok(backgrounds)

@@ -1,6 +1,6 @@
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
-use crate::core::area::{Area, BackgroundType};
+use crate::core::area::{Area, BackgroundId};
 use crate::core::inventory::Held;
 use crate::core::item::CanWield;
 use crate::core::position::{Coord, Direction, Pos};
@@ -188,7 +188,7 @@ fn get_name(world: &World, entity: Entity, name: String) -> String {
 pub struct RenderData {
     pub area_label: String,
     pub area_size: Coord,
-    pub background: BackgroundType,
+    pub background: BackgroundId,
     pub background_offset: Option<Coord>,
     pub character_coord: Coord,
     pub inventory: Vec<ItemProfile>,

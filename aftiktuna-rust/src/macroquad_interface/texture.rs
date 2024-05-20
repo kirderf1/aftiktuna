@@ -1,4 +1,4 @@
-use crate::core::area::BackgroundType;
+use crate::core::area::BackgroundId;
 use crate::core::position::{Coord, Direction};
 use crate::view::area::RenderProperties;
 use crate::view::area::{AftikColorId, ModelId, ObjectRenderData};
@@ -24,7 +24,7 @@ mod background;
 mod model;
 
 pub struct RenderAssets {
-    backgrounds: HashMap<BackgroundType, BGData>,
+    backgrounds: HashMap<BackgroundId, BGData>,
     pub models: LazilyLoadedModels,
     aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: Texture2D,
@@ -32,10 +32,10 @@ pub struct RenderAssets {
 }
 
 impl RenderAssets {
-    pub fn lookup_background(&self, texture_type: &BackgroundType) -> &BGData {
+    pub fn lookup_background(&self, texture_id: &BackgroundId) -> &BGData {
         self.backgrounds
-            .get(texture_type)
-            .unwrap_or_else(|| self.backgrounds.get(&BackgroundType::blank()).unwrap())
+            .get(texture_id)
+            .unwrap_or_else(|| self.backgrounds.get(&BackgroundId::blank()).unwrap())
     }
 }
 
@@ -147,13 +147,13 @@ impl From<RGBColor> for Color {
 }
 
 pub fn draw_background(
-    texture_type: &BackgroundType,
+    texture_id: &BackgroundId,
     offset: Coord,
     camera_space: Rect,
     assets: &RenderAssets,
 ) {
     let offset = offset as f32 * 120.;
-    match assets.lookup_background(texture_type).texture {
+    match assets.lookup_background(texture_id).texture {
         BGTexture::Centered(texture) => draw_texture(texture, camera_space.x - offset, 0., WHITE),
         BGTexture::Fixed(texture) => draw_texture(texture, -60. - offset, 0., WHITE),
         BGTexture::Repeating(texture) => {
@@ -165,8 +165,8 @@ pub fn draw_background(
     }
 }
 
-pub fn draw_background_portrait(background_type: &BackgroundType, assets: &RenderAssets) {
-    match assets.lookup_background(background_type).portrait {
+pub fn draw_background_portrait(background_id: &BackgroundId, assets: &RenderAssets) {
+    match assets.lookup_background(background_id).portrait {
         BGPortrait::Color(color) => window::clear_background(color),
         BGPortrait::Texture(texture) => draw_texture(texture, 0., 0., WHITE),
     }

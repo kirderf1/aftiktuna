@@ -6,14 +6,14 @@ use serde::{Deserialize, Serialize};
 pub struct Area {
     pub size: Coord,
     pub label: String,
-    pub background: BackgroundType,
+    pub background: BackgroundId,
     pub background_offset: Option<Coord>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct BackgroundType(String);
+pub struct BackgroundId(String);
 
-impl BackgroundType {
+impl BackgroundId {
     pub fn blank() -> Self {
         Self::new("blank")
     }
@@ -25,7 +25,7 @@ impl BackgroundType {
     }
 }
 
-impl Default for BackgroundType {
+impl Default for BackgroundId {
     fn default() -> Self {
         Self::blank()
     }

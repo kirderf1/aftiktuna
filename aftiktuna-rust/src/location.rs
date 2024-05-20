@@ -1,4 +1,4 @@
-use crate::core::area::{Area, BackgroundType, FuelAmount, Ship, ShipControls, ShipStatus};
+use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, Aggressive, CrewMember, Door, DoorKind, Points, Threatening};
@@ -193,7 +193,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 5,
-        background: BackgroundType::new("ship"),
+        background: BackgroundId::new("ship"),
         background_offset: None,
     },));
     world

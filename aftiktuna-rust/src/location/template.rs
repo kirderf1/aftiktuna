@@ -2,7 +2,7 @@ use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{item, BlockType, FortunaChest};
 use crate::location::door::{place_pair, DoorInfo, DoorType};
-use crate::location::{creature, door, Area, BackgroundType};
+use crate::location::{creature, door, Area, BackgroundId};
 use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use hecs::World;
@@ -38,7 +38,7 @@ impl LocationData {
 struct AreaData {
     name: String,
     #[serde(default)]
-    background: BackgroundType,
+    background: BackgroundId,
     background_offset: Option<Coord>,
     objects: Vec<String>,
     symbols: HashMap<char, SymbolData>,

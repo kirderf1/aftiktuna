@@ -1,4 +1,4 @@
-use crate::core::area::{Area, BackgroundType};
+use crate::core::area::{Area, BackgroundId};
 use crate::core::position::{Direction, Pos};
 use crate::core::{IsTrading, StopType};
 use crate::deref_clone;
@@ -58,7 +58,7 @@ mod store {
     use super::area::AftikColorId;
     use super::name::{NameData, NameQuery};
     use super::{status, text, Buffer, Frame, Messages, StatusCache};
-    use crate::core::area::{Area, BackgroundType};
+    use crate::core::area::{Area, BackgroundId};
     use crate::core::inventory::Held;
     use crate::core::item::Price;
     use crate::core::position::Pos;
@@ -71,7 +71,7 @@ mod store {
     pub struct StoreView {
         pub items: Vec<PricedItem>,
         pub shopkeeper_color: Option<AftikColorId>,
-        pub background: BackgroundType,
+        pub background: BackgroundId,
         pub points: i32,
         pub sellable_items: Vec<NameData>,
     }
@@ -210,7 +210,7 @@ pub enum Frame {
     },
     Dialogue {
         messages: Vec<String>,
-        background: BackgroundType,
+        background: BackgroundId,
         speaker: NameData,
         color: Option<AftikColorId>,
         direction: Direction,

@@ -1,6 +1,6 @@
 use super::texture::RenderAssets;
 use super::App;
-use crate::core::area::BackgroundType;
+use crate::core::area::BackgroundId;
 use crate::core::position::Direction;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::draw_background;
@@ -87,7 +87,7 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
             draw_background(
-                &BackgroundType::location_choice(),
+                &BackgroundId::location_choice(),
                 0,
                 camera::default_camera_space(),
                 assets,
@@ -153,7 +153,7 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 }
 
 fn draw_dialogue_frame(
-    background_type: &BackgroundType,
+    background_type: &BackgroundId,
     aftik_color: Option<AftikColorId>,
     direction: Direction,
     assets: &mut RenderAssets,
