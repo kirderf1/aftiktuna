@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Aftik colors are no longer hardcoded, and their color values are now defined in "aftik_colors.json"
 - Some locations now have multiple possible landing spots
 - Texture loading errors are now displayed in the game window
+- All command suggestions except for "buy" now show up when clicking anywhere in the store
 
 ### Fixed
 

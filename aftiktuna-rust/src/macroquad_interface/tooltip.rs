@@ -89,7 +89,7 @@ fn find_raw_command_suggestions(
         Frame::AreaView { render_data, .. } => {
             let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
 
-            return camera::position_objects(&render_data.objects, assets)
+            camera::position_objects(&render_data.objects, assets)
                 .into_iter()
                 .filter(|(pos, data)| {
                     texture::get_rect_for_object(data, assets, *pos).contains(offset_pos)
@@ -99,20 +99,15 @@ fn find_raw_command_suggestions(
                         interaction.commands(&data.name, &render_data.inventory)
                     })
                 })
-                .collect::<Vec<_>>();
+                .collect::<Vec<_>>()
         }
-        Frame::StoreView { view, .. } => {
-            if let Some(priced_item) = store_render::find_stock_at(mouse_pos, view) {
-                return suggestion::for_priced_item(priced_item, &view.sellable_items);
-            }
-        }
-        Frame::LocationChoice(choice) => {
-            return suggestion::for_location_choice(choice);
-        }
-        _ => {}
+        Frame::StoreView { view, .. } => suggestion::for_store(
+            store_render::find_stock_at(mouse_pos, view),
+            &view.sellable_items,
+        ),
+        Frame::LocationChoice(choice) => suggestion::for_location_choice(choice),
+        _ => vec![],
     }
-
-    vec![]
 }
 
 pub fn draw(

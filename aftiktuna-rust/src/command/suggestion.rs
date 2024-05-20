@@ -198,9 +198,8 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     interactions
 }
 
-pub fn for_priced_item(priced_item: &PricedItem, sellable_items: &[NameData]) -> Vec<Suggestion> {
-    vec![
-        simple!("buy {}", priced_item.item.noun_data().singular()),
+pub fn for_store(priced_item: Option<&PricedItem>, sellable_items: &[NameData]) -> Vec<Suggestion> {
+    let mut suggestions = vec![
         simple!("status"),
         simple!("exit"),
         recursive!(sellable_items.iter().map(NameData::base), "sell {}"),
@@ -215,7 +214,11 @@ pub fn for_priced_item(priced_item: &PricedItem, sellable_items: &[NameData]) ->
                 .map(NameData::plural),
             "sell all {}"
         ),
-    ]
+    ];
+    if let Some(priced_item) = priced_item {
+        suggestions.push(simple!("buy {}", priced_item.item.noun_data().singular()));
+    }
+    suggestions
 }
 
 pub fn for_location_choice(choice: &Choice) -> Vec<Suggestion> {
