@@ -1,4 +1,4 @@
-use crate::view::area::{ModelId, OrderWeight, Symbol};
+use super::{ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use crate::view::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};

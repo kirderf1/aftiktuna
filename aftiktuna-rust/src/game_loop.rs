@@ -10,11 +10,10 @@ use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, inventory, status, CrewMember, OpenedChest, StopType};
+use crate::core::{self, inventory, status, CrewMember, OpenedChest, OrderWeight, StopType};
 use crate::game_interface::Phase;
 use crate::location::{self, LocationTracker, PickResult};
 use crate::serialization;
-use crate::view::area::OrderWeight;
 use crate::view::name::{NameData, NameQuery};
 use crate::view::{self, Frame, Messages, StatusCache};
 

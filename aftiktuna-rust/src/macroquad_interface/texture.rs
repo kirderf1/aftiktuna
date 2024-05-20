@@ -1,7 +1,7 @@
 use crate::core::area::BackgroundId;
 use crate::core::position::{Coord, Direction};
-use crate::view::area::RenderProperties;
-use crate::view::area::{AftikColorId, ModelId, ObjectRenderData};
+use crate::core::{AftikColorId, ModelId};
+use crate::view::area::{ObjectRenderData, RenderProperties};
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};

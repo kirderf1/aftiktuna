@@ -1,10 +1,10 @@
 use crate::core::area::{Area, BackgroundId};
 use crate::core::position::{Direction, Pos};
-use crate::core::{IsTrading, StopType};
+use crate::core::{AftikColorId, IsTrading, StopType};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::location::Choice;
-use area::{AftikColorId, RenderData};
+use area::RenderData;
 use hecs::{Entity, World};
 use name::NameData;
 use serde::{Deserialize, Serialize};
@@ -55,14 +55,13 @@ mod text {
 pub use text::{capitalize, Messages};
 
 mod store {
-    use super::area::AftikColorId;
     use super::name::{NameData, NameQuery};
     use super::{status, text, Buffer, Frame, Messages, StatusCache};
     use crate::core::area::{Area, BackgroundId};
     use crate::core::inventory::Held;
     use crate::core::item::Price;
     use crate::core::position::Pos;
-    use crate::core::{PricedItem, Shopkeeper};
+    use crate::core::{AftikColorId, PricedItem, Shopkeeper};
     use crate::deref_clone;
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};

@@ -1,9 +1,8 @@
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::Stats;
-use crate::core::{item, BlockType, FortunaChest};
+use crate::core::{item, AftikColorId, BlockType, FortunaChest, ModelId, OrderWeight, Symbol};
 use crate::location::door::{place_pair, DoorInfo, DoorType};
 use crate::location::{creature, door, Area, BackgroundId};
-use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use hecs::World;
 use rand::distributions::WeightedIndex;

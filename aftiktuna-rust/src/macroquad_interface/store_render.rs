@@ -1,9 +1,9 @@
 use crate::core::position::Direction;
-use crate::core::PricedItem;
+use crate::core::{AftikColorId, ModelId, PricedItem};
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;
-use crate::view::area::{AftikColorId, ModelId, RenderProperties};
+use crate::view::area::RenderProperties;
 use crate::view::StoreView;
 use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::math::{Rect, Vec2};

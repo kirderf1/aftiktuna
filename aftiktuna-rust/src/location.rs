@@ -1,9 +1,11 @@
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
-use crate::core::{inventory, item, Aggressive, CrewMember, Door, DoorKind, Points, Threatening};
+use crate::core::{
+    inventory, item, AftikColorId, Aggressive, CrewMember, Door, DoorKind, ModelId, OrderWeight,
+    Points, Symbol, Threatening,
+};
 use crate::game_loop::GameState;
-use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use crate::view::Messages;
 use door::DoorInfo;

@@ -5,7 +5,7 @@ use crate::core::inventory::Held;
 use crate::core::item::CanWield;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
-use crate::core::{inventory, BlockType, Door, IsCut};
+use crate::core::{inventory, AftikColorId, BlockType, Door, IsCut, ModelId, OrderWeight, Symbol};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::name::NameData;
@@ -15,76 +15,6 @@ use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::collections::HashMap;
 use std::ops::Deref;
-
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct ModelId(String);
-
-impl ModelId {
-    pub fn unknown() -> Self {
-        Self::new("unknown")
-    }
-    pub fn small_unknown() -> Self {
-        Self::new("small_unknown")
-    }
-
-    pub fn portrait() -> Self {
-        Self::new("portrait")
-    }
-
-    pub fn aftik() -> Self {
-        Self::creature("aftik")
-    }
-
-    pub fn new(name: &str) -> Self {
-        Self(name.to_owned())
-    }
-
-    pub fn item(name: &str) -> Self {
-        Self(format!("item/{name}"))
-    }
-
-    pub fn creature(name: &str) -> Self {
-        Self(format!("creature/{name}"))
-    }
-
-    pub fn path(&self) -> &str {
-        &self.0
-    }
-}
-
-impl Default for ModelId {
-    fn default() -> Self {
-        Self::unknown()
-    }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Symbol(pub char);
-
-impl Symbol {
-    pub fn from_name(name: &str) -> Self {
-        Self(name.chars().next().unwrap().to_ascii_uppercase())
-    }
-}
-
-#[derive(Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
-pub enum OrderWeight {
-    Item,
-    Controlled,
-    #[default]
-    Creature,
-    Background,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub struct AftikColorId(String);
-
-impl AftikColorId {
-    pub fn new(name: &str) -> Self {
-        AftikColorId(name.to_owned())
-    }
-}
 
 pub(super) fn area_view_messages(render_data: &RenderData) -> Messages {
     let mut messages = Messages::default();

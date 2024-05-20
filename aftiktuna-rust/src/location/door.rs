@@ -1,6 +1,5 @@
 use crate::core::position::Pos;
-use crate::core::{BlockType, Door, DoorKind};
-use crate::view::area::{ModelId, OrderWeight, Symbol};
+use crate::core::{BlockType, Door, DoorKind, ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};

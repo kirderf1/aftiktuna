@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{AftikColorData, Error};
 use crate::core::position::Direction;
-use crate::view::area::{ModelId, RenderProperties};
+use crate::core::ModelId;
+use crate::view::area::RenderProperties;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
