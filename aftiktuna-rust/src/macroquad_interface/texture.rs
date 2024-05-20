@@ -8,7 +8,7 @@ use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::prelude::ImageFormat;
 use egui_macroquad::macroquad::texture::{draw_texture, Texture2D};
 use egui_macroquad::macroquad::window;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::Error as JsonError;
 use std::borrow::Borrow;
 use std::collections::HashMap;
@@ -39,47 +39,18 @@ impl RenderAssets {
     }
 }
 
-#[derive(Copy, Clone, Default, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum ColorSource {
-    #[default]
-    Uncolored,
-    Primary,
-    Secondary,
-}
-
-impl ColorSource {
-    fn get_color(
-        self,
-        aftik_color: Option<&AftikColorId>,
-        aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
-    ) -> Color {
-        let mut aftik_color_data = || {
-            aftik_color.map_or(DEFAULT_COLOR, |aftik_color| {
-                lookup_or_log_aftik_color(aftik_color, aftik_colors_map)
-            })
-        };
-
-        match self {
-            ColorSource::Uncolored => WHITE,
-            ColorSource::Primary => aftik_color_data().primary_color.into(),
-            ColorSource::Secondary => aftik_color_data().secondary_color.into(),
-        }
-    }
-}
-
 fn lookup_or_log_aftik_color(
     aftik_color: &AftikColorId,
     aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
 ) -> AftikColorData {
-    match aftik_colors_map.get(aftik_color) {
-        Some(color_data) => color_data.clone(),
-        None => {
+    aftik_colors_map
+        .get(aftik_color)
+        .cloned()
+        .unwrap_or_else(|| {
             eprintln!("Missing aftik color data for color {aftik_color:?}!");
             aftik_colors_map.insert(aftik_color.clone(), DEFAULT_COLOR);
             DEFAULT_COLOR
-        }
-    }
+        })
 }
 
 pub fn draw_object(
@@ -98,8 +69,14 @@ pub fn draw_object(
             Direction::Right => model.wield_offset.x,
         }
     }
+    let aftik_color_data = properties
+        .aftik_color
+        .as_ref()
+        .map_or(DEFAULT_COLOR, |aftik_color| {
+            lookup_or_log_aftik_color(aftik_color, &mut assets.aftik_colors)
+        });
     for layer in &model.layers {
-        layer.draw(pos, properties, &mut assets.aftik_colors);
+        layer.draw(pos, properties, &aftik_color_data);
     }
 }
 

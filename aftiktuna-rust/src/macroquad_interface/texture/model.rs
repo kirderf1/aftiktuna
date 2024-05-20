@@ -1,10 +1,11 @@
+use egui_macroquad::macroquad::color::{self, Color};
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::texture::{self, DrawTextureParams, Texture2D};
 use serde::{Deserialize, Serialize};
 
-use super::{AftikColorData, ColorSource, Error};
+use super::{AftikColorData, Error};
 use crate::core::position::Direction;
-use crate::view::area::{AftikColorId, ModelId, RenderProperties};
+use crate::view::area::{ModelId, RenderProperties};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
@@ -51,7 +52,7 @@ impl TextureLayer {
         &self,
         pos: Vec2,
         properties: &RenderProperties,
-        aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
+        aftik_color_data: &AftikColorData,
     ) {
         if !self.is_active(properties) {
             return;
@@ -63,8 +64,7 @@ impl TextureLayer {
             self.texture,
             x,
             y,
-            self.color
-                .get_color(properties.aftik_color.as_ref(), aftik_colors_map),
+            self.color.get_color(aftik_color_data),
             DrawTextureParams {
                 dest_size: Some(self.dest_size),
                 flip_x: self.directional && properties.direction == Direction::Left,
@@ -144,6 +144,25 @@ impl RawTextureLayer {
             if_cut: self.if_cut,
             if_alive: self.if_alive,
         })
+    }
+}
+
+#[derive(Copy, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum ColorSource {
+    #[default]
+    Uncolored,
+    Primary,
+    Secondary,
+}
+
+impl ColorSource {
+    fn get_color(self, aftik_color_data: &AftikColorData) -> Color {
+        match self {
+            ColorSource::Uncolored => color::WHITE,
+            ColorSource::Primary => aftik_color_data.primary_color.into(),
+            ColorSource::Secondary => aftik_color_data.secondary_color.into(),
+        }
     }
 }
 
