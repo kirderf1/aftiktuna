@@ -3,7 +3,7 @@ use crate::core::status::Stats;
 use crate::core::{item, BlockType, FortunaChest};
 use crate::location::door::{place_pair, DoorInfo, DoorType};
 use crate::location::{creature, door, Area, BackgroundType};
-use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
+use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use hecs::World;
 use rand::distributions::WeightedIndex;
@@ -238,7 +238,7 @@ fn place_door(
     let door_info = DoorInfo {
         pos,
         symbol,
-        texture_type: display_type.into(),
+        model_id: display_type.into(),
         kind: display_type.into(),
         name: display_type.noun(adjective),
     };
@@ -274,7 +274,7 @@ fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
 fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     world.spawn((
         symbol,
-        TextureType::new("fortuna_chest"),
+        ModelId::new("fortuna_chest"),
         OrderWeight::Background,
         Noun::new("fortuna chest", "fortuna chests"),
         pos,

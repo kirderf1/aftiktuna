@@ -1,4 +1,4 @@
-use crate::view::area::{OrderWeight, Symbol, TextureType};
+use crate::view::area::{ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use crate::view::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
@@ -120,9 +120,9 @@ impl Type {
     }
 }
 
-impl From<Type> for TextureType {
+impl From<Type> for ModelId {
     fn from(item: Type) -> Self {
-        TextureType::item(match item {
+        ModelId::item(match item {
             Type::FuelCan => "fuel_can",
             Type::FoodRation => "food_ration",
             Type::Crowbar => "crowbar",
@@ -144,7 +144,7 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         location,
         Item,
         item_type.symbol(),
-        TextureType::from(item_type),
+        ModelId::from(item_type),
         OrderWeight::Item,
         item_type.noun_data(),
     ));

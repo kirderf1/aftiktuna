@@ -3,7 +3,7 @@ use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{inventory, item, Aggressive, CrewMember, Door, DoorKind, Points, Threatening};
 use crate::game_loop::GameState;
-use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
+use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use crate::view::Messages;
 use door::DoorInfo;
@@ -210,7 +210,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
     item::Type::FoodRation.spawn(world, Pos::new(ship, 4, world));
     world.spawn((
         Symbol('#'),
-        TextureType::new("ship_controls"),
+        ModelId::new("ship_controls"),
         OrderWeight::Background,
         Noun::new("ship controls", "ship controls"),
         Pos::new(ship, 0, world),
@@ -251,14 +251,14 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         DoorInfo {
             pos: start_pos,
             symbol: Symbol('v'),
-            texture_type: TextureType::new("ship"),
+            model_id: ModelId::new("ship"),
             kind: DoorKind::Door,
             name: Noun::new("ship", "ships"),
         },
         DoorInfo {
             pos: ship_exit,
             symbol: Symbol('^'),
-            texture_type: TextureType::new("ship_exit"),
+            model_id: ModelId::new("ship_exit"),
             kind: DoorKind::Door,
             name: Noun::new("ship exit", "ship exits"),
         },

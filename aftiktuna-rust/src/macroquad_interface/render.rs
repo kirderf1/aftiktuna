@@ -5,7 +5,7 @@ use crate::core::position::Direction;
 use crate::core::StopType;
 use crate::macroquad_interface::texture::draw_background;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
-use crate::view::area::{AftikColorId, RenderData, RenderProperties, TextureType};
+use crate::view::area::{AftikColorId, ModelId, RenderData, RenderProperties};
 use crate::view::{Frame, Messages};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
@@ -165,7 +165,7 @@ fn draw_dialogue_frame(
         Direction::Right => Vec2::new(300., 600.),
     };
     texture::draw_object(
-        &TextureType::portrait(),
+        &ModelId::portrait(),
         &RenderProperties {
             direction,
             aftik_color,

@@ -1,6 +1,6 @@
 use crate::core::position::Pos;
 use crate::core::{BlockType, Door, DoorKind};
-use crate::view::area::{OrderWeight, Symbol, TextureType};
+use crate::view::area::{ModelId, OrderWeight, Symbol};
 use crate::view::name::Noun;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 pub struct DoorInfo {
     pub pos: Pos,
     pub symbol: Symbol,
-    pub texture_type: TextureType,
+    pub model_id: ModelId,
     pub kind: DoorKind,
     pub name: Noun,
 }
@@ -33,7 +33,7 @@ pub fn place_pair(
 fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
     world.spawn((
         info.symbol,
-        info.texture_type,
+        info.model_id,
         OrderWeight::Background,
         info.name,
         info.pos,
@@ -55,12 +55,12 @@ pub enum DoorType {
     Path,
 }
 
-impl From<DoorType> for TextureType {
+impl From<DoorType> for ModelId {
     fn from(value: DoorType) -> Self {
         match value {
-            DoorType::Door => TextureType::new("door"),
-            DoorType::Shack | DoorType::House | DoorType::Store => TextureType::new("shack"),
-            DoorType::Path => TextureType::new("path"),
+            DoorType::Door => ModelId::new("door"),
+            DoorType::Shack | DoorType::House | DoorType::Store => ModelId::new("shack"),
+            DoorType::Path => ModelId::new("path"),
         }
     }
 }

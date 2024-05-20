@@ -1,7 +1,7 @@
 use crate::core::area::BackgroundType;
 use crate::core::position::{Coord, Direction};
 use crate::view::area::RenderProperties;
-use crate::view::area::{AftikColorId, ObjectRenderData, TextureType};
+use crate::view::area::{AftikColorId, ModelId, ObjectRenderData};
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -22,7 +22,7 @@ use std::io::Read;
 
 pub struct RenderAssets {
     backgrounds: HashMap<BackgroundType, BGData>,
-    pub object_textures: LazilyLoadedObjectTextures,
+    pub models: LazilyLoadedModels,
     aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: Texture2D,
     pub side_arrow: Texture2D,
@@ -36,27 +36,27 @@ impl RenderAssets {
     }
 }
 
-pub struct LazilyLoadedObjectTextures {
-    loaded_textures: HashMap<TextureType, TextureData>,
+pub struct LazilyLoadedModels {
+    loaded_models: HashMap<ModelId, Model>,
 }
 
-impl LazilyLoadedObjectTextures {
-    pub fn lookup_texture(&mut self, texture_type: &TextureType) -> &TextureData {
-        if !self.loaded_textures.contains_key(texture_type) {
-            objects::load_or_default(&mut self.loaded_textures, texture_type);
+impl LazilyLoadedModels {
+    pub fn lookup_model(&mut self, model_id: &ModelId) -> &Model {
+        if !self.loaded_models.contains_key(model_id) {
+            objects::load_or_default(&mut self.loaded_models, model_id);
         }
-        self.loaded_textures.get(texture_type).unwrap()
+        self.loaded_models.get(model_id).unwrap()
     }
 }
 
 #[derive(Clone)]
-pub struct TextureData {
+pub struct Model {
     layers: Vec<TextureLayer>,
     wield_offset: Vec2,
     is_mounted: bool,
 }
 
-impl TextureData {
+impl Model {
     pub fn is_displacing(&self) -> bool {
         !self.is_mounted
     }
@@ -159,22 +159,22 @@ fn lookup_or_log_aftik_color(
 }
 
 pub fn draw_object(
-    texture_type: &TextureType,
+    model_id: &ModelId,
     properties: &RenderProperties,
     use_wield_offset: bool,
     pos: Vec2,
     assets: &mut RenderAssets,
 ) {
-    let data = assets.object_textures.lookup_texture(texture_type);
+    let model = assets.models.lookup_model(model_id);
     let mut pos = pos;
     if use_wield_offset {
-        pos.y += data.wield_offset.y;
+        pos.y += model.wield_offset.y;
         pos.x += match properties.direction {
-            Direction::Left => -data.wield_offset.x,
-            Direction::Right => data.wield_offset.x,
+            Direction::Left => -model.wield_offset.x,
+            Direction::Right => model.wield_offset.x,
         }
     }
-    for layer in &data.layers {
+    for layer in &model.layers {
         layer.draw(pos, properties, &mut assets.aftik_colors);
     }
 }
@@ -184,10 +184,9 @@ pub fn get_rect_for_object(
     assets: &mut RenderAssets,
     pos: Vec2,
 ) -> Rect {
-    let data = assets
-        .object_textures
-        .lookup_texture(&object_data.texture_type);
-    data.layers
+    let model = assets.models.lookup_model(&object_data.texture_type);
+    model
+        .layers
         .iter()
         .filter(|&layer| layer.is_active(&object_data.properties))
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
@@ -328,7 +327,7 @@ pub fn draw_background_portrait(background_type: &BackgroundType, assets: &Rende
 }
 
 #[derive(Serialize, Deserialize)]
-struct RawTextureData {
+struct RawModel {
     layers: Vec<RawTextureLayer>,
     #[serde(default)]
     wield_offset: (f32, f32),
@@ -336,14 +335,14 @@ struct RawTextureData {
     mounted: bool,
 }
 
-impl RawTextureData {
-    fn load(self) -> Result<TextureData, io::Error> {
+impl RawModel {
+    fn load(self) -> Result<Model, io::Error> {
         let mut layers = Vec::new();
         for layer in self.layers {
             layers.push(layer.load()?);
         }
         layers.reverse();
-        Ok(TextureData {
+        Ok(Model {
             layers,
             wield_offset: Vec2::from(self.wield_offset),
             is_mounted: self.mounted,
@@ -386,11 +385,10 @@ impl RawTextureLayer {
     }
 }
 
-fn load_texture_data(path: &str) -> Result<TextureData, Error> {
+fn load_model(path: &str) -> Result<Model, Error> {
     let file = File::open(format!("assets/texture/object/{path}.json"))?;
-    let data = serde_json::from_reader::<_, RawTextureData>(file)?;
-    let data = data.load()?;
-    Ok(data)
+    let model = serde_json::from_reader::<_, RawModel>(file)?;
+    Ok(model.load()?)
 }
 
 fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, io::Error> {
@@ -446,7 +444,7 @@ impl Display for Error {
 pub fn load_assets() -> Result<RenderAssets, Error> {
     Ok(RenderAssets {
         backgrounds: load_backgrounds()?,
-        object_textures: objects::prepare()?,
+        models: objects::prepare()?,
         aftik_colors: load_aftik_color_data()?,
         left_mouse_icon: load_texture("left_mouse")?,
         side_arrow: load_texture("side_arrow")?,
@@ -469,44 +467,38 @@ fn load_backgrounds() -> Result<HashMap<BackgroundType, BGData>, Error> {
 }
 
 mod objects {
-    use super::{load_texture_data, Error, LazilyLoadedObjectTextures, TextureData};
-    use crate::view::area::TextureType;
+    use super::{load_model, Error, LazilyLoadedModels, Model};
+    use crate::view::area::ModelId;
     use std::collections::HashMap;
 
-    pub fn prepare() -> Result<LazilyLoadedObjectTextures, Error> {
-        let mut textures = HashMap::new();
+    pub fn prepare() -> Result<LazilyLoadedModels, Error> {
+        let mut models = HashMap::new();
 
-        load(&mut textures, TextureType::unknown())?;
-        load(&mut textures, TextureType::small_unknown())?;
+        load(&mut models, ModelId::unknown())?;
+        load(&mut models, ModelId::small_unknown())?;
 
-        Ok(LazilyLoadedObjectTextures {
-            loaded_textures: textures,
+        Ok(LazilyLoadedModels {
+            loaded_models: models,
         })
     }
 
-    fn load(
-        objects: &mut HashMap<TextureType, TextureData>,
-        texture_type: TextureType,
-    ) -> Result<(), Error> {
-        let data = load_texture_data(texture_type.path())?;
-        objects.insert(texture_type, data);
+    fn load(models: &mut HashMap<ModelId, Model>, model_id: ModelId) -> Result<(), Error> {
+        let model = load_model(model_id.path())?;
+        models.insert(model_id, model);
         Ok(())
     }
 
-    pub fn load_or_default(
-        objects: &mut HashMap<TextureType, TextureData>,
-        texture_type: &TextureType,
-    ) {
-        let path = texture_type.path();
-        let texture_data = load_texture_data(path).unwrap_or_else(|error| {
+    pub fn load_or_default(models: &mut HashMap<ModelId, Model>, model_id: &ModelId) {
+        let path = model_id.path();
+        let texture_data = load_model(path).unwrap_or_else(|error| {
             eprintln!("Unable to load texture data \"{path}\": {error}");
-            if texture_type.path().starts_with("item/") {
-                objects.get(&TextureType::small_unknown()).unwrap().clone()
+            if model_id.path().starts_with("item/") {
+                models.get(&ModelId::small_unknown()).unwrap().clone()
             } else {
-                objects.get(&TextureType::unknown()).unwrap().clone()
+                models.get(&ModelId::unknown()).unwrap().clone()
             }
         });
-        objects.insert(texture_type.clone(), texture_data);
+        models.insert(model_id.clone(), texture_data);
     }
 }
 

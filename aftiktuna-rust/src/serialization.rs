@@ -155,7 +155,7 @@ pub mod world {
     };
     use crate::core::position::{Direction, MovementBlocking, Pos};
     use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
-    use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
+    use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
     use crate::view::name::{Name, Noun};
 
     world_serialization!(
@@ -169,7 +169,7 @@ pub mod world {
         Name, Name;
         Noun, Noun;
         Symbol, Symbol;
-        TextureType, TextureType;
+        ModelId, TextureType;
         OrderWeight, OrderWeight;
         AftikColorId, AftikColor;
 

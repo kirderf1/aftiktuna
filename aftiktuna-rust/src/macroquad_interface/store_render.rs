@@ -3,7 +3,7 @@ use crate::core::PricedItem;
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;
-use crate::view::area::{AftikColorId, RenderProperties, TextureType};
+use crate::view::area::{AftikColorId, ModelId, RenderProperties};
 use crate::view::StoreView;
 use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -21,7 +21,7 @@ pub fn draw_store_view(assets: &mut RenderAssets, store_view: &StoreView) {
 
 fn draw_shopkeeper_portrait(assets: &mut RenderAssets, aftik_color: Option<AftikColorId>) {
     texture::draw_object(
-        &TextureType::portrait(),
+        &ModelId::portrait(),
         &RenderProperties {
             direction: Direction::Left,
             aftik_color,

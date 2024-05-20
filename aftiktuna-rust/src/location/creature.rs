@@ -1,7 +1,7 @@
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{item, Aggressive, CrewMember, PricedItem, Recruitable, Shopkeeper, Threatening};
-use crate::view::area::{AftikColorId, OrderWeight, Symbol, TextureType};
+use crate::view::area::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::view::name::{Name, Noun};
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
@@ -33,7 +33,7 @@ impl Type {
         match self {
             Type::Goblin => {
                 builder.add_bundle((
-                    TextureType::creature("goblin"),
+                    ModelId::creature("goblin"),
                     Noun::new("goblin", "goblins"),
                     MovementBlocking,
                     Threatening,
@@ -41,7 +41,7 @@ impl Type {
             }
             Type::Eyesaur => {
                 builder.add_bundle((
-                    TextureType::creature("eyesaur"),
+                    ModelId::creature("eyesaur"),
                     Noun::new("eyesaur", "eyesaurs"),
                     MovementBlocking,
                     Threatening,
@@ -49,7 +49,7 @@ impl Type {
             }
             Type::Azureclops => {
                 builder.add_bundle((
-                    TextureType::creature("azureclops"),
+                    ModelId::creature("azureclops"),
                     Noun::new("azureclops", "azureclopses"),
                     MovementBlocking,
                     Aggressive,
@@ -57,7 +57,7 @@ impl Type {
             }
             Type::Scarvie => {
                 builder.add_bundle((
-                    TextureType::creature("scarvie"),
+                    ModelId::creature("scarvie"),
                     Noun::new("scarvie", "scarvies"),
                     MovementBlocking,
                     Threatening,
@@ -65,7 +65,7 @@ impl Type {
             }
             Type::VoraciousFrog => {
                 builder.add_bundle((
-                    TextureType::creature("voracious_frog"),
+                    ModelId::creature("voracious_frog"),
                     Noun::new("voracious frog", "voracious frogs"),
                     MovementBlocking,
                     Aggressive,
@@ -124,7 +124,7 @@ pub fn place_recruitable(
 fn aftik_builder(name: Name, stats: Stats) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
-        TextureType::creature("aftik"),
+        ModelId::aftik(),
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
         name,
@@ -148,7 +148,7 @@ pub fn place_shopkeeper(
         .map(|item| to_priced_item(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
-        TextureType::aftik(),
+        ModelId::aftik(),
         OrderWeight::Creature,
         color,
         Noun::new("shopkeeper", "shopkeepers"),

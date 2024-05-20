@@ -17,9 +17,9 @@ use std::collections::HashMap;
 use std::ops::Deref;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct TextureType(String);
+pub struct ModelId(String);
 
-impl TextureType {
+impl ModelId {
     pub fn unknown() -> Self {
         Self::new("unknown")
     }
@@ -52,7 +52,7 @@ impl TextureType {
     }
 }
 
-impl Default for TextureType {
+impl Default for ModelId {
     fn default() -> Self {
         Self::unknown()
     }
@@ -199,11 +199,11 @@ pub struct RenderData {
 pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: OrderWeight,
-    pub texture_type: TextureType,
+    pub texture_type: ModelId,
     pub modified_name: String,
     pub name: String,
     pub symbol: Symbol,
-    pub wielded_item: Option<TextureType>,
+    pub wielded_item: Option<ModelId>,
     pub interactions: Vec<InteractionType>,
     #[serde(flatten)]
     pub properties: RenderProperties,
@@ -298,7 +298,7 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             .map(deref_clone)
             .unwrap_or_default(),
         texture_type: entity_ref
-            .get::<&TextureType>()
+            .get::<&ModelId>()
             .map(deref_clone)
             .unwrap_or_default(),
         modified_name: get_name(&state.world, entity, capitalize(name_data.base())),
@@ -313,10 +313,10 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
     }
 }
 
-fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<TextureType> {
+fn find_wielded_item_texture(world: &World, holder: Entity) -> Option<ModelId> {
     let item = inventory::get_wielded(world, holder)?;
     world
-        .get::<&TextureType>(item)
+        .get::<&ModelId>(item)
         .ok()
         .map(|texture_type| texture_type.deref().clone())
 }

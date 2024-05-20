@@ -18,8 +18,8 @@ pub fn position_objects<'a>(
     for data in objects {
         let coord = data.coord;
         let count = if assets
-            .object_textures
-            .lookup_texture(&data.texture_type)
+            .models
+            .lookup_model(&data.texture_type)
             .is_displacing()
         {
             let count_ref = coord_counts.entry(coord).or_insert(0);
