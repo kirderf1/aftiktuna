@@ -287,7 +287,7 @@ impl Inaccessible {
                 NameData::find(world, character).definite(),
                 NameData::find(world, target).definite()
             ),
-            Inaccessible::Blocked(blockage) => blockage.into_message(),
+            Inaccessible::Blocked(blockage) => blockage.into_message(world),
         }
     }
 }

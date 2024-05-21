@@ -3,7 +3,7 @@ use crate::action::Action;
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
 use crate::core::name::{NameData, NameQuery};
-use crate::core::position::{Blockage, Pos};
+use crate::core::position::Pos;
 use crate::core::status::Health;
 use crate::core::{self, inventory, position, status};
 use hecs::{Entity, World};
@@ -98,7 +98,7 @@ pub(super) fn give_item(
     }
 
     let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
-        .map_err(Blockage::into_message)?;
+        .map_err(|blockage| blockage.into_message(world))?;
 
     context.capture_frame_for_dialogue();
 

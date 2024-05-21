@@ -1,7 +1,7 @@
 use crate::action;
 use crate::action::Context;
 use crate::core::name::{Name, NameData};
-use crate::core::position::{Blockage, Direction, Pos};
+use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{area, position, status, CrewMember, GoingToShip, Recruitable, Waiting};
 use hecs::Entity;
@@ -16,7 +16,7 @@ pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -
     let target_pos = *world.get::<&Pos>(target).unwrap();
 
     let movement = position::prepare_move_adjacent(world, performer, target_pos)
-        .map_err(Blockage::into_message)?;
+        .map_err(|blockage| blockage.into_message(world))?;
 
     context.capture_frame_for_dialogue();
 
@@ -86,7 +86,7 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
     }
 
     let movement = position::prepare_move_adjacent(world, performer, target_pos)
-        .map_err(Blockage::into_message)?;
+        .map_err(|blockage| blockage.into_message(world))?;
 
     context.capture_frame_for_dialogue();
 

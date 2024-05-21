@@ -2,7 +2,7 @@ use crate::action::{Context, CrewMember};
 use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::name::NameData;
-use crate::core::position::{Blockage, Pos};
+use crate::core::position::Pos;
 use crate::core::{area, inventory, position, BlockType, Door, DoorKind, GoingToShip, IsCut};
 use crate::game_loop::GameState;
 use crate::{action, core};
@@ -101,8 +101,8 @@ pub(super) fn force_door(
         return Err(format!("{performer_name} cannot reach the door from here."));
     }
 
-    let movement =
-        position::prepare_move(world, performer, door_pos).map_err(Blockage::into_message)?;
+    let movement = position::prepare_move(world, performer, door_pos)
+        .map_err(|blockage| blockage.into_message(world))?;
     context.capture_frame_for_dialogue();
     movement.perform(context.mut_world()).unwrap();
     if assisting {
