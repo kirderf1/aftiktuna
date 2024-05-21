@@ -145,6 +145,8 @@ pub struct RenderProperties {
     pub aftik_color: Option<AftikColorId>,
     pub is_cut: bool,
     pub is_alive: bool,
+    #[serde(default)] // backwards-compatibility with 2.0
+    pub is_badly_hurt: bool,
 }
 
 impl Default for RenderProperties {
@@ -154,6 +156,7 @@ impl Default for RenderProperties {
             aftik_color: None,
             is_cut: false,
             is_alive: true,
+            is_badly_hurt: false,
         }
     }
 }
@@ -220,6 +223,9 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
         is_alive: entity_ref
             .get::<&Health>()
             .map_or(true, |health| health.is_alive()),
+        is_badly_hurt: entity_ref
+            .get::<&Health>()
+            .map_or(false, |health| health.as_fraction() < 0.5),
     };
     ObjectRenderData {
         coord: pos.get_coord(),

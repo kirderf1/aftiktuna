@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "creature/goblin", "if_alive": true },
+    { "texture": "creature/goblin", "if_alive": true, "if_hurt": false },
+    { "texture": "creature/wounded_goblin", "if_alive": true, "if_hurt": true },
     { "texture": "creature/goblin_corpse", "if_alive": false }
   ]
 }

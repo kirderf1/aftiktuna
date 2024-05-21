@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "creature/aftik_details", "color": "uncolored", "if_alive": true },
+    { "texture": "creature/aftik_details", "color": "uncolored", "if_alive": true,  "if_hurt": false },
+    { "texture": "creature/wounded_aftik_details", "color": "uncolored", "if_alive": true,  "if_hurt": true },
     { "texture": "creature/aftik_secondary", "color": "secondary", "if_alive": true },
     { "texture": "creature/aftik_primary", "color": "primary", "if_alive": true },
     { "texture": "creature/aftik_corpse_details", "color": "uncolored", "if_alive": false },

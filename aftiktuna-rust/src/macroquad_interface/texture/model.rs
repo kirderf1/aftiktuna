@@ -188,12 +188,15 @@ struct LayerCondition {
     if_cut: Option<bool>,
     #[serde(default)]
     if_alive: Option<bool>,
+    #[serde(default)]
+    if_hurt: Option<bool>,
 }
 
 impl LayerCondition {
     fn meets_conditions(&self, properties: &RenderProperties) -> bool {
         (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
             && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
+            && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
     }
 }
 
