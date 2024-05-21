@@ -129,13 +129,15 @@ impl Movement {
 }
 
 pub fn move_to(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
-    let movement = prepare_move(world, entity, destination).map_err(Blockage::into_message)?;
+    let movement = prepare_move(world, entity, destination)
+        .map_err(|blockage| blockage.into_message(world))?;
     movement.perform(world).unwrap();
     Ok(())
 }
 
 pub fn move_adjacent(world: &mut World, entity: Entity, target: Pos) -> Result<(), String> {
-    let movement = prepare_move_adjacent(world, entity, target).map_err(Blockage::into_message)?;
+    let movement = prepare_move_adjacent(world, entity, target)
+        .map_err(|blockage| blockage.into_message(world))?;
     movement.perform(world).unwrap();
     Ok(())
 }
@@ -186,11 +188,14 @@ pub fn prepare_move_adjacent(
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct MovementBlocking;
 
-pub struct Blockage(Entity, NameData);
+pub struct Blockage(Entity);
 
 impl Blockage {
-    pub fn into_message(self) -> String {
-        format!("{} is in the way.", self.1.definite())
+    pub fn into_message(self, world: &World) -> String {
+        format!(
+            "{} is in the way.",
+            NameData::find(world, self.0).definite()
+        )
     }
 }
 
@@ -219,7 +224,7 @@ pub fn check_is_blocked(
             pos.is_in(entity_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
         })
     {
-        Err(Blockage(entity, NameData::find(world, entity)))
+        Err(Blockage(entity))
     } else {
         Ok(())
     }
