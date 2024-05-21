@@ -11,7 +11,7 @@ use crate::core::item::FoodRation;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, inventory, status, CrewMember, OpenedChest, OrderWeight, StopType};
+use crate::core::{self, inventory, status, CrewMember, OpenedChest, OrderWeight};
 use crate::game_interface::Phase;
 use crate::location::{self, LocationTracker, PickResult};
 use crate::serialization;
@@ -28,6 +28,12 @@ pub struct GameState {
     pub controlled: Entity,
     pub status_cache: StatusCache,
     pub has_introduced_controlled: bool,
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum StopType {
+    Win,
+    Lose,
 }
 
 pub fn setup(locations: LocationTracker) -> GameState {

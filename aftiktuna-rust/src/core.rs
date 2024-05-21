@@ -157,12 +157,6 @@ impl BlockType {
 #[derive(Serialize, Deserialize)]
 pub struct GoingToShip;
 
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub enum StopType {
-    Win,
-    Lose,
-}
-
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world
         .query::<&position::Pos>()
