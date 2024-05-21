@@ -1,5 +1,5 @@
 use crate::core::area::BackgroundId;
-use crate::core::position::{Coord, Direction};
+use crate::core::position::Coord;
 use crate::core::{AftikColorId, ModelId};
 use crate::view::area::{ObjectRenderData, RenderProperties};
 use egui_macroquad::macroquad::color::{Color, WHITE};
@@ -61,23 +61,14 @@ pub fn draw_object(
     assets: &mut RenderAssets,
 ) {
     let model = assets.models.lookup_model(model_id);
-    let mut pos = pos;
-    if use_wield_offset {
-        pos.y += model.wield_offset.y;
-        pos.x += match properties.direction {
-            Direction::Left => -model.wield_offset.x,
-            Direction::Right => model.wield_offset.x,
-        }
-    }
     let aftik_color_data = properties
         .aftik_color
         .as_ref()
         .map_or(DEFAULT_COLOR, |aftik_color| {
             lookup_or_log_aftik_color(aftik_color, &mut assets.aftik_colors)
         });
-    for layer in &model.layers {
-        layer.draw(pos, properties, &aftik_color_data);
-    }
+
+    model.draw(pos, use_wield_offset, properties, &aftik_color_data);
 }
 
 pub fn get_rect_for_object(
@@ -86,13 +77,7 @@ pub fn get_rect_for_object(
     pos: Vec2,
 ) -> Rect {
     let model = assets.models.lookup_model(&object_data.texture_type);
-    model
-        .layers
-        .iter()
-        .filter(|&layer| layer.is_active(&object_data.properties))
-        .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
-            rect.combine_with(layer.size(pos))
-        })
+    model.get_rect(pos, &object_data.properties)
 }
 
 const DEFAULT_COLOR: AftikColorData = AftikColorData {

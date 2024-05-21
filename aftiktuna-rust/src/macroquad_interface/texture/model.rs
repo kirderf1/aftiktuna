@@ -26,8 +26,8 @@ impl LazilyLoadedModels {
 
 #[derive(Clone)]
 pub struct Model {
-    pub layers: Vec<TextureLayer>,
-    pub wield_offset: Vec2,
+    layers: Vec<TextureLayer>,
+    wield_offset: Vec2,
     is_mounted: bool,
 }
 
@@ -35,27 +35,50 @@ impl Model {
     pub fn is_displacing(&self) -> bool {
         !self.is_mounted
     }
+
+    pub fn get_rect(&self, pos: Vec2, properties: &RenderProperties) -> Rect {
+        self.layers
+            .iter()
+            .filter(|&layer| layer.condition.meets_conditions(properties))
+            .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
+                rect.combine_with(layer.size(pos))
+            })
+    }
+
+    pub fn draw(
+        &self,
+        pos: Vec2,
+        use_wield_offset: bool,
+        properties: &RenderProperties,
+        aftik_color_data: &AftikColorData,
+    ) {
+        let mut pos = pos;
+        if use_wield_offset {
+            pos.y += self.wield_offset.y;
+            pos.x += match properties.direction {
+                Direction::Left => -self.wield_offset.x,
+                Direction::Right => self.wield_offset.x,
+            }
+        }
+        for layer in &self.layers {
+            layer.draw(pos, properties, aftik_color_data);
+        }
+    }
 }
 
 #[derive(Clone)]
-pub struct TextureLayer {
+struct TextureLayer {
     texture: Texture2D,
     color: ColorSource,
     dest_size: Vec2,
     y_offset: f32,
     directional: bool,
-    if_cut: Option<bool>,
-    if_alive: Option<bool>,
+    condition: LayerCondition,
 }
 
 impl TextureLayer {
-    pub fn draw(
-        &self,
-        pos: Vec2,
-        properties: &RenderProperties,
-        aftik_color_data: &AftikColorData,
-    ) {
-        if !self.is_active(properties) {
+    fn draw(&self, pos: Vec2, properties: &RenderProperties, aftik_color_data: &AftikColorData) {
+        if !self.condition.meets_conditions(properties) {
             return;
         }
 
@@ -74,7 +97,7 @@ impl TextureLayer {
         );
     }
 
-    pub fn size(&self, pos: Vec2) -> Rect {
+    fn size(&self, pos: Vec2) -> Rect {
         Rect::new(
             pos.x - self.dest_size.x / 2.,
             pos.y - self.dest_size.y + self.y_offset,
@@ -82,14 +105,9 @@ impl TextureLayer {
             self.dest_size.y,
         )
     }
-
-    pub fn is_active(&self, properties: &RenderProperties) -> bool {
-        (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
-            && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
-    }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct RawModel {
     layers: Vec<RawTextureLayer>,
     #[serde(default)]
@@ -113,7 +131,7 @@ impl RawModel {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Deserialize)]
 struct RawTextureLayer {
     texture: String,
     #[serde(default)]
@@ -124,10 +142,8 @@ struct RawTextureLayer {
     y_offset: f32,
     #[serde(default)]
     fixed: bool,
-    #[serde(default)]
-    if_cut: Option<bool>,
-    #[serde(default)]
-    if_alive: Option<bool>,
+    #[serde(flatten)]
+    conditions: LayerCondition,
 }
 
 impl RawTextureLayer {
@@ -142,8 +158,7 @@ impl RawTextureLayer {
             ),
             y_offset: self.y_offset,
             directional: !self.fixed,
-            if_cut: self.if_cut,
-            if_alive: self.if_alive,
+            condition: self.conditions,
         })
     }
 }
@@ -164,6 +179,21 @@ impl ColorSource {
             ColorSource::Primary => aftik_color_data.primary_color.into(),
             ColorSource::Secondary => aftik_color_data.secondary_color.into(),
         }
+    }
+}
+
+#[derive(Clone, Deserialize)]
+struct LayerCondition {
+    #[serde(default)]
+    if_cut: Option<bool>,
+    #[serde(default)]
+    if_alive: Option<bool>,
+}
+
+impl LayerCondition {
+    fn meets_conditions(&self, properties: &RenderProperties) -> bool {
+        (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
+            && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
     }
 }
 
