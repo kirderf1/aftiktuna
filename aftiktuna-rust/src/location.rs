@@ -3,16 +3,17 @@ use crate::core::name::Noun;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Stats;
 use crate::core::{
-    inventory, item, AftikColorId, Aggressive, CrewMember, Door, DoorKind, ModelId, OrderWeight,
-    Points, Symbol, Threatening,
+    inventory, item, AftikColorId, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight,
+    Points, Symbol,
 };
 use crate::game_loop::GameState;
 use crate::view::Messages;
 use door::DoorInfo;
-use hecs::{CommandBuffer, Entity, World};
+use hecs::{Entity, World};
 use rand::seq::index;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::fs::File;
 pub use template::LocationData;
 
@@ -278,19 +279,15 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         world.insert(aftik, (start_pos, direction)).unwrap();
     }
 
-    let mut buffer = CommandBuffer::new();
-    for (entity, pos) in world.query::<&Pos>().with::<&Threatening>().iter() {
-        if world
-            .query::<&Pos>()
-            .with::<&Aggressive>()
-            .iter()
-            .any(|(_, other_pos)| other_pos.is_in(pos.get_area()))
-        {
-            buffer.remove_one::<Threatening>(entity);
-            buffer.insert_one(entity, Aggressive);
-        }
+    let areas_with_aggressive_creatures = world
+        .query::<(&Pos, &Hostile)>()
+        .iter()
+        .filter(|&(_, (_, hostile))| hostile.aggressive)
+        .map(|(_, (pos, _))| pos.get_area())
+        .collect::<HashSet<_>>();
+    for (_, (pos, hostile)) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
+        hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
-    buffer.run_on(world);
 
     if state.locations.is_at_fortuna() {
         messages.add(

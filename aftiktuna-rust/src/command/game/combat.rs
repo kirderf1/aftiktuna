@@ -1,12 +1,10 @@
-use hecs::Or;
-
 use crate::action::Action;
 use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::{status, Aggressive, Threatening};
+use crate::core::{status, Hostile};
 use crate::game_loop::GameState;
 
 pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {
@@ -27,7 +25,7 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
     let foes = state
         .world
         .query::<&Pos>()
-        .with::<Or<&Aggressive, &Threatening>>()
+        .with::<&Hostile>()
         .iter()
         .filter(|&(entity, pos)| pos.is_in(area) && status::is_alive(entity, &state.world))
         .map(|(entity, _)| entity)
@@ -45,7 +43,7 @@ fn attack(target_name: &str, state: &GameState) -> Result<CommandResult, String>
     let targets = state
         .world
         .query::<(&Pos, NameQuery)>()
-        .with::<Or<&Aggressive, &Threatening>>()
+        .with::<&Hostile>()
         .iter()
         .filter(|&(entity, (target_pos, query))| {
             target_pos.is_in(pos.get_area())

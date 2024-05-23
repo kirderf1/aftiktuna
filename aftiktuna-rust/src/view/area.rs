@@ -145,7 +145,6 @@ pub struct RenderProperties {
     pub aftik_color: Option<AftikColorId>,
     pub is_cut: bool,
     pub is_alive: bool,
-    #[serde(default)] // backwards-compatibility with 2.0
     pub is_badly_hurt: bool,
 }
 

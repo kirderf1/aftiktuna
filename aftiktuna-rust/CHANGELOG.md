@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Save format version 3.0, making it incompatible with previous save files
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.7.2] - 2024-05-21
 

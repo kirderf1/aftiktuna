@@ -2,7 +2,7 @@ use crate::action;
 use crate::core::name::NameData;
 use crate::core::position::{MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{self, position, status, Aggressive, Threatening};
+use crate::core::{self, position, status, Hostile};
 use crate::game_loop::GameState;
 use hecs::{Entity, World};
 use rand::Rng;
@@ -104,8 +104,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 
     if killed {
         let _ = world.remove_one::<MovementBlocking>(target);
-        let _ = world.remove_one::<Aggressive>(target);
-        let _ = world.remove_one::<Threatening>(target);
+        let _ = world.remove_one::<Hostile>(target);
 
         if hit_type == HitType::GrazingHit {
             action::ok(format!(

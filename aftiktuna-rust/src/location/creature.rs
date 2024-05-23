@@ -2,8 +2,8 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{
-    item, AftikColorId, Aggressive, CrewMember, ModelId, OrderWeight, PricedItem, Recruitable,
-    Shopkeeper, Symbol, Threatening,
+    item, AftikColorId, CrewMember, Hostile, ModelId, OrderWeight, PricedItem, Recruitable,
+    Shopkeeper, Symbol,
 };
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ impl Type {
                     ModelId::creature("goblin"),
                     Noun::new("goblin", "goblins"),
                     MovementBlocking,
-                    Threatening,
+                    Hostile { aggressive: false },
                 ));
             }
             Type::Eyesaur => {
@@ -46,7 +46,7 @@ impl Type {
                     ModelId::creature("eyesaur"),
                     Noun::new("eyesaur", "eyesaurs"),
                     MovementBlocking,
-                    Threatening,
+                    Hostile { aggressive: false },
                 ));
             }
             Type::Azureclops => {
@@ -54,7 +54,7 @@ impl Type {
                     ModelId::creature("azureclops"),
                     Noun::new("azureclops", "azureclopses"),
                     MovementBlocking,
-                    Aggressive,
+                    Hostile { aggressive: true },
                 ));
             }
             Type::Scarvie => {
@@ -62,7 +62,7 @@ impl Type {
                     ModelId::creature("scarvie"),
                     Noun::new("scarvie", "scarvies"),
                     MovementBlocking,
-                    Threatening,
+                    Hostile { aggressive: false },
                 ));
             }
             Type::VoraciousFrog => {
@@ -70,7 +70,7 @@ impl Type {
                     ModelId::creature("voracious_frog"),
                     Noun::new("voracious frog", "voracious frogs"),
                     MovementBlocking,
-                    Aggressive,
+                    Hostile { aggressive: true },
                 ));
             }
         }

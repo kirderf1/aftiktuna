@@ -2,8 +2,8 @@ use crate::action::Action;
 use crate::core::item::Weapon;
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, Aggressive, CrewMember, GoingToShip, Threatening};
-use hecs::{Entity, Or, World};
+use crate::core::{self, inventory, status, CrewMember, GoingToShip, Hostile};
+use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -50,7 +50,7 @@ fn prepare_intention(world: &mut World, crew_member: Entity) {
 pub fn tick(world: &mut World) {
     let foes = world
         .query::<()>()
-        .with::<Or<&Aggressive, &Threatening>>()
+        .with::<&Hostile>()
         .iter()
         .map(|(entity, ())| entity)
         .collect::<Vec<_>>();
@@ -78,7 +78,7 @@ fn foe_ai(world: &mut World, foe: Entity) {
 }
 
 fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
-    if world.satisfies::<&Aggressive>(foe).unwrap() {
+    if world.get::<&Hostile>(foe).unwrap().aggressive {
         let pos = *world.get::<&Pos>(foe).ok()?;
         let targets = world
             .query::<&Pos>()
@@ -107,11 +107,10 @@ fn aftik_ai(world: &mut World, crew_member: Entity) {
 fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>) -> Option<Action> {
     let pos = *world.get::<&Pos>(aftik).ok()?;
     let foes = world
-        .query::<&Pos>()
-        .with::<&Aggressive>()
+        .query::<(&Pos, &Hostile)>()
         .iter()
-        .filter(|&(entity, foe_pos)| {
-            foe_pos.is_in(pos.get_area()) && status::is_alive(entity, world)
+        .filter(|&(entity, (foe_pos, hostile))| {
+            foe_pos.is_in(pos.get_area()) && status::is_alive(entity, world) && hostile.aggressive
         })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();

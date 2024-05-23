@@ -274,7 +274,11 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
     for entity in entities {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
         if pos.is_in(player_pos.get_area()) && status::is_alive(entity, &state.world) {
-            if state.world.satisfies::<&core::Threatening>(entity).unwrap() {
+            if state
+                .world
+                .get::<&core::Hostile>(entity)
+                .map_or(false, |hostile| !hostile.aggressive)
+            {
                 state
                     .world
                     .insert_one(entity, Direction::between(pos, player_pos))
@@ -285,7 +289,11 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 ));
             }
 
-            if state.world.satisfies::<&core::Aggressive>(entity).unwrap() {
+            if state
+                .world
+                .get::<&core::Hostile>(entity)
+                .map_or(false, |hostile| hostile.aggressive)
+            {
                 state
                     .world
                     .insert_one(entity, Direction::between(pos, player_pos))
