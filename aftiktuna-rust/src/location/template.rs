@@ -118,7 +118,7 @@ enum SymbolData {
         direction: Option<Direction>,
     },
     Shopkeeper {
-        items: Vec<item::Type>,
+        stock: Vec<creature::StockDefinition>,
         color: AftikColorId,
         #[serde(default)]
         direction: Option<Direction>,
@@ -158,10 +158,10 @@ impl SymbolData {
                 direction,
             } => creature.spawn(builder.world, symbol, pos, *direction),
             SymbolData::Shopkeeper {
-                items,
+                stock,
                 color,
                 direction,
-            } => creature::place_shopkeeper(builder.world, pos, items, color.clone(), *direction)?,
+            } => creature::place_shopkeeper(builder.world, pos, stock, color.clone(), *direction)?,
             SymbolData::Recruitable {
                 name,
                 stats,

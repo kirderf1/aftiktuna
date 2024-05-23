@@ -140,14 +140,14 @@ fn aftik_builder(name: Name, stats: Stats) -> EntityBuilder {
 pub fn place_shopkeeper(
     world: &mut World,
     pos: Pos,
-    shop_items: &[item::Type],
+    shop_stock: &[StockDefinition],
     color: AftikColorId,
     direction: Option<Direction>,
 ) -> Result<(), String> {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stock = shop_items
+    let stock = shop_stock
         .iter()
-        .map(|item| to_stock(*item))
+        .map(StockDefinition::build)
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
         ModelId::aftik(),
@@ -161,13 +161,22 @@ pub fn place_shopkeeper(
     Ok(())
 }
 
-fn to_stock(item: item::Type) -> Result<StoreStock, String> {
-    item.price()
-        .map(|price| StoreStock { item, price })
-        .ok_or_else(|| {
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct StockDefinition {
+    item: item::Type,
+    #[serde(default)]
+    price: Option<item::Price>,
+}
+
+impl StockDefinition {
+    fn build(&self) -> Result<StoreStock, String> {
+        let Self { item, price } = *self;
+        let price = price.or_else(|| item.price()).ok_or_else(|| {
             format!(
                 "Cannot get a price from item \"{}\" to put in store",
                 item.noun_data().singular()
             )
-        })
+        })?;
+        Ok(StoreStock { item, price })
+    }
 }

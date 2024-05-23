@@ -52,10 +52,15 @@ pub fn buy(
         return Err("Tried to purchase a non-positive number of items.".to_string());
     }
 
-    try_spend_points(world, crew, stock.price * i32::from(amount))?;
+    try_spend_points(world, crew, stock.price.buy_price() * i32::from(amount))?;
 
     for _ in 0..amount {
-        item::spawn(world, stock.item, Held::in_inventory(performer));
+        item::spawn(
+            world,
+            stock.item,
+            Some(stock.price),
+            Held::in_inventory(performer),
+        );
     }
 
     action::ok(format!(
@@ -74,20 +79,18 @@ fn find_stock(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<StoreSto
 }
 
 pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action::Result {
-    let mut price = 0;
+    let mut value = 0;
     for item in &items {
         world
             .get::<&Held>(*item)
             .ok()
             .filter(|held| held.held_by(performer))
             .ok_or_else(|| "Item to sell is not being held!".to_string())?;
-        price += world
+        value += world
             .get::<&Price>(*item)
             .map_err(|_| "That item can not be sold.".to_string())?
-            .0;
+            .sell_price();
     }
-    // Their sell value is a portion of the buy price
-    let value = price - price / 4;
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let performer_name = NameData::find(world, performer).definite();

@@ -106,7 +106,7 @@ pub struct Shopkeeper(pub Vec<StoreStock>);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoreStock {
     pub item: item::Type,
-    pub price: i32,
+    pub price: item::Price,
 }
 
 #[derive(Serialize, Deserialize)]

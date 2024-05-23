@@ -46,8 +46,18 @@ pub struct CanWield;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Weapon(pub f32);
 
-#[derive(Serialize, Deserialize)]
-pub struct Price(pub i32);
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct Price(i32);
+
+impl Price {
+    pub fn buy_price(&self) -> i32 {
+        self.0
+    }
+
+    pub fn sell_price(&self) -> i32 {
+        self.0 - self.0 / 4
+    }
+}
 
 // A type handy for spawning a variable type of item
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -68,7 +78,7 @@ pub enum Type {
 
 impl Type {
     pub fn spawn(self, world: &mut World, location: impl Component) {
-        spawn(world, self, location);
+        spawn(world, self, self.price(), location);
     }
 
     pub fn noun_data(self) -> Noun {
@@ -103,7 +113,7 @@ impl Type {
         })
     }
 
-    pub fn price(self) -> Option<i32> {
+    pub fn price(self) -> Option<Price> {
         match self {
             Type::FuelCan => Some(3500),
             Type::FoodRation => Some(500),
@@ -117,6 +127,7 @@ impl Type {
             Type::AncientCoin => Some(500),
             _ => None,
         }
+        .map(Price)
     }
 }
 
@@ -138,7 +149,12 @@ impl From<Type> for ModelId {
     }
 }
 
-pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> Entity {
+pub fn spawn(
+    world: &mut World,
+    item_type: Type,
+    price: Option<Price>,
+    location: impl Component,
+) -> Entity {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         location,
@@ -148,8 +164,8 @@ pub fn spawn(world: &mut World, item_type: Type, location: impl Component) -> En
         OrderWeight::Item,
         item_type.noun_data(),
     ));
-    if let Some(price) = item_type.price() {
-        builder.add(Price(price));
+    if let Some(price) = price {
+        builder.add(price);
     }
 
     match item_type {

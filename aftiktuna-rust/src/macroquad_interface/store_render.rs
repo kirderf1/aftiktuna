@@ -45,8 +45,9 @@ fn draw_store_stock(store_view: &StoreView) {
             TEXT_SIZE,
             color::WHITE,
         );
+        let price = stock.price.buy_price();
         text::draw_text(
-            &format!("| {}p", stock.price),
+            &format!("| {price}p"),
             290.,
             55. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,

@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 3.0, making it incompatible with previous save files
+- Expanded shopkeeper definition to allow setting a custom price
 
 ### Contributors for this release
 

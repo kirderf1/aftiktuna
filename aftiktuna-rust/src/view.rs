@@ -89,12 +89,9 @@ mod store {
                 .collect::<Vec<_>>();
             let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
             for (name, price) in items {
-                messages.add(format!(
-                    "{} {}| {}p",
-                    name,
-                    " ".repeat(max_length - name.len()),
-                    price
-                ));
+                let spacing = " ".repeat(max_length - name.len());
+                let price = price.buy_price();
+                messages.add(format!("{name} {spacing}| {price}p",));
             }
             messages.add(format!("Crew points: {}p", self.points));
             messages
