@@ -9,7 +9,7 @@ pub mod position;
 pub mod status;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct ModelId(String);
+pub struct ModelId(pub String);
 
 impl ModelId {
     pub fn unknown() -> Self {
@@ -69,7 +69,7 @@ pub enum OrderWeight {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct AftikColorId(String);
+pub struct AftikColorId(pub String);
 
 impl AftikColorId {
     pub fn new(name: &str) -> Self {

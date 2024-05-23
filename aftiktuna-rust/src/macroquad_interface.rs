@@ -17,7 +17,7 @@ use std::time::Instant;
 mod camera;
 mod render;
 mod store_render;
-mod texture;
+pub mod texture;
 mod tooltip;
 mod ui;
 

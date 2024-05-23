@@ -3,7 +3,7 @@ use std::ops::Deref;
 mod action;
 mod ai;
 mod command;
-mod core;
+pub mod core;
 pub mod game_interface;
 mod game_loop;
 pub mod location;

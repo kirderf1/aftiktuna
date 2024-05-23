@@ -212,14 +212,14 @@ pub fn prepare() -> Result<LazilyLoadedModels, Error> {
 }
 
 fn load_and_insert(model_id: ModelId, models: &mut HashMap<ModelId, Model>) -> Result<(), Error> {
-    let model = load_model(model_id.path())?;
+    let model = load_model(&model_id)?;
     models.insert(model_id, model);
     Ok(())
 }
 
 fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, Model>) {
-    let path = model_id.path();
-    let texture_data = load_model(path).unwrap_or_else(|error| {
+    let texture_data = load_model(model_id).unwrap_or_else(|error| {
+        let path = model_id.path();
         eprintln!("Unable to load texture data \"{path}\": {error}");
         if model_id.path().starts_with("item/") {
             models.get(&ModelId::small_unknown()).unwrap().clone()
@@ -230,7 +230,7 @@ fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, 
     models.insert(model_id.clone(), texture_data);
 }
 
-fn load_model(path: &str) -> Result<Model, Error> {
+pub fn load_model(ModelId(path): &ModelId) -> Result<Model, Error> {
     let file = File::open(format!("assets/texture/object/{path}.json"))?;
     let model = serde_json::from_reader::<_, RawModel>(file)?;
     Ok(model.load()?)

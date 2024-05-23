@@ -2,13 +2,14 @@ use crate::core::area::BackgroundId;
 use crate::core::position::Coord;
 use crate::core::{AftikColorId, ModelId};
 use crate::view::area::{ObjectRenderData, RenderProperties};
+use egui_macroquad::egui::Color32;
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::prelude::ImageFormat;
 use egui_macroquad::macroquad::texture::{draw_texture, Texture2D};
 use egui_macroquad::macroquad::window;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Error as JsonError;
 use std::borrow::Borrow;
 use std::collections::HashMap;
@@ -21,7 +22,7 @@ use self::background::{BGData, BGPortrait, BGTexture};
 pub use self::model::LazilyLoadedModels;
 
 mod background;
-mod model;
+pub mod model;
 
 pub struct RenderAssets {
     backgrounds: HashMap<BackgroundId, BGData>,
@@ -80,31 +81,39 @@ pub fn get_rect_for_object(
     model.get_rect(pos, &object_data.properties)
 }
 
-const DEFAULT_COLOR: AftikColorData = AftikColorData {
-    primary_color: RGBColor {
-        r: 255,
-        g: 255,
-        b: 255,
-    },
-    secondary_color: RGBColor { r: 0, g: 0, b: 0 },
+pub const DEFAULT_COLOR: AftikColorData = AftikColorData {
+    primary_color: RGBColor::new(255, 255, 255),
+    secondary_color: RGBColor::new(0, 0, 0),
 };
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AftikColorData {
-    primary_color: RGBColor,
-    secondary_color: RGBColor,
+    pub primary_color: RGBColor,
+    pub secondary_color: RGBColor,
 }
 
-#[derive(Clone, Copy, Deserialize)]
-struct RGBColor {
+#[derive(Clone, Copy, Serialize, Deserialize)]
+pub struct RGBColor {
     r: u8,
     g: u8,
     b: u8,
 }
 
+impl RGBColor {
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
+        Self { r, g, b }
+    }
+}
+
 impl From<RGBColor> for Color {
-    fn from(value: RGBColor) -> Self {
-        Color::from_rgba(value.r, value.g, value.b, 255)
+    fn from(RGBColor { r, g, b }: RGBColor) -> Self {
+        Color::from_rgba(r, g, b, 255)
+    }
+}
+
+impl From<RGBColor> for Color32 {
+    fn from(RGBColor { r, g, b }: RGBColor) -> Self {
+        Color32::from_rgb(r, g, b)
     }
 }
 
@@ -194,8 +203,10 @@ pub fn load_assets() -> Result<RenderAssets, Error> {
     })
 }
 
+pub const AFTIK_COLORS_PATH: &str = "assets/aftik_colors.json";
+
 pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorData>, Error> {
-    let file = File::open("assets/aftik_colors.json")?;
+    let file = File::open(AFTIK_COLORS_PATH)?;
     Ok(serde_json::from_reader::<
         _,
         HashMap<AftikColorId, AftikColorData>,
