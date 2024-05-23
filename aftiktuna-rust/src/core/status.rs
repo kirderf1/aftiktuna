@@ -1,7 +1,7 @@
 use super::name::NameData;
 use super::position::Pos;
 use crate::view::Messages;
-use hecs::{CommandBuffer, ComponentError, Entity, World};
+use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 
@@ -71,10 +71,16 @@ impl Health {
 }
 
 pub fn is_alive(entity: Entity, world: &World) -> bool {
-    match world.get::<&Health>(entity) {
-        Ok(health) => health.is_alive(),
-        Err(ComponentError::MissingComponent(_)) => true,
-        Err(ComponentError::NoSuchEntity) => false,
+    match world.entity(entity) {
+        Ok(entity_ref) => is_alive_ref(entity_ref),
+        Err(hecs::NoSuchEntity) => false,
+    }
+}
+
+pub fn is_alive_ref(entity_ref: EntityRef) -> bool {
+    match entity_ref.get::<&Health>() {
+        Some(health) => health.is_alive(),
+        None => true,
     }
 }
 

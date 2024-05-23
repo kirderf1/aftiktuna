@@ -3,7 +3,7 @@ use crate::core::item::Weapon;
 use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::{self, inventory, status, CrewMember, GoingToShip, Hostile};
-use hecs::{Entity, World};
+use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -13,78 +13,79 @@ pub enum Intention {
 }
 
 pub fn prepare_intentions(world: &mut World) {
-    let crew_members = world
-        .query::<()>()
-        .with::<&CrewMember>()
-        .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for crew_member in crew_members {
-        prepare_intention(world, crew_member);
+    let mut buffer = CommandBuffer::new();
+
+    for (crew_member, _) in world.query::<()>().with::<&CrewMember>().iter() {
+        if let Some(intention) = pick_intention(crew_member, world) {
+            buffer.insert_one(crew_member, intention);
+        };
 
         if world.satisfies::<&GoingToShip>(crew_member).unwrap() {
-            world.insert_one(crew_member, Action::GoToShip).unwrap();
+            buffer.insert_one(crew_member, Action::GoToShip);
         }
     }
+
+    buffer.run_on(world);
 }
 
-fn prepare_intention(world: &mut World, crew_member: Entity) {
-    fn pick_intention(world: &mut World, crew_member: Entity) -> Option<Intention> {
-        let weapon_damage = core::get_wielded_weapon_modifier(world, crew_member);
+fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
+    let weapon_damage = core::get_wielded_weapon_modifier(world, crew_member);
 
-        for item in inventory::get_inventory(world, crew_member) {
-            if let Ok(weapon) = world.get::<&Weapon>(item) {
-                if weapon.0 > weapon_damage {
-                    return Some(Intention::Wield(item));
-                }
+    for item in inventory::get_inventory(world, crew_member) {
+        if let Ok(weapon) = world.get::<&Weapon>(item) {
+            if weapon.0 > weapon_damage {
+                return Some(Intention::Wield(item));
             }
         }
-        None
     }
 
-    if let Some(intention) = pick_intention(world, crew_member) {
-        world.insert_one(crew_member, intention).unwrap();
-    }
+    None
 }
 
 pub fn tick(world: &mut World) {
-    let foes = world
+    let mut buffer = CommandBuffer::new();
+
+    for (entity, _) in world
         .query::<()>()
-        .with::<&Hostile>()
+        .with::<Or<&CrewMember, &Hostile>>()
         .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for foe in foes {
-        foe_ai(world, foe);
+    {
+        let entity_ref = world.entity(entity).unwrap();
+        if status::is_alive_ref(entity_ref) && !entity_ref.satisfies::<&Action>() {
+            let action = pick_action(entity_ref, world).unwrap_or(Action::Wait);
+
+            buffer.insert_one(entity, action);
+        };
     }
 
-    let aftiks = world
+    world
         .query::<()>()
-        .with::<&CrewMember>()
+        .with::<&Intention>()
         .iter()
-        .map(|(entity, ())| entity)
-        .collect::<Vec<_>>();
-    for aftik in aftiks {
-        aftik_ai(world, aftik);
+        .for_each(|(entity, _)| buffer.remove_one::<Intention>(entity));
+
+    buffer.run_on(world);
+}
+
+fn pick_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
+    if let Some(hostile) = entity_ref.get::<&Hostile>() {
+        pick_foe_action(entity_ref, &hostile, world)
+    } else if entity_ref.satisfies::<&CrewMember>() {
+        pick_crew_action(entity_ref, world)
+    } else {
+        None
     }
 }
 
-fn foe_ai(world: &mut World, foe: Entity) {
-    if status::is_alive(foe, world) && world.get::<&Action>(foe).is_err() {
-        let action = pick_foe_action(world, foe).unwrap_or(Action::Wait);
+fn pick_foe_action(entity_ref: EntityRef, hostile: &Hostile, world: &World) -> Option<Action> {
+    if hostile.aggressive {
+        let area = entity_ref.get::<&Pos>()?.get_area();
 
-        world.insert_one(foe, action).unwrap();
-    }
-}
-
-fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
-    if world.get::<&Hostile>(foe).unwrap().aggressive {
-        let pos = *world.get::<&Pos>(foe).ok()?;
         let targets = world
             .query::<&Pos>()
             .with::<&CrewMember>()
             .iter()
-            .filter(|(_, aftik_pos)| aftik_pos.is_in(pos.get_area()))
+            .filter(|&(crew, crew_pos)| crew_pos.is_in(area) && status::is_alive(crew, world))
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();
         if !targets.is_empty() {
@@ -95,22 +96,14 @@ fn pick_foe_action(world: &World, foe: Entity) -> Option<Action> {
     None
 }
 
-fn aftik_ai(world: &mut World, crew_member: Entity) {
-    let intention = world.remove_one::<Intention>(crew_member).ok();
-    if status::is_alive(crew_member, world) && world.get::<&Action>(crew_member).is_err() {
-        let action = pick_aftik_action(world, crew_member, intention).unwrap_or(Action::Wait);
+fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
+    let area = entity_ref.get::<&Pos>()?.get_area();
 
-        world.insert_one(crew_member, action).unwrap();
-    }
-}
-
-fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>) -> Option<Action> {
-    let pos = *world.get::<&Pos>(aftik).ok()?;
     let foes = world
         .query::<(&Pos, &Hostile)>()
         .iter()
-        .filter(|&(entity, (foe_pos, hostile))| {
-            foe_pos.is_in(pos.get_area()) && status::is_alive(entity, world) && hostile.aggressive
+        .filter(|&(foe, (foe_pos, hostile))| {
+            foe_pos.is_in(area) && status::is_alive(foe, world) && hostile.aggressive
         })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
@@ -118,8 +111,8 @@ fn pick_aftik_action(world: &World, aftik: Entity, intention: Option<Intention>)
         return Some(Action::Attack(foes));
     }
 
-    if let Some(intention) = intention {
-        return Some(match intention {
+    if let Some(intention) = entity_ref.get::<&Intention>() {
+        return Some(match *intention {
             Intention::Wield(item) => Action::Wield(item, NameData::find(world, item)),
             Intention::Force(door) => Action::ForceDoor(door, true),
         });
