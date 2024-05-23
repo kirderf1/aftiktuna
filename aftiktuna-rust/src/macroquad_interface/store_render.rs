@@ -1,5 +1,5 @@
 use crate::core::position::Direction;
-use crate::core::{AftikColorId, ModelId, PricedItem};
+use crate::core::{AftikColorId, ModelId, StoreStock};
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;
@@ -37,16 +37,16 @@ const TEXT_SIZE: f32 = 32.;
 
 fn draw_store_stock(store_view: &StoreView) {
     shapes::draw_rectangle(30., 30., 400., 400., STORE_UI_COLOR);
-    for (index, priced_item) in store_view.items.iter().enumerate() {
+    for (index, stock) in store_view.items.iter().enumerate() {
         text::draw_text(
-            &view::capitalize(priced_item.item.noun_data().singular()),
+            &view::capitalize(stock.item.noun_data().singular()),
             50.,
             55. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,
             color::WHITE,
         );
         text::draw_text(
-            &format!("| {}p", priced_item.price),
+            &format!("| {}p", stock.price),
             290.,
             55. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,
@@ -55,10 +55,10 @@ fn draw_store_stock(store_view: &StoreView) {
     }
 }
 
-pub fn find_stock_at(pos: Vec2, store_view: &StoreView) -> Option<&PricedItem> {
-    for (index, priced_item) in store_view.items.iter().enumerate() {
+pub fn find_stock_at(pos: Vec2, store_view: &StoreView) -> Option<&StoreStock> {
+    for (index, stock) in store_view.items.iter().enumerate() {
         if Rect::new(30., 30. + (index as f32 * TEXT_SIZE), 400., TEXT_SIZE).contains(pos) {
-            return Some(priced_item);
+            return Some(stock);
         }
     }
     None

@@ -2,8 +2,8 @@ use crate::core::area::ShipControls;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::name::NameData;
 use crate::core::{
-    inventory, status, BlockType, CrewMember, Door, FortunaChest, Hostile, PricedItem, Recruitable,
-    Shopkeeper, Waiting,
+    inventory, status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Shopkeeper,
+    StoreStock, Waiting,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;
@@ -198,7 +198,10 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     interactions
 }
 
-pub fn for_store(priced_item: Option<&PricedItem>, sellable_items: &[NameData]) -> Vec<Suggestion> {
+pub fn for_store(
+    clicked_stock: Option<&StoreStock>,
+    sellable_items: &[NameData],
+) -> Vec<Suggestion> {
     let mut suggestions = vec![
         simple!("status"),
         simple!("exit"),
@@ -215,8 +218,8 @@ pub fn for_store(priced_item: Option<&PricedItem>, sellable_items: &[NameData]) 
             "sell all {}"
         ),
     ];
-    if let Some(priced_item) = priced_item {
-        suggestions.push(simple!("buy {}", priced_item.item.noun_data().singular()));
+    if let Some(clicked_stock) = clicked_stock {
+        suggestions.push(simple!("buy {}", clicked_stock.item.noun_data().singular()));
     }
     suggestions
 }

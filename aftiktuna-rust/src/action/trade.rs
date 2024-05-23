@@ -4,7 +4,7 @@ use crate::core::inventory::Held;
 use crate::core::item::Price;
 use crate::core::name::{self, NameData};
 use crate::core::position::Pos;
-use crate::core::{item, position, IsTrading, Points, PricedItem, Shopkeeper};
+use crate::core::{item, position, IsTrading, Points, Shopkeeper, StoreStock};
 use hecs::{Entity, Ref, World};
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
@@ -42,36 +42,35 @@ pub fn buy(
         .map_err(|_| format!("{} is not currently trading.", performer_name))?
         .0;
 
-    let priced_item = world
+    let stock = world
         .get::<&Shopkeeper>(shopkeeper)
         .ok()
-        .and_then(|shopkeeper| find_priced_item(&*shopkeeper, item_type))
+        .and_then(|shopkeeper| find_stock(&shopkeeper, item_type))
         .ok_or_else(|| "The item is not in stock.".to_string())?;
 
     if amount < 1 {
         return Err("Tried to purchase a non-positive number of items.".to_string());
     }
 
-    try_spend_points(world, crew, priced_item.price * i32::from(amount))?;
+    try_spend_points(world, crew, stock.price * i32::from(amount))?;
 
     for _ in 0..amount {
-        item::spawn(world, priced_item.item, Held::in_inventory(performer));
+        item::spawn(world, stock.item, Held::in_inventory(performer));
     }
 
     action::ok(format!(
         "{} bought {}.",
         performer_name,
-        priced_item.item.noun_data().with_count(amount),
+        stock.item.noun_data().with_count(amount),
     ))
 }
 
-fn find_priced_item(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<PricedItem> {
+fn find_stock(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<StoreStock> {
     shopkeeper
         .0
         .iter()
-        .filter(|priced| priced.item == item_type)
-        .map(PricedItem::clone)
-        .next()
+        .find(|priced| priced.item == item_type)
+        .cloned()
 }
 
 pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action::Result {

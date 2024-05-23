@@ -60,14 +60,14 @@ mod store {
     use crate::core::item::Price;
     use crate::core::name::{NameData, NameQuery};
     use crate::core::position::Pos;
-    use crate::core::{AftikColorId, PricedItem, Shopkeeper};
+    use crate::core::{AftikColorId, Shopkeeper, StoreStock};
     use crate::deref_clone;
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct StoreView {
-        pub items: Vec<PricedItem>,
+        pub items: Vec<StoreStock>,
         pub shopkeeper_color: Option<AftikColorId>,
         pub background: BackgroundId,
         pub points: i32,
@@ -80,10 +80,10 @@ mod store {
             let items = self
                 .items
                 .iter()
-                .map(|priced| {
+                .map(|stock| {
                     (
-                        text::capitalize(priced.item.noun_data().singular()),
-                        priced.price,
+                        text::capitalize(stock.item.noun_data().singular()),
+                        stock.price,
                     )
                 })
                 .collect::<Vec<_>>();

@@ -4,7 +4,7 @@ use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::core::name::{NameData, NameQuery};
-use crate::core::{PricedItem, Shopkeeper};
+use crate::core::{Shopkeeper, StoreStock};
 use hecs::{Entity, World};
 
 pub fn parse(
@@ -60,7 +60,7 @@ pub fn parse(
     )
 }
 
-fn store_entries(shopkeeper: &Shopkeeper, amount: u16) -> Vec<(String, &PricedItem)> {
+fn store_entries(shopkeeper: &Shopkeeper, amount: u16) -> Vec<(String, &StoreStock)> {
     shopkeeper
         .0
         .iter()
@@ -73,8 +73,8 @@ fn store_entries(shopkeeper: &Shopkeeper, amount: u16) -> Vec<(String, &PricedIt
         .collect::<Vec<_>>()
 }
 
-fn buy(priced_item: &PricedItem, amount: u16) -> Result<CommandResult, String> {
-    command::action_result(Action::Buy(priced_item.item, amount))
+fn buy(stock: &StoreStock, amount: u16) -> Result<CommandResult, String> {
+    command::action_result(Action::Buy(stock.item, amount))
 }
 
 fn held_items(world: &World, character: Entity) -> Vec<(String, Entity)> {

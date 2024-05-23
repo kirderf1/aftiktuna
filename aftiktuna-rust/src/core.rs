@@ -101,10 +101,10 @@ pub struct OpenedChest;
 pub struct Points(pub i32);
 
 #[derive(Serialize, Deserialize)]
-pub struct Shopkeeper(pub Vec<PricedItem>);
+pub struct Shopkeeper(pub Vec<StoreStock>);
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PricedItem {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreStock {
     pub item: item::Type,
     pub price: i32,
 }

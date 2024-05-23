@@ -2,8 +2,8 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{
-    item, AftikColorId, CrewMember, Hostile, ModelId, OrderWeight, PricedItem, Recruitable,
-    Shopkeeper, Symbol,
+    item, AftikColorId, CrewMember, Hostile, ModelId, OrderWeight, Recruitable, Shopkeeper,
+    StoreStock, Symbol,
 };
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
@@ -147,7 +147,7 @@ pub fn place_shopkeeper(
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
     let stock = shop_items
         .iter()
-        .map(|item| to_priced_item(*item))
+        .map(|item| to_stock(*item))
         .collect::<Result<Vec<_>, String>>()?;
     world.spawn((
         ModelId::aftik(),
@@ -161,9 +161,9 @@ pub fn place_shopkeeper(
     Ok(())
 }
 
-fn to_priced_item(item: item::Type) -> Result<PricedItem, String> {
+fn to_stock(item: item::Type) -> Result<StoreStock, String> {
     item.price()
-        .map(|price| PricedItem { item, price })
+        .map(|price| StoreStock { item, price })
         .ok_or_else(|| {
             format!(
                 "Cannot get a price from item \"{}\" to put in store",
