@@ -66,7 +66,7 @@ fn talk_dialogue(context: &mut Context, performer: Entity, target: Entity) {
     } else if context
         .mut_world()
         .get::<&Health>(target)
-        .map_or(false, |health| health.as_fraction() < 0.5)
+        .map_or(false, |health| health.is_badly_hurt())
     {
         context.add_dialogue(performer, "\"Hi!\"");
         context.add_dialogue(target, "\"Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.\"");

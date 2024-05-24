@@ -46,6 +46,10 @@ impl Health {
         self.value < self.max
     }
 
+    pub fn is_badly_hurt(&self) -> bool {
+        self.as_fraction() < 0.5
+    }
+
     pub fn as_fraction(&self) -> f32 {
         self.value / self.max
     }
@@ -128,7 +132,7 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, health)) in world.query::<(&Pos, &Health)>().iter() {
         let has_tag = world.get::<&LowHealth>(entity).is_ok();
-        let visible_low_health = pos.is_in(area) && health.as_fraction() < 0.5;
+        let visible_low_health = pos.is_in(area) && health.is_badly_hurt();
         if has_tag && !visible_low_health {
             command_buffer.remove_one::<LowHealth>(entity);
         }

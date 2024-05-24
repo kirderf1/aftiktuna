@@ -224,7 +224,7 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             .map_or(true, |health| health.is_alive()),
         is_badly_hurt: entity_ref
             .get::<&Health>()
-            .map_or(false, |health| health.as_fraction() < 0.5),
+            .map_or(false, |health| health.is_badly_hurt()),
     };
     ObjectRenderData {
         coord: pos.get_coord(),

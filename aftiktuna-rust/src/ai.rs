@@ -1,5 +1,5 @@
 use crate::action::Action;
-use crate::core::item::Weapon;
+use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::{self, inventory, status, CrewMember, GoingToShip, Hostile};
@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 pub enum Intention {
     Wield(Entity),
     Force(Entity),
+    UseMedkit(Entity),
 }
 
 pub fn prepare_intentions(world: &mut World) {
@@ -29,6 +30,17 @@ pub fn prepare_intentions(world: &mut World) {
 }
 
 fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
+    if world
+        .get::<&status::Health>(crew_member)
+        .map_or(false, |health| health.is_badly_hurt())
+    {
+        for item in inventory::get_inventory(world, crew_member) {
+            if world.satisfies::<&Medkit>(item).unwrap_or(false) {
+                return Some(Intention::UseMedkit(item));
+            }
+        }
+    }
+
     let weapon_damage = core::get_wielded_weapon_modifier(world, crew_member);
 
     for item in inventory::get_inventory(world, crew_member) {
@@ -97,6 +109,11 @@ fn pick_foe_action(entity_ref: EntityRef, hostile: &Hostile, world: &World) -> O
 }
 
 fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
+    let intention = entity_ref.get::<&Intention>();
+    if let Some(&Intention::UseMedkit(item)) = intention.as_deref() {
+        return Some(Action::UseMedkit(item));
+    }
+
     let area = entity_ref.get::<&Pos>()?.get_area();
 
     let foes = world
@@ -111,11 +128,14 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
         return Some(Action::Attack(foes));
     }
 
-    if let Some(intention) = entity_ref.get::<&Intention>() {
-        return Some(match *intention {
-            Intention::Wield(item) => Action::Wield(item, NameData::find(world, item)),
-            Intention::Force(door) => Action::ForceDoor(door, true),
-        });
+    if let Some(intention) = intention {
+        match *intention {
+            Intention::Wield(item) => {
+                return Some(Action::Wield(item, NameData::find(world, item)))
+            }
+            Intention::Force(door) => return Some(Action::ForceDoor(door, true)),
+            _ => {}
+        };
     }
 
     None
