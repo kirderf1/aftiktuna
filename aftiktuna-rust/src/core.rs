@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -103,10 +105,41 @@ pub struct Points(pub i32);
 #[derive(Serialize, Deserialize)]
 pub struct Shopkeeper(pub Vec<StoreStock>);
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum StockQuantity {
+    Unlimited,
+    Count(u16),
+}
+
+impl StockQuantity {
+    pub fn is_zero(&self) -> bool {
+        matches!(self, Self::Count(0))
+    }
+
+    pub fn subtracted(&self, subtracted: u16) -> Option<Self> {
+        match self {
+            Self::Unlimited => Some(Self::Unlimited),
+            Self::Count(count) => Some(Self::Count(count.checked_sub(subtracted)?)),
+        }
+    }
+}
+
+impl Display for StockQuantity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Unlimited => "Unlimited".fmt(f),
+            Self::Count(0) => "SOLD OUT".fmt(f),
+            Self::Count(count) => count.fmt(f),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StoreStock {
     pub item: item::Type,
     pub price: item::Price,
+    pub quantity: StockQuantity,
 }
 
 #[derive(Serialize, Deserialize)]

@@ -64,16 +64,18 @@ fn store_entries(shopkeeper: &Shopkeeper, amount: u16) -> Vec<(String, &StoreSto
     shopkeeper
         .0
         .iter()
-        .map(|priced| {
-            (
-                priced.item.noun_data().for_count(amount).to_string(),
-                priced,
-            )
-        })
+        .map(|stock| (stock.item.noun_data().for_count(amount).to_string(), stock))
         .collect::<Vec<_>>()
 }
 
 fn buy(stock: &StoreStock, amount: u16) -> Result<CommandResult, String> {
+    if stock.quantity.subtracted(amount).is_none() {
+        return Err(format!(
+            "There are not enough {} in stock.",
+            stock.item.noun_data().plural()
+        ));
+    }
+
     command::action_result(Action::Buy(stock.item, amount))
 }
 

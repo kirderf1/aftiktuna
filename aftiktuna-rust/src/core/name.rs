@@ -123,6 +123,10 @@ impl Noun {
         &self.singular
     }
 
+    pub fn plural(&self) -> &str {
+        &self.plural
+    }
+
     pub fn with_adjective(&self, adjective: &str) -> Noun {
         Noun {
             singular: format!("{} {}", adjective, self.singular),

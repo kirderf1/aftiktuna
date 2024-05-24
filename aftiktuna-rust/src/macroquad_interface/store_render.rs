@@ -33,23 +33,31 @@ fn draw_shopkeeper_portrait(assets: &mut RenderAssets, aftik_color: Option<Aftik
     );
 }
 
-const TEXT_SIZE: f32 = 32.;
+const TEXT_SIZE: f32 = 24.;
 
 fn draw_store_stock(store_view: &StoreView) {
     shapes::draw_rectangle(30., 30., 400., 400., STORE_UI_COLOR);
     for (index, stock) in store_view.items.iter().enumerate() {
         text::draw_text(
             &view::capitalize(stock.item.noun_data().singular()),
-            50.,
-            55. + (index as f32 * TEXT_SIZE),
+            40.,
+            50. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,
             color::WHITE,
         );
         let price = stock.price.buy_price();
         text::draw_text(
             &format!("| {price}p"),
-            290.,
-            55. + (index as f32 * TEXT_SIZE),
+            210.,
+            50. + (index as f32 * TEXT_SIZE),
+            TEXT_SIZE,
+            color::WHITE,
+        );
+        let quantity = stock.quantity;
+        text::draw_text(
+            &format!("| {quantity}"),
+            300.,
+            50. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,
             color::WHITE,
         );

@@ -102,9 +102,9 @@
           "type": "shopkeeper",
           "stock": [
             { "item": "fuel_can" },
-            { "item": "bat" },
-            { "item": "sword" },
-            { "item": "food_ration" }
+            { "item": "bat", "quantity": 2 },
+            { "item": "sword", "quantity": 1 },
+            { "item": "food_ration", "quantity": 10 }
           ],
           "color": "green"
         }

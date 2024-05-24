@@ -83,15 +83,29 @@ mod store {
                 .map(|stock| {
                     (
                         text::capitalize(stock.item.noun_data().singular()),
-                        stock.price,
+                        stock.price.buy_price().to_string(),
+                        stock.quantity,
                     )
                 })
                 .collect::<Vec<_>>();
-            let max_length = items.iter().map(|(name, _)| name.len()).max().unwrap_or(0);
-            for (name, price) in items {
-                let spacing = " ".repeat(max_length - name.len());
-                let price = price.buy_price();
-                messages.add(format!("{name} {spacing}| {price}p",));
+
+            let names_length = items
+                .iter()
+                .map(|(name, _, _)| name.len())
+                .max()
+                .unwrap_or(0);
+            let prices_length = items
+                .iter()
+                .map(|(_, price, _)| price.len())
+                .max()
+                .unwrap_or(0);
+
+            for (name, price, quantity) in items {
+                let name_spacing = " ".repeat(names_length - name.len());
+                let price_spacing = " ".repeat(prices_length - price.len());
+                messages.add(format!(
+                    "{name} {name_spacing}| {price}p {price_spacing}| {quantity}"
+                ));
             }
             messages.add(format!("Crew points: {}p", self.points));
             messages

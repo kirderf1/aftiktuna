@@ -3,7 +3,7 @@ use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{
     item, AftikColorId, CrewMember, Hostile, ModelId, OrderWeight, Recruitable, Shopkeeper,
-    StoreStock, Symbol,
+    StockQuantity, StoreStock, Symbol,
 };
 use hecs::{Entity, EntityBuilder, World};
 use serde::{Deserialize, Serialize};
@@ -166,17 +166,28 @@ pub struct StockDefinition {
     item: item::Type,
     #[serde(default)]
     price: Option<item::Price>,
+    #[serde(default)]
+    quantity: Option<StockQuantity>,
 }
 
 impl StockDefinition {
     fn build(&self) -> Result<StoreStock, String> {
-        let Self { item, price } = *self;
+        let Self {
+            item,
+            price,
+            quantity,
+        } = *self;
         let price = price.or_else(|| item.price()).ok_or_else(|| {
             format!(
                 "Cannot get a price from item \"{}\" to put in store",
                 item.noun_data().singular()
             )
         })?;
-        Ok(StoreStock { item, price })
+        let quantity = quantity.unwrap_or(StockQuantity::Unlimited);
+        Ok(StoreStock {
+            item,
+            price,
+            quantity,
+        })
     }
 }

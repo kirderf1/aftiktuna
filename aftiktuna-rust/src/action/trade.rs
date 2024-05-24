@@ -5,7 +5,7 @@ use crate::core::item::Price;
 use crate::core::name::{self, NameData};
 use crate::core::position::Pos;
 use crate::core::{item, position, IsTrading, Points, Shopkeeper, StoreStock};
-use hecs::{Entity, Ref, World};
+use hecs::{Entity, EntityRef, Ref, World};
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
     let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
@@ -36,46 +36,54 @@ pub fn buy(
     amount: u16,
 ) -> action::Result {
     let performer_name = NameData::find(world, performer).definite();
-    let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let shopkeeper = world
-        .get::<&IsTrading>(performer)
-        .map_err(|_| format!("{} is not currently trading.", performer_name))?
-        .0;
 
-    let stock = world
-        .get::<&Shopkeeper>(shopkeeper)
-        .ok()
-        .and_then(|shopkeeper| find_stock(&shopkeeper, item_type))
-        .ok_or_else(|| "The item is not in stock.".to_string())?;
-
-    if amount < 1 {
-        return Err("Tried to purchase a non-positive number of items.".to_string());
-    }
-
-    try_spend_points(world, crew, stock.price.buy_price() * i32::from(amount))?;
+    let (item, price) = try_buy(world, performer, item_type, amount)?;
 
     for _ in 0..amount {
-        item::spawn(
-            world,
-            stock.item,
-            Some(stock.price),
-            Held::in_inventory(performer),
-        );
+        item::spawn(world, item, Some(price), Held::in_inventory(performer));
     }
 
     action::ok(format!(
-        "{} bought {}.",
-        performer_name,
-        stock.item.noun_data().with_count(amount),
+        "{performer_name} bought {}.",
+        item.noun_data().with_count(amount),
     ))
 }
 
-fn find_stock(shopkeeper: &Shopkeeper, item_type: item::Type) -> Option<StoreStock> {
+fn try_buy(
+    world: &mut World,
+    performer: Entity,
+    item_type: item::Type,
+    amount: u16,
+) -> Result<(item::Type, Price), String> {
+    let crew = world.get::<&CrewMember>(performer).unwrap().0;
+    let shopkeeper = world
+        .get::<&IsTrading>(performer)
+        .map_err(|_| "Tried to buy while not trading.")?
+        .0;
+    let mut shopkeeper = world.get::<&mut Shopkeeper>(shopkeeper).unwrap();
+    let stock = find_stock(&mut shopkeeper, item_type).ok_or("The item is not in stock.")?;
+    if amount < 1 {
+        return Err("Tried to purchase a non-positive number of items.".to_owned());
+    }
+
+    let new_quantity = stock
+        .quantity
+        .subtracted(amount)
+        .ok_or("Tried buying more than what was in stock.")?;
+    try_spend_points(
+        world.entity(crew).unwrap(),
+        stock.price.buy_price() * i32::from(amount),
+    )?;
+    stock.quantity = new_quantity;
+
+    Ok((stock.item, stock.price))
+}
+
+fn find_stock(shopkeeper: &mut Shopkeeper, item_type: item::Type) -> Option<&mut StoreStock> {
     shopkeeper
         .0
-        .iter()
+        .iter_mut()
         .find(|priced| priced.item == item_type)
-        .cloned()
 }
 
 pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action::Result {
@@ -85,10 +93,10 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
             .get::<&Held>(*item)
             .ok()
             .filter(|held| held.held_by(performer))
-            .ok_or_else(|| "Item to sell is not being held!".to_string())?;
+            .ok_or("Item to sell is not being held!")?;
         value += world
             .get::<&Price>(*item)
-            .map_err(|_| "That item can not be sold.".to_string())?
+            .map_err(|_| "That item can not be sold.")?
             .sell_price();
     }
 
@@ -119,20 +127,18 @@ pub fn exit(world: &mut World, performer: Entity) -> action::Result {
         .map_err(|_| format!("{} is already not trading.", performer_name,))?;
 
     action::ok(format!(
-        "{} stops trading with the shopkeeper.",
-        performer_name
+        "{performer_name} stops trading with the shopkeeper.",
     ))
 }
 
-fn try_spend_points(world: &mut World, crew: Entity, points: i32) -> Result<(), String> {
-    if let Ok(mut crew_points) = world.get::<&mut Points>(crew) {
-        if crew_points.0 >= points {
-            crew_points.0 -= points;
-            Ok(())
-        } else {
-            Err("The crew cannot afford that.".to_string())
-        }
-    } else {
-        Err("The crew is missing its wallet.".to_string())
+fn try_spend_points(crew_ref: EntityRef, points: i32) -> Result<(), String> {
+    let mut crew_points = crew_ref
+        .get::<&mut Points>()
+        .ok_or("The crew is missing its wallet.")?;
+    if crew_points.0 < points {
+        return Err("The crew cannot afford that.".to_string());
     }
+
+    crew_points.0 -= points;
+    Ok(())
 }
