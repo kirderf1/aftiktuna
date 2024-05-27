@@ -115,9 +115,16 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
             background,
             color,
             direction,
+            is_badly_hurt,
             ..
         } => {
-            draw_dialogue_frame(background, color.clone(), *direction, assets);
+            draw_dialogue_frame(
+                background,
+                color.clone(),
+                *direction,
+                *is_badly_hurt,
+                assets,
+            );
         }
         Frame::StoreView { view, .. } => {
             store_render::draw_store_view(assets, view);
@@ -157,6 +164,7 @@ fn draw_dialogue_frame(
     background_type: &BackgroundId,
     aftik_color: Option<AftikColorId>,
     direction: Direction,
+    is_badly_hurt: bool,
     assets: &mut RenderAssets,
 ) {
     set_default_camera();
@@ -170,6 +178,7 @@ fn draw_dialogue_frame(
         &RenderProperties {
             direction,
             aftik_color,
+            is_badly_hurt,
             ..RenderProperties::default()
         },
         false,

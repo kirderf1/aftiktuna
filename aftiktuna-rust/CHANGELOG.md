@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Expanded shopkeeper definition to allow setting a custom price
 - Shops can now have a limited quantity of items in stock
 - Non-controlled crew members now use held medkits on their own when in low health
+- Wounded character portrait in dialogue
 
 ### Contributors for this release
 

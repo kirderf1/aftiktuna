@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "portrait_details", "color": "uncolored" },
+    { "texture": "portrait_details", "color": "uncolored", "if_hurt": false },
+    { "texture": "wounded_portrait_details", "color": "uncolored", "if_hurt": true },
     { "texture": "portrait_secondary", "color": "secondary" },
     { "texture": "portrait_primary", "color": "primary" }
   ]

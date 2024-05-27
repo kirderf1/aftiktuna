@@ -3,8 +3,8 @@ pub use self::status::print_full_status;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::name::NameData;
 use crate::core::position::{Direction, Pos};
+use crate::core::status::Health;
 use crate::core::{AftikColorId, IsTrading};
-use crate::deref_clone;
 use crate::game_loop::{GameState, StopType};
 use crate::location::Choice;
 use hecs::{Entity, World};
@@ -223,6 +223,7 @@ pub enum Frame {
         speaker: NameData,
         color: Option<AftikColorId>,
         direction: Direction,
+        is_badly_hurt: bool,
     },
     StoreView {
         view: StoreView,
@@ -303,16 +304,21 @@ impl Frame {
     }
 
     pub fn new_dialogue(world: &World, character: Entity, messages: Vec<String>) -> Self {
-        let area = world.get::<&Pos>(character).unwrap().get_area();
+        let character_ref = world.entity(character).unwrap();
+        let area = character_ref.get::<&Pos>().unwrap().get_area();
         Self::Dialogue {
             messages,
             background: world.get::<&Area>(area).unwrap().background.clone(),
-            speaker: NameData::find(world, character),
-            color: world.get::<&AftikColorId>(character).ok().map(deref_clone),
-            direction: world
-                .get::<&Direction>(character)
-                .map(|direction| *direction)
+            speaker: NameData::find_for_ref(character_ref),
+            color: character_ref.get::<&AftikColorId>().as_deref().cloned(),
+            direction: character_ref
+                .get::<&Direction>()
+                .as_deref()
+                .copied()
                 .unwrap_or_default(),
+            is_badly_hurt: character_ref
+                .get::<&Health>()
+                .map_or(false, |health| health.is_badly_hurt()),
         }
     }
 }
