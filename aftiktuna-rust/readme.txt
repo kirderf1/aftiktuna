@@ -9,9 +9,11 @@ Currently available commands are:
 - take <item>
 - take all
 - give <character> <item>
+- check <item>
 - wield <item>
 - use <item>
 - enter <path/door>
+- go to ship
 - force <door>
 - attack <creature>
 - attack
@@ -25,6 +27,7 @@ Currently available commands are:
 - recruit aftik
 - talk to <character>
 - tell <character> to wait
+- tell <character> to wait at ship
 - tell <character> to follow
 - open fortuna chest
 
@@ -39,8 +42,8 @@ When trading at a store, there are the following commands:
 
 Notes:
 - "rest" doesn't recover health, instead it waits until stamina (a stat that helps with dodging attacks) has recovered for the crew.
-- Health is partially recovered when moving from one location to another as long as the crew has food rations to consume for it. This happens automatically, and it doesn't matter which character is holding the food rations.
+- Health is partially recovered when moving with the ship from one location to another, as long as the crew has food rations to consume for it. This happens automatically, and it doesn't matter which character is holding the food rations.
 - Use the mouse to drag the camera view in larger areas indicated by white arrows.
 - You can also use the mouse to see the name of objects in view.
 - You can click game objects to get a list of command suggestions. Note that this does not cover all possible commands that you might want to do.
-- The game saves automatically when closed, and loads automatically if a save file is present. To restart the game, you can remove the save file. It's possible to disable autosaving by passing in "--disable-autosave" as a flag when running the executable.
+- The game saves automatically when closed. It's possible to disable autosaving by passing in "--disable-autosave" as a flag when running the executable.
