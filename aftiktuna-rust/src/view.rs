@@ -219,11 +219,7 @@ pub enum Frame {
     },
     Dialogue {
         messages: Vec<String>,
-        background: BackgroundId,
-        speaker: NameData,
-        color: Option<AftikColorId>,
-        direction: Direction,
-        is_badly_hurt: bool,
+        data: DialogueFrameData,
     },
     StoreView {
         view: StoreView,
@@ -255,10 +251,8 @@ impl Frame {
                     text.extend(messages.clone());
                 }
             }
-            Frame::Dialogue {
-                messages, speaker, ..
-            } => {
-                text.push(format!("{}:", capitalize(speaker.definite())));
+            Frame::Dialogue { messages, data } => {
+                text.push(format!("{}:", capitalize(data.speaker.definite())));
                 text.extend(messages.clone());
             }
             Frame::StoreView { view, messages, .. } => {
@@ -304,10 +298,27 @@ impl Frame {
     }
 
     pub fn new_dialogue(world: &World, character: Entity, messages: Vec<String>) -> Self {
-        let character_ref = world.entity(character).unwrap();
-        let area = character_ref.get::<&Pos>().unwrap().get_area();
         Self::Dialogue {
             messages,
+            data: DialogueFrameData::build(character, world),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DialogueFrameData {
+    pub background: BackgroundId,
+    pub speaker: NameData,
+    pub color: Option<AftikColorId>,
+    pub direction: Direction,
+    pub is_badly_hurt: bool,
+}
+
+impl DialogueFrameData {
+    fn build(character: Entity, world: &World) -> Self {
+        let character_ref = world.entity(character).unwrap();
+        let area = character_ref.get::<&Pos>().unwrap().get_area();
+        Self {
             background: world.get::<&Area>(area).unwrap().background.clone(),
             speaker: NameData::find_for_ref(character_ref),
             color: character_ref.get::<&AftikColorId>().as_deref().cloned(),

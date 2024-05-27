@@ -2,12 +2,12 @@ use super::texture::RenderAssets;
 use super::App;
 use crate::core::area::BackgroundId;
 use crate::core::position::Direction;
-use crate::core::{AftikColorId, ModelId};
+use crate::core::ModelId;
 use crate::game_loop::StopType;
 use crate::macroquad_interface::texture::draw_background;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};
-use crate::view::{Frame, Messages};
+use crate::view::{DialogueFrameData, Frame, Messages};
 use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
 use egui_macroquad::macroquad::math::{Rect, Vec2};
@@ -111,20 +111,8 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
                 camera::has_camera_space(camera, render_data),
             );
         }
-        Frame::Dialogue {
-            background,
-            color,
-            direction,
-            is_badly_hurt,
-            ..
-        } => {
-            draw_dialogue_frame(
-                background,
-                color.clone(),
-                *direction,
-                *is_badly_hurt,
-                assets,
-            );
+        Frame::Dialogue { data, .. } => {
+            draw_dialogue_frame(data, assets);
         }
         Frame::StoreView { view, .. } => {
             store_render::draw_store_view(assets, view);
@@ -160,25 +148,19 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
     }
 }
 
-fn draw_dialogue_frame(
-    background_type: &BackgroundId,
-    aftik_color: Option<AftikColorId>,
-    direction: Direction,
-    is_badly_hurt: bool,
-    assets: &mut RenderAssets,
-) {
+fn draw_dialogue_frame(data: &DialogueFrameData, assets: &mut RenderAssets) {
     set_default_camera();
-    texture::draw_background_portrait(background_type, assets);
-    let pos = match direction {
+    texture::draw_background_portrait(&data.background, assets);
+    let pos = match data.direction {
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),
     };
     texture::draw_object(
         &ModelId::portrait(),
         &RenderProperties {
-            direction,
-            aftik_color,
-            is_badly_hurt,
+            direction: data.direction,
+            aftik_color: data.color.clone(),
+            is_badly_hurt: data.is_badly_hurt,
             ..RenderProperties::default()
         },
         false,
