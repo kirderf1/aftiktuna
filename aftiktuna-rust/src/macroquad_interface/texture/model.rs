@@ -70,9 +70,7 @@ impl Model {
 struct TextureLayer {
     texture: Texture2D,
     color: ColorSource,
-    dest_size: Vec2,
-    y_offset: f32,
-    directional: bool,
+    positioning: LayerPositioning,
     condition: LayerCondition,
 }
 
@@ -82,27 +80,29 @@ impl TextureLayer {
             return;
         }
 
-        let x = pos.x - self.dest_size.x / 2.;
-        let y = pos.y + self.y_offset - self.dest_size.y;
+        let dest_size = self.positioning.dest_size(self.texture);
+        let x = pos.x - dest_size.x / 2.;
+        let y = pos.y + self.positioning.y_offset - dest_size.y;
         texture::draw_texture_ex(
             self.texture,
             x,
             y,
             self.color.get_color(aftik_color_data),
             DrawTextureParams {
-                dest_size: Some(self.dest_size),
-                flip_x: self.directional && properties.direction == Direction::Left,
+                dest_size: Some(dest_size),
+                flip_x: !self.positioning.fixed && properties.direction == Direction::Left,
                 ..Default::default()
             },
         );
     }
 
     fn size(&self, pos: Vec2) -> Rect {
+        let dest_size = self.positioning.dest_size(self.texture);
         Rect::new(
-            pos.x - self.dest_size.x / 2.,
-            pos.y - self.dest_size.y + self.y_offset,
-            self.dest_size.x,
-            self.dest_size.y,
+            pos.x - dest_size.x / 2.,
+            pos.y - dest_size.y + self.positioning.y_offset,
+            dest_size.x,
+            dest_size.y,
         )
     }
 }
@@ -136,12 +136,8 @@ struct RawTextureLayer {
     texture: String,
     #[serde(default)]
     color: ColorSource,
-    #[serde(default)]
-    size: Option<(f32, f32)>,
-    #[serde(default)]
-    y_offset: f32,
-    #[serde(default)]
-    fixed: bool,
+    #[serde(flatten)]
+    positioning: LayerPositioning,
     #[serde(flatten)]
     conditions: LayerCondition,
 }
@@ -152,12 +148,7 @@ impl RawTextureLayer {
         Ok(TextureLayer {
             texture,
             color: self.color,
-            dest_size: Vec2::from(
-                self.size
-                    .unwrap_or_else(|| (texture.width(), texture.height())),
-            ),
-            y_offset: self.y_offset,
-            directional: !self.fixed,
+            positioning: self.positioning,
             condition: self.conditions,
         })
     }
@@ -179,6 +170,24 @@ impl ColorSource {
             ColorSource::Primary => aftik_color_data.primary_color.into(),
             ColorSource::Secondary => aftik_color_data.secondary_color.into(),
         }
+    }
+}
+
+#[derive(Clone, Deserialize)]
+struct LayerPositioning {
+    #[serde(default)]
+    size: Option<(f32, f32)>,
+    #[serde(default)]
+    y_offset: f32,
+    #[serde(default)]
+    fixed: bool,
+}
+
+impl LayerPositioning {
+    fn dest_size(&self, texture: Texture2D) -> Vec2 {
+        self.size
+            .unwrap_or_else(|| (texture.width(), texture.height()))
+            .into()
     }
 }
 
