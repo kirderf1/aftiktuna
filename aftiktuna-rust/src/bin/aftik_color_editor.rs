@@ -16,8 +16,8 @@ use indexmap::IndexMap;
 fn config() -> Conf {
     Conf {
         window_title: "Aftiktuna Color Editor".to_string(),
-        window_width: 600,
-        window_height: 500,
+        window_width: 800,
+        window_height: 600,
         window_resizable: false,
         icon: Some(macroquad_interface::logo()),
         ..Default::default()
@@ -31,6 +31,8 @@ async fn main() {
     let mut aftik_colors = load_aftik_colors_ordered();
 
     let aftik_model = model::load_model(&ModelId::aftik()).expect("Unable to load aftik model");
+    let portrait_model =
+        model::load_model(&ModelId::portrait()).expect("Unable to load portrait model");
 
     let mut selected_index = 0;
     let mut new_color_name = String::new();
@@ -56,7 +58,7 @@ async fn main() {
         });
 
         let (_, aftik_color_data) = aftik_colors.get_index(selected_index).unwrap();
-        draw_examples(aftik_color_data, &aftik_model);
+        draw_examples(aftik_color_data, &aftik_model, &portrait_model);
 
         egui_macroquad::draw();
         window::next_frame().await;
@@ -69,9 +71,9 @@ fn load_aftik_colors_ordered() -> AftikColorMap {
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load aftik color data")
 }
 
-fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model) {
+fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model, portrait_model: &Model) {
     aftik_model.draw(
-        Vec2::new(100., 250.),
+        Vec2::new(100., 160.),
         false,
         &RenderProperties {
             is_alive: true,
@@ -81,7 +83,7 @@ fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model) {
         aftik_color_data,
     );
     aftik_model.draw(
-        Vec2::new(250., 250.),
+        Vec2::new(250., 160.),
         false,
         &RenderProperties {
             is_alive: true,
@@ -91,10 +93,28 @@ fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model) {
         aftik_color_data,
     );
     aftik_model.draw(
-        Vec2::new(150., 350.),
+        Vec2::new(400., 150.),
         false,
         &RenderProperties {
             is_alive: false,
+            ..Default::default()
+        },
+        aftik_color_data,
+    );
+    portrait_model.draw(
+        Vec2::new(150., 600.),
+        false,
+        &RenderProperties {
+            is_badly_hurt: false,
+            ..Default::default()
+        },
+        aftik_color_data,
+    );
+    portrait_model.draw(
+        Vec2::new(450., 600.),
+        false,
+        &RenderProperties {
+            is_badly_hurt: true,
             ..Default::default()
         },
         aftik_color_data,
