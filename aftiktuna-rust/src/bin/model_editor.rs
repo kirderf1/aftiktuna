@@ -147,7 +147,7 @@ fn side_panel(
                 }
             } else if ui.button("Use Custom Size").clicked() {
                 let texture = textures.load_texture(layer.texture_path()).unwrap();
-                layer.positioning.size = Some((texture.width(), texture.height()));
+                layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
             }
 
             ui.label("Y-offset:");

@@ -83,7 +83,7 @@ impl TextureLayer {
 
         let dest_size = self.positioning.dest_size(self.texture);
         let x = pos.x - dest_size.x / 2.;
-        let y = pos.y + self.positioning.y_offset - dest_size.y;
+        let y = pos.y + f32::from(self.positioning.y_offset) - dest_size.y;
         texture::draw_texture_ex(
             self.texture,
             x,
@@ -101,7 +101,7 @@ impl TextureLayer {
         let dest_size = self.positioning.dest_size(self.texture);
         Rect::new(
             pos.x - dest_size.x / 2.,
-            pos.y - dest_size.y + self.positioning.y_offset,
+            pos.y - dest_size.y + f32::from(self.positioning.y_offset),
             dest_size.x,
             dest_size.y,
         )
@@ -112,7 +112,7 @@ impl TextureLayer {
 pub struct RawModel {
     pub layers: Vec<RawTextureLayer>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub wield_offset: (f32, f32),
+    pub wield_offset: (i16, i16),
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub mounted: bool,
 }
@@ -126,7 +126,10 @@ impl RawModel {
         layers.reverse();
         Ok(Model {
             layers,
-            wield_offset: Vec2::from(self.wield_offset),
+            wield_offset: Vec2::new(
+                f32::from(self.wield_offset.0),
+                f32::from(self.wield_offset.1),
+            ),
             is_mounted: self.mounted,
         })
     }
@@ -181,9 +184,9 @@ impl ColorSource {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LayerPositioning {
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub size: Option<(f32, f32)>,
+    pub size: Option<(i16, i16)>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub y_offset: f32,
+    pub y_offset: i16,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub fixed: bool,
 }
@@ -191,8 +194,8 @@ pub struct LayerPositioning {
 impl LayerPositioning {
     fn dest_size(&self, texture: Texture2D) -> Vec2 {
         self.size
-            .unwrap_or_else(|| (texture.width(), texture.height()))
-            .into()
+            .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
+            .unwrap_or_else(|| Vec2::new(texture.width(), texture.height()))
     }
 }
 
