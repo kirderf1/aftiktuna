@@ -14,28 +14,46 @@ pub fn position_objects<'a>(
     models: &mut LazilyLoadedModels,
 ) -> Vec<(Vec2, &'a ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
-    let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
+    let mut positioner = Positioner::new();
 
     for data in objects {
-        let coord = data.coord;
-        let count = if models.lookup_model(&data.texture_type).is_displacing() {
-            let count_ref = coord_counts.entry(coord).or_insert(0);
-            let count = *count_ref;
-            *count_ref = count + 1;
-            count
-        } else {
-            0
-        };
+        let pos = positioner.position_object(
+            data.coord,
+            models.lookup_model(&data.texture_type).is_displacing(),
+        );
 
-        positioned_objects.push((
-            Vec2::new(
-                coord_to_center_x(coord) - count as f32 * 15.,
-                (450 + count * 10) as f32,
-            ),
-            data,
-        ));
+        positioned_objects.push((pos, data));
     }
     positioned_objects
+}
+
+fn position_from_coord(coord: Coord, count: i32) -> Vec2 {
+    Vec2::new(
+        coord_to_center_x(coord) - count as f32 * 15.,
+        (450 + count * 10) as f32,
+    )
+}
+
+#[derive(Default)]
+pub struct Positioner {
+    coord_counts: HashMap<Coord, i32>,
+}
+
+impl Positioner {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn position_object(&mut self, coord: Coord, is_displacing: bool) -> Vec2 {
+        if is_displacing {
+            let count_ref = self.coord_counts.entry(coord).or_insert(0);
+            let count = *count_ref;
+            *count_ref = count + 1;
+            position_from_coord(coord, count)
+        } else {
+            position_from_coord(coord, 0)
+        }
+    }
 }
 
 // Coordinates are mapped like this so that when the left edge of the window is 0,

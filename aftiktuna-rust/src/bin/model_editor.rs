@@ -5,6 +5,7 @@ use std::process::exit;
 
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::ModelId;
+use aftiktuna::macroquad_interface::camera::Positioner;
 use aftiktuna::macroquad_interface::texture::background::BGTexture;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor, TextureLoader};
@@ -12,7 +13,6 @@ use aftiktuna::macroquad_interface::{self, camera, texture};
 use aftiktuna::view::area::RenderProperties;
 use egui_macroquad::egui;
 use egui_macroquad::macroquad::camera::Camera2D;
-use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::texture::Texture2D;
 use egui_macroquad::macroquad::window::Conf;
 use egui_macroquad::macroquad::{self, color, window};
@@ -20,15 +20,13 @@ use egui_macroquad::macroquad::{self, color, window};
 fn config() -> Conf {
     Conf {
         window_title: "Aftiktuna Model Editor".to_string(),
-        window_width: 800,
+        window_width: 1000,
         window_height: 600,
         window_resizable: false,
         icon: Some(macroquad_interface::logo()),
         ..Default::default()
     }
 }
-
-const AREA_SIZE: Coord = 13;
 
 #[macroquad::main(config)]
 async fn main() {
@@ -53,7 +51,8 @@ async fn main() {
 
     let aftik_model = model::load_model(&ModelId::aftik()).unwrap();
     let background = BGTexture::Repeating(texture::load_texture("background/forest").unwrap());
-    let mut camera = camera::position_centered_camera(0, AREA_SIZE);
+    let mut area_size = 7;
+    let mut camera = camera::position_centered_camera(0, area_size);
     let mut last_drag_pos = None;
 
     loop {
@@ -73,13 +72,17 @@ async fn main() {
         camera::try_drag_camera(
             &mut last_drag_pos,
             &mut camera,
-            AREA_SIZE,
+            area_size,
             !is_mouse_over_panel,
         );
 
         let model = selected_model.load(&mut textures).unwrap();
-        macroquad::camera::set_camera(&Camera2D::from_display_rect(camera));
-        draw_examples(&selected_model, &model, &aftik_model, &background, camera);
+        macroquad::camera::set_camera(&Camera2D {
+            viewport: Some((0, 0, 800, 600)),
+            ..Camera2D::from_display_rect(camera)
+        });
+        background.draw(0, camera);
+        area_size = draw_examples(&selected_model, &model, &aftik_model);
         macroquad::camera::set_default_camera();
 
         egui_macroquad::draw();
@@ -92,25 +95,18 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
     secondary_color: RGBColor::new(255, 238, 153),
 };
 
-fn draw_examples(
-    raw_model: &RawModel,
-    model: &Model,
-    aftik_model: &Model,
-    background: &BGTexture,
-    camera: Rect,
-) {
-    background.draw(0, camera);
-
-    let mut next_pos = Vec2::new(40., 450.);
-    let mut get_and_move_pos = || {
-        let pos = next_pos;
-        next_pos.x += 240.;
-        pos
+fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Coord {
+    let mut positioner = Positioner::new();
+    let mut next_coord = 0;
+    let mut get_and_move_coord = || {
+        let coord = next_coord;
+        next_coord += 2;
+        coord
     };
 
     bidirectional(|direction| {
         model.draw(
-            get_and_move_pos(),
+            positioner.position_object(get_and_move_coord(), false),
             false,
             &RenderProperties {
                 direction,
@@ -120,6 +116,78 @@ fn draw_examples(
         );
     });
 
+    if model.is_displacing() {
+        let coord = get_and_move_coord();
+        model.draw(
+            positioner.position_object(coord, true),
+            false,
+            &RenderProperties {
+                ..Default::default()
+            },
+            &DEFAULT_AFTIK_COLOR,
+        );
+        aftik_model.draw(
+            positioner.position_object(coord, true),
+            false,
+            &RenderProperties {
+                ..Default::default()
+            },
+            &DEFAULT_AFTIK_COLOR,
+        );
+
+        let coord = get_and_move_coord();
+        aftik_model.draw(
+            positioner.position_object(coord, true),
+            false,
+            &RenderProperties {
+                ..Default::default()
+            },
+            &DEFAULT_AFTIK_COLOR,
+        );
+        model.draw(
+            positioner.position_object(coord, true),
+            false,
+            &RenderProperties {
+                ..Default::default()
+            },
+            &DEFAULT_AFTIK_COLOR,
+        );
+
+        let coord = get_and_move_coord();
+        for _ in 0..3 {
+            model.draw(
+                positioner.position_object(coord, true),
+                false,
+                &RenderProperties {
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+        }
+    } else {
+        bidirectional(|direction| {
+            let coord = get_and_move_coord();
+            model.draw(
+                positioner.position_object(coord, false),
+                false,
+                &RenderProperties {
+                    direction,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+            aftik_model.draw(
+                positioner.position_object(coord, true),
+                false,
+                &RenderProperties {
+                    direction,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+        })
+    }
+
     if raw_model
         .layers
         .iter()
@@ -127,7 +195,7 @@ fn draw_examples(
     {
         bidirectional(|direction| {
             model.draw(
-                get_and_move_pos(),
+                positioner.position_object(get_and_move_coord(), false),
                 false,
                 &RenderProperties {
                     direction,
@@ -146,7 +214,7 @@ fn draw_examples(
     {
         bidirectional(|direction| {
             model.draw(
-                get_and_move_pos(),
+                positioner.position_object(get_and_move_coord(), false),
                 false,
                 &RenderProperties {
                     direction,
@@ -165,7 +233,7 @@ fn draw_examples(
     {
         bidirectional(|direction| {
             model.draw(
-                get_and_move_pos(),
+                positioner.position_object(get_and_move_coord(), false),
                 false,
                 &RenderProperties {
                     direction,
@@ -179,7 +247,7 @@ fn draw_examples(
 
     if raw_model.wield_offset != (0, 0) {
         bidirectional(|direction| {
-            let pos = get_and_move_pos();
+            let pos = positioner.position_object(get_and_move_coord(), false);
             aftik_model.draw(
                 pos,
                 false,
@@ -200,6 +268,8 @@ fn draw_examples(
             );
         });
     }
+
+    next_coord - 1
 }
 
 fn bidirectional(mut closure: impl FnMut(Direction)) {
@@ -227,6 +297,8 @@ fn side_panel(
             if ui.button("Clear Offset").clicked() {
                 model.wield_offset = (0, 0);
             }
+
+            ui.checkbox(&mut model.mounted, "Mounted / Background");
 
             ui.separator();
 
