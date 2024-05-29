@@ -14,7 +14,7 @@ use std::process::exit;
 use std::time;
 use std::time::Instant;
 
-mod camera;
+pub mod camera;
 mod render;
 mod store_render;
 pub mod texture;
@@ -133,7 +133,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
                 tooltip::handle_click(&mut app, &mut assets.models);
             }
             if app.command_tooltip.is_none() {
-                camera::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);
+                camera::try_drag_camera_for_state(&mut app.render_state, &mut app.last_drag_pos);
             }
         } else {
             app.last_drag_pos = None;
@@ -181,7 +181,7 @@ impl App {
         if self.show_graphical {
             self.show_next_frame |= is_key_pressed(KeyCode::Enter)
                 || is_mouse_button_released(MouseButton::Left)
-                    && ui::is_mouse_at_text_box(&self.render_state)
+                    && ui::is_mouse_at_text_box(&self.render_state.text_box_text)
         } else {
             self.show_next_frame |= self
                 .last_frame_time

@@ -31,7 +31,10 @@ impl State {
 
     pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
         if let Frame::AreaView { render_data, .. } = &frame {
-            self.camera = camera::character_centered_camera(render_data);
+            self.camera = camera::position_centered_camera(
+                render_data.character_coord,
+                render_data.area_size,
+            );
         }
 
         self.text_log.extend(frame.as_text());

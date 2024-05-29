@@ -44,27 +44,44 @@ fn coord_to_center_x(coord: Coord) -> f32 {
     40. + 120. * coord as f32
 }
 
-pub fn try_drag_camera(state: &mut render::State, last_drag_pos: &mut Option<Vec2>) {
-    match (&state.current_frame, *last_drag_pos) {
-        (Frame::AreaView { render_data, .. }, Some(last_pos)) => {
-            if input::is_mouse_button_down(MouseButton::Left) {
-                let mouse_pos: Vec2 = input::mouse_position().into();
-                let camera_delta = mouse_pos - last_pos;
-
-                state.camera.x -= camera_delta.x;
-                clamp_camera(&mut state.camera, render_data);
-                *last_drag_pos = Some(mouse_pos);
-            } else {
-                *last_drag_pos = None;
-            }
-        }
-        (Frame::AreaView { .. }, None) => {
-            if input::is_mouse_button_pressed(MouseButton::Left) && !ui::is_mouse_at_text_box(state)
-            {
-                *last_drag_pos = Some(input::mouse_position().into());
-            }
+pub fn try_drag_camera_for_state(state: &mut render::State, last_drag_pos: &mut Option<Vec2>) {
+    match &state.current_frame {
+        Frame::AreaView { render_data, .. } => {
+            try_drag_camera(
+                last_drag_pos,
+                &mut state.camera,
+                render_data.area_size,
+                !ui::is_mouse_at_text_box(&state.text_box_text),
+            );
         }
         _ => {
+            *last_drag_pos = None;
+        }
+    }
+}
+
+pub fn try_drag_camera(
+    last_drag_pos: &mut Option<Vec2>,
+    camera: &mut Rect,
+    area_size: Coord,
+    can_start_dragging: bool,
+) {
+    if input::is_mouse_button_pressed(MouseButton::Left)
+        && can_start_dragging
+        && last_drag_pos.is_none()
+    {
+        *last_drag_pos = Some(input::mouse_position().into());
+    }
+
+    if let Some(last_pos) = *last_drag_pos {
+        if input::is_mouse_button_down(MouseButton::Left) {
+            let mouse_pos: Vec2 = input::mouse_position().into();
+            let camera_delta = mouse_pos - last_pos;
+
+            camera.x -= camera_delta.x;
+            clamp_camera(camera, area_size);
+            *last_drag_pos = Some(mouse_pos);
+        } else {
             *last_drag_pos = None;
         }
     }
@@ -81,14 +98,14 @@ pub fn has_camera_space(camera: Rect, render_data: &RenderData) -> [bool; 2] {
     }
 }
 
-fn clamp_camera(camera: &mut Rect, render_data: &RenderData) {
-    camera.x = if render_data.area_size <= 6 {
-        (coord_to_center_x(0) + coord_to_center_x(render_data.area_size - 1)) / 2. - camera.w / 2.
+fn clamp_camera(camera: &mut Rect, area_size: Coord) {
+    camera.x = if area_size <= 6 {
+        (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2. - camera.w / 2.
     } else {
         math::clamp(
             camera.x,
             coord_to_center_x(0) - 100.,
-            coord_to_center_x(render_data.area_size - 1) + 100. - camera.w,
+            coord_to_center_x(area_size - 1) + 100. - camera.w,
         )
     };
 }
@@ -97,13 +114,8 @@ pub fn default_camera_space() -> Rect {
     Rect::new(0., 0., 800., 600.)
 }
 
-pub fn character_centered_camera(render_data: &RenderData) -> Rect {
-    let mut camera_space = Rect::new(
-        coord_to_center_x(render_data.character_coord) - 400.,
-        0.,
-        800.,
-        600.,
-    );
-    clamp_camera(&mut camera_space, render_data);
+pub fn position_centered_camera(position: Coord, area_size: Coord) -> Rect {
+    let mut camera_space = Rect::new(coord_to_center_x(position) - 400., 0., 800., 600.);
+    clamp_camera(&mut camera_space, area_size);
     camera_space
 }

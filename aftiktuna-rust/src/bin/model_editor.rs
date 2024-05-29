@@ -3,14 +3,16 @@ use std::fs::{self, File};
 use std::path::Path;
 use std::process::exit;
 
-use aftiktuna::core::position::Direction;
+use aftiktuna::core::position::{Coord, Direction};
+use aftiktuna::macroquad_interface::texture::background::BGTexture;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor, TextureLoader};
-use aftiktuna::macroquad_interface::{self, texture};
+use aftiktuna::macroquad_interface::{self, camera, texture};
 use aftiktuna::view::area::RenderProperties;
 use egui_macroquad::egui;
-use egui_macroquad::macroquad::math::Vec2;
-use egui_macroquad::macroquad::texture::{self as quad_texture, Texture2D};
+use egui_macroquad::macroquad::camera::Camera2D;
+use egui_macroquad::macroquad::math::{Rect, Vec2};
+use egui_macroquad::macroquad::texture::Texture2D;
 use egui_macroquad::macroquad::window::Conf;
 use egui_macroquad::macroquad::{self, color, window};
 
@@ -24,6 +26,8 @@ fn config() -> Conf {
         ..Default::default()
     }
 }
+
+const AREA_SIZE: Coord = 10;
 
 #[macroquad::main(config)]
 async fn main() {
@@ -46,23 +50,35 @@ async fn main() {
     );
     let mut selected_layer = 0;
 
-    let background = texture::load_texture("background/forest").unwrap();
+    let background = BGTexture::Repeating(texture::load_texture("background/forest").unwrap());
+    let mut camera = camera::position_centered_camera(0, AREA_SIZE);
+    let mut last_drag_pos = None;
 
     loop {
         window::clear_background(color::LIGHTGRAY);
+        let mut is_mouse_over_panel = false;
 
         egui_macroquad::ui(|ctx| {
-            side_panel(
+            is_mouse_over_panel |= side_panel(
                 ctx,
                 &mut selected_model,
                 &mut selected_layer,
                 &path,
                 &mut textures,
-            )
+            );
         });
 
+        camera::try_drag_camera(
+            &mut last_drag_pos,
+            &mut camera,
+            AREA_SIZE,
+            !is_mouse_over_panel,
+        );
+
         let model = selected_model.load(&mut textures).unwrap();
-        draw_examples(&model, background);
+        macroquad::camera::set_camera(&Camera2D::from_display_rect(camera));
+        draw_examples(&model, &background, camera);
+        macroquad::camera::set_default_camera();
 
         egui_macroquad::draw();
         window::next_frame().await;
@@ -74,8 +90,8 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
     secondary_color: RGBColor::new(255, 238, 153),
 };
 
-fn draw_examples(model: &Model, background: Texture2D) {
-    quad_texture::draw_texture(background, 0., 0., color::WHITE);
+fn draw_examples(model: &Model, background: &BGTexture, camera: Rect) {
+    background.draw(0, camera);
 
     model.draw(
         Vec2::new(160., 450.),
@@ -103,8 +119,8 @@ fn side_panel(
     selected_layer: &mut usize,
     path: impl AsRef<Path>,
     textures: &mut CachedTextures,
-) {
-    egui::SidePanel::right("side")
+) -> bool {
+    let response = egui::SidePanel::right("side")
         .frame(egui::Frame::side_top_panel(&ctx.style()).inner_margin(8.))
         .resizable(false)
         .exact_width(200.)
@@ -162,6 +178,7 @@ fn side_panel(
                 exit(0);
             }
         });
+    response.response.hovered()
 }
 
 struct CachedTextures(HashMap<String, Texture2D>);

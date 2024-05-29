@@ -18,7 +18,7 @@ use std::io::Read;
 use self::background::BGData;
 pub use self::model::LazilyLoadedModels;
 
-mod background;
+pub mod background;
 pub mod model;
 
 pub struct RenderAssets {

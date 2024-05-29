@@ -1,4 +1,3 @@
-use crate::macroquad_interface::render::State as RenderState;
 use crate::macroquad_interface::texture::RenderAssets;
 use crate::macroquad_interface::App;
 use egui_macroquad::egui;
@@ -60,17 +59,17 @@ fn fits_in_text_box_width(line: &str) -> bool {
     measure_text(line, None, TEXT_BOX_TEXT_SIZE, 1.).width <= TEXT_BOX_TEXT_MAX_WIDTH
 }
 
-pub fn is_mouse_at_text_box(state: &RenderState) -> bool {
-    get_text_box_dimensions(&state.text_box_text).contains(Vec2::from(mouse_position()))
+pub fn is_mouse_at_text_box(text_box_text: &[String]) -> bool {
+    get_text_box_dimensions(text_box_text).contains(Vec2::from(mouse_position()))
 }
 
-fn get_text_box_dimensions(text: &Vec<String>) -> Rect {
+fn get_text_box_dimensions(text: &[String]) -> Rect {
     let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE as f32);
     let text_box_start = 600. - 25. - text_box_size;
     Rect::new(0., text_box_start, 800., text_box_size)
 }
 
-pub fn draw_text_box(text: &Vec<String>, textures: &RenderAssets, click_to_proceed: bool) {
+pub fn draw_text_box(text: &[String], textures: &RenderAssets, click_to_proceed: bool) {
     if text.is_empty() {
         return;
     }
