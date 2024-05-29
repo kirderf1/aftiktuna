@@ -3,13 +3,14 @@ use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::texture::{self, DrawTextureParams, Texture2D};
 use serde::{Deserialize, Serialize};
 
-use super::{AftikColorData, Error};
+use super::{AftikColorData, Error, TextureLoader};
 use crate::core::position::Direction;
 use crate::core::ModelId;
 use crate::view::area::RenderProperties;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
+use std::path::Path;
 
 pub struct LazilyLoadedModels {
     loaded_models: HashMap<ModelId, Model>,
@@ -107,20 +108,20 @@ impl TextureLayer {
     }
 }
 
-#[derive(Deserialize)]
-struct RawModel {
-    layers: Vec<RawTextureLayer>,
-    #[serde(default)]
-    wield_offset: (f32, f32),
-    #[serde(default)]
-    mounted: bool,
+#[derive(Serialize, Deserialize)]
+pub struct RawModel {
+    pub layers: Vec<RawTextureLayer>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub wield_offset: (f32, f32),
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub mounted: bool,
 }
 
 impl RawModel {
-    fn load(self) -> Result<Model, io::Error> {
+    pub fn load(&self, loader: &mut impl TextureLoader) -> Result<Model, io::Error> {
         let mut layers = Vec::new();
-        for layer in self.layers {
-            layers.push(layer.load()?);
+        for layer in &self.layers {
+            layers.push(layer.load(loader)?);
         }
         layers.reverse();
         Ok(Model {
@@ -131,32 +132,36 @@ impl RawModel {
     }
 }
 
-#[derive(Deserialize)]
-struct RawTextureLayer {
-    texture: String,
-    #[serde(default)]
-    color: ColorSource,
+#[derive(Serialize, Deserialize)]
+pub struct RawTextureLayer {
+    pub texture: String,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub color: ColorSource,
     #[serde(flatten)]
-    positioning: LayerPositioning,
+    pub positioning: LayerPositioning,
     #[serde(flatten)]
-    conditions: LayerCondition,
+    pub conditions: LayerCondition,
 }
 
 impl RawTextureLayer {
-    fn load(self) -> Result<TextureLayer, io::Error> {
-        let texture = super::load_texture(format!("object/{}", self.texture))?;
+    pub fn texture_path(&self) -> String {
+        format!("object/{}", self.texture)
+    }
+
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<TextureLayer, io::Error> {
+        let texture = loader.load_texture(self.texture_path())?;
         Ok(TextureLayer {
             texture,
             color: self.color,
-            positioning: self.positioning,
-            condition: self.conditions,
+            positioning: self.positioning.clone(),
+            condition: self.conditions.clone(),
         })
     }
 }
 
-#[derive(Copy, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-enum ColorSource {
+pub enum ColorSource {
     #[default]
     Uncolored,
     Primary,
@@ -173,14 +178,14 @@ impl ColorSource {
     }
 }
 
-#[derive(Clone, Deserialize)]
-struct LayerPositioning {
-    #[serde(default)]
-    size: Option<(f32, f32)>,
-    #[serde(default)]
-    y_offset: f32,
-    #[serde(default)]
-    fixed: bool,
+#[derive(Clone, Serialize, Deserialize)]
+pub struct LayerPositioning {
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub size: Option<(f32, f32)>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub y_offset: f32,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub fixed: bool,
 }
 
 impl LayerPositioning {
@@ -191,13 +196,13 @@ impl LayerPositioning {
     }
 }
 
-#[derive(Clone, Deserialize)]
-struct LayerCondition {
-    #[serde(default)]
+#[derive(Clone, Serialize, Deserialize)]
+pub struct LayerCondition {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     if_cut: Option<bool>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     if_alive: Option<bool>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     if_hurt: Option<bool>,
 }
 
@@ -239,8 +244,11 @@ fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, 
     models.insert(model_id.clone(), texture_data);
 }
 
-pub fn load_model(ModelId(path): &ModelId) -> Result<Model, Error> {
-    let file = File::open(format!("assets/texture/object/{path}.json"))?;
-    let model = serde_json::from_reader::<_, RawModel>(file)?;
-    Ok(model.load()?)
+pub fn load_model(model_id: &ModelId) -> Result<Model, Error> {
+    Ok(load_raw_model_from_path(model_id.file_path())?.load(&mut super::InPlaceLoader)?)
+}
+
+pub fn load_raw_model_from_path(file_path: impl AsRef<Path>) -> Result<RawModel, Error> {
+    let file = File::open(file_path)?;
+    Ok(serde_json::from_reader::<_, RawModel>(file)?)
 }

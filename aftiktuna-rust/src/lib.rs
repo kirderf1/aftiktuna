@@ -12,6 +12,10 @@ pub mod serialization;
 pub mod standard_io_interface;
 pub mod view;
 
+fn is_default<T: Default + PartialEq>(value: &T) -> bool {
+    value.eq(&Default::default())
+}
+
 fn deref_clone<T: Clone>(value: impl Deref<Target = T>) -> T {
     value.deref().clone()
 }

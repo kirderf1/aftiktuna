@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, path::Path};
 
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -43,6 +43,11 @@ impl ModelId {
 
     pub fn path(&self) -> &str {
         &self.0
+    }
+
+    pub fn file_path(&self) -> impl AsRef<Path> {
+        let Self(path) = self;
+        format!("assets/texture/object/{path}.json")
     }
 }
 

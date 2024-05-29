@@ -11,7 +11,6 @@ use egui_macroquad::macroquad::texture::{draw_texture, Texture2D};
 use egui_macroquad::macroquad::window;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as JsonError;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
@@ -143,8 +142,8 @@ pub fn draw_background_portrait(background_id: &BackgroundId, assets: &RenderAss
     }
 }
 
-fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, io::Error> {
-    let path = format!("assets/texture/{}.png", name.borrow());
+pub fn load_texture(name: impl AsRef<str>) -> Result<Texture2D, io::Error> {
+    let path = format!("assets/texture/{}.png", name.as_ref());
 
     let mut bytes = vec![];
     File::open(path)?.read_to_end(&mut bytes)?;
@@ -152,6 +151,18 @@ fn load_texture(name: impl Borrow<str>) -> Result<Texture2D, io::Error> {
         &bytes,
         Some(ImageFormat::Png),
     ))
+}
+
+pub trait TextureLoader {
+    fn load_texture(&mut self, name: String) -> Result<Texture2D, io::Error>;
+}
+
+struct InPlaceLoader;
+
+impl TextureLoader for InPlaceLoader {
+    fn load_texture(&mut self, name: String) -> Result<Texture2D, io::Error> {
+        load_texture(name)
+    }
 }
 
 #[derive(Debug)]
