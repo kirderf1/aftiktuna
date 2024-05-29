@@ -1,6 +1,4 @@
 use crate::core::position::Coord;
-use crate::macroquad_interface::texture::RenderAssets;
-use crate::macroquad_interface::{render, ui};
 use crate::view::area::{ObjectRenderData, RenderData};
 use crate::view::Frame;
 use egui_macroquad::macroquad::input::MouseButton;
@@ -8,20 +6,19 @@ use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{input, math};
 use std::collections::HashMap;
 
+use super::texture::LazilyLoadedModels;
+use super::{render, ui};
+
 pub fn position_objects<'a>(
     objects: &'a Vec<ObjectRenderData>,
-    assets: &mut RenderAssets,
+    models: &mut LazilyLoadedModels,
 ) -> Vec<(Vec2, &'a ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
     let mut coord_counts: HashMap<Coord, i32> = HashMap::new();
 
     for data in objects {
         let coord = data.coord;
-        let count = if assets
-            .models
-            .lookup_model(&data.texture_type)
-            .is_displacing()
-        {
+        let count = if models.lookup_model(&data.texture_type).is_displacing() {
             let count_ref = coord_counts.entry(coord).or_insert(0);
             let count = *count_ref;
             *count_ref = count + 1;

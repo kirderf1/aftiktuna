@@ -1,13 +1,14 @@
 use crate::command::suggestion;
 use crate::command::suggestion::Suggestion;
-use crate::macroquad_interface::texture::RenderAssets;
-use crate::macroquad_interface::{camera, render, store_render, texture, App};
 use crate::view::area::RenderData;
 use crate::view::Frame;
 use egui_macroquad::macroquad::color::{Color, WHITE};
 use egui_macroquad::macroquad::input::MouseButton;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::{input, shapes, text};
+
+use super::texture::LazilyLoadedModels;
+use super::{camera, render, store_render, App};
 
 trait TextRepresentable {
     fn as_text(&self) -> &str;
@@ -36,7 +37,7 @@ pub struct CommandTooltip {
     commands: Vec<Suggestion>,
 }
 
-pub fn handle_click(app: &mut App, assets: &mut RenderAssets) {
+pub fn handle_click(app: &mut App, models: &mut LazilyLoadedModels) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() {
         app.command_tooltip = None;
@@ -48,7 +49,7 @@ pub fn handle_click(app: &mut App, assets: &mut RenderAssets) {
     let mouse_pos = Vec2::from(input::mouse_position());
     match &app.command_tooltip {
         None => {
-            let commands = find_raw_command_suggestions(mouse_pos, state, assets);
+            let commands = find_raw_command_suggestions(mouse_pos, state, models);
             if !commands.is_empty() {
                 app.command_tooltip = Some(CommandTooltip {
                     pos: mouse_pos,
@@ -62,7 +63,7 @@ pub fn handle_click(app: &mut App, assets: &mut RenderAssets) {
             if let Some(line_index) = line_index {
                 match &command_tooltip.commands[line_index] {
                     Suggestion::Simple(command) => {
-                        app.input = command.clone();
+                        app.input.clone_from(command);
                         app.handle_input();
                         app.command_tooltip = None;
                     }
@@ -83,17 +84,15 @@ pub fn handle_click(app: &mut App, assets: &mut RenderAssets) {
 fn find_raw_command_suggestions(
     mouse_pos: Vec2,
     state: &render::State,
-    assets: &mut RenderAssets,
+    models: &mut LazilyLoadedModels,
 ) -> Vec<Suggestion> {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
             let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
 
-            camera::position_objects(&render_data.objects, assets)
+            camera::position_objects(&render_data.objects, models)
                 .into_iter()
-                .filter(|(pos, data)| {
-                    texture::get_rect_for_object(data, assets, *pos).contains(offset_pos)
-                })
+                .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(offset_pos))
                 .flat_map(|(_, data)| {
                     data.interactions.iter().flat_map(|interaction| {
                         interaction.commands(&data.name, &render_data.inventory)
@@ -113,7 +112,7 @@ fn find_raw_command_suggestions(
 pub fn draw(
     state: &render::State,
     command_tooltip: &Option<CommandTooltip>,
-    assets: &mut RenderAssets,
+    models: &mut LazilyLoadedModels,
 ) {
     let mouse_pos = Vec2::from(input::mouse_position());
     if let Some(tooltip) = command_tooltip {
@@ -124,19 +123,19 @@ pub fn draw(
         );
     } else if let Frame::AreaView { render_data, .. } = &state.current_frame {
         let camera_offset = Vec2::new(state.camera.x, state.camera.y);
-        let names = get_hovered_object_names(render_data, assets, mouse_pos + camera_offset);
+        let names = get_hovered_object_names(render_data, models, mouse_pos + camera_offset);
         draw_lines(mouse_pos, &names, None);
     }
 }
 
 fn get_hovered_object_names<'a>(
     render_data: &'a RenderData,
-    assets: &mut RenderAssets,
+    models: &mut LazilyLoadedModels,
     mouse_pos: Vec2,
 ) -> Vec<&'a String> {
-    camera::position_objects(&render_data.objects, assets)
+    camera::position_objects(&render_data.objects, models)
         .into_iter()
-        .filter(|(pos, data)| texture::get_rect_for_object(data, assets, *pos).contains(mouse_pos))
+        .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
         .map(|(_, data)| &data.modified_name)
         .collect::<Vec<_>>()
 }
@@ -146,11 +145,7 @@ const TEXT_BOX_HIGHLIGHT_COLOR: Color = Color::new(0.5, 0.3, 0.6, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;
 const TEXT_BOX_MARGIN: f32 = 10.;
 
-fn line_index_at<S: TextRepresentable>(
-    mouse_pos: Vec2,
-    pos: Vec2,
-    lines: &Vec<S>,
-) -> Option<usize> {
+fn line_index_at<S: TextRepresentable>(mouse_pos: Vec2, pos: Vec2, lines: &[S]) -> Option<usize> {
     let size = tooltip_size(pos, lines);
 
     for index in 0..lines.len() {
@@ -167,7 +162,7 @@ fn line_index_at<S: TextRepresentable>(
     None
 }
 
-fn draw_lines<S: TextRepresentable>(pos: Vec2, lines: &Vec<S>, highlighted_index: Option<usize>) {
+fn draw_lines<S: TextRepresentable>(pos: Vec2, lines: &[S], highlighted_index: Option<usize>) {
     if lines.is_empty() {
         return;
     }
@@ -206,7 +201,7 @@ fn draw_lines<S: TextRepresentable>(pos: Vec2, lines: &Vec<S>, highlighted_index
     }
 }
 
-fn tooltip_size<S: TextRepresentable>(pos: Vec2, lines: &Vec<S>) -> Rect {
+fn tooltip_size<S: TextRepresentable>(pos: Vec2, lines: &[S]) -> Rect {
     let width = lines
         .iter()
         .map(|object| text::measure_text(object.as_text(), None, TEXT_BOX_TEXT_SIZE, 1.).width)

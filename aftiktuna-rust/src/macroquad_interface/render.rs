@@ -74,7 +74,7 @@ pub fn draw(app: &mut App, assets: &mut RenderAssets) {
             assets,
             app.game.next_result().has_frame(),
         );
-        tooltip::draw(&app.render_state, &app.command_tooltip, assets);
+        tooltip::draw(&app.render_state, &app.command_tooltip, &mut assets.models);
 
         ui::egui_only_input(app);
     } else {
@@ -124,7 +124,7 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
 }
 
 fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
-    for (pos, data) in camera::position_objects(&render_data.objects, assets) {
+    for (pos, data) in camera::position_objects(&render_data.objects, &mut assets.models) {
         texture::draw_object(&data.texture_type, &data.properties, false, pos, assets);
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {

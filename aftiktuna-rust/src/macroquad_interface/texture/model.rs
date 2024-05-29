@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use super::{AftikColorData, Error, TextureLoader};
 use crate::core::position::Direction;
 use crate::core::ModelId;
-use crate::view::area::RenderProperties;
+use crate::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
@@ -22,6 +22,11 @@ impl LazilyLoadedModels {
             load_and_insert_or_default(model_id, &mut self.loaded_models);
         }
         self.loaded_models.get(model_id).unwrap()
+    }
+
+    pub fn get_rect_for_object(&mut self, object_data: &ObjectRenderData, pos: Vec2) -> Rect {
+        let model = self.lookup_model(&object_data.texture_type);
+        model.get_rect(pos, &object_data.properties)
     }
 }
 

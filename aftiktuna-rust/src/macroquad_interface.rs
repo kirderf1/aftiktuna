@@ -130,7 +130,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         if app.show_graphical {
             if app.last_drag_pos.is_none() {
-                tooltip::handle_click(&mut app, &mut assets);
+                tooltip::handle_click(&mut app, &mut assets.models);
             }
             if app.command_tooltip.is_none() {
                 camera::try_drag_camera(&mut app.render_state, &mut app.last_drag_pos);

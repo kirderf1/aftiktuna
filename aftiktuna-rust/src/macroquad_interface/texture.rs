@@ -1,10 +1,10 @@
 use crate::core::area::BackgroundId;
 use crate::core::{AftikColorId, ModelId};
-use crate::view::area::{ObjectRenderData, RenderProperties};
+use crate::view::area::RenderProperties;
 use egui_macroquad::egui::Color32;
 use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::file::FileError;
-use egui_macroquad::macroquad::math::{Rect, Vec2};
+use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::prelude::ImageFormat;
 use egui_macroquad::macroquad::texture::Texture2D;
 use serde::{Deserialize, Serialize};
@@ -67,15 +67,6 @@ pub fn draw_object(
         });
 
     model.draw(pos, use_wield_offset, properties, &aftik_color_data);
-}
-
-pub fn get_rect_for_object(
-    object_data: &ObjectRenderData,
-    assets: &mut RenderAssets,
-    pos: Vec2,
-) -> Rect {
-    let model = assets.models.lookup_model(&object_data.texture_type);
-    model.get_rect(pos, &object_data.properties)
 }
 
 pub const DEFAULT_COLOR: AftikColorData = AftikColorData {
