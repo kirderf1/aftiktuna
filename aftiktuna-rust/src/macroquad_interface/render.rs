@@ -4,7 +4,6 @@ use crate::core::area::BackgroundId;
 use crate::core::position::Direction;
 use crate::core::ModelId;
 use crate::game_loop::StopType;
-use crate::macroquad_interface::texture::draw_background;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};
 use crate::view::{DialogueFrameData, Frame, Messages};
@@ -87,21 +86,17 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
             set_default_camera();
-            draw_background(
-                &BackgroundId::location_choice(),
-                0,
-                camera::default_camera_space(),
-                assets,
-            );
+            assets
+                .lookup_background(&BackgroundId::location_choice())
+                .texture
+                .draw(0, camera::default_camera_space());
         }
         Frame::AreaView { render_data, .. } => {
             set_camera(&Camera2D::from_display_rect(camera));
-            draw_background(
-                &render_data.background,
-                render_data.background_offset.unwrap_or(0),
-                camera,
-                assets,
-            );
+            assets
+                .lookup_background(&render_data.background)
+                .texture
+                .draw(render_data.background_offset.unwrap_or(0), camera);
 
             draw_objects(render_data, assets);
 
@@ -150,7 +145,7 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 
 fn draw_dialogue_frame(data: &DialogueFrameData, assets: &mut RenderAssets) {
     set_default_camera();
-    texture::draw_background_portrait(&data.background, assets);
+    assets.lookup_background(&data.background).portrait.draw();
     let pos = match data.direction {
         Direction::Left => Vec2::new(500., 600.),
         Direction::Right => Vec2::new(300., 600.),

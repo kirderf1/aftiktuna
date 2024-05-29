@@ -13,7 +13,10 @@ const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 
 pub fn draw_store_view(assets: &mut RenderAssets, store_view: &StoreView) {
     camera::set_default_camera();
-    texture::draw_background_portrait(&store_view.background, assets);
+    assets
+        .lookup_background(&store_view.background)
+        .portrait
+        .draw();
     draw_shopkeeper_portrait(assets, store_view.shopkeeper_color.clone());
     draw_store_stock(store_view);
     draw_points_for_store(store_view.points);

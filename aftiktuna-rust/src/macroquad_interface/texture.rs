@@ -1,14 +1,12 @@
 use crate::core::area::BackgroundId;
-use crate::core::position::Coord;
 use crate::core::{AftikColorId, ModelId};
 use crate::view::area::{ObjectRenderData, RenderProperties};
 use egui_macroquad::egui::Color32;
-use egui_macroquad::macroquad::color::{Color, WHITE};
+use egui_macroquad::macroquad::color::Color;
 use egui_macroquad::macroquad::file::FileError;
 use egui_macroquad::macroquad::math::{Rect, Vec2};
 use egui_macroquad::macroquad::prelude::ImageFormat;
-use egui_macroquad::macroquad::texture::{draw_texture, Texture2D};
-use egui_macroquad::macroquad::window;
+use egui_macroquad::macroquad::texture::Texture2D;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as JsonError;
 use std::collections::HashMap;
@@ -17,7 +15,7 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 
-use self::background::{BGData, BGPortrait, BGTexture};
+use self::background::BGData;
 pub use self::model::LazilyLoadedModels;
 
 mod background;
@@ -113,32 +111,6 @@ impl From<RGBColor> for Color {
 impl From<RGBColor> for Color32 {
     fn from(RGBColor { r, g, b }: RGBColor) -> Self {
         Color32::from_rgb(r, g, b)
-    }
-}
-
-pub fn draw_background(
-    texture_id: &BackgroundId,
-    offset: Coord,
-    camera_space: Rect,
-    assets: &RenderAssets,
-) {
-    let offset = offset as f32 * 120.;
-    match assets.lookup_background(texture_id).texture {
-        BGTexture::Centered(texture) => draw_texture(texture, camera_space.x - offset, 0., WHITE),
-        BGTexture::Fixed(texture) => draw_texture(texture, -60. - offset, 0., WHITE),
-        BGTexture::Repeating(texture) => {
-            let start_x =
-                texture.width() * f32::floor((camera_space.x + offset) / texture.width()) - offset;
-            draw_texture(texture, start_x, 0., WHITE);
-            draw_texture(texture, start_x + texture.width(), 0., WHITE);
-        }
-    }
-}
-
-pub fn draw_background_portrait(background_id: &BackgroundId, assets: &RenderAssets) {
-    match assets.lookup_background(background_id).portrait {
-        BGPortrait::Color(color) => window::clear_background(color),
-        BGPortrait::Texture(texture) => draw_texture(texture, 0., 0., WHITE),
     }
 }
 
