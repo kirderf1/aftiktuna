@@ -207,11 +207,11 @@ impl LayerPositioning {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LayerCondition {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    if_cut: Option<bool>,
+    pub if_cut: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    if_alive: Option<bool>,
+    pub if_alive: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    if_hurt: Option<bool>,
+    pub if_hurt: Option<bool>,
 }
 
 impl LayerCondition {

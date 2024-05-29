@@ -4,6 +4,7 @@ use std::path::Path;
 use std::process::exit;
 
 use aftiktuna::core::position::{Coord, Direction};
+use aftiktuna::core::ModelId;
 use aftiktuna::macroquad_interface::texture::background::BGTexture;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor, TextureLoader};
@@ -27,7 +28,7 @@ fn config() -> Conf {
     }
 }
 
-const AREA_SIZE: Coord = 10;
+const AREA_SIZE: Coord = 13;
 
 #[macroquad::main(config)]
 async fn main() {
@@ -50,6 +51,7 @@ async fn main() {
     );
     let mut selected_layer = 0;
 
+    let aftik_model = model::load_model(&ModelId::aftik()).unwrap();
     let background = BGTexture::Repeating(texture::load_texture("background/forest").unwrap());
     let mut camera = camera::position_centered_camera(0, AREA_SIZE);
     let mut last_drag_pos = None;
@@ -77,7 +79,7 @@ async fn main() {
 
         let model = selected_model.load(&mut textures).unwrap();
         macroquad::camera::set_camera(&Camera2D::from_display_rect(camera));
-        draw_examples(&model, &background, camera);
+        draw_examples(&selected_model, &model, &aftik_model, &background, camera);
         macroquad::camera::set_default_camera();
 
         egui_macroquad::draw();
@@ -90,27 +92,119 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
     secondary_color: RGBColor::new(255, 238, 153),
 };
 
-fn draw_examples(model: &Model, background: &BGTexture, camera: Rect) {
+fn draw_examples(
+    raw_model: &RawModel,
+    model: &Model,
+    aftik_model: &Model,
+    background: &BGTexture,
+    camera: Rect,
+) {
     background.draw(0, camera);
 
-    model.draw(
-        Vec2::new(160., 450.),
-        false,
-        &RenderProperties {
-            direction: Direction::Right,
-            ..Default::default()
-        },
-        &DEFAULT_AFTIK_COLOR,
-    );
-    model.draw(
-        Vec2::new(400., 450.),
-        false,
-        &RenderProperties {
-            direction: Direction::Left,
-            ..Default::default()
-        },
-        &DEFAULT_AFTIK_COLOR,
-    );
+    let mut next_pos = Vec2::new(40., 450.);
+    let mut get_and_move_pos = || {
+        let pos = next_pos;
+        next_pos.x += 240.;
+        pos
+    };
+
+    bidirectional(|direction| {
+        model.draw(
+            get_and_move_pos(),
+            false,
+            &RenderProperties {
+                direction,
+                ..Default::default()
+            },
+            &DEFAULT_AFTIK_COLOR,
+        );
+    });
+
+    if raw_model
+        .layers
+        .iter()
+        .any(|layer| layer.conditions.if_cut.is_some())
+    {
+        bidirectional(|direction| {
+            model.draw(
+                get_and_move_pos(),
+                false,
+                &RenderProperties {
+                    direction,
+                    is_cut: true,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+        });
+    }
+
+    if raw_model
+        .layers
+        .iter()
+        .any(|layer| layer.conditions.if_hurt.is_some())
+    {
+        bidirectional(|direction| {
+            model.draw(
+                get_and_move_pos(),
+                false,
+                &RenderProperties {
+                    direction,
+                    is_badly_hurt: true,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+        });
+    }
+
+    if raw_model
+        .layers
+        .iter()
+        .any(|layer| layer.conditions.if_alive.is_some())
+    {
+        bidirectional(|direction| {
+            model.draw(
+                get_and_move_pos(),
+                false,
+                &RenderProperties {
+                    direction,
+                    is_alive: false,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+        });
+    }
+
+    if raw_model.wield_offset != (0, 0) {
+        bidirectional(|direction| {
+            let pos = get_and_move_pos();
+            aftik_model.draw(
+                pos,
+                false,
+                &RenderProperties {
+                    direction,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+            model.draw(
+                pos,
+                true,
+                &RenderProperties {
+                    direction,
+                    ..Default::default()
+                },
+                &DEFAULT_AFTIK_COLOR,
+            );
+        });
+    }
+}
+
+fn bidirectional(mut closure: impl FnMut(Direction)) {
+    closure(Direction::Right);
+    closure(Direction::Left);
 }
 
 fn side_panel(
@@ -125,6 +219,17 @@ fn side_panel(
         .resizable(false)
         .exact_width(200.)
         .show(ctx, |ui| {
+            ui.label("Wield offset:");
+            ui.horizontal(|ui| {
+                ui.add(egui::DragValue::new(&mut model.wield_offset.0));
+                ui.add(egui::DragValue::new(&mut model.wield_offset.1));
+            });
+            if ui.button("Clear Offset").clicked() {
+                model.wield_offset = (0, 0);
+            }
+
+            ui.separator();
+
             ui.label("Layers:");
 
             for (layer_index, layer) in model.layers.iter().enumerate() {
@@ -151,13 +256,20 @@ fn side_panel(
                     }
                 });
 
+            ui.collapsing("Conditions", |ui| {
+                add_option_condition_combo_box("If Cut", &mut layer.conditions.if_cut, ui);
+                add_option_condition_combo_box("If Alive", &mut layer.conditions.if_alive, ui);
+                add_option_condition_combo_box("If Hurt", &mut layer.conditions.if_hurt, ui);
+            });
+
             ui.separator();
 
             if let Some((width, height)) = &mut layer.positioning.size {
-                ui.label("Width:");
-                ui.add(egui::DragValue::new(width));
-                ui.label("Height:");
-                ui.add(egui::DragValue::new(height));
+                ui.label("Size:");
+                ui.horizontal(|ui| {
+                    ui.add(egui::DragValue::new(width));
+                    ui.add(egui::DragValue::new(height));
+                });
                 if ui.button("Use Texture Size").clicked() {
                     layer.positioning.size = None;
                 }
@@ -179,6 +291,28 @@ fn side_panel(
             }
         });
     response.response.hovered()
+}
+
+fn option_condition_text(condition: Option<bool>) -> &'static str {
+    match condition {
+        None => "Irregardless",
+        Some(true) => "True",
+        Some(false) => "False",
+    }
+}
+
+fn add_option_condition_combo_box(
+    label: &str,
+    current_value: &mut Option<bool>,
+    ui: &mut egui::Ui,
+) {
+    egui::ComboBox::from_label(label)
+        .selected_text(option_condition_text(*current_value))
+        .show_ui(ui, |ui| {
+            for value in [None, Some(true), Some(false)] {
+                ui.selectable_value(current_value, value, option_condition_text(value));
+            }
+        });
 }
 
 struct CachedTextures(HashMap<String, Texture2D>);
