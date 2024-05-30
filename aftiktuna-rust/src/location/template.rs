@@ -116,7 +116,9 @@ enum SymbolData {
         creature: creature::Type,
         #[serde(default = "full_health")]
         health: f32,
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        aggressive: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         direction: Option<Direction>,
     },
     Shopkeeper {
@@ -167,8 +169,9 @@ impl SymbolData {
             SymbolData::Creature {
                 creature,
                 health,
+                aggressive,
                 direction,
-            } => creature.spawn(builder.world, symbol, pos, *health, *direction),
+            } => creature.spawn(builder.world, symbol, pos, *health, *aggressive, *direction),
             SymbolData::Shopkeeper {
                 stock,
                 color,

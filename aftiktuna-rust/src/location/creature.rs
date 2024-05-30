@@ -25,10 +25,12 @@ impl Type {
         symbol: Symbol,
         pos: Pos,
         health: f32,
+        aggressive: Option<bool>,
         direction: Option<Direction>,
     ) {
         let health = Health::from_fraction(health);
         let is_alive = health.is_alive();
+        let aggressive = aggressive.unwrap_or_else(|| self.is_aggressive_by_default());
         let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
         let stats = self.default_stats();
 
@@ -64,16 +66,20 @@ impl Type {
         });
 
         if is_alive {
-            builder.add_bundle(match self {
-                Type::Goblin => (MovementBlocking, Hostile { aggressive: false }),
-                Type::Eyesaur => (MovementBlocking, Hostile { aggressive: false }),
-                Type::Azureclops => (MovementBlocking, Hostile { aggressive: true }),
-                Type::Scarvie => (MovementBlocking, Hostile { aggressive: false }),
-                Type::VoraciousFrog => (MovementBlocking, Hostile { aggressive: true }),
-            });
+            builder.add_bundle((MovementBlocking, Hostile { aggressive }));
         }
 
         world.spawn(builder.build());
+    }
+
+    fn is_aggressive_by_default(self) -> bool {
+        match self {
+            Type::Goblin => false,
+            Type::Eyesaur => false,
+            Type::Azureclops => true,
+            Type::Scarvie => false,
+            Type::VoraciousFrog => true,
+        }
     }
 
     fn default_stats(self) -> Stats {

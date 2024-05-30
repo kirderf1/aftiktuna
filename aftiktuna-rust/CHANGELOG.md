@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Non-controlled crew members now use held medkits on their own when in low health
 - Wounded character portrait in dialogue
 - Health value can be specified for placed creatures when creating locations
+- Initial aggressiveness can be specified for individual creatures when creating locations
 - Edits to the eyesaur forest location
 
 ### Contributors for this release
