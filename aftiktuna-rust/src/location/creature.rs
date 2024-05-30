@@ -28,7 +28,7 @@ impl Type {
             OrderWeight::Creature,
             pos,
             direction,
-            Health::with_max(&stats),
+            Health::at_max(),
             Stamina::with_max(&stats),
             stats,
         ));
@@ -130,7 +130,7 @@ fn aftik_builder(name: Name, stats: Stats) -> EntityBuilder {
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
         name,
-        Health::with_max(&stats),
+        Health::at_max(),
         Stamina::with_max(&stats),
         stats,
     ));

@@ -131,8 +131,11 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 }
 
 fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
+    let endurance = world
+        .get::<&Stats>(target)
+        .map_or(1, |stats| stats.endurance);
     if let Ok(mut health) = world.get::<&mut Health>(target) {
-        health.take_damage(damage)
+        health.take_damage(damage, endurance)
     } else {
         false
     }

@@ -25,17 +25,15 @@ impl Stats {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Health {
     value: f32,
-    max: f32,
 }
 
 impl Health {
-    pub fn with_max(stats: &Stats) -> Health {
-        let max = f32::from(4 + stats.endurance * 2);
-        Health { max, value: max }
+    pub fn at_max() -> Health {
+        Health { value: 1. }
     }
 
     pub fn is_alive(&self) -> bool {
-        self.value > 0.0
+        self.value > 0.
     }
 
     pub fn is_dead(&self) -> bool {
@@ -43,34 +41,29 @@ impl Health {
     }
 
     pub fn is_hurt(&self) -> bool {
-        self.value < self.max
+        self.value < 1.
     }
 
     pub fn is_badly_hurt(&self) -> bool {
-        self.as_fraction() < 0.5
+        self.value < 0.5
     }
 
     pub fn as_fraction(&self) -> f32 {
-        self.value / self.max
+        self.value
     }
 
-    pub fn take_damage(&mut self, damage: f32) -> bool {
-        self.value -= damage;
+    pub fn take_damage(&mut self, damage: f32, endurance: i16) -> bool {
+        self.value -= damage / f32::from(4 + endurance * 2);
         self.value <= 0.0
     }
 
     pub fn restore_fraction(&mut self, fraction: f32) {
-        let value = self.value + self.max * fraction;
-        if value < self.max {
-            self.value = value
-        } else {
-            self.value = self.max
-        }
+        self.value = f32::min(1., self.value + fraction)
     }
 
     #[allow(dead_code)]
     pub fn restore_to_full(&mut self) {
-        self.value = self.max
+        self.value = 1.
     }
 }
 
