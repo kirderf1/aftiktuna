@@ -28,8 +28,10 @@ pub struct Health {
 }
 
 impl Health {
-    pub fn at_max() -> Health {
-        Health { value: 1. }
+    pub fn from_fraction(fraction: f32) -> Self {
+        Self {
+            value: fraction.clamp(0., 1.),
+        }
     }
 
     pub fn is_alive(&self) -> bool {

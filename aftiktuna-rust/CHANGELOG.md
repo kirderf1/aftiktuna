@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New symbol type "aftik_corpse" for creating locations
+
 ### Changed
 
 - Save format version 3.0, making it incompatible with previous save files
@@ -15,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Shops can now have a limited quantity of items in stock
 - Non-controlled crew members now use held medkits on their own when in low health
 - Wounded character portrait in dialogue
+- Health value can be specified for placed creatures when creating locations
+- Edits to the eyesaur forest location
 
 ### Contributors for this release
 

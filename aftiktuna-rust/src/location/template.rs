@@ -114,6 +114,8 @@ enum SymbolData {
     },
     Creature {
         creature: creature::Type,
+        #[serde(default = "full_health")]
+        health: f32,
         #[serde(default)]
         direction: Option<Direction>,
     },
@@ -130,6 +132,15 @@ enum SymbolData {
         #[serde(default)]
         direction: Option<Direction>,
     },
+    AftikCorpse {
+        color: AftikColorId,
+        #[serde(default)]
+        direction: Option<Direction>,
+    },
+}
+
+fn full_health() -> f32 {
+    1.
 }
 
 impl SymbolData {
@@ -155,8 +166,9 @@ impl SymbolData {
             } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
             SymbolData::Creature {
                 creature,
+                health,
                 direction,
-            } => creature.spawn(builder.world, symbol, pos, *direction),
+            } => creature.spawn(builder.world, symbol, pos, *health, *direction),
             SymbolData::Shopkeeper {
                 stock,
                 color,
@@ -175,6 +187,9 @@ impl SymbolData {
                 color.clone(),
                 *direction,
             ),
+            SymbolData::AftikCorpse { color, direction } => {
+                creature::place_aftik_corpse(builder.world, pos, color.clone(), *direction)
+            }
         }
         Ok(())
     }

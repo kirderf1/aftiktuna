@@ -24,7 +24,7 @@
       "name": "Forest entrance",
       "background": "forest",
       "background_offset": 0,
-      "objects": [ "<", "E", "", "^", "", ">" ],
+      "objects": [ "<", "", "", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -50,7 +50,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 2,
-      "objects": [ "<", "", ">", "", "f", "" ],
+      "objects": [ "<", "", ">", "E", "f", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -135,7 +135,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 0,
-      "objects": [ "<", "fE", "^", "", ">" ],
+      "objects": [ "<", "f", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -161,12 +161,28 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "^", "?", "E", "E", "!f?" ],
+      "objects": [ "^", "?", "Ee", "Ec", "a?", "!f" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "right2",
           "display_type": "path"
+        },
+        "e": {
+          "type": "creature",
+          "creature": "eyesaur",
+          "health": 0.4
+        },
+        "c": {
+          "type": "creature",
+          "creature": "eyesaur",
+          "health": 0,
+          "direction": "right"
+        },
+        "a": {
+          "type": "aftik_corpse",
+          "color": "green",
+          "direction": "left"
         }
       }
     },

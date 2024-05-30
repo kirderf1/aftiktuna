@@ -19,61 +19,60 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn spawn(self, world: &mut World, symbol: Symbol, pos: Pos, direction: Option<Direction>) {
+    pub fn spawn(
+        self,
+        world: &mut World,
+        symbol: Symbol,
+        pos: Pos,
+        health: f32,
+        direction: Option<Direction>,
+    ) {
+        let health = Health::from_fraction(health);
+        let is_alive = health.is_alive();
         let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
         let stats = self.default_stats();
+
         let mut builder = EntityBuilder::new();
         builder.add_bundle((
             symbol,
             OrderWeight::Creature,
             pos,
             direction,
-            Health::at_max(),
+            health,
             Stamina::with_max(&stats),
             stats,
         ));
-        match self {
-            Type::Goblin => {
-                builder.add_bundle((
-                    ModelId::creature("goblin"),
-                    Noun::new("goblin", "goblins"),
-                    MovementBlocking,
-                    Hostile { aggressive: false },
-                ));
-            }
-            Type::Eyesaur => {
-                builder.add_bundle((
-                    ModelId::creature("eyesaur"),
-                    Noun::new("eyesaur", "eyesaurs"),
-                    MovementBlocking,
-                    Hostile { aggressive: false },
-                ));
-            }
-            Type::Azureclops => {
-                builder.add_bundle((
-                    ModelId::creature("azureclops"),
-                    Noun::new("azureclops", "azureclopses"),
-                    MovementBlocking,
-                    Hostile { aggressive: true },
-                ));
-            }
-            Type::Scarvie => {
-                builder.add_bundle((
-                    ModelId::creature("scarvie"),
-                    Noun::new("scarvie", "scarvies"),
-                    MovementBlocking,
-                    Hostile { aggressive: false },
-                ));
-            }
-            Type::VoraciousFrog => {
-                builder.add_bundle((
-                    ModelId::creature("voracious_frog"),
-                    Noun::new("voracious frog", "voracious frogs"),
-                    MovementBlocking,
-                    Hostile { aggressive: true },
-                ));
-            }
+
+        builder.add_bundle(match self {
+            Type::Goblin => (ModelId::creature("goblin"), Noun::new("goblin", "goblins")),
+            Type::Eyesaur => (
+                ModelId::creature("eyesaur"),
+                Noun::new("eyesaur", "eyesaurs"),
+            ),
+            Type::Azureclops => (
+                ModelId::creature("azureclops"),
+                Noun::new("azureclops", "azureclopses"),
+            ),
+            Type::Scarvie => (
+                ModelId::creature("scarvie"),
+                Noun::new("scarvie", "scarvies"),
+            ),
+            Type::VoraciousFrog => (
+                ModelId::creature("voracious_frog"),
+                Noun::new("voracious frog", "voracious frogs"),
+            ),
+        });
+
+        if is_alive {
+            builder.add_bundle(match self {
+                Type::Goblin => (MovementBlocking, Hostile { aggressive: false }),
+                Type::Eyesaur => (MovementBlocking, Hostile { aggressive: false }),
+                Type::Azureclops => (MovementBlocking, Hostile { aggressive: true }),
+                Type::Scarvie => (MovementBlocking, Hostile { aggressive: false }),
+                Type::VoraciousFrog => (MovementBlocking, Hostile { aggressive: true }),
+            });
         }
+
         world.spawn(builder.build());
     }
 
@@ -96,8 +95,8 @@ pub fn spawn_crew_member(
     color: AftikColorId,
 ) -> Entity {
     world.spawn(
-        aftik_builder(Name::known(name), stats)
-            .add(color)
+        aftik_builder(color, stats)
+            .add(Name::known(name))
             .add(CrewMember(crew))
             .build(),
     )
@@ -114,8 +113,8 @@ pub fn place_recruitable(
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
     world.spawn(
-        aftik_builder(Name::not_known(name), stats)
-            .add(color)
+        aftik_builder(color, stats)
+            .add(Name::not_known(name))
             .add(Recruitable)
             .add(pos)
             .add(direction)
@@ -123,14 +122,33 @@ pub fn place_recruitable(
     );
 }
 
-fn aftik_builder(name: Name, stats: Stats) -> EntityBuilder {
-    let mut builder = EntityBuilder::new();
-    builder.add_bundle((
+pub fn place_aftik_corpse(
+    world: &mut World,
+    pos: Pos,
+    color: AftikColorId,
+    direction: Option<Direction>,
+) {
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+
+    world.spawn((
         ModelId::aftik(),
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
-        name,
-        Health::at_max(),
+        Health::from_fraction(0.),
+        color,
+        pos,
+        direction,
+    ));
+}
+
+fn aftik_builder(color: AftikColorId, stats: Stats) -> EntityBuilder {
+    let mut builder = EntityBuilder::new();
+    builder.add_bundle((
+        ModelId::aftik(),
+        color,
+        OrderWeight::Creature,
+        Noun::new("aftik", "aftiks"),
+        Health::from_fraction(1.),
         Stamina::with_max(&stats),
         stats,
     ));
