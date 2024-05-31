@@ -43,17 +43,22 @@ impl<'a> Parse<'a> {
         closure(self.active_input())
     }
 
-    pub fn match_against<A, F, E, R>(self, vec: Vec<(String, A)>, success: F, failure: E) -> R
+    /// Matches the names of the provided objects against the start of the remainder of the command.
+    /// If a match is found, the first closure is called with the matched object and a Parse for the new remainder.
+    /// If none is found, the second closure is called with the remainder of the command.
+    pub fn match_against<A, R, I, F, E>(self, iterable: I, success: F, failure: E) -> R
     where
+        I: IntoIterator<Item = (String, A)>,
         F: FnOnce(Parse, A) -> R,
         E: FnOnce(&str) -> R,
     {
-        vec.into_iter()
-            .fold(None, |previous, (name, object)| {
-                previous.or_else(|| self.try_advance(&name).map(|parse| (parse, object)))
-            })
-            .map(|(parse, object)| success(parse, object))
-            .unwrap_or_else(|| failure(self.active_input()))
+        iterable
+            .into_iter()
+            .find_map(|(name, object)| self.try_advance(&name).map(|parse| (parse, object)))
+            .map_or_else(
+                || failure(self.active_input()),
+                |(parse, object)| success(parse, object),
+            )
     }
 
     pub fn default_err<R>(&self) -> Result<R, String> {
