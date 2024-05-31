@@ -226,14 +226,14 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         world,
         crew,
         "Cerulean",
-        Stats::new(9, 2, 10),
+        Stats::new(8, 2, 10, 2),
         AftikColorId::new("cerulean"),
     );
     let mint = creature::spawn_crew_member(
         world,
         crew,
         "Mint",
-        Stats::new(10, 3, 8),
+        Stats::new(10, 3, 8, 1),
         AftikColorId::new("mint"),
     );
     world.insert_one(mint, OrderWeight::Controlled).unwrap();

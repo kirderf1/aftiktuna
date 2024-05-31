@@ -106,10 +106,14 @@ fn print_character_without_cache(
 }
 
 fn print_stats(world: &World, character: Entity, messages: &mut Messages) {
-    let stats = world.get::<&Stats>(character).unwrap();
+    let Stats {
+        strength,
+        endurance,
+        agility,
+        luck,
+    } = *world.get::<&Stats>(character).unwrap();
     messages.add(format!(
-        "Strength: {}   Endurance: {}   Agility: {}",
-        stats.strength, stats.endurance, stats.agility
+        "Strength: {strength}   Endurance: {endurance}   Agility: {agility}   Luck: {luck}"
     ));
 }
 

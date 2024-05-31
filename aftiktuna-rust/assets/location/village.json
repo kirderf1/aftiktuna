@@ -82,7 +82,8 @@
           "stats": {
             "strength": 10,
             "endurance": 2,
-            "agility": 9
+            "agility": 10,
+            "luck": 0
           },
           "color": "plum"
         }

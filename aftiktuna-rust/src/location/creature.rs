@@ -84,11 +84,11 @@ impl Type {
 
     fn default_stats(self) -> Stats {
         match self {
-            Type::Goblin => Stats::new(2, 4, 10),
-            Type::Eyesaur => Stats::new(7, 7, 4),
-            Type::Azureclops => Stats::new(15, 10, 4),
-            Type::Scarvie => Stats::new(3, 2, 8),
-            Type::VoraciousFrog => Stats::new(8, 8, 3),
+            Type::Goblin => Stats::new(2, 4, 10, 2),
+            Type::Eyesaur => Stats::new(7, 7, 4, 2),
+            Type::Azureclops => Stats::new(15, 10, 4, 2),
+            Type::Scarvie => Stats::new(3, 2, 8, 1),
+            Type::VoraciousFrog => Stats::new(8, 8, 3, 3),
         }
     }
 }

@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - New symbol type "aftik_corpse" for creating locations
+- Luck stat, which currently influences hit/dodge rolls
 
 ### Changed
 
@@ -22,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Health value can be specified for placed creatures when creating locations
 - Initial aggressiveness can be specified for individual creatures when creating locations
 - Edits to the eyesaur forest location
+- Tweaked how attacker agility was factored into dodge rolls
 
 ### Contributors for this release
 

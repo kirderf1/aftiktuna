@@ -10,14 +10,16 @@ pub struct Stats {
     pub strength: i16,
     pub endurance: i16,
     pub agility: i16,
+    pub luck: i16,
 }
 
 impl Stats {
-    pub fn new(strength: i16, endurance: i16, agility: i16) -> Stats {
+    pub fn new(strength: i16, endurance: i16, agility: i16, luck: i16) -> Stats {
         Stats {
             strength,
             endurance,
             agility,
+            luck,
         }
     }
 }

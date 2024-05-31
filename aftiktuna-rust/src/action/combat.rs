@@ -151,31 +151,30 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
 }
 
 fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut impl Rng) -> HitType {
+    let attacker_stats = world.get::<&Stats>(attacker).unwrap();
+    let dodger_stats = world.get::<&Stats>(defender).unwrap();
     let mut stamina = world.get::<&mut Stamina>(defender).unwrap();
     let stamina_factor = stamina.as_fraction();
+
+    let mut hit_difficulty = f32::from(dodger_stats.luck);
     if stamina_factor > 0.0 {
         stamina.on_dodge_attempt();
-        let dodge_factor = stamina_factor * get_dodge_factor(world, attacker, defender);
-        // Yes, this looks slightly odd. This is meant to act as a d20 integer roll,
-        // which is converted to a float only to be compared against the float factor.
-        let hit_roll = f32::from(rng.gen_range::<i16, _>(1..=20));
+        hit_difficulty += 2. * stamina_factor * f32::from(dodger_stats.agility);
+    }
+    hit_difficulty -= f32::from(attacker_stats.agility) + 0.5 * f32::from(attacker_stats.luck);
+    let hit_difficulty = hit_difficulty.ceil() as i16;
 
-        if dodge_factor > hit_roll + 5.0 {
-            HitType::Dodge
-        } else if dodge_factor > hit_roll {
-            HitType::GrazingHit
-        } else {
-            HitType::DirectHit
-        }
+    // Yes, this looks slightly odd. This is meant to act as a d20 integer roll,
+    // which is converted to a float only to be compared against the float factor.
+    let hit_roll = rng.gen_range::<i16, _>(1..=20);
+
+    if hit_roll < hit_difficulty - 5 {
+        HitType::Dodge
+    } else if hit_roll < hit_difficulty {
+        HitType::GrazingHit
     } else {
         HitType::DirectHit
     }
-}
-
-fn get_dodge_factor(world: &World, attacker: Entity, defender: Entity) -> f32 {
-    let hit_agility = world.get::<&Stats>(attacker).unwrap().agility;
-    let dodge_agility = world.get::<&Stats>(defender).unwrap().agility;
-    f32::from(2 * dodge_agility - hit_agility)
 }
 
 #[derive(Debug, Eq, PartialEq)]
