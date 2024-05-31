@@ -1,8 +1,12 @@
+use std::collections::HashMap;
+
+use hecs::Entity;
+
 use crate::action::Action;
 use crate::command;
 use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
-use crate::core::name::{NameData, NameQuery};
+use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::{status, Hostile};
 use crate::game_loop::GameState;
@@ -11,7 +15,11 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
     parse.literal("attack", |parse| {
         first_match_or!(
             parse.empty(|| attack_any(state));
-            parse.take_remaining(|target_name| attack(target_name, state))
+            parse.match_against(
+                get_targets_by_name(state),
+                |parse, targets| parse.done_or_err(|| attack(targets, state)),
+                |_| Err("There is no such target here.".to_string())
+            )
         )
     })
 }
@@ -38,48 +46,50 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
     }
 }
 
-fn attack(target_name: &str, state: &GameState) -> Result<CommandResult, String> {
+fn get_targets_by_name(state: &GameState) -> HashMap<String, Vec<Entity>> {
     let pos = *state.world.get::<&Pos>(state.controlled).unwrap();
-    let targets = state
+    let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
+    state
         .world
-        .query::<(&Pos, NameQuery)>()
+        .query::<&Pos>()
         .with::<&Hostile>()
         .iter()
-        .filter(|&(entity, (target_pos, query))| {
-            target_pos.is_in(pos.get_area())
-                && status::is_alive(entity, &state.world)
-                && NameData::from(query).matches(target_name)
+        .filter(|&(entity, target_pos)| {
+            target_pos.is_in(pos.get_area()) && status::is_alive(entity, &state.world)
         })
-        .map(|(entity, (&pos, _))| (entity, pos))
-        .collect::<Vec<_>>();
+        .for_each(|(entity, _)| {
+            let name_data = NameData::find(&state.world, entity);
+            map.entry(name_data.base().to_owned())
+                .or_default()
+                .push(entity);
+        });
+    map
+}
 
-    if targets.is_empty() {
-        return Err("There is no such target here.".to_string());
-    }
+fn attack(targets: Vec<Entity>, state: &GameState) -> Result<CommandResult, String> {
+    let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
 
     let target_access = targets
         .iter()
-        .map(|&(entity, pos)| {
+        .map(|&entity| {
             (
                 super::check_adjacent_accessible_with_message(
                     &state.world,
                     state.controlled,
                     entity,
                 ),
-                pos,
+                *state.world.get::<&Pos>(entity).unwrap(),
             )
         })
         .collect::<Vec<_>>();
     if target_access.iter().all(|(result, _)| result.is_err()) {
         return Err(target_access
             .into_iter()
-            .min_by_key(|&(_, target_pos)| pos.distance_to(target_pos))
+            .min_by_key(|&(_, target_pos)| character_pos.distance_to(target_pos))
             .unwrap()
             .0
             .unwrap_err());
     }
 
-    command::action_result(Action::Attack(
-        targets.into_iter().map(|(entity, _)| entity).collect(),
-    ))
+    command::action_result(Action::Attack(targets))
 }
