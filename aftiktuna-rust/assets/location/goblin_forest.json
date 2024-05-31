@@ -73,6 +73,12 @@
           "type": "door",
           "pair_id": "shack",
           "display_type": "door"
+        },
+        "E": {
+          "type": "creature",
+          "creature": "eyesaur",
+          "attribute": "bulky",
+          "aggressive": true
         }
       }
     },

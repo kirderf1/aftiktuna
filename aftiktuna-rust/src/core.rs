@@ -92,6 +92,41 @@ pub struct Hostile {
     pub aggressive: bool,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CreatureAttribute {
+    Muscular,
+    Bulky,
+    Agile,
+}
+
+impl CreatureAttribute {
+    pub fn adjust_stats(self, stats: &mut status::Stats) {
+        match self {
+            CreatureAttribute::Muscular => {
+                stats.strength += 2;
+                stats.luck -= 1;
+            }
+            CreatureAttribute::Bulky => {
+                stats.endurance += 2;
+                stats.agility -= 1;
+            }
+            CreatureAttribute::Agile => {
+                stats.agility += 2;
+                stats.endurance -= 1;
+            }
+        }
+    }
+
+    pub fn as_adjective(self) -> &'static str {
+        match self {
+            CreatureAttribute::Muscular => "muscular",
+            CreatureAttribute::Bulky => "bulky",
+            CreatureAttribute::Agile => "agile",
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct Waiting;
 

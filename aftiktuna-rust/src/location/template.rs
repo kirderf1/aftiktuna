@@ -112,15 +112,7 @@ enum SymbolData {
         #[serde(default)]
         adjective: Option<door::Adjective>,
     },
-    Creature {
-        creature: creature::Type,
-        #[serde(default = "full_health")]
-        health: f32,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        aggressive: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        direction: Option<Direction>,
-    },
+    Creature(creature::CreatureSpawnData),
     Shopkeeper {
         stock: Vec<creature::StockDefinition>,
         color: AftikColorId,
@@ -139,10 +131,6 @@ enum SymbolData {
         #[serde(default)]
         direction: Option<Direction>,
     },
-}
-
-fn full_health() -> f32 {
-    1.
 }
 
 impl SymbolData {
@@ -166,12 +154,7 @@ impl SymbolData {
                 display_type,
                 adjective,
             } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
-            SymbolData::Creature {
-                creature,
-                health,
-                aggressive,
-                direction,
-            } => creature.spawn(builder.world, symbol, pos, *health, *aggressive, *direction),
+            SymbolData::Creature(spawn_data) => spawn_data.spawn(builder.world, symbol, pos, rng),
             SymbolData::Shopkeeper {
                 stock,
                 color,

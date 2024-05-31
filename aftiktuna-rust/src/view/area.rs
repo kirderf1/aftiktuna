@@ -6,7 +6,10 @@ use crate::core::item::CanWield;
 use crate::core::name::NameData;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
-use crate::core::{inventory, AftikColorId, BlockType, Door, IsCut, ModelId, OrderWeight, Symbol};
+use crate::core::{
+    inventory, AftikColorId, BlockType, CreatureAttribute, Door, IsCut, ModelId, OrderWeight,
+    Symbol,
+};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::{capitalize, Messages};
@@ -100,14 +103,21 @@ fn insert_label_at_available_symbol(
     original_symbol
 }
 
-fn get_name(world: &World, entity: Entity, name: String) -> String {
-    if let Ok(door_pair) = world.get::<&Door>(entity).map(|door| door.door_pair) {
-        if let Ok(blocking) = world.get::<&BlockType>(door_pair) {
+fn get_name(world: &World, entity: Entity, name: &str) -> String {
+    let entity_ref = world.entity(entity).unwrap();
+    if let Some(door) = entity_ref.get::<&Door>() {
+        if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
             return format!("{name} ({})", blocking.description());
         }
     }
 
-    if !status::is_alive(entity, world) {
+    let name = if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
+        format!("{} {name}", attribute.as_adjective())
+    } else {
+        name.to_owned()
+    };
+
+    if !status::is_alive_ref(entity_ref) {
         return format!("Corpse of {name}");
     }
 
@@ -236,7 +246,7 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             .get::<&ModelId>()
             .map(deref_clone)
             .unwrap_or_default(),
-        modified_name: get_name(&state.world, entity, capitalize(name_data.base())),
+        modified_name: capitalize(get_name(&state.world, entity, name_data.base())),
         name: capitalize(name_data.base()),
         symbol: entity_ref
             .get::<&Symbol>()

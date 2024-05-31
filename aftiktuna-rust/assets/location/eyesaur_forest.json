@@ -177,6 +177,7 @@
           "type": "creature",
           "creature": "eyesaur",
           "health": 0,
+          "attribute": "none",
           "direction": "right"
         },
         "a": {

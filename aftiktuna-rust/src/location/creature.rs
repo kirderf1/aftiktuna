@@ -2,11 +2,45 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{
-    item, AftikColorId, CrewMember, Hostile, ModelId, OrderWeight, Recruitable, Shopkeeper,
-    StockQuantity, StoreStock, Symbol,
+    item, AftikColorId, CreatureAttribute, CrewMember, Hostile, ModelId, OrderWeight, Recruitable,
+    Shopkeeper, StockQuantity, StoreStock, Symbol,
 };
 use hecs::{Entity, EntityBuilder, World};
+use rand::seq::SliceRandom;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AttributeChoice {
+    None,
+    #[default]
+    Random,
+    #[serde(untagged)]
+    Attribute(CreatureAttribute),
+}
+
+impl AttributeChoice {
+    fn evaluate(self, rng: &mut impl Rng) -> Option<CreatureAttribute> {
+        match self {
+            AttributeChoice::None => None,
+            AttributeChoice::Attribute(attribute) => Some(attribute),
+            AttributeChoice::Random => {
+                if rng.gen_bool(0.5) {
+                    None
+                } else {
+                    [
+                        CreatureAttribute::Muscular,
+                        CreatureAttribute::Bulky,
+                        CreatureAttribute::Agile,
+                    ]
+                    .choose(rng)
+                    .copied()
+                }
+            }
+        }
+    }
+}
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -19,59 +53,6 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn spawn(
-        self,
-        world: &mut World,
-        symbol: Symbol,
-        pos: Pos,
-        health: f32,
-        aggressive: Option<bool>,
-        direction: Option<Direction>,
-    ) {
-        let health = Health::from_fraction(health);
-        let is_alive = health.is_alive();
-        let aggressive = aggressive.unwrap_or_else(|| self.is_aggressive_by_default());
-        let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-        let stats = self.default_stats();
-
-        let mut builder = EntityBuilder::new();
-        builder.add_bundle((
-            symbol,
-            OrderWeight::Creature,
-            pos,
-            direction,
-            health,
-            Stamina::with_max(&stats),
-            stats,
-        ));
-
-        builder.add_bundle(match self {
-            Type::Goblin => (ModelId::creature("goblin"), Noun::new("goblin", "goblins")),
-            Type::Eyesaur => (
-                ModelId::creature("eyesaur"),
-                Noun::new("eyesaur", "eyesaurs"),
-            ),
-            Type::Azureclops => (
-                ModelId::creature("azureclops"),
-                Noun::new("azureclops", "azureclopses"),
-            ),
-            Type::Scarvie => (
-                ModelId::creature("scarvie"),
-                Noun::new("scarvie", "scarvies"),
-            ),
-            Type::VoraciousFrog => (
-                ModelId::creature("voracious_frog"),
-                Noun::new("voracious frog", "voracious frogs"),
-            ),
-        });
-
-        if is_alive {
-            builder.add_bundle((MovementBlocking, Hostile { aggressive }));
-        }
-
-        world.spawn(builder.build());
-    }
-
     fn is_aggressive_by_default(self) -> bool {
         match self {
             Type::Goblin => false,
@@ -90,6 +71,82 @@ impl Type {
             Type::Scarvie => Stats::new(3, 2, 8, 1),
             Type::VoraciousFrog => Stats::new(8, 8, 3, 3),
         }
+    }
+
+    fn model_id(self) -> ModelId {
+        ModelId::creature(match self {
+            Type::Goblin => "goblin",
+            Type::Eyesaur => "eyesaur",
+            Type::Azureclops => "azureclops",
+            Type::Scarvie => "scarvie",
+            Type::VoraciousFrog => "voracious_frog",
+        })
+    }
+
+    fn noun(self) -> Noun {
+        match self {
+            Type::Goblin => Noun::new("goblin", "goblins"),
+            Type::Eyesaur => Noun::new("eyesaur", "eyesaurs"),
+            Type::Azureclops => Noun::new("azureclops", "azureclopses"),
+            Type::Scarvie => Noun::new("scarvie", "scarvies"),
+            Type::VoraciousFrog => Noun::new("voracious frog", "voracious frogs"),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CreatureSpawnData {
+    creature: Type,
+    #[serde(default = "full_health")]
+    health: f32,
+    #[serde(default)]
+    attribute: AttributeChoice,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    aggressive: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    direction: Option<Direction>,
+}
+
+fn full_health() -> f32 {
+    1.
+}
+
+impl CreatureSpawnData {
+    pub fn spawn(&self, world: &mut World, symbol: Symbol, pos: Pos, rng: &mut impl Rng) {
+        let health = Health::from_fraction(self.health);
+        let attribute = self.attribute.evaluate(rng);
+        let is_alive = health.is_alive();
+        let aggressive = self
+            .aggressive
+            .unwrap_or_else(|| self.creature.is_aggressive_by_default());
+        let direction = self
+            .direction
+            .unwrap_or_else(|| Direction::towards_center(pos, world));
+        let mut stats = self.creature.default_stats();
+
+        let mut builder = EntityBuilder::new();
+        if let Some(attribute) = attribute {
+            attribute.adjust_stats(&mut stats);
+            builder.add(attribute);
+        }
+
+        builder.add_bundle((
+            self.creature.model_id(),
+            self.creature.noun(),
+            symbol,
+            OrderWeight::Creature,
+            pos,
+            direction,
+            health,
+            Stamina::with_max(&stats),
+            stats,
+        ));
+
+        if is_alive {
+            builder.add_bundle((MovementBlocking, Hostile { aggressive }));
+        }
+
+        world.spawn(builder.build());
     }
 }
 
