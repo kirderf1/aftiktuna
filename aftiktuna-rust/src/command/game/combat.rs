@@ -8,7 +8,7 @@ use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{status, Hostile};
+use crate::core::{status, CreatureAttribute, Hostile};
 use crate::game_loop::GameState;
 
 pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {
@@ -58,10 +58,16 @@ fn get_targets_by_name(state: &GameState) -> HashMap<String, Vec<Entity>> {
             target_pos.is_in(pos.get_area()) && status::is_alive(entity, &state.world)
         })
         .for_each(|(entity, _)| {
-            let name_data = NameData::find(&state.world, entity);
+            let entity_ref = state.world.entity(entity).unwrap();
+            let name_data = NameData::find_for_ref(entity_ref);
             map.entry(name_data.base().to_owned())
                 .or_default()
                 .push(entity);
+            if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
+                map.entry(format!("{} {}", attribute.as_adjective(), name_data.base()))
+                    .or_default()
+                    .push(entity);
+            }
         });
     map
 }

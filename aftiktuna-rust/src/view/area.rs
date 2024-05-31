@@ -103,25 +103,29 @@ fn insert_label_at_available_symbol(
     original_symbol
 }
 
-fn get_name(world: &World, entity: Entity, name: &str) -> String {
-    let entity_ref = world.entity(entity).unwrap();
+fn get_name(entity_ref: EntityRef) -> String {
+    let name_data = NameData::find_for_ref(entity_ref);
+    let name = name_data.base();
+
+    if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
+        format!("{} {name}", attribute.as_adjective())
+    } else {
+        name.to_owned()
+    }
+}
+
+fn get_extended_name(world: &World, entity_ref: EntityRef, name: &str) -> String {
     if let Some(door) = entity_ref.get::<&Door>() {
         if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
             return format!("{name} ({})", blocking.description());
         }
     }
 
-    let name = if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
-        format!("{} {name}", attribute.as_adjective())
-    } else {
-        name.to_owned()
-    };
-
     if !status::is_alive_ref(entity_ref) {
         return format!("Corpse of {name}");
     }
 
-    name
+    name.to_owned()
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -221,7 +225,7 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
 
 fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
-    let name_data = NameData::find_for_ref(entity_ref);
+    let name = get_name(entity_ref);
     let properties = RenderProperties {
         direction: entity_ref
             .get::<&Direction>()
@@ -246,12 +250,12 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             .get::<&ModelId>()
             .map(deref_clone)
             .unwrap_or_default(),
-        modified_name: capitalize(get_name(&state.world, entity, name_data.base())),
-        name: capitalize(name_data.base()),
+        modified_name: capitalize(get_extended_name(&state.world, entity_ref, &name)),
+        name: capitalize(&name),
         symbol: entity_ref
             .get::<&Symbol>()
             .map(deref_clone)
-            .unwrap_or_else(|| Symbol::from_name(name_data.base())),
+            .unwrap_or_else(|| Symbol::from_name(&name)),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: suggestion::interactions_for(entity, state),
         properties,
