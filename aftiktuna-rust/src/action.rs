@@ -1,12 +1,11 @@
 use crate::core::item::Type as ItemType;
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{position, status, CrewMember, FortunaChest, OpenedChest};
+use crate::core::{position, status, CrewMember, FortunaChest, OpenedChest, RepeatingAction};
 use crate::game_loop::GameState;
 use crate::view;
 use crate::view::Frame;
 use hecs::{Entity, World};
-use serde::{Deserialize, Serialize};
 use std::result;
 use Action::*;
 
@@ -17,7 +16,7 @@ mod item;
 mod ship;
 pub mod trade;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone)]
 pub enum Action {
     TakeItem(Entity, NameData),
     TakeAll,
@@ -164,7 +163,7 @@ fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Resul
         .any(|(_, (stamina, pos))| pos.is_in(area) && stamina.need_more_rest());
 
     if need_more_rest {
-        world.insert_one(performer, Rest(false)).unwrap();
+        world.insert_one(performer, RepeatingAction::Rest).unwrap();
     }
 
     if first_turn_resting {

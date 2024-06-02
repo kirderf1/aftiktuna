@@ -3,7 +3,7 @@ use crate::action::Context;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
-use crate::core::{area, position, status, CrewMember, GoingToShip, Recruitable, Waiting};
+use crate::core::{area, position, status, CrewMember, Recruitable, RepeatingAction, Waiting};
 use hecs::Entity;
 
 pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -> action::Result {
@@ -169,12 +169,7 @@ pub(super) fn tell_to_wait_at_ship(
     performer: Entity,
     target: Entity,
 ) -> action::Result {
-    if !status::is_alive(target, context.mut_world())
-        || context
-            .mut_world()
-            .satisfies::<&GoingToShip>(target)
-            .unwrap()
-    {
+    if !status::is_alive(target, context.mut_world()) {
         return action::silent_ok();
     }
 
@@ -206,7 +201,7 @@ pub(super) fn tell_to_wait_at_ship(
 
     context
         .mut_world()
-        .insert(target, (Waiting, GoingToShip))
+        .insert(target, (Waiting, RepeatingAction::GoToShip))
         .unwrap();
 
     let performer_name = NameData::find(context.mut_world(), performer).definite();

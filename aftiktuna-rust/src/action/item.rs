@@ -1,11 +1,10 @@
 use crate::action;
-use crate::action::Action;
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::Health;
-use crate::core::{self, inventory, position, status};
+use crate::core::{self, inventory, position, status, RepeatingAction};
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
@@ -27,7 +26,7 @@ pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
         .iter()
         .any(|(_, pos)| pos.is_in(aftik_pos.get_area()))
     {
-        world.insert_one(aftik, Action::TakeAll).unwrap();
+        world.insert_one(aftik, RepeatingAction::TakeAll).unwrap();
     }
     Ok(result)
 }

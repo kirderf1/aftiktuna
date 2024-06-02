@@ -145,7 +145,6 @@ macro_rules! world_serialization {
 }
 
 pub mod world {
-    use crate::action::Action;
     use crate::ai;
     use crate::core::area::{Area, Ship, ShipControls};
     use crate::core::inventory::Held;
@@ -180,10 +179,9 @@ pub mod world {
 
         core::CrewMember, CrewMember;
         core::Hostile, Hostile;
-        Action, Action;
         ai::Intention, Intention;
         core::Waiting, Waiting;
-        core::GoingToShip, GoingToShip;
+        core::RepeatingAction, RepeatingAction;
 
         core::Recruitable, Recruitable;
         core::Shopkeeper, Shopkeeper;

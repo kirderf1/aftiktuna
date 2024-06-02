@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::{Entity, Or, World};
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ use crate::core::item::FoodRation;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, inventory, status, CrewMember, OpenedChest, OrderWeight};
+use crate::core::{self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction};
 use crate::game_interface::Phase;
 use crate::location::{self, LocationTracker, PickResult};
 use crate::serialization;
@@ -129,7 +129,9 @@ fn prepare_next_location(
 }
 
 fn insert_wait_if_relevant(world: &mut World, controlled: Entity) {
-    if world.get::<&Action>(controlled).is_err()
+    if !world
+        .satisfies::<Or<&Action, &RepeatingAction>>(controlled)
+        .unwrap()
         && is_wait_requested(world, controlled)
         && core::is_safe(world, world.get::<&Pos>(controlled).unwrap().get_area())
     {
@@ -184,7 +186,9 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
 }
 
 fn should_take_user_input(world: &World, controlled: Entity) -> bool {
-    world.get::<&Action>(controlled).is_err()
+    !world
+        .satisfies::<Or<&Action, &RepeatingAction>>(controlled)
+        .unwrap()
 }
 
 fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {

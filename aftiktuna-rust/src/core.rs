@@ -3,6 +3,8 @@ use std::{fmt::Display, path::Path};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
+use crate::action::Action;
+
 pub mod area;
 pub mod inventory;
 pub mod item;
@@ -226,8 +228,22 @@ impl BlockType {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct GoingToShip;
+#[derive(Clone, Copy, Serialize, Deserialize)]
+pub enum RepeatingAction {
+    TakeAll,
+    Rest,
+    GoToShip,
+}
+
+impl From<RepeatingAction> for Action {
+    fn from(value: RepeatingAction) -> Self {
+        match value {
+            RepeatingAction::TakeAll => Action::TakeAll,
+            RepeatingAction::Rest => Action::Rest(false),
+            RepeatingAction::GoToShip => Action::GoToShip,
+        }
+    }
+}
 
 pub fn is_safe(world: &World, area: Entity) -> bool {
     world

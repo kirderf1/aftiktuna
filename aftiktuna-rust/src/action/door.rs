@@ -3,7 +3,7 @@ use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{area, inventory, position, BlockType, Door, DoorKind, GoingToShip, IsCut};
+use crate::core::{area, inventory, position, BlockType, Door, DoorKind, IsCut, RepeatingAction};
 use crate::game_loop::GameState;
 use crate::{action, core};
 use hecs::{Entity, World};
@@ -174,7 +174,6 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
     if area::is_ship(area, world) {
-        let _ = world.remove_one::<GoingToShip>(performer);
         return action::silent_ok();
     }
 
@@ -186,9 +185,9 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
     if result.is_ok() && core::is_safe(world, area) && !area::is_ship(area, world) {
-        world.insert_one(performer, GoingToShip).unwrap();
-    } else {
-        let _ = world.remove_one::<GoingToShip>(performer);
+        world
+            .insert_one(performer, RepeatingAction::GoToShip)
+            .unwrap();
     }
     result
 }

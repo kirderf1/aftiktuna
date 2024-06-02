@@ -2,7 +2,7 @@ use crate::action::Action;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, CrewMember, GoingToShip, Hostile};
+use crate::core::{self, inventory, status, CrewMember, Hostile, RepeatingAction};
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use serde::{Deserialize, Serialize};
 
@@ -20,10 +20,6 @@ pub fn prepare_intentions(world: &mut World) {
         if let Some(intention) = pick_intention(crew_member, world) {
             buffer.insert_one(crew_member, intention);
         };
-
-        if world.satisfies::<&GoingToShip>(crew_member).unwrap() {
-            buffer.insert_one(crew_member, Action::GoToShip);
-        }
     }
 
     buffer.run_on(world);
@@ -64,7 +60,12 @@ pub fn tick(world: &mut World) {
     {
         let entity_ref = world.entity(entity).unwrap();
         if status::is_alive_ref(entity_ref) && !entity_ref.satisfies::<&Action>() {
-            let action = pick_action(entity_ref, world).unwrap_or(Action::Wait);
+            let action = if let Some(action) = entity_ref.get::<&RepeatingAction>() {
+                buffer.remove_one::<RepeatingAction>(entity);
+                Action::from(*action)
+            } else {
+                pick_action(entity_ref, world).unwrap_or(Action::Wait)
+            };
 
             buffer.insert_one(entity, action);
         };
