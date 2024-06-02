@@ -16,12 +16,18 @@
   },
   "forest_entrance": {
     "type": "repeating",
-    "texture": "forest_entrance",
+    "layers": [
+      { "texture": "forest_base", "move_factor": 0.67 },
+      { "texture": "forest_entrance", "move_factor": 1 }
+    ],
     "portrait_texture": "forest_portrait"
   },
   "forest": {
     "type": "repeating",
-    "texture": "forest",
+    "layers": [
+      { "texture": "forest_base", "move_factor": 0.67 },
+      { "texture": "forest", "move_factor": 1 }
+    ],
     "portrait_texture": "forest_portrait"
   },
   "field": {

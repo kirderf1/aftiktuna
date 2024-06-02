@@ -18,27 +18,40 @@ pub struct BGData {
 }
 
 pub enum BGTexture {
-    Centered(Texture2D),
-    Fixed(Texture2D),
-    Repeating(Texture2D),
+    Fixed(Parallax<Texture2D>),
+    Repeating(Parallax<Texture2D>),
 }
 
 impl BGTexture {
     pub fn draw(&self, offset: Coord, camera_space: Rect) {
         let offset = offset as f32 * 120.;
-        match *self {
-            BGTexture::Centered(texture) => {
-                texture::draw_texture(texture, camera_space.x - offset, 0., color::WHITE)
+        match self {
+            BGTexture::Fixed(parallax) => {
+                for layer in &parallax.layers {
+                    let layer_x = -60. * layer.move_factor
+                        + camera_space.x * (1. - layer.move_factor)
+                        - offset;
+                    texture::draw_texture(layer.texture, layer_x, 0., color::WHITE)
+                }
             }
-            BGTexture::Fixed(texture) => {
-                texture::draw_texture(texture, -60. - offset, 0., color::WHITE)
-            }
-            BGTexture::Repeating(texture) => {
-                let start_x = texture.width()
-                    * f32::floor((camera_space.x + offset) / texture.width())
-                    - offset;
-                texture::draw_texture(texture, start_x, 0., color::WHITE);
-                texture::draw_texture(texture, start_x + texture.width(), 0., color::WHITE);
+            BGTexture::Repeating(parallax) => {
+                for layer in &parallax.layers {
+                    let layer_x = camera_space.x * (1. - layer.move_factor) - offset;
+                    let texture = layer.texture;
+                    let repeat_count = f32::floor((camera_space.x - layer_x) / texture.width());
+                    texture::draw_texture(
+                        texture,
+                        layer_x + texture.width() * repeat_count,
+                        0.,
+                        color::WHITE,
+                    );
+                    texture::draw_texture(
+                        texture,
+                        layer_x + texture.width() * (repeat_count + 1.),
+                        0.,
+                        color::WHITE,
+                    );
+                }
             }
         }
     }
@@ -79,22 +92,74 @@ impl RawBGData {
 #[serde(tag = "type", rename_all = "snake_case")]
 enum RawBGTexture {
     Centered { texture: String },
-    Fixed { texture: String },
-    Repeating { texture: String },
+    Fixed(RawParallax),
+    Repeating(RawParallax),
 }
 
 impl RawBGTexture {
-    fn load(self) -> Result<BGTexture, io::Error> {
+    fn load(&self) -> Result<BGTexture, io::Error> {
         Ok(match self {
-            RawBGTexture::Centered { texture } => {
-                BGTexture::Centered(super::load_texture(format!("background/{texture}"))?)
-            }
-            RawBGTexture::Fixed { texture } => {
-                BGTexture::Fixed(super::load_texture(format!("background/{texture}"))?)
-            }
-            RawBGTexture::Repeating { texture } => {
-                BGTexture::Repeating(super::load_texture(format!("background/{texture}"))?)
-            }
+            RawBGTexture::Centered { texture } => BGTexture::Fixed(Parallax {
+                layers: vec![ParallaxLayer {
+                    texture: load_texture(texture)?,
+                    move_factor: 0.,
+                }],
+            }),
+            RawBGTexture::Fixed(raw_parallax) => BGTexture::Fixed(raw_parallax.load()?),
+            RawBGTexture::Repeating(raw_parallax) => BGTexture::Repeating(raw_parallax.load()?),
+        })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum RawParallax {
+    Texture { texture: String },
+    Parallax(Parallax<String>),
+}
+
+impl RawParallax {
+    fn load(&self) -> Result<Parallax<Texture2D>, io::Error> {
+        match self {
+            RawParallax::Texture { texture } => Ok(Parallax {
+                layers: vec![ParallaxLayer {
+                    texture: load_texture(texture)?,
+                    move_factor: 1.,
+                }],
+            }),
+            RawParallax::Parallax(parallax) => parallax.load(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Parallax<T> {
+    layers: Vec<ParallaxLayer<T>>,
+}
+
+impl Parallax<String> {
+    fn load(&self) -> Result<Parallax<Texture2D>, io::Error> {
+        Ok(Parallax {
+            layers: self
+                .layers
+                .iter()
+                .map(ParallaxLayer::load)
+                .collect::<Result<_, _>>()?,
+        })
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct ParallaxLayer<T> {
+    texture: T,
+    move_factor: f32,
+}
+
+impl ParallaxLayer<String> {
+    fn load(&self) -> Result<ParallaxLayer<Texture2D>, io::Error> {
+        Ok(ParallaxLayer {
+            texture: load_texture(&self.texture)?,
+            move_factor: self.move_factor,
         })
     }
 }
@@ -113,16 +178,21 @@ impl RawBGPortrait {
             RawBGPortrait::Color(color) => {
                 BGPortrait::Color([color[0], color[1], color[2], 255].into())
             }
-            RawBGPortrait::Texture(texture) => {
-                BGPortrait::Texture(super::load_texture(format!("background/{texture}"))?)
-            }
+            RawBGPortrait::Texture(texture) => BGPortrait::Texture(load_texture(&texture)?),
         })
     }
 }
 
-pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {
+fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Error> {
     let file = File::open("assets/texture/background/backgrounds.json")?;
-    let raw_backgrounds: HashMap<BackgroundId, RawBGData> = serde_json::from_reader(file)?;
+    Ok(serde_json::from_reader::<
+        _,
+        HashMap<BackgroundId, RawBGData>,
+    >(file)?)
+}
+
+pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {
+    let raw_backgrounds = load_raw_backgrounds()?;
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
         insert_or_log(&mut backgrounds, bg_type, raw_data.load());
@@ -148,4 +218,18 @@ fn insert_or_log<K: Eq + Hash, V, D: Display>(
             eprintln!("Unable to load texture: {error}");
         }
     }
+}
+
+pub fn load_background_for_testing() -> BGTexture {
+    load_raw_backgrounds()
+        .unwrap()
+        .get(&BackgroundId::new("forest"))
+        .unwrap()
+        .texture
+        .load()
+        .unwrap()
+}
+
+fn load_texture(texture: &str) -> Result<Texture2D, io::Error> {
+    super::load_texture(format!("background/{texture}"))
 }

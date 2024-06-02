@@ -18,7 +18,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Save format version 3.0, making it incompatible with previous save files
 - Updated readme.txt
 - Expanded shopkeeper definition to allow setting a custom price
-- Shops can now have a limited quantity of items in stock
+- Shops can now have a limited quantity of items in stock,
+ and the village store has been updated accordingly
+- Forest backgrounds now use a simple parallax effect
 - Non-controlled crew members now use held medkits on their own when in low health
 - Wounded character portrait in dialogue
 - Health value can be specified for placed creatures when creating locations

@@ -6,9 +6,10 @@ use std::process::exit;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::ModelId;
 use aftiktuna::macroquad_interface::camera::Positioner;
-use aftiktuna::macroquad_interface::texture::background::BGTexture;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
-use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor, TextureLoader};
+use aftiktuna::macroquad_interface::texture::{
+    background, model, AftikColorData, RGBColor, TextureLoader,
+};
 use aftiktuna::macroquad_interface::{self, camera, texture};
 use aftiktuna::view::area::RenderProperties;
 use egui_macroquad::egui;
@@ -50,7 +51,7 @@ async fn main() {
     let mut selected_layer = 0;
 
     let aftik_model = model::load_model(&ModelId::aftik()).unwrap();
-    let background = BGTexture::Repeating(texture::load_texture("background/forest").unwrap());
+    let background = background::load_background_for_testing();
     let mut area_size = 7;
     let mut camera = camera::position_centered_camera(0, area_size);
     let mut last_drag_pos = None;
