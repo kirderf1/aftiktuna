@@ -17,41 +17,30 @@ pub struct BGData {
     pub portrait: BGPortrait,
 }
 
-pub enum BGTexture {
-    Fixed(Parallax<Texture2D>),
-    Repeating(Parallax<Texture2D>),
-}
+pub struct BGTexture(Parallax<Texture2D>);
 
 impl BGTexture {
     pub fn draw(&self, offset: Coord, camera_space: Rect) {
         let offset = offset as f32 * 120.;
-        match self {
-            BGTexture::Fixed(parallax) => {
-                for layer in &parallax.layers {
-                    let layer_x = -60. * layer.move_factor
-                        + camera_space.x * (1. - layer.move_factor)
-                        - offset;
-                    texture::draw_texture(layer.texture, layer_x, 0., color::WHITE)
-                }
-            }
-            BGTexture::Repeating(parallax) => {
-                for layer in &parallax.layers {
-                    let layer_x = camera_space.x * (1. - layer.move_factor) - offset;
-                    let texture = layer.texture;
-                    let repeat_count = f32::floor((camera_space.x - layer_x) / texture.width());
-                    texture::draw_texture(
-                        texture,
-                        layer_x + texture.width() * repeat_count,
-                        0.,
-                        color::WHITE,
-                    );
-                    texture::draw_texture(
-                        texture,
-                        layer_x + texture.width() * (repeat_count + 1.),
-                        0.,
-                        color::WHITE,
-                    );
-                }
+        for layer in &self.0.layers {
+            let layer_x = camera_space.x * (1. - layer.move_factor) - offset - layer.offset;
+            let texture = layer.texture;
+            if layer.is_looping {
+                let repeat_count = f32::floor((camera_space.x - layer_x) / texture.width());
+                texture::draw_texture(
+                    texture,
+                    layer_x + texture.width() * repeat_count,
+                    0.,
+                    color::WHITE,
+                );
+                texture::draw_texture(
+                    texture,
+                    layer_x + texture.width() * (repeat_count + 1.),
+                    0.,
+                    color::WHITE,
+                );
+            } else {
+                texture::draw_texture(texture, layer_x, 0., color::WHITE)
             }
         }
     }
@@ -88,47 +77,21 @@ impl RawBGData {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
 enum RawBGTexture {
-    Centered { texture: String },
-    Fixed(RawParallax),
-    Repeating(RawParallax),
+    Layer(ParallaxLayer<String>),
+    Parallax(Parallax<String>),
 }
 
 impl RawBGTexture {
     fn load(&self) -> Result<BGTexture, io::Error> {
-        Ok(match self {
-            RawBGTexture::Centered { texture } => BGTexture::Fixed(Parallax {
-                layers: vec![ParallaxLayer {
-                    texture: load_texture(texture)?,
-                    move_factor: 0.,
-                }],
-            }),
-            RawBGTexture::Fixed(raw_parallax) => BGTexture::Fixed(raw_parallax.load()?),
-            RawBGTexture::Repeating(raw_parallax) => BGTexture::Repeating(raw_parallax.load()?),
-        })
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum RawParallax {
-    Texture { texture: String },
-    Parallax(Parallax<String>),
-}
-
-impl RawParallax {
-    fn load(&self) -> Result<Parallax<Texture2D>, io::Error> {
-        match self {
-            RawParallax::Texture { texture } => Ok(Parallax {
-                layers: vec![ParallaxLayer {
-                    texture: load_texture(texture)?,
-                    move_factor: 1.,
-                }],
-            }),
-            RawParallax::Parallax(parallax) => parallax.load(),
-        }
+        Ok(BGTexture(match self {
+            Self::Layer(layer) => Parallax {
+                layers: vec![layer.load()?],
+            },
+            Self::Parallax(parallax) => parallax.load()?,
+        }))
     }
 }
 
@@ -152,7 +115,16 @@ impl Parallax<String> {
 #[derive(Debug, Serialize, Deserialize)]
 struct ParallaxLayer<T> {
     texture: T,
+    #[serde(default = "default_move_factor")]
     move_factor: f32,
+    #[serde(default)]
+    is_looping: bool,
+    #[serde(default)]
+    offset: f32,
+}
+
+fn default_move_factor() -> f32 {
+    1.
 }
 
 impl ParallaxLayer<String> {
@@ -160,6 +132,8 @@ impl ParallaxLayer<String> {
         Ok(ParallaxLayer {
             texture: load_texture(&self.texture)?,
             move_factor: self.move_factor,
+            is_looping: self.is_looping,
+            offset: self.offset,
         })
     }
 }
