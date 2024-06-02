@@ -1,13 +1,9 @@
-use crate::action::Action;
-use crate::command::{CommandResult, Target};
-use crate::core::position::Pos;
-use crate::core::{CrewMember, Waiting};
+use crate::command::CommandResult;
 use crate::game_loop::{self, GameState, Step, StopType};
 use crate::location::LocationTracker;
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
 use crate::{command, location, serialization};
-use hecs::Satisfies;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
 use std::mem::swap;
@@ -102,8 +98,8 @@ impl Game {
             }
             Phase::CommandInput => match command::try_parse_input(input, &self.state)? {
                 CommandResult::Action(action, target) => {
-                    insert_action(&mut self.state, action, target);
-                    let (phase, frames) = game_loop::run(Step::Tick, &mut self.state);
+                    let (phase, frames) =
+                        game_loop::run(Step::Tick(Some((action, target))), &mut self.state);
                     self.phase = phase;
                     self.frame_cache.add_new_frames(frames);
                 }
@@ -118,31 +114,6 @@ impl Game {
             state => panic!("Handling input in unexpected state {state:?}"),
         }
         Ok(())
-    }
-}
-
-fn insert_action(state: &mut GameState, action: Action, target: Target) {
-    let world = &mut state.world;
-    let controlled = state.controlled;
-    match target {
-        Target::Controlled => {
-            world.insert_one(controlled, action).unwrap();
-        }
-        Target::Crew => {
-            let area = world.get::<&Pos>(controlled).unwrap().get_area();
-            let aftiks = world
-                .query::<(&Pos, Satisfies<&Waiting>)>()
-                .with::<&CrewMember>()
-                .iter()
-                .filter(|&(entity, (pos, is_waiting))| {
-                    pos.is_in(area) && (entity == controlled || !is_waiting)
-                })
-                .map(|(aftik, _)| aftik)
-                .collect::<Vec<_>>();
-            for aftik in aftiks {
-                world.insert_one(aftik, action.clone()).unwrap();
-            }
-        }
     }
 }
 

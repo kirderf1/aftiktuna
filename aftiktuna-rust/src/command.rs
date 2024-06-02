@@ -10,7 +10,7 @@ mod parse;
 mod store;
 pub mod suggestion;
 
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Target {
     Controlled,
     Crew,

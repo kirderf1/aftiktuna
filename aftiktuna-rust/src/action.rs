@@ -6,6 +6,7 @@ use crate::game_loop::GameState;
 use crate::view;
 use crate::view::Frame;
 use hecs::{Entity, World};
+use std::collections::HashMap;
 use std::result;
 use Action::*;
 
@@ -16,7 +17,7 @@ mod item;
 mod ship;
 pub mod trade;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum Action {
     TakeItem(Entity, NameData),
     TakeAll,
@@ -43,26 +44,28 @@ pub enum Action {
     OpenChest(Entity),
 }
 
-pub fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {
-    let mut entities = state
-        .world
-        .query::<&status::Stats>()
-        .with::<&Action>()
-        .iter()
-        .map(|(entity, stats)| (entity, stats.agility))
+pub fn tick(
+    action_map: HashMap<Entity, Action>,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) {
+    let mut entities = action_map
+        .into_iter()
+        .map(|(entity, action)| {
+            (
+                (entity, action),
+                state
+                    .world
+                    .get::<&status::Stats>(entity)
+                    .map_or(0, |stats| stats.agility),
+            )
+        })
         .collect::<Vec<_>>();
+
     entities.sort_by(|(_, agility1), (_, agility2)| agility2.cmp(agility1));
-    let entities = entities
-        .iter()
-        .map(|(entity, _)| *entity)
-        .collect::<Vec<_>>();
 
-    for entity in entities {
-        if !status::is_alive(entity, &state.world) {
-            continue;
-        }
-
-        if let Ok(action) = state.world.remove_one::<Action>(entity) {
+    for ((entity, action), _) in entities {
+        if status::is_alive(entity, &state.world) {
             perform(state, entity, action, view_buffer);
         }
     }

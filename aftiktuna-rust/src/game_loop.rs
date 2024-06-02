@@ -1,21 +1,25 @@
-use hecs::{Entity, Or, World};
+use std::collections::HashMap;
+
+use hecs::{Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
 use crate::action::{self, Action};
-use crate::ai;
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FoodRation;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina};
-use crate::core::{self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction};
+use crate::core::{
+    self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction, Waiting,
+};
 use crate::game_interface::Phase;
 use crate::location::{self, LocationTracker, PickResult};
 use crate::serialization;
 use crate::view::{self, Frame, Messages, StatusCache};
+use crate::{ai, command};
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
@@ -57,7 +61,7 @@ pub enum Step {
     PrepareNextLocation,
     LoadLocation(String),
     PrepareTick,
-    Tick,
+    Tick(Option<(Action, command::Target)>),
     ChangeControlled(Entity),
 }
 
@@ -99,14 +103,17 @@ fn run_step(
         }
         Step::PrepareTick => {
             ai::prepare_intentions(&mut state.world);
-            insert_wait_if_relevant(&mut state.world, state.controlled);
-            Ok(Step::Tick)
+            Ok(Step::Tick(if should_controlled_character_wait(state) {
+                Some((Action::Wait, command::Target::Controlled))
+            } else {
+                None
+            }))
         }
-        Step::Tick => tick_and_check(state, view_buffer),
+        Step::Tick(chosen_action) => tick_and_check(chosen_action, state, view_buffer),
         Step::ChangeControlled(character) => {
             change_character(state, character, view_buffer);
             view_buffer.capture_view(state);
-            Ok(Step::Tick)
+            Ok(Step::Tick(None))
         }
     }
 }
@@ -128,15 +135,20 @@ fn prepare_next_location(
     }
 }
 
-fn insert_wait_if_relevant(world: &mut World, controlled: Entity) {
-    if !world
-        .satisfies::<Or<&Action, &RepeatingAction>>(controlled)
+fn should_controlled_character_wait(state: &GameState) -> bool {
+    !state
+        .world
+        .satisfies::<&RepeatingAction>(state.controlled)
         .unwrap()
-        && is_wait_requested(world, controlled)
-        && core::is_safe(world, world.get::<&Pos>(controlled).unwrap().get_area())
-    {
-        world.insert_one(controlled, Action::Wait).unwrap();
-    }
+        && is_wait_requested(&state.world, state.controlled)
+        && core::is_safe(
+            &state.world,
+            state
+                .world
+                .get::<&Pos>(state.controlled)
+                .unwrap()
+                .get_area(),
+        )
 }
 
 fn is_wait_requested(world: &World, controlled: Entity) -> bool {
@@ -149,8 +161,12 @@ fn is_wait_requested(world: &World, controlled: Entity) -> bool {
         .any(|(entity, _)| ai::is_requesting_wait(world, entity))
 }
 
-fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Result<Step, Phase> {
-    if should_take_user_input(&state.world, state.controlled) {
+fn tick_and_check(
+    chosen_action: Option<(Action, command::Target)>,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) -> Result<Step, Phase> {
+    if chosen_action.is_none() && should_take_user_input(state) {
         view_buffer.capture_view(state);
         return Err(Phase::CommandInput);
     }
@@ -160,7 +176,7 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
         .get::<&Pos>(state.controlled)
         .unwrap()
         .get_area();
-    tick(state, view_buffer);
+    tick(chosen_action, state, view_buffer);
 
     if let Err(stop_type) = check_player_state(state, view_buffer) {
         view_buffer.push_ending_frame(&state.world, state.controlled, stop_type);
@@ -185,16 +201,27 @@ fn tick_and_check(state: &mut GameState, view_buffer: &mut view::Buffer) -> Resu
     }
 }
 
-fn should_take_user_input(world: &World, controlled: Entity) -> bool {
-    !world
-        .satisfies::<Or<&Action, &RepeatingAction>>(controlled)
+fn should_take_user_input(state: &GameState) -> bool {
+    !state
+        .world
+        .satisfies::<&RepeatingAction>(state.controlled)
         .unwrap()
 }
 
-fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {
-    ai::tick(&mut state.world);
+fn tick(
+    chosen_action: Option<(Action, command::Target)>,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) {
+    let mut action_map = HashMap::new();
 
-    action::tick(state, view_buffer);
+    if let Some((action, target)) = chosen_action {
+        insert_command_action(&mut action_map, action, target, state);
+    }
+
+    ai::tick(&mut action_map, &mut state.world);
+
+    action::tick(action_map, state, view_buffer);
 
     status::detect_low_health(
         &mut state.world,
@@ -211,6 +238,37 @@ fn tick(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
     for (_, stamina) in state.world.query_mut::<&mut Stamina>() {
         stamina.tick();
+    }
+}
+
+fn insert_command_action(
+    action_map: &mut HashMap<Entity, Action>,
+    action: Action,
+    target: command::Target,
+    state: &GameState,
+) {
+    match target {
+        command::Target::Controlled => {
+            action_map.insert(state.controlled, action);
+        }
+        command::Target::Crew => {
+            let area = state
+                .world
+                .get::<&Pos>(state.controlled)
+                .unwrap()
+                .get_area();
+            for (entity, _) in state
+                .world
+                .query::<(&Pos, Satisfies<&Waiting>)>()
+                .with::<&CrewMember>()
+                .iter()
+                .filter(|&(entity, (pos, is_waiting))| {
+                    pos.is_in(area) && (entity == state.controlled || !is_waiting)
+                })
+            {
+                action_map.insert(entity, action.clone());
+            }
+        }
     }
 }
 

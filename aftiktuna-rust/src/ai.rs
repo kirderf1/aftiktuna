@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::action::Action;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
@@ -50,7 +52,7 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
     None
 }
 
-pub fn tick(world: &mut World) {
+pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World) {
     let mut buffer = CommandBuffer::new();
 
     for (entity, _) in world
@@ -59,7 +61,7 @@ pub fn tick(world: &mut World) {
         .iter()
     {
         let entity_ref = world.entity(entity).unwrap();
-        if status::is_alive_ref(entity_ref) && !entity_ref.satisfies::<&Action>() {
+        if status::is_alive_ref(entity_ref) && !action_map.contains_key(&entity) {
             let action = if let Some(action) = entity_ref.get::<&RepeatingAction>() {
                 buffer.remove_one::<RepeatingAction>(entity);
                 Action::from(*action)
@@ -67,7 +69,7 @@ pub fn tick(world: &mut World) {
                 pick_action(entity_ref, world).unwrap_or(Action::Wait)
             };
 
-            buffer.insert_one(entity, action);
+            action_map.insert(entity, action);
         };
     }
 
