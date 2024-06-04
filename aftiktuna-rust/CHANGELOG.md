@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Luck stat, which currently influences hit/dodge rolls
 - Added character traits: "Big Eater", "Fast Healer", "Fragile", "Good Dodger"
 - Creature attributes, which slightly adjust their stats and is chosen at random by default
+- `crew_data.json` data file, which defines the crew used when creating a new game
 
 ### Changed
 

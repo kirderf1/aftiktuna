@@ -16,7 +16,7 @@ use crate::core::{
     self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction, Waiting,
 };
 use crate::game_interface::Phase;
-use crate::location::{self, LocationTracker, PickResult};
+use crate::location::{self, CrewData, LocationTracker, PickResult};
 use crate::serialization;
 use crate::view::{self, Frame, Messages, StatusCache};
 use crate::{ai, command};
@@ -43,7 +43,7 @@ pub enum StopType {
 pub fn setup(locations: LocationTracker) -> GameState {
     let mut world = World::new();
 
-    let (controlled, ship) = location::init(&mut world);
+    let (controlled, ship) = location::init(&mut world, CrewData::load().unwrap());
 
     GameState {
         world,

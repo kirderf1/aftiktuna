@@ -159,17 +159,6 @@ pub struct AftikProfile {
     traits: Traits,
 }
 
-impl AftikProfile {
-    pub fn new(name: &str, color: AftikColorId, stats: Stats, traits: impl Into<Traits>) -> Self {
-        Self {
-            name: name.to_owned(),
-            color,
-            stats,
-            traits: traits.into(),
-        }
-    }
-}
-
 pub fn place_recruitable(
     world: &mut World,
     pos: Pos,

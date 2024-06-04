@@ -1,10 +1,8 @@
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::name::Noun;
 use crate::core::position::{Direction, Pos};
-use crate::core::status::{Stats, Trait};
 use crate::core::{
-    inventory, item, AftikColorId, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight,
-    Points, Symbol,
+    inventory, item, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight, Points, Symbol,
 };
 use crate::game_loop::GameState;
 use crate::view::Messages;
@@ -182,9 +180,7 @@ impl Choice {
 }
 
 pub fn load_locations() -> Result<Locations, String> {
-    let file = File::open("assets/locations.json")
-        .map_err(|error| format!("Failed to open file: {}", error))?;
-    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {}", error))
+    crate::load_json_simple("locations.json")
 }
 
 #[derive(Serialize, Deserialize)]
@@ -193,7 +189,19 @@ pub struct Category {
     pub location_names: Vec<String>,
 }
 
-pub fn init(world: &mut World) -> (Entity, Entity) {
+#[derive(Debug, Deserialize)]
+pub struct CrewData {
+    points: i32,
+    crew: Vec<AftikProfile>,
+}
+
+impl CrewData {
+    pub fn load() -> Result<CrewData, String> {
+        crate::load_json_simple("crew_data.json")
+    }
+}
+
+pub fn init(world: &mut World, crew_data: CrewData) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 5,
@@ -221,35 +229,22 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         ShipControls,
     ));
 
-    let crew = world.spawn((Points(10000),));
+    let crew = world.spawn((Points(crew_data.points),));
 
-    world.spawn(
-        creature::aftik_builder_with_stats(
-            AftikProfile::new(
-                "Cerulean",
-                AftikColorId::new("cerulean"),
-                Stats::new(8, 2, 10, 2),
-                [],
-            ),
-            true,
-        )
-        .add(CrewMember(crew))
-        .build(),
-    );
+    let mut crew_iter = crew_data.crew.into_iter();
     let controlled = world.spawn(
-        creature::aftik_builder_with_stats(
-            AftikProfile::new(
-                "Mint",
-                AftikColorId::new("mint"),
-                Stats::new(10, 3, 8, 1),
-                [Trait::GoodDodger, Trait::Fragile],
-            ),
-            true,
-        )
-        .add(CrewMember(crew))
-        .add(OrderWeight::Controlled)
-        .build(),
+        creature::aftik_builder_with_stats(crew_iter.next().expect("Crew must not be empty"), true)
+            .add(CrewMember(crew))
+            .add(OrderWeight::Controlled)
+            .build(),
     );
+    for profile in crew_iter {
+        world.spawn(
+            creature::aftik_builder_with_stats(profile, true)
+                .add(CrewMember(crew))
+                .build(),
+        );
+    }
 
     (controlled, ship)
 }
