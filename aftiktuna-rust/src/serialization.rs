@@ -152,8 +152,7 @@ pub mod world {
         CanWield, FoodRation, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon,
     };
     use crate::core::position::{Direction, MovementBlocking, Pos};
-    use crate::core::status::{Health, LowHealth, LowStamina, Stamina, Stats};
-    use crate::core::{self, name};
+    use crate::core::{self, name, status};
 
     world_serialization!(
         Area, Area;
@@ -171,11 +170,12 @@ pub mod world {
         core::OrderWeight, OrderWeight;
         core::AftikColorId, AftikColor;
 
-        Stats, Stats;
-        Health, Health;
-        Stamina, Stamina;
-        LowHealth, LowHealth;
-        LowStamina, LowStamina;
+        status::Stats, Stats;
+        status::Traits, Traits;
+        status::Health, Health;
+        status::Stamina, Stamina;
+        status::LowHealth, LowHealth;
+        status::LowStamina, LowStamina;
 
         core::CrewMember, CrewMember;
         core::Hostile, Hostile;

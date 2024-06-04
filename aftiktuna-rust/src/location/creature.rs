@@ -1,6 +1,6 @@
 use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, MovementBlocking, Pos};
-use crate::core::status::{Health, Stamina, Stats};
+use crate::core::status::{Health, Stamina, Stats, Trait, Traits};
 use crate::core::{
     item, AftikColorId, CreatureAttribute, CrewMember, Hostile, ModelId, OrderWeight, Recruitable,
     Shopkeeper, StockQuantity, StoreStock, Symbol,
@@ -156,11 +156,11 @@ pub fn spawn_crew_member(
     name: &str,
     stats: Stats,
     color: AftikColorId,
+    traits: impl IntoIterator<Item = Trait>,
 ) -> Entity {
     world.spawn(
-        aftik_builder(color, stats)
-            .add(Name::known(name))
-            .add(CrewMember(crew))
+        aftik_builder_with_stats(color, stats, traits.into())
+            .add_bundle((Name::known(name), CrewMember(crew)))
             .build(),
     )
 }
@@ -169,18 +169,16 @@ pub fn place_recruitable(
     world: &mut World,
     pos: Pos,
     name: &str,
-    stats: Stats,
     color: AftikColorId,
+    stats: Stats,
+    traits: Traits,
     direction: Option<Direction>,
 ) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
     world.spawn(
-        aftik_builder(color, stats)
-            .add(Name::not_known(name))
-            .add(Recruitable)
-            .add(pos)
-            .add(direction)
+        aftik_builder_with_stats(color, stats, traits)
+            .add_bundle((Name::not_known(name), Recruitable, pos, direction))
             .build(),
     );
 }
@@ -193,27 +191,31 @@ pub fn place_aftik_corpse(
 ) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
-    world.spawn((
-        ModelId::aftik(),
-        OrderWeight::Creature,
-        Noun::new("aftik", "aftiks"),
-        Health::from_fraction(0.),
-        color,
-        pos,
-        direction,
-    ));
+    world.spawn(
+        aftik_builder(color)
+            .add_bundle((Health::from_fraction(0.), pos, direction))
+            .build(),
+    );
 }
 
-fn aftik_builder(color: AftikColorId, stats: Stats) -> EntityBuilder {
+fn aftik_builder_with_stats(color: AftikColorId, stats: Stats, traits: Traits) -> EntityBuilder {
+    let mut builder = aftik_builder(color);
+    builder.add_bundle((
+        Health::from_fraction(1.),
+        Stamina::with_max(&stats),
+        stats,
+        traits,
+    ));
+    builder
+}
+
+fn aftik_builder(color: AftikColorId) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         ModelId::aftik(),
         color,
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
-        Health::from_fraction(1.),
-        Stamina::with_max(&stats),
-        stats,
     ));
     builder
 }

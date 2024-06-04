@@ -8,10 +8,10 @@ use serde::{Deserialize, Serialize};
 use crate::action::{self, Action};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::FoodRation;
+use crate::core::item::{self, FoodRation};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
-use crate::core::status::{Health, Stamina};
+use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{
     self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction, Waiting,
 };
@@ -442,38 +442,55 @@ fn consume_rations_healing(state: &mut GameState, messages: &mut Messages) {
     let mut crew_eating_rations = Vec::new();
 
     for (crew_candidate, _) in crew_candidates {
-        let ration = state
+        let entity_ref = state.world.entity(crew_candidate).unwrap();
+        let rations_to_eat: u16 = if Trait::BigEater.ref_has_trait(entity_ref) {
+            2
+        } else {
+            1
+        };
+        let rations = state
             .world
             .query::<&Pos>()
             .with::<&FoodRation>()
             .iter()
-            .find(|&(_, pos)| pos.is_in(state.ship))
-            .map(|(entity, _)| entity);
-        if let Some(ration) = ration {
-            state.world.despawn(ration).unwrap();
-            state
-                .world
-                .get::<&mut Health>(crew_candidate)
+            .filter(|&(_, pos)| pos.is_in(state.ship))
+            .take(usize::from(rations_to_eat))
+            .map(|(entity, _)| entity)
+            .collect::<Vec<_>>();
+        if !rations.is_empty() {
+            let rations_factor = f32::from(rations.len() as u16) / f32::from(rations_to_eat);
+            entity_ref
+                .get::<&mut Health>()
                 .unwrap()
-                .restore_fraction(0.33);
-            crew_eating_rations.push(crew_candidate);
-        } else {
-            break;
+                .restore_fraction(rations_factor * status::get_food_heal_fraction(entity_ref));
+            crew_eating_rations.push((crew_candidate, rations.len() as u16));
+
+            for ration in rations {
+                state.world.despawn(ration).unwrap();
+            }
         }
     }
-    let crew_eating_rations = crew_eating_rations
-        .into_iter()
-        .map(|entity| NameData::find(&state.world, entity).definite())
-        .collect::<Vec<_>>();
     if !crew_eating_rations.is_empty() {
-        if let [name] = &crew_eating_rations[..] {
-            messages.add(format!("{name} ate a food ration to recover some health."));
-        } else {
-            let names = crew_eating_rations.join(" and ");
-            messages.add(format!(
-                "{names} ate a food ration each to recover some health.",
-            ));
-        }
+        messages.add(build_eating_message(crew_eating_rations, &state.world));
+    }
+}
+
+fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) -> String {
+    if let &[(entity, amount)] = &crew_eating_rations[..] {
+        let name = NameData::find(world, entity).definite();
+        let ration_with_amount = item::Type::FoodRation.noun_data().with_count(amount);
+        format!("{name} ate {ration_with_amount} to recover some health.")
+    } else {
+        let names = crew_eating_rations
+            .iter()
+            .map(|(entity, _)| NameData::find(world, *entity).definite())
+            .collect::<Vec<_>>()
+            .join(" and ");
+        let amount = crew_eating_rations
+            .iter()
+            .map(|(_, amount)| amount)
+            .sum::<u16>();
+        format!("{names} ate {amount} food rations to recover some health.",)
     }
 }
 

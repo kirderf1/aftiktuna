@@ -1,7 +1,7 @@
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::name::Noun;
 use crate::core::position::{Direction, Pos};
-use crate::core::status::Stats;
+use crate::core::status::{Stats, Trait};
 use crate::core::{
     inventory, item, AftikColorId, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight,
     Points, Symbol,
@@ -228,6 +228,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         "Cerulean",
         Stats::new(8, 2, 10, 2),
         AftikColorId::new("cerulean"),
+        [],
     );
     let mint = creature::spawn_crew_member(
         world,
@@ -235,6 +236,7 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
         "Mint",
         Stats::new(10, 3, 8, 1),
         AftikColorId::new("mint"),
+        [Trait::GoodDodger, Trait::Fragile],
     );
     world.insert_one(mint, OrderWeight::Controlled).unwrap();
 

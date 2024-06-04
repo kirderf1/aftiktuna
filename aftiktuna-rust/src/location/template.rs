@@ -2,7 +2,7 @@ use super::door::{place_pair, DoorInfo, DoorType};
 use super::{creature, door, Area, BackgroundId};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::status::Stats;
+use crate::core::status::{Stats, Traits};
 use crate::core::{item, AftikColorId, BlockType, FortunaChest, ModelId, OrderWeight, Symbol};
 use hecs::World;
 use rand::distributions::WeightedIndex;
@@ -121,8 +121,10 @@ enum SymbolData {
     },
     Recruitable {
         name: String,
-        stats: Stats,
         color: AftikColorId,
+        stats: Stats,
+        #[serde(default)]
+        traits: Traits,
         #[serde(default)]
         direction: Option<Direction>,
     },
@@ -162,15 +164,17 @@ impl SymbolData {
             } => creature::place_shopkeeper(builder.world, pos, stock, color.clone(), *direction)?,
             SymbolData::Recruitable {
                 name,
-                stats,
                 color,
+                stats,
+                traits,
                 direction,
             } => creature::place_recruitable(
                 builder.world,
                 pos,
                 name,
-                stats.clone(),
                 color.clone(),
+                stats.clone(),
+                traits.clone(),
                 *direction,
             ),
             SymbolData::AftikCorpse { color, direction } => {

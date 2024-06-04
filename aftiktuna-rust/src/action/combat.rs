@@ -4,7 +4,7 @@ use crate::core::position::{MovementBlocking, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::{self, position, status, Hostile};
 use crate::game_loop::GameState;
-use hecs::{Entity, World};
+use hecs::{Entity, EntityRef, World};
 use rand::Rng;
 use std::cmp::Ordering;
 
@@ -97,8 +97,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     };
 
     let killed = hit(
-        world,
-        target,
+        world.entity(target).unwrap(),
         damage_factor * get_attack_damage(world, attacker),
     );
 
@@ -130,15 +129,10 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     }
 }
 
-fn hit(world: &mut World, target: Entity, damage: f32) -> bool {
-    let endurance = world
-        .get::<&Stats>(target)
-        .map_or(1, |stats| stats.endurance);
-    if let Ok(mut health) = world.get::<&mut Health>(target) {
-        health.take_damage(damage, endurance)
-    } else {
-        false
-    }
+fn hit(target_ref: EntityRef, damage: f32) -> bool {
+    target_ref
+        .get::<&mut Health>()
+        .map_or(false, |mut health| health.take_damage(damage, target_ref))
 }
 
 fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
@@ -150,16 +144,18 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
     core::get_wielded_weapon_modifier(world, attacker) * strength_mod
 }
 
-fn roll_hit(world: &mut World, attacker: Entity, defender: Entity, rng: &mut impl Rng) -> HitType {
+fn roll_hit(world: &mut World, attacker: Entity, target: Entity, rng: &mut impl Rng) -> HitType {
     let attacker_stats = world.get::<&Stats>(attacker).unwrap();
-    let dodger_stats = world.get::<&Stats>(defender).unwrap();
-    let mut stamina = world.get::<&mut Stamina>(defender).unwrap();
+    let target_ref = world.entity(target).unwrap();
+    let target_stats = target_ref.get::<&Stats>().unwrap();
+    let mut stamina = target_ref.get::<&mut Stamina>().unwrap();
     let stamina_factor = stamina.as_fraction();
 
-    let mut hit_difficulty = f32::from(dodger_stats.luck);
+    let mut hit_difficulty = f32::from(target_stats.luck);
     if stamina_factor > 0.0 {
         stamina.on_dodge_attempt();
-        hit_difficulty += 2. * stamina_factor * f32::from(dodger_stats.agility);
+        hit_difficulty +=
+            2. * stamina_factor * f32::from(target_stats.agility_for_dodging(target_ref));
     }
     hit_difficulty -= f32::from(attacker_stats.agility) + 0.5 * f32::from(attacker_stats.luck);
     let hit_difficulty = hit_difficulty.ceil() as i16;

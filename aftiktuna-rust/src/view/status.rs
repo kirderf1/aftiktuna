@@ -1,5 +1,5 @@
 use crate::core::name::{self, NameData};
-use crate::core::status::{Health, Stats};
+use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::{inventory, CrewMember, Points};
 use crate::view::{capitalize, Messages};
 use hecs::{Entity, World};
@@ -28,7 +28,14 @@ pub fn print_full_status(world: &World, character: Entity, messages: &mut Messag
             "{} (Aftik):",
             NameData::find(world, character).definite()
         ));
-        print_stats(world, character, messages);
+        messages.add(stats_message(&world.get::<&Stats>(character).unwrap()));
+        if let Some(traits) = world
+            .get::<&Traits>(character)
+            .ok()
+            .filter(|traits| traits.has_traits())
+        {
+            messages.add(traits_message(&traits));
+        }
         print_character_without_cache(world, character, messages);
     }
 }
@@ -105,16 +112,25 @@ fn print_character_without_cache(
     }
 }
 
-fn print_stats(world: &World, character: Entity, messages: &mut Messages) {
+fn stats_message(stats: &Stats) -> String {
     let Stats {
         strength,
         endurance,
         agility,
         luck,
-    } = *world.get::<&Stats>(character).unwrap();
-    messages.add(format!(
-        "Strength: {strength}   Endurance: {endurance}   Agility: {agility}   Luck: {luck}"
-    ));
+    } = *stats;
+    format!("Strength: {strength}   Endurance: {endurance}   Agility: {agility}   Luck: {luck}")
+}
+
+fn traits_message(traits: &Traits) -> String {
+    format!(
+        "Traits: {}",
+        traits
+            .sorted_iter()
+            .map(Trait::name)
+            .collect::<Vec<_>>()
+            .join(" ")
+    )
 }
 
 const BAR_LENGTH: u16 = 10;

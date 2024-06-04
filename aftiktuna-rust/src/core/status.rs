@@ -4,6 +4,7 @@ use crate::view::Messages;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
+use std::collections::HashSet;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Stats {
@@ -21,6 +22,68 @@ impl Stats {
             agility,
             luck,
         }
+    }
+
+    pub fn agility_for_dodging(&self, entity_ref: EntityRef) -> i16 {
+        if Trait::GoodDodger.ref_has_trait(entity_ref) {
+            self.agility + 5
+        } else {
+            self.agility
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct Traits(HashSet<Trait>);
+
+impl Traits {
+    pub fn has_traits(&self) -> bool {
+        !self.0.is_empty()
+    }
+
+    pub fn sorted_iter(&self) -> impl Iterator<Item = Trait> {
+        let mut traits = self.0.iter().copied().collect::<Vec<_>>();
+        traits.sort();
+        traits.into_iter()
+    }
+}
+
+impl<T: IntoIterator<Item = Trait>> From<T> for Traits {
+    fn from(value: T) -> Self {
+        Self(value.into_iter().collect())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Trait {
+    GoodDodger,
+    FastHealer,
+
+    Fragile,
+    BigEater,
+}
+
+impl Trait {
+    pub fn name(self) -> &'static str {
+        match self {
+            Trait::BigEater => "[Big Eater]",
+            Trait::FastHealer => "[Fast Healer]",
+            Trait::Fragile => "[Fragile]",
+            Trait::GoodDodger => "[Good Dodger]",
+        }
+    }
+
+    pub fn has_trait(self, entity: Entity, world: &World) -> bool {
+        world
+            .entity(entity)
+            .map_or(false, |entity_ref| self.ref_has_trait(entity_ref))
+    }
+
+    pub fn ref_has_trait(self, entity: EntityRef) -> bool {
+        entity
+            .get::<&Traits>()
+            .map_or(false, |traits| traits.0.contains(&self))
     }
 }
 
@@ -56,7 +119,13 @@ impl Health {
         self.value
     }
 
-    pub fn take_damage(&mut self, damage: f32, endurance: i16) -> bool {
+    pub fn take_damage(&mut self, mut damage: f32, entity_ref: EntityRef) -> bool {
+        if Trait::Fragile.ref_has_trait(entity_ref) {
+            damage *= 1.33;
+        }
+        let endurance = entity_ref
+            .get::<&Stats>()
+            .map_or(1, |stats| stats.endurance);
         self.value -= damage / f32::from(4 + endurance * 2);
         self.value <= 0.0
     }
@@ -167,4 +236,12 @@ pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character:
         }
     }
     command_buffer.run_on(world);
+}
+
+pub fn get_food_heal_fraction(entity_ref: EntityRef) -> f32 {
+    if Trait::FastHealer.ref_has_trait(entity_ref) {
+        0.5
+    } else {
+        0.33
+    }
 }
