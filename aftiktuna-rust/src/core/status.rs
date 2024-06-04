@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::collections::HashSet;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
     pub strength: i16,
     pub endurance: i16,

@@ -1,11 +1,11 @@
 use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, MovementBlocking, Pos};
-use crate::core::status::{Health, Stamina, Stats, Trait, Traits};
+use crate::core::status::{Health, Stamina, Stats, Traits};
 use crate::core::{
-    item, AftikColorId, CreatureAttribute, CrewMember, Hostile, ModelId, OrderWeight, Recruitable,
-    Shopkeeper, StockQuantity, StoreStock, Symbol,
+    item, AftikColorId, CreatureAttribute, Hostile, ModelId, OrderWeight, Recruitable, Shopkeeper,
+    StockQuantity, StoreStock, Symbol,
 };
-use hecs::{Entity, EntityBuilder, World};
+use hecs::{EntityBuilder, World};
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -150,35 +150,37 @@ impl CreatureSpawnData {
     }
 }
 
-pub fn spawn_crew_member(
-    world: &mut World,
-    crew: Entity,
-    name: &str,
-    stats: Stats,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AftikProfile {
+    name: String,
     color: AftikColorId,
-    traits: impl IntoIterator<Item = Trait>,
-) -> Entity {
-    world.spawn(
-        aftik_builder_with_stats(color, stats, traits.into())
-            .add_bundle((Name::known(name), CrewMember(crew)))
-            .build(),
-    )
+    stats: Stats,
+    #[serde(default)]
+    traits: Traits,
+}
+
+impl AftikProfile {
+    pub fn new(name: &str, color: AftikColorId, stats: Stats, traits: impl Into<Traits>) -> Self {
+        Self {
+            name: name.to_owned(),
+            color,
+            stats,
+            traits: traits.into(),
+        }
+    }
 }
 
 pub fn place_recruitable(
     world: &mut World,
     pos: Pos,
-    name: &str,
-    color: AftikColorId,
-    stats: Stats,
-    traits: Traits,
+    profile: AftikProfile,
     direction: Option<Direction>,
 ) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
     world.spawn(
-        aftik_builder_with_stats(color, stats, traits)
-            .add_bundle((Name::not_known(name), Recruitable, pos, direction))
+        aftik_builder_with_stats(profile, false)
+            .add_bundle((Recruitable, pos, direction))
             .build(),
     );
 }
@@ -198,13 +200,17 @@ pub fn place_aftik_corpse(
     );
 }
 
-fn aftik_builder_with_stats(color: AftikColorId, stats: Stats, traits: Traits) -> EntityBuilder {
-    let mut builder = aftik_builder(color);
+pub fn aftik_builder_with_stats(profile: AftikProfile, is_name_known: bool) -> EntityBuilder {
+    let mut builder = aftik_builder(profile.color);
     builder.add_bundle((
+        Name {
+            name: profile.name,
+            is_known: is_name_known,
+        },
         Health::from_fraction(1.),
-        Stamina::with_max(&stats),
-        stats,
-        traits,
+        Stamina::with_max(&profile.stats),
+        profile.stats,
+        profile.traits,
     ));
     builder
 }

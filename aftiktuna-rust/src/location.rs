@@ -8,6 +8,7 @@ use crate::core::{
 };
 use crate::game_loop::GameState;
 use crate::view::Messages;
+use creature::AftikProfile;
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -222,25 +223,35 @@ pub fn init(world: &mut World) -> (Entity, Entity) {
 
     let crew = world.spawn((Points(10000),));
 
-    creature::spawn_crew_member(
-        world,
-        crew,
-        "Cerulean",
-        Stats::new(8, 2, 10, 2),
-        AftikColorId::new("cerulean"),
-        [],
+    world.spawn(
+        creature::aftik_builder_with_stats(
+            AftikProfile::new(
+                "Cerulean",
+                AftikColorId::new("cerulean"),
+                Stats::new(8, 2, 10, 2),
+                [],
+            ),
+            true,
+        )
+        .add(CrewMember(crew))
+        .build(),
     );
-    let mint = creature::spawn_crew_member(
-        world,
-        crew,
-        "Mint",
-        Stats::new(10, 3, 8, 1),
-        AftikColorId::new("mint"),
-        [Trait::GoodDodger, Trait::Fragile],
+    let controlled = world.spawn(
+        creature::aftik_builder_with_stats(
+            AftikProfile::new(
+                "Mint",
+                AftikColorId::new("mint"),
+                Stats::new(10, 3, 8, 1),
+                [Trait::GoodDodger, Trait::Fragile],
+            ),
+            true,
+        )
+        .add(CrewMember(crew))
+        .add(OrderWeight::Controlled)
+        .build(),
     );
-    world.insert_one(mint, OrderWeight::Controlled).unwrap();
 
-    (mint, ship)
+    (controlled, ship)
 }
 
 pub fn load_location(state: &mut GameState, messages: &mut Messages, location_name: &str) {
