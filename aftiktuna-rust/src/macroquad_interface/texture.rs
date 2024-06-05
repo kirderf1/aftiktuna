@@ -128,6 +128,21 @@ impl TextureLoader for InPlaceLoader {
     }
 }
 
+#[derive(Default)]
+pub struct CachedTextures(HashMap<String, Texture2D>);
+
+impl TextureLoader for CachedTextures {
+    fn load_texture(&mut self, name: String) -> Result<Texture2D, std::io::Error> {
+        if let Some(texture) = self.0.get(&name) {
+            return Ok(*texture);
+        }
+
+        let texture = load_texture(&name)?;
+        self.0.insert(name, texture);
+        Ok(texture)
+    }
+}
+
 #[derive(Debug)]
 pub enum Error {
     IO(io::Error),

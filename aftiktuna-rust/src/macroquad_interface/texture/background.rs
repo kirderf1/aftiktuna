@@ -10,7 +10,10 @@ use egui_macroquad::macroquad::texture::{self, Texture2D};
 use egui_macroquad::macroquad::window;
 use serde::{Deserialize, Serialize};
 
-use crate::core::{area::BackgroundId, position::Coord};
+use crate::core::area::BackgroundId;
+use crate::core::position::Coord;
+
+use super::{CachedTextures, TextureLoader};
 
 pub struct BGData {
     pub texture: BGTexture,
@@ -69,10 +72,10 @@ struct RawBGData {
 }
 
 impl RawBGData {
-    fn load(self) -> Result<BGData, io::Error> {
+    fn load(self, loader: &mut impl TextureLoader) -> Result<BGData, io::Error> {
         Ok(BGData {
-            texture: self.texture.load()?,
-            portrait: self.portrait.load()?,
+            texture: self.texture.load(loader)?,
+            portrait: self.portrait.load(loader)?,
         })
     }
 }
@@ -85,12 +88,12 @@ enum RawBGTexture {
 }
 
 impl RawBGTexture {
-    fn load(&self) -> Result<BGTexture, io::Error> {
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<BGTexture, io::Error> {
         Ok(BGTexture(match self {
             Self::Layer(layer) => Parallax {
-                layers: vec![layer.load()?],
+                layers: vec![layer.load(loader)?],
             },
-            Self::Parallax(parallax) => parallax.load()?,
+            Self::Parallax(parallax) => parallax.load(loader)?,
         }))
     }
 }
@@ -101,12 +104,12 @@ pub struct Parallax<T> {
 }
 
 impl Parallax<String> {
-    fn load(&self) -> Result<Parallax<Texture2D>, io::Error> {
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<Parallax<Texture2D>, io::Error> {
         Ok(Parallax {
             layers: self
                 .layers
                 .iter()
-                .map(ParallaxLayer::load)
+                .map(|layer| layer.load(loader))
                 .collect::<Result<_, _>>()?,
         })
     }
@@ -128,9 +131,9 @@ fn default_move_factor() -> f32 {
 }
 
 impl ParallaxLayer<String> {
-    fn load(&self) -> Result<ParallaxLayer<Texture2D>, io::Error> {
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<ParallaxLayer<Texture2D>, io::Error> {
         Ok(ParallaxLayer {
-            texture: load_texture(&self.texture)?,
+            texture: load_texture(&self.texture, loader)?,
             move_factor: self.move_factor,
             is_looping: self.is_looping,
             offset: self.offset,
@@ -147,12 +150,12 @@ enum RawBGPortrait {
 }
 
 impl RawBGPortrait {
-    fn load(self) -> Result<BGPortrait, io::Error> {
+    fn load(self, loader: &mut impl TextureLoader) -> Result<BGPortrait, io::Error> {
         Ok(match self {
             RawBGPortrait::Color(color) => {
                 BGPortrait::Color([color[0], color[1], color[2], 255].into())
             }
-            RawBGPortrait::Texture(texture) => BGPortrait::Texture(load_texture(&texture)?),
+            RawBGPortrait::Texture(texture) => BGPortrait::Texture(load_texture(&texture, loader)?),
         })
     }
 }
@@ -167,9 +170,10 @@ fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Err
 
 pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {
     let raw_backgrounds = load_raw_backgrounds()?;
+    let mut textures = CachedTextures::default();
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
-        insert_or_log(&mut backgrounds, bg_type, raw_data.load());
+        insert_or_log(&mut backgrounds, bg_type, raw_data.load(&mut textures));
     }
 
     backgrounds
@@ -200,10 +204,10 @@ pub fn load_background_for_testing() -> BGTexture {
         .get(&BackgroundId::new("forest"))
         .unwrap()
         .texture
-        .load()
+        .load(&mut super::InPlaceLoader)
         .unwrap()
 }
 
-fn load_texture(texture: &str) -> Result<Texture2D, io::Error> {
-    super::load_texture(format!("background/{texture}"))
+fn load_texture(texture: &str, loader: &mut impl TextureLoader) -> Result<Texture2D, io::Error> {
+    loader.load_texture(format!("background/{texture}"))
 }

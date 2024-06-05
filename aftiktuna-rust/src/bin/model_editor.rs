@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::Path;
 use std::process::exit;
@@ -8,13 +7,12 @@ use aftiktuna::core::ModelId;
 use aftiktuna::macroquad_interface::camera::Positioner;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{
-    background, model, AftikColorData, RGBColor, TextureLoader,
+    background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
 };
-use aftiktuna::macroquad_interface::{self, camera, texture};
+use aftiktuna::macroquad_interface::{self, camera};
 use aftiktuna::view::area::RenderProperties;
 use egui_macroquad::egui;
 use egui_macroquad::macroquad::camera::Camera2D;
-use egui_macroquad::macroquad::texture::Texture2D;
 use egui_macroquad::macroquad::window::Conf;
 use egui_macroquad::macroquad::{self, color, window};
 
@@ -31,7 +29,7 @@ fn config() -> Conf {
 
 #[macroquad::main(config)]
 async fn main() {
-    let mut textures = CachedTextures(HashMap::new());
+    let mut textures = CachedTextures::default();
 
     let objects_directory = fs::canonicalize("./assets/texture/object").unwrap();
     let path = rfd::FileDialog::new()
@@ -386,20 +384,6 @@ fn add_option_condition_combo_box(
                 ui.selectable_value(current_value, value, option_condition_text(value));
             }
         });
-}
-
-struct CachedTextures(HashMap<String, Texture2D>);
-
-impl TextureLoader for CachedTextures {
-    fn load_texture(&mut self, name: String) -> Result<Texture2D, std::io::Error> {
-        if let Some(texture) = self.0.get(&name) {
-            return Ok(*texture);
-        }
-
-        let texture = texture::load_texture(&name)?;
-        self.0.insert(name, texture);
-        Ok(texture)
-    }
 }
 
 fn save_model(model: &RawModel, path: impl AsRef<Path>) {
