@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added character traits: "Big Eater", "Fast Healer", "Fragile", "Good Dodger"
 - Creature attributes, which slightly adjust their stats and is chosen at random by default
 - `crew_data.json` data file, which defines the crew used when creating a new game
+- It is now possible to create backgrounds with a parallax effect in `backgrounds.json`
 
 ### Changed
 
@@ -22,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Expanded shopkeeper definition to allow setting a custom price
 - Shops can now have a limited quantity of items in stock,
  and the village store has been updated accordingly
-- Forest backgrounds now use a simple parallax effect
+- Updated outdoor background textures, and added a parallax effect to these
 - Changed the format of the "backgrounds.json" data file
 - Non-controlled crew members now use held medkits on their own when in low health
 - Wounded character portrait in dialogue
