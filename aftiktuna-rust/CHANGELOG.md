@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- New symbol type "aftik_corpse" for creating locations
+- New symbol types "aftik_corpse" and "inanimate" for creating locations
 - Luck stat, which currently influences hit/dodge rolls
 - Added character traits: "Big Eater", "Fast Healer", "Fragile", "Good Dodger"
 - Creature attributes, which slightly adjust their stats and is chosen at random by default

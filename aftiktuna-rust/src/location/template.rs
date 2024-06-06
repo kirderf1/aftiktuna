@@ -112,6 +112,11 @@ enum SymbolData {
         #[serde(default)]
         adjective: Option<door::Adjective>,
     },
+    Inanimate {
+        model: ModelId,
+        #[serde(default)]
+        direction: Direction,
+    },
     Creature(creature::CreatureSpawnData),
     Shopkeeper {
         stock: Vec<creature::StockDefinition>,
@@ -153,6 +158,15 @@ impl SymbolData {
                 display_type,
                 adjective,
             } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
+            SymbolData::Inanimate { model, direction } => {
+                builder.world.spawn((
+                    symbol,
+                    model.clone(),
+                    OrderWeight::Background,
+                    pos,
+                    *direction,
+                ));
+            }
             SymbolData::Creature(spawn_data) => spawn_data.spawn(builder.world, symbol, pos, rng),
             SymbolData::Shopkeeper {
                 stock,

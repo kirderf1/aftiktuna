@@ -32,9 +32,11 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
     let mut labels: HashMap<Symbol, String> = HashMap::new();
 
     for object in &render_data.objects {
-        let symbol = insert_label_at_available_symbol(&object.name_data, &mut labels);
+        if let Some(name_data) = &object.name_data {
+            let symbol = insert_label_at_available_symbol(name_data, &mut labels);
 
-        symbols_by_pos[object.coord].push((symbol, object.weight));
+            symbols_by_pos[object.coord].push((symbol, object.weight));
+        }
     }
 
     for symbol_column in &mut symbols_by_pos {
@@ -118,7 +120,7 @@ pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: OrderWeight,
     pub model_id: ModelId,
-    pub name_data: ObjectNameData,
+    pub name_data: Option<ObjectNameData>,
     pub wielded_item: Option<ModelId>,
     pub interactions: Vec<InteractionType>,
     #[serde(flatten)]
@@ -133,28 +135,30 @@ pub struct ObjectNameData {
 }
 
 impl ObjectNameData {
-    fn build(entity_ref: EntityRef, world: &World) -> Self {
-        let name = get_name(entity_ref);
-        Self {
+    fn build(entity_ref: EntityRef, world: &World) -> Option<Self> {
+        let name = get_name(entity_ref)?;
+        Some(Self {
             modified_name: capitalize(get_extended_name(&name, entity_ref, world)),
             name: capitalize(&name),
             symbol: entity_ref
                 .get::<&Symbol>()
                 .map(deref_clone)
                 .unwrap_or_else(|| Symbol::from_name(&name)),
-        }
+        })
     }
 }
 
-fn get_name(entity_ref: EntityRef) -> String {
-    let name_data = NameData::find_for_ref(entity_ref);
+fn get_name(entity_ref: EntityRef) -> Option<String> {
+    let name_data = NameData::find_option_by_ref(entity_ref)?;
     let name = name_data.base();
 
-    if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
-        format!("{} {name}", attribute.as_adjective())
-    } else {
-        name.to_owned()
-    }
+    Some(
+        if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
+            format!("{} {name}", attribute.as_adjective())
+        } else {
+            name.to_owned()
+        },
+    )
 }
 
 fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String {
@@ -202,7 +206,7 @@ pub struct ItemProfile {
 impl ItemProfile {
     fn create(item: EntityRef) -> Self {
         Self {
-            name: NameData::find_for_ref(item).base().to_string(),
+            name: NameData::find_by_ref(item).base().to_string(),
             is_wieldable: item.satisfies::<&CanWield>(),
             is_wielded: item.get::<&Held>().map_or(false, |held| held.is_in_hand()),
         }

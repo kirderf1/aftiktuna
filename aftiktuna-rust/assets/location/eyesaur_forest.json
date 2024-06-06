@@ -161,7 +161,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "^", "?", "Ee", "Ec", "a?", "!f" ],
+      "objects": [ "^", "?", "Ee", ".", "Ec", "Aa?", "!f" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -183,6 +183,15 @@
         "a": {
           "type": "aftik_corpse",
           "color": "green",
+          "direction": "left"
+        },
+        ".": {
+          "type": "inanimate",
+          "model": "campfire"
+        },
+        "A": {
+          "type": "inanimate",
+          "model": "tent",
           "direction": "left"
         }
       }

@@ -320,7 +320,7 @@ impl DialogueFrameData {
         let area = character_ref.get::<&Pos>().unwrap().get_area();
         Self {
             background: world.get::<&Area>(area).unwrap().background.clone(),
-            speaker: NameData::find_for_ref(character_ref),
+            speaker: NameData::find_by_ref(character_ref),
             color: character_ref.get::<&AftikColorId>().as_deref().cloned(),
             direction: character_ref
                 .get::<&Direction>()

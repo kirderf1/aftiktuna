@@ -43,22 +43,26 @@ impl NameData {
         .eq_ignore_ascii_case(string)
     }
 
-    pub fn find(world: &World, entity: Entity) -> Self {
-        world
-            .entity(entity)
-            .map(Self::find_for_ref)
-            .unwrap_or_default()
-    }
-
-    pub fn find_for_ref(entity_ref: EntityRef) -> Self {
+    pub fn find_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
         if let Some(name) = entity_ref.get::<&Name>() {
             if name.is_known {
-                return Self::Name(name.name.clone());
+                return Some(Self::Name(name.name.clone()));
             }
         }
         entity_ref
             .get::<&Noun>()
             .map(|noun| NameData::Noun(noun.deref().clone()))
+    }
+
+    pub fn find_by_ref(entity_ref: EntityRef) -> Self {
+        Self::find_option_by_ref(entity_ref).unwrap_or_default()
+    }
+
+    pub fn find(world: &World, entity: Entity) -> Self {
+        world
+            .entity(entity)
+            .ok()
+            .and_then(Self::find_option_by_ref)
             .unwrap_or_default()
     }
 }

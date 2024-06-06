@@ -59,7 +59,7 @@ fn get_targets_by_name(state: &GameState) -> HashMap<String, Vec<Entity>> {
         })
         .for_each(|(entity, _)| {
             let entity_ref = state.world.entity(entity).unwrap();
-            let name_data = NameData::find_for_ref(entity_ref);
+            let name_data = NameData::find_by_ref(entity_ref);
             map.entry(name_data.base().to_owned())
                 .or_default()
                 .push(entity);
