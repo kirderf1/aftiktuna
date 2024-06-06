@@ -128,7 +128,7 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
 
 fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
     for (pos, data) in camera::position_objects(&render_data.objects, &mut assets.models) {
-        texture::draw_object(&data.texture_type, &data.properties, false, pos, assets);
+        texture::draw_object(&data.model_id, &data.properties, false, pos, assets);
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(

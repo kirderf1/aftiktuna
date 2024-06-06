@@ -32,8 +32,7 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
     let mut labels: HashMap<Symbol, String> = HashMap::new();
 
     for object in &render_data.objects {
-        let symbol =
-            insert_label_at_available_symbol(object.symbol, &object.modified_name, &mut labels);
+        let symbol = insert_label_at_available_symbol(&object.name_data, &mut labels);
 
         symbols_by_pos[object.coord].push((symbol, object.weight));
     }
@@ -79,11 +78,11 @@ const BACKUP_CHARS: [char; 56] = [
 ];
 
 fn insert_label_at_available_symbol(
-    original_symbol: Symbol,
-    label: &str,
+    name_data: &ObjectNameData,
     labels: &mut HashMap<Symbol, String>,
 ) -> Symbol {
-    for symbol in [original_symbol]
+    let label = &name_data.modified_name;
+    for symbol in [name_data.symbol]
         .into_iter()
         .chain(BACKUP_CHARS.into_iter().map::<Symbol, _>(Symbol))
     {
@@ -100,32 +99,7 @@ fn insert_label_at_available_symbol(
     }
 
     eprintln!("Too many unique symbols. Some symbols will overlap.");
-    original_symbol
-}
-
-fn get_name(entity_ref: EntityRef) -> String {
-    let name_data = NameData::find_for_ref(entity_ref);
-    let name = name_data.base();
-
-    if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
-        format!("{} {name}", attribute.as_adjective())
-    } else {
-        name.to_owned()
-    }
-}
-
-fn get_extended_name(world: &World, entity_ref: EntityRef, name: &str) -> String {
-    if let Some(door) = entity_ref.get::<&Door>() {
-        if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
-            return format!("{name} ({})", blocking.description());
-        }
-    }
-
-    if !status::is_alive_ref(entity_ref) {
-        return format!("Corpse of {name}");
-    }
-
-    name.to_owned()
+    name_data.symbol
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -143,14 +117,58 @@ pub struct RenderData {
 pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: OrderWeight,
-    pub texture_type: ModelId,
-    pub modified_name: String,
-    pub name: String,
-    pub symbol: Symbol,
+    pub model_id: ModelId,
+    pub name_data: ObjectNameData,
     pub wielded_item: Option<ModelId>,
     pub interactions: Vec<InteractionType>,
     #[serde(flatten)]
     pub properties: RenderProperties,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ObjectNameData {
+    pub modified_name: String,
+    pub name: String,
+    pub symbol: Symbol,
+}
+
+impl ObjectNameData {
+    fn build(entity_ref: EntityRef, world: &World) -> Self {
+        let name = get_name(entity_ref);
+        Self {
+            modified_name: capitalize(get_extended_name(&name, entity_ref, world)),
+            name: capitalize(&name),
+            symbol: entity_ref
+                .get::<&Symbol>()
+                .map(deref_clone)
+                .unwrap_or_else(|| Symbol::from_name(&name)),
+        }
+    }
+}
+
+fn get_name(entity_ref: EntityRef) -> String {
+    let name_data = NameData::find_for_ref(entity_ref);
+    let name = name_data.base();
+
+    if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
+        format!("{} {name}", attribute.as_adjective())
+    } else {
+        name.to_owned()
+    }
+}
+
+fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String {
+    if let Some(door) = entity_ref.get::<&Door>() {
+        if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
+            return format!("{name} ({})", blocking.description());
+        }
+    }
+
+    if !status::is_alive_ref(entity_ref) {
+        return format!("Corpse of {name}");
+    }
+
+    name.to_owned()
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -225,7 +243,6 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
 
 fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
-    let name = get_name(entity_ref);
     let properties = RenderProperties {
         direction: entity_ref
             .get::<&Direction>()
@@ -246,16 +263,11 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             .get::<&OrderWeight>()
             .map(deref_clone)
             .unwrap_or_default(),
-        texture_type: entity_ref
+        model_id: entity_ref
             .get::<&ModelId>()
             .map(deref_clone)
             .unwrap_or_default(),
-        modified_name: capitalize(get_extended_name(&state.world, entity_ref, &name)),
-        name: capitalize(&name),
-        symbol: entity_ref
-            .get::<&Symbol>()
-            .map(deref_clone)
-            .unwrap_or_else(|| Symbol::from_name(&name)),
+        name_data: ObjectNameData::build(entity_ref, &state.world),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: suggestion::interactions_for(entity, state),
         properties,

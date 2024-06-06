@@ -95,7 +95,7 @@ fn find_raw_command_suggestions(
                 .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(offset_pos))
                 .flat_map(|(_, data)| {
                     data.interactions.iter().flat_map(|interaction| {
-                        interaction.commands(&data.name, &render_data.inventory)
+                        interaction.commands(&data.name_data.name, &render_data.inventory)
                     })
                 })
                 .collect::<Vec<_>>()
@@ -136,7 +136,7 @@ fn get_hovered_object_names<'a>(
     camera::position_objects(&render_data.objects, models)
         .into_iter()
         .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
-        .map(|(_, data)| &data.modified_name)
+        .map(|(_, data)| &data.name_data.modified_name)
         .collect::<Vec<_>>()
 }
 

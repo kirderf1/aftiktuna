@@ -25,7 +25,7 @@ impl LazilyLoadedModels {
     }
 
     pub fn get_rect_for_object(&mut self, object_data: &ObjectRenderData, pos: Vec2) -> Rect {
-        let model = self.lookup_model(&object_data.texture_type);
+        let model = self.lookup_model(&object_data.model_id);
         model.get_rect(pos, &object_data.properties)
     }
 }

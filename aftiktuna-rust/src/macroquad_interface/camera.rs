@@ -19,7 +19,7 @@ pub fn position_objects<'a>(
     for data in objects {
         let pos = positioner.position_object(
             data.coord,
-            models.lookup_model(&data.texture_type).is_displacing(),
+            models.lookup_model(&data.model_id).is_displacing(),
         );
 
         positioned_objects.push((pos, data));
