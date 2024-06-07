@@ -150,6 +150,34 @@ impl CreatureSpawnData {
     }
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum ProfileOrRandom {
+    #[default]
+    Random,
+    #[serde(untagged)]
+    Profile(AftikProfile),
+}
+
+impl ProfileOrRandom {
+    pub fn unwrap(
+        self,
+        character_profiles: &mut Vec<AftikProfile>,
+        rng: &mut impl Rng,
+    ) -> Option<AftikProfile> {
+        match self {
+            ProfileOrRandom::Random => {
+                if character_profiles.is_empty() {
+                    return None;
+                }
+                let chosen_index = rng.gen_range(0..character_profiles.len());
+                Some(character_profiles.swap_remove(chosen_index))
+            }
+            ProfileOrRandom::Profile(profile) => Some(profile),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AftikProfile {
     name: String,

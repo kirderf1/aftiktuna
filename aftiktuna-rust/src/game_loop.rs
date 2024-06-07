@@ -16,7 +16,7 @@ use crate::core::{
     self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction, Waiting,
 };
 use crate::game_interface::Phase;
-use crate::location::{self, CrewData, LocationTracker, PickResult};
+use crate::location::{self, CrewData, GenerationState, PickResult};
 use crate::serialization;
 use crate::view::{self, Frame, Messages, StatusCache};
 use crate::{ai, command};
@@ -27,7 +27,8 @@ pub struct GameState {
     pub world: World,
     #[serde(skip)]
     pub rng: ThreadRng,
-    pub locations: LocationTracker,
+    #[serde(alias = "locations")] // Backwards-compatibility with 3.0
+    pub generation_state: GenerationState,
     pub ship: Entity,
     pub controlled: Entity,
     pub status_cache: StatusCache,
@@ -40,15 +41,21 @@ pub enum StopType {
     Lose,
 }
 
-pub fn setup(locations: LocationTracker) -> GameState {
+pub fn setup(mut generation_state: GenerationState) -> GameState {
     let mut world = World::new();
+    let mut rng = thread_rng();
 
-    let (controlled, ship) = location::init(&mut world, CrewData::load().unwrap());
+    let (controlled, ship) = location::init(
+        &mut world,
+        CrewData::load().unwrap(),
+        &mut generation_state,
+        &mut rng,
+    );
 
     GameState {
         world,
-        rng: thread_rng(),
-        locations,
+        rng,
+        generation_state,
         ship,
         controlled,
         status_cache: StatusCache::default(),
@@ -122,7 +129,7 @@ fn prepare_next_location(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) -> Result<Step, Phase> {
-    match state.locations.next(&mut state.rng) {
+    match state.generation_state.next(&mut state.rng) {
         PickResult::None => {
             view_buffer.push_ending_frame(&state.world, state.controlled, StopType::Win);
             Err(Phase::Stopped(StopType::Win))

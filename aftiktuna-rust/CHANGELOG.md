@@ -7,6 +7,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New data file `character_profiles.json`, used for randomly-selected characters
+
+### Changed
+
+- Recruitable characters and crew members in json definitions can now be changed to pick a character profile at random
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.8.0] - 2024-06-07
 

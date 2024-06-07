@@ -1,4 +1,4 @@
-use super::creature::AftikProfile;
+use super::creature::{AftikProfile, ProfileOrRandom};
 use super::door::{place_pair, DoorInfo, DoorType};
 use super::{creature, door, Area, BackgroundId};
 use crate::core::name::Noun;
@@ -19,12 +19,17 @@ pub struct LocationData {
 }
 
 impl LocationData {
-    pub fn build(self, world: &mut World, rng: &mut impl Rng) -> Result<Pos, String> {
+    pub fn build(
+        self,
+        world: &mut World,
+        character_profiles: &mut Vec<AftikProfile>,
+        rng: &mut impl Rng,
+    ) -> Result<Pos, String> {
         let mut builder = Builder::new(world, &self.door_pairs);
         let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
-            area.build(&mut builder, &base_symbols, rng)?;
+            area.build(&mut builder, &base_symbols, character_profiles, rng)?;
         }
 
         verify_placed_doors(&builder)?;
@@ -48,6 +53,7 @@ impl AreaData {
         self,
         builder: &mut Builder,
         parent_symbols: &HashMap<char, SymbolData>,
+        character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
     ) -> Result<(), String> {
         let room = builder.world.spawn((Area {
@@ -62,7 +68,9 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
-                    Some(symbol_data) => symbol_data.place(builder, rng, pos, Symbol(symbol))?,
+                    Some(symbol_data) => {
+                        symbol_data.place(pos, Symbol(symbol), builder, character_profiles, rng)?
+                    }
                     None => Err(format!("Unknown symbol \"{symbol}\""))?,
                 }
             }
@@ -125,8 +133,8 @@ enum SymbolData {
         direction: Option<Direction>,
     },
     Recruitable {
-        #[serde(flatten)]
-        profile: AftikProfile,
+        #[serde(default)]
+        profile: ProfileOrRandom,
         #[serde(default)]
         direction: Option<Direction>,
     },
@@ -140,10 +148,11 @@ enum SymbolData {
 impl SymbolData {
     fn place(
         &self,
-        builder: &mut Builder,
-        rng: &mut impl Rng,
         pos: Pos,
         symbol: Symbol,
+        builder: &mut Builder,
+        character_profiles: &mut Vec<AftikProfile>,
+        rng: &mut impl Rng,
     ) -> Result<(), String> {
         match self {
             SymbolData::LocationEntry => builder.add_entry_pos(pos),
@@ -174,7 +183,9 @@ impl SymbolData {
                 direction,
             } => creature::place_shopkeeper(builder.world, pos, stock, color.clone(), *direction)?,
             SymbolData::Recruitable { profile, direction } => {
-                creature::place_recruitable(builder.world, pos, profile.clone(), *direction)
+                if let Some(profile) = profile.clone().unwrap(character_profiles, rng) {
+                    creature::place_recruitable(builder.world, pos, profile, *direction);
+                }
             }
             SymbolData::AftikCorpse { color, direction } => {
                 creature::place_aftik_corpse(builder.world, pos, color.clone(), *direction)

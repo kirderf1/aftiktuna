@@ -179,7 +179,7 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
 fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
-    if state.locations.is_at_fortuna() {
+    if state.generation_state.is_at_fortuna() {
         return Err("You are already at your final destination. You should find the fortuna chest before leaving!".to_string());
     }
 

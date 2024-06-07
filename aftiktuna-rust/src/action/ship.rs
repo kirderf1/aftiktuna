@@ -41,7 +41,7 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
 }
 
 pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
-    if state.locations.is_at_fortuna() {
+    if state.generation_state.is_at_fortuna() {
         return Err("You can't leave fortuna yet!".to_string());
     }
 

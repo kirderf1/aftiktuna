@@ -77,16 +77,7 @@
           "display_type": "door"
         },
         "A": {
-          "type": "recruitable",
-          "name": "Plum",
-          "color": "plum",
-          "stats": {
-            "strength": 10,
-            "endurance": 2,
-            "agility": 10,
-            "luck": 0
-          },
-          "traits": [ "fast_healer", "big_eater" ]
+          "type": "recruitable"
         }
       }
     },

@@ -1,6 +1,6 @@
 use crate::command::CommandResult;
 use crate::game_loop::{self, GameState, Step, StopType};
-use crate::location::LocationTracker;
+use crate::location::GenerationState;
 use crate::serialization::LoadError;
 use crate::view::{Frame, Messages};
 use crate::{command, location, serialization};
@@ -21,10 +21,10 @@ pub fn load() -> Result<Game, LoadError> {
 }
 
 pub fn setup_new() -> Game {
-    setup_new_with(LocationTracker::new(3))
+    setup_new_with(GenerationState::new(3))
 }
 
-pub fn setup_new_with(locations: LocationTracker) -> Game {
+pub fn setup_new_with(locations: GenerationState) -> Game {
     let mut state = game_loop::setup(locations);
     let mut frame_cache = FrameCache::new(vec![Frame::Introduction]);
     let (phase, frames) = game_loop::run(Step::PrepareNextLocation, &mut state);
@@ -88,10 +88,11 @@ impl Game {
     pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
         match &self.phase {
             Phase::ChooseLocation(choice) => {
-                let location =
-                    self.state
-                        .locations
-                        .try_make_choice(choice, input, &mut self.state.rng)?;
+                let location = self.state.generation_state.try_make_choice(
+                    choice,
+                    input,
+                    &mut self.state.rng,
+                )?;
                 let (phase, frames) = game_loop::run(Step::LoadLocation(location), &mut self.state);
                 self.phase = phase;
                 self.frame_cache.add_new_frames(frames);

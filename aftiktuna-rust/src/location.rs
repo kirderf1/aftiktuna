@@ -6,7 +6,7 @@ use crate::core::{
 };
 use crate::game_loop::GameState;
 use crate::view::Messages;
-use creature::AftikProfile;
+use creature::{AftikProfile, ProfileOrRandom};
 use door::DoorInfo;
 use hecs::{Entity, World};
 use rand::seq::index;
@@ -27,19 +27,22 @@ enum TrackedState {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LocationTracker {
+pub struct GenerationState {
     locations: Locations,
     state: TrackedState,
+    #[serde(default = "load_profiles_or_default")]
+    character_profiles: Vec<AftikProfile>,
 }
 
-impl LocationTracker {
+impl GenerationState {
     pub fn new(locations_before_fortuna: i32) -> Self {
         Self {
             locations: load_locations()
-                .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {}", message)),
+                .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {message}")),
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: locations_before_fortuna,
             },
+            character_profiles: load_profiles_or_default(),
         }
     }
 
@@ -49,6 +52,7 @@ impl LocationTracker {
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: 1,
             },
+            character_profiles: load_profiles_or_default(),
         }
     }
 
@@ -126,9 +130,9 @@ impl Locations {
         let category = self.categories.get_mut(category_index).unwrap();
         let chosen_location = category
             .location_names
-            .remove(rng.gen_range(0..category.location_names.len()));
+            .swap_remove(rng.gen_range(0..category.location_names.len()));
         if category.location_names.is_empty() {
-            self.categories.remove(category_index);
+            self.categories.swap_remove(category_index);
         }
         chosen_location
     }
@@ -192,7 +196,7 @@ pub struct Category {
 #[derive(Debug, Deserialize)]
 pub struct CrewData {
     points: i32,
-    crew: Vec<AftikProfile>,
+    crew: Vec<ProfileOrRandom>,
 }
 
 impl CrewData {
@@ -201,7 +205,23 @@ impl CrewData {
     }
 }
 
-pub fn init(world: &mut World, crew_data: CrewData) -> (Entity, Entity) {
+fn load_profiles_or_default() -> Vec<AftikProfile> {
+    load_character_profiles().unwrap_or_else(|message| {
+        eprintln!("Problem loading \"character_profiles.json\": {message}");
+        Vec::default()
+    })
+}
+
+fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
+    crate::load_json_simple("character_profiles.json")
+}
+
+pub fn init(
+    world: &mut World,
+    crew_data: CrewData,
+    generation_state: &mut GenerationState,
+    rng: &mut impl Rng,
+) -> (Entity, Entity) {
     let ship = world.spawn((Area {
         label: "Ship".to_string(),
         size: 5,
@@ -231,7 +251,10 @@ pub fn init(world: &mut World, crew_data: CrewData) -> (Entity, Entity) {
 
     let crew = world.spawn((Points(crew_data.points),));
 
-    let mut crew_iter = crew_data.crew.into_iter();
+    let mut crew_iter = crew_data
+        .crew
+        .into_iter()
+        .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, rng));
     let controlled = world.spawn(
         creature::aftik_builder_with_stats(crew_iter.next().expect("Crew must not be empty"), true)
             .add(CrewMember(crew))
@@ -254,7 +277,13 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
     let ship_exit = world.get::<&Ship>(state.ship).unwrap().exit_pos;
 
     let start_pos = load_data(location_name)
-        .and_then(|location_data| location_data.build(world, &mut state.rng))
+        .and_then(|location_data| {
+            location_data.build(
+                world,
+                &mut state.generation_state.character_profiles,
+                &mut state.rng,
+            )
+        })
         .unwrap_or_else(|message| panic!("Error loading location {}: {}", location_name, message));
 
     door::place_pair(
@@ -297,7 +326,7 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
 
-    if state.locations.is_at_fortuna() {
+    if state.generation_state.is_at_fortuna() {
         messages.add(
             "The ship arrives at the location of the fortuna chest, and the crew exit the ship.",
         )
