@@ -11,7 +11,7 @@ pub struct Area {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct BackgroundId(String);
+pub struct BackgroundId(pub String);
 
 impl BackgroundId {
     pub fn blank() -> Self {

@@ -8,6 +8,7 @@ use egui_macroquad::macroquad::color::{self, Color};
 use egui_macroquad::macroquad::math::Rect;
 use egui_macroquad::macroquad::texture::{self, Texture2D};
 use egui_macroquad::macroquad::window;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use crate::core::area::BackgroundId;
@@ -26,7 +27,8 @@ impl BGTexture {
     pub fn draw(&self, offset: Coord, camera_space: Rect) {
         let offset = offset as f32 * 120.;
         for layer in &self.0.layers {
-            let layer_x = camera_space.x * (1. - layer.move_factor) - offset - layer.offset;
+            let layer_x =
+                camera_space.x * (1. - layer.move_factor) - offset - f32::from(layer.offset);
             let texture = layer.texture;
             if layer.is_looping {
                 let repeat_count = f32::floor((camera_space.x - layer_x) / texture.width());
@@ -64,15 +66,15 @@ impl BGPortrait {
 }
 
 #[derive(Serialize, Deserialize)]
-struct RawBGData {
+pub struct RawBGData {
     #[serde(flatten)]
-    texture: RawBGTexture,
+    pub texture: RawBGTexture,
     #[serde(flatten)]
     portrait: RawBGPortrait,
 }
 
 impl RawBGData {
-    fn load(self, loader: &mut impl TextureLoader) -> Result<BGData, io::Error> {
+    pub fn load(&self, loader: &mut impl TextureLoader) -> Result<BGData, io::Error> {
         Ok(BGData {
             texture: self.texture.load(loader)?,
             portrait: self.portrait.load(loader)?,
@@ -80,27 +82,47 @@ impl RawBGData {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum RawBGTexture {
-    Layer(ParallaxLayer<String>),
-    Parallax(Parallax<String>),
-}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(from = "ParallaxLayerOrList", into = "ParallaxLayerOrList")]
+pub struct RawBGTexture(pub Parallax<String>);
 
 impl RawBGTexture {
     fn load(&self, loader: &mut impl TextureLoader) -> Result<BGTexture, io::Error> {
-        Ok(BGTexture(match self {
-            Self::Layer(layer) => Parallax {
-                layers: vec![layer.load(loader)?],
-            },
-            Self::Parallax(parallax) => parallax.load(loader)?,
-        }))
+        Ok(BGTexture(self.0.load(loader)?))
     }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum ParallaxLayerOrList {
+    Layer(ParallaxLayer<String>),
+    Parallax(Parallax<String>),
+}
+
+impl From<RawBGTexture> for ParallaxLayerOrList {
+    fn from(RawBGTexture(parallax): RawBGTexture) -> Self {
+        if parallax.layers.len() != 1 {
+            Self::Parallax(parallax)
+        } else {
+            Self::Layer(parallax.layers.into_iter().next().unwrap())
+        }
+    }
+}
+
+impl From<ParallaxLayerOrList> for RawBGTexture {
+    fn from(value: ParallaxLayerOrList) -> Self {
+        Self(match value {
+            ParallaxLayerOrList::Layer(layer) => Parallax {
+                layers: vec![layer],
+            },
+            ParallaxLayerOrList::Parallax(parallax) => parallax,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Parallax<T> {
-    layers: Vec<ParallaxLayer<T>>,
+    pub layers: Vec<ParallaxLayer<T>>,
 }
 
 impl Parallax<String> {
@@ -115,15 +137,15 @@ impl Parallax<String> {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct ParallaxLayer<T> {
-    texture: T,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParallaxLayer<T> {
+    pub texture: T,
     #[serde(default = "default_move_factor")]
-    move_factor: f32,
-    #[serde(default)]
-    is_looping: bool,
-    #[serde(default)]
-    offset: f32,
+    pub move_factor: f32,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub is_looping: bool,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub offset: i16,
 }
 
 fn default_move_factor() -> f32 {
@@ -150,21 +172,31 @@ enum RawBGPortrait {
 }
 
 impl RawBGPortrait {
-    fn load(self, loader: &mut impl TextureLoader) -> Result<BGPortrait, io::Error> {
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<BGPortrait, io::Error> {
         Ok(match self {
             RawBGPortrait::Color(color) => {
                 BGPortrait::Color([color[0], color[1], color[2], 255].into())
             }
-            RawBGPortrait::Texture(texture) => BGPortrait::Texture(load_texture(&texture, loader)?),
+            RawBGPortrait::Texture(texture) => BGPortrait::Texture(load_texture(texture, loader)?),
         })
     }
 }
 
+pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
+
 fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Error> {
-    let file = File::open("assets/texture/background/backgrounds.json")?;
+    let file = File::open(DATA_FILE_PATH)?;
     Ok(serde_json::from_reader::<
         _,
         HashMap<BackgroundId, RawBGData>,
+    >(file)?)
+}
+
+pub fn load_index_map_backgrounds() -> Result<IndexMap<BackgroundId, RawBGData>, super::Error> {
+    let file = File::open(DATA_FILE_PATH)?;
+    Ok(serde_json::from_reader::<
+        _,
+        IndexMap<BackgroundId, RawBGData>,
     >(file)?)
 }
 

@@ -1,16 +1,17 @@
 {
   "blank": {
     "texture": "white_space",
-    "move_factor": 0,
+    "move_factor": 0.0,
     "portrait_color": [ 216, 216, 216 ]
   },
   "location_choice": {
     "texture": "location_choice",
-    "move_factor": 0,
+    "move_factor": 0.0,
     "portrait_color": [ 0, 0, 0 ]
   },
   "ship": {
     "texture": "ship",
+    "move_factor": 1.0,
     "offset": 120,
     "portrait_color": [ 153, 153, 153 ]
   },
@@ -18,7 +19,7 @@
     "layers": [
       { "texture": "lightly_cloudy_sky", "move_factor": 0.2, "is_looping": true },
       { "texture": "forest_base", "move_factor": 0.8, "is_looping": true },
-      { "texture": "forest_entrance", "move_factor": 1, "is_looping": true }
+      { "texture": "forest_entrance", "move_factor": 1.0, "is_looping": true }
     ],
     "portrait_texture": "forest_portrait"
   },
@@ -26,51 +27,57 @@
     "layers": [
       { "texture": "lightly_cloudy_sky", "move_factor": 0.2, "is_looping": true },
       { "texture": "forest_base", "move_factor": 0.8, "is_looping": true },
-      { "texture": "forest", "move_factor": 1, "is_looping": true }
+      { "texture": "forest", "move_factor": 1.0, "is_looping": true }
     ],
     "portrait_texture": "forest_portrait"
   },
   "field": {
     "layers": [
       { "texture": "lightly_cloudy_sky", "move_factor": 0.2, "is_looping": true },
-      { "texture": "field", "move_factor": 1, "is_looping": true }
+      { "texture": "field", "move_factor": 1.0, "is_looping": true }
     ],
     "portrait_texture": "field_portrait"
   },
   "shack": {
     "texture": "shack",
+    "move_factor": 1.0,
     "offset": 180,
     "portrait_color": [ 109, 102, 67 ]
   },
   "facility_outside": {
     "layers": [
       { "texture": "lightly_cloudy_sky", "move_factor": 0.2, "is_looping": true },
-      { "texture": "facility_outside", "move_factor": 1, "offset": 60 }
+      { "texture": "facility_outside", "move_factor": 1.0, "offset": 60 }
     ],
     "portrait_texture": "field_portrait"
   },
   "facility_size3": {
     "texture": "3x_facility",
+    "move_factor": 1.0,
     "offset": 240,
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size4": {
     "texture": "4x_facility",
+    "move_factor": 1.0,
     "offset": 180,
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size5": {
     "texture": "5x_facility",
+    "move_factor": 1.0,
     "offset": 120,
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size6": {
     "texture": "6x_facility",
+    "move_factor": 1.0,
     "offset": 60,
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size7": {
     "texture": "7x_facility",
+    "move_factor": 1.0,
     "offset": 60,
     "portrait_color": [ 153, 153, 153 ]
   }

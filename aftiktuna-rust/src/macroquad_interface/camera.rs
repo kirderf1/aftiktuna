@@ -116,7 +116,7 @@ pub fn has_camera_space(camera: Rect, render_data: &RenderData) -> [bool; 2] {
     }
 }
 
-fn clamp_camera(camera: &mut Rect, area_size: Coord) {
+pub fn clamp_camera(camera: &mut Rect, area_size: Coord) {
     camera.x = if area_size <= 6 {
         (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2. - camera.w / 2.
     } else {
