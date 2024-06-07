@@ -1,5 +1,5 @@
 use crate::core::name::{Name, Noun};
-use crate::core::position::{Direction, MovementBlocking, Pos};
+use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats, Traits};
 use crate::core::{
     item, AftikColorId, CreatureAttribute, Hostile, ModelId, OrderWeight, Recruitable, Shopkeeper,
@@ -143,7 +143,7 @@ impl CreatureSpawnData {
         ));
 
         if is_alive {
-            builder.add_bundle((MovementBlocking, Hostile { aggressive }));
+            builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
         }
 
         world.spawn(builder.build());
@@ -198,6 +198,7 @@ pub fn aftik_builder_with_stats(profile: AftikProfile, is_name_known: bool) -> E
         },
         Health::from_fraction(1.),
         Stamina::with_max(&profile.stats),
+        OccupiesSpace,
         profile.stats,
         profile.traits,
     ));

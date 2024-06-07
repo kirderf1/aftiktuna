@@ -1,8 +1,9 @@
-use super::area::Area;
 use super::name::NameData;
-use hecs::{Entity, NoSuchEntity, World};
+use super::{area::Area, Hostile};
+use hecs::{Entity, EntityRef, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min, Ordering};
+use std::ops::RangeBounds;
 
 use super::CrewMember;
 
@@ -149,7 +150,7 @@ pub fn prepare_move(world: &World, entity: Entity, destination: Pos) -> Result<M
         destination.get_area(),
         "Areas should be equal when called."
     );
-    check_is_blocked(world, entity, position, destination)?;
+    check_is_blocked(world, world.entity(entity).unwrap(), position, destination)?;
 
     Ok(if position == destination {
         Movement::none(entity)
@@ -175,7 +176,7 @@ pub fn prepare_move_adjacent(
         move_target.get_area(),
         "Areas should be equal when called."
     );
-    check_is_blocked(world, entity, position, move_target)?;
+    check_is_blocked(world, world.entity(entity).unwrap(), position, move_target)?;
 
     Ok(if position != target {
         let direction = Direction::between(position, target);
@@ -185,8 +186,8 @@ pub fn prepare_move_adjacent(
     })
 }
 
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct MovementBlocking;
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+pub struct OccupiesSpace;
 
 pub struct Blockage(Entity);
 
@@ -201,31 +202,47 @@ impl Blockage {
 
 pub fn check_is_blocked(
     world: &World,
-    entity: Entity,
+    entity_ref: EntityRef,
     entity_pos: Pos,
     target_pos: Pos,
 ) -> Result<(), Blockage> {
-    if world.get::<&CrewMember>(entity).is_err() {
-        return Ok(()); //Only aftiks are blocked.
-    }
-
     if entity_pos.get_coord() == target_pos.get_coord() {
         return Ok(());
     }
-
-    let adjacent_pos = entity_pos.get_adjacent_towards(target_pos);
-    let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
-    let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
-    if let Some((entity, _)) = world
-        .query::<&Pos>()
-        .with::<&MovementBlocking>()
-        .iter()
-        .find(|(_, pos)| {
-            pos.is_in(entity_pos.get_area()) && min <= pos.get_coord() && pos.get_coord() <= max
-        })
-    {
-        Err(Blockage(entity))
-    } else {
-        Ok(())
+    if entity_ref.satisfies::<&CrewMember>() {
+        let adjacent_pos = entity_pos.get_adjacent_towards(target_pos);
+        let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
+        let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
+        if let Some(entity) =
+            find_blocking_hostile_in_range(world, entity_pos.get_area(), min..=max)
+        {
+            return Err(Blockage(entity));
+        }
     }
+
+    let entities_at_target = world
+        .query::<&Pos>()
+        .with::<&OccupiesSpace>()
+        .iter()
+        .filter(|&(_, pos)| target_pos.eq(pos))
+        .map(|(entity, _)| entity)
+        .collect::<Vec<_>>();
+    if entities_at_target.len() >= 2 {
+        return Err(Blockage(entities_at_target[0]));
+    }
+
+    Ok(())
+}
+
+fn find_blocking_hostile_in_range(
+    world: &World,
+    area: Entity,
+    range: impl RangeBounds<usize>,
+) -> Option<Entity> {
+    world
+        .query::<&Pos>()
+        .with::<(&Hostile, &OccupiesSpace)>()
+        .iter()
+        .find(|(_, pos)| pos.is_in(area) && range.contains(&pos.get_coord()))
+        .map(|(entity, _)| entity)
 }

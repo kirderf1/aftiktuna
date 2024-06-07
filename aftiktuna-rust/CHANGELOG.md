@@ -32,6 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Initial aggressiveness can be specified for individual creatures when creating locations
 - Edits to the eyesaur forest location
 - Tweaked how attacker agility was factored into dodge rolls
+- Three or more alive creatures are no longer allowed to stand on the same space
 
 ### Contributors for this release
 

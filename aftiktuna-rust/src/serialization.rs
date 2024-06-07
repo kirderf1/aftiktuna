@@ -151,16 +151,15 @@ pub mod world {
     use crate::core::item::{
         CanWield, FoodRation, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon,
     };
-    use crate::core::position::{Direction, MovementBlocking, Pos};
-    use crate::core::{self, name, status};
+    use crate::core::{self, name, position, status};
 
     world_serialization!(
         Area, Area;
         Ship, Ship;
         ShipControls, ShipControls;
-        Pos, Pos;
-        Direction, Direction;
-        MovementBlocking, MovementBlocking;
+        position::Pos, Pos;
+        position::Direction, Direction;
+        position::OccupiesSpace, OccupiesSpace;
 
         name::Name, Name;
         name::Noun, Noun;

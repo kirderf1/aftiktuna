@@ -327,7 +327,12 @@ fn check_accessible(world: &World, character: Entity, target: Entity) -> Result<
     if !character_pos.is_in(target_pos.get_area()) {
         return Err(Inaccessible::NotHere);
     }
-    position::check_is_blocked(world, character, character_pos, target_pos)?;
+    position::check_is_blocked(
+        world,
+        world.entity(character).unwrap(),
+        character_pos,
+        target_pos,
+    )?;
 
     Ok(())
 }
@@ -347,6 +352,11 @@ fn check_adjacent_accessible(
         return Err(Inaccessible::NotHere);
     }
     let target_pos = target_pos.get_adjacent_towards(character_pos);
-    position::check_is_blocked(world, character, character_pos, target_pos)?;
+    position::check_is_blocked(
+        world,
+        world.entity(character).unwrap(),
+        character_pos,
+        target_pos,
+    )?;
     Ok(())
 }
