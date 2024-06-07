@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Updated outdoor background textures, and added a parallax effect to these
 - Changed the format of the "backgrounds.json" data file
 - Non-controlled crew members now use held medkits on their own when in low health
+- Crew members now object to selling fuel cans that are needed to refuel the ship
 - Wounded character portrait in dialogue
 - Health value can be specified for placed creatures when creating locations
 - Initial aggressiveness can be specified for individual creatures when creating locations

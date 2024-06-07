@@ -1,7 +1,8 @@
 use crate::action;
 use crate::action::CrewMember;
+use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::Price;
+use crate::core::item::{FuelCan, Price};
 use crate::core::name::{self, NameData};
 use crate::core::position::Pos;
 use crate::core::{item, position, IsTrading, Points, Shopkeeper, StoreStock};
@@ -88,20 +89,29 @@ fn find_stock(shopkeeper: &mut Shopkeeper, item_type: item::Type) -> Option<&mut
 
 pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action::Result {
     let mut value = 0;
-    for item in &items {
-        world
-            .get::<&Held>(*item)
-            .ok()
+    let mut is_selling_fuel = false;
+    for &item in &items {
+        let item_ref = world
+            .entity(item)
+            .map_err(|_| "One of the items being sold no longer exists.")?;
+        item_ref
+            .get::<&Held>()
             .filter(|held| held.held_by(performer))
             .ok_or("Item to sell is not being held!")?;
-        value += world
-            .get::<&Price>(*item)
-            .map_err(|_| "That item can not be sold.")?
+        value += item_ref
+            .get::<&Price>()
+            .ok_or("That item can not be sold.")?
             .sell_price();
+        is_selling_fuel |= item_ref.satisfies::<&FuelCan>();
+    }
+
+    let performer_name = NameData::find(world, performer).definite();
+
+    if is_selling_fuel && !check_has_fuel_reserve(world, &items) {
+        return Err(format!("{performer_name} does not want to sell their fuel can, since they need it to refuel their ship."));
     }
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let performer_name = NameData::find(world, performer).definite();
     let item_list = name::as_grouped_text_list(
         items
             .iter()
@@ -114,10 +124,30 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
         world.despawn(item).unwrap();
     }
 
-    action::ok(format!(
-        "{} sold {} for {}.",
-        performer_name, item_list, value
-    ))
+    action::ok(format!("{performer_name} sold {item_list} for {value}.",))
+}
+
+fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
+    let mut query = world.query::<&Ship>();
+    let Some((_, ship)) = query.iter().next() else {
+        return true;
+    };
+    let ShipStatus::NeedFuel(fuel_amount) = ship.status else {
+        return true;
+    };
+
+    let amount_needed = match fuel_amount {
+        FuelAmount::OneCan => 1,
+        FuelAmount::TwoCans => 2,
+    };
+    world
+        .query::<()>()
+        .with::<&FuelCan>()
+        .with::<&Held>()
+        .iter()
+        .filter(|(item, _)| !excluding_items.contains(item))
+        .count()
+        >= amount_needed
 }
 
 pub fn exit(world: &mut World, performer: Entity) -> action::Result {
