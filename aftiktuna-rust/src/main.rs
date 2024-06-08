@@ -1,5 +1,5 @@
 use aftiktuna::macroquad_interface::error_view;
-use aftiktuna::serialization::LoadError;
+use aftiktuna::serialization::{self, LoadError};
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::color::Color;
@@ -9,6 +9,7 @@ use egui_macroquad::macroquad::ui::Skin;
 use egui_macroquad::macroquad::window::Conf;
 use egui_macroquad::macroquad::{color, ui, window};
 use std::env;
+use std::path::Path;
 
 fn config() -> Conf {
     Conf {
@@ -93,6 +94,7 @@ async fn run_menu() -> MenuAction {
         ..ui::root_ui().default_skin()
     };
 
+    let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
     let mut action = None;
     loop {
         window::clear_background(color::BLACK);
@@ -105,7 +107,7 @@ async fn run_menu() -> MenuAction {
             action = Some(MenuAction::NewGame);
         }
 
-        if button(450., "Load Game").ui(&mut ui::root_ui()) {
+        if has_save_file && button(450., "Load Game").ui(&mut ui::root_ui()) {
             action = Some(MenuAction::LoadGame);
         }
         ui::root_ui().pop_skin();

@@ -9,10 +9,10 @@ use egui_macroquad::macroquad::input::{
 use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::miniquad::conf::Icon;
 use egui_macroquad::macroquad::{color, input, text, window};
+use std::fs;
 use std::mem::take;
 use std::process::exit;
-use std::time;
-use std::time::Instant;
+use std::time::{self, Instant};
 
 pub mod camera;
 mod render;
@@ -115,11 +115,13 @@ pub async fn run(game: Game, autosave: bool) -> ! {
         input::prevent_quit();
     }
     loop {
-        if autosave && input::is_quit_requested() {
-            if let Err(error) = serialization::write_game_to_save_file(&app.game) {
-                eprintln!("Failed to save game: {error}");
-            } else {
-                println!("Saved the game successfully.")
+        if input::is_quit_requested() {
+            if autosave && !matches!(app.render_state.current_frame, Frame::Ending { .. }) {
+                if let Err(error) = serialization::write_game_to_save_file(&app.game) {
+                    eprintln!("Failed to save game: {error}");
+                } else {
+                    println!("Saved the game successfully.")
+                }
             }
             exit(0);
         }
@@ -198,6 +200,9 @@ impl App {
     }
 
     fn show_frame(&mut self, frame: Frame) {
+        if matches!(frame, Frame::Ending { .. }) {
+            let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
+        }
         self.last_frame_time = Some(Instant::now());
         let ready_for_input = self.game.ready_to_take_input();
         self.render_state.show_frame(frame, ready_for_input);
