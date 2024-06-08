@@ -1,4 +1,5 @@
 use aftiktuna::macroquad_interface::error_view;
+use aftiktuna::macroquad_interface::texture::RenderAssets;
 use aftiktuna::serialization::{self, LoadError};
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
@@ -29,29 +30,33 @@ async fn main() {
     if disable_autosave {
         println!("Running without autosave");
     }
+
+    window::next_frame().await;
+    let mut assets = macroquad_interface::load_assets().await;
+
     if new_name {
-        return run_new_game(disable_autosave).await;
+        return run_new_game(&mut assets, disable_autosave).await;
     }
 
     let action = run_menu().await;
     match action {
         MenuAction::NewGame => {
-            run_new_game(disable_autosave).await;
+            run_new_game(&mut assets, disable_autosave).await;
         }
         MenuAction::LoadGame => {
-            run_load_game(disable_autosave).await;
+            run_load_game(&mut assets, disable_autosave).await;
         }
     }
 }
 
-async fn run_new_game(disable_autosave: bool) -> ! {
+async fn run_new_game(assets: &mut RenderAssets, disable_autosave: bool) -> ! {
     let game = game_interface::setup_new();
-    macroquad_interface::run(game, !disable_autosave).await
+    macroquad_interface::run(game, assets, !disable_autosave).await
 }
 
-async fn run_load_game(disable_autosave: bool) -> ! {
+async fn run_load_game(assets: &mut RenderAssets, disable_autosave: bool) -> ! {
     match game_interface::load() {
-        Ok(game) => macroquad_interface::run(game, !disable_autosave).await,
+        Ok(game) => macroquad_interface::run(game, assets, !disable_autosave).await,
         Err(error) => {
             let recommendation = if matches!(error, LoadError::UnsupportedVersion(_, _)) {
                 "Consider starting a new game or using a different version of Aftiktuna."

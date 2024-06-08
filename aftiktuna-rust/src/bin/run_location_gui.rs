@@ -1,7 +1,7 @@
 use aftiktuna::location::GenerationState;
 use aftiktuna::{game_interface, macroquad_interface};
 use egui_macroquad::macroquad;
-use egui_macroquad::macroquad::window::Conf;
+use egui_macroquad::macroquad::window::{self, Conf};
 use std::env;
 
 fn config() -> Conf {
@@ -20,5 +20,9 @@ async fn main() {
     let args: Vec<String> = env::args().collect();
     let location = args[1].to_string();
     let game = game_interface::setup_new_with(GenerationState::single(location));
-    macroquad_interface::run(game, true).await;
+
+    window::next_frame().await;
+    let mut assets = macroquad_interface::load_assets().await;
+
+    macroquad_interface::run(game, &mut assets, true).await;
 }

@@ -96,20 +96,21 @@ pub fn logo() -> Icon {
     }
 }
 
-pub async fn run(game: Game, autosave: bool) -> ! {
-    let mut app = init(game);
-
+pub async fn load_assets() -> texture::RenderAssets {
     window::clear_background(color::BLACK);
     draw_centered_text("Loading textures...", 300., 32, color::LIGHTGRAY);
     window::next_frame().await;
 
-    let assets = texture::load_assets();
-    let mut assets = match assets {
+    match texture::load_assets() {
         Ok(assets) => assets,
         Err(error) => {
             error_view::show(vec![format!("Unable to load assets:"), format!("{error}")]).await
         }
-    };
+    }
+}
+
+pub async fn run(game: Game, assets: &mut texture::RenderAssets, autosave: bool) -> ! {
+    let mut app = init(game);
 
     if autosave {
         input::prevent_quit();
@@ -144,7 +145,7 @@ pub async fn run(game: Game, autosave: bool) -> ! {
 
         app.update_frame_state();
 
-        render::draw(&mut app, &mut assets);
+        render::draw(&mut app, assets);
 
         window::next_frame().await;
     }
