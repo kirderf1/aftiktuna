@@ -22,16 +22,22 @@ mod tooltip;
 mod ui;
 
 pub mod error_view {
-    use egui_macroquad::macroquad::{color, text, window};
+    use egui_macroquad::macroquad::{color, input, text, window};
 
     const TEXT_SIZE: u16 = 24;
 
-    pub async fn show(messages: Vec<String>) -> ! {
+    pub async fn show(messages: Vec<String>) {
         let messages = messages
             .into_iter()
             .flat_map(split_text_line)
             .collect::<Vec<_>>();
         super::run(|| {
+            if input::is_key_pressed(input::KeyCode::Enter)
+                || input::is_mouse_button_pressed(input::MouseButton::Left)
+            {
+                return Err(());
+            }
+
             window::clear_background(color::BLACK);
 
             let mut y = 250.;
@@ -104,7 +110,8 @@ pub async fn load_assets() -> texture::RenderAssets {
     match texture::load_assets() {
         Ok(assets) => assets,
         Err(error) => {
-            error_view::show(vec![format!("Unable to load assets:"), format!("{error}")]).await
+            error_view::show(vec![format!("Unable to load assets:"), format!("{error}")]).await;
+            process::exit(0)
         }
     }
 }
@@ -172,7 +179,8 @@ pub struct App<'a> {
 impl Interface<()> for App<'_> {
     fn on_frame(&mut self) -> Result<(), ()> {
         if matches!(self.render_state.current_frame, Frame::Ending { .. })
-            && (is_key_pressed(KeyCode::Enter) || is_mouse_button_released(MouseButton::Left))
+            && (input::is_key_pressed(KeyCode::Enter)
+                || input::is_mouse_button_pressed(MouseButton::Left))
         {
             return Err(());
         }
