@@ -139,7 +139,8 @@ enum SymbolData {
         direction: Option<Direction>,
     },
     AftikCorpse {
-        color: AftikColorId,
+        #[serde(default)]
+        color: Option<AftikColorId>,
         #[serde(default)]
         direction: Option<Direction>,
     },
@@ -188,7 +189,11 @@ impl SymbolData {
                 }
             }
             SymbolData::AftikCorpse { color, direction } => {
-                creature::place_aftik_corpse(builder.world, pos, color.clone(), *direction)
+                if let Some(color) = color.clone().or_else(|| {
+                    creature::remove_random_profile(character_profiles, rng).map(AftikColorId::from)
+                }) {
+                    creature::place_aftik_corpse(builder.world, pos, color, *direction);
+                }
             }
         }
         Ok(())

@@ -166,16 +166,21 @@ impl ProfileOrRandom {
         rng: &mut impl Rng,
     ) -> Option<AftikProfile> {
         match self {
-            ProfileOrRandom::Random => {
-                if character_profiles.is_empty() {
-                    return None;
-                }
-                let chosen_index = rng.gen_range(0..character_profiles.len());
-                Some(character_profiles.swap_remove(chosen_index))
-            }
+            ProfileOrRandom::Random => remove_random_profile(character_profiles, rng),
             ProfileOrRandom::Profile(profile) => Some(profile),
         }
     }
+}
+
+pub fn remove_random_profile(
+    character_profiles: &mut Vec<AftikProfile>,
+    rng: &mut impl Rng,
+) -> Option<AftikProfile> {
+    if character_profiles.is_empty() {
+        return None;
+    }
+    let chosen_index = rng.gen_range(0..character_profiles.len());
+    Some(character_profiles.swap_remove(chosen_index))
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -185,6 +190,12 @@ pub struct AftikProfile {
     stats: Stats,
     #[serde(default)]
     traits: Traits,
+}
+
+impl From<AftikProfile> for AftikColorId {
+    fn from(value: AftikProfile) -> Self {
+        value.color
+    }
 }
 
 pub fn place_recruitable(

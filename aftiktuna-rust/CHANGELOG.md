@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Recruitable characters and crew members in json definitions can now be changed to pick a character profile at random
+- Recruitable characters and crew members in json definitions can now be set to use a random character profile
+- Aftik corpses can now be set to use a color from a random character profile
 
 ### Fixed
 
