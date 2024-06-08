@@ -1,7 +1,7 @@
 use aftiktuna::location::GenerationState;
 use aftiktuna::{game_interface, macroquad_interface};
-use egui_macroquad::macroquad;
 use egui_macroquad::macroquad::window::{self, Conf};
+use egui_macroquad::macroquad::{self, input};
 use std::env;
 
 fn config() -> Conf {
@@ -24,5 +24,6 @@ async fn main() {
     window::next_frame().await;
     let mut assets = macroquad_interface::load_assets().await;
 
+    input::prevent_quit();
     macroquad_interface::run(game, &mut assets, true).await;
 }

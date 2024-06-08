@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Save file is now removed when reaching the victory/game over frame
+- After victory/game over, the game returns to the main menu
 - "Load Game" button is no longer shown when the save file is absent
 
 ### Contributors for this release

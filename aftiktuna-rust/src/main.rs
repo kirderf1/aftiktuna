@@ -2,15 +2,14 @@ use aftiktuna::macroquad_interface::error_view;
 use aftiktuna::macroquad_interface::texture::RenderAssets;
 use aftiktuna::serialization::{self, LoadError};
 use aftiktuna::{game_interface, macroquad_interface};
-use egui_macroquad::macroquad;
-use egui_macroquad::macroquad::color::Color;
+use egui_macroquad::macroquad::color::{self, Color};
 use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::ui::widgets::Button;
-use egui_macroquad::macroquad::ui::Skin;
-use egui_macroquad::macroquad::window::Conf;
-use egui_macroquad::macroquad::{color, ui, window};
-use std::env;
+use egui_macroquad::macroquad::ui::{self, Skin};
+use egui_macroquad::macroquad::window::{self, Conf};
+use egui_macroquad::macroquad::{self, input};
 use std::path::Path;
+use std::{env, process};
 
 fn config() -> Conf {
     Conf {
@@ -33,28 +32,31 @@ async fn main() {
 
     window::next_frame().await;
     let mut assets = macroquad_interface::load_assets().await;
+    input::prevent_quit();
 
     if new_name {
         return run_new_game(&mut assets, disable_autosave).await;
     }
 
-    let action = run_menu().await;
-    match action {
-        MenuAction::NewGame => {
-            run_new_game(&mut assets, disable_autosave).await;
-        }
-        MenuAction::LoadGame => {
-            run_load_game(&mut assets, disable_autosave).await;
+    loop {
+        let action = run_menu().await;
+        match action {
+            MenuAction::NewGame => {
+                run_new_game(&mut assets, disable_autosave).await;
+            }
+            MenuAction::LoadGame => {
+                run_load_game(&mut assets, disable_autosave).await;
+            }
         }
     }
 }
 
-async fn run_new_game(assets: &mut RenderAssets, disable_autosave: bool) -> ! {
+async fn run_new_game(assets: &mut RenderAssets, disable_autosave: bool) {
     let game = game_interface::setup_new();
     macroquad_interface::run(game, assets, !disable_autosave).await
 }
 
-async fn run_load_game(assets: &mut RenderAssets, disable_autosave: bool) -> ! {
+async fn run_load_game(assets: &mut RenderAssets, disable_autosave: bool) {
     match game_interface::load() {
         Ok(game) => macroquad_interface::run(game, assets, !disable_autosave).await,
         Err(error) => {
@@ -102,6 +104,10 @@ async fn run_menu() -> MenuAction {
     let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
     let mut action = None;
     loop {
+        if input::is_quit_requested() {
+            process::exit(0);
+        }
+
         window::clear_background(color::BLACK);
 
         macroquad_interface::draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);

@@ -11,7 +11,7 @@ use egui_macroquad::macroquad::miniquad::conf::Icon;
 use egui_macroquad::macroquad::{color, input, text, window};
 use std::fs;
 use std::mem::take;
-use std::process::exit;
+use std::process;
 use std::time::{self, Instant};
 
 pub mod camera;
@@ -22,7 +22,9 @@ mod tooltip;
 mod ui;
 
 pub mod error_view {
-    use egui_macroquad::macroquad::{color, text, window};
+    use std::process;
+
+    use egui_macroquad::macroquad::{color, input, text, window};
 
     const TEXT_SIZE: u16 = 24;
 
@@ -32,6 +34,10 @@ pub mod error_view {
             .flat_map(split_text_line)
             .collect::<Vec<_>>();
         loop {
+            if input::is_quit_requested() {
+                process::exit(0);
+            }
+
             window::clear_background(color::BLACK);
 
             let mut y = 250.;
@@ -109,12 +115,9 @@ pub async fn load_assets() -> texture::RenderAssets {
     }
 }
 
-pub async fn run(game: Game, assets: &mut texture::RenderAssets, autosave: bool) -> ! {
+pub async fn run(game: Game, assets: &mut texture::RenderAssets, autosave: bool) {
     let mut app = init(game);
 
-    if autosave {
-        input::prevent_quit();
-    }
     loop {
         if input::is_quit_requested() {
             if autosave && !matches!(app.render_state.current_frame, Frame::Ending { .. }) {
@@ -124,7 +127,13 @@ pub async fn run(game: Game, assets: &mut texture::RenderAssets, autosave: bool)
                     println!("Saved the game successfully.")
                 }
             }
-            exit(0);
+            process::exit(0);
+        }
+
+        if matches!(app.render_state.current_frame, Frame::Ending { .. })
+            && (is_key_pressed(KeyCode::Enter) || is_mouse_button_released(MouseButton::Left))
+        {
+            return;
         }
 
         if is_key_pressed(KeyCode::Tab) {
