@@ -61,23 +61,27 @@ impl State {
     }
 }
 
-pub fn draw(app: &mut App, assets: &mut RenderAssets) {
+pub fn draw(app: &mut App) {
     window::clear_background(BLACK);
 
     if app.show_graphical {
         draw_frame(
             &app.render_state.current_frame,
             app.render_state.camera,
-            assets,
+            app.assets,
         );
 
         set_default_camera();
         ui::draw_text_box(
             &app.render_state.text_box_text,
-            assets,
+            app.assets,
             app.game.next_result().has_frame(),
         );
-        tooltip::draw(&app.render_state, &app.command_tooltip, &mut assets.models);
+        tooltip::draw(
+            &app.render_state,
+            &app.command_tooltip,
+            &mut app.assets.models,
+        );
 
         ui::egui_only_input(app);
     } else {

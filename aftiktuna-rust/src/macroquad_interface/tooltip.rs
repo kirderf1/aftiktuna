@@ -37,7 +37,7 @@ pub struct CommandTooltip {
     commands: Vec<Suggestion>,
 }
 
-pub fn handle_click(app: &mut App, models: &mut LazilyLoadedModels) {
+pub fn handle_click(app: &mut App) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() {
         app.command_tooltip = None;
@@ -49,7 +49,7 @@ pub fn handle_click(app: &mut App, models: &mut LazilyLoadedModels) {
     let mouse_pos = Vec2::from(input::mouse_position());
     match &app.command_tooltip {
         None => {
-            let commands = find_raw_command_suggestions(mouse_pos, state, models);
+            let commands = find_raw_command_suggestions(mouse_pos, state, &mut app.assets.models);
             if !commands.is_empty() {
                 app.command_tooltip = Some(CommandTooltip {
                     pos: mouse_pos,

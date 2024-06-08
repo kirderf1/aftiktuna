@@ -8,8 +8,8 @@ use egui_macroquad::macroquad::ui::widgets::Button;
 use egui_macroquad::macroquad::ui::{self, Skin};
 use egui_macroquad::macroquad::window::{self, Conf};
 use egui_macroquad::macroquad::{self, input};
+use std::env;
 use std::path::Path;
-use std::{env, process};
 
 fn config() -> Conf {
     Conf {
@@ -53,12 +53,12 @@ async fn main() {
 
 async fn run_new_game(assets: &mut RenderAssets, disable_autosave: bool) {
     let game = game_interface::setup_new();
-    macroquad_interface::run(game, assets, !disable_autosave).await
+    macroquad_interface::run_game(game, assets, !disable_autosave).await
 }
 
 async fn run_load_game(assets: &mut RenderAssets, disable_autosave: bool) {
     match game_interface::load() {
-        Ok(game) => macroquad_interface::run(game, assets, !disable_autosave).await,
+        Ok(game) => macroquad_interface::run_game(game, assets, !disable_autosave).await,
         Err(error) => {
             let recommendation = if matches!(error, LoadError::UnsupportedVersion(_, _)) {
                 "Consider starting a new game or using a different version of Aftiktuna."
@@ -102,18 +102,14 @@ async fn run_menu() -> MenuAction {
     };
 
     let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
-    let mut action = None;
-    loop {
-        if input::is_quit_requested() {
-            process::exit(0);
-        }
-
+    macroquad_interface::run(|| {
         window::clear_background(color::BLACK);
 
         macroquad_interface::draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
 
         ui::root_ui().push_skin(&skin);
 
+        let mut action = None;
         if button(350., "New Game").ui(&mut ui::root_ui()) {
             action = Some(MenuAction::NewGame);
         }
@@ -123,10 +119,10 @@ async fn run_menu() -> MenuAction {
         }
         ui::root_ui().pop_skin();
 
-        window::next_frame().await;
-
         if let Some(action) = action {
-            return action;
+            return Err(action);
         }
-    }
+        Ok(())
+    })
+    .await
 }

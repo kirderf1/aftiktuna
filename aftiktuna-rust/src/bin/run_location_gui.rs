@@ -25,5 +25,5 @@ async fn main() {
     let mut assets = macroquad_interface::load_assets().await;
 
     input::prevent_quit();
-    macroquad_interface::run(game, &mut assets, true).await;
+    macroquad_interface::run_game(game, &mut assets, true).await;
 }

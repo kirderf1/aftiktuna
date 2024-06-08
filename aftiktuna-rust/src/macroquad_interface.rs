@@ -22,9 +22,7 @@ mod tooltip;
 mod ui;
 
 pub mod error_view {
-    use std::process;
-
-    use egui_macroquad::macroquad::{color, input, text, window};
+    use egui_macroquad::macroquad::{color, text, window};
 
     const TEXT_SIZE: u16 = 24;
 
@@ -33,11 +31,7 @@ pub mod error_view {
             .into_iter()
             .flat_map(split_text_line)
             .collect::<Vec<_>>();
-        loop {
-            if input::is_quit_requested() {
-                process::exit(0);
-            }
-
+        super::run(|| {
             window::clear_background(color::BLACK);
 
             let mut y = 250.;
@@ -45,9 +39,9 @@ pub mod error_view {
                 super::draw_centered_text(message, y, TEXT_SIZE, color::PINK);
                 y += TEXT_SIZE as f32;
             }
-
-            window::next_frame().await;
-        }
+            Ok(())
+        })
+        .await
     }
 
     fn split_text_line(line: String) -> Vec<String> {
@@ -115,55 +109,40 @@ pub async fn load_assets() -> texture::RenderAssets {
     }
 }
 
-pub async fn run(game: Game, assets: &mut texture::RenderAssets, autosave: bool) {
-    let mut app = init(game);
+pub trait Interface<T> {
+    fn on_frame(&mut self) -> Result<(), T>;
 
-    loop {
-        if input::is_quit_requested() {
-            if autosave && !matches!(app.render_state.current_frame, Frame::Ending { .. }) {
-                if let Err(error) = serialization::write_game_to_save_file(&app.game) {
-                    eprintln!("Failed to save game: {error}");
-                } else {
-                    println!("Saved the game successfully.")
-                }
-            }
-            process::exit(0);
-        }
+    fn on_quit(&mut self) {}
+}
 
-        if matches!(app.render_state.current_frame, Frame::Ending { .. })
-            && (is_key_pressed(KeyCode::Enter) || is_mouse_button_released(MouseButton::Left))
-        {
-            return;
-        }
-
-        if is_key_pressed(KeyCode::Tab) {
-            app.show_graphical = !app.show_graphical;
-        }
-
-        if app.show_graphical {
-            if app.last_drag_pos.is_none() {
-                tooltip::handle_click(&mut app, &mut assets.models);
-            }
-            if app.command_tooltip.is_none() {
-                camera::try_drag_camera_for_state(&mut app.render_state, &mut app.last_drag_pos);
-            }
-        } else {
-            app.last_drag_pos = None;
-            app.command_tooltip = None;
-        }
-
-        app.update_frame_state();
-
-        render::draw(&mut app, assets);
-
-        window::next_frame().await;
+impl<T, F: FnMut() -> Result<(), T>> Interface<T> for F {
+    fn on_frame(&mut self) -> Result<(), T> {
+        self()
     }
 }
 
-fn init(game: Game) -> App {
-    App {
+pub async fn run<T>(mut interface: impl Interface<T>) -> T {
+    loop {
+        if input::is_quit_requested() {
+            interface.on_quit();
+            process::exit(0);
+        }
+
+        let result = interface.on_frame();
+
+        window::next_frame().await;
+
+        if let Err(value) = result {
+            return value;
+        }
+    }
+}
+
+pub async fn run_game(game: Game, assets: &mut texture::RenderAssets, autosave: bool) {
+    run(App {
         input: String::new(),
         game,
+        assets,
         last_frame_time: None,
         render_state: render::State::new(),
         last_drag_pos: None,
@@ -171,12 +150,15 @@ fn init(game: Game) -> App {
         show_graphical: true,
         request_input_focus: false,
         show_next_frame: true,
-    }
+        autosave,
+    })
+    .await
 }
 
-pub struct App {
+pub struct App<'a> {
     input: String,
     game: Game,
+    assets: &'a mut texture::RenderAssets,
     last_frame_time: Option<Instant>,
     render_state: render::State,
     last_drag_pos: Option<Vec2>,
@@ -184,11 +166,53 @@ pub struct App {
     show_graphical: bool,
     request_input_focus: bool,
     show_next_frame: bool,
+    autosave: bool,
+}
+
+impl Interface<()> for App<'_> {
+    fn on_frame(&mut self) -> Result<(), ()> {
+        if matches!(self.render_state.current_frame, Frame::Ending { .. })
+            && (is_key_pressed(KeyCode::Enter) || is_mouse_button_released(MouseButton::Left))
+        {
+            return Err(());
+        }
+
+        if is_key_pressed(KeyCode::Tab) {
+            self.show_graphical = !self.show_graphical;
+        }
+
+        if self.show_graphical {
+            if self.last_drag_pos.is_none() {
+                tooltip::handle_click(self);
+            }
+            if self.command_tooltip.is_none() {
+                camera::try_drag_camera_for_state(&mut self.render_state, &mut self.last_drag_pos);
+            }
+        } else {
+            self.last_drag_pos = None;
+            self.command_tooltip = None;
+        }
+
+        self.update_frame_state();
+
+        render::draw(self);
+        Ok(())
+    }
+
+    fn on_quit(&mut self) {
+        if self.autosave && !matches!(self.render_state.current_frame, Frame::Ending { .. }) {
+            if let Err(error) = serialization::write_game_to_save_file(&self.game) {
+                eprintln!("Failed to save game: {error}");
+            } else {
+                println!("Saved the game successfully.")
+            }
+        }
+    }
 }
 
 const DELAY: time::Duration = time::Duration::from_secs(2);
 
-impl App {
+impl App<'_> {
     fn update_frame_state(&mut self) {
         if self.show_graphical {
             self.show_next_frame |= is_key_pressed(KeyCode::Enter)
