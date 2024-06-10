@@ -1,5 +1,4 @@
-use crate::action;
-use crate::action::Context;
+use crate::action::{self, Context, Error};
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
@@ -82,7 +81,9 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
     if crew_size >= 2 {
-        return Err("There is not enough room for another crew member.".to_string());
+        return Err(Error::private(
+            "There is not enough room for another crew member.",
+        ));
     }
 
     let movement = position::prepare_move_adjacent(world, performer, target_pos)
@@ -177,7 +178,7 @@ pub(super) fn tell_to_wait_at_ship(
     let target_pos = *context.mut_world().get::<&Pos>(target).unwrap();
 
     if area::is_ship(target_pos.get_area(), context.mut_world()) {
-        return Err("They are already at the ship.".to_string());
+        return Err(Error::private("They are already at the ship."));
     }
 
     context.capture_frame_for_dialogue();

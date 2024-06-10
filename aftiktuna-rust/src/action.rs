@@ -122,9 +122,9 @@ fn perform(
                 view_buffer.messages.add(message);
             }
         }
-        Err(message) => {
-            if performer == controlled {
-                view_buffer.messages.add(message);
+        Err(error) => {
+            if error.visible || performer == controlled {
+                view_buffer.messages.add(error.message);
                 view_buffer.capture_view(state);
             }
         }
@@ -182,11 +182,11 @@ fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
     position::move_adjacent(world, performer, chest_pos)?;
 
     if world.get::<&FortunaChest>(chest).is_err() {
-        return Err(format!(
+        return Err(Error::visible(format!(
             "{} tried to open {}, but that is not the fortuna chest!",
             NameData::find(world, performer).definite(),
             NameData::find(world, chest).definite()
-        ));
+        )));
     }
 
     world.insert_one(performer, OpenedChest).unwrap();
@@ -196,7 +196,7 @@ fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
     ))
 }
 
-type Result = result::Result<Success, String>;
+type Result = result::Result<Success, Error>;
 
 pub struct Success {
     message: Option<String>,
@@ -222,4 +222,31 @@ fn silent_ok() -> Result {
         message: None,
         areas: None,
     })
+}
+
+pub struct Error {
+    message: String,
+    visible: bool,
+}
+
+impl Error {
+    fn private(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            visible: false,
+        }
+    }
+
+    fn visible(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+            visible: true,
+        }
+    }
+}
+
+impl<T: Into<String>> From<T> for Error {
+    fn from(value: T) -> Self {
+        Self::private(value)
+    }
 }

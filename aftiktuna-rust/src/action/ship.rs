@@ -1,10 +1,9 @@
-use crate::action;
-use crate::action::CrewMember;
+use crate::action::{self, Error};
 use crate::core::area::{FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::name::{NameData, NameQuery};
-use crate::core::position::Pos;
-use crate::core::{inventory, position};
+use crate::core::position::{self, Pos};
+use crate::core::{inventory, CrewMember};
 use crate::game_loop::GameState;
 use hecs::{Entity, World};
 
@@ -25,9 +24,9 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
             RefuelResult::Complete => (ShipStatus::Refueled, format!("{name} refueled the ship.")),
         },
         ShipStatus::Refueled => {
-            return Err(format!(
-                "{name} is unable to refuel the ship as it is already refueled."
-            ))
+            return Err(Error::visible(format!(
+                "{name} goes to refuel the ship, but sees that it is already refueled."
+            )))
         }
         ShipStatus::Launching => return action::silent_ok(),
     };
@@ -42,7 +41,9 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
 
 pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
     if state.generation_state.is_at_fortuna() {
-        return Err("You can't leave fortuna yet!".to_string());
+        return Err(Error::private(
+            "The crew won't leave until they find the treasure here.",
+        ));
     }
 
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();

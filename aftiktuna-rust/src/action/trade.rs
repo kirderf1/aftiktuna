@@ -1,11 +1,10 @@
-use crate::action;
-use crate::action::CrewMember;
+use crate::action::{self, Error};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{FuelCan, Price};
 use crate::core::name::{self, NameData};
-use crate::core::position::Pos;
-use crate::core::{item, position, IsTrading, Points, Shopkeeper, StoreStock};
+use crate::core::position::{self, Pos};
+use crate::core::{item, CrewMember, IsTrading, Points, Shopkeeper, StoreStock};
 use hecs::{Entity, EntityRef, Ref, World};
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
@@ -108,7 +107,7 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
     let performer_name = NameData::find(world, performer).definite();
 
     if is_selling_fuel && !check_has_fuel_reserve(world, &items) {
-        return Err(format!("{performer_name} does not want to sell their fuel can, since they need it to refuel their ship."));
+        return Err(Error::private(format!("{performer_name} does not want to sell their fuel can, since they need it to refuel their ship.")));
     }
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;

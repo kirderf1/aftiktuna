@@ -1,4 +1,4 @@
-use crate::action;
+use crate::action::{self, Error};
 use crate::core::name::NameData;
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats};
@@ -63,18 +63,14 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     if !status::is_alive(target, world) {
         return action::silent_ok();
     }
-    let target_pos = *world.get::<&Pos>(target).map_err(|_| {
-        format!(
-            "{} disappeared before {} could attack.",
-            target_name, attacker_name
-        )
-    })?;
+    let target_pos = *world
+        .get::<&Pos>(target)
+        .map_err(|_| format!("{target_name} disappeared before {attacker_name} could attack.",))?;
 
     if attacker_pos.get_area() != target_pos.get_area() {
-        return Err(format!(
-            "{} left before {} could attack.",
-            target_name, attacker_name
-        ));
+        return Err(Error::private(format!(
+            "{target_name} left before {attacker_name} could attack."
+        )));
     }
 
     core::trigger_aggression_in_area(world, attacker_pos.get_area());

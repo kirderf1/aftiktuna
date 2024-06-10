@@ -1,11 +1,12 @@
-use crate::action::{Context, CrewMember};
+use crate::action::{self, Context, Error};
 use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::name::NameData;
-use crate::core::position::Pos;
-use crate::core::{area, inventory, position, BlockType, Door, DoorKind, IsCut, RepeatingAction};
+use crate::core::position::{self, Pos};
+use crate::core::{
+    self, area, inventory, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction,
+};
 use crate::game_loop::GameState;
-use crate::{action, core};
 use hecs::{Entity, World};
 use std::collections::HashSet;
 use std::ops::Deref;
@@ -38,18 +39,20 @@ fn check_tool_for_forcing(
     }
 }
 
-pub(super) fn enter_door(state: &mut GameState, aftik: Entity, door: Entity) -> action::Result {
+pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity) -> action::Result {
     let world = &mut state.world;
-    let aftik_name = NameData::find(world, aftik).definite();
+    let performer_name = NameData::find(world, performer).definite();
     let door_pos = *world
         .get::<&Pos>(door)
         .ok()
-        .ok_or_else(|| format!("{aftik_name} lost track of the door."))?;
-    if Ok(door_pos.get_area()) != world.get::<&Pos>(aftik).map(|pos| pos.get_area()) {
-        return Err(format!("{aftik_name} cannot reach the door from here."));
+        .ok_or_else(|| format!("{performer_name} lost track of the door."))?;
+    if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
+        return Err(Error::private(format!(
+            "{performer_name} cannot reach the door from here."
+        )));
     }
 
-    position::move_to(world, aftik, door_pos)?;
+    position::move_to(world, performer, door_pos)?;
 
     let door_data = world
         .get::<&Door>(door)
@@ -60,28 +63,31 @@ pub(super) fn enter_door(state: &mut GameState, aftik: Entity, door: Entity) -> 
         .get::<&BlockType>(door_data.door_pair)
         .map(|block_type| *block_type)
     {
-        if block_type == BlockType::Locked && inventory::is_holding::<&Keycard>(world, aftik) {
+        if block_type == BlockType::Locked && inventory::is_holding::<&Keycard>(world, performer) {
             true
         } else {
-            on_door_failure(state, aftik, door, block_type);
-            return Err(format!("The door is {}.", block_type.description()));
+            on_door_failure(state, performer, door, block_type);
+            return Err(Error::visible(format!(
+                "{performer_name} is unable to enter the door as it is {}.",
+                block_type.description()
+            )));
         }
     } else {
         false
     };
 
-    world.insert_one(aftik, door_data.destination).unwrap();
+    world.insert_one(performer, door_data.destination).unwrap();
     let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
     if used_keycard {
         action::ok_at(
             format!(
                 "Using their keycard, {}",
-                move_message(door_data.kind, &aftik_name),
+                move_message(door_data.kind, &performer_name),
             ),
             areas,
         )
     } else {
-        action::ok_at(move_message(door_data.kind, &aftik_name), areas)
+        action::ok_at(move_message(door_data.kind, &performer_name), areas)
     }
 }
 
@@ -98,8 +104,15 @@ pub(super) fn force_door(
         .ok()
         .ok_or_else(|| format!("{performer_name} lost track of the door."))?;
     if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
-        return Err(format!("{performer_name} cannot reach the door from here."));
+        return Err(Error::private(format!(
+            "{performer_name} cannot reach the door from here."
+        )));
     }
+
+    let door_pair = world
+        .get::<&Door>(door)
+        .map_err(|_| "The door ceased being a door.")?
+        .door_pair;
 
     let movement = position::prepare_move(world, performer, door_pos)
         .map_err(|blockage| blockage.into_message(world))?;
@@ -110,19 +123,16 @@ pub(super) fn force_door(
     }
     let world = context.mut_world();
 
-    let door_pair = world
-        .get::<&Door>(door)
-        .map_err(|_| "The door ceased being a door.".to_string())?
-        .door_pair;
-
-    let block_type = *world
-        .get::<&BlockType>(door_pair)
-        .map_err(|_| "The door does not seem to be stuck.".to_string())?;
+    let block_type = *world.get::<&BlockType>(door_pair).map_err(|_| {
+        Error::visible(format!(
+            "{performer_name} inspects the door, but it does not appear to be stuck."
+        ))
+    })?;
 
     match check_tool_for_forcing(block_type, world, performer, &performer_name) {
         Err(message) => {
             on_door_failure(context.state, performer, door, block_type);
-            Err(message)
+            Err(Error::visible(message))
         }
         Ok(tool) => {
             world.remove_one::<BlockType>(door_pair).unwrap();

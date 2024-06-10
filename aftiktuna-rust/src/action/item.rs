@@ -1,4 +1,4 @@
-use crate::action;
+use crate::action::{self, Error};
 use crate::core::inventory::Held;
 use crate::core::item::{Item, Medkit};
 use crate::core::name::{NameData, NameQuery};
@@ -72,9 +72,9 @@ pub(super) fn give_item(
         .filter(|in_inv| in_inv.held_by(performer))
         .is_none()
     {
-        return Err(format!(
+        return Err(Error::private(format!(
             "{performer_name} lost track of the item they were going to give."
-        ));
+        )));
     }
 
     let performer_pos = *world
@@ -85,15 +85,15 @@ pub(super) fn give_item(
     })?;
 
     if !performer_pos.is_in(receiver_pos.get_area()) {
-        return Err(format!(
+        return Err(Error::private(format!(
             "{receiver_name} left before {performer_name} could interact with them.",
-        ));
+        )));
     }
 
     if !status::is_alive(receiver, world) {
-        return Err(format!(
+        return Err(Error::private(format!(
             "{receiver_name} died before they could be given an item."
-        ));
+        )));
     }
 
     let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
@@ -164,10 +164,10 @@ pub fn use_medkit(world: &mut World, performer: Entity, item: Entity) -> action:
         .ok_or_else(|| "The medkit is missing.".to_string())?;
 
     if !world.get::<&Health>(performer).unwrap().is_hurt() {
-        return Err(format!(
+        return Err(Error::private(format!(
             "{} no longer needs to use a medkit.",
             NameData::find(world, performer).definite()
-        ));
+        )));
     }
 
     world
