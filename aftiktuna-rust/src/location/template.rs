@@ -9,7 +9,7 @@ use rand::distributions::WeightedIndex;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
 use std::fs::File;
 
 #[derive(Serialize, Deserialize)]
@@ -112,7 +112,7 @@ enum SymbolData {
         item: item::Type,
     },
     Loot {
-        table: LootTable,
+        table: LootTableId,
     },
     Door {
         pair_id: String,
@@ -160,7 +160,7 @@ impl SymbolData {
             SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
             SymbolData::Item { item } => item.spawn(builder.world, pos),
             SymbolData::Loot { table } => {
-                let item = table.random_loot(rng);
+                let item = builder.loot_table(table)?.pick_loot_item(rng);
                 item.spawn(builder.world, pos);
             }
             SymbolData::Door {
@@ -210,6 +210,7 @@ struct Builder<'a> {
     world: &'a mut World,
     entry_positions: Vec<Pos>,
     doors: HashMap<String, DoorStatus<'a>>,
+    loaded_loot_tables: HashMap<LootTableId, LootTable>,
 }
 
 impl<'a> Builder<'a> {
@@ -221,6 +222,7 @@ impl<'a> Builder<'a> {
                 .iter()
                 .map(|(key, data)| (key.to_string(), DoorStatus::None(data)))
                 .collect(),
+            loaded_loot_tables: HashMap::new(),
         }
     }
 
@@ -233,6 +235,16 @@ impl<'a> Builder<'a> {
 
     fn add_entry_pos(&mut self, pos: Pos) {
         self.entry_positions.push(pos);
+    }
+
+    fn loot_table(&mut self, loot_table_id: &LootTableId) -> Result<&LootTable, String> {
+        match self.loaded_loot_tables.entry(loot_table_id.clone()) {
+            HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
+            HashMapEntry::Vacant(entry) => {
+                let loot_table = LootTable::load(loot_table_id)?;
+                Ok(entry.insert(loot_table))
+            }
+        }
     }
 }
 
@@ -301,46 +313,32 @@ fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     ));
 }
 
-macro_rules! unzip {
-    ($($item:expr, $weight:expr);* $(;)?) => {
-        ([$($item),*], [$($weight),*])
-    }
+#[derive(Debug, Deserialize)]
+struct LootEntry {
+    item: item::Type,
+    weight: u16,
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum LootTable {
-    Regular,
-    Valuable,
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+struct LootTableId(String);
+
+struct LootTable {
+    entries: Vec<LootEntry>,
+    index_distribution: WeightedIndex<u16>,
 }
 
 impl LootTable {
-    fn random_loot(self, rng: &mut impl Rng) -> item::Type {
-        match self {
-            LootTable::Regular => {
-                let (items, weights) = unzip!(
-                    item::Type::FoodRation, 20;
-                    item::Type::Crowbar, 2;
-                    item::Type::Knife, 7;
-                    item::Type::Bat, 4;
-                    item::Type::MeteorChunk, 2;
-                    item::Type::AncientCoin, 10;
-                );
-                let index_distribution = WeightedIndex::new(weights).unwrap();
-                items[rng.sample(index_distribution)]
-            }
-            LootTable::Valuable => {
-                let (items, weights) = unzip!(
-                    item::Type::Crowbar, 5;
-                    item::Type::Blowtorch, 3;
-                    item::Type::Bat, 5;
-                    item::Type::Sword, 2;
-                    item::Type::Medkit, 4;
-                    item::Type::MeteorChunk, 8;
-                );
-                let index_distribution = WeightedIndex::new(weights).unwrap();
-                items[rng.sample(index_distribution)]
-            }
-        }
+    fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
+        let entries: Vec<LootEntry> = crate::load_json_simple(format!("loot_table/{name}.json"))?;
+        let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
+            .map_err(|error| error.to_string())?;
+        Ok(Self {
+            entries,
+            index_distribution,
+        })
+    }
+
+    fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
+        self.entries[rng.sample(&self.index_distribution)].item
     }
 }
