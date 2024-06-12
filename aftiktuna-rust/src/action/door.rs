@@ -2,7 +2,7 @@ use crate::action::{self, Context, Error};
 use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::name::NameData;
-use crate::core::position::{self, Pos};
+use crate::core::position::{self, Direction, Pos};
 use crate::core::{
     self, area, inventory, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction,
 };
@@ -76,6 +76,14 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
         false
     };
 
+    if let Err(blockage) = position::check_is_pos_blocked(door_data.destination, world) {
+        blockage
+            .try_push(
+                Direction::towards_center(door_data.destination, world),
+                world,
+            )
+            .map_err(|_| blockage.into_message(world))?;
+    }
     world.insert_one(performer, door_data.destination).unwrap();
     let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
     if used_keycard {

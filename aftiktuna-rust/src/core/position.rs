@@ -222,12 +222,9 @@ pub fn push_and_move(world: &mut World, entity: Entity, destination: Pos) -> Res
     position.assert_is_in_same_area(destination);
 
     if let Err(blockage) = check_is_blocked(world, entity_ref, position, destination) {
-        if blockage
+        blockage
             .try_push(Direction::between(position, destination), world)
-            .is_err()
-        {
-            return Err(blockage.into_message(world));
-        }
+            .map_err(|_| blockage.into_message(world))?;
     }
 
     Movement::init(entity, position, destination)
@@ -264,7 +261,7 @@ impl Blockage {
         }
     }
 
-    fn try_push(self, direction: Direction, world: &mut World) -> Result<(), ()> {
+    pub fn try_push(self, direction: Direction, world: &mut World) -> Result<(), ()> {
         let Blockage::TakesSpace(entities) = self else {
             return Err(());
         };
@@ -310,6 +307,10 @@ pub fn check_is_blocked(
         }
     }
 
+    check_is_pos_blocked(target_pos, world)
+}
+
+pub fn check_is_pos_blocked(target_pos: Pos, world: &World) -> Result<(), Blockage> {
     let entities_at_target = world
         .query::<&Pos>()
         .with::<&OccupiesSpace>()
