@@ -177,6 +177,7 @@ pub fn remove_random_profile(
     rng: &mut impl Rng,
 ) -> Option<AftikProfile> {
     if character_profiles.is_empty() {
+        eprintln!("Tried picking a random profile, but there were none left to choose.");
         return None;
     }
     let chosen_index = rng.gen_range(0..character_profiles.len());
