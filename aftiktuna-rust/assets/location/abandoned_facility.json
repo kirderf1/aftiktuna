@@ -34,7 +34,7 @@
     {
       "name": "Entrance hall",
       "background": "facility_size7",
-      "objects": [ "?", "<", "", "^", "", ">", "" ],
+      "objects": [ "#", "<", "", "^", "", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -53,6 +53,14 @@
           "pair_id": "entrance",
           "display_type": "door",
           "adjective": "right"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ],
+          "direction": "left"
         }
       }
     },
@@ -109,12 +117,20 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "", "?", "", "^" ],
+      "objects": [ "", "I", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "room1",
           "display_type": "door"
+        },
+        "I": {
+          "type": "container",
+          "container_type": "cabinet",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ],
+          "direction": "left"
         }
       }
     },
@@ -133,24 +149,38 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "E", "", "f!" ],
+      "objects": [ "^", "E", "E", "f=" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "room3",
           "display_type": "door"
+        },
+        "=": {
+          "type": "container",
+          "container_type": "drawer",
+          "content": [
+            { "type": "loot", "table": "valuable" }
+          ]
         }
       }
     },
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "ff", "F", "^", "!" ],
+      "objects": [ "ff", "F", "^", "#" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "sealed",
           "display_type": "door"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "loot", "table": "valuable" }
+          ]
         }
       }
     }

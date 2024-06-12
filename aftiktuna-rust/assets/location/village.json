@@ -69,7 +69,7 @@
     {
       "name": "House",
       "background": "shack",
-      "objects": [ "A", "", "^", "" ],
+      "objects": [ "A", "", "^", "#" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -78,6 +78,11 @@
         },
         "A": {
           "type": "recruitable"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": []
         }
       }
     },
@@ -106,24 +111,40 @@
     {
       "name": "House",
       "background": "shack",
-      "objects": [ "^", "", "?", "a" ],
+      "objects": [ "^", "", "#", "" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "stuck_house",
           "display_type": "door"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "item", "item": "ancient_coin" },
+            { "type": "loot", "table": "regular" }
+          ]
         }
       }
     },
     {
       "name": "Shack",
       "background": "shack",
-      "objects": [ "^", "", "?", "!" ],
+      "objects": [ "^", "", "¤", "" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "shack",
           "display_type": "door"
+        },
+        "¤": {
+          "type": "container",
+          "container_type": "chest",
+          "content": [
+            { "type": "loot", "table": "regular" },
+            { "type": "loot", "table": "valuable" }
+          ]
         }
       }
     }

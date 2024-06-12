@@ -11,7 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - New data file `character_profiles.json`, used for randomly-selected characters
 - New aftik colors and character profiles
-- Containers that can be searched for items (types include: tents)
+- Containers that can be searched for items (types include: tents, cabinets, drawers, crates, chests)
 
 ### Changed
 
@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Loot tables are no longer hardcoded, and can be defined in `assets/loot_table/`
 - Characters may now push crew members that are in the way for certain actions
 - The tent in the eyesaur forest is now a searchable container
+- Containers have been added in a lot of places in most locations
 
 ### Fixed
 

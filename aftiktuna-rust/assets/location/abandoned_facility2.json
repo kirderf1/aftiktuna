@@ -39,7 +39,7 @@
     {
       "name": "Entrance hall",
       "background": "facility_size6",
-      "objects": [ "<", "E", "", "^", "?", ">" ],
+      "objects": [ "<", "E", "", "^", "=", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -58,13 +58,20 @@
           "pair_id": "room1",
           "display_type": "door",
           "adjective": "right"
+        },
+        "=": {
+          "type": "container",
+          "container_type": "drawer",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ]
         }
       }
     },
     {
       "name": "Corridor",
       "background": "facility_size6",
-      "objects": [ "<", "E", "?", "^", "", ">" ],
+      "objects": [ "<", "E", "=", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -83,6 +90,13 @@
           "pair_id": "room2",
           "display_type": "door",
           "adjective": "right"
+        },
+        "=": {
+          "type": "container",
+          "container_type": "drawer",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ]
         }
       }
     },
@@ -126,19 +140,26 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "", "?", "" ],
+      "objects": [ "^", "", "I", "" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "room2",
           "display_type": "door"
+        },
+        "I": {
+          "type": "container",
+          "container_type": "cabinet",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ]
         }
       }
     },
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "<", "G", "ff", ">" ],
+      "objects": [ "<", "G", "#", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -151,18 +172,41 @@
           "pair_id": "storage",
           "display_type": "door",
           "adjective": "right"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "chest",
+          "content": [
+            { "type": "item", "item": "fuel_can" },
+            { "type": "item", "item": "fuel_can" }
+          ]
         }
       }
     },
     {
       "name": "Storage Room",
       "background": "facility_size3",
-      "objects": [ "^", "?", "f!" ],
+      "objects": [ "^", "#", "¤" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "storage",
           "display_type": "door"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ]
+        },
+        "¤": {
+          "type": "container",
+          "container_type": "chest",
+          "content": [
+            { "type": "item", "item": "fuel_can" },
+            { "type": "loot", "table": "valuable" }
+          ]
         }
       }
     }

@@ -67,7 +67,7 @@
     {
       "name": "Shack",
       "background": "shack",
-      "objects": [ "?f", "fE", "", "^" ],
+      "objects": [ "¤f", "fE", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -79,6 +79,13 @@
           "creature": "eyesaur",
           "attribute": "bulky",
           "aggressive": true
+        },
+        "¤": {
+          "type": "container",
+          "container_type": "chest",
+          "content": [
+            { "type": "loot", "table": "regular" }
+          ]
         }
       }
     },
@@ -125,7 +132,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 0,
-      "objects": [ "<", "!", "G", "G", "", ">" ],
+      "objects": [ "<", "#", "G", "G", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -138,6 +145,13 @@
           "pair_id": "path4",
           "display_type": "path",
           "adjective": "right"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "loot", "table": "valuable" }
+          ]
         }
       }
     },

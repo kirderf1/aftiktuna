@@ -354,18 +354,30 @@ impl LootTable {
 #[serde(rename_all = "snake_case")]
 enum ContainerType {
     Tent,
+    Cabinet,
+    Drawer,
+    Crate,
+    Chest,
 }
 
 impl ContainerType {
     fn model_id(self) -> ModelId {
         ModelId::new(match self {
             ContainerType::Tent => "tent",
+            ContainerType::Cabinet => "cabinet",
+            ContainerType::Drawer => "drawer",
+            ContainerType::Crate => "crate",
+            ContainerType::Chest => "chest",
         })
     }
 
     fn noun(self) -> Noun {
         match self {
             ContainerType::Tent => Noun::new("tent", "tents"),
+            ContainerType::Cabinet => Noun::new("cabinet", "cabinets"),
+            ContainerType::Drawer => Noun::new("drawer", "drawers"),
+            ContainerType::Crate => Noun::new("crate", "crates"),
+            ContainerType::Chest => Noun::new("chest", "chests"),
         }
     }
 }
