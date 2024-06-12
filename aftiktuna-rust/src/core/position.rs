@@ -189,14 +189,28 @@ pub fn prepare_move_adjacent(
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub struct OccupiesSpace;
 
-pub struct Blockage(Entity);
+pub enum Blockage {
+    Hostile(Entity),
+    TakesSpace([Entity; 2]),
+}
 
 impl Blockage {
     pub fn into_message(self, world: &World) -> String {
-        format!(
-            "{} is in the way.",
-            NameData::find(world, self.0).definite()
-        )
+        match self {
+            Blockage::Hostile(entity) => {
+                format!(
+                    "{} is in the way.",
+                    NameData::find(world, entity).definite(),
+                )
+            }
+            Blockage::TakesSpace([entity1, entity2]) => {
+                format!(
+                    "{} and {} are in the way.",
+                    NameData::find(world, entity1).definite(),
+                    NameData::find(world, entity2).definite(),
+                )
+            }
+        }
     }
 }
 
@@ -216,7 +230,7 @@ pub fn check_is_blocked(
         if let Some(entity) =
             find_blocking_hostile_in_range(world, entity_pos.get_area(), min..=max)
         {
-            return Err(Blockage(entity));
+            return Err(Blockage::Hostile(entity));
         }
     }
 
@@ -228,7 +242,10 @@ pub fn check_is_blocked(
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     if entities_at_target.len() >= 2 {
-        return Err(Blockage(entities_at_target[0]));
+        return Err(Blockage::TakesSpace([
+            entities_at_target[0],
+            entities_at_target[1],
+        ]));
     }
 
     Ok(())
