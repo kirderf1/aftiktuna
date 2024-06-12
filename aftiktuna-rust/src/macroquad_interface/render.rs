@@ -131,7 +131,9 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
 }
 
 fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
-    for (pos, data) in camera::position_objects(&render_data.objects, &mut assets.models) {
+    let mut positioned_objects = camera::position_objects(&render_data.objects, &mut assets.models);
+    positioned_objects.sort_by(|(pos1, _), (pos2, _)| pos1.y.total_cmp(&pos2.y));
+    for (pos, data) in positioned_objects {
         texture::draw_object(&data.model_id, &data.properties, false, pos, assets);
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
