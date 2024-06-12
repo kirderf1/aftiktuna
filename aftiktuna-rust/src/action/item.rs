@@ -42,7 +42,7 @@ pub fn take_item(
         .get::<&Pos>(item)
         .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
 
-    position::move_to(world, performer, item_pos)?;
+    position::push_and_move(world, performer, item_pos)?;
     world
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
@@ -137,7 +137,7 @@ pub fn wield(
         let item_pos = *world
             .get::<&Pos>(item)
             .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
-        position::move_to(world, performer, item_pos)?;
+        position::push_and_move(world, performer, item_pos)?;
 
         inventory::unwield_if_needed(world, performer);
         world

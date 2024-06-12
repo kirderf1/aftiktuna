@@ -77,7 +77,7 @@ fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
 }
 
 fn talk_to(state: &GameState, target: Entity) -> Result<CommandResult, String> {
-    super::check_adjacent_accessible_with_message(&state.world, state.controlled, target)?;
+    super::check_adjacent_accessible_with_message(target, state.controlled, &state.world)?;
 
     command::action_result(Action::TalkTo(target))
 }
@@ -95,7 +95,7 @@ fn recruit_targets(state: &GameState) -> Vec<(String, Entity)> {
 }
 
 fn recruit(state: &GameState, target: Entity) -> Result<CommandResult, String> {
-    super::check_adjacent_accessible_with_message(&state.world, state.controlled, target)?;
+    super::check_adjacent_accessible_with_message(target, state.controlled, &state.world)?;
 
     command::action_result(Action::Recruit(target))
 }

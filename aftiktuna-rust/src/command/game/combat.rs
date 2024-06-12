@@ -80,9 +80,9 @@ fn attack(targets: Vec<Entity>, state: &GameState) -> Result<CommandResult, Stri
         .map(|&entity| {
             (
                 super::check_adjacent_accessible_with_message(
-                    &state.world,
-                    state.controlled,
                     entity,
+                    state.controlled,
+                    &state.world,
                 ),
                 *state.world.get::<&Pos>(entity).unwrap(),
             )

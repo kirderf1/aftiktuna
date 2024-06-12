@@ -17,8 +17,18 @@ pub struct Pos {
 
 impl Pos {
     pub fn new(area: Entity, coord: Coord, world: &World) -> Pos {
-        assert_valid_coord(area, coord, world);
-        Pos { coord, area }
+        Pos::try_new(area, coord, world).unwrap()
+    }
+
+    pub fn try_new(area: Entity, coord: Coord, world: &World) -> Result<Pos, PosError> {
+        let area_size = world
+            .get::<&Area>(area)
+            .map_err(|_| PosError::InvalidArea)?
+            .size;
+        if coord >= area_size {
+            return Err(PosError::OutOfBounds { coord, area_size });
+        }
+        Ok(Pos { coord, area })
     }
 
     pub fn center_of(area: Entity, world: &World) -> Pos {
@@ -32,6 +42,14 @@ impl Pos {
 
     pub fn get_area(&self) -> Entity {
         self.area
+    }
+
+    pub fn assert_is_in_same_area(self, pos: Pos) {
+        assert_eq!(
+            self.get_area(),
+            pos.get_area(),
+            "These positions must be in the same area."
+        )
     }
 
     pub fn get_adjacent_towards(&self, pos: Pos) -> Pos {
@@ -53,6 +71,21 @@ impl Pos {
         }
     }
 
+    pub fn try_offset_direction(self, direction: Direction, world: &World) -> Option<Pos> {
+        self.try_offset(
+            match direction {
+                Direction::Left => -1,
+                Direction::Right => 1,
+            },
+            world,
+        )
+    }
+
+    pub fn try_offset(self, offset: isize, world: &World) -> Option<Pos> {
+        let coord = self.coord.checked_add_signed(offset)?;
+        Pos::try_new(self.area, coord, world).ok()
+    }
+
     pub fn is_in(&self, area: Entity) -> bool {
         self.get_area().eq(&area)
     }
@@ -66,15 +99,10 @@ impl Pos {
     }
 }
 
-fn assert_valid_coord(area: Entity, coord: Coord, world: &World) {
-    let area_size = world
-        .get::<&Area>(area)
-        .expect("Expected given area to have an area component")
-        .size;
-    assert!(
-        coord < area_size,
-        "Position {coord} is out of bounds for area with size {area_size}.",
-    );
+#[derive(Debug)]
+pub enum PosError {
+    InvalidArea,
+    OutOfBounds { coord: Coord, area_size: Coord },
 }
 
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -98,6 +126,13 @@ impl Direction {
         let center = Pos::center_of(pos.get_area(), world);
         Direction::between(pos, center)
     }
+
+    pub fn opposite(self) -> Direction {
+        match self {
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
+        }
+    }
 }
 
 pub struct Movement {
@@ -111,6 +146,14 @@ impl Movement {
             world.insert(self.entity, components)
         } else {
             Ok(())
+        }
+    }
+
+    fn init(entity: Entity, from: Pos, to: Pos) -> Self {
+        if from == to {
+            Self::none(entity)
+        } else {
+            Self::some(entity, to, Direction::between(from, to))
         }
     }
 
@@ -144,23 +187,13 @@ pub fn move_adjacent(world: &mut World, entity: Entity, target: Pos) -> Result<(
 }
 
 pub fn prepare_move(world: &World, entity: Entity, destination: Pos) -> Result<Movement, Blockage> {
-    let position = *world.get::<&Pos>(entity).unwrap();
-    assert_eq!(
-        position.get_area(),
-        destination.get_area(),
-        "Areas should be equal when called."
-    );
-    check_is_blocked(world, world.entity(entity).unwrap(), position, destination)?;
+    let entity_ref = world.entity(entity).unwrap();
+    let position = *entity_ref.get::<&Pos>().unwrap();
+    position.assert_is_in_same_area(destination);
 
-    Ok(if position == destination {
-        Movement::none(entity)
-    } else {
-        Movement::some(
-            entity,
-            destination,
-            Direction::between(position, destination),
-        )
-    })
+    check_is_blocked(world, entity_ref, position, destination)?;
+
+    Ok(Movement::init(entity, position, destination))
 }
 
 pub fn prepare_move_adjacent(
@@ -168,15 +201,12 @@ pub fn prepare_move_adjacent(
     entity: Entity,
     target: Pos,
 ) -> Result<Movement, Blockage> {
-    let position = *world.get::<&Pos>(entity).unwrap();
+    let entity_ref = world.entity(entity).unwrap();
+    let position = *entity_ref.get::<&Pos>().unwrap();
+    position.assert_is_in_same_area(target);
     let move_target = target.get_adjacent_towards(position);
 
-    assert_eq!(
-        position.get_area(),
-        move_target.get_area(),
-        "Areas should be equal when called."
-    );
-    check_is_blocked(world, world.entity(entity).unwrap(), position, move_target)?;
+    check_is_blocked(world, entity_ref, position, move_target)?;
 
     Ok(if position != target {
         let direction = Direction::between(position, target);
@@ -186,9 +216,30 @@ pub fn prepare_move_adjacent(
     })
 }
 
+pub fn push_and_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
+    let entity_ref = world.entity(entity).unwrap();
+    let position = *entity_ref.get::<&Pos>().unwrap();
+    position.assert_is_in_same_area(destination);
+
+    if let Err(blockage) = check_is_blocked(world, entity_ref, position, destination) {
+        if blockage
+            .try_push(Direction::between(position, destination), world)
+            .is_err()
+        {
+            return Err(blockage.into_message(world));
+        }
+    }
+
+    Movement::init(entity, position, destination)
+        .perform(world)
+        .unwrap();
+    Ok(())
+}
+
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub struct OccupiesSpace;
 
+#[derive(Debug, Clone, Copy)]
 pub enum Blockage {
     Hostile(Entity),
     TakesSpace([Entity; 2]),
@@ -211,6 +262,31 @@ impl Blockage {
                 )
             }
         }
+    }
+
+    fn try_push(self, direction: Direction, world: &mut World) -> Result<(), ()> {
+        let Blockage::TakesSpace(entities) = self else {
+            return Err(());
+        };
+        let entity = entities
+            .into_iter()
+            .find(|&entity| world.satisfies::<&CrewMember>(entity).unwrap_or(false))
+            .ok_or(())?;
+        let pos = world
+            .get::<&Pos>(entity)
+            .as_deref()
+            .copied()
+            .map_err(|_| ())?;
+        for direction in [direction, direction.opposite()] {
+            let Some(offset_pos) = pos.try_offset_direction(direction, world) else {
+                continue;
+            };
+            if let Ok(movement) = prepare_move(world, entity, offset_pos) {
+                movement.perform(world).unwrap();
+                return Ok(());
+            }
+        }
+        Err(())
     }
 }
 

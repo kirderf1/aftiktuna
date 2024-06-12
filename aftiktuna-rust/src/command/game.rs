@@ -103,7 +103,7 @@ fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
         .map(|(door, _)| door)
         .ok_or_else(|| "There is no such door or path here to go through.".to_string())?;
 
-    check_accessible_with_message(world, character, door)?;
+    check_accessible_with_message(door, character, true, world)?;
 
     command::crew_action(Action::EnterDoor(door))
 }
@@ -118,7 +118,7 @@ fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandRes
         .map(|(door, _)| door)
         .ok_or_else(|| "There is no such door here.".to_string())?;
 
-    check_accessible_with_message(world, character, door)?;
+    check_accessible_with_message(door, character, false, world)?;
 
     command::action_result(Action::ForceDoor(door, false))
 }
@@ -221,7 +221,7 @@ fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
         .next()
         .ok_or_else(|| "There is no shopkeeper to trade with here.".to_string())?;
 
-    check_adjacent_accessible_with_message(world, character, shopkeeper)?;
+    check_adjacent_accessible_with_message(shopkeeper, character, world)?;
 
     command::action_result(Action::Trade(shopkeeper))
 }
@@ -238,7 +238,7 @@ fn fortuna_chest_targets(world: &World, character: Entity) -> Vec<(String, Entit
 }
 
 fn open(world: &World, character: Entity, chest: Entity) -> Result<CommandResult, String> {
-    check_adjacent_accessible_with_message(world, character, chest)?;
+    check_adjacent_accessible_with_message(chest, character, world)?;
 
     command::action_result(Action::OpenChest(chest))
 }
@@ -299,24 +299,30 @@ impl From<Blockage> for Inaccessible {
 }
 
 fn check_accessible_with_message(
-    world: &World,
-    character: Entity,
     target: Entity,
+    character: Entity,
+    can_push: bool,
+    world: &World,
 ) -> Result<(), String> {
-    check_accessible(world, character, target)
+    check_accessible(target, character, can_push, world)
         .map_err(|inaccessible| inaccessible.into_message(world, character, target))
 }
 
 fn check_adjacent_accessible_with_message(
-    world: &World,
-    character: Entity,
     target: Entity,
+    character: Entity,
+    world: &World,
 ) -> Result<(), String> {
-    check_adjacent_accessible(world, character, target)
+    check_adjacent_accessible(target, character, world)
         .map_err(|inaccessible| inaccessible.into_message(world, character, target))
 }
 
-fn check_accessible(world: &World, character: Entity, target: Entity) -> Result<(), Inaccessible> {
+fn check_accessible(
+    target: Entity,
+    character: Entity,
+    can_push: bool,
+    world: &World,
+) -> Result<(), Inaccessible> {
     let character_pos = *world
         .get::<&Pos>(character)
         .map_err(|_| Inaccessible::NotHere)?;
@@ -327,20 +333,24 @@ fn check_accessible(world: &World, character: Entity, target: Entity) -> Result<
     if !character_pos.is_in(target_pos.get_area()) {
         return Err(Inaccessible::NotHere);
     }
-    position::check_is_blocked(
+    if let Err(blockage) = position::check_is_blocked(
         world,
         world.entity(character).unwrap(),
         character_pos,
         target_pos,
-    )?;
+    ) {
+        if !can_push || !matches!(blockage, Blockage::TakesSpace(_)) {
+            return Err(Inaccessible::Blocked(blockage));
+        }
+    }
 
     Ok(())
 }
 
 fn check_adjacent_accessible(
-    world: &World,
-    character: Entity,
     target: Entity,
+    character: Entity,
+    world: &World,
 ) -> Result<(), Inaccessible> {
     let character_pos = *world
         .get::<&Pos>(character)

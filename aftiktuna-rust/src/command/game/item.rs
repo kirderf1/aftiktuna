@@ -71,7 +71,7 @@ fn take(item_name: &str, state: &GameState) -> Result<CommandResult, String> {
         .map(|(item, _, name)| (item, name))
         .ok_or_else(|| format!("There is no {item_name} here to pick up."))?;
 
-    super::check_accessible_with_message(&state.world, state.controlled, item)?;
+    super::check_accessible_with_message(item, state.controlled, true, &state.world)?;
 
     command::action_result(Action::TakeItem(item, name))
 }
@@ -84,7 +84,7 @@ fn give(receiver: Entity, item_name: &str, state: &GameState) -> Result<CommandR
         ));
     }
 
-    super::check_adjacent_accessible_with_message(&state.world, state.controlled, receiver)?;
+    super::check_adjacent_accessible_with_message(receiver, state.controlled, &state.world)?;
 
     state
         .world
@@ -134,7 +134,7 @@ fn wield(item_name: &str, state: &GameState) -> Result<CommandResult, String> {
     if let Some((item, name)) =
         wieldable_item_from_ground(item_name, &state.world, state.controlled)
     {
-        super::check_accessible_with_message(&state.world, state.controlled, item)?;
+        super::check_accessible_with_message(item, state.controlled, true, &state.world)?;
 
         return command::action_result(Action::Wield(item, name));
     }

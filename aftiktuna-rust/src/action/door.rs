@@ -52,7 +52,7 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
         )));
     }
 
-    position::move_to(world, performer, door_pos)?;
+    position::push_and_move(world, performer, door_pos)?;
 
     let door_data = world
         .get::<&Door>(door)
