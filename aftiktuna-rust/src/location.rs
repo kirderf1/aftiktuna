@@ -1,6 +1,6 @@
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::name::Noun;
-use crate::core::position::{Direction, Pos};
+use crate::core::position::{self, Direction, Pos};
 use crate::core::{
     inventory, item, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight, Points, Symbol,
 };
@@ -255,16 +255,24 @@ pub fn init(
         .crew
         .into_iter()
         .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, rng));
+
+    let mut iter_pos = Pos::new(ship, 0, world);
     let controlled = world.spawn(
         creature::aftik_builder_with_stats(crew_iter.next().expect("Crew must not be empty"), true)
-            .add(CrewMember(crew))
-            .add(OrderWeight::Controlled)
+            .add_bundle((CrewMember(crew), OrderWeight::Controlled, iter_pos))
             .build(),
     );
-    for profile in crew_iter {
+    'add_crew: for profile in crew_iter {
+        while position::check_is_pos_blocked(iter_pos, world).is_err() {
+            let Some(new_pos) = iter_pos.try_offset(1, world) else {
+                eprintln!("Tried initializing a crew that is too large. Not all crew members will be added.");
+                break 'add_crew;
+            };
+            iter_pos = new_pos;
+        }
         world.spawn(
             creature::aftik_builder_with_stats(profile, true)
-                .add(CrewMember(crew))
+                .add_bundle((CrewMember(crew), iter_pos))
                 .build(),
         );
     }
@@ -305,14 +313,25 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         None,
     );
 
-    let aftiks = world
+    let mut crew_members = world
         .query::<()>()
         .with::<&CrewMember>()
         .iter()
         .map(|pair| pair.0)
         .collect::<Vec<_>>();
+
+    let controlled_index = crew_members
+        .iter()
+        .position(|&entity| entity == state.controlled)
+        .expect("Controlled character should exist and be a crew member");
+    crew_members.swap(0, controlled_index);
     let direction = Direction::towards_center(start_pos, world);
-    for aftik in aftiks {
+    for aftik in crew_members {
+        if let Err(blockage) = position::check_is_pos_blocked(start_pos, world) {
+            if blockage.try_push(direction, world).is_err() {
+                break;
+            }
+        }
         world.insert(aftik, (start_pos, direction)).unwrap();
     }
 
