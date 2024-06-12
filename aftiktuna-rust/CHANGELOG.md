@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 3.1
+- Crew size limit when recruiting has been raised from 2 to 3
 - Recruitable characters and crew members in json definitions can now be set to use a random character profile
 - Aftik corpses can now be set to use a color from a random character profile
 - Loot tables are no longer hardcoded, and can be defined in `assets/loot_table/`

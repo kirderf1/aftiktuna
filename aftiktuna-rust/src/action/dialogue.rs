@@ -2,7 +2,9 @@ use crate::action::{self, Context, Error};
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
-use crate::core::{area, position, status, CrewMember, Recruitable, RepeatingAction, Waiting};
+use crate::core::{
+    self, area, position, status, CrewMember, Recruitable, RepeatingAction, Waiting,
+};
 use hecs::Entity;
 
 pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -> action::Result {
@@ -80,7 +82,7 @@ pub(super) fn recruit(mut context: Context, performer: Entity, target: Entity) -
     let target_pos = *world.get::<&Pos>(target).unwrap();
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
-    if crew_size >= 2 {
+    if crew_size >= core::CREW_SIZE_LIMIT {
         return Err(Error::private(
             "There is not enough room for another crew member.",
         ));

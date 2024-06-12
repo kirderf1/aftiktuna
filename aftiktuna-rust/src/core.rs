@@ -86,6 +86,8 @@ impl AftikColorId {
     }
 }
 
+pub const CREW_SIZE_LIMIT: usize = 3;
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
 
