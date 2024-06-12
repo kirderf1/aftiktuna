@@ -1,4 +1,5 @@
 use crate::core::area::ShipControls;
+use crate::core::inventory::Container;
 use crate::core::item::{CanWield, Item, Medkit};
 use crate::core::name::NameData;
 use crate::core::{
@@ -56,7 +57,7 @@ impl Hash for Suggestion {
 
 impl PartialOrd for Suggestion {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.text().partial_cmp(other.text())
+        Some(self.cmp(other))
     }
 }
 
@@ -84,6 +85,7 @@ macro_rules! recursive {
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum InteractionType {
     Item,
+    Container,
     Wieldable,
     UseMedkit,
     Door,
@@ -104,6 +106,7 @@ impl InteractionType {
         let name = name.to_lowercase();
         match self {
             InteractionType::Item => vec![simple!("take {name}"), simple!("check {name}")],
+            InteractionType::Container => vec![simple!("search {name}")],
             InteractionType::Wieldable => vec![simple!("wield {name}")],
             InteractionType::UseMedkit => vec![simple!("use medkit")],
             InteractionType::Door => vec![simple!("enter {name}")],
@@ -160,6 +163,11 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&CanWield>() {
         interactions.push(InteractionType::Wieldable);
     }
+
+    if entity_ref.satisfies::<&Container>() {
+        interactions.push(InteractionType::Container);
+    }
+
     if let Some(door) = entity_ref.get::<&Door>() {
         interactions.push(InteractionType::Door);
         if world.get::<&BlockType>(door.door_pair).is_ok() {

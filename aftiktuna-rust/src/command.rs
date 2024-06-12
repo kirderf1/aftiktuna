@@ -22,12 +22,12 @@ pub enum CommandResult {
     Info(Messages),
 }
 
-fn action_result(action: Action) -> Result<CommandResult, String> {
-    Ok(CommandResult::Action(action, Target::Controlled))
+fn action_result(action: impl Into<Action>) -> Result<CommandResult, String> {
+    Ok(CommandResult::Action(action.into(), Target::Controlled))
 }
 
-fn crew_action(action: Action) -> Result<CommandResult, String> {
-    Ok(CommandResult::Action(action, Target::Crew))
+fn crew_action(action: impl Into<Action>) -> Result<CommandResult, String> {
+    Ok(CommandResult::Action(action.into(), Target::Crew))
 }
 
 pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, String> {

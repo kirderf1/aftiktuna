@@ -147,11 +147,10 @@ macro_rules! world_serialization {
 pub mod world {
     use crate::ai;
     use crate::core::area::{Area, Ship, ShipControls};
-    use crate::core::inventory::Held;
     use crate::core::item::{
         CanWield, FoodRation, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon,
     };
-    use crate::core::{self, name, position, status};
+    use crate::core::{self, inventory, name, position, status};
 
     world_serialization!(
         Area, Area;
@@ -191,7 +190,9 @@ pub mod world {
         core::IsCut, IsCut;
         core::BlockType, BlockType;
 
-        Held, Held;
+        inventory::Held, Held;
+        inventory::Container, Container;
+
         Item, Item;
         FuelCan, FuelCan;
         FoodRation, FoodRation;

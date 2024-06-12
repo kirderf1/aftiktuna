@@ -140,11 +140,13 @@ fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
         FuelAmount::TwoCans => 2,
     };
     world
-        .query::<()>()
+        .query::<&Held>()
         .with::<&FuelCan>()
-        .with::<&Held>()
         .iter()
-        .filter(|(item, _)| !excluding_items.contains(item))
+        .filter(|(item, held)| {
+            !excluding_items.contains(item)
+                && world.satisfies::<&CrewMember>(held.holder).unwrap_or(false)
+        })
         .count()
         >= amount_needed
 }

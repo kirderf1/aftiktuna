@@ -8,6 +8,7 @@ You interact with the game by giving commands to a character in the crew, making
 Currently available commands are:
 - take <item>
 - take all
+- search <container>
 - give <character> <item>
 - check <item>
 - wield <item>

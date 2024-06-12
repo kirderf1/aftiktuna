@@ -13,7 +13,7 @@ use Action::*;
 mod combat;
 mod dialogue;
 mod door;
-mod item;
+pub mod item;
 mod ship;
 pub mod trade;
 
@@ -21,6 +21,7 @@ pub mod trade;
 pub enum Action {
     TakeItem(Entity, NameData),
     TakeAll,
+    Search(item::SearchAction),
     GiveItem(Entity, Entity),
     Wield(Entity, NameData),
     UseMedkit(Entity),
@@ -81,6 +82,7 @@ fn perform(
     let result = match action {
         OpenChest(chest) => open_chest(&mut state.world, performer, chest),
         TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),
+        Search(search_action) => search_action.run(performer, context),
         TakeAll => item::take_all(&mut state.world, performer),
         GiveItem(item, receiver) => item::give_item(context, performer, item, receiver),
         Wield(item, name) => item::wield(&mut state.world, performer, item, name),

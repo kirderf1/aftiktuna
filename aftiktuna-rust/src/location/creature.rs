@@ -112,7 +112,7 @@ fn full_health() -> f32 {
 }
 
 impl CreatureSpawnData {
-    pub fn spawn(&self, world: &mut World, symbol: Symbol, pos: Pos, rng: &mut impl Rng) {
+    pub fn place(&self, pos: Pos, symbol: Symbol, world: &mut World, rng: &mut impl Rng) {
         let health = Health::from_fraction(self.health);
         let attribute = self.attribute.evaluate(rng);
         let is_alive = health.is_alive();

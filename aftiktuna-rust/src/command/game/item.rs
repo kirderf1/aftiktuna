@@ -1,7 +1,8 @@
+use crate::action::item::SearchAction;
 use crate::action::Action;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
-use crate::core::inventory::Held;
+use crate::core::inventory::{Container, Held};
 use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
@@ -19,6 +20,13 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                     parse.done_or_err(|| take_all(state))
                 });
                 parse.take_remaining(|item_name| take(item_name, state))
+            )
+        }),
+        parse.literal("search", |parse| {
+            parse.match_against(
+                container_targets(state),
+                |parse, container| parse.done_or_err(|| search(container, state)),
+                |input| Err(format!("\"{input}\" is not a valid searchable container.")),
             )
         }),
         parse.literal("give", |parse| {
@@ -74,6 +82,24 @@ fn take(item_name: &str, state: &GameState) -> Result<CommandResult, String> {
     super::check_accessible_with_message(item, state.controlled, true, &state.world)?;
 
     command::action_result(Action::TakeItem(item, name))
+}
+
+fn container_targets(state: &GameState) -> Vec<(String, Entity)> {
+    let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+    state
+        .world
+        .query::<(NameQuery, &Pos)>()
+        .with::<&Container>()
+        .iter()
+        .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
+        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
+        .collect::<Vec<_>>()
+}
+
+fn search(container: Entity, state: &GameState) -> Result<CommandResult, String> {
+    super::check_accessible_with_message(container, state.controlled, true, &state.world)?;
+
+    command::action_result(SearchAction { container })
 }
 
 fn give(receiver: Entity, item_name: &str, state: &GameState) -> Result<CommandResult, String> {

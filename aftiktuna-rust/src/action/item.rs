@@ -56,6 +56,55 @@ pub fn take_item(
     ))
 }
 
+#[derive(Debug, Clone)]
+pub struct SearchAction {
+    pub container: Entity,
+}
+
+impl From<SearchAction> for super::Action {
+    fn from(value: SearchAction) -> Self {
+        Self::Search(value)
+    }
+}
+
+impl SearchAction {
+    pub(super) fn run(self, performer: Entity, mut context: super::Context) -> action::Result {
+        let Self { container } = self;
+        let world = context.mut_world();
+        let performer_name = NameData::find(world, performer).definite();
+        let container_name = NameData::find(world, container).definite();
+        let container_pos = *world
+            .get::<&Pos>(container)
+            .map_err(|_| format!("{performer_name} lost track of {container_name}."))?;
+
+        if !world
+            .satisfies::<&inventory::Container>(container)
+            .unwrap_or(false)
+        {
+            return Err(Error::private(format!(
+                "{container_name} is not a searchable container."
+            )));
+        }
+
+        position::push_and_move(world, performer, container_pos)?;
+
+        let items = inventory::get_held(world, container);
+        if items.is_empty() {
+            return action::ok(format!("{performer_name} searched {container_name}, but did not find anything of interest."));
+        }
+
+        inventory::drop_all_items(world, container);
+        let items = items
+            .into_iter()
+            .map(|item| NameData::find(world, item).base().to_owned())
+            .collect::<Vec<_>>()
+            .join(" and a ");
+        action::ok(format!(
+            "{performer_name} searched {container_name} and found a {items}."
+        ))
+    }
+}
+
 pub(super) fn give_item(
     mut context: super::Context,
     performer: Entity,

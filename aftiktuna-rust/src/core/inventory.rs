@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Held {
-    holder: Entity,
+    pub holder: Entity,
     in_hand: bool,
 }
 
@@ -109,3 +109,6 @@ pub fn drop_all_items(world: &mut World, entity: Entity) {
         world.exchange_one::<Held, _>(item, pos).unwrap();
     }
 }
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct Container;

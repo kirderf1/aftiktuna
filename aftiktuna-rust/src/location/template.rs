@@ -1,10 +1,11 @@
 use super::creature::{AftikProfile, ProfileOrRandom};
 use super::door::{place_pair, DoorInfo, DoorType};
 use super::{creature, door, Area, BackgroundId};
+use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{item, AftikColorId, BlockType, FortunaChest, ModelId, OrderWeight, Symbol};
-use hecs::World;
+use hecs::{Entity, World};
 use rand::distributions::WeightedIndex;
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -125,6 +126,7 @@ enum SymbolData {
         #[serde(default)]
         direction: Direction,
     },
+    Container(ContainerData),
     Creature(creature::CreatureSpawnData),
     Shopkeeper {
         stock: Vec<creature::StockDefinition>,
@@ -158,7 +160,9 @@ impl SymbolData {
         match self {
             SymbolData::LocationEntry => builder.add_entry_pos(pos),
             SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
-            SymbolData::Item { item } => item.spawn(builder.world, pos),
+            SymbolData::Item { item } => {
+                item.spawn(builder.world, pos);
+            }
             SymbolData::Loot { table } => {
                 let item = builder.loot_table(table)?.pick_loot_item(rng);
                 item.spawn(builder.world, pos);
@@ -177,7 +181,10 @@ impl SymbolData {
                     *direction,
                 ));
             }
-            SymbolData::Creature(spawn_data) => spawn_data.spawn(builder.world, symbol, pos, rng),
+            SymbolData::Container(container_data) => {
+                container_data.place(pos, symbol, builder, rng)?;
+            }
+            SymbolData::Creature(spawn_data) => spawn_data.place(pos, symbol, builder.world, rng),
             SymbolData::Shopkeeper {
                 stock,
                 color,
@@ -319,7 +326,7 @@ struct LootEntry {
     weight: u16,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 struct LootTableId(String);
 
 struct LootTable {
@@ -340,5 +347,80 @@ impl LootTable {
 
     fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
         self.entries[rng.sample(&self.index_distribution)].item
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum ContainerType {
+    Tent,
+}
+
+impl ContainerType {
+    fn model_id(self) -> ModelId {
+        ModelId::new(match self {
+            ContainerType::Tent => "tent",
+        })
+    }
+
+    fn noun(self) -> Noun {
+        match self {
+            ContainerType::Tent => Noun::new("tent", "tents"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+enum ItemOrLoot {
+    Item { item: item::Type },
+    Loot { table: LootTableId },
+}
+
+impl ItemOrLoot {
+    fn generate(
+        &self,
+        container: Entity,
+        builder: &mut Builder,
+        rng: &mut impl Rng,
+    ) -> Result<(), String> {
+        let item = match self {
+            ItemOrLoot::Item { item } => *item,
+            ItemOrLoot::Loot { table } => builder.loot_table(table)?.pick_loot_item(rng),
+        };
+        item.spawn(builder.world, Held::in_inventory(container));
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ContainerData {
+    container_type: ContainerType,
+    content: Vec<ItemOrLoot>,
+    #[serde(default)]
+    direction: Direction,
+}
+
+impl ContainerData {
+    fn place(
+        &self,
+        pos: Pos,
+        symbol: Symbol,
+        builder: &mut Builder,
+        rng: &mut impl Rng,
+    ) -> Result<(), String> {
+        let container = builder.world.spawn((
+            symbol,
+            self.container_type.model_id(),
+            OrderWeight::Background,
+            self.container_type.noun(),
+            pos,
+            self.direction,
+            Container,
+        ));
+        for entry in &self.content {
+            entry.generate(container, builder, rng)?;
+        }
+        Ok(())
     }
 }

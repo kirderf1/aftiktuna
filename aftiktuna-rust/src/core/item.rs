@@ -77,8 +77,8 @@ pub enum Type {
 }
 
 impl Type {
-    pub fn spawn(self, world: &mut World, location: impl Component) {
-        spawn(world, self, self.price(), location);
+    pub fn spawn(self, world: &mut World, location: impl Component) -> Entity {
+        spawn(world, self, self.price(), location)
     }
 
     pub fn noun_data(self) -> Noun {

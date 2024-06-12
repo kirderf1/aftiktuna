@@ -161,7 +161,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "^", "?", "Ee", ".", "Ec", "Aa?", "!f" ],
+      "objects": [ "^", "", "Ee", ".", "Ec", "Aa", "!f" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -189,8 +189,12 @@
           "model": "campfire"
         },
         "A": {
-          "type": "inanimate",
-          "model": "tent",
+          "type": "container",
+          "container_type": "tent",
+          "content": [
+            { "type": "item", "item": "food_ration" },
+            { "type": "loot", "table": "regular" }
+          ],
           "direction": "left"
         }
       }
