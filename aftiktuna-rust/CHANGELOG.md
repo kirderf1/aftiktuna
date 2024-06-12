@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - After victory/game over, the game returns to the main menu
 - "Load Game" button is no longer shown when the save file is absent
 - Made certain action failures more visible, updated some action failure messages
+- Tweaked rendered offset between objects at the same coordinate
 
 ### Contributors for this release
 

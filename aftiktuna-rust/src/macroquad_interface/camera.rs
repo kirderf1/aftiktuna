@@ -30,7 +30,7 @@ pub fn position_objects<'a>(
 fn position_from_coord(coord: Coord, count: i32) -> Vec2 {
     Vec2::new(
         coord_to_center_x(coord) - count as f32 * 15.,
-        (450 + count * 10) as f32,
+        (450 + count * 15) as f32,
     )
 }
 
