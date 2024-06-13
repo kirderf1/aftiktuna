@@ -108,6 +108,9 @@ impl SearchAction {
         }
 
         inventory::drop_all_items(world, container);
+
+        core::trigger_aggression_in_area(world, container_pos.get_area());
+
         let items = items
             .into_iter()
             .map(|item| NameData::find(world, item).base().to_owned())
