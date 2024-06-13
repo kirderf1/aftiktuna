@@ -195,6 +195,7 @@ pub mod world {
         item::FoodRation, FoodRation;
         item::Medkit, Medkit;
         item::Usable, Usable;
+        item::FourLeafClover, FourLeafClover;
         item::Tool, ForceTool;
         item::Keycard, Keycard;
         item::CanWield, CanWield;

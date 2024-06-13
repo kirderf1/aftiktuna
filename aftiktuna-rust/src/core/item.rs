@@ -45,6 +45,9 @@ pub enum Usable {
     BlackOrb,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct FourLeafClover;
+
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct CanWield;
 
@@ -80,6 +83,7 @@ pub enum Type {
     MeteorChunk,
     AncientCoin,
     BlackOrb,
+    FourLeafClover,
 }
 
 impl Type {
@@ -101,6 +105,7 @@ impl Type {
             Type::MeteorChunk => Noun::new("meteor chunk", "meteor chunks"),
             Type::AncientCoin => Noun::new("ancient coin", "ancient coins"),
             Type::BlackOrb => Noun::new("black orb", "black orbs"),
+            Type::FourLeafClover => Noun::new("four-leaf clover", "four-leaf clovers"),
         }
     }
 
@@ -118,6 +123,7 @@ impl Type {
             Type::MeteorChunk => 'm',
             Type::AncientCoin => 'a',
             Type::BlackOrb => 'o',
+            Type::FourLeafClover => '*',
         })
     }
 
@@ -155,6 +161,7 @@ impl From<Type> for ModelId {
             Type::MeteorChunk => "meteor_chunk",
             Type::AncientCoin => "ancient_coin",
             Type::BlackOrb => "black_orb",
+            Type::FourLeafClover => "four_leaf_clover",
         })
     }
 }
@@ -209,6 +216,9 @@ pub fn spawn(
         Type::BlackOrb => {
             builder.add(Usable::BlackOrb);
         }
+        Type::FourLeafClover => {
+            builder.add(FourLeafClover);
+        }
         _ => {}
     };
     world.spawn(builder.build())
@@ -245,6 +255,9 @@ pub fn description(item_ref: EntityRef) -> Messages {
                 "A mysterious object that when used, might change the user in some way."
             }
         });
+    }
+    if item_ref.satisfies::<&FourLeafClover>() {
+        messages.add("A mysterious object said to bring luck to whoever finds it.");
     }
     if item_ref.satisfies::<&Price>() {
         messages.add("Can be sold at a store.");

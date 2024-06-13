@@ -5,5 +5,6 @@
   { "item": "sword", "weight": 2 },
   { "item": "medkit", "weight": 4 },
   { "item": "meteor_chunk", "weight": 8 },
-  { "item": "black_orb", "weight": 2 }
+  { "item": "black_orb", "weight": 2 },
+  { "item": "four_leaf_clover", "weight": 2 }
 ]

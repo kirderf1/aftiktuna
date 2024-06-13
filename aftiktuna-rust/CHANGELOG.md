@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New data file `character_profiles.json`, used for randomly-selected characters
 - New aftik colors and character profiles
 - Containers that can be searched for items (types include: tents, cabinets, drawers, crates, chests)
+- Two new items that can change character stats
 
 ### Changed
 

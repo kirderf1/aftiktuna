@@ -1,9 +1,9 @@
 use crate::action::{self, Error};
 use crate::core::inventory::Held;
-use crate::core::item::{Item, Medkit, Usable};
+use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::status::{Health, Stats};
+use crate::core::status::{Health, StatChanges};
 use crate::core::{self, inventory, position, status, RepeatingAction};
 use hecs::{Entity, World};
 
@@ -43,6 +43,20 @@ pub fn take_item(
         .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
 
     position::push_and_move(world, performer, item_pos)?;
+
+    if world.satisfies::<&FourLeafClover>(item).unwrap()
+        && FOUR_LEAF_CLOVER_EFFECT
+            .try_apply(world.entity(performer).unwrap())
+            .is_some()
+    {
+        world.despawn(item).unwrap();
+
+        return action::ok(format!(
+            "{performer_name} tries to pick up {}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
+            item_name.definite(),
+        ));
+    }
+
     world
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
@@ -256,16 +270,9 @@ impl UseAction {
 
         match usable {
             Usable::BlackOrb => {
-                let Some(mut stats) = performer_ref.get::<&mut Stats>().filter(|stats| {
-                    stats.endurance + 3 <= 10 && stats.agility > 1 && stats.luck > 0
-                }) else {
+                let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
                     return action::ok(format!("{performer_name} holds up and inspects the orb, but can't figure out what it is."));
                 };
-
-                stats.endurance += 3;
-                stats.agility -= 1;
-                stats.luck -= 1;
-                drop(stats);
 
                 world.despawn(self.item).unwrap();
 
@@ -278,3 +285,15 @@ impl UseAction {
         }
     }
 }
+
+const BLACK_ORB_EFFECT: StatChanges = StatChanges {
+    endurance: 3,
+    agility: -1,
+    luck: -1,
+    ..StatChanges::DEFAULT
+};
+
+pub const FOUR_LEAF_CLOVER_EFFECT: StatChanges = StatChanges {
+    luck: 2,
+    ..StatChanges::DEFAULT
+};

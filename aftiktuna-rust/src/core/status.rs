@@ -24,12 +24,57 @@ impl Stats {
         }
     }
 
+    pub fn try_change_in_bounds(
+        &mut self,
+        changes: StatChanges,
+    ) -> Result<ChangedStats, OutsideBounds> {
+        if changes.strength != 0 && !(1..=10).contains(&(self.strength + changes.strength))
+            || changes.endurance != 0 && !(1..=10).contains(&(self.endurance + changes.endurance))
+            || changes.agility != 0 && !(1..=10).contains(&(self.agility + changes.agility))
+            || changes.luck != 0 && !(0..=10).contains(&(self.luck + changes.luck))
+        {
+            return Err(OutsideBounds);
+        }
+        self.strength += changes.strength;
+        self.endurance += changes.endurance;
+        self.agility += changes.agility;
+        self.luck += changes.luck;
+        Ok(ChangedStats)
+    }
+
     pub fn agility_for_dodging(&self, entity_ref: EntityRef) -> i16 {
         if Trait::GoodDodger.ref_has_trait(entity_ref) {
             self.agility + 5
         } else {
             self.agility
         }
+    }
+}
+
+pub struct ChangedStats;
+
+pub struct OutsideBounds;
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct StatChanges {
+    pub strength: i16,
+    pub endurance: i16,
+    pub agility: i16,
+    pub luck: i16,
+}
+
+impl StatChanges {
+    pub const DEFAULT: Self = Self {
+        strength: 0,
+        endurance: 0,
+        agility: 0,
+        luck: 0,
+    };
+
+    pub fn try_apply(self, entity_ref: EntityRef) -> Option<ChangedStats> {
+        entity_ref
+            .get::<&mut Stats>()
+            .and_then(|mut stats| stats.try_change_in_bounds(self).ok())
     }
 }
 

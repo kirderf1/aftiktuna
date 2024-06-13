@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use hecs::{Entity, Satisfies, World};
+use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::action::{self, Action};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::{self, FoodRation};
+use crate::core::item::{self, FoodRation, FourLeafClover};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
@@ -242,6 +242,27 @@ fn tick(
     );
 
     handle_aftik_deaths(state, view_buffer);
+
+    let mut buffer = CommandBuffer::new();
+    for (item, held) in state
+        .world
+        .query::<&Held>()
+        .with::<&FourLeafClover>()
+        .into_iter()
+    {
+        let Ok(holder_ref) = state.world.entity(held.holder) else {
+            continue;
+        };
+        let Some(_) = action::item::FOUR_LEAF_CLOVER_EFFECT.try_apply(holder_ref) else {
+            continue;
+        };
+        buffer.despawn(item);
+        view_buffer.messages.add(format!(
+            "As {} holds the four leaf clover, it disappears in their hand. (Luck has increased by 2 points)",
+            NameData::find_by_ref(holder_ref).definite(),
+        ));
+    }
+    buffer.run_on(&mut state.world);
 
     for (_, stamina) in state.world.query_mut::<&mut Stamina>() {
         stamina.tick();
