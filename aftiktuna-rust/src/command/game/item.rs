@@ -1,9 +1,9 @@
-use crate::action::item::SearchAction;
+use crate::action::item::{SearchAction, UseAction};
 use crate::action::Action;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::{Container, Held};
-use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit};
+use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Usable};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::Health;
@@ -215,18 +215,21 @@ fn use_item(state: &GameState, item_name: &str) -> Result<CommandResult, String>
         .max_by_key(|(_, (held, _))| held.is_in_hand())
         .ok_or_else(|| format!("No held item by the name \"{item_name}\"."))?
         .0;
+    let item_ref = world.entity(item).unwrap();
 
-    if world.get::<&FuelCan>(item).is_ok() {
+    if item_ref.satisfies::<&FuelCan>() {
         super::refuel_ship(state)
-    } else if world.get::<&Medkit>(item).is_ok() {
+    } else if item_ref.satisfies::<&Medkit>() {
         if !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
                 "{} is not hurt, and does not need to use the medkit.",
                 NameData::find(world, character).definite()
             ));
         }
-        command::action_result(Action::UseMedkit(item))
-    } else if world.get::<&Keycard>(item).is_ok() {
+        command::action_result(UseAction { item })
+    } else if item_ref.satisfies::<&Usable>() {
+        command::action_result(UseAction { item })
+    } else if item_ref.satisfies::<&Keycard>() {
         let area = world.get::<&Pos>(character).unwrap().get_area();
         let (door, _) = world
             .query::<(&Pos, &Door)>()
@@ -242,17 +245,17 @@ fn use_item(state: &GameState, item_name: &str) -> Result<CommandResult, String>
             })?;
 
         command::crew_action(Action::EnterDoor(door))
-    } else if world.get::<&CanWield>(item).is_ok() {
-        if world
-            .get::<&Held>(item)
+    } else if item_ref.satisfies::<&CanWield>() {
+        if item_ref
+            .get::<&Held>()
             .map_or(false, |held| held.is_in_hand())
         {
             Err(format!(
                 "{} is already being held.",
-                NameData::find(world, item).definite()
+                NameData::find_by_ref(item_ref).definite()
             ))
         } else {
-            command::action_result(Action::Wield(item, NameData::find(world, item)))
+            command::action_result(Action::Wield(item, NameData::find_by_ref(item_ref)))
         }
     } else {
         Err("The item can not be used in any meaningful way.".to_string())

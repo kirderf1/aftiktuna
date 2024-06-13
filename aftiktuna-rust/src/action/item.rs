@@ -1,9 +1,9 @@
 use crate::action::{self, Error};
 use crate::core::inventory::Held;
-use crate::core::item::{Item, Medkit};
+use crate::core::item::{Item, Medkit, Usable};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::status::Health;
+use crate::core::status::{Health, Stats};
 use crate::core::{self, inventory, position, status, RepeatingAction};
 use hecs::{Entity, World};
 
@@ -202,31 +202,79 @@ pub fn wield(
     }
 }
 
-pub fn use_medkit(world: &mut World, performer: Entity, item: Entity) -> action::Result {
-    world
-        .get::<&Medkit>(item)
-        .map_err(|_| "The medkit is missing.".to_string())?;
-    world
-        .get::<&Held>(item)
-        .ok()
-        .filter(|held| held.held_by(performer))
-        .ok_or_else(|| "The medkit is missing.".to_string())?;
+#[derive(Debug, Clone)]
+pub struct UseAction {
+    pub item: Entity,
+}
 
-    if !world.get::<&Health>(performer).unwrap().is_hurt() {
-        return Err(Error::private(format!(
-            "{} no longer needs to use a medkit.",
-            NameData::find(world, performer).definite()
-        )));
+impl From<UseAction> for super::Action {
+    fn from(value: UseAction) -> Self {
+        Self::Use(value)
     }
+}
 
-    world
-        .get::<&mut Health>(performer)
-        .unwrap()
-        .restore_fraction(0.5);
-    world.despawn(item).unwrap();
+impl UseAction {
+    pub(super) fn run(self, performer: Entity, mut context: super::Context) -> action::Result {
+        let world = context.mut_world();
 
-    action::ok(format!(
-        "{} used a medkit and recovered some health.",
-        NameData::find(world, performer).definite()
-    ))
+        let performer_ref = world.entity(performer).unwrap();
+        let performer_name = NameData::find_by_ref(performer_ref).definite();
+
+        let item_ref = world
+            .entity(self.item)
+            .ok()
+            .filter(|item_ref| {
+                item_ref
+                    .get::<&Held>()
+                    .map_or(false, |held| held.held_by(performer))
+            })
+            .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
+        let item_name = NameData::find_by_ref(item_ref).definite();
+
+        if item_ref.satisfies::<&Medkit>() {
+            let mut health = performer_ref.get::<&mut Health>().unwrap();
+            if !health.is_hurt() {
+                return Err(Error::private(format!(
+                    "{performer_name} no longer needs to use a medkit.",
+                )));
+            }
+
+            health.restore_fraction(0.5);
+            drop(health);
+            world.despawn(self.item).unwrap();
+
+            return action::ok(format!(
+                "{performer_name} used a medkit and recovered some health.",
+            ));
+        }
+
+        let Some(usable) = item_ref.get::<&Usable>().as_deref().copied() else {
+            return Err(Error::private(format!(
+                "{performer_name} tried to use {item_name}, but it is not usable."
+            )));
+        };
+
+        match usable {
+            Usable::BlackOrb => {
+                let Some(mut stats) = performer_ref.get::<&mut Stats>().filter(|stats| {
+                    stats.endurance + 3 <= 10 && stats.agility > 1 && stats.luck > 0
+                }) else {
+                    return action::ok(format!("{performer_name} holds up and inspects the orb, but can't figure out what it is."));
+                };
+
+                stats.endurance += 3;
+                stats.agility -= 1;
+                stats.luck -= 1;
+                drop(stats);
+
+                world.despawn(self.item).unwrap();
+
+                action::ok(format!(
+                    "{performer_name} holds up and inspects the orb. \
+                     {performer_name} gets a sensation of hardiness when suddenly, \
+                     the orb cracks and falls apart into worthless pieces! (Stats have changed)"
+                ))
+            }
+        }
+    }
 }

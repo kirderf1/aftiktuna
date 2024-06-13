@@ -147,10 +147,7 @@ macro_rules! world_serialization {
 pub mod world {
     use crate::ai;
     use crate::core::area::{Area, Ship, ShipControls};
-    use crate::core::item::{
-        CanWield, FoodRation, FuelCan, Item, Keycard, Medkit, Price, Tool, Weapon,
-    };
-    use crate::core::{self, inventory, name, position, status};
+    use crate::core::{self, inventory, item, name, position, status};
 
     world_serialization!(
         Area, Area;
@@ -193,15 +190,16 @@ pub mod world {
         inventory::Held, Held;
         inventory::Container, Container;
 
-        Item, Item;
-        FuelCan, FuelCan;
-        FoodRation, FoodRation;
-        Medkit, Medkit;
-        Tool, ForceTool;
-        Keycard, Keycard;
-        CanWield, CanWield;
-        Weapon, Weapon;
-        Price, Price;
+        item::Item, Item;
+        item::FuelCan, FuelCan;
+        item::FoodRation, FoodRation;
+        item::Medkit, Medkit;
+        item::Usable, Usable;
+        item::Tool, ForceTool;
+        item::Keycard, Keycard;
+        item::CanWield, CanWield;
+        item::Weapon, Weapon;
+        item::Price, Price;
 
         core::FortunaChest, FortunaChest;
         core::OpenedChest, OpenedChest;

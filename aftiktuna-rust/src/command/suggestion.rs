@@ -1,9 +1,9 @@
 use crate::core::area::ShipControls;
 use crate::core::inventory::Container;
-use crate::core::item::{CanWield, Item, Medkit};
+use crate::core::item::{CanWield, Item};
 use crate::core::name::NameData;
 use crate::core::{
-    inventory, status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Shopkeeper,
+    status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Shopkeeper,
     StoreStock, Waiting,
 };
 use crate::game_loop::GameState;
@@ -87,7 +87,7 @@ pub enum InteractionType {
     Item,
     Container,
     Wieldable,
-    UseMedkit,
+    UseMedkit, // backwards-compatibility with 3.0
     Door,
     Forceable,
     ShipControls,
@@ -138,6 +138,13 @@ impl InteractionType {
                             .map(ItemProfile::name),
                         "wield {}"
                     ),
+                    recursive!(
+                        inventory
+                            .iter()
+                            .filter(|item| item.is_usable)
+                            .map(ItemProfile::name),
+                        "use {}"
+                    ),
                     recursive!(inventory.iter().map(ItemProfile::name), "check {}"),
                 ]
             }
@@ -187,9 +194,6 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     }
     if entity == state.controlled {
         interactions.push(InteractionType::Controlled);
-        if inventory::is_holding::<&Medkit>(world, entity) {
-            interactions.push(InteractionType::UseMedkit);
-        }
     }
     if entity_ref.satisfies::<&ShipControls>() {
         interactions.push(InteractionType::ShipControls);
@@ -200,7 +204,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&Recruitable>() {
         interactions.push(InteractionType::Recruitable);
     }
-    if entity_ref.satisfies::<&Hostile>() && status::is_alive(entity, world) {
+    if entity_ref.satisfies::<&Hostile>() && status::is_alive_ref(entity_ref) {
         interactions.push(InteractionType::Foe);
     }
     interactions

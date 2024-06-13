@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::action::item::UseAction;
 use crate::action::Action;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
@@ -114,7 +115,7 @@ fn pick_foe_action(entity_ref: EntityRef, hostile: &Hostile, world: &World) -> O
 fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
     let intention = entity_ref.get::<&Intention>();
     if let Some(&Intention::UseMedkit(item)) = intention.as_deref() {
-        return Some(Action::UseMedkit(item));
+        return Some(UseAction { item }.into());
     }
 
     let area = entity_ref.get::<&Pos>()?.get_area();

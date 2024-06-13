@@ -40,6 +40,11 @@ pub struct Keycard;
 #[derive(Serialize, Deserialize)]
 pub struct Medkit;
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Usable {
+    BlackOrb,
+}
+
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct CanWield;
 
@@ -74,6 +79,7 @@ pub enum Type {
     Medkit,
     MeteorChunk,
     AncientCoin,
+    BlackOrb,
 }
 
 impl Type {
@@ -94,6 +100,7 @@ impl Type {
             Type::Medkit => Noun::new("medkit", "medkits"),
             Type::MeteorChunk => Noun::new("meteor chunk", "meteor chunks"),
             Type::AncientCoin => Noun::new("ancient coin", "ancient coins"),
+            Type::BlackOrb => Noun::new("black orb", "black orbs"),
         }
     }
 
@@ -110,6 +117,7 @@ impl Type {
             Type::Medkit => '+',
             Type::MeteorChunk => 'm',
             Type::AncientCoin => 'a',
+            Type::BlackOrb => 'o',
         })
     }
 
@@ -125,6 +133,7 @@ impl Type {
             Type::Medkit => Some(4000),
             Type::MeteorChunk => Some(2500),
             Type::AncientCoin => Some(500),
+            Type::BlackOrb => Some(8000),
             _ => None,
         }
         .map(Price)
@@ -145,6 +154,7 @@ impl From<Type> for ModelId {
             Type::Medkit => "medkit",
             Type::MeteorChunk => "meteor_chunk",
             Type::AncientCoin => "ancient_coin",
+            Type::BlackOrb => "black_orb",
         })
     }
 }
@@ -196,6 +206,9 @@ pub fn spawn(
         Type::Medkit => {
             builder.add(Medkit);
         }
+        Type::BlackOrb => {
+            builder.add(Usable::BlackOrb);
+        }
         _ => {}
     };
     world.spawn(builder.build())
@@ -225,6 +238,13 @@ pub fn description(item_ref: EntityRef) -> Messages {
     }
     if item_ref.satisfies::<&Medkit>() {
         messages.add("Used to recover some health of the user.");
+    }
+    if let Some(usage) = item_ref.get::<&Usable>() {
+        messages.add(match *usage {
+            Usable::BlackOrb => {
+                "A mysterious object that when used, might change the user in some way."
+            }
+        });
     }
     if item_ref.satisfies::<&Price>() {
         messages.add("Can be sold at a store.");

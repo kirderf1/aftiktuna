@@ -2,7 +2,7 @@ use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::inventory::Held;
-use crate::core::item::CanWield;
+use crate::core::item::{CanWield, Medkit, Usable};
 use crate::core::name::NameData;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
@@ -13,7 +13,7 @@ use crate::core::{
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::{capitalize, Messages};
-use hecs::{Entity, EntityRef, World};
+use hecs::{Entity, EntityRef, Or, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::collections::HashMap;
@@ -201,6 +201,8 @@ pub struct ItemProfile {
     pub name: String,
     pub is_wieldable: bool,
     pub is_wielded: bool,
+    #[serde(default)]
+    pub is_usable: bool,
 }
 
 impl ItemProfile {
@@ -209,6 +211,7 @@ impl ItemProfile {
             name: NameData::find_by_ref(item).base().to_string(),
             is_wieldable: item.satisfies::<&CanWield>(),
             is_wielded: item.get::<&Held>().map_or(false, |held| held.is_in_hand()),
+            is_usable: item.satisfies::<Or<&Usable, &Medkit>>(),
         }
     }
 
