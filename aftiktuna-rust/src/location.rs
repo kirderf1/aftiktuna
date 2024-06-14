@@ -3,6 +3,7 @@ use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{
     inventory, item, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight, Points, Symbol,
+    Waiting,
 };
 use crate::game_loop::GameState;
 use crate::view::Messages;
@@ -326,13 +327,14 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         .expect("Controlled character should exist and be a crew member");
     crew_members.swap(0, controlled_index);
     let direction = Direction::towards_center(start_pos, world);
-    for aftik in crew_members {
+    for character in crew_members {
         if let Err(blockage) = position::check_is_pos_blocked(start_pos, world) {
             if blockage.try_push(direction, world).is_err() {
                 break;
             }
         }
-        world.insert(aftik, (start_pos, direction)).unwrap();
+        world.insert(character, (start_pos, direction)).unwrap();
+        let _ = world.remove_one::<Waiting>(character);
     }
 
     let areas_with_aggressive_creatures = world

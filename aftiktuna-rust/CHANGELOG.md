@@ -35,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tweaked rendered offset between objects at the same coordinate
 - Improved how adjacent objects are rendered over each other
 - Space out text from "status" command with empty lines between characters
+- Crew members told to wait will now stop waiting when they leave the ship from arriving at a new location
 
 ### Contributors for this release
 
