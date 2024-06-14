@@ -5,14 +5,16 @@ use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::{Shopkeeper, StoreStock};
+use crate::game_loop::GameState;
 use hecs::{Entity, World};
 
 pub fn parse(
     input: &str,
-    world: &World,
-    character: Entity,
     shopkeeper: &Shopkeeper,
+    state: &GameState,
 ) -> Result<CommandResult, String> {
+    let world = &state.world;
+    let character = state.controlled;
     let parse = Parse::new(input);
     first_match_or!(
         parse.literal("buy", |parse| {
@@ -54,7 +56,7 @@ pub fn parse(
             parse.done_or_err(|| command::action_result(Action::ExitTrade))
         }),
         parse.literal("status", |parse| {
-            parse.done_or_err(|| command::status(world, character))
+            parse.done_or_err(|| command::status(state))
         });
         parse.default_err()
     )

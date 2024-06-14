@@ -54,7 +54,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             )
         }),
         parse.literal("status", |parse| {
-            parse.done_or_err(|| command::status(world, character))
+            parse.done_or_err(|| command::status(state))
         }),
         parse.literal("check", |parse| {
             parse.match_against(

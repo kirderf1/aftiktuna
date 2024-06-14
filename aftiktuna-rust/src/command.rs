@@ -2,7 +2,7 @@ use crate::action::{trade, Action};
 use crate::game_loop::GameState;
 use crate::view;
 use crate::view::Messages;
-use hecs::{Entity, World};
+use hecs::Entity;
 use std::ops::Deref;
 
 mod game;
@@ -33,14 +33,14 @@ fn crew_action(action: impl Into<Action>) -> Result<CommandResult, String> {
 pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let input = input.to_lowercase();
     if let Some(shopkeeper) = trade::get_shop_info(&state.world, state.controlled) {
-        store::parse(&input, &state.world, state.controlled, shopkeeper.deref())
+        store::parse(&input, shopkeeper.deref(), state)
     } else {
         game::parse(&input, state)
     }
 }
 
-fn status(world: &World, character: Entity) -> Result<CommandResult, String> {
+fn status(state: &GameState) -> Result<CommandResult, String> {
     let mut messages = Messages::default();
-    view::print_full_status(world, character, &mut messages);
+    view::print_full_status(&mut messages, state);
     Ok(CommandResult::Info(messages))
 }

@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Characters may now push crew members that are in the way for certain actions
 - The tent in the eyesaur forest is now a searchable container
 - Containers have been added in a lot of places in most locations
+- "status" command now also shows ship fuel status and number of food rations in the ship
 
 ### Fixed
 

@@ -1,6 +1,10 @@
+use crate::core::area::{FuelAmount, Ship, ShipStatus};
+use crate::core::item::FoodRation;
 use crate::core::name::{self, NameData};
+use crate::core::position::Pos;
 use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::{inventory, CrewMember, Points};
+use crate::game_loop::GameState;
 use crate::view::{capitalize, Messages};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -19,25 +23,48 @@ struct CharacterCache {
     inventory: Vec<Entity>,
 }
 
-pub fn print_full_status(world: &World, character: Entity, messages: &mut Messages) {
-    maybe_print_points(world, character, messages, None);
+pub fn print_full_status(messages: &mut Messages, state: &GameState) {
+    maybe_print_points(&state.world, state.controlled, messages, None);
+
+    match state.world.get::<&Ship>(state.ship).map(|ship| ship.status) {
+        Ok(ShipStatus::Refueled) => messages.add("The ship is refueled and ready to launch"),
+        Ok(ShipStatus::NeedFuel(FuelAmount::OneCan)) => {
+            messages.add("The ship needs one more fuel can before it can launch")
+        }
+        Ok(ShipStatus::NeedFuel(FuelAmount::TwoCans)) => {
+            messages.add("The ship needs two more fuel cans before it can launch")
+        }
+        _ => {}
+    }
+
+    let ration_count = state
+        .world
+        .query::<&Pos>()
+        .with::<&FoodRation>()
+        .iter()
+        .filter(|&(_, pos)| pos.is_in(state.ship))
+        .count();
+    messages.add(format!("Food rations at ship: {ration_count}"));
 
     messages.add("Crew:");
-    for (character, _) in world.query::<()>().with::<&CrewMember>().iter() {
+    for (character, _) in state.world.query::<()>().with::<&CrewMember>().iter() {
         messages.add("");
         messages.add(format!(
             "{} (Aftik):",
-            NameData::find(world, character).definite()
+            NameData::find(&state.world, character).definite()
         ));
-        messages.add(stats_message(&world.get::<&Stats>(character).unwrap()));
-        if let Some(traits) = world
+        messages.add(stats_message(
+            &state.world.get::<&Stats>(character).unwrap(),
+        ));
+        if let Some(traits) = state
+            .world
             .get::<&Traits>(character)
             .ok()
             .filter(|traits| traits.has_traits())
         {
             messages.add(traits_message(&traits));
         }
-        print_character_without_cache(world, character, messages);
+        print_character_without_cache(&state.world, character, messages);
     }
 }
 
