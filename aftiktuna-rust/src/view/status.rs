@@ -24,6 +24,7 @@ pub fn print_full_status(world: &World, character: Entity, messages: &mut Messag
 
     messages.add("Crew:");
     for (character, _) in world.query::<()>().with::<&CrewMember>().iter() {
+        messages.add("");
         messages.add(format!(
             "{} (Aftik):",
             NameData::find(world, character).definite()

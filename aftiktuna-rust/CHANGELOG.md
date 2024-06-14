@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Made certain action failures more visible, updated some action failure messages
 - Tweaked rendered offset between objects at the same coordinate
 - Improved how adjacent objects are rendered over each other
+- Space out text from "status" command with empty lines between characters
 
 ### Contributors for this release
 
