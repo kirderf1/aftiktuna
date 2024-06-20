@@ -9,7 +9,7 @@ use crate::game_loop::GameState;
 use crate::view::Messages;
 use creature::{AftikProfile, ProfileOrRandom};
 use door::DoorInfo;
-use hecs::{Entity, World};
+use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::seq::index;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
@@ -389,23 +389,13 @@ pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
         }
     }
 
-    let entities = world
-        .query::<()>()
-        .without::<&Keep>()
-        .iter()
-        .map(|pair| pair.0)
-        .collect::<Vec<_>>();
-    for entity in entities {
-        world.despawn(entity).unwrap();
+    let mut buffer = CommandBuffer::new();
+    for (entity, keep) in world.query_mut::<Satisfies<&Keep>>() {
+        if !keep {
+            buffer.despawn(entity);
+        } else {
+            buffer.remove_one::<Keep>(entity);
+        }
     }
-
-    let entities = world
-        .query::<()>()
-        .with::<&Keep>()
-        .iter()
-        .map(|pair| pair.0)
-        .collect::<Vec<_>>();
-    for entity in entities {
-        world.remove_one::<Keep>(entity).unwrap();
-    }
+    buffer.run_on(world);
 }
