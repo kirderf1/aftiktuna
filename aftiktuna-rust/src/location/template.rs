@@ -1,10 +1,11 @@
 use super::creature::{AftikProfile, ProfileOrRandom};
 use super::door::{place_pair, DoorInfo, DoorType};
 use super::{creature, door, Area, BackgroundId};
+use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::{item, AftikColorId, BlockType, FortunaChest, ModelId, OrderWeight, Symbol};
+use crate::core::{item, BlockType, FortunaChest};
 use hecs::{Entity, World};
 use rand::distributions::WeightedIndex;
 use rand::seq::SliceRandom;

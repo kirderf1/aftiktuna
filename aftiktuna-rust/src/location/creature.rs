@@ -1,10 +1,9 @@
+use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats, Traits};
-use crate::core::{
-    item, AftikColorId, CreatureAttribute, Hostile, ModelId, OrderWeight, Recruitable, Shopkeeper,
-    StockQuantity, StoreStock, Symbol,
-};
+use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
+use crate::core::{item, CreatureAttribute, Hostile, Recruitable};
 use hecs::{EntityBuilder, World};
 use rand::seq::SliceRandom;
 use rand::Rng;

@@ -1,10 +1,9 @@
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
+use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
-use crate::core::{
-    inventory, item, CrewMember, Door, DoorKind, Hostile, ModelId, OrderWeight, Points, Symbol,
-    Waiting,
-};
+use crate::core::store::Points;
+use crate::core::{inventory, item, CrewMember, Door, DoorKind, Hostile, Waiting};
 use crate::game_loop::GameState;
 use crate::view::Messages;
 use creature::{AftikProfile, ProfileOrRandom};

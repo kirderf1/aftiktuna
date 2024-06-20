@@ -2,9 +2,9 @@ use crate::core::area::ShipControls;
 use crate::core::inventory::Container;
 use crate::core::item::{CanWield, Item};
 use crate::core::name::NameData;
+use crate::core::store::{Shopkeeper, StoreStock};
 use crate::core::{
-    status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Shopkeeper,
-    StoreStock, Waiting,
+    status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;

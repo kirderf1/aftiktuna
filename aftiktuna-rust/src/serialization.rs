@@ -147,7 +147,7 @@ macro_rules! world_serialization {
 pub mod world {
     use crate::ai;
     use crate::core::area::{Area, Ship, ShipControls};
-    use crate::core::{self, inventory, item, name, position, status};
+    use crate::core::{self, display, inventory, item, name, position, status, store};
 
     world_serialization!(
         Area, Area;
@@ -160,10 +160,10 @@ pub mod world {
         name::Name, Name;
         name::Noun, Noun;
         core::CreatureAttribute, CreatureAttribute;
-        core::Symbol, Symbol;
-        core::ModelId, TextureType;
-        core::OrderWeight, OrderWeight;
-        core::AftikColorId, AftikColor;
+        display::Symbol, Symbol;
+        display::ModelId, TextureType;
+        display::OrderWeight, OrderWeight;
+        display::AftikColorId, AftikColor;
 
         status::Stats, Stats;
         status::Traits, Traits;
@@ -179,9 +179,9 @@ pub mod world {
         core::RepeatingAction, RepeatingAction;
 
         core::Recruitable, Recruitable;
-        core::Shopkeeper, Shopkeeper;
-        core::IsTrading, IsTrading;
-        core::Points, Points;
+        store::Shopkeeper, Shopkeeper;
+        store::IsTrading, IsTrading;
+        store::Points, Points;
 
         core::Door, Door;
         core::IsCut, IsCut;

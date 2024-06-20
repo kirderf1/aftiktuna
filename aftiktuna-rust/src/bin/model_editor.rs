@@ -2,8 +2,8 @@ use std::fs::{self, File};
 use std::path::Path;
 use std::process::exit;
 
+use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
-use aftiktuna::core::ModelId;
 use aftiktuna::macroquad_interface::camera::Positioner;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{

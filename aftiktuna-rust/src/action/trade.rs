@@ -4,7 +4,8 @@ use crate::core::inventory::Held;
 use crate::core::item::{FuelCan, Price};
 use crate::core::name::{self, NameData};
 use crate::core::position::{self, Pos};
-use crate::core::{item, CrewMember, IsTrading, Points, Shopkeeper, StoreStock};
+use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
+use crate::core::{item, CrewMember};
 use hecs::{Entity, EntityRef, Ref, World};
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {

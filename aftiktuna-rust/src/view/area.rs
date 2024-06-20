@@ -1,15 +1,13 @@
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
+use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, Medkit, Usable};
 use crate::core::name::NameData;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
-use crate::core::{
-    inventory, AftikColorId, BlockType, CreatureAttribute, Door, IsCut, ModelId, OrderWeight,
-    Symbol,
-};
+use crate::core::{inventory, BlockType, CreatureAttribute, Door, IsCut};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::{capitalize, Messages};

@@ -7,14 +7,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::action::{self, Action};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
+use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::{self, FoodRation, FourLeafClover};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
-use crate::core::{
-    self, inventory, status, CrewMember, OpenedChest, OrderWeight, RepeatingAction, Waiting,
-};
+use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAction, Waiting};
 use crate::game_interface::Phase;
 use crate::location::{self, CrewData, GenerationState, PickResult};
 use crate::serialization;

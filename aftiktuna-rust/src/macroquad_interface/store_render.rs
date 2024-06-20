@@ -1,5 +1,6 @@
+use crate::core::display::{AftikColorId, ModelId};
 use crate::core::position::Direction;
-use crate::core::{AftikColorId, ModelId, StoreStock};
+use crate::core::store::StoreStock;
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;

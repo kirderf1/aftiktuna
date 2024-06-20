@@ -2,7 +2,7 @@ use std::fs::File;
 use std::mem::take;
 use std::process::exit;
 
-use aftiktuna::core::{AftikColorId, ModelId};
+use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::macroquad_interface;
 use aftiktuna::macroquad_interface::texture::model::Model;
 use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor};

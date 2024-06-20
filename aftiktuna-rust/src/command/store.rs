@@ -4,7 +4,7 @@ use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
 use crate::core::inventory::Held;
 use crate::core::name::{NameData, NameQuery};
-use crate::core::{Shopkeeper, StoreStock};
+use crate::core::store::{Shopkeeper, StoreStock};
 use crate::game_loop::GameState;
 use hecs::{Entity, World};
 

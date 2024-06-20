@@ -1,8 +1,8 @@
 use super::texture::RenderAssets;
 use super::App;
 use crate::core::area::BackgroundId;
+use crate::core::display::ModelId;
 use crate::core::position::Direction;
-use crate::core::ModelId;
 use crate::game_loop::StopType;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};

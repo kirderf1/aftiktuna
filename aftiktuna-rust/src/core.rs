@@ -1,5 +1,3 @@
-use std::{fmt::Display, path::Path};
-
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -12,78 +10,141 @@ pub mod name;
 pub mod position;
 pub mod status;
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct ModelId(pub String);
+pub mod display {
+    use std::path::Path;
 
-impl ModelId {
-    pub fn unknown() -> Self {
-        Self::new("unknown")
-    }
-    pub fn small_unknown() -> Self {
-        Self::new("small_unknown")
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+    pub struct ModelId(pub String);
+
+    impl ModelId {
+        pub fn unknown() -> Self {
+            Self::new("unknown")
+        }
+        pub fn small_unknown() -> Self {
+            Self::new("small_unknown")
+        }
+
+        pub fn portrait() -> Self {
+            Self::new("portrait")
+        }
+
+        pub fn aftik() -> Self {
+            Self::creature("aftik")
+        }
+
+        pub fn new(name: &str) -> Self {
+            Self(name.to_owned())
+        }
+
+        pub fn item(name: &str) -> Self {
+            Self(format!("item/{name}"))
+        }
+
+        pub fn creature(name: &str) -> Self {
+            Self(format!("creature/{name}"))
+        }
+
+        pub fn path(&self) -> &str {
+            &self.0
+        }
+
+        pub fn file_path(&self) -> impl AsRef<Path> {
+            let Self(path) = self;
+            format!("assets/texture/object/{path}.json")
+        }
     }
 
-    pub fn portrait() -> Self {
-        Self::new("portrait")
+    impl Default for ModelId {
+        fn default() -> Self {
+            Self::unknown()
+        }
     }
 
-    pub fn aftik() -> Self {
-        Self::creature("aftik")
+    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct Symbol(pub char);
+
+    impl Symbol {
+        pub fn from_name(name: &str) -> Self {
+            Self(name.chars().next().unwrap().to_ascii_uppercase())
+        }
     }
 
-    pub fn new(name: &str) -> Self {
-        Self(name.to_owned())
+    #[derive(
+        Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize,
+    )]
+    pub enum OrderWeight {
+        Item,
+        Controlled,
+        #[default]
+        Creature,
+        Background,
     }
 
-    pub fn item(name: &str) -> Self {
-        Self(format!("item/{name}"))
-    }
+    #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct AftikColorId(pub String);
 
-    pub fn creature(name: &str) -> Self {
-        Self(format!("creature/{name}"))
-    }
-
-    pub fn path(&self) -> &str {
-        &self.0
-    }
-
-    pub fn file_path(&self) -> impl AsRef<Path> {
-        let Self(path) = self;
-        format!("assets/texture/object/{path}.json")
+    impl AftikColorId {
+        pub fn new(name: &str) -> Self {
+            AftikColorId(name.to_owned())
+        }
     }
 }
 
-impl Default for ModelId {
-    fn default() -> Self {
-        Self::unknown()
+pub mod store {
+    use std::fmt::Display;
+
+    use hecs::Entity;
+    use serde::{Deserialize, Serialize};
+
+    use super::item;
+
+    #[derive(Serialize, Deserialize)]
+    pub struct Points(pub i32);
+
+    #[derive(Serialize, Deserialize)]
+    pub struct Shopkeeper(pub Vec<StoreStock>);
+
+    #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+    #[serde(untagged)]
+    pub enum StockQuantity {
+        Unlimited,
+        Count(u16),
     }
-}
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Symbol(pub char);
+    impl StockQuantity {
+        pub fn is_zero(&self) -> bool {
+            matches!(self, Self::Count(0))
+        }
 
-impl Symbol {
-    pub fn from_name(name: &str) -> Self {
-        Self(name.chars().next().unwrap().to_ascii_uppercase())
+        pub fn subtracted(&self, subtracted: u16) -> Option<Self> {
+            match self {
+                Self::Unlimited => Some(Self::Unlimited),
+                Self::Count(count) => Some(Self::Count(count.checked_sub(subtracted)?)),
+            }
+        }
     }
-}
 
-#[derive(Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
-pub enum OrderWeight {
-    Item,
-    Controlled,
-    #[default]
-    Creature,
-    Background,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct AftikColorId(pub String);
-
-impl AftikColorId {
-    pub fn new(name: &str) -> Self {
-        AftikColorId(name.to_owned())
+    impl Display for StockQuantity {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                Self::Unlimited => "Unlimited".fmt(f),
+                Self::Count(0) => "SOLD OUT".fmt(f),
+                Self::Count(count) => count.fmt(f),
+            }
+        }
     }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct StoreStock {
+        pub item: item::Type,
+        pub price: item::Price,
+        pub quantity: StockQuantity,
+    }
+
+    #[derive(Serialize, Deserialize)]
+    pub struct IsTrading(pub Entity);
 }
 
 pub const CREW_SIZE_LIMIT: usize = 3;
@@ -142,52 +203,6 @@ pub struct FortunaChest;
 
 #[derive(Serialize, Deserialize)]
 pub struct OpenedChest;
-
-#[derive(Serialize, Deserialize)]
-pub struct Points(pub i32);
-
-#[derive(Serialize, Deserialize)]
-pub struct Shopkeeper(pub Vec<StoreStock>);
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum StockQuantity {
-    Unlimited,
-    Count(u16),
-}
-
-impl StockQuantity {
-    pub fn is_zero(&self) -> bool {
-        matches!(self, Self::Count(0))
-    }
-
-    pub fn subtracted(&self, subtracted: u16) -> Option<Self> {
-        match self {
-            Self::Unlimited => Some(Self::Unlimited),
-            Self::Count(count) => Some(Self::Count(count.checked_sub(subtracted)?)),
-        }
-    }
-}
-
-impl Display for StockQuantity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Unlimited => "Unlimited".fmt(f),
-            Self::Count(0) => "SOLD OUT".fmt(f),
-            Self::Count(count) => count.fmt(f),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StoreStock {
-    pub item: item::Type,
-    pub price: item::Price,
-    pub quantity: StockQuantity,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct IsTrading(pub Entity);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Door {

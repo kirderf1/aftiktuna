@@ -1,5 +1,5 @@
 use crate::core::area::BackgroundId;
-use crate::core::{AftikColorId, ModelId};
+use crate::core::display::{AftikColorId, ModelId};
 use crate::view::area::RenderProperties;
 use egui_macroquad::egui::Color32;
 use egui_macroquad::macroquad::color::Color;

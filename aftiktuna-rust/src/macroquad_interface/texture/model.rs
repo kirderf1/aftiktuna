@@ -4,8 +4,8 @@ use egui_macroquad::macroquad::texture::{self, DrawTextureParams, Texture2D};
 use serde::{Deserialize, Serialize};
 
 use super::{AftikColorData, Error, TextureLoader};
+use crate::core::display::ModelId;
 use crate::core::position::Direction;
-use crate::core::ModelId;
 use crate::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fs::File;
