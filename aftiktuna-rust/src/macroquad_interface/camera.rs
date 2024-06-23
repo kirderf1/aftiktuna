@@ -129,11 +129,16 @@ pub fn clamp_camera(camera: &mut Rect, area_size: Coord) {
 }
 
 pub fn default_camera_space() -> Rect {
-    Rect::new(0., 0., 800., 600.)
+    Rect::new(0., 0., super::WINDOW_WIDTH_F, super::WINDOW_HEIGHT_F)
 }
 
 pub fn position_centered_camera(position: Coord, area_size: Coord) -> Rect {
-    let mut camera_space = Rect::new(coord_to_center_x(position) - 400., 0., 800., 600.);
+    let mut camera_space = Rect::new(
+        coord_to_center_x(position) - super::WINDOW_WIDTH_F / 2.,
+        0.,
+        super::WINDOW_WIDTH_F,
+        super::WINDOW_HEIGHT_F,
+    );
     clamp_camera(&mut camera_space, area_size);
     camera_space
 }

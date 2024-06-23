@@ -5,14 +5,7 @@ use egui_macroquad::macroquad::{self, input};
 use std::env;
 
 fn config() -> Conf {
-    Conf {
-        window_title: "Aftiktuna location tester".to_string(),
-        window_width: 800,
-        window_height: 600,
-        window_resizable: false,
-        icon: Some(macroquad_interface::logo()),
-        ..Default::default()
-    }
+    macroquad_interface::default_conf("Aftiktuna location tester")
 }
 
 #[macroquad::main(config)]

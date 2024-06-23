@@ -8,6 +8,7 @@ use egui_macroquad::macroquad::input::{
 };
 use egui_macroquad::macroquad::math::Vec2;
 use egui_macroquad::macroquad::miniquad::conf::Icon;
+use egui_macroquad::macroquad::window::Conf;
 use egui_macroquad::macroquad::{color, input, text, window};
 use std::fs;
 use std::mem::take;
@@ -91,6 +92,22 @@ pub mod error_view {
             last_index = index;
         }
         line.len()
+    }
+}
+
+pub const WINDOW_WIDTH: u16 = 800;
+pub const WINDOW_HEIGHT: u16 = 600;
+pub const WINDOW_WIDTH_F: f32 = WINDOW_WIDTH as f32;
+pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
+
+pub fn default_conf(title: impl Into<String>) -> Conf {
+    Conf {
+        window_title: title.into(),
+        window_width: WINDOW_WIDTH.into(),
+        window_height: WINDOW_HEIGHT.into(),
+        window_resizable: false,
+        icon: Some(logo()),
+        ..Default::default()
     }
 }
 
@@ -273,7 +290,7 @@ pub fn draw_centered_text(text: &str, y: f32, font_size: u16, color: Color) {
     let text_size = text::measure_text(text, None, font_size, 1.);
     text::draw_text(
         text,
-        (800. - text_size.width) / 2.,
+        (WINDOW_WIDTH_F - text_size.width) / 2.,
         y,
         font_size as f32,
         color,

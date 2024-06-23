@@ -14,7 +14,7 @@ use egui_macroquad::macroquad::time::get_time;
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;
 const TEXT_BOX_MARGIN: f32 = 12.;
-const TEXT_BOX_TEXT_MAX_WIDTH: f32 = 800. - 2. * TEXT_BOX_MARGIN;
+const TEXT_BOX_TEXT_MAX_WIDTH: f32 = super::WINDOW_WIDTH_F - 2. * TEXT_BOX_MARGIN;
 
 pub fn split_text_line(line: String) -> Vec<String> {
     if fits_in_text_box_width(&line) {
@@ -65,8 +65,8 @@ pub fn is_mouse_at_text_box(text_box_text: &[String]) -> bool {
 
 fn get_text_box_dimensions(text: &[String]) -> Rect {
     let text_box_size = f32::max(100., 10. + text.len() as f32 * TEXT_BOX_TEXT_SIZE as f32);
-    let text_box_start = 600. - 25. - text_box_size;
-    Rect::new(0., text_box_start, 800., text_box_size)
+    let text_box_start = super::WINDOW_HEIGHT_F - 25. - text_box_size;
+    Rect::new(0., text_box_start, super::WINDOW_WIDTH_F, text_box_size)
 }
 
 pub fn draw_text_box(text: &[String], textures: &RenderAssets, click_to_proceed: bool) {

@@ -156,10 +156,11 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 fn draw_dialogue_frame(data: &DialogueFrameData, assets: &mut RenderAssets) {
     set_default_camera();
     assets.lookup_background(&data.background).portrait.draw();
-    let pos = match data.direction {
-        Direction::Left => Vec2::new(500., 600.),
-        Direction::Right => Vec2::new(300., 600.),
+    let x = match data.direction {
+        Direction::Left => super::WINDOW_WIDTH_F - 300.,
+        Direction::Right => 300.,
     };
+    let pos = Vec2::new(x, super::WINDOW_HEIGHT_F);
     texture::draw_object(
         &ModelId::portrait(),
         &RenderProperties {

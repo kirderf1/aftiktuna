@@ -218,8 +218,8 @@ fn tooltip_dimensions<S: TextRepresentable>(pos: Vec2, lines: &[S]) -> Rect {
         + 2. * TEXT_BOX_MARGIN;
     let height = lines.len() as f32 * TEXT_BOX_TEXT_SIZE as f32;
     Rect::new(
-        pos.x.min(800. - width),
-        pos.y.min(600. - height),
+        pos.x.min(super::WINDOW_WIDTH_F - width),
+        pos.y.min(super::WINDOW_HEIGHT_F - height),
         width,
         height,
     )
