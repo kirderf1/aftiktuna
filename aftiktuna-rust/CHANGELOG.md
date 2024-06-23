@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Improved how adjacent objects are rendered over each other
 - Space out text from "status" command with empty lines between characters
 - Crew members told to wait will now stop waiting when they leave the ship from arriving at a new location
+- Tooltips now go in front of the input field
 
 ### Contributors for this release
 

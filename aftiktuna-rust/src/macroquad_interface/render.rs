@@ -77,15 +77,16 @@ pub fn draw(app: &mut App) {
             app.assets,
             app.game.next_result().has_frame(),
         );
+
+        ui::egui_graphic(app);
+
         tooltip::draw(
             &app.render_state,
             &app.command_tooltip,
             &mut app.assets.models,
         );
-
-        ui::egui_only_input(app);
     } else {
-        ui::egui_full(app);
+        ui::egui_text_view(app);
     }
 }
 

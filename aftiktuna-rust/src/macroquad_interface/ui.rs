@@ -104,13 +104,31 @@ pub fn draw_text_box(text: &[String], textures: &RenderAssets, click_to_proceed:
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
-pub fn egui_only_input(app: &mut App) {
-    egui_macroquad::ui(|ctx| input_panel(app, ctx));
+pub fn egui_graphic(app: &mut App) {
+    egui_macroquad::ui(|ctx| {
+        input_panel(app, ctx);
+
+        if let Some(tooltip) = &app.command_tooltip {
+            let dimensions = tooltip.dimensions();
+            egui::Area::new("tooltip")
+                .order(egui::Order::Foreground)
+                .fixed_pos(egui::pos2(
+                    dimensions.x / ctx.pixels_per_point(),
+                    dimensions.y / ctx.pixels_per_point(),
+                ))
+                .show(ctx, |ui| {
+                    ui.set_min_size(egui::vec2(
+                        dimensions.w / ctx.pixels_per_point(),
+                        dimensions.h / ctx.pixels_per_point(),
+                    ))
+                });
+        }
+    });
 
     egui_macroquad::draw();
 }
 
-pub fn egui_full(app: &mut App) {
+pub fn egui_text_view(app: &mut App) {
     egui_macroquad::ui(|ctx| {
         input_panel(app, ctx);
         text_box_panel(app, ctx);

@@ -37,6 +37,12 @@ pub struct CommandTooltip {
     commands: Vec<Suggestion>,
 }
 
+impl CommandTooltip {
+    pub fn dimensions(&self) -> Rect {
+        tooltip_dimensions(self.pos, &self.commands)
+    }
+}
+
 pub fn handle_click(app: &mut App) {
     let state = &mut app.render_state;
     if !app.game.ready_to_take_input() {
@@ -148,7 +154,7 @@ const TEXT_BOX_TEXT_SIZE: u16 = 16;
 const TEXT_BOX_MARGIN: f32 = 10.;
 
 fn line_index_at<S: TextRepresentable>(mouse_pos: Vec2, pos: Vec2, lines: &[S]) -> Option<usize> {
-    let size = tooltip_size(pos, lines);
+    let size = tooltip_dimensions(pos, lines);
 
     for index in 0..lines.len() {
         let line_size = Rect::new(
@@ -169,7 +175,7 @@ fn draw_lines<S: TextRepresentable>(pos: Vec2, lines: &[S], highlighted_index: O
         return;
     }
 
-    let size = tooltip_size(pos, lines);
+    let size = tooltip_dimensions(pos, lines);
     if let Some(line_index) = highlighted_index {
         let highlight_start = line_index as f32 * TEXT_BOX_TEXT_SIZE as f32;
         let highlight_end = (line_index + 1) as f32 * TEXT_BOX_TEXT_SIZE as f32;
@@ -203,7 +209,7 @@ fn draw_lines<S: TextRepresentable>(pos: Vec2, lines: &[S], highlighted_index: O
     }
 }
 
-fn tooltip_size<S: TextRepresentable>(pos: Vec2, lines: &[S]) -> Rect {
+fn tooltip_dimensions<S: TextRepresentable>(pos: Vec2, lines: &[S]) -> Rect {
     let width = lines
         .iter()
         .map(|object| text::measure_text(object.as_text(), None, TEXT_BOX_TEXT_SIZE, 1.).width)
