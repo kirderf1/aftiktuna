@@ -86,11 +86,11 @@ impl TextureLayer {
             return;
         }
 
-        let dest_size = self.positioning.dest_size(self.texture);
+        let dest_size = self.positioning.dest_size(&self.texture);
         let x = pos.x - dest_size.x / 2.;
         let y = pos.y + f32::from(self.positioning.y_offset) - dest_size.y;
         texture::draw_texture_ex(
-            self.texture,
+            &self.texture,
             x,
             y,
             self.color.get_color(aftik_color_data),
@@ -103,7 +103,7 @@ impl TextureLayer {
     }
 
     fn size(&self, pos: Vec2) -> Rect {
-        let dest_size = self.positioning.dest_size(self.texture);
+        let dest_size = self.positioning.dest_size(&self.texture);
         Rect::new(
             pos.x - dest_size.x / 2.,
             pos.y - dest_size.y + f32::from(self.positioning.y_offset),
@@ -197,7 +197,7 @@ pub struct LayerPositioning {
 }
 
 impl LayerPositioning {
-    fn dest_size(&self, texture: Texture2D) -> Vec2 {
+    fn dest_size(&self, texture: &Texture2D) -> Vec2 {
         self.size
             .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
             .unwrap_or_else(|| Vec2::new(texture.width(), texture.height()))

@@ -7,10 +7,9 @@ use crate::game_loop::StopType;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};
 use crate::view::{DialogueFrameData, Frame, Messages};
-use macroquad::camera::{set_camera, set_default_camera, Camera2D};
 use macroquad::color::{BLACK, LIGHTGRAY};
 use macroquad::math::{Rect, Vec2};
-use macroquad::window;
+use macroquad::{camera as mq_camera, window};
 
 pub struct State {
     pub text_log: Vec<String>,
@@ -73,7 +72,7 @@ pub fn draw(app: &mut AppWithEgui) {
             app.assets,
         );
 
-        set_default_camera();
+        mq_camera::set_default_camera();
         ui::draw_text_box(
             &app.render_state.text_box_text,
             app.assets,
@@ -95,14 +94,14 @@ pub fn draw(app: &mut AppWithEgui) {
 fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
-            set_default_camera();
+            mq_camera::set_default_camera();
             assets
                 .lookup_background(&BackgroundId::location_choice())
                 .texture
                 .draw(0, camera::default_camera_space());
         }
         Frame::AreaView { render_data, .. } => {
-            set_camera(&Camera2D::from_display_rect(camera));
+            mq_camera::set_camera(&camera::unflipped_camera_for_rect(camera));
             assets
                 .lookup_background(&render_data.background)
                 .texture
@@ -110,9 +109,9 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
 
             draw_objects(render_data, assets);
 
-            set_default_camera();
+            mq_camera::set_default_camera();
             ui::draw_camera_arrows(
-                assets.side_arrow,
+                &assets.side_arrow,
                 camera::has_camera_space(camera, render_data),
             );
         }
@@ -123,7 +122,7 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
             store_render::draw_store_view(assets, view);
         }
         Frame::Ending { stop_type } => {
-            set_default_camera();
+            mq_camera::set_default_camera();
             let color = match stop_type {
                 StopType::Win => LIGHTGRAY,
                 StopType::Lose => BLACK,
@@ -156,7 +155,7 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 }
 
 fn draw_dialogue_frame(data: &DialogueFrameData, assets: &mut RenderAssets) {
-    set_default_camera();
+    mq_camera::set_default_camera();
     assets.lookup_background(&data.background).portrait.draw();
     let x = match data.direction {
         Direction::Left => super::WINDOW_WIDTH_F - 300.,

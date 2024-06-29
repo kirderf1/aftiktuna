@@ -1,6 +1,7 @@
 use crate::core::position::Coord;
 use crate::view::area::{ObjectRenderData, RenderData};
 use crate::view::Frame;
+use macroquad::camera::Camera2D;
 use macroquad::input::MouseButton;
 use macroquad::math::{Rect, Vec2};
 use macroquad::{input, math};
@@ -141,4 +142,12 @@ pub fn position_centered_camera(position: Coord, area_size: Coord) -> Rect {
     );
     clamp_camera(&mut camera_space, area_size);
     camera_space
+}
+
+/// Macroquad 0.4+ has a problem where the Camera2D is flipped vertically.
+/// As long as that problem persists, this function can be used to get a correctly-flipped camera.
+pub fn unflipped_camera_for_rect(rect: Rect) -> Camera2D {
+    let mut camera = Camera2D::from_display_rect(rect);
+    camera.zoom.y = -camera.zoom.y;
+    camera
 }

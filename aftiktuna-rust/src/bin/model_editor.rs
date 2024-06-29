@@ -80,7 +80,7 @@ async fn main() {
         let model = selected_model.load(&mut textures).unwrap();
         macroquad::camera::set_camera(&Camera2D {
             viewport: Some((0, 0, 800, 600)),
-            ..Camera2D::from_display_rect(camera)
+            ..camera::unflipped_camera_for_rect(camera)
         });
         background.draw(0, camera);
         area_size = draw_examples(&selected_model, &model, &aftik_model);

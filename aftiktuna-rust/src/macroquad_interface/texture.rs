@@ -3,7 +3,6 @@ use crate::core::display::{AftikColorId, ModelId};
 use crate::view::area::RenderProperties;
 use egui::Color32;
 use macroquad::color::Color;
-use macroquad::file::FileError;
 use macroquad::math::Vec2;
 use macroquad::prelude::ImageFormat;
 use macroquad::texture::Texture2D;
@@ -134,11 +133,11 @@ pub struct CachedTextures(HashMap<String, Texture2D>);
 impl TextureLoader for CachedTextures {
     fn load_texture(&mut self, name: String) -> Result<Texture2D, std::io::Error> {
         if let Some(texture) = self.0.get(&name) {
-            return Ok(*texture);
+            return Ok(texture.clone());
         }
 
         let texture = load_texture(&name)?;
-        self.0.insert(name, texture);
+        self.0.insert(name, texture.clone());
         Ok(texture)
     }
 }
@@ -146,7 +145,6 @@ impl TextureLoader for CachedTextures {
 #[derive(Debug)]
 pub enum Error {
     IO(io::Error),
-    Macroquad(FileError),
     Json(JsonError),
     MissingBlankBackground,
 }
@@ -154,12 +152,6 @@ pub enum Error {
 impl From<io::Error> for Error {
     fn from(value: io::Error) -> Self {
         Error::IO(value)
-    }
-}
-
-impl From<FileError> for Error {
-    fn from(value: FileError) -> Self {
-        Error::Macroquad(value)
     }
 }
 
@@ -173,7 +165,6 @@ impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::IO(error) => Display::fmt(error, f),
-            Error::Macroquad(error) => Display::fmt(error, f),
             Error::Json(error) => Display::fmt(error, f),
             Error::MissingBlankBackground => {
                 Display::fmt("Missing Background: Blank background texture must exist", f)

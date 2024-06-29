@@ -347,65 +347,41 @@ pub mod egui {
     struct EventTransfer<'a>(&'a mut egui_miniquad::EguiMq);
 
     impl<'a> miniquad::EventHandler for EventTransfer<'a> {
-        fn mouse_motion_event(&mut self, _ctx: &mut miniquad::Context, x: f32, y: f32) {
+        fn mouse_motion_event(&mut self, x: f32, y: f32) {
             self.0.mouse_motion_event(x, y)
         }
 
-        fn mouse_wheel_event(&mut self, _ctx: &mut miniquad::Context, x: f32, y: f32) {
+        fn mouse_wheel_event(&mut self, x: f32, y: f32) {
             self.0.mouse_wheel_event(x, y)
         }
 
-        fn mouse_button_down_event(
-            &mut self,
-            ctx: &mut miniquad::Context,
-            button: miniquad::MouseButton,
-            x: f32,
-            y: f32,
-        ) {
-            self.0.mouse_button_down_event(ctx, button, x, y)
+        fn mouse_button_down_event(&mut self, button: miniquad::MouseButton, x: f32, y: f32) {
+            self.0.mouse_button_down_event(button, x, y)
         }
 
-        fn mouse_button_up_event(
-            &mut self,
-            ctx: &mut miniquad::Context,
-            button: miniquad::MouseButton,
-            x: f32,
-            y: f32,
-        ) {
-            self.0.mouse_button_up_event(ctx, button, x, y)
+        fn mouse_button_up_event(&mut self, button: miniquad::MouseButton, x: f32, y: f32) {
+            self.0.mouse_button_up_event(button, x, y)
         }
 
-        fn char_event(
-            &mut self,
-            _ctx: &mut miniquad::Context,
-            character: char,
-            _keymods: miniquad::KeyMods,
-            _repeat: bool,
-        ) {
+        fn char_event(&mut self, character: char, _keymods: miniquad::KeyMods, _repeat: bool) {
             self.0.char_event(character)
         }
 
         fn key_down_event(
             &mut self,
-            ctx: &mut miniquad::Context,
             keycode: miniquad::KeyCode,
             keymods: miniquad::KeyMods,
             _repeat: bool,
         ) {
-            self.0.key_down_event(ctx, keycode, keymods)
+            self.0.key_down_event(keycode, keymods)
         }
 
-        fn key_up_event(
-            &mut self,
-            _ctx: &mut miniquad::Context,
-            keycode: miniquad::KeyCode,
-            keymods: miniquad::KeyMods,
-        ) {
+        fn key_up_event(&mut self, keycode: miniquad::KeyCode, keymods: miniquad::KeyMods) {
             self.0.key_up_event(keycode, keymods)
         }
 
-        fn update(&mut self, _ctx: &mut miniquad::Context) {}
+        fn update(&mut self) {}
 
-        fn draw(&mut self, _ctx: &mut miniquad::Context) {}
+        fn draw(&mut self) {}
     }
 }

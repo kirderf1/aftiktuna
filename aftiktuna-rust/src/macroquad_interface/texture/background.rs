@@ -29,7 +29,7 @@ impl BGTexture {
         for layer in &self.0.layers {
             let layer_x =
                 camera_space.x * (1. - layer.move_factor) - offset - f32::from(layer.offset);
-            let texture = layer.texture;
+            let texture = &layer.texture;
             if layer.is_looping {
                 let repeat_count = f32::floor((camera_space.x - layer_x) / texture.width());
                 texture::draw_texture(
@@ -58,8 +58,8 @@ pub enum BGPortrait {
 
 impl BGPortrait {
     pub fn draw(&self) {
-        match *self {
-            BGPortrait::Color(color) => window::clear_background(color),
+        match self {
+            BGPortrait::Color(color) => window::clear_background(*color),
             BGPortrait::Texture(texture) => texture::draw_texture(texture, 0., 0., color::WHITE),
         }
     }

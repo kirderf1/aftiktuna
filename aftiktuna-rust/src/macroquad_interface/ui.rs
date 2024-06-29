@@ -93,7 +93,7 @@ pub fn draw_text_box(text: &[String], textures: &RenderAssets, click_to_proceed:
     if click_to_proceed {
         let alpha = ((get_time() * 3.).sin() + 1.) / 2.;
         draw_texture(
-            textures.left_mouse_icon,
+            &textures.left_mouse_icon,
             dimensions.right() - textures.left_mouse_icon.width() - 5.,
             dimensions.top() + 5.,
             Color::new(1., 1., 1., alpha as f32),
@@ -109,7 +109,7 @@ pub fn egui_graphic(app: &mut App, egui: &mut EguiWrapper) {
 
         if let Some(tooltip) = &app.command_tooltip {
             let dimensions = tooltip.dimensions();
-            egui::Area::new("tooltip")
+            egui::Area::new(egui::Id::new("tooltip"))
                 .order(egui::Order::Foreground)
                 .fixed_pos(egui::pos2(
                     dimensions.x / ctx.pixels_per_point(),
@@ -174,7 +174,7 @@ fn egui_text_box(text_log: &Vec<String>, ui: &mut egui::Ui) {
         });
 }
 
-pub(crate) fn draw_camera_arrows(side_arrow: Texture2D, has_camera_space: [bool; 2]) {
+pub(crate) fn draw_camera_arrows(side_arrow: &Texture2D, has_camera_space: [bool; 2]) {
     let alpha = ((get_time() * 3.).sin() + 1.) / 2.;
     let color = Color::new(1., 1., 1., alpha as f32);
     if has_camera_space[0] {

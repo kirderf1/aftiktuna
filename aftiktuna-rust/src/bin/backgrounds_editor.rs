@@ -63,7 +63,7 @@ async fn main() {
 
         macroquad::camera::set_camera(&Camera2D {
             viewport: Some((0, 0, 800, 600)),
-            ..Camera2D::from_display_rect(camera)
+            ..camera::unflipped_camera_for_rect(camera)
         });
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
         draw_examples(&raw_background.load(&mut textures).unwrap(), offset, camera);
