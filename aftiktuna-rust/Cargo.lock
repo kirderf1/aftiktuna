@@ -28,9 +28,11 @@ checksum = "f26201604c87b1e01bd3d98f8d5d9a8fcbb815e8cedb41ffccbeb4bf593a35fe"
 name = "aftiktuna"
 version = "0.8.0"
 dependencies = [
- "egui-macroquad",
+ "egui",
+ "egui-miniquad",
  "hecs",
  "indexmap",
+ "macroquad",
  "rand",
  "rfd",
  "rmp-serde",
@@ -222,17 +224,6 @@ dependencies = [
  "ahash",
  "epaint",
  "nohash-hasher",
-]
-
-[[package]]
-name = "egui-macroquad"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04684094ab441cee64e836dac5d07b822c0dd002739a9790023f9d2d08ce2875"
-dependencies = [
- "egui",
- "egui-miniquad",
- "macroquad",
 ]
 
 [[package]]

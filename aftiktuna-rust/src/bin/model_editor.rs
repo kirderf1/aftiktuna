@@ -5,16 +5,16 @@ use std::process::exit;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::macroquad_interface::camera::Positioner;
+use aftiktuna::macroquad_interface::egui::EguiWrapper;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{
     background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
 };
 use aftiktuna::macroquad_interface::{self, camera};
 use aftiktuna::view::area::RenderProperties;
-use egui_macroquad::egui;
-use egui_macroquad::macroquad::camera::Camera2D;
-use egui_macroquad::macroquad::window::Conf;
-use egui_macroquad::macroquad::{self, color, window};
+use macroquad::camera::Camera2D;
+use macroquad::window::Conf;
+use macroquad::{color, window};
 
 fn config() -> Conf {
     Conf {
@@ -54,11 +54,13 @@ async fn main() {
     let mut camera = camera::position_centered_camera(0, area_size);
     let mut last_drag_pos = None;
 
+    let mut egui = EguiWrapper::init();
+
     loop {
         window::clear_background(color::LIGHTGRAY);
         let mut is_mouse_over_panel = false;
 
-        egui_macroquad::ui(|ctx| {
+        egui.ui(|ctx| {
             is_mouse_over_panel |= side_panel(
                 ctx,
                 &mut selected_model,
@@ -84,7 +86,7 @@ async fn main() {
         area_size = draw_examples(&selected_model, &model, &aftik_model);
         macroquad::camera::set_default_camera();
 
-        egui_macroquad::draw();
+        egui.draw();
         window::next_frame().await;
     }
 }

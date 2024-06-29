@@ -6,9 +6,9 @@ use crate::macroquad_interface::texture::RenderAssets;
 use crate::view;
 use crate::view::area::RenderProperties;
 use crate::view::StoreView;
-use egui_macroquad::macroquad::color::Color;
-use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::{camera, color, shapes, text};
+use macroquad::color::Color;
+use macroquad::math::{Rect, Vec2};
+use macroquad::{camera, color, shapes, text};
 
 const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 

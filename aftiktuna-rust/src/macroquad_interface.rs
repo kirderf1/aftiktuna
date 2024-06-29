@@ -2,14 +2,13 @@ use crate::game_interface::{Game, GameResult};
 use crate::macroquad_interface::tooltip::CommandTooltip;
 use crate::serialization;
 use crate::view::Frame;
-use egui_macroquad::macroquad::color::Color;
-use egui_macroquad::macroquad::input::{
-    is_key_pressed, is_mouse_button_released, KeyCode, MouseButton,
-};
-use egui_macroquad::macroquad::math::Vec2;
-use egui_macroquad::macroquad::miniquad::conf::Icon;
-use egui_macroquad::macroquad::window::Conf;
-use egui_macroquad::macroquad::{color, input, text, window};
+use egui::EguiWrapper;
+use macroquad::color::Color;
+use macroquad::input::{is_key_pressed, is_mouse_button_released, KeyCode, MouseButton};
+use macroquad::math::Vec2;
+use macroquad::miniquad::conf::Icon;
+use macroquad::window::{self, Conf};
+use macroquad::{color, input, text};
 use std::fs;
 use std::mem::take;
 use std::process;
@@ -23,7 +22,7 @@ mod tooltip;
 mod ui;
 
 pub mod error_view {
-    use egui_macroquad::macroquad::{color, input, text, window};
+    use macroquad::{color, input, text, window};
 
     const TEXT_SIZE: u16 = 24;
 
@@ -162,8 +161,13 @@ pub async fn run<T>(mut interface: impl Interface<T>) -> T {
     }
 }
 
-pub async fn run_game(game: Game, assets: &mut texture::RenderAssets, autosave: bool) {
-    run(App {
+pub async fn run_game(
+    game: Game,
+    autosave: bool,
+    assets: &mut texture::RenderAssets,
+    egui: &mut EguiWrapper,
+) {
+    let app = App {
         input: String::new(),
         game,
         assets,
@@ -175,11 +179,16 @@ pub async fn run_game(game: Game, assets: &mut texture::RenderAssets, autosave: 
         request_input_focus: false,
         show_next_frame: true,
         autosave,
-    })
-    .await
+    };
+    run(AppWithEgui { app, egui }).await
 }
 
-pub struct App<'a> {
+struct AppWithEgui<'a> {
+    app: App<'a>,
+    egui: &'a mut EguiWrapper,
+}
+
+struct App<'a> {
     input: String,
     game: Game,
     assets: &'a mut texture::RenderAssets,
@@ -193,9 +202,10 @@ pub struct App<'a> {
     autosave: bool,
 }
 
-impl Interface<()> for App<'_> {
+impl Interface<()> for AppWithEgui<'_> {
     fn on_frame(&mut self) -> Result<(), ()> {
-        if matches!(self.render_state.current_frame, Frame::Ending { .. })
+        let app = &mut self.app;
+        if matches!(app.render_state.current_frame, Frame::Ending { .. })
             && (input::is_key_pressed(KeyCode::Enter)
                 || input::is_mouse_button_pressed(MouseButton::Left))
         {
@@ -203,30 +213,31 @@ impl Interface<()> for App<'_> {
         }
 
         if is_key_pressed(KeyCode::Tab) {
-            self.show_graphical = !self.show_graphical;
+            app.show_graphical = !app.show_graphical;
         }
 
-        if self.show_graphical {
-            if self.last_drag_pos.is_none() {
-                tooltip::handle_click(self);
+        if app.show_graphical {
+            if app.last_drag_pos.is_none() {
+                tooltip::handle_click(app);
             }
-            if self.command_tooltip.is_none() {
-                camera::try_drag_camera_for_state(&mut self.render_state, &mut self.last_drag_pos);
+            if app.command_tooltip.is_none() {
+                camera::try_drag_camera_for_state(&mut app.render_state, &mut app.last_drag_pos);
             }
         } else {
-            self.last_drag_pos = None;
-            self.command_tooltip = None;
+            app.last_drag_pos = None;
+            app.command_tooltip = None;
         }
 
-        self.update_frame_state();
+        app.update_frame_state();
 
         render::draw(self);
         Ok(())
     }
 
     fn on_quit(&mut self) {
-        if self.autosave && !matches!(self.render_state.current_frame, Frame::Ending { .. }) {
-            if let Err(error) = serialization::write_game_to_save_file(&self.game) {
+        if self.app.autosave && !matches!(self.app.render_state.current_frame, Frame::Ending { .. })
+        {
+            if let Err(error) = serialization::write_game_to_save_file(&self.app.game) {
                 eprintln!("Failed to save game: {error}");
             } else {
                 println!("Saved the game successfully.")
@@ -295,4 +306,106 @@ pub fn draw_centered_text(text: &str, y: f32, font_size: u16, color: Color) {
         font_size as f32,
         color,
     );
+}
+
+pub mod egui {
+    use macroquad::input;
+    use macroquad::miniquad;
+    use macroquad::window::get_internal_gl;
+
+    pub struct EguiWrapper {
+        egui_mq: egui_miniquad::EguiMq,
+        input_subscriber: usize,
+    }
+
+    impl EguiWrapper {
+        pub fn init() -> Self {
+            let gl = unsafe { get_internal_gl() };
+            let egui_mq = egui_miniquad::EguiMq::new(gl.quad_context);
+            Self {
+                egui_mq,
+                input_subscriber: input::utils::register_input_subscriber(),
+            }
+        }
+
+        pub fn ui(&mut self, f: impl FnOnce(&egui::Context)) {
+            input::utils::repeat_all_miniquad_input(
+                &mut EventTransfer(&mut self.egui_mq),
+                self.input_subscriber,
+            );
+            let gl = unsafe { get_internal_gl() };
+            self.egui_mq.run(gl.quad_context, |_, ctx| f(ctx));
+        }
+
+        pub fn draw(&mut self) {
+            let mut gl = unsafe { get_internal_gl() };
+            gl.flush();
+            self.egui_mq.draw(gl.quad_context);
+        }
+    }
+
+    struct EventTransfer<'a>(&'a mut egui_miniquad::EguiMq);
+
+    impl<'a> miniquad::EventHandler for EventTransfer<'a> {
+        fn mouse_motion_event(&mut self, _ctx: &mut miniquad::Context, x: f32, y: f32) {
+            self.0.mouse_motion_event(x, y)
+        }
+
+        fn mouse_wheel_event(&mut self, _ctx: &mut miniquad::Context, x: f32, y: f32) {
+            self.0.mouse_wheel_event(x, y)
+        }
+
+        fn mouse_button_down_event(
+            &mut self,
+            ctx: &mut miniquad::Context,
+            button: miniquad::MouseButton,
+            x: f32,
+            y: f32,
+        ) {
+            self.0.mouse_button_down_event(ctx, button, x, y)
+        }
+
+        fn mouse_button_up_event(
+            &mut self,
+            ctx: &mut miniquad::Context,
+            button: miniquad::MouseButton,
+            x: f32,
+            y: f32,
+        ) {
+            self.0.mouse_button_up_event(ctx, button, x, y)
+        }
+
+        fn char_event(
+            &mut self,
+            _ctx: &mut miniquad::Context,
+            character: char,
+            _keymods: miniquad::KeyMods,
+            _repeat: bool,
+        ) {
+            self.0.char_event(character)
+        }
+
+        fn key_down_event(
+            &mut self,
+            ctx: &mut miniquad::Context,
+            keycode: miniquad::KeyCode,
+            keymods: miniquad::KeyMods,
+            _repeat: bool,
+        ) {
+            self.0.key_down_event(ctx, keycode, keymods)
+        }
+
+        fn key_up_event(
+            &mut self,
+            _ctx: &mut miniquad::Context,
+            keycode: miniquad::KeyCode,
+            keymods: miniquad::KeyMods,
+        ) {
+            self.0.key_up_event(keycode, keymods)
+        }
+
+        fn update(&mut self, _ctx: &mut miniquad::Context) {}
+
+        fn draw(&mut self, _ctx: &mut miniquad::Context) {}
+    }
 }

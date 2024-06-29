@@ -1,9 +1,9 @@
 use crate::core::position::Coord;
 use crate::view::area::{ObjectRenderData, RenderData};
 use crate::view::Frame;
-use egui_macroquad::macroquad::input::MouseButton;
-use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::{input, math};
+use macroquad::input::MouseButton;
+use macroquad::math::{Rect, Vec2};
+use macroquad::{input, math};
 use std::collections::HashMap;
 
 use super::texture::LazilyLoadedModels;

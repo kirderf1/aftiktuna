@@ -1,15 +1,14 @@
-use crate::macroquad_interface::texture::RenderAssets;
-use crate::macroquad_interface::App;
-use egui_macroquad::egui;
-use egui_macroquad::macroquad::color::{Color, WHITE};
-use egui_macroquad::macroquad::input::mouse_position;
-use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::shapes::draw_rectangle;
-use egui_macroquad::macroquad::text::{draw_text, measure_text};
-use egui_macroquad::macroquad::texture::{
-    draw_texture, draw_texture_ex, DrawTextureParams, Texture2D,
-};
-use egui_macroquad::macroquad::time::get_time;
+use super::texture::RenderAssets;
+use super::App;
+use macroquad::color::{Color, WHITE};
+use macroquad::input::mouse_position;
+use macroquad::math::{Rect, Vec2};
+use macroquad::shapes::draw_rectangle;
+use macroquad::text::{draw_text, measure_text};
+use macroquad::texture::{draw_texture, draw_texture_ex, DrawTextureParams, Texture2D};
+use macroquad::time::get_time;
+
+use super::egui::EguiWrapper;
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;
@@ -104,8 +103,8 @@ pub fn draw_text_box(text: &[String], textures: &RenderAssets, click_to_proceed:
 
 const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
-pub fn egui_graphic(app: &mut App) {
-    egui_macroquad::ui(|ctx| {
+pub fn egui_graphic(app: &mut App, egui: &mut EguiWrapper) {
+    egui.ui(|ctx| {
         input_panel(app, ctx);
 
         if let Some(tooltip) = &app.command_tooltip {
@@ -125,16 +124,16 @@ pub fn egui_graphic(app: &mut App) {
         }
     });
 
-    egui_macroquad::draw();
+    egui.draw();
 }
 
-pub fn egui_text_view(app: &mut App) {
-    egui_macroquad::ui(|ctx| {
+pub fn egui_text_view(app: &mut App, egui: &mut EguiWrapper) {
+    egui.ui(|ctx| {
         input_panel(app, ctx);
         text_box_panel(app, ctx);
     });
 
-    egui_macroquad::draw();
+    egui.draw();
 }
 
 fn input_panel(app: &mut App, ctx: &egui::Context) {

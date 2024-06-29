@@ -1,12 +1,12 @@
 use crate::core::area::BackgroundId;
 use crate::core::display::{AftikColorId, ModelId};
 use crate::view::area::RenderProperties;
-use egui_macroquad::egui::Color32;
-use egui_macroquad::macroquad::color::Color;
-use egui_macroquad::macroquad::file::FileError;
-use egui_macroquad::macroquad::math::Vec2;
-use egui_macroquad::macroquad::prelude::ImageFormat;
-use egui_macroquad::macroquad::texture::Texture2D;
+use egui::Color32;
+use macroquad::color::Color;
+use macroquad::file::FileError;
+use macroquad::math::Vec2;
+use macroquad::prelude::ImageFormat;
+use macroquad::texture::Texture2D;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as JsonError;
 use std::collections::HashMap;

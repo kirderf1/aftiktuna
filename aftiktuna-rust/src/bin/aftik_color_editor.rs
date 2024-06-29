@@ -4,14 +4,14 @@ use std::process::exit;
 
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::macroquad_interface;
+use aftiktuna::macroquad_interface::egui::EguiWrapper;
 use aftiktuna::macroquad_interface::texture::model::Model;
 use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor};
 use aftiktuna::view::area::RenderProperties;
-use egui_macroquad::egui;
-use egui_macroquad::macroquad::math::Vec2;
-use egui_macroquad::macroquad::window::{self, Conf};
-use egui_macroquad::macroquad::{self, color};
 use indexmap::IndexMap;
+use macroquad::color;
+use macroquad::math::Vec2;
+use macroquad::window::{self, Conf};
 
 fn config() -> Conf {
     Conf {
@@ -45,10 +45,12 @@ async fn main() {
         );
     }
 
+    let mut egui = EguiWrapper::init();
+
     loop {
         window::clear_background(color::LIGHTGRAY);
 
-        egui_macroquad::ui(|ctx| {
+        egui.ui(|ctx| {
             side_panel(
                 ctx,
                 &mut selected_index,
@@ -60,7 +62,7 @@ async fn main() {
         let (_, aftik_color_data) = aftik_colors.get_index(selected_index).unwrap();
         draw_examples(aftik_color_data, &aftik_model, &portrait_model);
 
-        egui_macroquad::draw();
+        egui.draw();
         window::next_frame().await;
     }
 }

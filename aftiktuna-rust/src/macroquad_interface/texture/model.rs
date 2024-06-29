@@ -1,6 +1,6 @@
-use egui_macroquad::macroquad::color::{self, Color};
-use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::texture::{self, DrawTextureParams, Texture2D};
+use macroquad::color::{self, Color};
+use macroquad::math::{Rect, Vec2};
+use macroquad::texture::{self, DrawTextureParams, Texture2D};
 use serde::{Deserialize, Serialize};
 
 use super::{AftikColorData, Error, TextureLoader};

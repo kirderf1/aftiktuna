@@ -1,5 +1,5 @@
-use egui_macroquad::macroquad::prelude::ImageFormat;
-use egui_macroquad::macroquad::texture::Image;
+use macroquad::prelude::ImageFormat;
+use macroquad::texture::Image;
 use std::fs::File;
 use std::io::{Error, Read, Write};
 

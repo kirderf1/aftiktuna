@@ -2,10 +2,10 @@ use crate::command::suggestion;
 use crate::command::suggestion::Suggestion;
 use crate::view::area::RenderData;
 use crate::view::Frame;
-use egui_macroquad::macroquad::color::{Color, WHITE};
-use egui_macroquad::macroquad::input::MouseButton;
-use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::{input, shapes, text};
+use macroquad::color::{Color, WHITE};
+use macroquad::input::MouseButton;
+use macroquad::math::{Rect, Vec2};
+use macroquad::{input, shapes, text};
 
 use super::texture::LazilyLoadedModels;
 use super::{camera, render, store_render, App};

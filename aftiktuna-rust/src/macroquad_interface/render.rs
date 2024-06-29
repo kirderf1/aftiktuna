@@ -1,5 +1,5 @@
 use super::texture::RenderAssets;
-use super::App;
+use super::AppWithEgui;
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
 use crate::core::position::Direction;
@@ -7,10 +7,10 @@ use crate::game_loop::StopType;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};
 use crate::view::{DialogueFrameData, Frame, Messages};
-use egui_macroquad::macroquad::camera::{set_camera, set_default_camera, Camera2D};
-use egui_macroquad::macroquad::color::{BLACK, LIGHTGRAY};
-use egui_macroquad::macroquad::math::{Rect, Vec2};
-use egui_macroquad::macroquad::window;
+use macroquad::camera::{set_camera, set_default_camera, Camera2D};
+use macroquad::color::{BLACK, LIGHTGRAY};
+use macroquad::math::{Rect, Vec2};
+use macroquad::window;
 
 pub struct State {
     pub text_log: Vec<String>,
@@ -61,7 +61,9 @@ impl State {
     }
 }
 
-pub fn draw(app: &mut App) {
+pub fn draw(app: &mut AppWithEgui) {
+    let AppWithEgui { app, egui } = app;
+
     window::clear_background(BLACK);
 
     if app.show_graphical {
@@ -78,7 +80,7 @@ pub fn draw(app: &mut App) {
             app.game.next_result().has_frame(),
         );
 
-        ui::egui_graphic(app);
+        ui::egui_graphic(app, egui);
 
         tooltip::draw(
             &app.render_state,
@@ -86,7 +88,7 @@ pub fn draw(app: &mut App) {
             &mut app.assets.models,
         );
     } else {
-        ui::egui_text_view(app);
+        ui::egui_text_view(app, egui);
     }
 }
 

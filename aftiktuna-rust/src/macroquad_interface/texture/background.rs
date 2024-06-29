@@ -4,11 +4,11 @@ use std::fs::File;
 use std::hash::Hash;
 use std::io;
 
-use egui_macroquad::macroquad::color::{self, Color};
-use egui_macroquad::macroquad::math::Rect;
-use egui_macroquad::macroquad::texture::{self, Texture2D};
-use egui_macroquad::macroquad::window;
 use indexmap::IndexMap;
+use macroquad::color::{self, Color};
+use macroquad::math::Rect;
+use macroquad::texture::{self, Texture2D};
+use macroquad::window;
 use serde::{Deserialize, Serialize};
 
 use crate::core::area::BackgroundId;
