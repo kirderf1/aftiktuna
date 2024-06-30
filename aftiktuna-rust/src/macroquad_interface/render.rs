@@ -102,7 +102,7 @@ fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut Re
                 .draw(0, &HorizontalDraggableCamera::default());
         }
         Frame::AreaView { render_data, .. } => {
-            mq_camera::set_camera(&camera.make_mq_camera());
+            mq_camera::set_camera(camera);
             assets
                 .lookup_background(&render_data.background)
                 .texture

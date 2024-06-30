@@ -9,7 +9,6 @@ use aftiktuna::macroquad_interface::egui::EguiWrapper;
 use aftiktuna::macroquad_interface::texture::background::{BGData, RawBGData};
 use aftiktuna::macroquad_interface::texture::{background, CachedTextures};
 use indexmap::IndexMap;
-use macroquad::camera::Camera2D;
 use macroquad::color;
 use macroquad::window::{self, Conf};
 
@@ -35,6 +34,7 @@ async fn main() {
     let mut area_size = 5;
     let mut offset = 0;
     let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
+    camera.set_default_size_viewport(0, 0);
 
     let mut egui = EguiWrapper::init();
 
@@ -55,10 +55,7 @@ async fn main() {
         camera.clamp(area_size);
         camera.handle_drag(area_size, !is_mouse_over_panel);
 
-        macroquad::camera::set_camera(&Camera2D {
-            viewport: Some((0, 0, 800, 600)),
-            ..camera.make_mq_camera()
-        });
+        macroquad::camera::set_camera(&camera);
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
         draw_examples(
             &raw_background.load(&mut textures).unwrap(),

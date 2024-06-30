@@ -3,7 +3,7 @@ use crate::view::area::ObjectRenderData;
 use crate::view::Frame;
 use macroquad::camera as mq_camera;
 use macroquad::input::MouseButton;
-use macroquad::math::{Rect, Vec2};
+use macroquad::math::{Mat4, Vec2};
 use macroquad::{input, math};
 use std::collections::HashMap;
 
@@ -14,6 +14,7 @@ use super::{render, ui};
 pub struct HorizontalDraggableCamera {
     pub(super) x_start: f32,
     last_drag_pos: Option<Vec2>,
+    viewport: Option<(i32, i32, i32, i32)>,
 }
 
 impl HorizontalDraggableCamera {
@@ -21,22 +22,23 @@ impl HorizontalDraggableCamera {
         let mut camera = Self {
             x_start: coord_to_center_x(position) - super::WINDOW_WIDTH_F / 2.,
             last_drag_pos: None,
+            viewport: None,
         };
         camera.clamp(area_size);
         camera
     }
 
-    pub fn get_offset(&self) -> Vec2 {
-        Vec2::new(self.x_start, 0.)
+    pub fn set_default_size_viewport(&mut self, x: i32, y: i32) {
+        self.viewport = Some((
+            x,
+            y,
+            super::WINDOW_WIDTH.into(),
+            super::WINDOW_HEIGHT.into(),
+        ));
     }
 
-    pub fn make_mq_camera(&self) -> mq_camera::Camera2D {
-        unflipped_camera_for_rect(Rect::new(
-            self.x_start,
-            0.,
-            super::WINDOW_WIDTH_F,
-            super::WINDOW_HEIGHT_F,
-        ))
+    pub fn get_offset(&self) -> Vec2 {
+        Vec2::new(self.x_start, 0.)
     }
 
     pub fn clamp(&mut self, area_size: Coord) {
@@ -91,6 +93,31 @@ impl HorizontalDraggableCamera {
                 self.x_start + super::WINDOW_WIDTH_F < coord_to_center_x(area_size - 1) + 100.,
             ]
         }
+    }
+}
+
+impl mq_camera::Camera for HorizontalDraggableCamera {
+    fn matrix(&self) -> Mat4 {
+        Mat4::orthographic_rh_gl(
+            self.x_start,
+            self.x_start + super::WINDOW_WIDTH_F,
+            super::WINDOW_HEIGHT_F,
+            0.,
+            1.,
+            -1.,
+        )
+    }
+
+    fn depth_enabled(&self) -> bool {
+        false
+    }
+
+    fn render_pass(&self) -> Option<macroquad::miniquad::RenderPass> {
+        None
+    }
+
+    fn viewport(&self) -> Option<(i32, i32, i32, i32)> {
+        self.viewport
     }
 }
 
@@ -159,12 +186,4 @@ pub fn try_drag_camera_for_state(state: &mut render::State) {
             state.camera.stop_dragging();
         }
     }
-}
-
-/// Macroquad 0.4+ has a problem where the Camera2D is flipped vertically.
-/// As long as that problem persists, this function can be used to get a correctly-flipped camera.
-pub fn unflipped_camera_for_rect(rect: Rect) -> mq_camera::Camera2D {
-    let mut camera = mq_camera::Camera2D::from_display_rect(rect);
-    camera.zoom.y = -camera.zoom.y;
-    camera
 }

@@ -12,7 +12,6 @@ use aftiktuna::macroquad_interface::texture::{
     background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
 };
 use aftiktuna::view::area::RenderProperties;
-use macroquad::camera::Camera2D;
 use macroquad::window::Conf;
 use macroquad::{color, window};
 
@@ -52,6 +51,7 @@ async fn main() {
     let background = background::load_background_for_testing();
     let mut area_size = 7;
     let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
+    camera.set_default_size_viewport(0, 0);
 
     let mut egui = EguiWrapper::init();
 
@@ -72,10 +72,7 @@ async fn main() {
         camera.handle_drag(area_size, !is_mouse_over_panel);
 
         let model = selected_model.load(&mut textures).unwrap();
-        macroquad::camera::set_camera(&Camera2D {
-            viewport: Some((0, 0, 800, 600)),
-            ..camera.make_mq_camera()
-        });
+        macroquad::camera::set_camera(&camera);
         background.draw(0, &camera);
         area_size = draw_examples(&selected_model, &model, &aftik_model);
         macroquad::camera::set_default_camera();
