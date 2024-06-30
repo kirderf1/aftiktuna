@@ -5,7 +5,6 @@ use crate::view::Frame;
 use egui::EguiWrapper;
 use macroquad::color::Color;
 use macroquad::input::{is_key_pressed, is_mouse_button_released, KeyCode, MouseButton};
-use macroquad::math::Vec2;
 use macroquad::miniquad::conf::Icon;
 use macroquad::window::{self, Conf};
 use macroquad::{color, input, text};
@@ -173,7 +172,6 @@ pub async fn run_game(
         assets,
         last_frame_time: None,
         render_state: render::State::new(),
-        last_drag_pos: None,
         command_tooltip: None,
         show_graphical: true,
         request_input_focus: false,
@@ -194,7 +192,6 @@ struct App<'a> {
     assets: &'a mut texture::RenderAssets,
     last_frame_time: Option<Instant>,
     render_state: render::State,
-    last_drag_pos: Option<Vec2>,
     command_tooltip: Option<CommandTooltip>,
     show_graphical: bool,
     request_input_focus: bool,
@@ -217,14 +214,14 @@ impl Interface<()> for AppWithEgui<'_> {
         }
 
         if app.show_graphical {
-            if app.last_drag_pos.is_none() {
+            if !app.render_state.camera.is_dragging() {
                 tooltip::handle_click(app);
             }
             if app.command_tooltip.is_none() {
-                camera::try_drag_camera_for_state(&mut app.render_state, &mut app.last_drag_pos);
+                camera::try_drag_camera_for_state(&mut app.render_state);
             }
         } else {
-            app.last_drag_pos = None;
+            app.render_state.camera.stop_dragging();
             app.command_tooltip = None;
         }
 

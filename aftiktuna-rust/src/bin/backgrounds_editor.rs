@@ -35,7 +35,6 @@ async fn main() {
     let mut area_size = 5;
     let mut offset = 0;
     let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
-    let mut last_drag_pos = None;
 
     let mut egui = EguiWrapper::init();
 
@@ -54,7 +53,7 @@ async fn main() {
         });
 
         camera.clamp(area_size);
-        camera.handle_drag(&mut last_drag_pos, area_size, !is_mouse_over_panel);
+        camera.handle_drag(area_size, !is_mouse_over_panel);
 
         macroquad::camera::set_camera(&Camera2D {
             viewport: Some((0, 0, 800, 600)),

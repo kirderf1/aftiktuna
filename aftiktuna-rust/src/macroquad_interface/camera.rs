@@ -13,12 +13,14 @@ use super::{render, ui};
 #[derive(Debug, Default)]
 pub struct HorizontalDraggableCamera {
     pub(super) x_start: f32,
+    last_drag_pos: Option<Vec2>,
 }
 
 impl HorizontalDraggableCamera {
     pub fn centered_on_position(position: Coord, area_size: Coord) -> Self {
         let mut camera = Self {
             x_start: coord_to_center_x(position) - super::WINDOW_WIDTH_F / 2.,
+            last_drag_pos: None,
         };
         camera.clamp(area_size);
         camera
@@ -50,29 +52,32 @@ impl HorizontalDraggableCamera {
         };
     }
 
-    pub fn handle_drag(
-        &mut self,
-        last_drag_pos: &mut Option<Vec2>,
-        area_size: Coord,
-        can_start_dragging: bool,
-    ) {
+    pub fn is_dragging(&self) -> bool {
+        self.last_drag_pos.is_some()
+    }
+
+    pub fn stop_dragging(&mut self) {
+        self.last_drag_pos = None;
+    }
+
+    pub fn handle_drag(&mut self, area_size: Coord, can_start_dragging: bool) {
         if input::is_mouse_button_pressed(MouseButton::Left)
             && can_start_dragging
-            && last_drag_pos.is_none()
+            && self.last_drag_pos.is_none()
         {
-            *last_drag_pos = Some(input::mouse_position().into());
+            self.last_drag_pos = Some(input::mouse_position().into());
         }
 
-        if let Some(last_pos) = *last_drag_pos {
+        if let Some(last_pos) = self.last_drag_pos {
             if input::is_mouse_button_down(MouseButton::Left) {
                 let mouse_pos: Vec2 = input::mouse_position().into();
                 let drag_delta = mouse_pos - last_pos;
 
                 self.x_start -= drag_delta.x;
                 self.clamp(area_size);
-                *last_drag_pos = Some(mouse_pos);
+                self.last_drag_pos = Some(mouse_pos);
             } else {
-                *last_drag_pos = None;
+                self.last_drag_pos = None;
             }
         }
     }
@@ -142,17 +147,16 @@ fn coord_to_center_x(coord: Coord) -> f32 {
     40. + 120. * coord as f32
 }
 
-pub fn try_drag_camera_for_state(state: &mut render::State, last_drag_pos: &mut Option<Vec2>) {
+pub fn try_drag_camera_for_state(state: &mut render::State) {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
             state.camera.handle_drag(
-                last_drag_pos,
                 render_data.area_size,
                 !ui::is_mouse_at_text_box(&state.text_box_text),
             );
         }
         _ => {
-            *last_drag_pos = None;
+            state.camera.stop_dragging();
         }
     }
 }
