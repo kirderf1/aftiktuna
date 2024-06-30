@@ -1,3 +1,4 @@
+use super::camera::HorizontalDraggableCamera;
 use super::texture::RenderAssets;
 use super::AppWithEgui;
 use crate::core::area::BackgroundId;
@@ -8,14 +9,14 @@ use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};
 use crate::view::{DialogueFrameData, Frame, Messages};
 use macroquad::color::{BLACK, LIGHTGRAY};
-use macroquad::math::{Rect, Vec2};
+use macroquad::math::Vec2;
 use macroquad::{camera as mq_camera, window};
 
 pub struct State {
     pub text_log: Vec<String>,
     pub current_frame: Frame,
     pub text_box_text: Vec<String>,
-    pub camera: Rect,
+    pub camera: HorizontalDraggableCamera,
 }
 
 impl State {
@@ -24,13 +25,13 @@ impl State {
             text_log: vec![],
             current_frame: Frame::Introduction,
             text_box_text: vec![],
-            camera: camera::default_camera_space(),
+            camera: HorizontalDraggableCamera::default(),
         }
     }
 
     pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
         if let Frame::AreaView { render_data, .. } = &frame {
-            self.camera = camera::position_centered_camera(
+            self.camera = HorizontalDraggableCamera::centered_on_position(
                 render_data.character_coord,
                 render_data.area_size,
             );
@@ -68,7 +69,7 @@ pub fn draw(app: &mut AppWithEgui) {
     if app.show_graphical {
         draw_frame(
             &app.render_state.current_frame,
-            app.render_state.camera,
+            &app.render_state.camera,
             app.assets,
         );
 
@@ -91,17 +92,17 @@ pub fn draw(app: &mut AppWithEgui) {
     }
 }
 
-fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
+fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut RenderAssets) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction => {
             mq_camera::set_default_camera();
             assets
                 .lookup_background(&BackgroundId::location_choice())
                 .texture
-                .draw(0, camera::default_camera_space());
+                .draw(0, &HorizontalDraggableCamera::default());
         }
         Frame::AreaView { render_data, .. } => {
-            mq_camera::set_camera(&camera::unflipped_camera_for_rect(camera));
+            mq_camera::set_camera(&camera.make_mq_camera());
             assets
                 .lookup_background(&render_data.background)
                 .texture
@@ -112,7 +113,7 @@ fn draw_frame(frame: &Frame, camera: Rect, assets: &mut RenderAssets) {
             mq_camera::set_default_camera();
             ui::draw_camera_arrows(
                 &assets.side_arrow,
-                camera::has_camera_space(camera, render_data),
+                camera.has_space_to_drag(render_data.area_size),
             );
         }
         Frame::Dialogue { data, .. } => {

@@ -3,14 +3,14 @@ use std::process::exit;
 
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::position::Coord;
+use aftiktuna::macroquad_interface;
+use aftiktuna::macroquad_interface::camera::HorizontalDraggableCamera;
 use aftiktuna::macroquad_interface::egui::EguiWrapper;
 use aftiktuna::macroquad_interface::texture::background::{BGData, RawBGData};
 use aftiktuna::macroquad_interface::texture::{background, CachedTextures};
-use aftiktuna::macroquad_interface::{self, camera};
 use indexmap::IndexMap;
 use macroquad::camera::Camera2D;
 use macroquad::color;
-use macroquad::math::Rect;
 use macroquad::window::{self, Conf};
 
 fn config() -> Conf {
@@ -34,7 +34,7 @@ async fn main() {
 
     let mut area_size = 5;
     let mut offset = 0;
-    let mut camera = camera::position_centered_camera(0, area_size);
+    let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
     let mut last_drag_pos = None;
 
     let mut egui = EguiWrapper::init();
@@ -53,20 +53,19 @@ async fn main() {
             });
         });
 
-        camera::clamp_camera(&mut camera, area_size);
-        camera::try_drag_camera(
-            &mut last_drag_pos,
-            &mut camera,
-            area_size,
-            !is_mouse_over_panel,
-        );
+        camera.clamp(area_size);
+        camera.handle_drag(&mut last_drag_pos, area_size, !is_mouse_over_panel);
 
         macroquad::camera::set_camera(&Camera2D {
             viewport: Some((0, 0, 800, 600)),
-            ..camera::unflipped_camera_for_rect(camera)
+            ..camera.make_mq_camera()
         });
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
-        draw_examples(&raw_background.load(&mut textures).unwrap(), offset, camera);
+        draw_examples(
+            &raw_background.load(&mut textures).unwrap(),
+            offset,
+            &camera,
+        );
         macroquad::camera::set_default_camera();
 
         egui.draw();
@@ -74,7 +73,7 @@ async fn main() {
     }
 }
 
-fn draw_examples(background: &BGData, offset: Coord, camera: Rect) {
+fn draw_examples(background: &BGData, offset: Coord, camera: &HorizontalDraggableCamera) {
     background.texture.draw(offset, camera);
 }
 

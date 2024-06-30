@@ -94,7 +94,7 @@ fn find_raw_command_suggestions(
 ) -> Vec<Suggestion> {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
-            let offset_pos = mouse_pos + Vec2::new(state.camera.x, state.camera.y);
+            let offset_pos = mouse_pos + state.camera.get_offset();
 
             camera::position_objects(&render_data.objects, models)
                 .into_iter()
@@ -129,8 +129,8 @@ pub fn draw(
             line_index_at(mouse_pos, tooltip.pos, &tooltip.commands),
         );
     } else if let Frame::AreaView { render_data, .. } = &state.current_frame {
-        let camera_offset = Vec2::new(state.camera.x, state.camera.y);
-        let names = get_hovered_object_names(render_data, models, mouse_pos + camera_offset);
+        let names =
+            get_hovered_object_names(render_data, models, mouse_pos + state.camera.get_offset());
         draw_lines(mouse_pos, &names, None);
     }
 }

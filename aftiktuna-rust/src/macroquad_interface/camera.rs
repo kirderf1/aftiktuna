@@ -1,7 +1,7 @@
 use crate::core::position::Coord;
-use crate::view::area::{ObjectRenderData, RenderData};
+use crate::view::area::ObjectRenderData;
 use crate::view::Frame;
-use macroquad::camera::Camera2D;
+use macroquad::camera as mq_camera;
 use macroquad::input::MouseButton;
 use macroquad::math::{Rect, Vec2};
 use macroquad::{input, math};
@@ -9,6 +9,85 @@ use std::collections::HashMap;
 
 use super::texture::LazilyLoadedModels;
 use super::{render, ui};
+
+#[derive(Debug, Default)]
+pub struct HorizontalDraggableCamera {
+    pub(super) x_start: f32,
+}
+
+impl HorizontalDraggableCamera {
+    pub fn centered_on_position(position: Coord, area_size: Coord) -> Self {
+        let mut camera = Self {
+            x_start: coord_to_center_x(position) - super::WINDOW_WIDTH_F / 2.,
+        };
+        camera.clamp(area_size);
+        camera
+    }
+
+    pub fn get_offset(&self) -> Vec2 {
+        Vec2::new(self.x_start, 0.)
+    }
+
+    pub fn make_mq_camera(&self) -> mq_camera::Camera2D {
+        unflipped_camera_for_rect(Rect::new(
+            self.x_start,
+            0.,
+            super::WINDOW_WIDTH_F,
+            super::WINDOW_HEIGHT_F,
+        ))
+    }
+
+    pub fn clamp(&mut self, area_size: Coord) {
+        self.x_start = if area_size <= 6 {
+            (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2.
+                - super::WINDOW_WIDTH_F / 2.
+        } else {
+            math::clamp(
+                self.x_start,
+                coord_to_center_x(0) - 100.,
+                coord_to_center_x(area_size - 1) + 100. - super::WINDOW_WIDTH_F,
+            )
+        };
+    }
+
+    pub fn handle_drag(
+        &mut self,
+        last_drag_pos: &mut Option<Vec2>,
+        area_size: Coord,
+        can_start_dragging: bool,
+    ) {
+        if input::is_mouse_button_pressed(MouseButton::Left)
+            && can_start_dragging
+            && last_drag_pos.is_none()
+        {
+            *last_drag_pos = Some(input::mouse_position().into());
+        }
+
+        if let Some(last_pos) = *last_drag_pos {
+            if input::is_mouse_button_down(MouseButton::Left) {
+                let mouse_pos: Vec2 = input::mouse_position().into();
+                let drag_delta = mouse_pos - last_pos;
+
+                self.x_start -= drag_delta.x;
+                self.clamp(area_size);
+                *last_drag_pos = Some(mouse_pos);
+            } else {
+                *last_drag_pos = None;
+            }
+        }
+    }
+
+    pub fn has_space_to_drag(&self, area_size: Coord) -> [bool; 2] {
+        if area_size <= 6 {
+            [false, false]
+        } else {
+            [
+                self.x_start > coord_to_center_x(0) - 100.,
+                self.x_start + super::WINDOW_WIDTH_F < coord_to_center_x(area_size - 1) + 100.,
+            ]
+        }
+    }
+}
 
 pub fn position_objects<'a>(
     objects: &'a Vec<ObjectRenderData>,
@@ -66,9 +145,8 @@ fn coord_to_center_x(coord: Coord) -> f32 {
 pub fn try_drag_camera_for_state(state: &mut render::State, last_drag_pos: &mut Option<Vec2>) {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
-            try_drag_camera(
+            state.camera.handle_drag(
                 last_drag_pos,
-                &mut state.camera,
                 render_data.area_size,
                 !ui::is_mouse_at_text_box(&state.text_box_text),
             );
@@ -79,75 +157,10 @@ pub fn try_drag_camera_for_state(state: &mut render::State, last_drag_pos: &mut 
     }
 }
 
-pub fn try_drag_camera(
-    last_drag_pos: &mut Option<Vec2>,
-    camera: &mut Rect,
-    area_size: Coord,
-    can_start_dragging: bool,
-) {
-    if input::is_mouse_button_pressed(MouseButton::Left)
-        && can_start_dragging
-        && last_drag_pos.is_none()
-    {
-        *last_drag_pos = Some(input::mouse_position().into());
-    }
-
-    if let Some(last_pos) = *last_drag_pos {
-        if input::is_mouse_button_down(MouseButton::Left) {
-            let mouse_pos: Vec2 = input::mouse_position().into();
-            let camera_delta = mouse_pos - last_pos;
-
-            camera.x -= camera_delta.x;
-            clamp_camera(camera, area_size);
-            *last_drag_pos = Some(mouse_pos);
-        } else {
-            *last_drag_pos = None;
-        }
-    }
-}
-
-pub fn has_camera_space(camera: Rect, render_data: &RenderData) -> [bool; 2] {
-    if render_data.area_size <= 6 {
-        [false, false]
-    } else {
-        [
-            camera.left() > coord_to_center_x(0) - 100.,
-            camera.right() < coord_to_center_x(render_data.area_size - 1) + 100.,
-        ]
-    }
-}
-
-pub fn clamp_camera(camera: &mut Rect, area_size: Coord) {
-    camera.x = if area_size <= 6 {
-        (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2. - camera.w / 2.
-    } else {
-        math::clamp(
-            camera.x,
-            coord_to_center_x(0) - 100.,
-            coord_to_center_x(area_size - 1) + 100. - camera.w,
-        )
-    };
-}
-
-pub fn default_camera_space() -> Rect {
-    Rect::new(0., 0., super::WINDOW_WIDTH_F, super::WINDOW_HEIGHT_F)
-}
-
-pub fn position_centered_camera(position: Coord, area_size: Coord) -> Rect {
-    let mut camera_space = Rect::new(
-        coord_to_center_x(position) - super::WINDOW_WIDTH_F / 2.,
-        0.,
-        super::WINDOW_WIDTH_F,
-        super::WINDOW_HEIGHT_F,
-    );
-    clamp_camera(&mut camera_space, area_size);
-    camera_space
-}
-
 /// Macroquad 0.4+ has a problem where the Camera2D is flipped vertically.
 /// As long as that problem persists, this function can be used to get a correctly-flipped camera.
-pub fn unflipped_camera_for_rect(rect: Rect) -> Camera2D {
-    let mut camera = Camera2D::from_display_rect(rect);
+pub fn unflipped_camera_for_rect(rect: Rect) -> mq_camera::Camera2D {
+    let mut camera = mq_camera::Camera2D::from_display_rect(rect);
     camera.zoom.y = -camera.zoom.y;
     camera
 }

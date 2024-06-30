@@ -6,13 +6,13 @@ use std::io;
 
 use indexmap::IndexMap;
 use macroquad::color::{self, Color};
-use macroquad::math::Rect;
 use macroquad::texture::{self, Texture2D};
 use macroquad::window;
 use serde::{Deserialize, Serialize};
 
 use crate::core::area::BackgroundId;
 use crate::core::position::Coord;
+use crate::macroquad_interface::camera::HorizontalDraggableCamera;
 
 use super::{CachedTextures, TextureLoader};
 
@@ -24,14 +24,14 @@ pub struct BGData {
 pub struct BGTexture(Parallax<Texture2D>);
 
 impl BGTexture {
-    pub fn draw(&self, offset: Coord, camera_space: Rect) {
+    pub fn draw(&self, offset: Coord, camera: &HorizontalDraggableCamera) {
         let offset = offset as f32 * 120.;
         for layer in &self.0.layers {
             let layer_x =
-                camera_space.x * (1. - layer.move_factor) - offset - f32::from(layer.offset);
+                camera.x_start * (1. - layer.move_factor) - offset - f32::from(layer.offset);
             let texture = &layer.texture;
             if layer.is_looping {
-                let repeat_count = f32::floor((camera_space.x - layer_x) / texture.width());
+                let repeat_count = f32::floor((camera.x_start - layer_x) / texture.width());
                 texture::draw_texture(
                     texture,
                     layer_x + texture.width() * repeat_count,

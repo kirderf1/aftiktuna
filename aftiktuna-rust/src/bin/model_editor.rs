@@ -4,13 +4,13 @@ use std::process::exit;
 
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
-use aftiktuna::macroquad_interface::camera::Positioner;
+use aftiktuna::macroquad_interface;
+use aftiktuna::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna::macroquad_interface::egui::EguiWrapper;
 use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
 use aftiktuna::macroquad_interface::texture::{
     background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
 };
-use aftiktuna::macroquad_interface::{self, camera};
 use aftiktuna::view::area::RenderProperties;
 use macroquad::camera::Camera2D;
 use macroquad::window::Conf;
@@ -51,7 +51,7 @@ async fn main() {
     let aftik_model = model::load_model(&ModelId::aftik()).unwrap();
     let background = background::load_background_for_testing();
     let mut area_size = 7;
-    let mut camera = camera::position_centered_camera(0, area_size);
+    let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
     let mut last_drag_pos = None;
 
     let mut egui = EguiWrapper::init();
@@ -70,19 +70,14 @@ async fn main() {
             );
         });
 
-        camera::try_drag_camera(
-            &mut last_drag_pos,
-            &mut camera,
-            area_size,
-            !is_mouse_over_panel,
-        );
+        camera.handle_drag(&mut last_drag_pos, area_size, !is_mouse_over_panel);
 
         let model = selected_model.load(&mut textures).unwrap();
         macroquad::camera::set_camera(&Camera2D {
             viewport: Some((0, 0, 800, 600)),
-            ..camera::unflipped_camera_for_rect(camera)
+            ..camera.make_mq_camera()
         });
-        background.draw(0, camera);
+        background.draw(0, &camera);
         area_size = draw_examples(&selected_model, &model, &aftik_model);
         macroquad::camera::set_default_camera();
 
