@@ -38,6 +38,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Crew members told to wait will now stop waiting when they leave the ship from arriving at a new location
 - Tooltips now go in front of the input field
 - Tooltips are now clamped to not go below the bottom of the game window
+- Change the type of click to advance to the next frame,
+ fixes accidentally advancing a frame when clicking something else that is in the same area as the text box
 
 ### Contributors for this release
 

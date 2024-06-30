@@ -3,11 +3,11 @@ use crate::macroquad_interface::tooltip::CommandTooltip;
 use crate::serialization;
 use crate::view::Frame;
 use egui::EguiWrapper;
-use macroquad::color::Color;
-use macroquad::input::{is_key_pressed, is_mouse_button_released, KeyCode, MouseButton};
+use macroquad::color::{self, Color};
+use macroquad::input::{self, KeyCode, MouseButton};
 use macroquad::miniquad::conf::Icon;
+use macroquad::text;
 use macroquad::window::{self, Conf};
-use macroquad::{color, input, text};
 use std::fs;
 use std::mem::take;
 use std::process;
@@ -209,7 +209,7 @@ impl Interface<()> for AppWithEgui<'_> {
             return Err(());
         }
 
-        if is_key_pressed(KeyCode::Tab) {
+        if input::is_key_pressed(KeyCode::Tab) {
             app.show_graphical = !app.show_graphical;
         }
 
@@ -248,8 +248,8 @@ const DELAY: time::Duration = time::Duration::from_secs(2);
 impl App<'_> {
     fn update_frame_state(&mut self) {
         if self.show_graphical {
-            self.show_next_frame |= is_key_pressed(KeyCode::Enter)
-                || is_mouse_button_released(MouseButton::Left)
+            self.show_next_frame |= input::is_key_pressed(KeyCode::Enter)
+                || input::is_mouse_button_pressed(MouseButton::Left)
                     && ui::is_mouse_at_text_box(&self.render_state.text_box_text)
         } else {
             self.show_next_frame |= self
