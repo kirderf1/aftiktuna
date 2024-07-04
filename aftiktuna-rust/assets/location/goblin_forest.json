@@ -172,7 +172,8 @@
           "pair_id": "path5",
           "display_type": "path",
           "adjective": "right"
-        }
+        },
+        "c": { "type": "item", "item": "crowbar" }
       }
     }
   ],

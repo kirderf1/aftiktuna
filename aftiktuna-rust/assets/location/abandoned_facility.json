@@ -28,7 +28,8 @@
           "type": "door",
           "pair_id": "path",
           "display_type": "path"
-        }
+        },
+        "k": { "type": "item", "item": "keycard" }
       }
     },
     {
@@ -143,7 +144,8 @@
           "type": "door",
           "pair_id": "room2",
           "display_type": "door"
-        }
+        },
+        "b": { "type": "item", "item": "blowtorch" }
       }
     },
     {

@@ -15,7 +15,9 @@
           "pair_id": "stuck",
           "display_type": "door",
           "adjective": "right"
-        }
+        },
+        "k": { "type": "item", "item": "keycard" },
+        "c": { "type": "item", "item": "crowbar" }
       }
     },
     {
@@ -33,7 +35,8 @@
           "pair_id": "stuck",
           "display_type": "door",
           "adjective": "right"
-        }
+        },
+        "K": { "type": "item", "item": "knife" }
       }
     }
   ],

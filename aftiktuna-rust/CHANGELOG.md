@@ -42,6 +42,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Change the type of click to advance to the next frame,
  fixes accidentally advancing a frame when clicking something else that is in the same area as the text box
 
+### Removed
+
+- Default symbols for most items have been removed from `symbols.json`
+ (these symbols are instead now defined at the specific areas where they are used)
+
 ### Contributors for this release
 
 - kirderf1

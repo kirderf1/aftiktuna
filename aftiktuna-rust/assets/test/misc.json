@@ -21,7 +21,9 @@
           "pair_id": "right",
           "display_type": "door",
           "adjective": "right"
-        }
+        },
+        "c": { "type": "item", "item": "crowbar" },
+        "k": { "type": "item", "item": "keycard" }
       }
     },
     {
@@ -57,7 +59,8 @@
           "pair_id": "side",
           "display_type": "door",
           "adjective": "right"
-        }
+        },
+        "b": { "type": "item", "item": "blowtorch" }
       }
     },
     {

@@ -21,7 +21,11 @@
           "pair_id": "azureclops",
           "display_type": "door",
           "adjective": "right"
-        }
+        },
+        "c": { "type": "item", "item": "crowbar" },
+        "K": { "type": "item", "item": "knife" },
+        "B": { "type": "item", "item": "bat" },
+        "s": { "type": "item", "item": "sword" }
       }
     },
     {
