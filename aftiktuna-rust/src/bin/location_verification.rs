@@ -4,7 +4,10 @@ use hecs::World;
 fn main() {
     match location::load_locations() {
         Ok(locations) => verify_locations(locations),
-        Err(message) => println!("Failed to load \"locations.json\": {message}"),
+        Err(message) => {
+            eprintln!("Failed to load \"locations.json\":");
+            eprintln!("{message}");
+        }
     }
 }
 
@@ -34,7 +37,8 @@ fn try_load(location_name: &str) -> bool {
     if let Err(message) = location::load_data(location_name)
         .and_then(|location_data| location_data.build(&mut world, &mut Vec::default(), &mut rng))
     {
-        println!("Failed to load location \"{location_name}\": {message}");
+        eprintln!("Failed to load location \"{location_name}\":");
+        eprintln!("{message}");
         false
     } else {
         true
