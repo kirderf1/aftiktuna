@@ -1,0 +1,5 @@
+[
+  { "item": "food_ration", "weight": 8 },
+  { "item": "meteor_chunk", "weight": 2 },
+  { "item": "ancient_coin", "weight": 2 }
+]

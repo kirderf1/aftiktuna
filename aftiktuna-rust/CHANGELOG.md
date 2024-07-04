@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Aftik corpses can now be set to use a color from a random character profile
 - The "recruitable" symbol type (for location defintions) has now been replaced by a more general "character" symbol type
 - Loot tables are no longer hardcoded, and can be defined in `assets/loot_table/`
+- Locations now use new loot tables `resource` and `tool`,
+ which together cover the same items as the original `regular` loot table
 - Characters may now push crew members that are in the way for certain actions
 - The tent in the eyesaur forest is now a searchable container
 - Containers have been added in a lot of places in most locations
@@ -46,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Default symbols for most items have been removed from `symbols.json`
  (these symbols are instead now defined at the specific areas where they are used)
+- The `regular` loot table has been removed in favor of using `resource` and `tool`
 
 ### Contributors for this release
 

@@ -59,7 +59,7 @@
           "type": "container",
           "container_type": "crate",
           "content": [
-            { "type": "loot", "table": "regular" }
+            { "type": "loot", "table": "resource" }
           ],
           "direction": "left"
         }
@@ -129,7 +129,7 @@
           "type": "container",
           "container_type": "cabinet",
           "content": [
-            { "type": "loot", "table": "regular" }
+            { "type": "loot", "table": "tool" }
           ],
           "direction": "left"
         }

@@ -1,7 +1,8 @@
 {
   "v": { "type": "location_entry" },
   "¤": { "type": "fortuna_chest" },
-  "?": { "type": "loot", "table": "regular" },
+  "%": { "type": "loot", "table": "resource" },
+  "t": { "type": "loot", "table": "tool" },
   "!": { "type": "loot", "table": "valuable" },
   "f": { "type": "item", "item": "fuel_can" },
   "G": { "type": "creature", "creature": "goblin" },

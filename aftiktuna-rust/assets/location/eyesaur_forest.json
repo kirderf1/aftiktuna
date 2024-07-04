@@ -96,7 +96,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 5,
-      "objects": [ "^", "", "", "F", "?" ],
+      "objects": [ "^", "", "", "F", "t" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -109,7 +109,7 @@
       "name": "Forest entrance",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "<", "", "^", "?", ">", "" ],
+      "objects": [ "<", "", "^", "%", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -193,7 +193,7 @@
           "container_type": "tent",
           "content": [
             { "type": "item", "item": "food_ration" },
-            { "type": "loot", "table": "regular" }
+            { "type": "loot", "table": "resource" }
           ],
           "direction": "left"
         }

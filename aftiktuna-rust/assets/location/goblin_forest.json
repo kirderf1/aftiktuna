@@ -84,7 +84,7 @@
           "type": "container",
           "container_type": "chest",
           "content": [
-            { "type": "loot", "table": "regular" }
+            { "type": "loot", "table": "resource" }
           ]
         }
       }
@@ -119,7 +119,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 1,
-      "objects": [ "?", "S", "", "", "^" ],
+      "objects": [ "%", "S", "", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
