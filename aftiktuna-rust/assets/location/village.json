@@ -77,7 +77,8 @@
           "display_type": "door"
         },
         "A": {
-          "type": "recruitable"
+          "type": "character",
+          "interaction": "recruitable"
         },
         "#": {
           "type": "container",

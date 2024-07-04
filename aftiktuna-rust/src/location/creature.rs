@@ -198,19 +198,29 @@ impl From<AftikProfile> for AftikColorId {
     }
 }
 
-pub fn place_recruitable(
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CharacterInteraction {
+    Recruitable,
+}
+
+pub fn place_npc(
     world: &mut World,
     pos: Pos,
     profile: AftikProfile,
+    interaction: &CharacterInteraction,
     direction: Option<Direction>,
 ) {
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
 
-    world.spawn(
-        aftik_builder_with_stats(profile, false)
-            .add_bundle((Recruitable, pos, direction))
-            .build(),
-    );
+    let mut builder = aftik_builder_with_stats(profile, false);
+    builder.add_bundle((pos, direction));
+    match interaction {
+        CharacterInteraction::Recruitable => {
+            builder.add(Recruitable);
+        }
+    }
+    world.spawn(builder.build());
 }
 
 pub fn place_aftik_corpse(

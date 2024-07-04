@@ -1,4 +1,4 @@
-use super::creature::{AftikProfile, ProfileOrRandom};
+use super::creature::{AftikProfile, CharacterInteraction, ProfileOrRandom};
 use super::door::{place_pair, DoorInfo, DoorType};
 use super::{creature, door, Area, BackgroundId};
 use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
@@ -135,9 +135,10 @@ enum SymbolData {
         #[serde(default)]
         direction: Option<Direction>,
     },
-    Recruitable {
+    Character {
         #[serde(default)]
         profile: ProfileOrRandom,
+        interaction: CharacterInteraction,
         #[serde(default)]
         direction: Option<Direction>,
     },
@@ -191,9 +192,13 @@ impl SymbolData {
                 color,
                 direction,
             } => creature::place_shopkeeper(builder.world, pos, stock, color.clone(), *direction)?,
-            SymbolData::Recruitable { profile, direction } => {
+            SymbolData::Character {
+                profile,
+                interaction,
+                direction,
+            } => {
                 if let Some(profile) = profile.clone().unwrap(character_profiles, rng) {
-                    creature::place_recruitable(builder.world, pos, profile, *direction);
+                    creature::place_npc(builder.world, pos, profile, interaction, *direction);
                 }
             }
             SymbolData::AftikCorpse { color, direction } => {
