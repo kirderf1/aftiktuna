@@ -49,6 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Default symbols for most items have been removed from `symbols.json`
  (these symbols are instead now defined at the specific areas where they are used)
 - The `regular` loot table has been removed in favor of using `resource` and `tool`
+- Crowbars and bats have been removed from the `valuable` loot table
 
 ### Contributors for this release
 
