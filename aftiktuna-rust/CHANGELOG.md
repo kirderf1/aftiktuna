@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New aftik colors and character profiles
 - Containers that can be searched for items (types include: tents, cabinets, drawers, crates, chests)
 - Two new items that can change character stats
+- "Hunting missions" where a character gives a reward for killing specific creatures
+ (one such mission has been added to the village location)
 
 ### Changed
 

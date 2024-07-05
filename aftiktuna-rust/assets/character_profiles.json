@@ -6,11 +6,6 @@
     "traits": [ "fast_healer", "big_eater" ]
   },
   {
-    "name": "Tangerine",
-    "color": "tangerine",
-    "stats": { "strength": 7, "endurance": 1, "agility": 6, "luck": 8 }
-  },
-  {
     "name": "Amber",
     "color": "amber",
     "stats": { "strength": 8, "endurance": 2, "agility": 9, "luck": 1 },

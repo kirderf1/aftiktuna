@@ -179,6 +179,9 @@ pub mod world {
         core::RepeatingAction, RepeatingAction;
 
         core::Recruitable, Recruitable;
+        core::GivesHuntReward, GivesHuntReward;
+        core::HuntTarget, HuntTarget;
+
         store::Shopkeeper, Shopkeeper;
         store::IsTrading, IsTrading;
         store::Points, Points;

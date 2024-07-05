@@ -1,9 +1,11 @@
 use crate::action::{self, Context, Error};
+use crate::core::inventory::Held;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{
-    self, area, position, status, CrewMember, Recruitable, RepeatingAction, Waiting,
+    self, area, position, status, CrewMember, GivesHuntReward, HuntTarget, Recruitable,
+    RepeatingAction, Waiting,
 };
 use hecs::Entity;
 
@@ -40,33 +42,69 @@ pub(super) fn talk_to(mut context: Context, performer: Entity, target: Entity) -
 }
 
 fn talk_dialogue(context: &mut Context, performer: Entity, target: Entity) {
-    if context
-        .mut_world()
-        .get::<&Name>(target)
-        .ok()
+    let target_ref = context.mut_world().entity(target).unwrap();
+    if target_ref
+        .get::<&Name>()
         .map_or(false, |name| !name.is_known)
     {
-        let mut name_ref = context.mut_world().get::<&mut Name>(target).unwrap();
-        name_ref.is_known = true;
-        let name_string = name_ref.name.clone();
-        drop(name_ref);
+        let name_string = {
+            let mut name_ref = target_ref.get::<&mut Name>().unwrap();
+            name_ref.is_known = true;
+            name_ref.name.clone()
+        };
         context.add_dialogue(performer, "\"Hi! What is your name?\"");
         context.add_dialogue(target, format!("\"My name is {name_string}.\""));
-    } else if context.mut_world().get::<&Recruitable>(target).is_ok() {
+    } else if target_ref.has::<GivesHuntReward>() {
+        if context
+            .mut_world()
+            .query::<&Health>()
+            .with::<&HuntTarget>()
+            .iter()
+            .any(|(_, health)| health.is_alive())
+        {
+            context.add_dialogue(performer, "\"Hi!\"");
+            context.add_dialogue(
+                target,
+                "\"Hello! I have a bit of a problem at the moment.\"",
+            );
+            let message = format!(
+                "\"{}\"",
+                &context
+                    .mut_world()
+                    .get::<&GivesHuntReward>(target)
+                    .unwrap()
+                    .task_message
+            );
+            context.add_dialogue(target, message);
+        } else {
+            context.add_dialogue(performer, "\"Hi!\"");
+            let GivesHuntReward {
+                reward_message,
+                item_reward,
+                ..
+            } = context
+                .mut_world()
+                .remove_one::<GivesHuntReward>(target)
+                .unwrap();
+            context.add_dialogue(target, format!("\"{reward_message}\""));
+            for item_type in item_reward {
+                item_type.spawn(context.mut_world(), Held::in_inventory(performer));
+            }
+        }
+    } else if target_ref.has::<Recruitable>() {
         context.add_dialogue(performer, "\"Hi!\"");
         context.add_dialogue(
             target,
             "\"Hello! I wish I could leave this place and go on an adventure.\"",
         );
-    } else if context.mut_world().get::<&Waiting>(target).is_ok() {
+    } else if target_ref.has::<Waiting>() {
         context.add_dialogue(performer, "\"Hi!\"");
         context.add_dialogue(
             target,
             "\"Hello! I'll continue to wait here until you tell me otherwise.\"",
         );
-    } else if context
-        .mut_world()
-        .get::<&Health>(target)
+    } else if target_ref
+        .get::<&Health>()
         .map_or(false, |health| health.is_badly_hurt())
     {
         context.add_dialogue(performer, "\"Hi!\"");

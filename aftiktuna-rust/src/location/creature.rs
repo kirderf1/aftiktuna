@@ -3,7 +3,7 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats, Traits};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{item, CreatureAttribute, Hostile, Recruitable};
+use crate::core::{item, CreatureAttribute, GivesHuntReward, Hostile, HuntTarget, Recruitable};
 use hecs::{EntityBuilder, World};
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -102,6 +102,8 @@ pub struct CreatureSpawnData {
     attribute: AttributeChoice,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     aggressive: Option<bool>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    is_hunt_target: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     direction: Option<Direction>,
 }
@@ -140,6 +142,10 @@ impl CreatureSpawnData {
             Stamina::with_max(&stats),
             stats,
         ));
+
+        if self.is_hunt_target {
+            builder.add(HuntTarget);
+        }
 
         if is_alive {
             builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
@@ -199,9 +205,10 @@ impl From<AftikProfile> for AftikColorId {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum CharacterInteraction {
     Recruitable,
+    GivesHuntReward(GivesHuntReward),
 }
 
 pub fn place_npc(
@@ -218,6 +225,9 @@ pub fn place_npc(
     match interaction {
         CharacterInteraction::Recruitable => {
             builder.add(Recruitable);
+        }
+        CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
+            builder.add(gives_hunt_reward.clone());
         }
     }
     world.spawn(builder.build());

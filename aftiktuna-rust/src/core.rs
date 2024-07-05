@@ -195,8 +195,18 @@ impl CreatureAttribute {
 #[derive(Serialize, Deserialize)]
 pub struct Waiting;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Recruitable;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GivesHuntReward {
+    pub task_message: String,
+    pub reward_message: String,
+    pub item_reward: Vec<item::Type>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HuntTarget;
 
 #[derive(Serialize, Deserialize)]
 pub struct FortunaChest;

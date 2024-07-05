@@ -27,7 +27,7 @@
       "name": "Village road",
       "background": "field",
       "background_offset": 5,
-      "objects": [ "", "<", "", "", "", ">", "", "", "^", "" ],
+      "objects": [ "", "<", "", "", "", ">", "", "", "^", "", "", "A", "/", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -44,7 +44,28 @@
         "^": {
           "type": "door",
           "pair_id": "stuck_house",
-          "display_type": "house"
+          "display_type": "house",
+          "adjective": "left"
+        },
+        "/": {
+          "type": "door",
+          "pair_id": "azureclops_house",
+          "display_type": "house",
+          "adjective": "right"
+        },
+        "A": {
+          "type": "character",
+          "profile": {
+            "name": "Tangerine",
+            "color": "tangerine",
+            "stats": { "strength": 7, "endurance": 1, "agility": 6, "luck": 8 }
+          },
+          "interaction": {
+            "type": "gives_hunt_reward",
+            "task_message": "An Azureclops has somehow made its way into my house, and now I am stuck out here! If you can get rid of it, I would be happy to give you some fuel.",
+            "reward_message": "I see that you managed to take care of the Azureclops, thank you! Here are two fuel cans for your effort.",
+            "item_reward": [ "fuel_can", "fuel_can" ]
+          }
         }
       }
     },
@@ -78,7 +99,9 @@
         },
         "A": {
           "type": "character",
-          "interaction": "recruitable"
+          "interaction": {
+            "type": "recruitable"
+          }
         },
         "#": {
           "type": "container",
@@ -130,6 +153,24 @@
       }
     },
     {
+      "name": "House",
+      "background": "shack",
+      "objects": [ "^", "", "Z", "" ],
+      "symbols": {
+        "^": {
+          "type": "door",
+          "pair_id": "azureclops_house",
+          "display_type": "door"
+        },
+        "Z": {
+          "type": "creature",
+          "creature": "azureclops",
+          "attribute": "agile",
+          "is_hunt_target": true
+        }
+      }
+    },
+    {
       "name": "Shack",
       "background": "shack",
       "objects": [ "^", "", "¤", "" ],
@@ -156,6 +197,7 @@
     "aftik_house": {},
     "store": {},
     "stuck_house": { "block_type": "stuck" },
+    "azureclops_house": {},
     "shack": {}
   }
 }
