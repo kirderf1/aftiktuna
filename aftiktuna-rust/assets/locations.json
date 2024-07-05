@@ -3,26 +3,26 @@
     {
       "name": "forest",
       "location_names": [
-        "location/goblin_forest",
-        "location/eyesaur_forest"
+        "goblin_forest",
+        "eyesaur_forest"
       ]
     },
     {
       "name": "abandoned facility",
       "location_names": [
-        "location/abandoned_facility",
-        "location/abandoned_facility2"
+        "abandoned_facility",
+        "abandoned_facility2"
       ]
     },
     {
       "name": "village",
       "location_names": [
-        "location/village"
+        "village"
       ]
     }
   ],
   "fortuna_locations": [
-    "location/fortuna",
-    "location/fortuna2"
+    "fortuna",
+    "fortuna2"
   ]
 }

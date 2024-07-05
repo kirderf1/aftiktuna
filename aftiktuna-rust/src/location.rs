@@ -356,9 +356,9 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
 }
 
 pub fn load_data(name: &str) -> Result<LocationData, String> {
-    let file = File::open(format!("assets/{}.json", name))
-        .map_err(|error| format!("Failed to open file: {}", error))?;
-    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {}", error))
+    let file = File::open(format!("assets/location/{name}.json"))
+        .map_err(|error| format!("Failed to open file: {error}"))?;
+    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {error}"))
 }
 
 struct Keep;
