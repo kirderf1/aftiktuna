@@ -2,11 +2,11 @@ use crate::action::Action;
 use crate::command;
 use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
-use crate::core::name::{NameData, NameQuery};
+use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::{area, CrewMember, Recruitable};
+use crate::core::{area, status, Recruitable};
 use crate::game_loop::GameState;
-use hecs::{Entity, Or};
+use hecs::Entity;
 
 pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {
     first_match!(
@@ -69,7 +69,7 @@ fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
     state
         .world
         .query::<(NameQuery, &Pos)>()
-        .with::<Or<&CrewMember, &Recruitable>>()
+        .with::<&Name>()
         .iter()
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
         .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
@@ -77,6 +77,19 @@ fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
 }
 
 fn talk_to(state: &GameState, target: Entity) -> Result<CommandResult, String> {
+    if target == state.controlled {
+        return Err(format!(
+            "{} does not want to talk to themselves.",
+            NameData::find(&state.world, state.controlled).definite()
+        ));
+    }
+    if !status::is_alive(target, &state.world) {
+        return Err(format!(
+            "{} cannot talk to the dead.",
+            NameData::find(&state.world, state.controlled).definite()
+        ));
+    }
+
     super::check_adjacent_accessible_with_message(target, state.controlled, &state.world)?;
 
     command::action_result(Action::TalkTo(target))

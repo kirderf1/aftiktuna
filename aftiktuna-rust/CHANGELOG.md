@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Save file is now removed when reaching the victory/game over frame
 - After victory/game over, the game returns to the main menu
 - "Load Game" button is no longer shown when the save file is absent
+- The player may no longer command a character to talk to themselves
 - Made certain action failures more visible, updated some action failure messages
 - Tweaked rendered offset between objects at the same coordinate
 - Improved how adjacent objects are rendered over each other

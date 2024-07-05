@@ -1,7 +1,7 @@
 use crate::core::area::ShipControls;
 use crate::core::inventory::Container;
 use crate::core::item::{CanWield, Item};
-use crate::core::name::NameData;
+use crate::core::name::{Name, NameData};
 use crate::core::store::{Shopkeeper, StoreStock};
 use crate::core::{
     status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting,
@@ -96,6 +96,7 @@ pub enum InteractionType {
     Controlled,
     Shopkeeper,
     Recruitable,
+    Talkable,
     Waiting,
     Following,
     Foe,
@@ -120,7 +121,7 @@ impl InteractionType {
                     simple!("control {name}"),
                     simple!("status"),
                     simple!("rest"),
-                    simple!("talk to {name}"),
+                    simple!("talk to {name}"), // backwards-compatibility with 3.0
                     simple!("tell {name} to wait at ship"),
                     recursive!(inventory.iter().map(ItemProfile::name), "give {name} {}"),
                 ]
@@ -150,7 +151,13 @@ impl InteractionType {
             }
             InteractionType::Shopkeeper => vec![simple!("trade")],
             InteractionType::Recruitable => {
-                vec![simple!("recruit {name}"), simple!("talk to {name}")]
+                vec![
+                    simple!("recruit {name}"),
+                    simple!("talk to {name}"), // backwards-compatibility with 3.0
+                ]
+            }
+            InteractionType::Talkable => {
+                vec![simple!("talk to {name}")]
             }
             InteractionType::Waiting => vec![simple!("tell {name} to follow")],
             InteractionType::Following => vec![simple!("tell {name} to wait")],
@@ -203,6 +210,9 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     }
     if entity_ref.satisfies::<&Recruitable>() {
         interactions.push(InteractionType::Recruitable);
+    }
+    if entity != state.controlled && entity_ref.has::<Name>() && status::is_alive_ref(entity_ref) {
+        interactions.push(InteractionType::Talkable);
     }
     if entity_ref.satisfies::<&Hostile>() && status::is_alive_ref(entity_ref) {
         interactions.push(InteractionType::Foe);
