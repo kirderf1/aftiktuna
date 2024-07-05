@@ -100,12 +100,16 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
 }
 
 pub(super) fn force_door(
-    mut context: Context,
+    context: Context,
     performer: Entity,
     door: Entity,
     assisting: bool,
 ) -> action::Result {
-    let world = context.mut_world();
+    let Context {
+        state,
+        mut dialogue_context,
+    } = context;
+    let world = &state.world;
     let performer_name = NameData::find(world, performer).definite();
     let door_pos = *world
         .get::<&Pos>(door)
@@ -124,12 +128,12 @@ pub(super) fn force_door(
 
     let movement = position::prepare_move(world, performer, door_pos)
         .map_err(|blockage| blockage.into_message(world))?;
-    context.capture_frame_for_dialogue();
-    movement.perform(context.mut_world()).unwrap();
+    dialogue_context.capture_frame_for_dialogue(state);
+    let world = &mut state.world;
+    movement.perform(world).unwrap();
     if assisting {
-        context.add_dialogue(performer, "I'll help you get that door open.");
+        dialogue_context.add_dialogue(world, performer, "I'll help you get that door open.");
     }
-    let world = context.mut_world();
 
     let block_type = *world.get::<&BlockType>(door_pair).map_err(|_| {
         Error::visible(format!(
@@ -139,7 +143,7 @@ pub(super) fn force_door(
 
     match check_tool_for_forcing(block_type, world, performer, &performer_name) {
         Err(message) => {
-            on_door_failure(context.state, performer, door, block_type);
+            on_door_failure(state, performer, door, block_type);
             Err(Error::visible(message))
         }
         Ok(tool) => {

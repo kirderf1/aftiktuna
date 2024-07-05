@@ -1,4 +1,4 @@
-use crate::action::{self, Error};
+use crate::action::{self, Context, Error};
 use crate::core::inventory::Held;
 use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
 use crate::core::name::{NameData, NameQuery};
@@ -82,7 +82,7 @@ impl From<SearchAction> for super::Action {
 }
 
 impl SearchAction {
-    pub(super) fn run(self, performer: Entity, mut context: super::Context) -> action::Result {
+    pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
         let Self { container } = self;
         let world = context.mut_world();
         let performer_name = NameData::find(world, performer).definite();
@@ -123,12 +123,16 @@ impl SearchAction {
 }
 
 pub(super) fn give_item(
-    mut context: super::Context,
+    context: Context,
     performer: Entity,
     item: Entity,
     receiver: Entity,
 ) -> action::Result {
-    let world = context.mut_world();
+    let Context {
+        state,
+        mut dialogue_context,
+    } = context;
+    let world = &state.world;
     let performer_name = NameData::find(world, performer).definite();
     let receiver_name = NameData::find(world, receiver).definite();
 
@@ -165,13 +169,13 @@ pub(super) fn give_item(
     let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
         .map_err(|blockage| blockage.into_message(world))?;
 
-    context.capture_frame_for_dialogue();
+    dialogue_context.capture_frame_for_dialogue(state);
+    let world = &mut state.world;
 
-    movement.perform(context.mut_world()).unwrap();
+    movement.perform(world).unwrap();
 
-    context.add_dialogue(performer, "\"Here, hold on to this.\"");
+    dialogue_context.add_dialogue(world, performer, "\"Here, hold on to this.\"");
 
-    let world = context.mut_world();
     world
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
@@ -231,7 +235,7 @@ impl From<UseAction> for super::Action {
 }
 
 impl UseAction {
-    pub(super) fn run(self, performer: Entity, mut context: super::Context) -> action::Result {
+    pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
         let world = context.mut_world();
 
         let performer_ref = world.entity(performer).unwrap();

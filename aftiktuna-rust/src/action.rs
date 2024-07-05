@@ -78,7 +78,10 @@ fn perform(
     action: Action,
     view_buffer: &mut view::Buffer,
 ) {
-    let context = Context { state, view_buffer };
+    let context = Context {
+        state,
+        dialogue_context: DialogueContext { view_buffer },
+    };
     let result = match action {
         OpenChest(chest) => open_chest(&mut state.world, performer, chest),
         TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),
@@ -137,24 +140,29 @@ pub struct WasWaiting;
 
 struct Context<'a> {
     state: &'a mut GameState,
-    view_buffer: &'a mut view::Buffer,
+    dialogue_context: DialogueContext<'a>,
 }
 
 impl<'a> Context<'a> {
     fn mut_world(&mut self) -> &mut World {
         &mut self.state.world
     }
-    fn capture_frame_for_dialogue(&mut self) {
+}
+
+struct DialogueContext<'a> {
+    view_buffer: &'a mut view::Buffer,
+}
+
+impl<'a> DialogueContext<'a> {
+    fn capture_frame_for_dialogue(&mut self, state: &mut GameState) {
         if !self.view_buffer.messages.0.is_empty() {
-            self.view_buffer.capture_view(self.state);
+            self.view_buffer.capture_view(state);
         }
     }
-    fn add_dialogue(&mut self, target: Entity, message: impl ToString) {
-        self.view_buffer.push_frame(Frame::new_dialogue(
-            &self.state.world,
-            target,
-            vec![message.to_string()],
-        ));
+
+    fn add_dialogue(&mut self, world: &World, target: Entity, message: impl Into<String>) {
+        self.view_buffer
+            .push_frame(Frame::new_dialogue(world, target, vec![message.into()]));
     }
 }
 
