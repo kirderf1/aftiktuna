@@ -64,26 +64,23 @@ fn talk_dialogue(
         };
         context.add_dialogue(world, performer, "\"Hi! What is your name?\"");
         context.add_dialogue(world, target, format!("\"My name is {name_string}.\""));
-    } else if target_ref.has::<GivesHuntReward>() {
+    } else {
+        regular_greeting(performer, target, world, &mut context);
+    }
+
+    if target_ref.has::<GivesHuntReward>() {
         if world
             .query::<&Health>()
             .with::<&HuntTarget>()
             .iter()
             .any(|(_, health)| health.is_alive())
         {
-            context.add_dialogue(world, performer, "\"Hi!\"");
-            context.add_dialogue(
-                world,
-                target,
-                "\"Hello! I have a bit of a problem at the moment.\"",
-            );
             let message = format!(
                 "\"{}\"",
                 &target_ref.get::<&GivesHuntReward>().unwrap().task_message
             );
             context.add_dialogue(world, target, message);
         } else {
-            context.add_dialogue(world, performer, "\"Hi!\"");
             let GivesHuntReward {
                 reward_message,
                 item_reward,
@@ -95,14 +92,37 @@ fn talk_dialogue(
             }
         }
     } else if target_ref.has::<Recruitable>() {
-        context.add_dialogue(world, performer, "\"Hi!\"");
         context.add_dialogue(
             world,
             target,
-            "\"Hello! I wish I could leave this place and go on an adventure.\"",
+            "\"I wish I could leave this place and go on an adventure.\"",
+        );
+    }
+}
+
+fn regular_greeting(
+    performer: Entity,
+    target: Entity,
+    world: &World,
+    context: &mut DialogueContext,
+) {
+    let target_ref = world.entity(target).unwrap();
+
+    context.add_dialogue(world, performer, "\"Hi!\"");
+
+    if target_ref.has::<GivesHuntReward>()
+        && world
+            .query::<&Health>()
+            .with::<&HuntTarget>()
+            .iter()
+            .any(|(_, health)| health.is_alive())
+    {
+        context.add_dialogue(
+            world,
+            target,
+            "\"Hello! I have a bit of a problem at the moment.\"",
         );
     } else if target_ref.has::<Waiting>() {
-        context.add_dialogue(world, performer, "\"Hi!\"");
         context.add_dialogue(
             world,
             target,
@@ -112,10 +132,8 @@ fn talk_dialogue(
         .get::<&Health>()
         .map_or(false, |health| health.is_badly_hurt())
     {
-        context.add_dialogue(world, performer, "\"Hi!\"");
         context.add_dialogue(world, target, "\"Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.\"");
     } else {
-        context.add_dialogue(world, performer, "\"Hi!\"");
         context.add_dialogue(world, target, "\"Hello!\"");
     }
 }
