@@ -85,7 +85,7 @@ mod store {
                 .map(|stock| {
                     (
                         text::capitalize(stock.item.noun_data().singular()),
-                        stock.price.buy_price().to_string(),
+                        format!("{price}p", price = stock.price.buy_price()),
                         stock.quantity,
                     )
                 })
@@ -103,10 +103,8 @@ mod store {
                 .unwrap_or(0);
 
             for (name, price, quantity) in items {
-                let name_spacing = " ".repeat(names_length - name.len());
-                let price_spacing = " ".repeat(prices_length - price.len());
                 messages.add(format!(
-                    "{name} {name_spacing}| {price}p {price_spacing}| {quantity}"
+                    "{name:names_length$} | {price:prices_length$} | {quantity}"
                 ));
             }
             messages.add(format!("Crew points: {}p", self.points));
