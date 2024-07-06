@@ -4,12 +4,16 @@
       "name": "Field",
       "background": "field",
       "background_offset": 5,
-      "objects": [ "", "v", "", "", "^" ],
+      "objects": [ "", "v", ".", "-", "/" ],
       "symbols": {
-        "^": {
+        "/": {
           "type": "door",
           "pair_id": "path",
-          "display_type": "path"
+          "display_type": "right_path"
+        },
+        ".": {
+          "type": "inanimate",
+          "model": "path/left_end"
         }
       }
     },
@@ -17,12 +21,16 @@
       "name": "Field",
       "background": "field",
       "background_offset": 0,
-      "objects": [ "^", "", "G", "G", "", "G", "¤", "" ],
+      "objects": [ "\\", "-", "-G", "-G", "-", "-G", ".¤", "" ],
       "symbols": {
-        "^": {
+        "\\": {
           "type": "door",
           "pair_id": "path",
-          "display_type": "path"
+          "display_type": "left_path"
+        },
+        ".": {
+          "type": "inanimate",
+          "model": "path/right_end"
         }
       }
     }

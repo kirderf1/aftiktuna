@@ -1,0 +1,6 @@
+{
+  "layers": [
+    { "texture": "path/flat", "y_offset": 30, "fixed": true }
+  ],
+  "mounted": true
+}

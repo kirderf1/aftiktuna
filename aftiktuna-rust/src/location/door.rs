@@ -53,6 +53,9 @@ pub enum DoorType {
     House,
     Store,
     Path,
+    LeftPath,
+    RightPath,
+    CrossroadPath,
 }
 
 impl From<DoorType> for ModelId {
@@ -61,6 +64,9 @@ impl From<DoorType> for ModelId {
             DoorType::Door => ModelId::new("door"),
             DoorType::Shack | DoorType::House | DoorType::Store => ModelId::new("shack"),
             DoorType::Path => ModelId::new("path"),
+            DoorType::LeftPath => ModelId::new("path/left_corner"),
+            DoorType::RightPath => ModelId::new("path/right_corner"),
+            DoorType::CrossroadPath => ModelId::new("path/crossroad"),
         }
     }
 }
@@ -69,7 +75,9 @@ impl From<DoorType> for DoorKind {
     fn from(value: DoorType) -> Self {
         match value {
             DoorType::Door | DoorType::Shack | DoorType::House | DoorType::Store => DoorKind::Door,
-            DoorType::Path => DoorKind::Path,
+            DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
+                DoorKind::Path
+            }
         }
     }
 }
@@ -81,7 +89,9 @@ impl DoorType {
             DoorType::Shack => Noun::new("shack", "shacks"),
             DoorType::House => Noun::new("house", "houses"),
             DoorType::Store => Noun::new("store", "stores"),
-            DoorType::Path => Noun::new("path", "paths"),
+            DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
+                Noun::new("path", "paths")
+            }
         };
         if let Some(adjective) = adjective {
             noun.with_adjective(adjective.word())

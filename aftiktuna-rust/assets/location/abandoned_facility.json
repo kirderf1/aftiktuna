@@ -4,17 +4,21 @@
       "name": "Field in front of a building",
       "background": "facility_outside",
       "background_offset": 2,
-      "objects": [ "v", "", "^", "", "", ">" ],
+      "objects": [ "v", ".", "-^", "-", "-", "/" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "entrance",
           "display_type": "door"
         },
-        ">": {
+        "/": {
           "type": "door",
           "pair_id": "path",
-          "display_type": "path"
+          "display_type": "right_path"
+        },
+        ".": {
+          "type": "inanimate",
+          "model": "path/left_end"
         }
       }
     },

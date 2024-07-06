@@ -1,6 +1,7 @@
 {
   "v": { "type": "location_entry" },
   "¤": { "type": "fortuna_chest" },
+  "-": { "type": "inanimate", "model": "path/flat" },
   "%": { "type": "loot", "table": "resource" },
   "t": { "type": "loot", "table": "tool" },
   "!": { "type": "loot", "table": "valuable" },

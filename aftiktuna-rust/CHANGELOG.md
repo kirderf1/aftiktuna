@@ -20,13 +20,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 3.1
 - Crew size limit when recruiting has been raised from 2 to 3
+- Characters may now push crew members that are in the way for certain actions
 - Recruitable characters and crew members in json definitions can now be set to use a random character profile
 - Aftik corpses can now be set to use a color from a random character profile
 - The "recruitable" symbol type (for location defintions) has now been replaced by a more general "character" symbol type
 - Loot tables are no longer hardcoded, and can be defined in `assets/loot_table/`
 - Locations now use new loot tables `resource` and `tool`,
  which together cover the same items as the original `regular` loot table
-- Characters may now push crew members that are in the way for certain actions
+- All locations have been updated to use some degree of visually-connected paths
 - The tent in the eyesaur forest is now a searchable container
 - Containers have been added in a lot of places in most locations
 - "status" command now also shows ship fuel status and number of food rations in the ship
