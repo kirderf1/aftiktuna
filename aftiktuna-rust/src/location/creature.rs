@@ -3,7 +3,7 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats, Traits};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{item, CreatureAttribute, GivesHuntReward, Hostile, HuntTarget, Recruitable};
+use crate::core::{item, CreatureAttribute, GivesHuntReward, Hostile, Recruitable, Tag};
 use hecs::{EntityBuilder, World};
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -102,8 +102,8 @@ pub struct CreatureSpawnData {
     attribute: AttributeChoice,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     aggressive: Option<bool>,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    is_hunt_target: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    tag: Option<Tag>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     direction: Option<Direction>,
 }
@@ -143,8 +143,8 @@ impl CreatureSpawnData {
             stats,
         ));
 
-        if self.is_hunt_target {
-            builder.add(HuntTarget);
+        if let Some(tag) = self.tag.clone() {
+            builder.add(tag);
         }
 
         if is_alive {

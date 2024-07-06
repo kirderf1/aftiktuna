@@ -180,7 +180,7 @@ pub mod world {
 
         core::Recruitable, Recruitable;
         core::GivesHuntReward, GivesHuntReward;
-        core::HuntTarget, HuntTarget;
+        core::Tag, Tag;
 
         store::Shopkeeper, Shopkeeper;
         store::IsTrading, IsTrading;

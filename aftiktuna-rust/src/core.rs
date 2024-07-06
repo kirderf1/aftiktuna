@@ -200,13 +200,14 @@ pub struct Recruitable;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
+    pub target_tag: Tag,
     pub task_message: String,
     pub reward_message: String,
     pub item_reward: Vec<item::Type>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct HuntTarget;
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Tag(String);
 
 #[derive(Serialize, Deserialize)]
 pub struct FortunaChest;

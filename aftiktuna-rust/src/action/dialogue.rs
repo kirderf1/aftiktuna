@@ -4,8 +4,8 @@ use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{
-    self, area, position, status, CrewMember, GivesHuntReward, HuntTarget, Recruitable,
-    RepeatingAction, Waiting,
+    self, area, position, status, CrewMember, GivesHuntReward, Recruitable, RepeatingAction, Tag,
+    Waiting,
 };
 use hecs::{Entity, World};
 
@@ -68,25 +68,22 @@ fn talk_dialogue(
         regular_greeting(performer, target, world, &mut context);
     }
 
-    if target_ref.has::<GivesHuntReward>() {
-        if world
-            .query::<&Health>()
-            .with::<&HuntTarget>()
-            .iter()
-            .any(|(_, health)| health.is_alive())
-        {
-            let message = format!(
-                "\"{}\"",
-                &target_ref.get::<&GivesHuntReward>().unwrap().task_message
-            );
+    let gives_hunt_reward = target_ref.get::<&GivesHuntReward>();
+    if gives_hunt_reward.is_some() {
+        let gives_hunt_reward = gives_hunt_reward.unwrap();
+        if any_alive_with_tag(&gives_hunt_reward.target_tag, world) {
+            let message = format!("\"{}\"", &gives_hunt_reward.task_message);
             context.add_dialogue(world, target, message);
         } else {
+            drop(gives_hunt_reward);
             let GivesHuntReward {
                 reward_message,
                 item_reward,
                 ..
             } = world.remove_one::<GivesHuntReward>(target).unwrap();
+
             context.add_dialogue(world, target, format!("\"{reward_message}\""));
+
             for item_type in item_reward {
                 item_type.spawn(world, Held::in_inventory(performer));
             }
@@ -110,12 +107,11 @@ fn regular_greeting(
 
     context.add_dialogue(world, performer, "\"Hi!\"");
 
-    if target_ref.has::<GivesHuntReward>()
-        && world
-            .query::<&Health>()
-            .with::<&HuntTarget>()
-            .iter()
-            .any(|(_, health)| health.is_alive())
+    if target_ref
+        .get::<&GivesHuntReward>()
+        .map_or(false, |gives_hunt_reward| {
+            any_alive_with_tag(&gives_hunt_reward.target_tag, world)
+        })
     {
         context.add_dialogue(
             world,
@@ -136,6 +132,13 @@ fn regular_greeting(
     } else {
         context.add_dialogue(world, target, "\"Hello!\"");
     }
+}
+
+fn any_alive_with_tag(target_tag: &Tag, world: &World) -> bool {
+    world
+        .query::<(&Health, &Tag)>()
+        .iter()
+        .any(|(_, (health, tag))| health.is_alive() && target_tag == tag)
 }
 
 pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> action::Result {
