@@ -203,7 +203,31 @@ pub struct GivesHuntReward {
     pub target_tag: Tag,
     pub task_message: String,
     pub reward_message: String,
-    pub item_reward: Vec<item::Type>,
+    pub reward: Reward,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Reward {
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    points: i32,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    items: Vec<item::Type>,
+}
+
+impl Reward {
+    pub fn give_reward_to(&self, target: Entity, world: &mut World) {
+        if self.points != 0 {
+            let mut crew_points = world
+                .get::<&CrewMember>(target)
+                .and_then(|crew_member| world.get::<&mut store::Points>(crew_member.0))
+                .unwrap();
+            crew_points.0 += self.points;
+        }
+
+        for item_type in &self.items {
+            item_type.spawn(world, inventory::Held::in_inventory(target));
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

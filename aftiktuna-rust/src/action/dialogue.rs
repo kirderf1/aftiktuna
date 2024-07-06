@@ -1,5 +1,4 @@
 use crate::action::{self, Context, Error};
-use crate::core::inventory::Held;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
@@ -78,15 +77,13 @@ fn talk_dialogue(
             drop(gives_hunt_reward);
             let GivesHuntReward {
                 reward_message,
-                item_reward,
+                reward,
                 ..
             } = world.remove_one::<GivesHuntReward>(target).unwrap();
 
             context.add_dialogue(world, target, format!("\"{reward_message}\""));
 
-            for item_type in item_reward {
-                item_type.spawn(world, Held::in_inventory(performer));
-            }
+            reward.give_reward_to(performer, world);
         }
     } else if target_ref.has::<Recruitable>() {
         context.add_dialogue(
