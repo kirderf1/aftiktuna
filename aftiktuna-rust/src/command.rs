@@ -19,7 +19,7 @@ pub enum Target {
 pub enum CommandResult {
     Action(Action, Target),
     ChangeControlled(Entity),
-    Info(Messages),
+    Info(Vec<String>),
 }
 
 fn action_result(action: impl Into<Action>) -> Result<CommandResult, String> {
@@ -42,5 +42,5 @@ pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, 
 fn status(state: &GameState) -> Result<CommandResult, String> {
     let mut messages = Messages::default();
     view::print_full_status(&mut messages, state);
-    Ok(CommandResult::Info(messages))
+    Ok(CommandResult::Info(messages.into_text()))
 }

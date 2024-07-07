@@ -7,7 +7,7 @@ use crate::core::position::Direction;
 use crate::game_loop::StopType;
 use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
 use crate::view::area::{RenderData, RenderProperties};
-use crate::view::{DialogueFrameData, Frame, Messages};
+use crate::view::{DialogueFrameData, Frame};
 use macroquad::color::{BLACK, LIGHTGRAY};
 use macroquad::math::Vec2;
 use macroquad::{camera as mq_camera, window};
@@ -54,10 +54,9 @@ impl State {
         self.text_log.push(text);
     }
 
-    pub fn show_input_error(&mut self, messages: Messages) {
-        let text = messages.into_text();
-        self.text_log.extend(text.clone());
-        self.set_text_box_text(text);
+    pub fn show_input_text_lines(&mut self, text_lines: Vec<String>) {
+        self.text_log.extend(text_lines.clone());
+        self.set_text_box_text(text_lines);
     }
 }
 

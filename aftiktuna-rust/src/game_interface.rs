@@ -2,7 +2,7 @@ use crate::command::CommandResult;
 use crate::game_loop::{self, GameState, Step, StopType};
 use crate::location::GenerationState;
 use crate::serialization::LoadError;
-use crate::view::{Frame, Messages};
+use crate::view::Frame;
 use crate::{command, location, serialization};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
@@ -85,33 +85,35 @@ impl Game {
         }
     }
 
-    pub fn handle_input(&mut self, input: &str) -> Result<(), Messages> {
+    pub fn handle_input(&mut self, input: &str) -> Result<(), Vec<String>> {
         match &self.phase {
             Phase::ChooseLocation(choice) => {
-                let location = self.state.generation_state.try_make_choice(
-                    choice,
-                    input,
-                    &mut self.state.rng,
-                )?;
+                let location = self
+                    .state
+                    .generation_state
+                    .try_make_choice(choice, input, &mut self.state.rng)
+                    .map_err(|error| vec![error])?;
                 let (phase, frames) = game_loop::run(Step::LoadLocation(location), &mut self.state);
                 self.phase = phase;
                 self.frame_cache.add_new_frames(frames);
             }
-            Phase::CommandInput => match command::try_parse_input(input, &self.state)? {
-                CommandResult::Action(action, target) => {
-                    let (phase, frames) =
-                        game_loop::run(Step::Tick(Some((action, target))), &mut self.state);
-                    self.phase = phase;
-                    self.frame_cache.add_new_frames(frames);
+            Phase::CommandInput => {
+                match command::try_parse_input(input, &self.state).map_err(|error| vec![error])? {
+                    CommandResult::Action(action, target) => {
+                        let (phase, frames) =
+                            game_loop::run(Step::Tick(Some((action, target))), &mut self.state);
+                        self.phase = phase;
+                        self.frame_cache.add_new_frames(frames);
+                    }
+                    CommandResult::ChangeControlled(character) => {
+                        let (phase, frames) =
+                            game_loop::run(Step::ChangeControlled(character), &mut self.state);
+                        self.phase = phase;
+                        self.frame_cache.add_new_frames(frames);
+                    }
+                    CommandResult::Info(text_lines) => return Err(text_lines),
                 }
-                CommandResult::ChangeControlled(character) => {
-                    let (phase, frames) =
-                        game_loop::run(Step::ChangeControlled(character), &mut self.state);
-                    self.phase = phase;
-                    self.frame_cache.add_new_frames(frames);
-                }
-                CommandResult::Info(messages) => return Err(messages),
-            },
+            }
             state => panic!("Handling input in unexpected state {state:?}"),
         }
         Ok(())

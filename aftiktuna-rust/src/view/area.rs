@@ -10,21 +10,16 @@ use crate::core::status::{self, Health};
 use crate::core::{inventory, BlockType, CreatureAttribute, Door, IsCut};
 use crate::deref_clone;
 use crate::game_loop::GameState;
-use crate::view::{capitalize, Messages};
+use crate::view::capitalize;
 use hecs::{Entity, EntityRef, Or, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::collections::HashMap;
 use std::ops::Deref;
 
-pub(super) fn area_view_messages(render_data: &RenderData) -> Messages {
-    let mut messages = Messages::default();
-    messages.add(format!("{}:", render_data.area_label));
-    print_area(&mut messages.0, render_data);
-    messages
-}
+pub(super) fn push_area_view_lines(text_lines: &mut Vec<String>, render_data: &RenderData) {
+    text_lines.push(format!("{name}:", name = render_data.area_label));
 
-fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
     let area_size = render_data.area_size;
     let mut symbols_by_pos: Vec<Vec<(Symbol, OrderWeight)>> = init_symbol_vectors(area_size);
     let mut labels: HashMap<Symbol, String> = HashMap::new();
@@ -50,7 +45,7 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
                 symbols[pos] = symbol.0;
             }
         }
-        lines.push(symbols.iter().collect::<String>());
+        text_lines.push(symbols.iter().collect::<String>());
     }
 
     let mut labels = labels
@@ -59,7 +54,7 @@ fn print_area(lines: &mut Vec<String>, render_data: &RenderData) {
         .collect::<Vec<_>>();
     labels.sort();
     for labels in labels.chunks(3) {
-        lines.push(labels.join("   "));
+        text_lines.push(labels.join("   "));
     }
 }
 

@@ -17,17 +17,15 @@ mod status;
 
 mod text {
     #[derive(Default)]
-    pub struct Messages(pub Vec<String>);
+    pub struct Messages(Vec<String>);
 
     impl Messages {
-        pub fn add(&mut self, message: impl AsRef<str>) {
-            self.0.push(capitalize(message));
+        pub fn is_empty(&self) -> bool {
+            self.0.is_empty()
         }
 
-        pub fn print_lines(self) {
-            for line in self.0 {
-                println!("{line}");
-            }
+        pub fn add(&mut self, message: impl AsRef<str>) {
+            self.0.push(capitalize(message));
         }
 
         pub fn into_text(self) -> Vec<String> {
@@ -55,7 +53,7 @@ mod text {
 pub use text::{capitalize, Messages};
 
 mod store {
-    use super::{status, text, Buffer, Frame, Messages, StatusCache};
+    use super::{status, text, Buffer, Frame, StatusCache};
     use crate::core::area::{Area, BackgroundId};
     use crate::core::display::AftikColorId;
     use crate::core::inventory::Held;
@@ -77,8 +75,7 @@ mod store {
     }
 
     impl StoreView {
-        pub fn messages(&self) -> Messages {
-            let mut messages = Messages::default();
+        pub fn push_store_view_lines(&self, text_lines: &mut Vec<String>) {
             let items = self
                 .items
                 .iter()
@@ -103,12 +100,11 @@ mod store {
                 .unwrap_or(0);
 
             for (name, price, quantity) in items {
-                messages.add(format!(
+                text_lines.push(format!(
                     "{name:names_length$} | {price:prices_length$} | {quantity}"
                 ));
             }
-            messages.add(format!("Crew points: {}p", self.points));
-            messages
+            text_lines.push(format!("Crew points: {}p", self.points));
         }
     }
 
@@ -191,7 +187,7 @@ impl Buffer {
     }
 
     fn pop_message_cache(&mut self, messages: &mut Messages) {
-        let messages_text = take(&mut self.messages).0.join(" ");
+        let messages_text = take(&mut self.messages).into_text().join(" ");
         if !messages_text.is_empty() {
             messages.add(messages_text);
         }
@@ -233,7 +229,7 @@ pub enum Frame {
 
 impl Frame {
     pub fn as_text(&self) -> Vec<String> {
-        let mut text = Vec::new();
+        let mut text_lines = Vec::new();
         match self {
             Frame::Introduction => {
                 return intro_messages();
@@ -242,39 +238,39 @@ impl Frame {
                 messages,
                 render_data,
             } => {
-                text.push("--------------------".to_string());
-                text.extend(area::area_view_messages(render_data).0);
+                text_lines.push("--------------------".into());
+                area::push_area_view_lines(&mut text_lines, render_data);
 
                 if !messages.is_empty() {
-                    text.push(String::default());
+                    text_lines.push(String::default());
 
-                    text.extend(messages.clone());
+                    text_lines.extend(messages.clone());
                 }
             }
             Frame::Dialogue { messages, data } => {
-                text.push(format!("{}:", capitalize(data.speaker.definite())));
-                text.extend(messages.clone());
+                text_lines.push(format!("{}:", capitalize(data.speaker.definite())));
+                text_lines.extend(messages.clone());
             }
             Frame::StoreView { view, messages, .. } => {
-                text.push("--------------------".to_string());
-                text.extend(view.messages().0);
+                text_lines.push("--------------------".into());
+                view.push_store_view_lines(&mut text_lines);
 
                 if !messages.is_empty() {
-                    text.push(String::default());
+                    text_lines.push(String::default());
 
-                    text.extend(messages.clone());
+                    text_lines.extend(messages.clone());
                 }
             }
             Frame::LocationChoice(choice) => {
-                text.push("--------------------".to_string());
-                text.extend(choice.present().0);
+                text_lines.push("--------------------".into());
+                text_lines.extend(choice.presentation_text_lines());
             }
             Frame::Ending { stop_type, .. } => {
-                text.push(String::default());
-                text.extend(stop_type_messages(*stop_type).into_text());
+                text_lines.push(String::default());
+                text_lines.extend(stop_type_messages(*stop_type).into_text());
             }
         }
-        text
+        text_lines
     }
 
     fn has_messages(&self) -> bool {
@@ -292,7 +288,7 @@ impl Frame {
             Frame::AreaView { messages, .. } => messages.clone(),
             Frame::Dialogue { messages, .. } => messages.clone(),
             Frame::StoreView { messages, .. } => messages.clone(),
-            Frame::LocationChoice(choice) => choice.present().0,
+            Frame::LocationChoice(choice) => choice.presentation_text_lines(),
             Frame::Ending { stop_type, .. } => stop_type_messages(*stop_type).into_text(),
         }
     }

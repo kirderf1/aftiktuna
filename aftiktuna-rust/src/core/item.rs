@@ -224,7 +224,7 @@ pub fn spawn(
     world.spawn(builder.build())
 }
 
-pub fn description(item_ref: EntityRef) -> Messages {
+pub fn description(item_ref: EntityRef) -> Vec<String> {
     let mut messages = Messages::default();
     messages.add(format!("{}:", item_ref.get::<&Noun>().unwrap().singular()));
 
@@ -262,5 +262,5 @@ pub fn description(item_ref: EntityRef) -> Messages {
     if item_ref.satisfies::<&Price>() {
         messages.add("Can be sold at a store.");
     }
-    messages
+    messages.into_text()
 }

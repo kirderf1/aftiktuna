@@ -155,7 +155,7 @@ struct DialogueContext<'a> {
 
 impl<'a> DialogueContext<'a> {
     fn capture_frame_for_dialogue(&mut self, state: &mut GameState) {
-        if !self.view_buffer.messages.0.is_empty() {
+        if !self.view_buffer.messages.is_empty() {
             self.view_buffer.capture_view(state);
         }
     }

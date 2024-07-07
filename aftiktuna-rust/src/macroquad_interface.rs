@@ -285,8 +285,8 @@ impl App<'_> {
                 Ok(()) => {
                     self.show_next_frame = true;
                 }
-                Err(messages) => {
-                    self.render_state.show_input_error(messages);
+                Err(text_lines) => {
+                    self.render_state.show_input_text_lines(text_lines);
                     self.request_input_focus = true;
                 }
             }

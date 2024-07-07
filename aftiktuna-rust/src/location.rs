@@ -158,15 +158,15 @@ pub enum PickResult {
 pub struct Choice(Vec<(usize, String)>);
 
 impl Choice {
-    pub fn present(&self) -> Messages {
-        let alternatives = &self.0;
-        let mut messages = Messages::default();
-        messages.add(format!(
+    pub fn presentation_text_lines(&self) -> Vec<String> {
+        let Choice(alternatives) = self;
+        let mut text_lines = Vec::new();
+        text_lines.push(format!(
             "On the next planet, there are two destination targets: {}, {}",
             alternatives[0].1, alternatives[1].1
         ));
-        messages.add("Pick the location to travel to next.");
-        messages
+        text_lines.push("Pick the location to travel to next.".into());
+        text_lines
     }
 
     pub fn alternatives(&self) -> Vec<String> {
