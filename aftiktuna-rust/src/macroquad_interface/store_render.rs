@@ -43,7 +43,7 @@ fn draw_store_stock(store_view: &StoreView) {
     shapes::draw_rectangle(30., 30., 400., 400., STORE_UI_COLOR);
     for (index, stock) in store_view.items.iter().enumerate() {
         text::draw_text(
-            &view::capitalize(stock.item.noun_data().singular()),
+            &view::text::capitalize(stock.item.noun_data().singular()),
             40.,
             50. + (index as f32 * TEXT_SIZE),
             TEXT_SIZE,

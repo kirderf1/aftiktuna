@@ -1,6 +1,6 @@
 use super::display::{ModelId, OrderWeight, Symbol};
 use super::name::Noun;
-use crate::view::Messages;
+use crate::view::text::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
 

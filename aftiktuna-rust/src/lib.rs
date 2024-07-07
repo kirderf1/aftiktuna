@@ -29,3 +29,27 @@ fn load_json_simple<T: DeserializeOwned>(path: impl Display) -> Result<T, String
         .map_err(|error| format!("Failed to open file: {error}"))?;
     serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {error}"))
 }
+
+enum OneOrTwo<T> {
+    One(T),
+    Two(T, T),
+}
+
+fn try_combine_adjacent<T>(items: Vec<T>, combine: impl Fn(T, T) -> OneOrTwo<T>) -> Vec<T> {
+    let mut output = Vec::new();
+    let mut iter = items.into_iter();
+    let Some(mut prev_item) = iter.next() else {
+        return output;
+    };
+    for next_item in iter {
+        match combine(prev_item, next_item) {
+            OneOrTwo::One(item) => prev_item = item,
+            OneOrTwo::Two(item_1, item_2) => {
+                output.push(item_1);
+                prev_item = item_2;
+            }
+        }
+    }
+    output.push(prev_item);
+    output
+}

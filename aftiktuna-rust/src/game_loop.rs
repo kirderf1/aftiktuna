@@ -17,7 +17,8 @@ use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAct
 use crate::game_interface::Phase;
 use crate::location::{self, CrewData, GenerationState, PickResult};
 use crate::serialization;
-use crate::view::{self, Frame, Messages, StatusCache};
+use crate::view::text::Messages;
+use crate::view::{self, Frame, StatusCache};
 use crate::{ai, command};
 
 #[derive(Serialize, Deserialize)]

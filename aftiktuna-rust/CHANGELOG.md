@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Certain event-describing sentences will be merged together
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.9.0] - 2024-07-06
 

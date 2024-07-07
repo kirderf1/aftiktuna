@@ -7,16 +7,10 @@ use crate::core::{
     self, area, inventory, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction,
 };
 use crate::game_loop::GameState;
+use crate::view::text::CombinableMsgType;
 use hecs::{Entity, World};
 use std::collections::HashSet;
 use std::ops::Deref;
-
-fn move_message(door_kind: DoorKind, performer: &str) -> String {
-    match door_kind {
-        DoorKind::Door => format!("{performer} entered the door into a new area."),
-        DoorKind::Path => format!("{performer} followed the path to a new area."),
-    }
-}
 
 fn check_tool_for_forcing(
     block_type: BlockType,
@@ -86,16 +80,20 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
     }
     world.insert_one(performer, door_data.destination).unwrap();
     let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
+    let performer: &str = &performer_name;
     if used_keycard {
         action::ok_at(
-            format!(
-                "Using their keycard, {}",
-                move_message(door_data.kind, &performer_name),
-            ),
+            format!("Using their keycard, {performer} entered the door into a new area.",),
             areas,
         )
     } else {
-        action::ok_at(move_message(door_data.kind, &performer_name), areas)
+        action::ok_at(
+            match door_data.kind {
+                DoorKind::Door => CombinableMsgType::EnterDoor.message(performer),
+                DoorKind::Path => CombinableMsgType::EnterPath.message(performer),
+            },
+            areas,
+        )
     }
 }
 

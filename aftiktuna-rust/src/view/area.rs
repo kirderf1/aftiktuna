@@ -10,7 +10,7 @@ use crate::core::status::{self, Health};
 use crate::core::{inventory, BlockType, CreatureAttribute, Door, IsCut};
 use crate::deref_clone;
 use crate::game_loop::GameState;
-use crate::view::capitalize;
+use crate::view::text;
 use hecs::{Entity, EntityRef, Or, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
@@ -131,8 +131,8 @@ impl ObjectNameData {
     fn build(entity_ref: EntityRef, world: &World) -> Option<Self> {
         let name = get_name(entity_ref)?;
         Some(Self {
-            modified_name: capitalize(get_extended_name(&name, entity_ref, world)),
-            name: capitalize(&name),
+            modified_name: text::capitalize(get_extended_name(&name, entity_ref, world)),
+            name: text::capitalize(&name),
             symbol: entity_ref
                 .get::<&Symbol>()
                 .map(deref_clone)

@@ -1,6 +1,6 @@
 use super::name::NameData;
 use super::position::Pos;
-use crate::view::Messages;
+use crate::view::text::Messages;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;

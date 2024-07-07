@@ -1,3 +1,4 @@
+use super::text::{self, Messages};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::item::FoodRation;
 use crate::core::name::{self, NameData};
@@ -6,7 +7,6 @@ use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::store::Points;
 use crate::core::{inventory, CrewMember};
 use crate::game_loop::GameState;
-use crate::view::{capitalize, Messages};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -203,7 +203,7 @@ fn print_wielded(
 
     let wield_text = wielded.map_or_else(
         || "Nothing".to_string(),
-        |item| capitalize(NameData::find(world, item).base()),
+        |item| text::capitalize(NameData::find(world, item).base()),
     );
     messages.add(format!("Wielding {wield_text}"));
     wielded

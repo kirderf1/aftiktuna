@@ -4,6 +4,7 @@ use crate::core::position::Pos;
 use crate::core::{position, status, CrewMember, FortunaChest, OpenedChest, RepeatingAction};
 use crate::game_loop::GameState;
 use crate::view;
+use crate::view::text::{IntoMessage, Message};
 use crate::view::Frame;
 use hecs::{Entity, World};
 use std::collections::HashMap;
@@ -209,20 +210,20 @@ fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
 type Result = result::Result<Success, Error>;
 
 pub struct Success {
-    message: Option<String>,
+    message: Option<Message>,
     areas: Option<Vec<Entity>>,
 }
 
-fn ok(message: String) -> Result {
+fn ok(message: impl IntoMessage) -> Result {
     Ok(Success {
-        message: Some(message),
+        message: Some(message.into_message()),
         areas: None,
     })
 }
 
-fn ok_at(message: String, areas: Vec<Entity>) -> Result {
+fn ok_at(message: impl IntoMessage, areas: Vec<Entity>) -> Result {
     Ok(Success {
-        message: Some(message),
+        message: Some(message.into_message()),
         areas: Some(areas),
     })
 }

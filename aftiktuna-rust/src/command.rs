@@ -1,7 +1,7 @@
 use crate::action::{trade, Action};
 use crate::game_loop::GameState;
 use crate::view;
-use crate::view::Messages;
+use crate::view::text::Messages;
 use hecs::Entity;
 use std::ops::Deref;
 

@@ -5,7 +5,7 @@ use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
 use crate::core::{inventory, item, CrewMember, Door, DoorKind, Hostile, Waiting};
 use crate::game_loop::GameState;
-use crate::view::Messages;
+use crate::view::text::Messages;
 use creature::{AftikProfile, ProfileOrRandom};
 use door::DoorInfo;
 use hecs::{CommandBuffer, Entity, Satisfies, World};
