@@ -112,8 +112,10 @@ impl SearchAction {
 
         core::trigger_aggression_in_area(world, container_pos.get_area());
 
-        let items =
-            name::names_with_counts(items.into_iter().map(|item| NameData::find(world, item)));
+        let items = name::names_with_counts(
+            items.into_iter().map(|item| NameData::find(world, item)),
+            name::CountFormat::Text,
+        );
         action::ok(format!(
             "{performer_name} searched {container_name} and found {items}.",
             items = text::join_elements(items)

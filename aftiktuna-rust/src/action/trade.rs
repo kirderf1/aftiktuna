@@ -47,7 +47,7 @@ pub fn buy(
 
     action::ok(format!(
         "{performer_name} bought {}.",
-        item.noun_data().with_count(amount),
+        item.noun_data().with_text_count(amount),
     ))
 }
 
@@ -113,7 +113,10 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
     }
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let item_list = name::names_with_counts(items.iter().map(|item| NameData::find(world, *item)));
+    let item_list = name::names_with_counts(
+        items.iter().map(|item| NameData::find(world, *item)),
+        name::CountFormat::Text,
+    );
 
     world.get::<&mut Points>(crew).unwrap().0 += value;
     for item in items {

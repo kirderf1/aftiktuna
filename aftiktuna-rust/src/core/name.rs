@@ -146,12 +146,51 @@ impl Noun {
         }
     }
 
-    pub fn with_count(&self, count: u16) -> String {
-        format!("{} {}", count, self.for_count(count))
+    pub fn with_text_count(&self, count: u16) -> String {
+        self.with_count(count, CountFormat::Text)
+    }
+
+    pub fn with_count(&self, count: u16, format: CountFormat) -> String {
+        format!(
+            "{count} {name}",
+            count = format.apply(count),
+            name = self.for_count(count)
+        )
     }
 }
 
-pub fn names_with_counts(data: impl IntoIterator<Item = NameData>) -> Vec<String> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CountFormat {
+    Numeric,
+    Text,
+}
+
+impl CountFormat {
+    fn apply(self, count: u16) -> String {
+        if self == Self::Numeric {
+            return count.to_string();
+        }
+        match count {
+            1 => "a",
+            2 => "two",
+            3 => "three",
+            4 => "four",
+            5 => "five",
+            6 => "six",
+            7 => "seven",
+            8 => "eight",
+            9 => "nine",
+            10 => "ten",
+            _ => return count.to_string(),
+        }
+        .to_string()
+    }
+}
+
+pub fn names_with_counts(
+    data: impl IntoIterator<Item = NameData>,
+    format: CountFormat,
+) -> Vec<String> {
     let mut names = Vec::new();
     let mut nouns = HashMap::new();
 
@@ -167,7 +206,7 @@ pub fn names_with_counts(data: impl IntoIterator<Item = NameData>) -> Vec<String
         .chain(
             nouns
                 .into_iter()
-                .map(|(noun, count)| noun.with_count(count)),
+                .map(|(noun, count)| noun.with_count(count, format)),
         )
         .collect::<Vec<String>>()
 }

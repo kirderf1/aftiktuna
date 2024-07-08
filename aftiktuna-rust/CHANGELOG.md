@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Certain event-describing sentences will be merged together
 - When searching a container, items of the same kind will now be counted together in the message
+- Some messages now use numbers in words instead of numericals
 - Fancier text lists in some places (ex "Mint, Cerulean and Moss")
 
 ### Contributors for this release

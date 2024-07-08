@@ -506,7 +506,7 @@ fn consume_rations_healing(state: &mut GameState, messages: &mut Messages) {
 fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) -> String {
     if let &[(entity, amount)] = &crew_eating_rations[..] {
         let name = NameData::find(world, entity).definite();
-        let ration_with_amount = item::Type::FoodRation.noun_data().with_count(amount);
+        let ration_with_amount = item::Type::FoodRation.noun_data().with_text_count(amount);
         format!("{name} ate {ration_with_amount} to recover some health.")
     } else {
         let names = crew_eating_rations
