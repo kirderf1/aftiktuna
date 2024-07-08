@@ -1,7 +1,7 @@
 use crate::action::{self, Context, Error};
 use crate::core::inventory::Held;
 use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
-use crate::core::name::{NameData, NameQuery};
+use crate::core::name::{self, NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
 use crate::core::{self, inventory, position, status, RepeatingAction};
@@ -112,10 +112,8 @@ impl SearchAction {
 
         core::trigger_aggression_in_area(world, container_pos.get_area());
 
-        let items = items
-            .into_iter()
-            .map(|item| format!("a {name}", name = NameData::find(world, item).base()))
-            .collect::<Vec<_>>();
+        let items =
+            name::names_with_counts(items.into_iter().map(|item| NameData::find(world, item)));
         action::ok(format!(
             "{performer_name} searched {container_name} and found {items}.",
             items = text::join_elements(items)
