@@ -10,7 +10,7 @@ use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::{self, FoodRation, FourLeafClover};
-use crate::core::name::{NameData, NameQuery};
+use crate::core::name::{Article, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAction, Waiting};
@@ -505,9 +505,13 @@ fn consume_rations_healing(state: &mut GameState, messages: &mut Messages) {
 
 fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) -> String {
     if let &[(entity, amount)] = &crew_eating_rations[..] {
-        let name = NameData::find(world, entity).definite();
-        let ration_with_amount = item::Type::FoodRation.noun_data().with_text_count(amount);
-        format!("{name} ate {ration_with_amount} to recover some health.")
+        format!(
+            "{the_character} ate {one_ration} to recover some health.",
+            the_character = NameData::find(world, entity).definite(),
+            one_ration = item::Type::FoodRation
+                .noun_data()
+                .with_text_count(amount, Article::One),
+        )
     } else {
         let names = crew_eating_rations
             .iter()

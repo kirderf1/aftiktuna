@@ -35,14 +35,18 @@ fn check_tool_for_forcing(
 
 pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity) -> action::Result {
     let world = &mut state.world;
-    let performer_name = NameData::find(world, performer).definite();
-    let door_pos = *world
-        .get::<&Pos>(door)
-        .ok()
-        .ok_or_else(|| format!("{performer_name} lost track of the door."))?;
+    let performer_name = NameData::find(world, performer);
+
+    let door_pos = *world.get::<&Pos>(door).ok().ok_or_else(|| {
+        format!(
+            "{the_performer} lost track of the door.",
+            the_performer = performer_name.definite()
+        )
+    })?;
     if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
         return Err(Error::private(format!(
-            "{performer_name} cannot reach the door from here."
+            "{the_performer} cannot reach the door from here.",
+            the_performer = performer_name.definite()
         )));
     }
 
@@ -62,8 +66,9 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
         } else {
             on_door_failure(state, performer, door, block_type);
             return Err(Error::visible(format!(
-                "{performer_name} is unable to enter the door as it is {}.",
-                block_type.description()
+                "{performer} is unable to enter the door as it is {blocked}.",
+                performer = performer_name.definite(),
+                blocked = block_type.description(),
             )));
         }
     } else {
@@ -80,18 +85,21 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
     }
     world.insert_one(performer, door_data.destination).unwrap();
     let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
-    let performer: &str = &performer_name;
     if used_keycard {
         action::ok_at(
-            format!("Using their keycard, {performer} entered the door into a new area.",),
+            format!(
+                "Using their keycard, {performer} entered the door into a new area.",
+                performer = performer_name.definite()
+            ),
             areas,
         )
     } else {
         action::ok_at(
             match door_data.kind {
-                DoorKind::Door => CombinableMsgType::EnterDoor.message(performer),
-                DoorKind::Path => CombinableMsgType::EnterPath.message(performer),
-            },
+                DoorKind::Door => CombinableMsgType::EnterDoor,
+                DoorKind::Path => CombinableMsgType::EnterPath,
+            }
+            .message(performer_name),
             areas,
         )
     }

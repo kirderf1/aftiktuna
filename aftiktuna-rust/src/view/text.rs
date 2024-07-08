@@ -1,8 +1,9 @@
+use crate::core::name::{self, NameData};
 use crate::OneOrTwo;
 
 #[derive(Debug)]
 pub enum Message {
-    Combinable(CombinableMsgType, Vec<String>),
+    Combinable(CombinableMsgType, Vec<NameData>),
     String(String),
 }
 
@@ -21,7 +22,7 @@ impl Message {
 
     fn into_text(self) -> String {
         match self {
-            Message::Combinable(msg_type, entities) => msg_type.into_text(join_elements(entities)),
+            Message::Combinable(msg_type, entities) => msg_type.into_text(entities),
             Message::String(text) => text,
         }
     }
@@ -31,18 +32,38 @@ impl Message {
 pub enum CombinableMsgType {
     EnterDoor,
     EnterPath,
+    PickUp(NameData),
 }
 
 impl CombinableMsgType {
-    pub fn message(self, entity: impl Into<String>) -> Message {
-        Message::Combinable(self, vec![entity.into()])
+    pub fn message(self, entity_name: NameData) -> Message {
+        Message::Combinable(self, vec![entity_name])
     }
 
-    fn into_text(self, entities: String) -> String {
+    fn into_text(self, entities: Vec<NameData>) -> String {
         use CombinableMsgType::*;
         match self {
-            EnterDoor => capitalize(format!("{entities} entered the door into a new area.")),
-            EnterPath => capitalize(format!("{entities} followed the path to a new area.")),
+            EnterDoor => format!(
+                "{the_characters} entered the door into a new area.",
+                the_characters = capitalize(join_elements(
+                    entities.into_iter().map(|name| name.definite()).collect()
+                ))
+            ),
+            EnterPath => format!(
+                "{the_characters} followed the path to a new area.",
+                the_characters = capitalize(join_elements(
+                    entities.into_iter().map(|name| name.definite()).collect()
+                ))
+            ),
+            PickUp(performer_name) => format!(
+                "{the_performer} picked up {the_items}.",
+                the_performer = capitalize(performer_name.definite()),
+                the_items = join_elements(name::names_with_counts(
+                    entities,
+                    name::Article::The,
+                    name::CountFormat::Text
+                ))
+            ),
         }
     }
 }

@@ -1,11 +1,11 @@
 use crate::action::{self, Context, Error};
 use crate::core::inventory::Held;
 use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
-use crate::core::name::{self, NameData, NameQuery};
+use crate::core::name::{self, Article, CountFormat, NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
 use crate::core::{self, inventory, position, status, RepeatingAction};
-use crate::view::text;
+use crate::view::text::{self, CombinableMsgType};
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
@@ -38,10 +38,14 @@ pub fn take_item(
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
-    let performer_name = NameData::find(world, performer).definite();
-    let item_pos = *world
-        .get::<&Pos>(item)
-        .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
+    let performer_name = NameData::find(world, performer);
+    let item_pos = *world.get::<&Pos>(item).map_err(|_| {
+        format!(
+            "{the_performer} lost track of {the_item}.",
+            the_performer = performer_name.definite(),
+            the_item = item_name.definite()
+        )
+    })?;
 
     position::push_and_move(world, performer, item_pos)?;
 
@@ -53,8 +57,9 @@ pub fn take_item(
         world.despawn(item).unwrap();
 
         return action::ok(format!(
-            "{performer_name} tries to pick up {}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
-            item_name.definite(),
+            "{the_performer} tries to pick up {the_item}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
+            the_performer = performer_name.definite(),
+            the_item = item_name.definite(),
         ));
     }
 
@@ -64,11 +69,7 @@ pub fn take_item(
 
     core::trigger_aggression_in_area(world, item_pos.get_area());
 
-    action::ok(format!(
-        "{} picked up {}.",
-        performer_name,
-        item_name.definite()
-    ))
+    action::ok(CombinableMsgType::PickUp(performer_name).message(item_name))
 }
 
 #[derive(Debug, Clone)]
@@ -114,7 +115,8 @@ impl SearchAction {
 
         let items = name::names_with_counts(
             items.into_iter().map(|item| NameData::find(world, item)),
-            name::CountFormat::Text,
+            Article::A,
+            CountFormat::Text,
         );
         action::ok(format!(
             "{performer_name} searched {container_name} and found {items}.",

@@ -146,16 +146,30 @@ impl Noun {
         }
     }
 
-    pub fn with_text_count(&self, count: u16) -> String {
-        self.with_count(count, CountFormat::Text)
+    pub fn with_text_count(&self, count: u16, article: Article) -> String {
+        self.with_count(count, article, CountFormat::Text)
     }
 
-    pub fn with_count(&self, count: u16, format: CountFormat) -> String {
-        format!(
-            "{count} {name}",
-            count = format.apply(count),
-            name = self.for_count(count)
-        )
+    pub fn with_count(&self, count: u16, article: Article, format: CountFormat) -> String {
+        if article == Article::The {
+            if count == 1 {
+                format!("the {name}", name = self.singular(),)
+            } else {
+                format!(
+                    "the {count} {name}",
+                    count = format.apply(count),
+                    name = self.for_count(count),
+                )
+            }
+        } else if article == Article::A && count == 1 {
+            format!("a {name}", name = self.singular(),)
+        } else {
+            format!(
+                "{count} {name}",
+                count = format.apply(count),
+                name = self.for_count(count),
+            )
+        }
     }
 }
 
@@ -171,7 +185,7 @@ impl CountFormat {
             return count.to_string();
         }
         match count {
-            1 => "a",
+            1 => "one",
             2 => "two",
             3 => "three",
             4 => "four",
@@ -187,8 +201,16 @@ impl CountFormat {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Article {
+    The,
+    A,
+    One,
+}
+
 pub fn names_with_counts(
     data: impl IntoIterator<Item = NameData>,
+    article: Article,
     format: CountFormat,
 ) -> Vec<String> {
     let mut names = Vec::new();
@@ -206,7 +228,7 @@ pub fn names_with_counts(
         .chain(
             nouns
                 .into_iter()
-                .map(|(noun, count)| noun.with_count(count, format)),
+                .map(|(noun, count)| noun.with_count(count, article, format)),
         )
         .collect::<Vec<String>>()
 }
