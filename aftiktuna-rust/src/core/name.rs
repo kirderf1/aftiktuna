@@ -30,24 +30,6 @@ impl NameData {
             NameData::Noun(noun) => format!("the {}", noun.singular),
         }
     }
-    pub fn definite_with_attribute(&self, entity_ref: Option<EntityRef>) -> String {
-        match self {
-            NameData::Name(name) => name.to_string(),
-            NameData::Noun(noun) => {
-                if let Some(attribute) =
-                    entity_ref.and_then(|entity_ref| entity_ref.get::<&CreatureAttribute>())
-                {
-                    format!(
-                        "the {adjective} {entity}",
-                        adjective = attribute.as_adjective(),
-                        entity = noun.singular
-                    )
-                } else {
-                    format!("the {entity}", entity = noun.singular)
-                }
-            }
-        }
-    }
 
     pub fn matches(&self, string: &str) -> bool {
         self.base().eq_ignore_ascii_case(string)
@@ -84,6 +66,43 @@ impl NameData {
             .ok()
             .and_then(Self::find_option_by_ref)
             .unwrap_or_default()
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct NameWithAttribute(NameData, Option<CreatureAttribute>);
+
+impl NameWithAttribute {
+    pub fn lookup_by_ref(entity_ref: EntityRef) -> Self {
+        Self(
+            NameData::find_by_ref(entity_ref),
+            entity_ref.get::<&CreatureAttribute>().as_deref().copied(),
+        )
+    }
+
+    pub fn lookup(entity: Entity, world: &World) -> Self {
+        world
+            .entity(entity)
+            .ok()
+            .map(Self::lookup_by_ref)
+            .unwrap_or_default()
+    }
+
+    pub fn definite(&self) -> String {
+        match &self.0 {
+            NameData::Name(name) => name.to_string(),
+            NameData::Noun(noun) => {
+                if let Some(attribute) = self.1 {
+                    format!(
+                        "the {adjective} {entity}",
+                        adjective = attribute.as_adjective(),
+                        entity = noun.singular
+                    )
+                } else {
+                    format!("the {entity}", entity = noun.singular)
+                }
+            }
+        }
     }
 }
 

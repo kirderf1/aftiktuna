@@ -1,4 +1,4 @@
-use super::name::NameData;
+use super::name::NameWithAttribute;
 use super::position::Pos;
 use crate::view::text::Messages;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
@@ -242,7 +242,8 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, health)) in world.query::<(&Pos, &Health)>().iter() {
-        let has_tag = world.get::<&LowHealth>(entity).is_ok();
+        let entity_ref = world.entity(entity).unwrap();
+        let has_tag = entity_ref.has::<LowHealth>();
         let visible_low_health = pos.is_in(area) && health.is_badly_hurt();
         if has_tag && !visible_low_health {
             command_buffer.remove_one::<LowHealth>(entity);
@@ -252,8 +253,7 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
             if entity != character {
                 messages.add(format!(
                     "{the_entity} is badly hurt.",
-                    the_entity = NameData::find(world, entity)
-                        .definite_with_attribute(world.entity(entity).ok())
+                    the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
                 ));
             }
         }
@@ -268,7 +268,8 @@ pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character:
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, stamina, health)) in world.query::<(&Pos, &Stamina, &Health)>().iter() {
-        let has_tag = world.get::<&LowStamina>(entity).is_ok();
+        let entity_ref = world.entity(entity).unwrap();
+        let has_tag = entity_ref.has::<LowStamina>();
         let visible_low_stamina = pos.is_in(area) && stamina.as_fraction() < 0.6;
         if has_tag && !visible_low_stamina {
             command_buffer.remove_one::<LowStamina>(entity);
@@ -277,8 +278,7 @@ pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character:
             command_buffer.insert_one(entity, LowStamina);
             messages.add(format!(
                 "{the_entity} is growing exhausted from dodging attacks.",
-                the_entity = NameData::find(world, entity)
-                    .definite_with_attribute(world.entity(entity).ok())
+                the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
             ));
         }
     }
