@@ -151,7 +151,7 @@ impl Noun {
     }
 }
 
-pub fn as_grouped_text_list(data: Vec<NameData>) -> String {
+pub fn names_with_counts(data: impl IntoIterator<Item = NameData>) -> Vec<String> {
     let mut names = Vec::new();
     let mut nouns = HashMap::new();
 
@@ -170,5 +170,4 @@ pub fn as_grouped_text_list(data: Vec<NameData>) -> String {
                 .map(|(noun, count)| noun.with_count(count)),
         )
         .collect::<Vec<String>>()
-        .join(", ")
 }

@@ -5,6 +5,7 @@ use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{self, Pos};
 use crate::core::{inventory, CrewMember};
 use crate::game_loop::GameState;
+use crate::view::text;
 use hecs::{Entity, World};
 
 pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
@@ -103,7 +104,7 @@ fn refuel_then_launch(
             } else {
                 (
                     ShipStatus::Refueled,
-                    format!("{name} refueled the ship. Warning: not all crew members have boarded the ship yet. The following are absent: {}", absent_crew.join(", ")),
+                    format!("{name} refueled the ship. Warning: not all crew members have boarded the ship yet. {absent_crew} are still absent.", absent_crew = text::join_elements(absent_crew)),
                 )
             }
         }

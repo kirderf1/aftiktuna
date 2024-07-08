@@ -5,6 +5,7 @@ use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
 use crate::core::{self, inventory, position, status, RepeatingAction};
+use crate::view::text;
 use hecs::{Entity, World};
 
 pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
@@ -113,11 +114,11 @@ impl SearchAction {
 
         let items = items
             .into_iter()
-            .map(|item| NameData::find(world, item).base().to_owned())
-            .collect::<Vec<_>>()
-            .join(" and a ");
+            .map(|item| format!("a {name}", name = NameData::find(world, item).base()))
+            .collect::<Vec<_>>();
         action::ok(format!(
-            "{performer_name} searched {container_name} and found a {items}."
+            "{performer_name} searched {container_name} and found {items}.",
+            items = text::join_elements(items)
         ))
     }
 }

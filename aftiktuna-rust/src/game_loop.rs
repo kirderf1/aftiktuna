@@ -17,7 +17,7 @@ use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAct
 use crate::game_interface::Phase;
 use crate::location::{self, CrewData, GenerationState, PickResult};
 use crate::serialization;
-use crate::view::text::Messages;
+use crate::view::text::{self, Messages};
 use crate::view::{self, Frame, StatusCache};
 use crate::{ai, command};
 
@@ -512,13 +512,15 @@ fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) 
         let names = crew_eating_rations
             .iter()
             .map(|(entity, _)| NameData::find(world, *entity).definite())
-            .collect::<Vec<_>>()
-            .join(" and ");
+            .collect::<Vec<_>>();
         let amount = crew_eating_rations
             .iter()
             .map(|(_, amount)| amount)
             .sum::<u16>();
-        format!("{names} ate {amount} food rations to recover some health.",)
+        format!(
+            "{names} ate {amount} food rations to recover some health.",
+            names = text::join_elements(names)
+        )
     }
 }
 

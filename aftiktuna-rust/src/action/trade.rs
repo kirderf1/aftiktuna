@@ -6,6 +6,7 @@ use crate::core::name::{self, NameData};
 use crate::core::position::{self, Pos};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
 use crate::core::{item, CrewMember};
+use crate::view::text;
 use hecs::{Entity, EntityRef, Ref, World};
 
 pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
@@ -112,19 +113,17 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
     }
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let item_list = name::as_grouped_text_list(
-        items
-            .iter()
-            .map(|item| NameData::find(world, *item))
-            .collect(),
-    );
+    let item_list = name::names_with_counts(items.iter().map(|item| NameData::find(world, *item)));
 
     world.get::<&mut Points>(crew).unwrap().0 += value;
     for item in items {
         world.despawn(item).unwrap();
     }
 
-    action::ok(format!("{performer_name} sold {item_list} for {value}.",))
+    action::ok(format!(
+        "{performer_name} sold {items} for {value}.",
+        items = text::join_elements(item_list)
+    ))
 }
 
 fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {

@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Certain event-describing sentences will be merged together
+- Fancier text lists in some places (ex "Mint, Cerulean and Moss")
 
 ### Contributors for this release
 

@@ -225,12 +225,8 @@ fn print_inventory(
     let inventory_text = if inventory.is_empty() {
         "Empty".to_string()
     } else {
-        name::as_grouped_text_list(
-            inventory
-                .iter()
-                .map(|item| NameData::find(world, *item))
-                .collect(),
-        )
+        name::names_with_counts(inventory.iter().map(|item| NameData::find(world, *item)))
+            .join(", ")
     };
     messages.add(format!("Inventory: {inventory_text}"));
     inventory

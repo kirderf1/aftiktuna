@@ -42,7 +42,7 @@ pub mod text {
         fn into_text(self) -> String {
             match self {
                 Message::Combinable(msg_type, entities) => {
-                    msg_type.into_text(entities.join(" and "))
+                    msg_type.into_text(join_elements(entities))
                 }
                 Message::String(text) => text,
             }
@@ -133,6 +133,20 @@ pub mod text {
         match chars.next() {
             None => String::new(),
             Some(char) => char.to_uppercase().collect::<String>() + chars.as_str(),
+        }
+    }
+
+    pub fn join_elements(mut elements: Vec<String>) -> String {
+        let Some(last_element) = elements.pop() else {
+            return String::new();
+        };
+        if elements.is_empty() {
+            last_element
+        } else {
+            format!(
+                "{first_elements} and {last_element}",
+                first_elements = elements.join(", ")
+            )
         }
     }
 }
