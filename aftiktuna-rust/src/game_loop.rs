@@ -17,7 +17,7 @@ use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAct
 use crate::game_interface::Phase;
 use crate::location::{self, CrewData, GenerationState, PickResult};
 use crate::serialization;
-use crate::view::text::{self, Messages};
+use crate::view::text::{self, CombinableMsgType, Messages};
 use crate::view::{self, Frame, StatusCache};
 use crate::{ai, command};
 
@@ -373,10 +373,9 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                     .world
                     .insert_one(entity, Direction::between(pos, player_pos))
                     .unwrap();
-                view_buffer.messages.add(format!(
-                    "{} makes a threatening pose.",
-                    NameData::find(&state.world, entity).definite()
-                ));
+                view_buffer.messages.add(
+                    CombinableMsgType::Threatening.message(NameData::find(&state.world, entity)),
+                );
             }
 
             if state
@@ -388,10 +387,9 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                     .world
                     .insert_one(entity, Direction::between(pos, player_pos))
                     .unwrap();
-                view_buffer.messages.add(format!(
-                    "{} moves in to attack.",
-                    NameData::find(&state.world, entity).definite()
-                ));
+                view_buffer.messages.add(
+                    CombinableMsgType::Attacking.message(NameData::find(&state.world, entity)),
+                );
             }
         }
         state

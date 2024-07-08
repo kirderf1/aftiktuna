@@ -33,6 +33,8 @@ pub enum CombinableMsgType {
     EnterDoor,
     EnterPath,
     PickUp(NameData),
+    Threatening,
+    Attacking,
 }
 
 impl CombinableMsgType {
@@ -64,6 +66,40 @@ impl CombinableMsgType {
                     name::CountFormat::Text
                 ))
             ),
+            Threatening => {
+                if let [entity] = &entities[..] {
+                    format!(
+                        "{the_creature} makes a threatening pose.",
+                        the_creature = capitalize(entity.definite()),
+                    )
+                } else {
+                    format!(
+                        "{the_creatures} make threatening poses.",
+                        the_creatures = capitalize(join_elements(name::names_with_counts(
+                            entities,
+                            name::Article::The,
+                            name::CountFormat::Text,
+                        ))),
+                    )
+                }
+            }
+            Attacking => {
+                if let [entity] = &entities[..] {
+                    format!(
+                        "{the_creature} moves in to attack.",
+                        the_creature = capitalize(entity.definite()),
+                    )
+                } else {
+                    format!(
+                        "{the_creatures} move in to attack.",
+                        the_creatures = capitalize(join_elements(name::names_with_counts(
+                            entities,
+                            name::Article::The,
+                            name::CountFormat::Text,
+                        ))),
+                    )
+                }
+            }
         }
     }
 }
