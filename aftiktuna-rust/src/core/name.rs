@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::ops::Deref;
 
+use super::CreatureAttribute;
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum NameData {
     Name(String),
@@ -26,6 +28,24 @@ impl NameData {
         match self {
             NameData::Name(name) => name.to_string(),
             NameData::Noun(noun) => format!("the {}", noun.singular),
+        }
+    }
+    pub fn definite_with_attribute(&self, entity_ref: Option<EntityRef>) -> String {
+        match self {
+            NameData::Name(name) => name.to_string(),
+            NameData::Noun(noun) => {
+                if let Some(attribute) =
+                    entity_ref.and_then(|entity_ref| entity_ref.get::<&CreatureAttribute>())
+                {
+                    format!(
+                        "the {adjective} {entity}",
+                        adjective = attribute.as_adjective(),
+                        entity = noun.singular
+                    )
+                } else {
+                    format!("the {entity}", entity = noun.singular)
+                }
+            }
         }
     }
 

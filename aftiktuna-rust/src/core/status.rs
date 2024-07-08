@@ -251,8 +251,9 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
             command_buffer.insert_one(entity, LowHealth);
             if entity != character {
                 messages.add(format!(
-                    "{} is badly hurt.",
-                    NameData::find(world, entity).definite()
+                    "{the_entity} is badly hurt.",
+                    the_entity = NameData::find(world, entity)
+                        .definite_with_attribute(world.entity(entity).ok())
                 ));
             }
         }
@@ -275,8 +276,9 @@ pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character:
         if !has_tag && visible_low_stamina && health.is_alive() {
             command_buffer.insert_one(entity, LowStamina);
             messages.add(format!(
-                "{} is growing exhausted from dodging attacks.",
-                NameData::find(world, entity).definite()
+                "{the_entity} is growing exhausted from dodging attacks.",
+                the_entity = NameData::find(world, entity)
+                    .definite_with_attribute(world.entity(entity).ok())
             ));
         }
     }

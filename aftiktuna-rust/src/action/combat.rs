@@ -54,8 +54,10 @@ pub(super) fn attack(
 
 fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> action::Result {
     let world = &mut state.world;
-    let attacker_name = NameData::find(world, attacker).definite();
-    let target_name = NameData::find(world, target).definite();
+    let attacker_name =
+        NameData::find(world, attacker).definite_with_attribute(world.entity(attacker).ok());
+    let target_name =
+        NameData::find(world, target).definite_with_attribute(world.entity(target).ok());
     let attacker_pos = *world
         .get::<&Pos>(attacker)
         .expect("Expected attacker to have a position");
