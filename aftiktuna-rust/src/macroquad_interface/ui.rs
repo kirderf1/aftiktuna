@@ -15,6 +15,10 @@ const TEXT_BOX_TEXT_SIZE: u16 = 16;
 const TEXT_BOX_MARGIN: f32 = 12.;
 const TEXT_BOX_TEXT_MAX_WIDTH: f32 = super::WINDOW_WIDTH_F - 2. * TEXT_BOX_MARGIN;
 
+fn set_egui_style(style: &mut egui::Style) {
+    style.spacing.scroll = egui::style::ScrollStyle::solid();
+}
+
 pub fn split_text_line(line: String) -> Vec<String> {
     if fits_in_text_box_width(&line) {
         return vec![line];
@@ -105,6 +109,8 @@ const FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 pub fn egui_graphic(app: &mut App, egui: &mut EguiWrapper) {
     egui.ui(|ctx| {
+        ctx.style_mut(set_egui_style);
+
         input_panel(app, ctx);
 
         if let Some(tooltip) = &app.command_tooltip {
@@ -129,6 +135,8 @@ pub fn egui_graphic(app: &mut App, egui: &mut EguiWrapper) {
 
 pub fn egui_text_view(app: &mut App, egui: &mut EguiWrapper) {
     egui.ui(|ctx| {
+        ctx.style_mut(set_egui_style);
+
         input_panel(app, ctx);
         text_box_panel(app, ctx);
     });
