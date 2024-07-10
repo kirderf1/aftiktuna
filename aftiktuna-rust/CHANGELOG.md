@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- "exit game" command, which may save the game and then return to the main menu
+
 ### Changed
 
 - Various text improvements

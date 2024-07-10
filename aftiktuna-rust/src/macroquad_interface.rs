@@ -9,7 +9,7 @@ use macroquad::miniquad::conf::Icon;
 use macroquad::text;
 use macroquad::window::{self, Conf};
 use std::fs;
-use std::mem::take;
+use std::mem;
 use std::process;
 use std::time::{self, Instant};
 
@@ -175,6 +175,7 @@ pub async fn run_game(
         command_tooltip: None,
         show_graphical: true,
         request_input_focus: false,
+        given_exit_command: false,
         show_next_frame: true,
         autosave,
     };
@@ -195,6 +196,7 @@ struct App<'a> {
     command_tooltip: Option<CommandTooltip>,
     show_graphical: bool,
     request_input_focus: bool,
+    given_exit_command: bool,
     show_next_frame: bool,
     autosave: bool,
 }
@@ -228,18 +230,17 @@ impl Interface<()> for AppWithEgui<'_> {
         app.update_frame_state();
 
         render::draw(self);
-        Ok(())
+
+        if self.app.given_exit_command {
+            self.app.save_game_if_relevant();
+            Err(())
+        } else {
+            Ok(())
+        }
     }
 
     fn on_quit(&mut self) {
-        if self.app.autosave && !matches!(self.app.render_state.current_frame, Frame::Ending { .. })
-        {
-            if let Err(error) = serialization::write_game_to_save_file(&self.app.game) {
-                eprintln!("Failed to save game: {error}");
-            } else {
-                println!("Saved the game successfully.")
-            }
-        }
+        self.app.save_game_if_relevant();
     }
 }
 
@@ -278,17 +279,33 @@ impl App<'_> {
     }
 
     fn handle_input(&mut self) {
-        let input = take(&mut self.input);
-        if !input.is_empty() {
-            self.render_state.add_to_text_log(format!("> {input}"));
-            match self.game.handle_input(&input) {
-                Ok(()) => {
-                    self.show_next_frame = true;
-                }
-                Err(text_lines) => {
-                    self.render_state.show_input_text_lines(text_lines);
-                    self.request_input_focus = true;
-                }
+        let input = mem::take(&mut self.input);
+        if input.is_empty() {
+            return;
+        }
+        if input.eq_ignore_ascii_case("exit game") {
+            self.given_exit_command = true;
+            return;
+        }
+
+        self.render_state.add_to_text_log(format!("> {input}"));
+        match self.game.handle_input(&input) {
+            Ok(()) => {
+                self.show_next_frame = true;
+            }
+            Err(text_lines) => {
+                self.render_state.show_input_text_lines(text_lines);
+                self.request_input_focus = true;
+            }
+        }
+    }
+
+    fn save_game_if_relevant(&self) {
+        if self.autosave && !matches!(self.render_state.current_frame, Frame::Ending { .. }) {
+            if let Err(error) = serialization::write_game_to_save_file(&self.game) {
+                eprintln!("Failed to save game: {error}");
+            } else {
+                println!("Saved the game successfully.")
             }
         }
     }

@@ -41,6 +41,8 @@ When trading at a store, there are the following commands:
 - exit
 - status
 
+You can at any time give the command "exit game" to quit and return to the main menu.
+
 Notes:
 - "rest" doesn't recover health, instead it waits until stamina (a stat that helps with dodging attacks) has recovered for the crew.
 - Health is partially recovered when moving with the ship from one location to another, as long as the crew has food rations to consume for it. This happens automatically, and it doesn't matter which character is holding the food rations.
