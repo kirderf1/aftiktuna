@@ -349,7 +349,7 @@ pub mod egui {
         }
 
         fn mouse_wheel_event(&mut self, x: f32, y: f32) {
-            self.0.mouse_wheel_event(x, y)
+            self.0.mouse_wheel_event(x / 50., y / 50.)
         }
 
         fn mouse_button_down_event(&mut self, button: miniquad::MouseButton, x: f32, y: f32) {
