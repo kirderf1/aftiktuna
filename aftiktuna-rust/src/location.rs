@@ -280,22 +280,16 @@ pub fn init(
     (controlled, ship)
 }
 
-pub fn load_location(state: &mut GameState, messages: &mut Messages, location_name: &str) {
-    let world = &mut state.world;
-    let ship_exit = world.get::<&Ship>(state.ship).unwrap().exit_pos;
+pub fn load_and_deploy_location(
+    location_name: &str,
+    messages: &mut Messages,
+    state: &mut GameState,
+) {
+    let start_pos = load_location_into_world(location_name, state);
 
-    let start_pos = load_data(location_name)
-        .and_then(|location_data| {
-            location_data.build(
-                world,
-                &mut state.generation_state.character_profiles,
-                &mut state.rng,
-            )
-        })
-        .unwrap_or_else(|message| panic!("Error loading location {}: {}", location_name, message));
-
+    let ship_exit = state.world.get::<&Ship>(state.ship).unwrap().exit_pos;
     door::place_pair(
-        world,
+        &mut state.world,
         DoorInfo {
             pos: start_pos,
             symbol: Symbol('v'),
@@ -313,6 +307,43 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         None,
     );
 
+    deploy_crew_at_new_location(start_pos, state);
+
+    if state.generation_state.is_at_fortuna() {
+        messages.add(
+            "The ship arrives at the location of the fortuna chest, and the crew exit the ship.",
+        )
+    } else {
+        messages.add("The ship arrives at a new location, and the crew exit the ship.");
+    }
+}
+
+fn load_location_into_world(location_name: &str, state: &mut GameState) -> Pos {
+    let start_pos = load_data(location_name)
+        .and_then(|location_data| {
+            location_data.build(
+                &mut state.world,
+                &mut state.generation_state.character_profiles,
+                &mut state.rng,
+            )
+        })
+        .unwrap_or_else(|message| panic!("Error loading location {location_name}: {message}"));
+
+    let areas_with_aggressive_creatures = state
+        .world
+        .query::<(&Pos, &Hostile)>()
+        .iter()
+        .filter(|&(_, (_, hostile))| hostile.aggressive)
+        .map(|(_, (pos, _))| pos.get_area())
+        .collect::<HashSet<_>>();
+    for (_, (pos, hostile)) in state.world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
+        hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
+    }
+    start_pos
+}
+
+fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
+    let world = &mut state.world;
     let mut crew_members = world
         .query::<()>()
         .with::<&CrewMember>()
@@ -334,24 +365,6 @@ pub fn load_location(state: &mut GameState, messages: &mut Messages, location_na
         }
         world.insert(character, (start_pos, direction)).unwrap();
         let _ = world.remove_one::<Waiting>(character);
-    }
-
-    let areas_with_aggressive_creatures = world
-        .query::<(&Pos, &Hostile)>()
-        .iter()
-        .filter(|&(_, (_, hostile))| hostile.aggressive)
-        .map(|(_, (pos, _))| pos.get_area())
-        .collect::<HashSet<_>>();
-    for (_, (pos, hostile)) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
-        hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
-    }
-
-    if state.generation_state.is_at_fortuna() {
-        messages.add(
-            "The ship arrives at the location of the fortuna chest, and the crew exit the ship.",
-        )
-    } else {
-        messages.add("The ship arrives at a new location, and the crew exit the ship.");
     }
 }
 

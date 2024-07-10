@@ -96,7 +96,7 @@ fn run_step(
     match phase {
         Step::PrepareNextLocation => prepare_next_location(state, view_buffer),
         Step::LoadLocation(location) => {
-            location::load_location(state, &mut view_buffer.messages, &location);
+            location::load_and_deploy_location(&location, &mut view_buffer.messages, state);
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
