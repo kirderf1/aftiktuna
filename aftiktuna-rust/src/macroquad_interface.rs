@@ -179,7 +179,7 @@ pub async fn run_game(
         show_next_frame: true,
         autosave,
     };
-    run(AppWithEgui { app, egui }).await
+    run(AppWithEgui { app, egui }).await;
 }
 
 struct AppWithEgui<'a> {
@@ -201,15 +201,17 @@ struct App<'a> {
     autosave: bool,
 }
 
-impl Interface<()> for AppWithEgui<'_> {
-    fn on_frame(&mut self) -> Result<(), ()> {
+struct StopGame;
+
+impl Interface<StopGame> for AppWithEgui<'_> {
+    fn on_frame(&mut self) -> Result<(), StopGame> {
         let app = &mut self.app;
         if (input::is_key_pressed(KeyCode::Enter)
             || input::is_mouse_button_pressed(MouseButton::Left))
             && matches!(app.game.next_result(), GameResult::Stop)
         {
             app.save_game_if_relevant();
-            return Err(());
+            return Err(StopGame);
         }
 
         if input::is_key_pressed(KeyCode::Tab) {
@@ -234,7 +236,7 @@ impl Interface<()> for AppWithEgui<'_> {
 
         if self.app.given_exit_command {
             self.app.save_game_if_relevant();
-            Err(())
+            Err(StopGame)
         } else {
             Ok(())
         }
