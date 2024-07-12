@@ -20,6 +20,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Fancier text lists in some places (ex "Mint, Cerulean and Moss")
   - Creature attributes like "agile" and "bulky" now show up in more places
 
+### Fixed
+
+- Normal location load errors are now handled gracefully,
+ showing the error message in-gui and letting the game save and return to the main menu
+
 ### Contributors for this release
 
 - kirderf1

@@ -145,6 +145,8 @@ macro_rules! world_serialization {
 }
 
 pub mod world {
+    use std::error::Error;
+
     use crate::ai;
     use crate::core::area::{Area, Ship, ShipControls};
     use crate::core::{self, display, inventory, item, name, position, status, store};
@@ -208,6 +210,34 @@ pub mod world {
         core::FortunaChest, FortunaChest;
         core::OpenedChest, OpenedChest;
     );
+
+    struct WorldSerialize<'a>(&'a World);
+
+    impl<'a> Serialize for WorldSerialize<'a> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            serialize(self.0, serializer)
+        }
+    }
+
+    struct WorldDeserialize(World);
+
+    impl<'de> Deserialize<'de> for WorldDeserialize {
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserialize(deserializer).map(WorldDeserialize)
+        }
+    }
+
+    pub fn serialize_clone(world: &World) -> Result<World, Box<dyn Error>> {
+        let world_data = rmp_serde::to_vec(&WorldSerialize(world))?;
+        let WorldDeserialize(world_clone) = rmp_serde::from_slice(&world_data)?;
+        Ok(world_clone)
+    }
 }
 
 macro_rules! from {

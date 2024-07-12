@@ -204,10 +204,11 @@ struct App<'a> {
 impl Interface<()> for AppWithEgui<'_> {
     fn on_frame(&mut self) -> Result<(), ()> {
         let app = &mut self.app;
-        if matches!(app.render_state.current_frame, Frame::Ending { .. })
-            && (input::is_key_pressed(KeyCode::Enter)
-                || input::is_mouse_button_pressed(MouseButton::Left))
+        if (input::is_key_pressed(KeyCode::Enter)
+            || input::is_mouse_button_pressed(MouseButton::Left))
+            && matches!(app.game.next_result(), GameResult::Stop)
         {
+            app.save_game_if_relevant();
             return Err(());
         }
 

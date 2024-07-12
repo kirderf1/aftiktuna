@@ -187,6 +187,7 @@ pub enum Frame {
         messages: Vec<String>,
     },
     LocationChoice(Choice),
+    Error(String),
     Ending {
         stop_type: StopType,
     },
@@ -230,6 +231,10 @@ impl Frame {
                 text_lines.push("--------------------".into());
                 text_lines.extend(choice.presentation_text_lines());
             }
+            Frame::Error(message) => {
+                text_lines.push("--------------------".into());
+                text_lines.push(message.to_owned());
+            }
             Frame::Ending { stop_type, .. } => {
                 text_lines.push(String::default());
                 text_lines.extend(stop_type_messages(*stop_type).into_text());
@@ -243,7 +248,10 @@ impl Frame {
             Frame::AreaView { messages, .. }
             | Frame::Dialogue { messages, .. }
             | Frame::StoreView { messages, .. } => !messages.is_empty(),
-            Frame::Introduction | Frame::LocationChoice(_) | Frame::Ending { .. } => true,
+            Frame::Introduction
+            | Frame::LocationChoice(_)
+            | Frame::Error(_)
+            | Frame::Ending { .. } => true,
         }
     }
 
@@ -254,6 +262,7 @@ impl Frame {
             Frame::Dialogue { messages, .. } => messages.clone(),
             Frame::StoreView { messages, .. } => messages.clone(),
             Frame::LocationChoice(choice) => choice.presentation_text_lines(),
+            Frame::Error(message) => vec![message.to_owned()],
             Frame::Ending { stop_type, .. } => stop_type_messages(*stop_type).into_text(),
         }
     }

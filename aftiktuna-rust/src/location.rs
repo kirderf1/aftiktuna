@@ -5,12 +5,14 @@ use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
 use crate::core::{inventory, item, CrewMember, Door, DoorKind, Hostile, Waiting};
 use crate::game_loop::GameState;
+use crate::serialization;
 use crate::view::text::Messages;
 use creature::{AftikProfile, ProfileOrRandom};
 use door::DoorInfo;
 use hecs::{CommandBuffer, Entity, Satisfies, World};
+use rand::rngs::ThreadRng;
 use rand::seq::index;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::fs::File;
@@ -284,8 +286,10 @@ pub fn load_and_deploy_location(
     location_name: &str,
     messages: &mut Messages,
     state: &mut GameState,
-) {
-    let start_pos = load_location_into_world(location_name, state);
+) -> Result<(), String> {
+    let (gen_context, start_pos) =
+        load_location_into_world(location_name, LocationGenContext::clone_from(state))?;
+    gen_context.apply_to_game_state(state);
 
     let ship_exit = state.world.get::<&Ship>(state.ship).unwrap().exit_pos;
     door::place_pair(
@@ -316,30 +320,61 @@ pub fn load_and_deploy_location(
     } else {
         messages.add("The ship arrives at a new location, and the crew exit the ship.");
     }
+    Ok(())
 }
 
-fn load_location_into_world(location_name: &str, state: &mut GameState) -> Pos {
+struct LocationGenContext {
+    world: World,
+    character_profiles: Vec<AftikProfile>,
+    rng: ThreadRng,
+}
+
+impl LocationGenContext {
+    fn clone_from(state: &GameState) -> Self {
+        Self {
+            world: serialization::world::serialize_clone(&state.world)
+                .expect("Unexpected error when cloning world"),
+            character_profiles: state.generation_state.character_profiles.clone(),
+            rng: thread_rng(),
+        }
+    }
+
+    fn apply_to_game_state(self, game_state: &mut GameState) {
+        game_state.world = self.world;
+        game_state.generation_state.character_profiles = self.character_profiles;
+    }
+}
+
+fn load_location_into_world(
+    location_name: &str,
+    mut gen_context: LocationGenContext,
+) -> Result<(LocationGenContext, Pos), String> {
     let start_pos = load_data(location_name)
         .and_then(|location_data| {
             location_data.build(
-                &mut state.world,
-                &mut state.generation_state.character_profiles,
-                &mut state.rng,
+                &mut gen_context.world,
+                &mut gen_context.character_profiles,
+                &mut gen_context.rng,
             )
         })
-        .unwrap_or_else(|message| panic!("Error loading location {location_name}: {message}"));
+        .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
 
-    let areas_with_aggressive_creatures = state
+    let areas_with_aggressive_creatures = gen_context
         .world
         .query::<(&Pos, &Hostile)>()
         .iter()
         .filter(|&(_, (_, hostile))| hostile.aggressive)
         .map(|(_, (pos, _))| pos.get_area())
         .collect::<HashSet<_>>();
-    for (_, (pos, hostile)) in state.world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
+    for (_, (pos, hostile)) in gen_context
+        .world
+        .query_mut::<(&Pos, &mut Hostile)>()
+        .into_iter()
+    {
         hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
-    start_pos
+
+    Ok((gen_context, start_pos))
 }
 
 fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {

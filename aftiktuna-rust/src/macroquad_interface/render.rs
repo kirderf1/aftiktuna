@@ -93,7 +93,7 @@ pub fn draw(app: &mut AppWithEgui) {
 
 fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut RenderAssets) {
     match frame {
-        Frame::LocationChoice(_) | Frame::Introduction => {
+        Frame::LocationChoice(_) | Frame::Introduction | Frame::Error(_) => {
             mq_camera::set_default_camera();
             assets
                 .lookup_background(&BackgroundId::location_choice())

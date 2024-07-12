@@ -14,7 +14,7 @@ use crate::core::name::{Article, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAction, Waiting};
-use crate::game_interface::Phase;
+use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, CrewData, GenerationState, PickResult};
 use crate::serialization;
 use crate::view::text::{self, CombinableMsgType, Messages};
@@ -72,31 +72,32 @@ pub enum Step {
     ChangeControlled(Entity),
 }
 
-pub fn run(mut step: Step, state: &mut GameState) -> (Phase, Vec<Frame>) {
+pub fn run(mut step: Step, state: &mut GameState) -> (PhaseResult, Vec<Frame>) {
     let mut view_buffer = view::Buffer::default();
-    let phase = loop {
+    let phase_result = loop {
         let result = run_step(step, state, &mut view_buffer);
         match result {
             Ok(next_step) => step = next_step,
-            Err(phase) => break phase,
+            Err(phase_result) => break phase_result,
         }
     };
 
     #[cfg(feature = "debug_logging")]
     crate::serialization::check_world_components(&state.world);
 
-    (phase, view_buffer.into_frames())
+    (phase_result, view_buffer.into_frames())
 }
 
 fn run_step(
     phase: Step,
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
-) -> Result<Step, Phase> {
+) -> Result<Step, PhaseResult> {
     match phase {
-        Step::PrepareNextLocation => prepare_next_location(state, view_buffer),
+        Step::PrepareNextLocation => Ok(prepare_next_location(state, view_buffer)?),
         Step::LoadLocation(location) => {
-            location::load_and_deploy_location(&location, &mut view_buffer.messages, state);
+            location::load_and_deploy_location(&location, &mut view_buffer.messages, state)
+                .map_err(|message| Phase::LoadLocation(location).with_error(message))?;
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
@@ -116,7 +117,7 @@ fn run_step(
                 None
             }))
         }
-        Step::Tick(chosen_action) => tick_and_check(chosen_action, state, view_buffer),
+        Step::Tick(chosen_action) => Ok(tick_and_check(chosen_action, state, view_buffer)?),
         Step::ChangeControlled(character) => {
             change_character(state, character, view_buffer);
             view_buffer.capture_view(state);
