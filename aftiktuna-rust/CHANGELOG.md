@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Some messages now use numbers in words instead of numericals
   - Fancier text lists in some places (ex "Mint, Cerulean and Moss")
   - Creature attributes like "agile" and "bulky" now show up in more places
+- Tweaked the game view: Backgrounds and game objects have been moved up
+- Background textures have been tweaked, indoor backgrounds are now slightly smaller vertically
 
 ### Fixed
 
