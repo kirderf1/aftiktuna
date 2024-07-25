@@ -45,13 +45,18 @@ impl PrimaryBGData {
             let texture = &layer.texture;
 
             if layer.is_looping {
-                let repeat_count = f32::floor((camera.x_start - layer_x) / texture.width());
-                draw_background_texture(texture, layer_x + texture.width() * repeat_count, layer_y);
-                draw_background_texture(
-                    texture,
-                    layer_x + texture.width() * (repeat_count + 1.),
-                    layer_y,
-                );
+                let repeat_start = f32::floor((camera.x_start - layer_x) / texture.width()) as i16;
+                let repeat_end = f32::floor(
+                    (camera.x_start + macroquad_interface::WINDOW_WIDTH_F - layer_x)
+                        / texture.width(),
+                ) as i16;
+                for repeat_index in repeat_start..=repeat_end {
+                    draw_background_texture(
+                        texture,
+                        layer_x + texture.width() * f32::from(repeat_index),
+                        layer_y,
+                    );
+                }
             } else {
                 draw_background_texture(texture, layer_x, layer_y);
             }
