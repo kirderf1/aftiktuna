@@ -17,6 +17,8 @@ use crate::macroquad_interface::camera::HorizontalDraggableCamera;
 
 use super::{CachedTextures, TextureLoader};
 
+pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
+
 pub struct BGData {
     pub primary: PrimaryBGData,
     pub portrait: PortraitBGData,
@@ -199,8 +201,6 @@ impl RawPortraitBGData {
         })
     }
 }
-
-pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
 
 fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Error> {
     let file = File::open(DATA_FILE_PATH)?;
