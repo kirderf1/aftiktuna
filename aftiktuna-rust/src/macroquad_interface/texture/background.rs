@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::area::BackgroundId;
 use crate::core::position::Coord;
+use crate::macroquad_interface;
 use crate::macroquad_interface::camera::HorizontalDraggableCamera;
 
 use super::{CachedTextures, TextureLoader};
@@ -25,29 +26,32 @@ pub struct PrimaryBGData(Parallax<Texture2D>);
 
 impl PrimaryBGData {
     pub fn draw(&self, offset: Coord, camera: &HorizontalDraggableCamera) {
+        fn draw_background_texture(texture: &Texture2D, x: f32, y: f32) {
+            texture::draw_texture(
+                texture,
+                x,
+                macroquad_interface::WINDOW_HEIGHT_F - y - texture.height(),
+                color::WHITE,
+            );
+        }
+
         let offset = offset as f32 * 120.;
         for layer in &self.0.layers {
             let layer_x =
-                camera.x_start * (1. - layer.move_factor) - offset - f32::from(layer.offset.x);
-            let layer_y = layer.offset.y.into();
+                f32::from(layer.offset.x) + camera.x_start * (1. - layer.move_factor) - offset;
+            let layer_y = f32::from(layer.offset.y);
             let texture = &layer.texture;
 
             if layer.is_looping {
                 let repeat_count = f32::floor((camera.x_start - layer_x) / texture.width());
-                texture::draw_texture(
-                    texture,
-                    layer_x + texture.width() * repeat_count,
-                    layer_y,
-                    color::WHITE,
-                );
-                texture::draw_texture(
+                draw_background_texture(texture, layer_x + texture.width() * repeat_count, layer_y);
+                draw_background_texture(
                     texture,
                     layer_x + texture.width() * (repeat_count + 1.),
                     layer_y,
-                    color::WHITE,
                 );
             } else {
-                texture::draw_texture(texture, layer_x, layer_y, color::WHITE)
+                draw_background_texture(texture, layer_x, layer_y);
             }
         }
     }

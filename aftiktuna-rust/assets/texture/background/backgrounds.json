@@ -12,7 +12,7 @@
   "ship": {
     "texture": "ship",
     "move_factor": 1.0,
-    "offset": { "x": 50, "y": 40 },
+    "offset": { "x": -50, "y": 80 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "forest_entrance": {
@@ -41,7 +41,7 @@
   "shack": {
     "texture": "shack",
     "move_factor": 1.0,
-    "offset": { "x": 120, "y": 20 },
+    "offset": { "x": -120, "y": 90 },
     "portrait_color": [ 109, 102, 67 ]
   },
   "facility_outside": {
@@ -50,7 +50,7 @@
       {
         "texture": "facility_outside",
         "move_factor": 1.0,
-        "offset": { "x": 60 }
+        "offset": { "x": -60 }
       }
     ],
     "portrait_texture": "field_portrait"
@@ -58,31 +58,31 @@
   "facility_size3": {
     "texture": "3x_facility",
     "move_factor": 1.0,
-    "offset": { "x": 60, "y": 40 },
+    "offset": { "x": -60, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size4": {
     "texture": "4x_facility",
     "move_factor": 1.0,
-    "offset": { "x": 60, "y": 40 },
+    "offset": { "x": -60, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size5": {
     "texture": "5x_facility",
     "move_factor": 1.0,
-    "offset": { "x": 60, "y": 40 },
+    "offset": { "x": -60, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size6": {
     "texture": "6x_facility",
     "move_factor": 1.0,
-    "offset": { "x": 60, "y": 40 },
+    "offset": { "x": -60, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size7": {
     "texture": "7x_facility",
     "move_factor": 1.0,
-    "offset": { "x": 60, "y": 40 },
+    "offset": { "x": -60, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   }
 }
