@@ -56,7 +56,7 @@ async fn main() {
     let mut egui = EguiWrapper::init();
 
     loop {
-        window::clear_background(color::LIGHTGRAY);
+        window::clear_background(color::BLACK);
         let mut is_mouse_over_panel = false;
 
         egui.ui(|ctx| {

@@ -39,7 +39,7 @@ async fn main() {
     let mut egui = EguiWrapper::init();
 
     loop {
-        window::clear_background(color::LIGHTGRAY);
+        window::clear_background(color::BLACK);
 
         let mut is_mouse_over_panel = false;
         egui.ui(|ctx| {
@@ -127,7 +127,10 @@ fn background_editor_ui(
     ui.add(egui::DragValue::new(&mut layer.move_factor).speed(0.01));
     ui.checkbox(&mut layer.is_looping, "Is Looping");
     ui.label("Offset:");
-    ui.add(egui::DragValue::new(&mut layer.offset));
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut layer.offset.x));
+        ui.add(egui::DragValue::new(&mut layer.offset.y));
+    });
 
     ui.separator();
     if ui.button("Save").clicked() {

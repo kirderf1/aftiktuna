@@ -28,24 +28,26 @@ impl BGTexture {
         let offset = offset as f32 * 120.;
         for layer in &self.0.layers {
             let layer_x =
-                camera.x_start * (1. - layer.move_factor) - offset - f32::from(layer.offset);
+                camera.x_start * (1. - layer.move_factor) - offset - f32::from(layer.offset.x);
+            let layer_y = layer.offset.y.into();
             let texture = &layer.texture;
+
             if layer.is_looping {
                 let repeat_count = f32::floor((camera.x_start - layer_x) / texture.width());
                 texture::draw_texture(
                     texture,
                     layer_x + texture.width() * repeat_count,
-                    0.,
+                    layer_y,
                     color::WHITE,
                 );
                 texture::draw_texture(
                     texture,
                     layer_x + texture.width() * (repeat_count + 1.),
-                    0.,
+                    layer_y,
                     color::WHITE,
                 );
             } else {
-                texture::draw_texture(texture, layer_x, 0., color::WHITE)
+                texture::draw_texture(texture, layer_x, layer_y, color::WHITE)
             }
         }
     }
@@ -145,7 +147,7 @@ pub struct ParallaxLayer<T> {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub is_looping: bool,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub offset: i16,
+    pub offset: Offset,
 }
 
 fn default_move_factor() -> f32 {
@@ -161,6 +163,14 @@ impl ParallaxLayer<String> {
             offset: self.offset,
         })
     }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Offset {
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub x: i16,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub y: i16,
 }
 
 #[derive(Serialize, Deserialize)]

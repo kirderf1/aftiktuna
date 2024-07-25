@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Creature attributes like "agile" and "bulky" now show up in more places
 - Tweaked the game view: Backgrounds and game objects have been moved up
 - Background textures have been tweaked, indoor backgrounds are now slightly smaller vertically
+- Updated format for `backgrounds.json`, which now allows y offsets to be specified
 
 ### Fixed
 
