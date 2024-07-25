@@ -17,13 +17,13 @@ use crate::macroquad_interface::camera::HorizontalDraggableCamera;
 use super::{CachedTextures, TextureLoader};
 
 pub struct BGData {
-    pub texture: BGTexture,
-    pub portrait: BGPortrait,
+    pub primary: PrimaryBGData,
+    pub portrait: PortraitBGData,
 }
 
-pub struct BGTexture(Parallax<Texture2D>);
+pub struct PrimaryBGData(Parallax<Texture2D>);
 
-impl BGTexture {
+impl PrimaryBGData {
     pub fn draw(&self, offset: Coord, camera: &HorizontalDraggableCamera) {
         let offset = offset as f32 * 120.;
         for layer in &self.0.layers {
@@ -53,16 +53,18 @@ impl BGTexture {
     }
 }
 
-pub enum BGPortrait {
+pub enum PortraitBGData {
     Color(Color),
     Texture(Texture2D),
 }
 
-impl BGPortrait {
+impl PortraitBGData {
     pub fn draw(&self) {
         match self {
-            BGPortrait::Color(color) => window::clear_background(*color),
-            BGPortrait::Texture(texture) => texture::draw_texture(texture, 0., 0., color::WHITE),
+            PortraitBGData::Color(color) => window::clear_background(*color),
+            PortraitBGData::Texture(texture) => {
+                texture::draw_texture(texture, 0., 0., color::WHITE);
+            }
         }
     }
 }
@@ -70,15 +72,15 @@ impl BGPortrait {
 #[derive(Serialize, Deserialize)]
 pub struct RawBGData {
     #[serde(flatten)]
-    pub texture: RawBGTexture,
+    pub primary: RawPrimaryBGData,
     #[serde(flatten)]
-    portrait: RawBGPortrait,
+    portrait: RawPortraitBGData,
 }
 
 impl RawBGData {
     pub fn load(&self, loader: &mut impl TextureLoader) -> Result<BGData, io::Error> {
         Ok(BGData {
-            texture: self.texture.load(loader)?,
+            primary: self.primary.load(loader)?,
             portrait: self.portrait.load(loader)?,
         })
     }
@@ -86,11 +88,11 @@ impl RawBGData {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(from = "ParallaxLayerOrList", into = "ParallaxLayerOrList")]
-pub struct RawBGTexture(pub Parallax<String>);
+pub struct RawPrimaryBGData(pub Parallax<String>);
 
-impl RawBGTexture {
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<BGTexture, io::Error> {
-        Ok(BGTexture(self.0.load(loader)?))
+impl RawPrimaryBGData {
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<PrimaryBGData, io::Error> {
+        Ok(PrimaryBGData(self.0.load(loader)?))
     }
 }
 
@@ -101,8 +103,8 @@ enum ParallaxLayerOrList {
     Parallax(Parallax<String>),
 }
 
-impl From<RawBGTexture> for ParallaxLayerOrList {
-    fn from(RawBGTexture(parallax): RawBGTexture) -> Self {
+impl From<RawPrimaryBGData> for ParallaxLayerOrList {
+    fn from(RawPrimaryBGData(parallax): RawPrimaryBGData) -> Self {
         if parallax.layers.len() != 1 {
             Self::Parallax(parallax)
         } else {
@@ -111,7 +113,7 @@ impl From<RawBGTexture> for ParallaxLayerOrList {
     }
 }
 
-impl From<ParallaxLayerOrList> for RawBGTexture {
+impl From<ParallaxLayerOrList> for RawPrimaryBGData {
     fn from(value: ParallaxLayerOrList) -> Self {
         Self(match value {
             ParallaxLayerOrList::Layer(layer) => Parallax {
@@ -174,20 +176,22 @@ pub struct Offset {
 }
 
 #[derive(Serialize, Deserialize)]
-enum RawBGPortrait {
+enum RawPortraitBGData {
     #[serde(rename = "portrait_color")]
     Color([u8; 3]),
     #[serde(rename = "portrait_texture")]
     Texture(String),
 }
 
-impl RawBGPortrait {
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<BGPortrait, io::Error> {
+impl RawPortraitBGData {
+    fn load(&self, loader: &mut impl TextureLoader) -> Result<PortraitBGData, io::Error> {
         Ok(match self {
-            RawBGPortrait::Color(color) => {
-                BGPortrait::Color([color[0], color[1], color[2], 255].into())
+            RawPortraitBGData::Color(color) => {
+                PortraitBGData::Color([color[0], color[1], color[2], 255].into())
             }
-            RawBGPortrait::Texture(texture) => BGPortrait::Texture(load_texture(texture, loader)?),
+            RawPortraitBGData::Texture(texture) => {
+                PortraitBGData::Texture(load_texture(texture, loader)?)
+            }
         })
     }
 }
@@ -240,12 +244,12 @@ fn insert_or_log<K: Eq + Hash, V, D: Display>(
     }
 }
 
-pub fn load_background_for_testing() -> BGTexture {
+pub fn load_background_for_testing() -> PrimaryBGData {
     load_raw_backgrounds()
         .unwrap()
         .get(&BackgroundId::new("forest"))
         .unwrap()
-        .texture
+        .primary
         .load(&mut super::InPlaceLoader)
         .unwrap()
 }

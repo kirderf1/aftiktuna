@@ -70,7 +70,7 @@ async fn main() {
 }
 
 fn draw_examples(background: &BGData, offset: Coord, camera: &HorizontalDraggableCamera) {
-    background.texture.draw(offset, camera);
+    background.primary.draw(offset, camera);
 }
 
 fn side_panel(ctx: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) -> bool {
@@ -111,7 +111,7 @@ fn background_editor_ui(
 
     ui.label("Layers:");
 
-    for (layer_index, layer) in raw_background.texture.0.layers.iter().enumerate() {
+    for (layer_index, layer) in raw_background.primary.0.layers.iter().enumerate() {
         ui.add_enabled_ui(layer_index != *selected_layer, |ui| {
             if ui.button(&layer.texture).clicked() {
                 *selected_layer = layer_index;
@@ -121,7 +121,7 @@ fn background_editor_ui(
 
     ui.separator();
 
-    let layer = &mut raw_background.texture.0.layers[*selected_layer];
+    let layer = &mut raw_background.primary.0.layers[*selected_layer];
 
     ui.label("Move Factor:");
     ui.add(egui::DragValue::new(&mut layer.move_factor).speed(0.01));

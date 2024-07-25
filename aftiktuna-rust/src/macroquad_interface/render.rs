@@ -97,14 +97,14 @@ fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut Re
             mq_camera::set_default_camera();
             assets
                 .lookup_background(&BackgroundId::location_choice())
-                .texture
+                .primary
                 .draw(0, &HorizontalDraggableCamera::default());
         }
         Frame::AreaView { render_data, .. } => {
             mq_camera::set_camera(camera);
             assets
                 .lookup_background(&render_data.background)
-                .texture
+                .primary
                 .draw(render_data.background_offset.unwrap_or(0), camera);
 
             draw_objects(render_data, assets);
