@@ -79,7 +79,7 @@ fn side_panel(ctx: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) -
         .resizable(false)
         .exact_width(200.)
         .show(ctx, panel_contents);
-    response.response.hovered()
+    response.response.contains_pointer()
 }
 
 fn display_parameters_ui(area_size: &mut Coord, offset: &mut Coord, ui: &mut egui::Ui) {

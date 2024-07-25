@@ -354,7 +354,7 @@ fn side_panel(
                 exit(0);
             }
         });
-    response.response.hovered()
+    response.response.contains_pointer()
 }
 
 fn option_condition_text(condition: Option<bool>) -> &'static str {
