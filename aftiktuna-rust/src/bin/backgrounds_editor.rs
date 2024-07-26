@@ -2,12 +2,16 @@ use std::fs::File;
 use std::process::exit;
 
 use aftiktuna::core::area::BackgroundId;
+use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
 use aftiktuna::macroquad_interface;
-use aftiktuna::macroquad_interface::camera::HorizontalDraggableCamera;
+use aftiktuna::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna::macroquad_interface::egui::EguiWrapper;
-use aftiktuna::macroquad_interface::texture::background::{BGData, RawBGData};
-use aftiktuna::macroquad_interface::texture::{background, CachedTextures};
+use aftiktuna::macroquad_interface::texture::background::RawBGData;
+use aftiktuna::macroquad_interface::texture::{
+    self, background, model, CachedTextures, LazilyLoadedModels,
+};
+use aftiktuna::view::area::RenderProperties;
 use indexmap::IndexMap;
 use macroquad::color;
 use macroquad::window::{self, Conf};
@@ -26,11 +30,13 @@ fn config() -> Conf {
 #[macroquad::main(config)]
 async fn main() {
     let mut textures = CachedTextures::default();
+    let mut models = model::prepare().unwrap();
 
     let mut backgrounds = background::load_index_map_backgrounds().unwrap();
     let mut selected_bg = 0;
     let mut selected_layer = 0;
 
+    let mut example_content_type = ExampleContentType::None;
     let mut area_size = 5;
     let mut offset = 0;
     let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
@@ -44,7 +50,7 @@ async fn main() {
         let mut is_mouse_over_panel = false;
         egui.ui(|ctx| {
             is_mouse_over_panel |= side_panel(ctx, |ui| {
-                display_parameters_ui(&mut area_size, &mut offset, ui);
+                display_parameters_ui(&mut area_size, &mut offset, &mut example_content_type, ui);
 
                 ui.separator();
 
@@ -56,12 +62,13 @@ async fn main() {
         camera.handle_drag(area_size, !is_mouse_over_panel);
 
         macroquad::camera::set_camera(&camera);
+
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
-        draw_examples(
-            &raw_background.load(&mut textures).unwrap(),
-            offset,
-            &camera,
-        );
+        let loaded_background = raw_background.load(&mut textures).unwrap();
+        loaded_background.primary.draw(offset, &camera);
+
+        draw_example_content(example_content_type, area_size, &mut models);
+
         macroquad::camera::set_default_camera();
 
         egui.draw();
@@ -69,8 +76,50 @@ async fn main() {
     }
 }
 
-fn draw_examples(background: &BGData, offset: Coord, camera: &HorizontalDraggableCamera) {
-    background.primary.draw(offset, camera);
+fn draw_example_content(
+    example_content_type: ExampleContentType,
+    area_size: Coord,
+    models: &mut LazilyLoadedModels,
+) {
+    let mut positioner = Positioner::new();
+    let mut draw_model = move |coord: Coord, model_id: &ModelId| {
+        let model = models.lookup_model(model_id);
+        let pos = positioner.position_object(coord, model.is_displacing());
+        model.draw(
+            pos,
+            false,
+            &RenderProperties::default(),
+            &texture::DEFAULT_COLOR,
+        );
+    };
+
+    match example_content_type {
+        ExampleContentType::None => {}
+        ExampleContentType::Doors => {
+            let door = ModelId::new("door");
+            let ship_exit = ModelId::new("ship_exit");
+            for coord in 0..area_size {
+                draw_model(coord, if coord % 2 == 0 { &door } else { &ship_exit });
+            }
+        }
+        ExampleContentType::Paths => {
+            let path = ModelId::new("path");
+            for coord in 0..area_size {
+                draw_model(coord, &path);
+            }
+        }
+        ExampleContentType::BigObjectsOnEdges => {
+            let frog = ModelId::creature("voracious_frog");
+            draw_model(0, &frog);
+            if area_size > 1 {
+                draw_model(area_size - 1, &frog);
+            }
+            if area_size > 2 {
+                let azureclops = ModelId::creature("azureclops");
+                draw_model(area_size / 2, &azureclops);
+            }
+        }
+    }
 }
 
 fn side_panel(ctx: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) -> bool {
@@ -82,11 +131,27 @@ fn side_panel(ctx: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) -
     response.response.contains_pointer()
 }
 
-fn display_parameters_ui(area_size: &mut Coord, offset: &mut Coord, ui: &mut egui::Ui) {
+fn display_parameters_ui(
+    area_size: &mut Coord,
+    offset: &mut Coord,
+    current_type: &mut ExampleContentType,
+    ui: &mut egui::Ui,
+) {
     ui.label("Area Size:");
     ui.add(egui::Slider::new(area_size, 1..=20));
     ui.label("Offset:");
     ui.add(egui::Slider::new(offset, 0..=20));
+    egui::ComboBox::from_label("Content")
+        .selected_text(format!("{:?}", current_type))
+        .show_ui(ui, |ui| {
+            for &selectable_type in ExampleContentType::variants() {
+                ui.selectable_value(
+                    current_type,
+                    selectable_type,
+                    format!("{:?}", selectable_type),
+                );
+            }
+        });
 }
 
 fn background_editor_ui(
@@ -137,5 +202,20 @@ fn background_editor_ui(
         let file = File::create(background::DATA_FILE_PATH).unwrap();
         serde_json_pretty::to_writer(file, backgrounds).unwrap();
         exit(0);
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ExampleContentType {
+    None,
+    Doors,
+    Paths,
+    BigObjectsOnEdges,
+}
+
+impl ExampleContentType {
+    fn variants() -> &'static [Self] {
+        use ExampleContentType::*;
+        &[None, Doors, Paths, BigObjectsOnEdges]
     }
 }
