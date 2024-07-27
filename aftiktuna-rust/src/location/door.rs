@@ -49,6 +49,7 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
 #[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
+    Doorway,
     Shack,
     House,
     Store,
@@ -62,6 +63,7 @@ impl From<DoorType> for ModelId {
     fn from(value: DoorType) -> Self {
         match value {
             DoorType::Door => ModelId::new("door"),
+            DoorType::Doorway => ModelId::new("doorway"),
             DoorType::Shack | DoorType::House | DoorType::Store => ModelId::new("shack"),
             DoorType::Path => ModelId::new("path"),
             DoorType::LeftPath => ModelId::new("path/left_corner"),
@@ -74,7 +76,11 @@ impl From<DoorType> for ModelId {
 impl From<DoorType> for DoorKind {
     fn from(value: DoorType) -> Self {
         match value {
-            DoorType::Door | DoorType::Shack | DoorType::House | DoorType::Store => DoorKind::Door,
+            DoorType::Door
+            | DoorType::Doorway
+            | DoorType::Shack
+            | DoorType::House
+            | DoorType::Store => DoorKind::Door,
             DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
                 DoorKind::Path
             }
@@ -86,6 +92,7 @@ impl DoorType {
     pub fn noun(self, adjective: Option<Adjective>) -> Noun {
         let noun = match self {
             DoorType::Door => Noun::new("door", "doors"),
+            DoorType::Doorway => Noun::new("doorway", "doorways"),
             DoorType::Shack => Noun::new("shack", "shacks"),
             DoorType::House => Noun::new("house", "houses"),
             DoorType::Store => Noun::new("store", "stores"),

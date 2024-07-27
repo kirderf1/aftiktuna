@@ -52,14 +52,13 @@
         "<": {
           "type": "door",
           "pair_id": "corridor1",
-          "display_type": "door",
-          "adjective": "left"
+          "display_type": "doorway"
         },
         "^": {
           "type": "door",
           "pair_id": "entrance",
           "display_type": "door",
-          "adjective": "middle"
+          "adjective": "left"
         },
         ">": {
           "type": "door",
@@ -84,20 +83,19 @@
         "<": {
           "type": "door",
           "pair_id": "corridor1",
-          "display_type": "door",
+          "display_type": "doorway",
           "adjective": "left"
         },
         "^": {
           "type": "door",
           "pair_id": "corridor2",
-          "display_type": "door",
-          "adjective": "middle"
+          "display_type": "doorway",
+          "adjective": "right"
         },
         ">": {
           "type": "door",
           "pair_id": "room2",
-          "display_type": "door",
-          "adjective": "right"
+          "display_type": "door"
         },
         "=": {
           "type": "container",
@@ -122,8 +120,7 @@
         "^": {
           "type": "door",
           "pair_id": "corridor2",
-          "display_type": "door",
-          "adjective": "middle"
+          "display_type": "doorway"
         },
         ">": {
           "type": "door",

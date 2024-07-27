@@ -97,7 +97,7 @@ fn draw_example_content(
         ExampleContentType::None => {}
         ExampleContentType::Doors => {
             let door = ModelId::new("door");
-            let ship_exit = ModelId::new("ship_exit");
+            let ship_exit = ModelId::new("doorway");
             for coord in 0..area_size {
                 draw_model(coord, if coord % 2 == 0 { &door } else { &ship_exit });
             }
