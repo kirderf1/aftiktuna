@@ -47,7 +47,7 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
 
     let (controlled, ship) = location::init(
         &mut world,
-        CrewData::load().unwrap(),
+        CrewData::load_starting_crew().unwrap(),
         &mut generation_state,
         &mut rng,
     );

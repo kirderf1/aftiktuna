@@ -202,8 +202,8 @@ pub struct CrewData {
 }
 
 impl CrewData {
-    pub fn load() -> Result<CrewData, String> {
-        crate::load_json_simple("crew_data.json")
+    pub fn load_starting_crew() -> Result<CrewData, String> {
+        crate::load_json_simple("starting_crew.json")
     }
 }
 
