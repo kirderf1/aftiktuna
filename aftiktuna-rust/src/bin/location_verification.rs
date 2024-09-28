@@ -2,7 +2,7 @@ use aftiktuna::location;
 use hecs::World;
 
 fn main() {
-    match location::load_locations() {
+    match location::Locations::load_from_json() {
         Ok(locations) => verify_locations(locations),
         Err(message) => {
             eprintln!("Failed to load \"locations.json\":");
@@ -34,7 +34,7 @@ fn verify_locations(locations: location::Locations) {
 fn try_load(location_name: &str) -> bool {
     let mut world = World::new();
     let mut rng = rand::thread_rng();
-    if let Err(message) = location::load_data(location_name)
+    if let Err(message) = location::LocationData::load_from_json(location_name)
         .and_then(|location_data| location_data.build(&mut world, &mut Vec::default(), &mut rng))
     {
         eprintln!("Failed to load location \"{location_name}\":");

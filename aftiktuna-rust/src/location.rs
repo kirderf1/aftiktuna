@@ -15,7 +15,6 @@ use rand::seq::index;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use std::fs::File;
 pub use template::LocationData;
 
 mod creature;
@@ -37,9 +36,9 @@ pub struct GenerationState {
 }
 
 impl GenerationState {
-    pub fn new(locations_before_fortuna: i32) -> Self {
+    pub fn load_new(locations_before_fortuna: i32) -> Self {
         Self {
-            locations: load_locations()
+            locations: Locations::load_from_json()
                 .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {message}")),
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: locations_before_fortuna,
@@ -101,6 +100,10 @@ pub struct Locations {
 }
 
 impl Locations {
+    pub fn load_from_json() -> Result<Self, String> {
+        crate::load_json_simple("locations.json")
+    }
+
     fn single(location: String) -> Self {
         Locations {
             categories: vec![Category {
@@ -185,10 +188,6 @@ impl Choice {
     }
 }
 
-pub fn load_locations() -> Result<Locations, String> {
-    crate::load_json_simple("locations.json")
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct Category {
     name: String,
@@ -218,7 +217,7 @@ fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
     crate::load_json_simple("character_profiles.json")
 }
 
-pub fn init(
+pub fn spawn_starting_crew_and_ship(
     world: &mut World,
     crew_data: CrewData,
     generation_state: &mut GenerationState,
@@ -282,7 +281,7 @@ pub fn init(
     (controlled, ship)
 }
 
-pub fn load_and_deploy_location(
+pub fn setup_location_into_game(
     location_name: &str,
     messages: &mut Messages,
     state: &mut GameState,
@@ -349,7 +348,7 @@ fn load_location_into_world(
     location_name: &str,
     mut gen_context: LocationGenContext,
 ) -> Result<(LocationGenContext, Pos), String> {
-    let start_pos = load_data(location_name)
+    let start_pos = LocationData::load_from_json(location_name)
         .and_then(|location_data| {
             location_data.build(
                 &mut gen_context.world,
@@ -401,12 +400,6 @@ fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
         world.insert(character, (start_pos, direction)).unwrap();
         let _ = world.remove_one::<Waiting>(character);
     }
-}
-
-pub fn load_data(name: &str) -> Result<LocationData, String> {
-    let file = File::open(format!("assets/location/{name}.json"))
-        .map_err(|error| format!("Failed to open file: {error}"))?;
-    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {error}"))
 }
 
 struct Keep;

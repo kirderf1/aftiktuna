@@ -21,6 +21,10 @@ pub struct LocationData {
 }
 
 impl LocationData {
+    pub fn load_from_json(name: &str) -> Result<Self, String> {
+        crate::load_json_simple(format!("location/{name}.json"))
+    }
+
     pub fn build(
         self,
         world: &mut World,

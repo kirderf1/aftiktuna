@@ -45,7 +45,7 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
     let mut world = World::new();
     let mut rng = thread_rng();
 
-    let (controlled, ship) = location::init(
+    let (controlled, ship) = location::spawn_starting_crew_and_ship(
         &mut world,
         CrewData::load_starting_crew().unwrap(),
         &mut generation_state,
@@ -96,7 +96,7 @@ fn run_step(
     match phase {
         Step::PrepareNextLocation => Ok(prepare_next_location(state, view_buffer)?),
         Step::LoadLocation(location) => {
-            location::load_and_deploy_location(&location, &mut view_buffer.messages, state)
+            location::setup_location_into_game(&location, &mut view_buffer.messages, state)
                 .map_err(|message| Phase::LoadLocation(location).with_error(message))?;
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
