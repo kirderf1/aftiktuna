@@ -2,16 +2,15 @@ use aftiktuna::location;
 use hecs::World;
 
 fn main() {
-    match location::Locations::load_from_json() {
-        Ok(locations) => verify_locations(locations),
+    let locations = match location::Locations::load_from_json() {
+        Ok(locations) => locations,
         Err(message) => {
             eprintln!("Failed to load \"locations.json\":");
             eprintln!("{message}");
+            return;
         }
-    }
-}
+    };
 
-fn verify_locations(locations: location::Locations) {
     let mut failure_count = 0;
     for location_name in locations.all_location_names() {
         if !try_load(location_name) {
@@ -21,7 +20,7 @@ fn verify_locations(locations: location::Locations) {
 
     if failure_count == 0 {
         println!("All locations are OK!");
-    }
+    };
 }
 
 fn try_load(location_name: &str) -> bool {
