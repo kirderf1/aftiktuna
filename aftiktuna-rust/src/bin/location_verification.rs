@@ -13,14 +13,7 @@ fn main() {
 
 fn verify_locations(locations: location::Locations) {
     let mut failure_count = 0;
-    for category in &locations.categories {
-        for location_name in &category.location_names {
-            if !try_load(location_name) {
-                failure_count += 1;
-            }
-        }
-    }
-    for location_name in &locations.fortuna_locations {
+    for location_name in locations.all_location_names() {
         if !try_load(location_name) {
             failure_count += 1;
         }

@@ -95,13 +95,20 @@ impl GenerationState {
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Locations {
-    pub categories: Vec<Category>,
-    pub fortuna_locations: Vec<String>,
+    categories: Vec<Category>,
+    fortuna_locations: Vec<String>,
 }
 
 impl Locations {
     pub fn load_from_json() -> Result<Self, String> {
         crate::load_json_simple("locations.json")
+    }
+
+    pub fn all_location_names(&self) -> impl Iterator<Item = &String> {
+        self.categories
+            .iter()
+            .flat_map(|category| category.location_names.iter())
+            .chain(self.fortuna_locations.iter())
     }
 
     fn single(location: String) -> Self {
