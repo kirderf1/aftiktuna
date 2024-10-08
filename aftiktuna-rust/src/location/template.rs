@@ -1,6 +1,6 @@
-use super::creature::{AftikProfile, CharacterInteraction, ProfileOrRandom};
-use super::door::{place_pair, DoorInfo, DoorType};
-use super::{creature, door, Area, BackgroundId};
+use super::creature::{self, AftikProfile};
+use super::door::{self, place_pair, DoorInfo, DoorType};
+use super::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
@@ -139,13 +139,7 @@ enum SymbolData {
         #[serde(default)]
         direction: Option<Direction>,
     },
-    Character {
-        #[serde(default)]
-        profile: ProfileOrRandom,
-        interaction: CharacterInteraction,
-        #[serde(default)]
-        direction: Option<Direction>,
-    },
+    Character(creature::NpcSpawnData),
     AftikCorpse {
         #[serde(default)]
         color: Option<AftikColorId>,
@@ -196,14 +190,8 @@ impl SymbolData {
                 color,
                 direction,
             } => creature::place_shopkeeper(builder.world, pos, stock, color.clone(), *direction)?,
-            SymbolData::Character {
-                profile,
-                interaction,
-                direction,
-            } => {
-                if let Some(profile) = profile.clone().unwrap(character_profiles, rng) {
-                    creature::place_npc(builder.world, pos, profile, interaction, *direction);
-                }
+            SymbolData::Character(npc_data) => {
+                npc_data.place(pos, builder.world, character_profiles, rng)
             }
             SymbolData::AftikCorpse { color, direction } => {
                 if let Some(color) = color.clone().or_else(|| {

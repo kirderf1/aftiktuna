@@ -211,26 +211,42 @@ pub enum CharacterInteraction {
     GivesHuntReward(GivesHuntReward),
 }
 
-pub fn place_npc(
-    world: &mut World,
-    pos: Pos,
-    profile: AftikProfile,
-    interaction: &CharacterInteraction,
+#[derive(Serialize, Deserialize)]
+pub struct NpcSpawnData {
+    #[serde(default)]
+    profile: ProfileOrRandom,
+    interaction: CharacterInteraction,
+    #[serde(default)]
     direction: Option<Direction>,
-) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+}
 
-    let mut builder = aftik_builder_with_stats(profile, false);
-    builder.add_bundle((pos, direction));
-    match interaction {
-        CharacterInteraction::Recruitable => {
-            builder.add(Recruitable);
+impl NpcSpawnData {
+    pub fn place(
+        &self,
+        pos: Pos,
+        world: &mut World,
+        character_profiles: &mut Vec<AftikProfile>,
+        rng: &mut impl Rng,
+    ) {
+        let Some(profile) = self.profile.clone().unwrap(character_profiles, rng) else {
+            return;
+        };
+        let direction = self
+            .direction
+            .unwrap_or_else(|| Direction::towards_center(pos, world));
+
+        let mut builder = aftik_builder_with_stats(profile, false);
+        builder.add_bundle((pos, direction));
+        match &self.interaction {
+            CharacterInteraction::Recruitable => {
+                builder.add(Recruitable);
+            }
+            CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
+                builder.add(gives_hunt_reward.clone());
+            }
         }
-        CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
-            builder.add(gives_hunt_reward.clone());
-        }
+        world.spawn(builder.build());
     }
-    world.spawn(builder.build());
 }
 
 pub fn place_aftik_corpse(
