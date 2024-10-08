@@ -291,28 +291,36 @@ fn aftik_builder(color: AftikColorId) -> EntityBuilder {
     builder
 }
 
-pub fn place_shopkeeper(
-    world: &mut World,
-    pos: Pos,
-    shop_stock: &[StockDefinition],
+#[derive(Serialize, Deserialize)]
+pub struct ShopkeeperSpawnData {
+    stock: Vec<StockDefinition>,
     color: AftikColorId,
+    #[serde(default)]
     direction: Option<Direction>,
-) -> Result<(), String> {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stock = shop_stock
-        .iter()
-        .map(StockDefinition::build)
-        .collect::<Result<Vec<_>, String>>()?;
-    world.spawn((
-        ModelId::aftik(),
-        OrderWeight::Creature,
-        color,
-        Noun::new("shopkeeper", "shopkeepers"),
-        pos,
-        direction,
-        Shopkeeper(stock),
-    ));
-    Ok(())
+}
+
+impl ShopkeeperSpawnData {
+    pub fn place(&self, pos: Pos, world: &mut World) -> Result<(), String> {
+        let direction = self
+            .direction
+            .unwrap_or_else(|| Direction::towards_center(pos, world));
+        let stock = self
+            .stock
+            .iter()
+            .map(StockDefinition::build)
+            .collect::<Result<Vec<_>, String>>()?;
+
+        world.spawn((
+            ModelId::aftik(),
+            OrderWeight::Creature,
+            self.color.clone(),
+            Noun::new("shopkeeper", "shopkeepers"),
+            pos,
+            direction,
+            Shopkeeper(stock),
+        ));
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

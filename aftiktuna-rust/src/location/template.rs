@@ -133,12 +133,7 @@ enum SymbolData {
     },
     Container(ContainerData),
     Creature(creature::CreatureSpawnData),
-    Shopkeeper {
-        stock: Vec<creature::StockDefinition>,
-        color: AftikColorId,
-        #[serde(default)]
-        direction: Option<Direction>,
-    },
+    Shopkeeper(creature::ShopkeeperSpawnData),
     Character(creature::NpcSpawnData),
     AftikCorpse {
         #[serde(default)]
@@ -184,12 +179,10 @@ impl SymbolData {
             SymbolData::Container(container_data) => {
                 container_data.place(pos, symbol, builder, rng)?;
             }
-            SymbolData::Creature(spawn_data) => spawn_data.place(pos, symbol, builder.world, rng),
-            SymbolData::Shopkeeper {
-                stock,
-                color,
-                direction,
-            } => creature::place_shopkeeper(builder.world, pos, stock, color.clone(), *direction)?,
+            SymbolData::Creature(creature_data) => {
+                creature_data.place(pos, symbol, builder.world, rng)
+            }
+            SymbolData::Shopkeeper(shopkeeper_data) => shopkeeper_data.place(pos, builder.world)?,
             SymbolData::Character(npc_data) => {
                 npc_data.place(pos, builder.world, character_profiles, rng)
             }
