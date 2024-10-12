@@ -2,9 +2,8 @@ use super::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::{item, BlockType, DoorKind, FortunaChest};
+use crate::core::{item, FortunaChest};
 use creature::AftikProfile;
-use door::{DoorInfo, DoorType};
 use hecs::World;
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -173,7 +172,7 @@ mod loot {
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
     areas: Vec<AreaData>,
-    door_pairs: HashMap<String, DoorPairData>,
+    door_pairs: HashMap<String, door::DoorPairData>,
 }
 
 impl LocationData {
@@ -272,7 +271,7 @@ enum SymbolData {
     Loot {
         table: loot::LootTableId,
     },
-    Door(DoorSpawnData),
+    Door(door::DoorSpawnData),
     Inanimate {
         model: ModelId,
         #[serde(default)]
@@ -331,18 +330,12 @@ impl SymbolData {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-struct DoorPairData {
-    #[serde(default)]
-    block_type: Option<BlockType>,
-}
-
 struct Builder<'a, R: Rng> {
     world: &'a mut World,
     character_profiles: &'a mut Vec<AftikProfile>,
     rng: &'a mut R,
     entry_positions: Vec<Pos>,
-    door_pair_builder: DoorPairBuilder,
+    door_pair_builder: door::DoorPairsBuilder,
     loot_table_cache: loot::LootTableCache,
 }
 
@@ -351,14 +344,14 @@ impl<'a, R: Rng> Builder<'a, R> {
         world: &'a mut World,
         character_profiles: &'a mut Vec<AftikProfile>,
         rng: &'a mut R,
-        door_pair_data: HashMap<String, DoorPairData>,
+        door_pair_data: HashMap<String, door::DoorPairData>,
     ) -> Self {
         Self {
             world,
             character_profiles,
             rng,
             entry_positions: Vec::new(),
-            door_pair_builder: DoorPairBuilder::init(door_pair_data),
+            door_pair_builder: door::DoorPairsBuilder::init(door_pair_data),
             loot_table_cache: loot::LootTableCache::default(),
         }
     }
@@ -372,96 +365,6 @@ impl<'a, R: Rng> Builder<'a, R> {
 
     fn add_entry_pos(&mut self, pos: Pos) {
         self.entry_positions.push(pos);
-    }
-}
-
-struct DoorPairBuilder(HashMap<String, (DoorPairData, DoorStatus)>);
-
-impl DoorPairBuilder {
-    fn init(door_pairs: HashMap<String, DoorPairData>) -> Self {
-        Self(
-            door_pairs
-                .into_iter()
-                .map(|(key, data)| (key.to_string(), (data, DoorStatus::None)))
-                .collect(),
-        )
-    }
-
-    fn add_door(
-        &mut self,
-        pair_id: &str,
-        door_info: DoorInfo,
-        world: &mut World,
-    ) -> Result<(), String> {
-        let (data, status) = self
-            .0
-            .get_mut(pair_id)
-            .ok_or_else(|| format!("Unknown door id \"{pair_id}\""))?;
-
-        *status = match status {
-            DoorStatus::None => DoorStatus::One(door_info),
-            DoorStatus::One(other_door) => {
-                door::place_pair(world, door_info, other_door.clone(), data.block_type);
-                DoorStatus::Placed
-            }
-            DoorStatus::Placed => {
-                return Err(format!("Doors for \"{pair_id}\" placed more than twice"))
-            }
-        };
-        Ok(())
-    }
-
-    fn verify_all_doors_placed(&self) -> Result<(), String> {
-        for (pair_id, (_, status)) in &self.0 {
-            match status {
-                DoorStatus::Placed => {}
-                _ => return Err(format!("Door pair was not fully placed: {pair_id}")),
-            }
-        }
-        Ok(())
-    }
-}
-
-enum DoorStatus {
-    None,
-    One(DoorInfo),
-    Placed,
-}
-
-#[derive(Serialize, Deserialize)]
-struct DoorSpawnData {
-    pair_id: String,
-    display_type: DoorType,
-    #[serde(default)]
-    adjective: Option<door::Adjective>,
-}
-
-impl DoorSpawnData {
-    fn place(
-        &self,
-        pos: Pos,
-        symbol: Symbol,
-        builder: &mut Builder<impl Rng>,
-    ) -> Result<(), String> {
-        {
-            let Self {
-                pair_id,
-                display_type,
-                adjective,
-            } = self;
-
-            let door_info = DoorInfo {
-                pos,
-                symbol,
-                model_id: ModelId::from(*display_type),
-                kind: DoorKind::from(*display_type),
-                name: display_type.noun(*adjective),
-            };
-
-            builder
-                .door_pair_builder
-                .add_door(pair_id, door_info, builder.world)
-        }
     }
 }
 
