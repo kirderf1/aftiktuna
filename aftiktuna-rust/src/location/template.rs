@@ -4,7 +4,7 @@ use super::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::{item, BlockType, FortunaChest};
+use crate::core::{item, BlockType, DoorKind, FortunaChest};
 use hecs::World;
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -269,12 +269,7 @@ enum SymbolData {
     Loot {
         table: loot::LootTableId,
     },
-    Door {
-        pair_id: String,
-        display_type: DoorType,
-        #[serde(default)]
-        adjective: Option<door::Adjective>,
-    },
+    Door(DoorSpawnData),
     Inanimate {
         model: ModelId,
         #[serde(default)]
@@ -307,11 +302,7 @@ impl SymbolData {
                     .pick_loot_item(builder.rng);
                 item.spawn(builder.world, pos);
             }
-            SymbolData::Door {
-                pair_id,
-                display_type,
-                adjective,
-            } => place_door(builder, pos, pair_id, symbol, *display_type, *adjective)?,
+            SymbolData::Door(door_data) => door_data.place(pos, symbol, builder)?,
             SymbolData::Inanimate { model, direction } => {
                 builder.world.spawn((
                     symbol,
@@ -321,9 +312,7 @@ impl SymbolData {
                     *direction,
                 ));
             }
-            SymbolData::Container(container_data) => {
-                container_data.place(pos, symbol, builder)?;
-            }
+            SymbolData::Container(container_data) => container_data.place(pos, symbol, builder)?,
             SymbolData::Creature(creature_data) => {
                 creature_data.place(pos, symbol, builder.world, builder.rng)
             }
@@ -392,42 +381,57 @@ enum DoorStatus<'a> {
     Placed,
 }
 
-fn place_door(
-    builder: &mut Builder<impl Rng>,
-    pos: Pos,
-    pair_id: &str,
-    symbol: Symbol,
+#[derive(Serialize, Deserialize)]
+struct DoorSpawnData {
+    pair_id: String,
     display_type: DoorType,
+    #[serde(default)]
     adjective: Option<door::Adjective>,
-) -> Result<(), String> {
-    let status = builder
-        .doors
-        .get_mut(pair_id)
-        .ok_or_else(|| format!("Unknown door id \"{}\"", pair_id))?;
-    let door_info = DoorInfo {
-        pos,
-        symbol,
-        model_id: display_type.into(),
-        kind: display_type.into(),
-        name: display_type.noun(adjective),
-    };
+}
 
-    *status = match status {
-        DoorStatus::None(data) => DoorStatus::One(data, door_info),
-        DoorStatus::One(data, other_door) => {
-            place_pair(
-                builder.world,
-                door_info,
-                other_door.clone(),
-                data.block_type,
-            );
-            DoorStatus::Placed
+impl DoorSpawnData {
+    fn place(
+        &self,
+        pos: Pos,
+        symbol: Symbol,
+        builder: &mut Builder<impl Rng>,
+    ) -> Result<(), String> {
+        {
+            let Self {
+                pair_id,
+                display_type,
+                adjective,
+            } = self;
+            let status = builder
+                .doors
+                .get_mut(pair_id)
+                .ok_or_else(|| format!("Unknown door id \"{pair_id}\""))?;
+            let door_info = DoorInfo {
+                pos,
+                symbol,
+                model_id: ModelId::from(*display_type),
+                kind: DoorKind::from(*display_type),
+                name: display_type.noun(*adjective),
+            };
+
+            *status = match status {
+                DoorStatus::None(data) => DoorStatus::One(data, door_info),
+                DoorStatus::One(data, other_door) => {
+                    place_pair(
+                        builder.world,
+                        door_info,
+                        other_door.clone(),
+                        data.block_type,
+                    );
+                    DoorStatus::Placed
+                }
+                DoorStatus::Placed => {
+                    return Err(format!("Doors for \"{pair_id}\" placed more than twice"))
+                }
+            };
+            Ok(())
         }
-        DoorStatus::Placed => {
-            return Err(format!("Doors for \"{}\" placed more than twice", pair_id))
-        }
-    };
-    Ok(())
+    }
 }
 
 fn verify_placed_doors(builder: &Builder<impl Rng>) -> Result<(), String> {
