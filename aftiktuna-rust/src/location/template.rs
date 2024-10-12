@@ -2,16 +2,116 @@ use super::creature::{self, AftikProfile};
 use super::door::{self, place_pair, DoorInfo, DoorType};
 use super::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
-use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{item, BlockType, FortunaChest};
-use hecs::{Entity, World};
+use hecs::World;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
 use std::fs::File;
+
+mod container {
+    use super::loot::LootTableId;
+    use super::Builder;
+    use crate::core::display::{ModelId, OrderWeight, Symbol};
+    use crate::core::inventory::{Container, Held};
+    use crate::core::item;
+    use crate::core::name::Noun;
+    use crate::core::position::{Direction, Pos};
+    use hecs::Entity;
+    use rand::Rng;
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    enum ContainerType {
+        Tent,
+        Cabinet,
+        Drawer,
+        Crate,
+        Chest,
+    }
+
+    impl ContainerType {
+        fn model_id(self) -> ModelId {
+            ModelId::new(match self {
+                ContainerType::Tent => "tent",
+                ContainerType::Cabinet => "cabinet",
+                ContainerType::Drawer => "drawer",
+                ContainerType::Crate => "crate",
+                ContainerType::Chest => "chest",
+            })
+        }
+
+        fn noun(self) -> Noun {
+            match self {
+                ContainerType::Tent => Noun::new("tent", "tents"),
+                ContainerType::Cabinet => Noun::new("cabinet", "cabinets"),
+                ContainerType::Drawer => Noun::new("drawer", "drawers"),
+                ContainerType::Crate => Noun::new("crate", "crates"),
+                ContainerType::Chest => Noun::new("chest", "chests"),
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(tag = "type", rename_all = "snake_case")]
+    enum ItemOrLoot {
+        Item { item: item::Type },
+        Loot { table: LootTableId },
+    }
+
+    impl ItemOrLoot {
+        fn generate(
+            &self,
+            container: Entity,
+            builder: &mut Builder<impl Rng>,
+        ) -> Result<(), String> {
+            let item = match self {
+                ItemOrLoot::Item { item } => *item,
+                ItemOrLoot::Loot { table } => builder
+                    .loot_table_cache
+                    .get_or_load(table)?
+                    .pick_loot_item(builder.rng),
+            };
+            item.spawn(builder.world, Held::in_inventory(container));
+            Ok(())
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct ContainerData {
+        container_type: ContainerType,
+        content: Vec<ItemOrLoot>,
+        #[serde(default)]
+        direction: Direction,
+    }
+
+    impl ContainerData {
+        pub fn place(
+            &self,
+            pos: Pos,
+            symbol: Symbol,
+            builder: &mut Builder<impl Rng>,
+        ) -> Result<(), String> {
+            let container = builder.world.spawn((
+                symbol,
+                self.container_type.model_id(),
+                OrderWeight::Background,
+                self.container_type.noun(),
+                pos,
+                self.direction,
+                Container,
+            ));
+            for entry in &self.content {
+                entry.generate(container, builder)?;
+            }
+            Ok(())
+        }
+    }
+}
 
 mod loot {
     use crate::core::item;
@@ -180,7 +280,7 @@ enum SymbolData {
         #[serde(default)]
         direction: Direction,
     },
-    Container(ContainerData),
+    Container(container::ContainerData),
     Creature(creature::CreatureSpawnData),
     Shopkeeper(creature::ShopkeeperSpawnData),
     Character(creature::NpcSpawnData),
@@ -349,88 +449,4 @@ fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
         pos,
         FortunaChest,
     ));
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum ContainerType {
-    Tent,
-    Cabinet,
-    Drawer,
-    Crate,
-    Chest,
-}
-
-impl ContainerType {
-    fn model_id(self) -> ModelId {
-        ModelId::new(match self {
-            ContainerType::Tent => "tent",
-            ContainerType::Cabinet => "cabinet",
-            ContainerType::Drawer => "drawer",
-            ContainerType::Crate => "crate",
-            ContainerType::Chest => "chest",
-        })
-    }
-
-    fn noun(self) -> Noun {
-        match self {
-            ContainerType::Tent => Noun::new("tent", "tents"),
-            ContainerType::Cabinet => Noun::new("cabinet", "cabinets"),
-            ContainerType::Drawer => Noun::new("drawer", "drawers"),
-            ContainerType::Crate => Noun::new("crate", "crates"),
-            ContainerType::Chest => Noun::new("chest", "chests"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-enum ItemOrLoot {
-    Item { item: item::Type },
-    Loot { table: loot::LootTableId },
-}
-
-impl ItemOrLoot {
-    fn generate(&self, container: Entity, builder: &mut Builder<impl Rng>) -> Result<(), String> {
-        let item = match self {
-            ItemOrLoot::Item { item } => *item,
-            ItemOrLoot::Loot { table } => builder
-                .loot_table_cache
-                .get_or_load(table)?
-                .pick_loot_item(builder.rng),
-        };
-        item.spawn(builder.world, Held::in_inventory(container));
-        Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-struct ContainerData {
-    container_type: ContainerType,
-    content: Vec<ItemOrLoot>,
-    #[serde(default)]
-    direction: Direction,
-}
-
-impl ContainerData {
-    fn place(
-        &self,
-        pos: Pos,
-        symbol: Symbol,
-        builder: &mut Builder<impl Rng>,
-    ) -> Result<(), String> {
-        let container = builder.world.spawn((
-            symbol,
-            self.container_type.model_id(),
-            OrderWeight::Background,
-            self.container_type.noun(),
-            pos,
-            self.direction,
-            Container,
-        ));
-        for entry in &self.content {
-            entry.generate(container, builder)?;
-        }
-        Ok(())
-    }
 }
