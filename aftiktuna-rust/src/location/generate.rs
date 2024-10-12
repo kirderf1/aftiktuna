@@ -1,16 +1,19 @@
-use super::creature::{self, AftikProfile};
-use super::door::{self, place_pair, DoorInfo, DoorType};
 use super::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{item, BlockType, DoorKind, FortunaChest};
+use creature::AftikProfile;
+use door::{DoorInfo, DoorType};
 use hecs::World;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
 use std::fs::File;
+
+pub mod creature;
+pub mod door;
 
 mod container {
     use super::loot::LootTableId;
@@ -398,7 +401,7 @@ impl DoorPairBuilder {
         *status = match status {
             DoorStatus::None => DoorStatus::One(door_info),
             DoorStatus::One(other_door) => {
-                place_pair(world, door_info, other_door.clone(), data.block_type);
+                door::place_pair(world, door_info, other_door.clone(), data.block_type);
                 DoorStatus::Placed
             }
             DoorStatus::Placed => {

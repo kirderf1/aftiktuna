@@ -7,19 +7,17 @@ use crate::core::{inventory, item, CrewMember, Door, DoorKind, Hostile, Waiting}
 use crate::game_loop::GameState;
 use crate::serialization;
 use crate::view::text::Messages;
-use creature::{AftikProfile, ProfileOrRandom};
-use door::DoorInfo;
+use generate::creature::{self, AftikProfile, ProfileOrRandom};
+use generate::door::{self, DoorInfo};
+pub use generate::LocationData;
 use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
 use rand::seq::index;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-pub use template::LocationData;
 
-mod creature;
-mod door;
-mod template;
+mod generate;
 
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
 enum TrackedState {
