@@ -1,7 +1,7 @@
 use super::creature::{self, AftikProfile};
 use super::door::{self, place_pair, DoorInfo, DoorType};
 use super::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
+use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
@@ -135,12 +135,7 @@ enum SymbolData {
     Creature(creature::CreatureSpawnData),
     Shopkeeper(creature::ShopkeeperSpawnData),
     Character(creature::NpcSpawnData),
-    AftikCorpse {
-        #[serde(default)]
-        color: Option<AftikColorId>,
-        #[serde(default)]
-        direction: Option<Direction>,
-    },
+    AftikCorpse(creature::AftikCorpseData),
 }
 
 impl SymbolData {
@@ -186,12 +181,8 @@ impl SymbolData {
             SymbolData::Character(npc_data) => {
                 npc_data.place(pos, builder.world, character_profiles, rng)
             }
-            SymbolData::AftikCorpse { color, direction } => {
-                if let Some(color) = color.clone().or_else(|| {
-                    creature::remove_random_profile(character_profiles, rng).map(AftikColorId::from)
-                }) {
-                    creature::place_aftik_corpse(builder.world, pos, color, *direction);
-                }
+            SymbolData::AftikCorpse(aftik_corpse_data) => {
+                aftik_corpse_data.place(pos, builder.world, character_profiles, rng)
             }
         }
         Ok(())

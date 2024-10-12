@@ -249,19 +249,39 @@ impl NpcSpawnData {
     }
 }
 
-pub fn place_aftik_corpse(
-    world: &mut World,
-    pos: Pos,
-    color: AftikColorId,
+#[derive(Serialize, Deserialize)]
+pub struct AftikCorpseData {
+    #[serde(default)]
+    color: Option<AftikColorId>,
+    #[serde(default)]
     direction: Option<Direction>,
-) {
-    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, world));
+}
 
-    world.spawn(
-        aftik_builder(color)
-            .add_bundle((Health::from_fraction(0.), pos, direction))
-            .build(),
-    );
+impl AftikCorpseData {
+    pub fn place(
+        &self,
+        pos: Pos,
+        world: &mut World,
+        character_profiles: &mut Vec<AftikProfile>,
+        rng: &mut impl Rng,
+    ) {
+        let Some(color) = self
+            .color
+            .clone()
+            .or_else(|| remove_random_profile(character_profiles, rng).map(AftikColorId::from))
+        else {
+            return;
+        };
+        let direction = self
+            .direction
+            .unwrap_or_else(|| Direction::towards_center(pos, world));
+
+        world.spawn(
+            aftik_builder(color)
+                .add_bundle((Health::from_fraction(0.), pos, direction))
+                .build(),
+        );
+    }
 }
 
 pub fn aftik_builder_with_stats(profile: AftikProfile, is_name_known: bool) -> EntityBuilder {
