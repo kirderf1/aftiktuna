@@ -290,8 +290,12 @@ pub fn setup_location_into_game(
     messages: &mut Messages,
     state: &mut GameState,
 ) -> Result<(), String> {
-    let (gen_context, start_pos) =
-        load_location_into_world(location_name, LocationGenContext::clone_from(state))?;
+    let mut gen_context = LocationGenContext::clone_from(state);
+
+    let start_pos = LocationData::load_from_json(location_name)
+        .and_then(|location_data| location_data.build(&mut gen_context))
+        .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
+
     gen_context.apply_to_game_state(state);
 
     let ship_exit = state.world.get::<&Ship>(state.ship).unwrap().exit_pos;
@@ -347,17 +351,6 @@ impl LocationGenContext {
         game_state.world = self.world;
         game_state.generation_state.character_profiles = self.character_profiles;
     }
-}
-
-fn load_location_into_world(
-    location_name: &str,
-    mut gen_context: LocationGenContext,
-) -> Result<(LocationGenContext, Pos), String> {
-    let start_pos = LocationData::load_from_json(location_name)
-        .and_then(|location_data| location_data.build(&mut gen_context))
-        .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
-
-    Ok((gen_context, start_pos))
 }
 
 fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
