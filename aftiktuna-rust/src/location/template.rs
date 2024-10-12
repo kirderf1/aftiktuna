@@ -191,7 +191,7 @@ impl LocationData {
             area.build(&mut builder, &base_symbols)?;
         }
 
-        verify_placed_doors(&builder)?;
+        builder.door_pair_builder.verify_all_doors_placed()?;
 
         builder.get_random_entry_pos()
     }
@@ -339,7 +339,7 @@ struct Builder<'a, R: Rng> {
     character_profiles: &'a mut Vec<AftikProfile>,
     rng: &'a mut R,
     entry_positions: Vec<Pos>,
-    doors: HashMap<String, (DoorPairData, DoorStatus)>,
+    door_pair_builder: DoorPairBuilder,
     loot_table_cache: loot::LootTableCache,
 }
 
@@ -348,17 +348,14 @@ impl<'a, R: Rng> Builder<'a, R> {
         world: &'a mut World,
         character_profiles: &'a mut Vec<AftikProfile>,
         rng: &'a mut R,
-        door_pairs: HashMap<String, DoorPairData>,
+        door_pair_data: HashMap<String, DoorPairData>,
     ) -> Self {
         Self {
             world,
             character_profiles,
             rng,
             entry_positions: Vec::new(),
-            doors: door_pairs
-                .into_iter()
-                .map(|(key, data)| (key.to_string(), (data, DoorStatus::None)))
-                .collect(),
+            door_pair_builder: DoorPairBuilder::init(door_pair_data),
             loot_table_cache: loot::LootTableCache::default(),
         }
     }
@@ -372,6 +369,53 @@ impl<'a, R: Rng> Builder<'a, R> {
 
     fn add_entry_pos(&mut self, pos: Pos) {
         self.entry_positions.push(pos);
+    }
+}
+
+struct DoorPairBuilder(HashMap<String, (DoorPairData, DoorStatus)>);
+
+impl DoorPairBuilder {
+    fn init(door_pairs: HashMap<String, DoorPairData>) -> Self {
+        Self(
+            door_pairs
+                .into_iter()
+                .map(|(key, data)| (key.to_string(), (data, DoorStatus::None)))
+                .collect(),
+        )
+    }
+
+    fn add_door(
+        &mut self,
+        pair_id: &str,
+        door_info: DoorInfo,
+        world: &mut World,
+    ) -> Result<(), String> {
+        let (data, status) = self
+            .0
+            .get_mut(pair_id)
+            .ok_or_else(|| format!("Unknown door id \"{pair_id}\""))?;
+
+        *status = match status {
+            DoorStatus::None => DoorStatus::One(door_info),
+            DoorStatus::One(other_door) => {
+                place_pair(world, door_info, other_door.clone(), data.block_type);
+                DoorStatus::Placed
+            }
+            DoorStatus::Placed => {
+                return Err(format!("Doors for \"{pair_id}\" placed more than twice"))
+            }
+        };
+        Ok(())
+    }
+
+    fn verify_all_doors_placed(&self) -> Result<(), String> {
+        for (pair_id, (_, status)) in &self.0 {
+            match status {
+                DoorStatus::Placed => {}
+                _ => return Err(format!("Door pair was not fully placed: {pair_id}")),
+            }
+        }
+        Ok(())
     }
 }
 
@@ -402,10 +446,7 @@ impl DoorSpawnData {
                 display_type,
                 adjective,
             } = self;
-            let (data, status) = builder
-                .doors
-                .get_mut(pair_id)
-                .ok_or_else(|| format!("Unknown door id \"{pair_id}\""))?;
+
             let door_info = DoorInfo {
                 pos,
                 symbol,
@@ -414,34 +455,11 @@ impl DoorSpawnData {
                 name: display_type.noun(*adjective),
             };
 
-            *status = match status {
-                DoorStatus::None => DoorStatus::One(door_info),
-                DoorStatus::One(other_door) => {
-                    place_pair(
-                        builder.world,
-                        door_info,
-                        other_door.clone(),
-                        data.block_type,
-                    );
-                    DoorStatus::Placed
-                }
-                DoorStatus::Placed => {
-                    return Err(format!("Doors for \"{pair_id}\" placed more than twice"))
-                }
-            };
-            Ok(())
+            builder
+                .door_pair_builder
+                .add_door(pair_id, door_info, builder.world)
         }
     }
-}
-
-fn verify_placed_doors(builder: &Builder<impl Rng>) -> Result<(), String> {
-    for (pair_id, (_, status)) in &builder.doors {
-        match status {
-            DoorStatus::Placed => {}
-            _ => return Err(format!("Door pair was not fully placed: {}", pair_id)),
-        }
-    }
-    Ok(())
 }
 
 fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
