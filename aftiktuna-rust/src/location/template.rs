@@ -150,7 +150,10 @@ impl SymbolData {
                 item.spawn(builder.world, pos);
             }
             SymbolData::Loot { table } => {
-                let item = builder.loot_table(table)?.pick_loot_item(rng);
+                let item = builder
+                    .loot_table_cache
+                    .get_or_load(table)?
+                    .pick_loot_item(rng);
                 item.spawn(builder.world, pos);
             }
             SymbolData::Door {
@@ -196,7 +199,7 @@ struct Builder<'a> {
     character_profiles: &'a mut Vec<AftikProfile>,
     entry_positions: Vec<Pos>,
     doors: HashMap<String, DoorStatus<'a>>,
-    loaded_loot_tables: HashMap<LootTableId, LootTable>,
+    loot_table_cache: LootTableCache,
 }
 
 impl<'a> Builder<'a> {
@@ -213,7 +216,7 @@ impl<'a> Builder<'a> {
                 .iter()
                 .map(|(key, data)| (key.to_string(), DoorStatus::None(data)))
                 .collect(),
-            loaded_loot_tables: HashMap::new(),
+            loot_table_cache: LootTableCache::default(),
         }
     }
 
@@ -226,16 +229,6 @@ impl<'a> Builder<'a> {
 
     fn add_entry_pos(&mut self, pos: Pos) {
         self.entry_positions.push(pos);
-    }
-
-    fn loot_table(&mut self, loot_table_id: &LootTableId) -> Result<&LootTable, String> {
-        match self.loaded_loot_tables.entry(loot_table_id.clone()) {
-            HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
-            HashMapEntry::Vacant(entry) => {
-                let loot_table = LootTable::load(loot_table_id)?;
-                Ok(entry.insert(loot_table))
-            }
-        }
     }
 }
 
@@ -334,6 +327,21 @@ impl LootTable {
     }
 }
 
+#[derive(Default)]
+struct LootTableCache(HashMap<LootTableId, LootTable>);
+
+impl LootTableCache {
+    fn get_or_load(&mut self, loot_table_id: &LootTableId) -> Result<&LootTable, String> {
+        match self.0.entry(loot_table_id.clone()) {
+            HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
+            HashMapEntry::Vacant(entry) => {
+                let loot_table = LootTable::load(loot_table_id)?;
+                Ok(entry.insert(loot_table))
+            }
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ContainerType {
@@ -382,7 +390,10 @@ impl ItemOrLoot {
     ) -> Result<(), String> {
         let item = match self {
             ItemOrLoot::Item { item } => *item,
-            ItemOrLoot::Loot { table } => builder.loot_table(table)?.pick_loot_item(rng),
+            ItemOrLoot::Loot { table } => builder
+                .loot_table_cache
+                .get_or_load(table)?
+                .pick_loot_item(rng),
         };
         item.spawn(builder.world, Held::in_inventory(container));
         Ok(())
