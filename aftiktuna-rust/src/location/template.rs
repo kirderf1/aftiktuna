@@ -184,7 +184,7 @@ impl LocationData {
         character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
     ) -> Result<Pos, String> {
-        let mut builder = Builder::new(world, character_profiles, rng, &self.door_pairs);
+        let mut builder = Builder::new(world, character_profiles, rng, self.door_pairs);
         let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
@@ -328,7 +328,7 @@ impl SymbolData {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 struct DoorPairData {
     #[serde(default)]
     block_type: Option<BlockType>,
@@ -339,7 +339,7 @@ struct Builder<'a, R: Rng> {
     character_profiles: &'a mut Vec<AftikProfile>,
     rng: &'a mut R,
     entry_positions: Vec<Pos>,
-    doors: HashMap<String, DoorStatus<'a>>,
+    doors: HashMap<String, (DoorPairData, DoorStatus)>,
     loot_table_cache: loot::LootTableCache,
 }
 
@@ -348,7 +348,7 @@ impl<'a, R: Rng> Builder<'a, R> {
         world: &'a mut World,
         character_profiles: &'a mut Vec<AftikProfile>,
         rng: &'a mut R,
-        door_pairs: &'a HashMap<String, DoorPairData>,
+        door_pairs: HashMap<String, DoorPairData>,
     ) -> Self {
         Self {
             world,
@@ -356,8 +356,8 @@ impl<'a, R: Rng> Builder<'a, R> {
             rng,
             entry_positions: Vec::new(),
             doors: door_pairs
-                .iter()
-                .map(|(key, data)| (key.to_string(), DoorStatus::None(data)))
+                .into_iter()
+                .map(|(key, data)| (key.to_string(), (data, DoorStatus::None)))
                 .collect(),
             loot_table_cache: loot::LootTableCache::default(),
         }
@@ -375,9 +375,9 @@ impl<'a, R: Rng> Builder<'a, R> {
     }
 }
 
-enum DoorStatus<'a> {
-    None(&'a DoorPairData),
-    One(&'a DoorPairData, DoorInfo),
+enum DoorStatus {
+    None,
+    One(DoorInfo),
     Placed,
 }
 
@@ -402,7 +402,7 @@ impl DoorSpawnData {
                 display_type,
                 adjective,
             } = self;
-            let status = builder
+            let (data, status) = builder
                 .doors
                 .get_mut(pair_id)
                 .ok_or_else(|| format!("Unknown door id \"{pair_id}\""))?;
@@ -415,8 +415,8 @@ impl DoorSpawnData {
             };
 
             *status = match status {
-                DoorStatus::None(data) => DoorStatus::One(data, door_info),
-                DoorStatus::One(data, other_door) => {
+                DoorStatus::None => DoorStatus::One(door_info),
+                DoorStatus::One(other_door) => {
                     place_pair(
                         builder.world,
                         door_info,
@@ -435,7 +435,7 @@ impl DoorSpawnData {
 }
 
 fn verify_placed_doors(builder: &Builder<impl Rng>) -> Result<(), String> {
-    for (pair_id, status) in &builder.doors {
+    for (pair_id, (_, status)) in &builder.doors {
         match status {
             DoorStatus::Placed => {}
             _ => return Err(format!("Door pair was not fully placed: {}", pair_id)),
