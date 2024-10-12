@@ -54,11 +54,8 @@ pub enum Type {
 impl Type {
     fn is_aggressive_by_default(self) -> bool {
         match self {
-            Type::Goblin => false,
-            Type::Eyesaur => false,
-            Type::Azureclops => true,
-            Type::Scarvie => false,
-            Type::VoraciousFrog => true,
+            Type::Goblin | Type::Eyesaur | Type::Scarvie => false,
+            Type::Azureclops | Type::VoraciousFrog => true,
         }
     }
 
