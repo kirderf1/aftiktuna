@@ -3,7 +3,7 @@ use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
-use crate::core::{inventory, item, CrewMember, Door, DoorKind, Hostile, Waiting};
+use crate::core::{inventory, item, CrewMember, Door, DoorKind, Waiting};
 use crate::game_loop::GameState;
 use crate::serialization;
 use crate::view::text::Messages;
@@ -15,7 +15,6 @@ use rand::rngs::ThreadRng;
 use rand::seq::index;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
 
 mod generate;
 
@@ -357,21 +356,6 @@ fn load_location_into_world(
     let start_pos = LocationData::load_from_json(location_name)
         .and_then(|location_data| location_data.build(&mut gen_context))
         .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
-
-    let areas_with_aggressive_creatures = gen_context
-        .world
-        .query::<(&Pos, &Hostile)>()
-        .iter()
-        .filter(|&(_, (_, hostile))| hostile.aggressive)
-        .map(|(_, (pos, _))| pos.get_area())
-        .collect::<HashSet<_>>();
-    for (_, (pos, hostile)) in gen_context
-        .world
-        .query_mut::<(&Pos, &mut Hostile)>()
-        .into_iter()
-    {
-        hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
-    }
 
     Ok((gen_context, start_pos))
 }

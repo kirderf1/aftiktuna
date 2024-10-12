@@ -182,6 +182,8 @@ impl LocationData {
 
         builder.door_pair_builder.verify_all_doors_placed()?;
 
+        creature::align_aggressiveness(&mut builder.gen_context.world);
+
         builder.get_random_entry_pos()
     }
 }

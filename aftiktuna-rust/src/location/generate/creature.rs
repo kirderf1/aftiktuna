@@ -9,6 +9,7 @@ use hecs::{EntityBuilder, World};
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -360,5 +361,17 @@ impl StockDefinition {
             price,
             quantity,
         })
+    }
+}
+
+pub fn align_aggressiveness(world: &mut World) {
+    let areas_with_aggressive_creatures = world
+        .query::<(&Pos, &Hostile)>()
+        .iter()
+        .filter(|&(_, (_, hostile))| hostile.aggressive)
+        .map(|(_, (pos, _))| pos.get_area())
+        .collect::<HashSet<_>>();
+    for (_, (pos, hostile)) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
+        hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
 }
