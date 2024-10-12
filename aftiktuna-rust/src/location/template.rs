@@ -31,11 +31,11 @@ impl LocationData {
         character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
     ) -> Result<Pos, String> {
-        let mut builder = Builder::new(world, &self.door_pairs);
+        let mut builder = Builder::new(world, character_profiles, &self.door_pairs);
         let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
-            area.build(&mut builder, &base_symbols, character_profiles, rng)?;
+            area.build(&mut builder, &base_symbols, rng)?;
         }
 
         verify_placed_doors(&builder)?;
@@ -59,7 +59,6 @@ impl AreaData {
         self,
         builder: &mut Builder,
         parent_symbols: &HashMap<char, SymbolData>,
-        character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
     ) -> Result<(), String> {
         let room = builder.world.spawn((Area {
@@ -74,9 +73,7 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
-                    Some(symbol_data) => {
-                        symbol_data.place(pos, Symbol(symbol), builder, character_profiles, rng)?
-                    }
+                    Some(symbol_data) => symbol_data.place(pos, Symbol(symbol), builder, rng)?,
                     None => Err(format!("Unknown symbol \"{symbol}\""))?,
                 }
             }
@@ -144,7 +141,6 @@ impl SymbolData {
         pos: Pos,
         symbol: Symbol,
         builder: &mut Builder,
-        character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
     ) -> Result<(), String> {
         match self {
@@ -179,10 +175,10 @@ impl SymbolData {
             }
             SymbolData::Shopkeeper(shopkeeper_data) => shopkeeper_data.place(pos, builder.world)?,
             SymbolData::Character(npc_data) => {
-                npc_data.place(pos, builder.world, character_profiles, rng)
+                npc_data.place(pos, builder.world, builder.character_profiles, rng)
             }
             SymbolData::AftikCorpse(aftik_corpse_data) => {
-                aftik_corpse_data.place(pos, builder.world, character_profiles, rng)
+                aftik_corpse_data.place(pos, builder.world, builder.character_profiles, rng)
             }
         }
         Ok(())
@@ -197,15 +193,21 @@ struct DoorPairData {
 
 struct Builder<'a> {
     world: &'a mut World,
+    character_profiles: &'a mut Vec<AftikProfile>,
     entry_positions: Vec<Pos>,
     doors: HashMap<String, DoorStatus<'a>>,
     loaded_loot_tables: HashMap<LootTableId, LootTable>,
 }
 
 impl<'a> Builder<'a> {
-    fn new(world: &'a mut World, door_pairs: &'a HashMap<String, DoorPairData>) -> Self {
+    fn new(
+        world: &'a mut World,
+        character_profiles: &'a mut Vec<AftikProfile>,
+        door_pairs: &'a HashMap<String, DoorPairData>,
+    ) -> Self {
         Builder {
             world,
+            character_profiles,
             entry_positions: Vec::new(),
             doors: door_pairs
                 .iter()
