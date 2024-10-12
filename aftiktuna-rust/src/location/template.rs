@@ -7,12 +7,65 @@ use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{item, BlockType, FortunaChest};
 use hecs::{Entity, World};
-use rand::distributions::WeightedIndex;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
-use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
+use std::collections::hash_map::HashMap;
 use std::fs::File;
+
+mod loot {
+    use crate::core::item;
+    use rand::distributions::WeightedIndex;
+    use rand::Rng;
+    use serde::{Deserialize, Serialize};
+    use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
+
+    #[derive(Debug, Deserialize)]
+    struct LootEntry {
+        item: item::Type,
+        weight: u16,
+    }
+
+    #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub struct LootTableId(String);
+
+    pub struct LootTable {
+        entries: Vec<LootEntry>,
+        index_distribution: WeightedIndex<u16>,
+    }
+
+    impl LootTable {
+        fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
+            let entries: Vec<LootEntry> =
+                crate::load_json_simple(format!("loot_table/{name}.json"))?;
+            let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
+                .map_err(|error| error.to_string())?;
+            Ok(Self {
+                entries,
+                index_distribution,
+            })
+        }
+
+        pub fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
+            self.entries[rng.sample(&self.index_distribution)].item
+        }
+    }
+
+    #[derive(Default)]
+    pub struct LootTableCache(HashMap<LootTableId, LootTable>);
+
+    impl LootTableCache {
+        pub fn get_or_load(&mut self, loot_table_id: &LootTableId) -> Result<&LootTable, String> {
+            match self.0.entry(loot_table_id.clone()) {
+                HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
+                HashMapEntry::Vacant(entry) => {
+                    let loot_table = LootTable::load(loot_table_id)?;
+                    Ok(entry.insert(loot_table))
+                }
+            }
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
@@ -114,7 +167,7 @@ enum SymbolData {
         item: item::Type,
     },
     Loot {
-        table: LootTableId,
+        table: loot::LootTableId,
     },
     Door {
         pair_id: String,
@@ -198,7 +251,7 @@ struct Builder<'a, R: Rng> {
     rng: &'a mut R,
     entry_positions: Vec<Pos>,
     doors: HashMap<String, DoorStatus<'a>>,
-    loot_table_cache: LootTableCache,
+    loot_table_cache: loot::LootTableCache,
 }
 
 impl<'a, R: Rng> Builder<'a, R> {
@@ -217,7 +270,7 @@ impl<'a, R: Rng> Builder<'a, R> {
                 .iter()
                 .map(|(key, data)| (key.to_string(), DoorStatus::None(data)))
                 .collect(),
-            loot_table_cache: LootTableCache::default(),
+            loot_table_cache: loot::LootTableCache::default(),
         }
     }
 
@@ -298,51 +351,6 @@ fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     ));
 }
 
-#[derive(Debug, Deserialize)]
-struct LootEntry {
-    item: item::Type,
-    weight: u16,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-struct LootTableId(String);
-
-struct LootTable {
-    entries: Vec<LootEntry>,
-    index_distribution: WeightedIndex<u16>,
-}
-
-impl LootTable {
-    fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
-        let entries: Vec<LootEntry> = crate::load_json_simple(format!("loot_table/{name}.json"))?;
-        let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
-            .map_err(|error| error.to_string())?;
-        Ok(Self {
-            entries,
-            index_distribution,
-        })
-    }
-
-    fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
-        self.entries[rng.sample(&self.index_distribution)].item
-    }
-}
-
-#[derive(Default)]
-struct LootTableCache(HashMap<LootTableId, LootTable>);
-
-impl LootTableCache {
-    fn get_or_load(&mut self, loot_table_id: &LootTableId) -> Result<&LootTable, String> {
-        match self.0.entry(loot_table_id.clone()) {
-            HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
-            HashMapEntry::Vacant(entry) => {
-                let loot_table = LootTable::load(loot_table_id)?;
-                Ok(entry.insert(loot_table))
-            }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 enum ContainerType {
@@ -379,7 +387,7 @@ impl ContainerType {
 #[serde(tag = "type", rename_all = "snake_case")]
 enum ItemOrLoot {
     Item { item: item::Type },
-    Loot { table: LootTableId },
+    Loot { table: loot::LootTableId },
 }
 
 impl ItemOrLoot {
