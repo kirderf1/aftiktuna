@@ -31,16 +31,16 @@ impl LocationData {
         character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
     ) -> Result<Pos, String> {
-        let mut builder = Builder::new(world, character_profiles, &self.door_pairs);
+        let mut builder = Builder::new(world, character_profiles, rng, &self.door_pairs);
         let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
-            area.build(&mut builder, &base_symbols, rng)?;
+            area.build(&mut builder, &base_symbols)?;
         }
 
         verify_placed_doors(&builder)?;
 
-        builder.get_random_entry_pos(rng)
+        builder.get_random_entry_pos()
     }
 }
 
@@ -57,9 +57,8 @@ struct AreaData {
 impl AreaData {
     fn build(
         self,
-        builder: &mut Builder,
+        builder: &mut Builder<impl Rng>,
         parent_symbols: &HashMap<char, SymbolData>,
-        rng: &mut impl Rng,
     ) -> Result<(), String> {
         let room = builder.world.spawn((Area {
             size: self.objects.len(),
@@ -73,7 +72,7 @@ impl AreaData {
             let pos = Pos::new(room, coord, builder.world);
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
-                    Some(symbol_data) => symbol_data.place(pos, Symbol(symbol), builder, rng)?,
+                    Some(symbol_data) => symbol_data.place(pos, Symbol(symbol), builder)?,
                     None => Err(format!("Unknown symbol \"{symbol}\""))?,
                 }
             }
@@ -140,8 +139,7 @@ impl SymbolData {
         &self,
         pos: Pos,
         symbol: Symbol,
-        builder: &mut Builder,
-        rng: &mut impl Rng,
+        builder: &mut Builder<impl Rng>,
     ) -> Result<(), String> {
         match self {
             SymbolData::LocationEntry => builder.add_entry_pos(pos),
@@ -153,7 +151,7 @@ impl SymbolData {
                 let item = builder
                     .loot_table_cache
                     .get_or_load(table)?
-                    .pick_loot_item(rng);
+                    .pick_loot_item(builder.rng);
                 item.spawn(builder.world, pos);
             }
             SymbolData::Door {
@@ -171,17 +169,17 @@ impl SymbolData {
                 ));
             }
             SymbolData::Container(container_data) => {
-                container_data.place(pos, symbol, builder, rng)?;
+                container_data.place(pos, symbol, builder)?;
             }
             SymbolData::Creature(creature_data) => {
-                creature_data.place(pos, symbol, builder.world, rng)
+                creature_data.place(pos, symbol, builder.world, builder.rng)
             }
             SymbolData::Shopkeeper(shopkeeper_data) => shopkeeper_data.place(pos, builder.world)?,
             SymbolData::Character(npc_data) => {
-                npc_data.place(pos, builder.world, builder.character_profiles, rng)
+                npc_data.place(pos, builder.world, builder.character_profiles, builder.rng)
             }
             SymbolData::AftikCorpse(aftik_corpse_data) => {
-                aftik_corpse_data.place(pos, builder.world, builder.character_profiles, rng)
+                aftik_corpse_data.place(pos, builder.world, builder.character_profiles, builder.rng)
             }
         }
         Ok(())
@@ -194,23 +192,26 @@ struct DoorPairData {
     block_type: Option<BlockType>,
 }
 
-struct Builder<'a> {
+struct Builder<'a, R: Rng> {
     world: &'a mut World,
     character_profiles: &'a mut Vec<AftikProfile>,
+    rng: &'a mut R,
     entry_positions: Vec<Pos>,
     doors: HashMap<String, DoorStatus<'a>>,
     loot_table_cache: LootTableCache,
 }
 
-impl<'a> Builder<'a> {
+impl<'a, R: Rng> Builder<'a, R> {
     fn new(
         world: &'a mut World,
         character_profiles: &'a mut Vec<AftikProfile>,
+        rng: &'a mut R,
         door_pairs: &'a HashMap<String, DoorPairData>,
     ) -> Self {
-        Builder {
+        Self {
             world,
             character_profiles,
+            rng,
             entry_positions: Vec::new(),
             doors: door_pairs
                 .iter()
@@ -220,9 +221,9 @@ impl<'a> Builder<'a> {
         }
     }
 
-    fn get_random_entry_pos(&self, rng: &mut impl Rng) -> Result<Pos, String> {
+    fn get_random_entry_pos(&mut self) -> Result<Pos, String> {
         self.entry_positions
-            .choose(rng)
+            .choose(self.rng)
             .copied()
             .ok_or_else(|| "No entry point was set!".to_string())
     }
@@ -239,7 +240,7 @@ enum DoorStatus<'a> {
 }
 
 fn place_door(
-    builder: &mut Builder,
+    builder: &mut Builder<impl Rng>,
     pos: Pos,
     pair_id: &str,
     symbol: Symbol,
@@ -276,7 +277,7 @@ fn place_door(
     Ok(())
 }
 
-fn verify_placed_doors(builder: &Builder) -> Result<(), String> {
+fn verify_placed_doors(builder: &Builder<impl Rng>) -> Result<(), String> {
     for (pair_id, status) in &builder.doors {
         match status {
             DoorStatus::Placed => {}
@@ -382,18 +383,13 @@ enum ItemOrLoot {
 }
 
 impl ItemOrLoot {
-    fn generate(
-        &self,
-        container: Entity,
-        builder: &mut Builder,
-        rng: &mut impl Rng,
-    ) -> Result<(), String> {
+    fn generate(&self, container: Entity, builder: &mut Builder<impl Rng>) -> Result<(), String> {
         let item = match self {
             ItemOrLoot::Item { item } => *item,
             ItemOrLoot::Loot { table } => builder
                 .loot_table_cache
                 .get_or_load(table)?
-                .pick_loot_item(rng),
+                .pick_loot_item(builder.rng),
         };
         item.spawn(builder.world, Held::in_inventory(container));
         Ok(())
@@ -413,8 +409,7 @@ impl ContainerData {
         &self,
         pos: Pos,
         symbol: Symbol,
-        builder: &mut Builder,
-        rng: &mut impl Rng,
+        builder: &mut Builder<impl Rng>,
     ) -> Result<(), String> {
         let container = builder.world.spawn((
             symbol,
@@ -426,7 +421,7 @@ impl ContainerData {
             Container,
         ));
         for entry in &self.content {
-            entry.generate(container, builder, rng)?;
+            entry.generate(container, builder)?;
         }
         Ok(())
     }
