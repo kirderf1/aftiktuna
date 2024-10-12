@@ -4,7 +4,6 @@ use crate::core::name::Noun;
 use crate::core::position::Pos;
 use crate::core::{BlockType, Door, DoorKind};
 use hecs::{Entity, World};
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -201,7 +200,7 @@ impl DoorSpawnData {
         &self,
         pos: Pos,
         symbol: Symbol,
-        builder: &mut Builder<impl Rng>,
+        builder: &mut Builder,
     ) -> Result<(), String> {
         {
             let Self {
@@ -220,7 +219,7 @@ impl DoorSpawnData {
 
             builder
                 .door_pair_builder
-                .add_door(pair_id, door_info, builder.world)
+                .add_door(pair_id, door_info, &mut builder.gen_context.world)
         }
     }
 }

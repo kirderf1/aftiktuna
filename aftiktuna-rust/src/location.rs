@@ -327,7 +327,8 @@ pub fn setup_location_into_game(
     Ok(())
 }
 
-struct LocationGenContext {
+#[derive(Default)]
+pub struct LocationGenContext {
     world: World,
     character_profiles: Vec<AftikProfile>,
     rng: ThreadRng,
@@ -354,13 +355,7 @@ fn load_location_into_world(
     mut gen_context: LocationGenContext,
 ) -> Result<(LocationGenContext, Pos), String> {
     let start_pos = LocationData::load_from_json(location_name)
-        .and_then(|location_data| {
-            location_data.build(
-                &mut gen_context.world,
-                &mut gen_context.character_profiles,
-                &mut gen_context.rng,
-            )
-        })
+        .and_then(|location_data| location_data.build(&mut gen_context))
         .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
 
     let areas_with_aggressive_creatures = gen_context

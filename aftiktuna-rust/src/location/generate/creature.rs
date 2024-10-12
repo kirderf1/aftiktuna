@@ -1,3 +1,4 @@
+use super::LocationGenContext;
 use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
@@ -110,16 +111,16 @@ fn full_health() -> f32 {
 }
 
 impl CreatureSpawnData {
-    pub fn place(&self, pos: Pos, symbol: Symbol, world: &mut World, rng: &mut impl Rng) {
+    pub fn place(&self, pos: Pos, symbol: Symbol, gen_context: &mut LocationGenContext) {
         let health = Health::from_fraction(self.health);
-        let attribute = self.attribute.evaluate(rng);
+        let attribute = self.attribute.evaluate(&mut gen_context.rng);
         let is_alive = health.is_alive();
         let aggressive = self
             .aggressive
             .unwrap_or_else(|| self.creature.is_aggressive_by_default());
         let direction = self
             .direction
-            .unwrap_or_else(|| Direction::towards_center(pos, world));
+            .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
         let mut stats = self.creature.default_stats();
 
         let mut builder = EntityBuilder::new();
@@ -148,7 +149,7 @@ impl CreatureSpawnData {
             builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
         }
 
-        world.spawn(builder.build());
+        gen_context.world.spawn(builder.build());
     }
 }
 
@@ -218,19 +219,17 @@ pub struct NpcSpawnData {
 }
 
 impl NpcSpawnData {
-    pub fn place(
-        &self,
-        pos: Pos,
-        world: &mut World,
-        character_profiles: &mut Vec<AftikProfile>,
-        rng: &mut impl Rng,
-    ) {
-        let Some(profile) = self.profile.clone().unwrap(character_profiles, rng) else {
+    pub fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
+        let Some(profile) = self
+            .profile
+            .clone()
+            .unwrap(&mut gen_context.character_profiles, &mut gen_context.rng)
+        else {
             return;
         };
         let direction = self
             .direction
-            .unwrap_or_else(|| Direction::towards_center(pos, world));
+            .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
         let mut builder = aftik_builder_with_stats(profile, false);
         builder.add_bundle((pos, direction));
@@ -242,7 +241,7 @@ impl NpcSpawnData {
                 builder.add(gives_hunt_reward.clone());
             }
         }
-        world.spawn(builder.build());
+        gen_context.world.spawn(builder.build());
     }
 }
 
@@ -255,25 +254,18 @@ pub struct AftikCorpseData {
 }
 
 impl AftikCorpseData {
-    pub fn place(
-        &self,
-        pos: Pos,
-        world: &mut World,
-        character_profiles: &mut Vec<AftikProfile>,
-        rng: &mut impl Rng,
-    ) {
-        let Some(color) = self
-            .color
-            .clone()
-            .or_else(|| remove_random_profile(character_profiles, rng).map(AftikColorId::from))
-        else {
+    pub fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
+        let Some(color) = self.color.clone().or_else(|| {
+            remove_random_profile(&mut gen_context.character_profiles, &mut gen_context.rng)
+                .map(AftikColorId::from)
+        }) else {
             return;
         };
         let direction = self
             .direction
-            .unwrap_or_else(|| Direction::towards_center(pos, world));
+            .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
-        world.spawn(
+        gen_context.world.spawn(
             aftik_builder(color)
                 .add_bundle((Health::from_fraction(0.), pos, direction))
                 .build(),

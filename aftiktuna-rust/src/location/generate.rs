@@ -1,12 +1,11 @@
-use super::{Area, BackgroundId};
+use super::LocationGenContext;
+use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{item, FortunaChest};
-use creature::AftikProfile;
 use hecs::World;
 use rand::seq::SliceRandom;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
 use std::fs::File;
@@ -23,7 +22,6 @@ mod container {
     use crate::core::name::Noun;
     use crate::core::position::{Direction, Pos};
     use hecs::Entity;
-    use rand::Rng;
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -66,19 +64,18 @@ mod container {
     }
 
     impl ItemOrLoot {
-        fn generate(
-            &self,
-            container: Entity,
-            builder: &mut Builder<impl Rng>,
-        ) -> Result<(), String> {
+        fn generate(&self, container: Entity, builder: &mut Builder) -> Result<(), String> {
             let item = match self {
                 ItemOrLoot::Item { item } => *item,
                 ItemOrLoot::Loot { table } => builder
                     .loot_table_cache
                     .get_or_load(table)?
-                    .pick_loot_item(builder.rng),
+                    .pick_loot_item(&mut builder.gen_context.rng),
             };
-            item.spawn(builder.world, Held::in_inventory(container));
+            item.spawn(
+                &mut builder.gen_context.world,
+                Held::in_inventory(container),
+            );
             Ok(())
         }
     }
@@ -92,13 +89,8 @@ mod container {
     }
 
     impl ContainerData {
-        pub fn place(
-            &self,
-            pos: Pos,
-            symbol: Symbol,
-            builder: &mut Builder<impl Rng>,
-        ) -> Result<(), String> {
-            let container = builder.world.spawn((
+        pub fn place(&self, pos: Pos, symbol: Symbol, builder: &mut Builder) -> Result<(), String> {
+            let container = builder.gen_context.world.spawn((
                 symbol,
                 self.container_type.model_id(),
                 OrderWeight::Background,
@@ -180,13 +172,8 @@ impl LocationData {
         crate::load_json_simple(format!("location/{name}.json"))
     }
 
-    pub fn build(
-        self,
-        world: &mut World,
-        character_profiles: &mut Vec<AftikProfile>,
-        rng: &mut impl Rng,
-    ) -> Result<Pos, String> {
-        let mut builder = Builder::new(world, character_profiles, rng, self.door_pairs);
+    pub fn build(self, gen_context: &mut LocationGenContext) -> Result<Pos, String> {
+        let mut builder = Builder::new(gen_context, self.door_pairs);
         let base_symbols = builtin_symbols()?;
 
         for area in self.areas {
@@ -212,10 +199,10 @@ struct AreaData {
 impl AreaData {
     fn build(
         self,
-        builder: &mut Builder<impl Rng>,
+        builder: &mut Builder,
         parent_symbols: &HashMap<char, SymbolData>,
     ) -> Result<(), String> {
-        let room = builder.world.spawn((Area {
+        let room = builder.gen_context.world.spawn((Area {
             size: self.objects.len(),
             label: self.name,
             background: self.background,
@@ -223,8 +210,9 @@ impl AreaData {
         },));
 
         let symbols = Symbols::new(parent_symbols, &self.symbols);
+
         for (coord, objects) in self.objects.iter().enumerate() {
-            let pos = Pos::new(room, coord, builder.world);
+            let pos = Pos::new(room, coord, &builder.gen_context.world);
             for symbol in objects.chars() {
                 match symbols.lookup(symbol) {
                     Some(symbol_data) => symbol_data.place(pos, Symbol(symbol), builder)?,
@@ -285,28 +273,25 @@ enum SymbolData {
 }
 
 impl SymbolData {
-    fn place(
-        &self,
-        pos: Pos,
-        symbol: Symbol,
-        builder: &mut Builder<impl Rng>,
-    ) -> Result<(), String> {
+    fn place(&self, pos: Pos, symbol: Symbol, builder: &mut Builder) -> Result<(), String> {
         match self {
             SymbolData::LocationEntry => builder.add_entry_pos(pos),
-            SymbolData::FortunaChest => place_fortuna_chest(builder.world, symbol, pos),
+            SymbolData::FortunaChest => {
+                place_fortuna_chest(&mut builder.gen_context.world, symbol, pos)
+            }
             SymbolData::Item { item } => {
-                item.spawn(builder.world, pos);
+                item.spawn(&mut builder.gen_context.world, pos);
             }
             SymbolData::Loot { table } => {
                 let item = builder
                     .loot_table_cache
                     .get_or_load(table)?
-                    .pick_loot_item(builder.rng);
-                item.spawn(builder.world, pos);
+                    .pick_loot_item(&mut builder.gen_context.rng);
+                item.spawn(&mut builder.gen_context.world, pos);
             }
             SymbolData::Door(door_data) => door_data.place(pos, symbol, builder)?,
             SymbolData::Inanimate { model, direction } => {
-                builder.world.spawn((
+                builder.gen_context.world.spawn((
                     symbol,
                     model.clone(),
                     OrderWeight::Background,
@@ -316,40 +301,34 @@ impl SymbolData {
             }
             SymbolData::Container(container_data) => container_data.place(pos, symbol, builder)?,
             SymbolData::Creature(creature_data) => {
-                creature_data.place(pos, symbol, builder.world, builder.rng)
+                creature_data.place(pos, symbol, builder.gen_context)
             }
-            SymbolData::Shopkeeper(shopkeeper_data) => shopkeeper_data.place(pos, builder.world)?,
-            SymbolData::Character(npc_data) => {
-                npc_data.place(pos, builder.world, builder.character_profiles, builder.rng)
+            SymbolData::Shopkeeper(shopkeeper_data) => {
+                shopkeeper_data.place(pos, &mut builder.gen_context.world)?
             }
+            SymbolData::Character(npc_data) => npc_data.place(pos, builder.gen_context),
             SymbolData::AftikCorpse(aftik_corpse_data) => {
-                aftik_corpse_data.place(pos, builder.world, builder.character_profiles, builder.rng)
+                aftik_corpse_data.place(pos, builder.gen_context)
             }
         }
         Ok(())
     }
 }
 
-struct Builder<'a, R: Rng> {
-    world: &'a mut World,
-    character_profiles: &'a mut Vec<AftikProfile>,
-    rng: &'a mut R,
+struct Builder<'a> {
+    gen_context: &'a mut LocationGenContext,
     entry_positions: Vec<Pos>,
     door_pair_builder: door::DoorPairsBuilder,
     loot_table_cache: loot::LootTableCache,
 }
 
-impl<'a, R: Rng> Builder<'a, R> {
+impl<'a> Builder<'a> {
     fn new(
-        world: &'a mut World,
-        character_profiles: &'a mut Vec<AftikProfile>,
-        rng: &'a mut R,
+        gen_context: &'a mut LocationGenContext,
         door_pair_data: HashMap<String, door::DoorPairData>,
     ) -> Self {
         Self {
-            world,
-            character_profiles,
-            rng,
+            gen_context,
             entry_positions: Vec::new(),
             door_pair_builder: door::DoorPairsBuilder::init(door_pair_data),
             loot_table_cache: loot::LootTableCache::default(),
@@ -358,7 +337,7 @@ impl<'a, R: Rng> Builder<'a, R> {
 
     fn get_random_entry_pos(&mut self) -> Result<Pos, String> {
         self.entry_positions
-            .choose(self.rng)
+            .choose(&mut self.gen_context.rng)
             .copied()
             .ok_or_else(|| "No entry point was set!".to_string())
     }
