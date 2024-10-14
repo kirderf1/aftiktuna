@@ -21,7 +21,7 @@ pub fn load() -> Result<Game, LoadError> {
 }
 
 pub fn setup_new() -> Game {
-    setup_new_with(GenerationState::load_new(3))
+    setup_new_with(GenerationState::load_new(3).unwrap_or_else(|message| panic!("{message}")))
 }
 
 pub fn setup_new_with(locations: GenerationState) -> Game {

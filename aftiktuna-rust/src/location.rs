@@ -28,30 +28,36 @@ enum TrackedState {
 pub struct GenerationState {
     locations: Locations,
     state: TrackedState,
-    #[serde(default = "load_profiles_or_default")]
+    #[serde(default = "load_profiles_or_default")] // Backwards-compatibility with 3.0
     character_profiles: Vec<AftikProfile>,
 }
 
+fn load_profiles_or_default() -> Vec<AftikProfile> {
+    load_character_profiles().unwrap_or_else(|message| {
+        eprintln!("{message}");
+        Vec::default()
+    })
+}
+
 impl GenerationState {
-    pub fn load_new(locations_before_fortuna: i32) -> Self {
-        Self {
-            locations: Locations::load_from_json()
-                .unwrap_or_else(|message| panic!("Error loading \"locations.json\": {message}")),
+    pub fn load_new(locations_before_fortuna: i32) -> Result<Self, String> {
+        Ok(Self {
+            locations: Locations::load_from_json()?,
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: locations_before_fortuna,
             },
-            character_profiles: load_profiles_or_default(),
-        }
+            character_profiles: load_character_profiles()?,
+        })
     }
 
-    pub fn single(location: String) -> Self {
-        Self {
+    pub fn single(location: String) -> Result<Self, String> {
+        Ok(Self {
             locations: Locations::single(location),
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: 1,
             },
-            character_profiles: load_profiles_or_default(),
-        }
+            character_profiles: load_character_profiles()?,
+        })
     }
 
     pub fn next(&mut self, rng: &mut impl Rng) -> PickResult {
@@ -99,6 +105,7 @@ pub struct Locations {
 impl Locations {
     pub fn load_from_json() -> Result<Self, String> {
         crate::load_json_simple("locations.json")
+            .map_err(|message| format!("Error loading \"locations.json\": {message}"))
     }
 
     pub fn all_location_names(&self) -> impl Iterator<Item = &String> {
@@ -210,15 +217,9 @@ impl CrewData {
     }
 }
 
-fn load_profiles_or_default() -> Vec<AftikProfile> {
-    load_character_profiles().unwrap_or_else(|message| {
-        eprintln!("Problem loading \"character_profiles.json\": {message}");
-        Vec::default()
-    })
-}
-
 fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
     crate::load_json_simple("character_profiles.json")
+        .map_err(|message| format!("Problem loading \"character_profiles.json\": {message}"))
 }
 
 pub fn spawn_starting_crew_and_ship(

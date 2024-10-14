@@ -13,7 +13,9 @@ fn config() -> Conf {
 async fn main() {
     let args: Vec<String> = env::args().collect();
     let location = args[1].to_string();
-    let game = game_interface::setup_new_with(GenerationState::single(location));
+    let game = game_interface::setup_new_with(
+        GenerationState::single(location).expect("Unable to initialize game"),
+    );
 
     window::next_frame().await;
     let mut assets = macroquad_interface::load_assets().await;

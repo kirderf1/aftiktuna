@@ -4,7 +4,6 @@ fn main() {
     let locations = match location::Locations::load_from_json() {
         Ok(locations) => locations,
         Err(message) => {
-            eprintln!("Failed to load \"locations.json\":");
             eprintln!("{message}");
             return;
         }
