@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Normal location load errors are now handled gracefully,
  showing the error message in-gui and letting the game save and return to the main menu
+- Slight improvement of messages for some other load errors
 
 ### Contributors for this release
 

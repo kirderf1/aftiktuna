@@ -47,7 +47,7 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
 
     let (controlled, ship) = location::spawn_starting_crew_and_ship(
         &mut world,
-        CrewData::load_starting_crew().unwrap(),
+        CrewData::load_starting_crew().expect("Unable to set up game"),
         &mut generation_state,
         &mut rng,
     );

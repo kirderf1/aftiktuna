@@ -214,6 +214,7 @@ pub struct CrewData {
 impl CrewData {
     pub fn load_starting_crew() -> Result<CrewData, String> {
         crate::load_json_simple("starting_crew.json")
+            .map_err(|message| format!("Problem loading \"starting_crew.json\": {message}"))
     }
 }
 
