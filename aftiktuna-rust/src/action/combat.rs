@@ -86,21 +86,9 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
         ));
     }
 
-    let damage_factor = if hit_type == HitType::GrazingHit {
-        0.5
-    } else {
-        1.0
-    };
-
-    let killed = hit(
-        world.entity(target).unwrap(),
-        damage_factor * get_attack_damage(world, attacker),
-    );
+    let killed = perform_attack_hit(hit_type == HitType::DirectHit, attacker, target, world);
 
     if killed {
-        let _ = world.remove_one::<OccupiesSpace>(target);
-        let _ = world.remove_one::<Hostile>(target);
-
         if hit_type == HitType::GrazingHit {
             action::ok(format!(
                 "{}'s attack grazed and killed {}.",
@@ -125,7 +113,27 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     }
 }
 
-fn hit(target_ref: EntityRef, damage: f32) -> bool {
+fn perform_attack_hit(
+    is_direct_hit: bool,
+    attacker: Entity,
+    target: Entity,
+    world: &mut World,
+) -> bool {
+    let damage_factor = if is_direct_hit { 1.0 } else { 0.5 };
+
+    let killed = deal_damage(
+        world.entity(target).unwrap(),
+        damage_factor * get_attack_damage(world, attacker),
+    );
+
+    if killed {
+        let _ = world.remove_one::<OccupiesSpace>(target);
+        let _ = world.remove_one::<Hostile>(target);
+    }
+    killed
+}
+
+fn deal_damage(target_ref: EntityRef, damage: f32) -> bool {
     target_ref
         .get::<&mut Health>()
         .map_or(false, |mut health| health.take_damage(damage, target_ref))
