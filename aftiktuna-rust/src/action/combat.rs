@@ -79,37 +79,32 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 
     let hit_type = roll_hit(world, attacker, target, &mut state.rng);
 
-    if hit_type == HitType::Dodge {
-        return action::ok(format!(
-            "{} dodged {}'s attack.",
-            target_name, attacker_name
-        ));
-    }
+    match hit_type {
+        HitType::Dodge => action::ok(format!("{target_name} dodged {attacker_name}'s attack.")),
+        HitType::GrazingHit => {
+            let killed = perform_attack_hit(false, attacker, target, world);
 
-    let killed = perform_attack_hit(hit_type == HitType::DirectHit, attacker, target, world);
-
-    if killed {
-        if hit_type == HitType::GrazingHit {
-            action::ok(format!(
-                "{}'s attack grazed and killed {}.",
-                attacker_name, target_name
-            ))
-        } else {
-            action::ok(format!(
-                "{} got a direct hit on and killed {}.",
-                attacker_name, target_name
-            ))
+            if killed {
+                action::ok(format!(
+                    "{attacker_name}'s attack grazed and killed {target_name}."
+                ))
+            } else {
+                action::ok(format!("{attacker_name}'s attack grazed {target_name}."))
+            }
         }
-    } else if hit_type == HitType::GrazingHit {
-        action::ok(format!(
-            "{}'s attack grazed {}.",
-            attacker_name, target_name
-        ))
-    } else {
-        action::ok(format!(
-            "{} got a direct hit on {}.",
-            attacker_name, target_name
-        ))
+        HitType::DirectHit => {
+            let killed = perform_attack_hit(true, attacker, target, world);
+
+            if killed {
+                action::ok(format!(
+                    "{attacker_name} got a direct hit on and killed {target_name}."
+                ))
+            } else {
+                action::ok(format!(
+                    "{attacker_name} got a direct hit on {target_name}."
+                ))
+            }
+        }
     }
 }
 
