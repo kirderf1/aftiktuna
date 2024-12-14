@@ -16,10 +16,9 @@ use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAction, Waiting};
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, CrewData, GenerationState, PickResult};
-use crate::serialization;
 use crate::view::text::{self, CombinableMsgType, Messages};
 use crate::view::{self, Frame, StatusCache};
-use crate::{ai, command};
+use crate::{ai, command, serialization, StopType};
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
@@ -33,12 +32,6 @@ pub struct GameState {
     pub controlled: Entity,
     pub status_cache: StatusCache,
     pub has_introduced_controlled: bool,
-}
-
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
-pub enum StopType {
-    Win,
-    Lose,
 }
 
 pub fn setup(mut generation_state: GenerationState) -> GameState {

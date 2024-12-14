@@ -3,19 +3,26 @@ use std::fs::File;
 use std::ops::Deref;
 
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 
 mod action;
 mod ai;
 mod command;
 pub mod core;
 pub mod game_interface;
-pub mod game_loop;
+mod game_loop;
 pub mod location;
 pub mod serialization;
 pub mod standard_io_interface;
 pub mod view;
 
 pub use command::suggestion as command_suggestion;
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum StopType {
+    Win,
+    Lose,
+}
 
 fn is_default<T: Default + PartialEq>(value: &T) -> bool {
     value.eq(&Default::default())
