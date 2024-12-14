@@ -1,7 +1,6 @@
 use super::texture::LazilyLoadedModels;
 use super::{camera, render, store_render, App};
-use aftiktuna::command::suggestion;
-use aftiktuna::command::suggestion::Suggestion;
+use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::view::area::RenderData;
 use aftiktuna::view::Frame;
 use macroquad::color::{Color, WHITE};
@@ -58,7 +57,7 @@ pub fn handle_click(app: &mut App) {
             if !commands.is_empty() {
                 app.command_tooltip = Some(CommandTooltip {
                     pos: mouse_pos,
-                    commands: suggestion::sorted_without_duplicates(commands),
+                    commands: command_suggestion::sorted_without_duplicates(commands),
                 });
             }
         }
@@ -106,11 +105,11 @@ fn find_raw_command_suggestions(
                 })
                 .collect::<Vec<_>>()
         }
-        Frame::StoreView { view, .. } => suggestion::for_store(
+        Frame::StoreView { view, .. } => command_suggestion::for_store(
             store_render::find_stock_at(mouse_pos, view),
             &view.sellable_items,
         ),
-        Frame::LocationChoice(choice) => suggestion::for_location_choice(choice),
+        Frame::LocationChoice(choice) => command_suggestion::for_location_choice(choice),
         _ => vec![],
     }
 }

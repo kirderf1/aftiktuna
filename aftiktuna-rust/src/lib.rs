@@ -6,7 +6,7 @@ use serde::de::DeserializeOwned;
 
 mod action;
 mod ai;
-pub mod command;
+mod command;
 pub mod core;
 pub mod game_interface;
 pub mod game_loop;
@@ -14,6 +14,8 @@ pub mod location;
 pub mod serialization;
 pub mod standard_io_interface;
 pub mod view;
+
+pub use command::suggestion as command_suggestion;
 
 fn is_default<T: Default + PartialEq>(value: &T) -> bool {
     value.eq(&Default::default())
