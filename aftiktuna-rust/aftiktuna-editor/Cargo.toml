@@ -1,0 +1,13 @@
+[package]
+name = "aftiktuna-editor"
+version.workspace = true
+edition = "2021"
+
+[dependencies]
+aftiktuna = { path = ".." }
+egui.workspace = true
+indexmap = { version = "2.2.6", features = ["serde"] }
+macroquad.workspace = true
+serde_json.workspace = true
+serde_json_pretty = "0.1.0"
+rfd = "0.13"
