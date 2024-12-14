@@ -1,6 +1,6 @@
-use crate::core::area::BackgroundId;
-use crate::core::display::{AftikColorId, ModelId};
-use crate::view::area::RenderProperties;
+use aftiktuna::core::area::BackgroundId;
+use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::view::area::RenderProperties;
 use egui::Color32;
 use macroquad::color::Color;
 use macroquad::math::Vec2;

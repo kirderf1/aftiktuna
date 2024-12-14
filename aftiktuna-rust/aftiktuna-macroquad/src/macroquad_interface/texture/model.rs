@@ -4,9 +4,9 @@ use macroquad::texture::{self, DrawTextureParams, Texture2D};
 use serde::{Deserialize, Serialize};
 
 use super::{AftikColorData, Error, TextureLoader};
-use crate::core::display::ModelId;
-use crate::core::position::Direction;
-use crate::view::area::{ObjectRenderData, RenderProperties};
+use aftiktuna::core::display::ModelId;
+use aftiktuna::core::position::Direction;
+use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;

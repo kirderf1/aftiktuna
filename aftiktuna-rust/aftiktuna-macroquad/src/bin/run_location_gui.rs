@@ -1,6 +1,7 @@
+use aftiktuna::game_interface;
 use aftiktuna::location::GenerationState;
-use aftiktuna::macroquad_interface::egui::EguiWrapper;
-use aftiktuna::{game_interface, macroquad_interface};
+use aftiktuna_macroquad::macroquad_interface;
+use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
 use macroquad::input;
 use macroquad::window::{self, Conf};
 use std::env;

@@ -1,8 +1,8 @@
-use aftiktuna::macroquad_interface::egui::EguiWrapper;
-use aftiktuna::macroquad_interface::error_view;
-use aftiktuna::macroquad_interface::texture::RenderAssets;
+use aftiktuna::game_interface;
 use aftiktuna::serialization::{self, LoadError};
-use aftiktuna::{game_interface, macroquad_interface};
+use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
+use aftiktuna_macroquad::macroquad_interface::texture::RenderAssets;
+use aftiktuna_macroquad::macroquad_interface::{self, error_view};
 use macroquad::color::{self, Color};
 use macroquad::input;
 use macroquad::math::Vec2;

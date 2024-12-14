@@ -10,10 +10,10 @@ use macroquad::texture::{self, Texture2D};
 use macroquad::window;
 use serde::{Deserialize, Serialize};
 
-use crate::core::area::BackgroundId;
-use crate::core::position::Coord;
 use crate::macroquad_interface;
 use crate::macroquad_interface::camera::HorizontalDraggableCamera;
+use aftiktuna::core::area::BackgroundId;
+use aftiktuna::core::position::Coord;
 
 use super::{CachedTextures, TextureLoader};
 

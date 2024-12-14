@@ -1,7 +1,7 @@
-use crate::game_interface::{Game, GameResult};
-use crate::macroquad_interface::tooltip::CommandTooltip;
-use crate::serialization;
-use crate::view::Frame;
+use self::tooltip::CommandTooltip;
+use aftiktuna::game_interface::{Game, GameResult};
+use aftiktuna::serialization;
+use aftiktuna::view::Frame;
 use egui::EguiWrapper;
 use macroquad::color::{self, Color};
 use macroquad::input::{self, KeyCode, MouseButton};

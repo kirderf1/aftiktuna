@@ -1,5 +1,5 @@
 [workspace]
-members = ["aftiktuna-editor"]
+members = ["aftiktuna-editor", "aftiktuna-macroquad"]
 
 [workspace.package]
 version = "0.9.0"
@@ -19,11 +19,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-egui.workspace = true
-egui-miniquad = "0.15.0"
 hecs = { version = "0.10.3", features = ["column-serialize"] }
-indexmap = { version = "2.2.6", features = ["serde"] }
-macroquad.workspace = true
 rand = { version = "0.8.5", features = ["alloc"] }
 rmp-serde = "1.1.2"
 serde = { workspace = true, features = ["derive"] }

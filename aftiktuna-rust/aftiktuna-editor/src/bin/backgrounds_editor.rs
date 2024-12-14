@@ -4,14 +4,14 @@ use std::process::exit;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
-use aftiktuna::macroquad_interface;
-use aftiktuna::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
-use aftiktuna::macroquad_interface::egui::EguiWrapper;
-use aftiktuna::macroquad_interface::texture::background::RawBGData;
-use aftiktuna::macroquad_interface::texture::{
+use aftiktuna::view::area::RenderProperties;
+use aftiktuna_macroquad::macroquad_interface;
+use aftiktuna_macroquad::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
+use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
+use aftiktuna_macroquad::macroquad_interface::texture::background::RawBGData;
+use aftiktuna_macroquad::macroquad_interface::texture::{
     self, background, model, CachedTextures, LazilyLoadedModels,
 };
-use aftiktuna::view::area::RenderProperties;
 use indexmap::IndexMap;
 use macroquad::color;
 use macroquad::window::{self, Conf};

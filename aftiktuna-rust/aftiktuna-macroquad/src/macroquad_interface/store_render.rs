@@ -1,11 +1,11 @@
-use crate::core::display::{AftikColorId, ModelId};
-use crate::core::position::Direction;
-use crate::core::store::StoreStock;
 use crate::macroquad_interface::texture;
 use crate::macroquad_interface::texture::RenderAssets;
-use crate::view;
-use crate::view::area::RenderProperties;
-use crate::view::StoreView;
+use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::position::Direction;
+use aftiktuna::core::store::StoreStock;
+use aftiktuna::view;
+use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::StoreView;
 use macroquad::color::Color;
 use macroquad::math::{Rect, Vec2};
 use macroquad::{camera, color, shapes, text};

@@ -1,7 +1,7 @@
-use crate::command::suggestion;
-use crate::command::suggestion::Suggestion;
-use crate::view::area::RenderData;
-use crate::view::Frame;
+use aftiktuna::command::suggestion;
+use aftiktuna::command::suggestion::Suggestion;
+use aftiktuna::view::area::RenderData;
+use aftiktuna::view::Frame;
 use macroquad::color::{Color, WHITE};
 use macroquad::input::MouseButton;
 use macroquad::math::{Rect, Vec2};

@@ -6,12 +6,11 @@ use serde::de::DeserializeOwned;
 
 mod action;
 mod ai;
-mod command;
+pub mod command;
 pub mod core;
 pub mod game_interface;
-mod game_loop;
+pub mod game_loop;
 pub mod location;
-pub mod macroquad_interface;
 pub mod serialization;
 pub mod standard_io_interface;
 pub mod view;

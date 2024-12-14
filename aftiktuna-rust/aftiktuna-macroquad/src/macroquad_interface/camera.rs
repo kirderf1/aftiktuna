@@ -1,6 +1,6 @@
-use crate::core::position::Coord;
-use crate::view::area::ObjectRenderData;
-use crate::view::Frame;
+use aftiktuna::core::position::Coord;
+use aftiktuna::view::area::ObjectRenderData;
+use aftiktuna::view::Frame;
 use macroquad::camera as mq_camera;
 use macroquad::input::MouseButton;
 use macroquad::math::{Mat4, Vec2};

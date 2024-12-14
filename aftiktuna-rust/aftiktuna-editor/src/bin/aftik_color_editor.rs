@@ -3,11 +3,11 @@ use std::mem::take;
 use std::process::exit;
 
 use aftiktuna::core::display::{AftikColorId, ModelId};
-use aftiktuna::macroquad_interface;
-use aftiktuna::macroquad_interface::egui::EguiWrapper;
-use aftiktuna::macroquad_interface::texture::model::Model;
-use aftiktuna::macroquad_interface::texture::{model, AftikColorData, RGBColor};
 use aftiktuna::view::area::RenderProperties;
+use aftiktuna_macroquad::macroquad_interface;
+use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
+use aftiktuna_macroquad::macroquad_interface::texture::model::Model;
+use aftiktuna_macroquad::macroquad_interface::texture::{model, AftikColorData, RGBColor};
 use indexmap::IndexMap;
 use macroquad::color;
 use macroquad::math::Vec2;

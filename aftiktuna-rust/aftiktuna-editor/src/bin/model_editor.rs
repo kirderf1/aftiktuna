@@ -4,14 +4,14 @@ use std::process::exit;
 
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
-use aftiktuna::macroquad_interface;
-use aftiktuna::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
-use aftiktuna::macroquad_interface::egui::EguiWrapper;
-use aftiktuna::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
-use aftiktuna::macroquad_interface::texture::{
+use aftiktuna::view::area::RenderProperties;
+use aftiktuna_macroquad::macroquad_interface;
+use aftiktuna_macroquad::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
+use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
+use aftiktuna_macroquad::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
+use aftiktuna_macroquad::macroquad_interface::texture::{
     background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
 };
-use aftiktuna::view::area::RenderProperties;
 use macroquad::window::Conf;
 use macroquad::{color, window};
 
