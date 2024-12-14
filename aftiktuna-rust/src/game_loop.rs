@@ -221,6 +221,14 @@ fn tick(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
+    let stun_recovering_entities = state
+        .world
+        .query::<()>()
+        .with::<&status::IsStunned>()
+        .into_iter()
+        .map(|(entity, ())| entity)
+        .collect::<Vec<Entity>>();
+
     let mut action_map = HashMap::new();
 
     if let Some((action, target)) = chosen_action {
@@ -245,6 +253,9 @@ fn tick(
     handle_aftik_deaths(state, view_buffer);
 
     let mut buffer = CommandBuffer::new();
+    for stun_recovering_entity in stun_recovering_entities {
+        buffer.remove_one::<status::IsStunned>(stun_recovering_entity);
+    }
     for (item, held) in state
         .world
         .query::<&Held>()

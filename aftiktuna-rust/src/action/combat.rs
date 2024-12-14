@@ -2,7 +2,7 @@ use crate::action::{self, Error};
 use crate::core::name::NameWithAttribute;
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{self, position, status, Hostile};
+use crate::core::{self, inventory, item, position, status, Hostile};
 use crate::game_loop::GameState;
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
@@ -82,28 +82,37 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
     match hit_type {
         HitType::Dodge => action::ok(format!("{target_name} dodged {attacker_name}'s attack.")),
         HitType::GrazingHit => {
-            let killed = perform_attack_hit(false, attacker, target, world);
+            let effect = perform_attack_hit(false, attacker, target, world, &mut state.rng);
+            let effect = effect.descriptor();
 
-            if killed {
-                action::ok(format!(
-                    "{attacker_name}'s attack grazed and killed {target_name}."
-                ))
-            } else {
-                action::ok(format!("{attacker_name}'s attack grazed {target_name}."))
-            }
+            action::ok(format!(
+                "{attacker_name}'s attack grazed {effect}{target_name}."
+            ))
         }
         HitType::DirectHit => {
-            let killed = perform_attack_hit(true, attacker, target, world);
+            let effect = perform_attack_hit(true, attacker, target, world, &mut state.rng);
+            let effect = effect.descriptor();
 
-            if killed {
-                action::ok(format!(
-                    "{attacker_name} got a direct hit on and killed {target_name}."
-                ))
-            } else {
-                action::ok(format!(
-                    "{attacker_name} got a direct hit on {target_name}."
-                ))
-            }
+            action::ok(format!(
+                "{attacker_name} got a direct hit on {effect}{target_name}."
+            ))
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum AttackEffect {
+    None,
+    Stunned,
+    Killed,
+}
+
+impl AttackEffect {
+    fn descriptor(self) -> &'static str {
+        match self {
+            AttackEffect::None => "",
+            AttackEffect::Stunned => "and stunned ",
+            AttackEffect::Killed => "and killed ",
         }
     }
 }
@@ -113,7 +122,8 @@ fn perform_attack_hit(
     attacker: Entity,
     target: Entity,
     world: &mut World,
-) -> bool {
+    rng: &mut impl Rng,
+) -> AttackEffect {
     let damage_factor = if is_direct_hit { 1.0 } else { 0.5 };
 
     let killed = deal_damage(
@@ -124,8 +134,23 @@ fn perform_attack_hit(
     if killed {
         let _ = world.remove_one::<OccupiesSpace>(target);
         let _ = world.remove_one::<Hostile>(target);
+        return AttackEffect::Killed;
     }
-    killed
+    if is_direct_hit
+        && !world.satisfies::<&status::IsStunned>(target).unwrap()
+        && has_stun_attack_weapon(attacker, world)
+    {
+        let successful_stun = roll_stun(
+            world.entity(attacker).unwrap(),
+            world.entity(target).unwrap(),
+            rng,
+        );
+        if successful_stun {
+            world.insert_one(target, status::IsStunned).unwrap();
+            return AttackEffect::Stunned;
+        }
+    }
+    AttackEffect::None
 }
 
 fn deal_damage(target_ref: EntityRef, damage: f32) -> bool {
@@ -141,6 +166,12 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
     core::get_wielded_weapon_modifier(world, attacker) * strength_mod
+}
+
+fn has_stun_attack_weapon(attacker: Entity, world: &World) -> bool {
+    inventory::get_wielded(world, attacker)
+        .and_then(|wielded| world.satisfies::<&item::StunAttack>(wielded).ok())
+        .unwrap_or(false)
 }
 
 fn roll_hit(world: &mut World, attacker: Entity, target: Entity, rng: &mut impl Rng) -> HitType {
@@ -177,4 +208,19 @@ enum HitType {
     DirectHit,
     GrazingHit,
     Dodge,
+}
+
+fn roll_stun(attacker: EntityRef, target: EntityRef, rng: &mut impl Rng) -> bool {
+    let attacker_strength = attacker
+        .get::<&Stats>()
+        .expect("Expected attacker to have stats attached")
+        .strength;
+    let target_endurance = target
+        .get::<&Stats>()
+        .expect("Expected target to have stats attached")
+        .endurance;
+
+    let stun_difficulty = 15 + 2 * (target_endurance - attacker_strength);
+    let stun_roll = rng.gen_range::<i16, _>(1..=20);
+    stun_roll >= stun_difficulty
 }

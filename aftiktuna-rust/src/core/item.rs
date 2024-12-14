@@ -54,6 +54,9 @@ pub struct CanWield;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Weapon(pub f32);
 
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct StunAttack;
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Price(i32);
 
@@ -205,7 +208,7 @@ pub fn spawn(
             builder.add_bundle((CanWield, Weapon(3.0)));
         }
         Type::Bat => {
-            builder.add_bundle((CanWield, Weapon(4.0)));
+            builder.add_bundle((CanWield, StunAttack, Weapon(3.0)));
         }
         Type::Sword => {
             builder.add_bundle((CanWield, Weapon(5.0)));

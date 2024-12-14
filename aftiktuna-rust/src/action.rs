@@ -67,9 +67,18 @@ pub fn tick(
     entities.sort_by(|(_, agility1), (_, agility2)| agility2.cmp(agility1));
 
     for ((entity, action), _) in entities {
-        if status::is_alive(entity, &state.world) {
+        if can_act(entity, &state.world) {
             perform(state, entity, action, view_buffer);
         }
+    }
+}
+
+fn can_act(entity: Entity, world: &World) -> bool {
+    match world.entity(entity) {
+        Ok(entity_ref) => {
+            status::is_alive_ref(entity_ref) && !entity_ref.satisfies::<&status::IsStunned>()
+        }
+        Err(_) => false,
     }
 }
 

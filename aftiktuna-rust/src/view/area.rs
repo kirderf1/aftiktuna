@@ -165,6 +165,10 @@ fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String
         return format!("Corpse of {name}");
     }
 
+    if entity_ref.satisfies::<&status::IsStunned>() {
+        return format!("{name} (stunned)");
+    }
+
     name.to_owned()
 }
 

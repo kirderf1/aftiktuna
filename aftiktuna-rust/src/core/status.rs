@@ -292,3 +292,6 @@ pub fn get_food_heal_fraction(entity_ref: EntityRef) -> f32 {
         0.33
     }
 }
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct IsStunned;
