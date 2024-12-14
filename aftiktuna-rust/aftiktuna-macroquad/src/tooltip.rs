@@ -1,3 +1,5 @@
+use super::texture::LazilyLoadedModels;
+use super::{camera, render, store_render, App};
 use aftiktuna::command::suggestion;
 use aftiktuna::command::suggestion::Suggestion;
 use aftiktuna::view::area::RenderData;
@@ -6,9 +8,6 @@ use macroquad::color::{Color, WHITE};
 use macroquad::input::MouseButton;
 use macroquad::math::{Rect, Vec2};
 use macroquad::{input, shapes, text};
-
-use super::texture::LazilyLoadedModels;
-use super::{camera, render, store_render, App};
 
 trait TextRepresentable {
     fn as_text(&self) -> &str;

@@ -4,10 +4,9 @@ use std::process::exit;
 
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna_macroquad::macroquad_interface;
-use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
-use aftiktuna_macroquad::macroquad_interface::texture::model::Model;
-use aftiktuna_macroquad::macroquad_interface::texture::{model, AftikColorData, RGBColor};
+use aftiktuna_macroquad::egui::EguiWrapper;
+use aftiktuna_macroquad::texture::model::Model;
+use aftiktuna_macroquad::texture::{self, model, AftikColorData, RGBColor};
 use indexmap::IndexMap;
 use macroquad::color;
 use macroquad::math::Vec2;
@@ -19,7 +18,7 @@ fn config() -> Conf {
         window_width: 800,
         window_height: 600,
         window_resizable: false,
-        icon: Some(macroquad_interface::logo()),
+        icon: Some(aftiktuna_macroquad::logo()),
         ..Default::default()
     }
 }
@@ -68,8 +67,7 @@ async fn main() {
 }
 
 fn load_aftik_colors_ordered() -> AftikColorMap {
-    let file = File::open(macroquad_interface::texture::AFTIK_COLORS_PATH)
-        .expect("Unable to open aftik color file");
+    let file = File::open(texture::AFTIK_COLORS_PATH).expect("Unable to open aftik color file");
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load aftik color data")
 }
 
@@ -181,9 +179,7 @@ fn init_new_color(
     aftik_colors: &mut AftikColorMap,
 ) {
     if !aftik_colors.contains_key(&new_id) {
-        *selected_index = aftik_colors
-            .insert_full(new_id, macroquad_interface::texture::DEFAULT_COLOR)
-            .0;
+        *selected_index = aftik_colors.insert_full(new_id, texture::DEFAULT_COLOR).0;
     }
 }
 
@@ -194,6 +190,6 @@ fn color_picker(ui: &mut egui::Ui, color: &mut RGBColor) {
 }
 
 fn save_map(aftik_colors: &mut AftikColorMap) {
-    let file = File::create(macroquad_interface::texture::AFTIK_COLORS_PATH).unwrap();
+    let file = File::create(texture::AFTIK_COLORS_PATH).unwrap();
     serde_json_pretty::to_writer(file, aftik_colors).unwrap();
 }

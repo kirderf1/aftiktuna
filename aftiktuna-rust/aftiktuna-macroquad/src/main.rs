@@ -1,8 +1,7 @@
 use aftiktuna::game_interface;
 use aftiktuna::serialization::{self, LoadError};
-use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
-use aftiktuna_macroquad::macroquad_interface::texture::RenderAssets;
-use aftiktuna_macroquad::macroquad_interface::{self, error_view};
+use aftiktuna_macroquad::egui::EguiWrapper;
+use aftiktuna_macroquad::texture::RenderAssets;
 use macroquad::color::{self, Color};
 use macroquad::input;
 use macroquad::math::Vec2;
@@ -13,7 +12,7 @@ use std::env;
 use std::path::Path;
 
 fn config() -> Conf {
-    macroquad_interface::default_conf("Aftiktuna")
+    aftiktuna_macroquad::default_conf("Aftiktuna")
 }
 
 #[macroquad::main(config)]
@@ -25,7 +24,7 @@ async fn main() {
     }
 
     window::next_frame().await;
-    let mut assets = macroquad_interface::load_assets().await;
+    let mut assets = aftiktuna_macroquad::load_assets().await;
     input::prevent_quit();
 
     let mut egui = EguiWrapper::init();
@@ -49,19 +48,19 @@ async fn main() {
 
 async fn run_new_game(disable_autosave: bool, assets: &mut RenderAssets, egui: &mut EguiWrapper) {
     let game = game_interface::setup_new();
-    macroquad_interface::run_game(game, !disable_autosave, assets, egui).await
+    aftiktuna_macroquad::run_game(game, !disable_autosave, assets, egui).await
 }
 
 async fn run_load_game(disable_autosave: bool, assets: &mut RenderAssets, egui: &mut EguiWrapper) {
     match game_interface::load() {
-        Ok(game) => macroquad_interface::run_game(game, !disable_autosave, assets, egui).await,
+        Ok(game) => aftiktuna_macroquad::run_game(game, !disable_autosave, assets, egui).await,
         Err(error) => {
             let recommendation = if matches!(error, LoadError::UnsupportedVersion(_, _)) {
                 "Consider starting a new game or using a different version of Aftiktuna."
             } else {
                 "Consider starting a new game."
             };
-            error_view::show(vec![
+            aftiktuna_macroquad::error_view::show(vec![
                 format!("Unable to load save file: {error}"),
                 recommendation.to_string(),
             ])
@@ -98,10 +97,10 @@ async fn run_menu() -> MenuAction {
     };
 
     let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
-    macroquad_interface::run(|| {
+    aftiktuna_macroquad::run(|| {
         window::clear_background(color::BLACK);
 
-        macroquad_interface::draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
+        aftiktuna_macroquad::draw_centered_text("AFTIKTUNA", 200., 128, color::WHITE);
 
         ui::root_ui().push_skin(&skin);
 

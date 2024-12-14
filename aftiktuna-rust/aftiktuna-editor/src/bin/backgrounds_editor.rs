@@ -5,13 +5,10 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna_macroquad::macroquad_interface;
-use aftiktuna_macroquad::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
-use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
-use aftiktuna_macroquad::macroquad_interface::texture::background::RawBGData;
-use aftiktuna_macroquad::macroquad_interface::texture::{
-    self, background, model, CachedTextures, LazilyLoadedModels,
-};
+use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
+use aftiktuna_macroquad::egui::EguiWrapper;
+use aftiktuna_macroquad::texture::background::RawBGData;
+use aftiktuna_macroquad::texture::{self, background, model, CachedTextures, LazilyLoadedModels};
 use indexmap::IndexMap;
 use macroquad::color;
 use macroquad::window::{self, Conf};
@@ -22,7 +19,7 @@ fn config() -> Conf {
         window_width: 1000,
         window_height: 600,
         window_resizable: false,
-        icon: Some(macroquad_interface::logo()),
+        icon: Some(aftiktuna_macroquad::logo()),
         ..Default::default()
     }
 }

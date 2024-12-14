@@ -10,8 +10,7 @@ use macroquad::texture::{self, Texture2D};
 use macroquad::window;
 use serde::{Deserialize, Serialize};
 
-use crate::macroquad_interface;
-use crate::macroquad_interface::camera::HorizontalDraggableCamera;
+use crate::camera::HorizontalDraggableCamera;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::position::Coord;
 
@@ -32,7 +31,7 @@ impl PrimaryBGData {
             texture::draw_texture(
                 texture,
                 x,
-                macroquad_interface::WINDOW_HEIGHT_F - y - texture.height(),
+                crate::WINDOW_HEIGHT_F - y - texture.height(),
                 color::WHITE,
             );
         }
@@ -47,8 +46,7 @@ impl PrimaryBGData {
             if layer.is_looping {
                 let repeat_start = f32::floor((camera.x_start - layer_x) / texture.width()) as i16;
                 let repeat_end = f32::floor(
-                    (camera.x_start + macroquad_interface::WINDOW_WIDTH_F - layer_x)
-                        / texture.width(),
+                    (camera.x_start + crate::WINDOW_WIDTH_F - layer_x) / texture.width(),
                 ) as i16;
                 for repeat_index in repeat_start..=repeat_end {
                     draw_background_texture(

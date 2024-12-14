@@ -1,3 +1,4 @@
+use super::egui::EguiWrapper;
 use super::texture::RenderAssets;
 use super::App;
 use macroquad::color::{Color, WHITE};
@@ -7,8 +8,6 @@ use macroquad::shapes::draw_rectangle;
 use macroquad::text::{draw_text, measure_text};
 use macroquad::texture::{draw_texture, draw_texture_ex, DrawTextureParams, Texture2D};
 use macroquad::time::get_time;
-
-use super::egui::EguiWrapper;
 
 const TEXT_BOX_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 const TEXT_BOX_TEXT_SIZE: u16 = 16;

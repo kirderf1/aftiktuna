@@ -1,13 +1,12 @@
 use aftiktuna::game_interface;
 use aftiktuna::location::GenerationState;
-use aftiktuna_macroquad::macroquad_interface;
-use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
+use aftiktuna_macroquad::egui::EguiWrapper;
 use macroquad::input;
 use macroquad::window::{self, Conf};
 use std::env;
 
 fn config() -> Conf {
-    macroquad_interface::default_conf("Aftiktuna location tester")
+    aftiktuna_macroquad::default_conf("Aftiktuna location tester")
 }
 
 #[macroquad::main(config)]
@@ -19,8 +18,8 @@ async fn main() {
     );
 
     window::next_frame().await;
-    let mut assets = macroquad_interface::load_assets().await;
+    let mut assets = aftiktuna_macroquad::load_assets().await;
 
     input::prevent_quit();
-    macroquad_interface::run_game(game, true, &mut assets, &mut EguiWrapper::init()).await;
+    aftiktuna_macroquad::run_game(game, true, &mut assets, &mut EguiWrapper::init()).await;
 }

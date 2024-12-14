@@ -5,11 +5,10 @@ use std::process::exit;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna_macroquad::macroquad_interface;
-use aftiktuna_macroquad::macroquad_interface::camera::{HorizontalDraggableCamera, Positioner};
-use aftiktuna_macroquad::macroquad_interface::egui::EguiWrapper;
-use aftiktuna_macroquad::macroquad_interface::texture::model::{ColorSource, Model, RawModel};
-use aftiktuna_macroquad::macroquad_interface::texture::{
+use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
+use aftiktuna_macroquad::egui::EguiWrapper;
+use aftiktuna_macroquad::texture::model::{ColorSource, Model, RawModel};
+use aftiktuna_macroquad::texture::{
     background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
 };
 use macroquad::window::Conf;
@@ -21,7 +20,7 @@ fn config() -> Conf {
         window_width: 1000,
         window_height: 600,
         window_resizable: false,
-        icon: Some(macroquad_interface::logo()),
+        icon: Some(aftiktuna_macroquad::logo()),
         ..Default::default()
     }
 }

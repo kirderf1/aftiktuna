@@ -1,7 +1,6 @@
 use super::camera::HorizontalDraggableCamera;
 use super::texture::RenderAssets;
-use super::AppWithEgui;
-use crate::macroquad_interface::{camera, store_render, texture, tooltip, ui};
+use super::{camera, store_render, texture, tooltip, ui, AppWithEgui};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;

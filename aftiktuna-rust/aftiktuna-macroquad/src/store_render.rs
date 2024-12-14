@@ -1,5 +1,4 @@
-use crate::macroquad_interface::texture;
-use crate::macroquad_interface::texture::RenderAssets;
+use super::texture::{self, RenderAssets};
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::Direction;
 use aftiktuna::core::store::StoreStock;
