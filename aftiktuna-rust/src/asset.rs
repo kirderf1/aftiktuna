@@ -123,6 +123,38 @@ pub mod model {
     use super::TextureLoader;
     use crate::view::area::RenderProperties;
     use serde::{Deserialize, Serialize};
+    use std::fs::File;
+    use std::path::Path;
+
+    #[derive(Clone, Serialize, Deserialize)]
+    pub struct Model<T> {
+        pub layers: Vec<TextureLayer<T>>,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub wield_offset: (i16, i16),
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub mounted: bool,
+    }
+
+    impl<T> Model<T> {
+        pub fn is_displacing(&self) -> bool {
+            !self.mounted
+        }
+    }
+
+    impl Model<String> {
+        pub fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<Model<T>, E> {
+            let mut layers = Vec::new();
+            for layer in &self.layers {
+                layers.push(layer.load(loader)?);
+            }
+            layers.reverse();
+            Ok(Model {
+                layers,
+                wield_offset: self.wield_offset,
+                mounted: self.mounted,
+            })
+        }
+    }
 
     #[derive(Clone, Serialize, Deserialize)]
     pub struct TextureLayer<T> {
@@ -140,10 +172,7 @@ pub mod model {
             format!("object/{}", self.texture)
         }
 
-        pub fn load<T, E>(
-            &self,
-            loader: &mut impl TextureLoader<T, E>,
-        ) -> Result<TextureLayer<T>, E> {
+        fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<TextureLayer<T>, E> {
             let texture = loader.load_texture(self.texture_path())?;
             Ok(TextureLayer {
                 texture,
@@ -180,6 +209,13 @@ pub mod model {
                 && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
                 && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
         }
+    }
+
+    pub fn load_raw_model_from_path(
+        file_path: impl AsRef<Path>,
+    ) -> Result<Model<String>, super::Error> {
+        let file = File::open(file_path)?;
+        Ok(serde_json::from_reader::<_, Model<String>>(file)?)
     }
 }
 

@@ -1,8 +1,9 @@
 use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
+use aftiktuna::asset::model::Model;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::egui::EguiWrapper;
-use aftiktuna_macroquad::texture::model::{self, Model};
+use aftiktuna_macroquad::texture::model;
 use indexmap::IndexMap;
 use macroquad::color as mq_color;
 use macroquad::math::Vec2;

@@ -58,7 +58,6 @@ dependencies = [
  "egui",
  "egui-miniquad",
  "macroquad",
- "serde",
  "serde_json",
 ]
 

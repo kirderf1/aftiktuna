@@ -1,17 +1,13 @@
 use super::Error;
 use aftiktuna::asset::color::AftikColorData;
-use aftiktuna::asset::model::TextureLayer;
-use aftiktuna::asset::TextureLoader;
+use aftiktuna::asset::model::{self, Model, TextureLayer};
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use macroquad::color::Color;
 use macroquad::math::{Rect, Vec2};
 use macroquad::texture::{self, DrawTextureParams, Texture2D};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::File;
-use std::path::Path;
 
 pub struct LazilyLoadedModels {
     loaded_models: HashMap<ModelId, Model<Texture2D>>,
@@ -104,36 +100,6 @@ fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
     )
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Model<T> {
-    pub layers: Vec<TextureLayer<T>>,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub wield_offset: (i16, i16),
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub mounted: bool,
-}
-
-impl<T> Model<T> {
-    pub fn is_displacing(&self) -> bool {
-        !self.mounted
-    }
-}
-
-impl Model<String> {
-    pub fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<Model<T>, E> {
-        let mut layers = Vec::new();
-        for layer in &self.layers {
-            layers.push(layer.load(loader)?);
-        }
-        layers.reverse();
-        Ok(Model {
-            layers,
-            wield_offset: self.wield_offset,
-            mounted: self.mounted,
-        })
-    }
-}
-
 pub fn prepare() -> Result<LazilyLoadedModels, Error> {
     let mut models = HashMap::new();
 
@@ -168,10 +134,5 @@ fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, 
 }
 
 pub fn load_model(model_id: &ModelId) -> Result<Model<Texture2D>, Error> {
-    Ok(load_raw_model_from_path(model_id.file_path())?.load(&mut super::InPlaceLoader)?)
-}
-
-pub fn load_raw_model_from_path(file_path: impl AsRef<Path>) -> Result<Model<String>, Error> {
-    let file = File::open(file_path)?;
-    Ok(serde_json::from_reader::<_, Model<String>>(file)?)
+    Ok(model::load_raw_model_from_path(model_id.file_path())?.load(&mut super::InPlaceLoader)?)
 }

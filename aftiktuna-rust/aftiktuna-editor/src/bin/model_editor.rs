@@ -3,13 +3,14 @@ use std::path::Path;
 use std::process::exit;
 
 use aftiktuna::asset::color::{AftikColorData, ColorSource, RGBColor};
+use aftiktuna::asset::model::{self, Model};
 use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna_macroquad::egui::EguiWrapper;
-use aftiktuna_macroquad::texture::model::{self, Model};
+use aftiktuna_macroquad::texture::model as mq_model;
 use aftiktuna_macroquad::texture::{background, CachedTextures};
 use macroquad::texture::Texture2D;
 use macroquad::window::Conf;
@@ -47,7 +48,7 @@ async fn main() {
     );
     let mut selected_layer = 0;
 
-    let aftik_model = model::load_model(&ModelId::aftik()).unwrap();
+    let aftik_model = mq_model::load_model(&ModelId::aftik()).unwrap();
     let background = background::load_background_for_testing();
     let mut area_size = 7;
     let mut camera = HorizontalDraggableCamera::centered_on_position(0, area_size);
@@ -101,7 +102,7 @@ fn draw_examples(
     };
 
     bidirectional(|direction| {
-        model::draw_model(
+        mq_model::draw_model(
             model,
             positioner.position_object(get_and_move_coord(), false),
             false,
@@ -115,7 +116,7 @@ fn draw_examples(
 
     if model.is_displacing() {
         let coord = get_and_move_coord();
-        model::draw_model(
+        mq_model::draw_model(
             model,
             positioner.position_object(coord, true),
             false,
@@ -124,7 +125,7 @@ fn draw_examples(
             },
             &DEFAULT_AFTIK_COLOR,
         );
-        model::draw_model(
+        mq_model::draw_model(
             aftik_model,
             positioner.position_object(coord, true),
             false,
@@ -135,7 +136,7 @@ fn draw_examples(
         );
 
         let coord = get_and_move_coord();
-        model::draw_model(
+        mq_model::draw_model(
             aftik_model,
             positioner.position_object(coord, true),
             false,
@@ -144,7 +145,7 @@ fn draw_examples(
             },
             &DEFAULT_AFTIK_COLOR,
         );
-        model::draw_model(
+        mq_model::draw_model(
             model,
             positioner.position_object(coord, true),
             false,
@@ -156,7 +157,7 @@ fn draw_examples(
 
         let coord = get_and_move_coord();
         for _ in 0..3 {
-            model::draw_model(
+            mq_model::draw_model(
                 model,
                 positioner.position_object(coord, true),
                 false,
@@ -169,7 +170,7 @@ fn draw_examples(
     } else {
         bidirectional(|direction| {
             let coord = get_and_move_coord();
-            model::draw_model(
+            mq_model::draw_model(
                 model,
                 positioner.position_object(coord, false),
                 false,
@@ -179,7 +180,7 @@ fn draw_examples(
                 },
                 &DEFAULT_AFTIK_COLOR,
             );
-            model::draw_model(
+            mq_model::draw_model(
                 aftik_model,
                 positioner.position_object(coord, true),
                 false,
@@ -198,7 +199,7 @@ fn draw_examples(
         .any(|layer| layer.conditions.if_cut.is_some())
     {
         bidirectional(|direction| {
-            model::draw_model(
+            mq_model::draw_model(
                 model,
                 positioner.position_object(get_and_move_coord(), false),
                 false,
@@ -218,7 +219,7 @@ fn draw_examples(
         .any(|layer| layer.conditions.if_hurt.is_some())
     {
         bidirectional(|direction| {
-            model::draw_model(
+            mq_model::draw_model(
                 model,
                 positioner.position_object(get_and_move_coord(), false),
                 false,
@@ -238,7 +239,7 @@ fn draw_examples(
         .any(|layer| layer.conditions.if_alive.is_some())
     {
         bidirectional(|direction| {
-            model::draw_model(
+            mq_model::draw_model(
                 model,
                 positioner.position_object(get_and_move_coord(), false),
                 false,
@@ -255,7 +256,7 @@ fn draw_examples(
     if raw_model.wield_offset != (0, 0) {
         bidirectional(|direction| {
             let pos = positioner.position_object(get_and_move_coord(), false);
-            model::draw_model(
+            mq_model::draw_model(
                 aftik_model,
                 pos,
                 false,
@@ -265,7 +266,7 @@ fn draw_examples(
                 },
                 &DEFAULT_AFTIK_COLOR,
             );
-            model::draw_model(
+            mq_model::draw_model(
                 model,
                 pos,
                 true,

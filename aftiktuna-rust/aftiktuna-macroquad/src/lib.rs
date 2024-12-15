@@ -402,7 +402,3 @@ pub mod egui {
         fn draw(&mut self) {}
     }
 }
-
-fn is_default<T: Default + PartialEq>(value: &T) -> bool {
-    value.eq(&Default::default())
-}
