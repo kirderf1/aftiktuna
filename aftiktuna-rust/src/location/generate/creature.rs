@@ -197,12 +197,6 @@ pub struct AftikProfile {
     traits: Traits,
 }
 
-impl From<AftikProfile> for AftikColorId {
-    fn from(value: AftikProfile) -> Self {
-        value.color
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CharacterInteraction {
@@ -258,7 +252,7 @@ impl AftikCorpseData {
     pub fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
         let Some(color) = self.color.clone().or_else(|| {
             remove_random_profile(&mut gen_context.character_profiles, &mut gen_context.rng)
-                .map(AftikColorId::from)
+                .map(|profile| profile.color)
         }) else {
             return;
         };
