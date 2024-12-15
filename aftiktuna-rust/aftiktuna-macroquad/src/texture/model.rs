@@ -1,5 +1,6 @@
 use super::Error;
-use aftiktuna::asset::color::{AftikColorData, ColorSource};
+use aftiktuna::asset::color::AftikColorData;
+use aftiktuna::asset::model::TextureLayer;
 use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
@@ -135,61 +136,6 @@ impl RawModel {
             ),
             is_mounted: self.mounted,
         })
-    }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct TextureLayer<T> {
-    pub texture: T,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub color: ColorSource,
-    #[serde(flatten)]
-    pub positioning: LayerPositioning,
-    #[serde(flatten)]
-    pub conditions: LayerCondition,
-}
-
-impl TextureLayer<String> {
-    pub fn texture_path(&self) -> String {
-        format!("object/{}", self.texture)
-    }
-
-    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<TextureLayer<T>, E> {
-        let texture = loader.load_texture(self.texture_path())?;
-        Ok(TextureLayer {
-            texture,
-            color: self.color,
-            positioning: self.positioning.clone(),
-            conditions: self.conditions.clone(),
-        })
-    }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct LayerPositioning {
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub size: Option<(i16, i16)>,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub y_offset: i16,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub fixed: bool,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct LayerCondition {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_cut: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_alive: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_hurt: Option<bool>,
-}
-
-impl LayerCondition {
-    fn meets_conditions(&self, properties: &RenderProperties) -> bool {
-        (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
-            && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
-            && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
     }
 }
 
