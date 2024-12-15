@@ -1,5 +1,5 @@
-use aftiktuna::asset;
 use aftiktuna::asset::color::{self, AftikColorData};
+use aftiktuna::asset::{self, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
@@ -78,13 +78,9 @@ pub fn load_texture(name: impl AsRef<str>) -> Result<Texture2D, io::Error> {
     ))
 }
 
-pub trait TextureLoader {
-    fn load_texture(&mut self, name: String) -> Result<Texture2D, io::Error>;
-}
-
 struct InPlaceLoader;
 
-impl TextureLoader for InPlaceLoader {
+impl TextureLoader<Texture2D, io::Error> for InPlaceLoader {
     fn load_texture(&mut self, name: String) -> Result<Texture2D, io::Error> {
         load_texture(name)
     }
@@ -93,7 +89,7 @@ impl TextureLoader for InPlaceLoader {
 #[derive(Default)]
 pub struct CachedTextures(HashMap<String, Texture2D>);
 
-impl TextureLoader for CachedTextures {
+impl TextureLoader<Texture2D, io::Error> for CachedTextures {
     fn load_texture(&mut self, name: String) -> Result<Texture2D, std::io::Error> {
         if let Some(texture) = self.0.get(&name) {
             return Ok(texture.clone());

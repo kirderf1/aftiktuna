@@ -138,6 +138,10 @@ impl From<serde_json::Error> for Error {
     }
 }
 
+pub trait TextureLoader<T, E> {
+    fn load_texture(&mut self, name: String) -> Result<T, E>;
+}
+
 pub(crate) fn load_json_simple<T: DeserializeOwned>(path: impl Display) -> Result<T, String> {
     let file = File::open(format!("assets/{path}"))
         .map_err(|error| format!("Failed to open file: {error}"))?;

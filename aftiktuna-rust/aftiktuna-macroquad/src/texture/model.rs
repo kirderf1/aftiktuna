@@ -1,5 +1,6 @@
-use super::{Error, TextureLoader};
+use super::Error;
 use aftiktuna::asset::color::{AftikColorData, ColorSource};
+use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
@@ -9,7 +10,6 @@ use macroquad::texture::{self, DrawTextureParams, Texture2D};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
-use std::io;
 use std::path::Path;
 
 pub struct LazilyLoadedModels {
@@ -124,7 +124,7 @@ pub struct RawModel {
 }
 
 impl RawModel {
-    pub fn load(&self, loader: &mut impl TextureLoader) -> Result<Model, io::Error> {
+    pub fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<Model, E> {
         let mut layers = Vec::new();
         for layer in &self.layers {
             layers.push(layer.load(loader)?);
@@ -157,7 +157,7 @@ impl RawTextureLayer {
         format!("object/{}", self.texture)
     }
 
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<TextureLayer, io::Error> {
+    fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<TextureLayer, E> {
         let texture = loader.load_texture(self.texture_path())?;
         Ok(TextureLayer {
             texture,

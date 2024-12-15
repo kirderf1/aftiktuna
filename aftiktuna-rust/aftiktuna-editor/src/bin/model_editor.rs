@@ -3,13 +3,14 @@ use std::path::Path;
 use std::process::exit;
 
 use aftiktuna::asset::color::{AftikColorData, ColorSource, RGBColor};
+use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::model::{Model, RawModel};
-use aftiktuna_macroquad::texture::{background, model, CachedTextures, TextureLoader};
+use aftiktuna_macroquad::texture::{background, model, CachedTextures};
 use macroquad::window::Conf;
 use macroquad::{color, window};
 

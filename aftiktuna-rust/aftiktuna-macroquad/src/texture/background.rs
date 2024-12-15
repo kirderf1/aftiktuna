@@ -1,20 +1,17 @@
-use std::collections::HashMap;
-use std::fmt::Display;
-use std::fs::File;
-use std::hash::Hash;
-use std::io;
-
+use super::CachedTextures;
+use crate::camera::HorizontalDraggableCamera;
+use aftiktuna::asset::TextureLoader;
+use aftiktuna::core::area::BackgroundId;
+use aftiktuna::core::position::Coord;
 use indexmap::IndexMap;
 use macroquad::color::{self, Color};
 use macroquad::texture::{self, Texture2D};
 use macroquad::window;
 use serde::{Deserialize, Serialize};
-
-use crate::camera::HorizontalDraggableCamera;
-use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::position::Coord;
-
-use super::{CachedTextures, TextureLoader};
+use std::collections::HashMap;
+use std::fmt::Display;
+use std::fs::File;
+use std::hash::Hash;
 
 pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
 
@@ -87,7 +84,7 @@ pub struct RawBGData {
 }
 
 impl RawBGData {
-    pub fn load(&self, loader: &mut impl TextureLoader) -> Result<BGData, io::Error> {
+    pub fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<BGData, E> {
         Ok(BGData {
             primary: self.primary.load(loader)?,
             portrait: self.portrait.load(loader)?,
@@ -100,7 +97,7 @@ impl RawBGData {
 pub struct RawPrimaryBGData(pub Parallax<String>);
 
 impl RawPrimaryBGData {
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<PrimaryBGData, io::Error> {
+    fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<PrimaryBGData, E> {
         Ok(PrimaryBGData(self.0.load(loader)?))
     }
 }
@@ -139,7 +136,7 @@ pub struct Parallax<T> {
 }
 
 impl Parallax<String> {
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<Parallax<Texture2D>, io::Error> {
+    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<Parallax<T>, E> {
         Ok(Parallax {
             layers: self
                 .layers
@@ -166,7 +163,7 @@ fn default_move_factor() -> f32 {
 }
 
 impl ParallaxLayer<String> {
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<ParallaxLayer<Texture2D>, io::Error> {
+    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<ParallaxLayer<T>, E> {
         Ok(ParallaxLayer {
             texture: load_texture(&self.texture, loader)?,
             move_factor: self.move_factor,
@@ -193,7 +190,7 @@ enum RawPortraitBGData {
 }
 
 impl RawPortraitBGData {
-    fn load(&self, loader: &mut impl TextureLoader) -> Result<PortraitBGData, io::Error> {
+    fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<PortraitBGData, E> {
         Ok(match self {
             RawPortraitBGData::Color(color) => {
                 PortraitBGData::Color([color[0], color[1], color[2], 255].into())
@@ -261,6 +258,6 @@ pub fn load_background_for_testing() -> PrimaryBGData {
         .unwrap()
 }
 
-fn load_texture(texture: &str, loader: &mut impl TextureLoader) -> Result<Texture2D, io::Error> {
+fn load_texture<T, E>(texture: &str, loader: &mut impl TextureLoader<T, E>) -> Result<T, E> {
     loader.load_texture(format!("background/{texture}"))
 }
