@@ -1,4 +1,5 @@
 use super::LocationGenContext;
+use crate::asset;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
@@ -108,6 +109,7 @@ mod container {
 }
 
 mod loot {
+    use crate::asset;
     use crate::core::item;
     use rand::distributions::WeightedIndex;
     use rand::Rng;
@@ -131,7 +133,7 @@ mod loot {
     impl LootTable {
         fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
             let entries: Vec<LootEntry> =
-                crate::load_json_simple(format!("loot_table/{name}.json"))?;
+                asset::load_json_simple(format!("loot_table/{name}.json"))?;
             let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
                 .map_err(|error| error.to_string())?;
             Ok(Self {
@@ -169,7 +171,7 @@ pub struct LocationData {
 
 impl LocationData {
     pub fn load_from_json(name: &str) -> Result<Self, String> {
-        crate::load_json_simple(format!("location/{name}.json"))
+        asset::load_json_simple(format!("location/{name}.json"))
     }
 
     pub fn build(self, gen_context: &mut LocationGenContext) -> Result<Pos, String> {

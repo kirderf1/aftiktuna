@@ -59,6 +59,10 @@ pub mod color {
     }
 }
 
+use serde::de::DeserializeOwned;
+use std::fmt::Display;
+use std::fs::File;
+
 #[derive(Debug)]
 pub enum Error {
     IO(std::io::Error),
@@ -75,4 +79,10 @@ impl From<serde_json::Error> for Error {
     fn from(value: serde_json::Error) -> Self {
         Self::Json(value)
     }
+}
+
+pub(crate) fn load_json_simple<T: DeserializeOwned>(path: impl Display) -> Result<T, String> {
+    let file = File::open(format!("assets/{path}"))
+        .map_err(|error| format!("Failed to open file: {error}"))?;
+    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {error}"))
 }

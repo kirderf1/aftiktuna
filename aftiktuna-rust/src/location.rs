@@ -5,8 +5,8 @@ use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
 use crate::core::{inventory, item, CrewMember, Door, DoorKind, Waiting};
 use crate::game_loop::GameState;
-use crate::serialization;
 use crate::view::text::Messages;
+use crate::{asset, serialization};
 use generate::creature::{self, AftikProfile, ProfileOrRandom};
 use generate::door::{self, DoorInfo};
 pub use generate::LocationData;
@@ -104,7 +104,7 @@ pub struct Locations {
 
 impl Locations {
     pub fn load_from_json() -> Result<Self, String> {
-        crate::load_json_simple("locations.json")
+        asset::load_json_simple("locations.json")
             .map_err(|message| format!("Error loading \"locations.json\": {message}"))
     }
 
@@ -213,13 +213,13 @@ pub struct CrewData {
 
 impl CrewData {
     pub fn load_starting_crew() -> Result<CrewData, String> {
-        crate::load_json_simple("starting_crew.json")
+        asset::load_json_simple("starting_crew.json")
             .map_err(|message| format!("Problem loading \"starting_crew.json\": {message}"))
     }
 }
 
 fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
-    crate::load_json_simple("character_profiles.json")
+    asset::load_json_simple("character_profiles.json")
         .map_err(|message| format!("Problem loading \"character_profiles.json\": {message}"))
 }
 
