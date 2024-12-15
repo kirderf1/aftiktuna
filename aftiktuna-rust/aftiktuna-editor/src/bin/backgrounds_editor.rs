@@ -83,7 +83,8 @@ fn draw_example_content(
     let mut draw_model = move |coord: Coord, model_id: &ModelId| {
         let model = models.lookup_model(model_id);
         let pos = positioner.position_object(coord, model.is_displacing());
-        model.draw(
+        model::draw_model(
+            model,
             pos,
             false,
             &RenderProperties::default(),

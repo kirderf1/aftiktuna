@@ -6,6 +6,7 @@ use aftiktuna_macroquad::texture::model::{self, Model};
 use indexmap::IndexMap;
 use macroquad::color as mq_color;
 use macroquad::math::Vec2;
+use macroquad::texture::Texture2D;
 use macroquad::window::{self, Conf};
 use std::fs::File;
 use std::mem::take;
@@ -70,8 +71,13 @@ fn load_aftik_colors_ordered() -> AftikColorMap {
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load aftik color data")
 }
 
-fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model, portrait_model: &Model) {
-    aftik_model.draw(
+fn draw_examples(
+    aftik_color_data: &AftikColorData,
+    aftik_model: &Model<Texture2D>,
+    portrait_model: &Model<Texture2D>,
+) {
+    model::draw_model(
+        aftik_model,
         Vec2::new(100., 160.),
         false,
         &RenderProperties {
@@ -81,7 +87,8 @@ fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model, portrai
         },
         aftik_color_data,
     );
-    aftik_model.draw(
+    model::draw_model(
+        aftik_model,
         Vec2::new(250., 160.),
         false,
         &RenderProperties {
@@ -91,7 +98,8 @@ fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model, portrai
         },
         aftik_color_data,
     );
-    aftik_model.draw(
+    model::draw_model(
+        aftik_model,
         Vec2::new(400., 150.),
         false,
         &RenderProperties {
@@ -100,7 +108,8 @@ fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model, portrai
         },
         aftik_color_data,
     );
-    portrait_model.draw(
+    model::draw_model(
+        portrait_model,
         Vec2::new(150., 600.),
         false,
         &RenderProperties {
@@ -109,7 +118,8 @@ fn draw_examples(aftik_color_data: &AftikColorData, aftik_model: &Model, portrai
         },
         aftik_color_data,
     );
-    portrait_model.draw(
+    model::draw_model(
+        portrait_model,
         Vec2::new(450., 600.),
         false,
         &RenderProperties {

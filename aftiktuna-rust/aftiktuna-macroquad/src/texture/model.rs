@@ -14,11 +14,11 @@ use std::fs::File;
 use std::path::Path;
 
 pub struct LazilyLoadedModels {
-    loaded_models: HashMap<ModelId, Model>,
+    loaded_models: HashMap<ModelId, Model<Texture2D>>,
 }
 
 impl LazilyLoadedModels {
-    pub fn lookup_model(&mut self, model_id: &ModelId) -> &Model {
+    pub fn lookup_model(&mut self, model_id: &ModelId) -> &Model<Texture2D> {
         if !self.loaded_models.contains_key(model_id) {
             load_and_insert_or_default(model_id, &mut self.loaded_models);
         }
@@ -27,49 +27,27 @@ impl LazilyLoadedModels {
 
     pub fn get_rect_for_object(&mut self, object_data: &ObjectRenderData, pos: Vec2) -> Rect {
         let model = self.lookup_model(&object_data.model_id);
-        model.get_rect(pos, &object_data.properties)
+        model_render_rect(model, pos, &object_data.properties)
     }
 }
 
-#[derive(Clone)]
-pub struct Model {
-    layers: Vec<TextureLayer<Texture2D>>,
-    wield_offset: Vec2,
-    is_mounted: bool,
-}
-
-impl Model {
-    pub fn is_displacing(&self) -> bool {
-        !self.is_mounted
+pub fn draw_model(
+    model: &Model<Texture2D>,
+    pos: Vec2,
+    use_wield_offset: bool,
+    properties: &RenderProperties,
+    aftik_color_data: &AftikColorData,
+) {
+    let mut pos = pos;
+    if use_wield_offset {
+        pos.y += f32::from(model.wield_offset.1);
+        pos.x += f32::from(match properties.direction {
+            Direction::Left => -model.wield_offset.0,
+            Direction::Right => model.wield_offset.0,
+        })
     }
-
-    pub fn get_rect(&self, pos: Vec2, properties: &RenderProperties) -> Rect {
-        self.layers
-            .iter()
-            .filter(|&layer| layer.conditions.meets_conditions(properties))
-            .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
-                rect.combine_with(layer_render_rect(layer, pos))
-            })
-    }
-
-    pub fn draw(
-        &self,
-        pos: Vec2,
-        use_wield_offset: bool,
-        properties: &RenderProperties,
-        aftik_color_data: &AftikColorData,
-    ) {
-        let mut pos = pos;
-        if use_wield_offset {
-            pos.y += self.wield_offset.y;
-            pos.x += match properties.direction {
-                Direction::Left => -self.wield_offset.x,
-                Direction::Right => self.wield_offset.x,
-            }
-        }
-        for layer in &self.layers {
-            draw_layer(layer, pos, properties, aftik_color_data);
-        }
+    for layer in &model.layers {
+        draw_layer(layer, pos, properties, aftik_color_data);
     }
 }
 
@@ -98,6 +76,20 @@ fn draw_layer(
     );
 }
 
+pub fn model_render_rect(
+    model: &Model<Texture2D>,
+    pos: Vec2,
+    properties: &RenderProperties,
+) -> Rect {
+    model
+        .layers
+        .iter()
+        .filter(|&layer| layer.conditions.meets_conditions(properties))
+        .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
+            rect.combine_with(layer_render_rect(layer, pos))
+        })
+}
+
 fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
     let dest_size = layer
         .positioning
@@ -112,17 +104,23 @@ fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
     )
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct RawModel {
-    pub layers: Vec<TextureLayer<String>>,
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Model<T> {
+    pub layers: Vec<TextureLayer<T>>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub wield_offset: (i16, i16),
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub mounted: bool,
 }
 
-impl RawModel {
-    pub fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<Model, E> {
+impl<T> Model<T> {
+    pub fn is_displacing(&self) -> bool {
+        !self.mounted
+    }
+}
+
+impl Model<String> {
+    pub fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<Model<T>, E> {
         let mut layers = Vec::new();
         for layer in &self.layers {
             layers.push(layer.load(loader)?);
@@ -130,11 +128,8 @@ impl RawModel {
         layers.reverse();
         Ok(Model {
             layers,
-            wield_offset: Vec2::new(
-                f32::from(self.wield_offset.0),
-                f32::from(self.wield_offset.1),
-            ),
-            is_mounted: self.mounted,
+            wield_offset: self.wield_offset,
+            mounted: self.mounted,
         })
     }
 }
@@ -150,13 +145,16 @@ pub fn prepare() -> Result<LazilyLoadedModels, Error> {
     })
 }
 
-fn load_and_insert(model_id: ModelId, models: &mut HashMap<ModelId, Model>) -> Result<(), Error> {
+fn load_and_insert(
+    model_id: ModelId,
+    models: &mut HashMap<ModelId, Model<Texture2D>>,
+) -> Result<(), Error> {
     let model = load_model(&model_id)?;
     models.insert(model_id, model);
     Ok(())
 }
 
-fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, Model>) {
+fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, Model<Texture2D>>) {
     let texture_data = load_model(model_id).unwrap_or_else(|error| {
         let path = model_id.path();
         eprintln!("Unable to load texture data \"{path}\": {error}");
@@ -169,11 +167,11 @@ fn load_and_insert_or_default(model_id: &ModelId, models: &mut HashMap<ModelId, 
     models.insert(model_id.clone(), texture_data);
 }
 
-pub fn load_model(model_id: &ModelId) -> Result<Model, Error> {
+pub fn load_model(model_id: &ModelId) -> Result<Model<Texture2D>, Error> {
     Ok(load_raw_model_from_path(model_id.file_path())?.load(&mut super::InPlaceLoader)?)
 }
 
-pub fn load_raw_model_from_path(file_path: impl AsRef<Path>) -> Result<RawModel, Error> {
+pub fn load_raw_model_from_path(file_path: impl AsRef<Path>) -> Result<Model<String>, Error> {
     let file = File::open(file_path)?;
-    Ok(serde_json::from_reader::<_, RawModel>(file)?)
+    Ok(serde_json::from_reader::<_, Model<String>>(file)?)
 }

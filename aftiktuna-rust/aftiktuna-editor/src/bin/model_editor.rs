@@ -9,8 +9,9 @@ use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna_macroquad::egui::EguiWrapper;
-use aftiktuna_macroquad::texture::model::{Model, RawModel};
-use aftiktuna_macroquad::texture::{background, model, CachedTextures};
+use aftiktuna_macroquad::texture::model::{self, Model};
+use aftiktuna_macroquad::texture::{background, CachedTextures};
+use macroquad::texture::Texture2D;
 use macroquad::window::Conf;
 use macroquad::{color, window};
 
@@ -86,7 +87,11 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
     secondary_color: RGBColor::new(255, 238, 153),
 };
 
-fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Coord {
+fn draw_examples(
+    raw_model: &Model<String>,
+    model: &Model<Texture2D>,
+    aftik_model: &Model<Texture2D>,
+) -> Coord {
     let mut positioner = Positioner::new();
     let mut next_coord = 0;
     let mut get_and_move_coord = || {
@@ -96,7 +101,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
     };
 
     bidirectional(|direction| {
-        model.draw(
+        model::draw_model(
+            model,
             positioner.position_object(get_and_move_coord(), false),
             false,
             &RenderProperties {
@@ -109,7 +115,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
 
     if model.is_displacing() {
         let coord = get_and_move_coord();
-        model.draw(
+        model::draw_model(
+            model,
             positioner.position_object(coord, true),
             false,
             &RenderProperties {
@@ -117,7 +124,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
             },
             &DEFAULT_AFTIK_COLOR,
         );
-        aftik_model.draw(
+        model::draw_model(
+            aftik_model,
             positioner.position_object(coord, true),
             false,
             &RenderProperties {
@@ -127,7 +135,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
         );
 
         let coord = get_and_move_coord();
-        aftik_model.draw(
+        model::draw_model(
+            aftik_model,
             positioner.position_object(coord, true),
             false,
             &RenderProperties {
@@ -135,7 +144,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
             },
             &DEFAULT_AFTIK_COLOR,
         );
-        model.draw(
+        model::draw_model(
+            model,
             positioner.position_object(coord, true),
             false,
             &RenderProperties {
@@ -146,7 +156,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
 
         let coord = get_and_move_coord();
         for _ in 0..3 {
-            model.draw(
+            model::draw_model(
+                model,
                 positioner.position_object(coord, true),
                 false,
                 &RenderProperties {
@@ -158,7 +169,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
     } else {
         bidirectional(|direction| {
             let coord = get_and_move_coord();
-            model.draw(
+            model::draw_model(
+                model,
                 positioner.position_object(coord, false),
                 false,
                 &RenderProperties {
@@ -167,7 +179,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
                 },
                 &DEFAULT_AFTIK_COLOR,
             );
-            aftik_model.draw(
+            model::draw_model(
+                aftik_model,
                 positioner.position_object(coord, true),
                 false,
                 &RenderProperties {
@@ -185,7 +198,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
         .any(|layer| layer.conditions.if_cut.is_some())
     {
         bidirectional(|direction| {
-            model.draw(
+            model::draw_model(
+                model,
                 positioner.position_object(get_and_move_coord(), false),
                 false,
                 &RenderProperties {
@@ -204,7 +218,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
         .any(|layer| layer.conditions.if_hurt.is_some())
     {
         bidirectional(|direction| {
-            model.draw(
+            model::draw_model(
+                model,
                 positioner.position_object(get_and_move_coord(), false),
                 false,
                 &RenderProperties {
@@ -223,7 +238,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
         .any(|layer| layer.conditions.if_alive.is_some())
     {
         bidirectional(|direction| {
-            model.draw(
+            model::draw_model(
+                model,
                 positioner.position_object(get_and_move_coord(), false),
                 false,
                 &RenderProperties {
@@ -239,7 +255,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
     if raw_model.wield_offset != (0, 0) {
         bidirectional(|direction| {
             let pos = positioner.position_object(get_and_move_coord(), false);
-            aftik_model.draw(
+            model::draw_model(
+                aftik_model,
                 pos,
                 false,
                 &RenderProperties {
@@ -248,7 +265,8 @@ fn draw_examples(raw_model: &RawModel, model: &Model, aftik_model: &Model) -> Co
                 },
                 &DEFAULT_AFTIK_COLOR,
             );
-            model.draw(
+            model::draw_model(
+                model,
                 pos,
                 true,
                 &RenderProperties {
@@ -270,7 +288,7 @@ fn bidirectional(mut closure: impl FnMut(Direction)) {
 
 fn side_panel(
     ctx: &egui::Context,
-    model: &mut RawModel,
+    model: &mut Model<String>,
     selected_layer: &mut usize,
     path: impl AsRef<Path>,
     textures: &mut CachedTextures,
@@ -378,7 +396,7 @@ fn add_option_condition_combo_box(
         });
 }
 
-fn save_model(model: &RawModel, path: impl AsRef<Path>) {
+fn save_model(model: &Model<String>, path: impl AsRef<Path>) {
     let file = File::create(path).unwrap();
     serde_json_pretty::to_writer(file, model).unwrap();
 }

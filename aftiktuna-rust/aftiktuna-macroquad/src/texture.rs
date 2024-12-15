@@ -63,7 +63,7 @@ pub fn draw_object(
             lookup_or_log_aftik_color(aftik_color, &mut assets.aftik_colors)
         });
 
-    model.draw(pos, use_wield_offset, properties, &aftik_color_data);
+    model::draw_model(model, pos, use_wield_offset, properties, &aftik_color_data);
 }
 
 pub fn load_texture(name: impl AsRef<str>) -> Result<Texture2D, io::Error> {
