@@ -32,7 +32,7 @@ impl LazilyLoadedModels {
 
 #[derive(Clone)]
 pub struct Model {
-    layers: Vec<TextureLayer>,
+    layers: Vec<TextureLayer<Texture2D>>,
     wield_offset: Vec2,
     is_mounted: bool,
 }
@@ -45,9 +45,9 @@ impl Model {
     pub fn get_rect(&self, pos: Vec2, properties: &RenderProperties) -> Rect {
         self.layers
             .iter()
-            .filter(|&layer| layer.condition.meets_conditions(properties))
+            .filter(|&layer| layer.conditions.meets_conditions(properties))
             .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
-                rect.combine_with(layer.size(pos))
+                rect.combine_with(layer_size(layer, pos))
             })
     }
 
@@ -67,56 +67,51 @@ impl Model {
             }
         }
         for layer in &self.layers {
-            layer.draw(pos, properties, aftik_color_data);
+            draw_layer(layer, pos, properties, aftik_color_data);
         }
     }
 }
 
-#[derive(Clone)]
-struct TextureLayer {
-    texture: Texture2D,
-    color: ColorSource,
-    positioning: LayerPositioning,
-    condition: LayerCondition,
+fn draw_layer(
+    layer: &TextureLayer<Texture2D>,
+    pos: Vec2,
+    properties: &RenderProperties,
+    aftik_color_data: &AftikColorData,
+) {
+    if !layer.conditions.meets_conditions(properties) {
+        return;
+    }
+
+    let dest_size = layer.positioning.dest_size(&layer.texture);
+    let x = pos.x - dest_size.x / 2.;
+    let y = pos.y + f32::from(layer.positioning.y_offset) - dest_size.y;
+    let color = layer.color.get_color(aftik_color_data);
+    texture::draw_texture_ex(
+        &layer.texture,
+        x,
+        y,
+        Color::from_rgba(color.r, color.g, color.b, 255),
+        DrawTextureParams {
+            dest_size: Some(dest_size),
+            flip_x: !layer.positioning.fixed && properties.direction == Direction::Left,
+            ..Default::default()
+        },
+    );
 }
 
-impl TextureLayer {
-    fn draw(&self, pos: Vec2, properties: &RenderProperties, aftik_color_data: &AftikColorData) {
-        if !self.condition.meets_conditions(properties) {
-            return;
-        }
-
-        let dest_size = self.positioning.dest_size(&self.texture);
-        let x = pos.x - dest_size.x / 2.;
-        let y = pos.y + f32::from(self.positioning.y_offset) - dest_size.y;
-        let color = self.color.get_color(aftik_color_data);
-        texture::draw_texture_ex(
-            &self.texture,
-            x,
-            y,
-            Color::from_rgba(color.r, color.g, color.b, 255),
-            DrawTextureParams {
-                dest_size: Some(dest_size),
-                flip_x: !self.positioning.fixed && properties.direction == Direction::Left,
-                ..Default::default()
-            },
-        );
-    }
-
-    fn size(&self, pos: Vec2) -> Rect {
-        let dest_size = self.positioning.dest_size(&self.texture);
-        Rect::new(
-            pos.x - dest_size.x / 2.,
-            pos.y - dest_size.y + f32::from(self.positioning.y_offset),
-            dest_size.x,
-            dest_size.y,
-        )
-    }
+fn layer_size(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
+    let dest_size = layer.positioning.dest_size(&layer.texture);
+    Rect::new(
+        pos.x - dest_size.x / 2.,
+        pos.y - dest_size.y + f32::from(layer.positioning.y_offset),
+        dest_size.x,
+        dest_size.y,
+    )
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct RawModel {
-    pub layers: Vec<RawTextureLayer>,
+    pub layers: Vec<TextureLayer<String>>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub wield_offset: (i16, i16),
     #[serde(default, skip_serializing_if = "crate::is_default")]
@@ -141,9 +136,9 @@ impl RawModel {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct RawTextureLayer {
-    pub texture: String,
+#[derive(Clone, Serialize, Deserialize)]
+pub struct TextureLayer<T> {
+    pub texture: T,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub color: ColorSource,
     #[serde(flatten)]
@@ -152,18 +147,18 @@ pub struct RawTextureLayer {
     pub conditions: LayerCondition,
 }
 
-impl RawTextureLayer {
+impl TextureLayer<String> {
     pub fn texture_path(&self) -> String {
         format!("object/{}", self.texture)
     }
 
-    fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<TextureLayer, E> {
+    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<TextureLayer<T>, E> {
         let texture = loader.load_texture(self.texture_path())?;
         Ok(TextureLayer {
             texture,
             color: self.color,
             positioning: self.positioning.clone(),
-            condition: self.conditions.clone(),
+            conditions: self.conditions.clone(),
         })
     }
 }
