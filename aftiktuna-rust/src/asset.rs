@@ -59,6 +59,63 @@ pub mod color {
     }
 }
 
+pub(crate) mod loot {
+    use crate::core::item;
+    use rand::distributions::WeightedIndex;
+    use rand::Rng;
+    use serde::{Deserialize, Serialize};
+    use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
+
+    #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    pub(crate) struct LootTableId(String);
+
+    #[derive(Debug, Deserialize)]
+    struct LootEntry {
+        item: item::Type,
+        weight: u16,
+    }
+
+    pub(crate) struct LootTable {
+        entries: Vec<LootEntry>,
+        index_distribution: WeightedIndex<u16>,
+    }
+
+    impl LootTable {
+        fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
+            let entries: Vec<LootEntry> =
+                super::load_json_simple(format!("loot_table/{name}.json"))?;
+            let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
+                .map_err(|error| error.to_string())?;
+            Ok(Self {
+                entries,
+                index_distribution,
+            })
+        }
+
+        pub(crate) fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
+            self.entries[rng.sample(&self.index_distribution)].item
+        }
+    }
+
+    #[derive(Default)]
+    pub(crate) struct LootTableCache(HashMap<LootTableId, LootTable>);
+
+    impl LootTableCache {
+        pub(crate) fn get_or_load(
+            &mut self,
+            loot_table_id: &LootTableId,
+        ) -> Result<&LootTable, String> {
+            match self.0.entry(loot_table_id.clone()) {
+                HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
+                HashMapEntry::Vacant(entry) => {
+                    let loot_table = LootTable::load(loot_table_id)?;
+                    Ok(entry.insert(loot_table))
+                }
+            }
+        }
+    }
+}
+
 use serde::de::DeserializeOwned;
 use std::fmt::Display;
 use std::fs::File;

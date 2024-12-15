@@ -1,5 +1,5 @@
 use super::LocationGenContext;
-use crate::asset;
+use crate::asset::{self, loot};
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
@@ -15,8 +15,8 @@ pub mod creature;
 pub mod door;
 
 mod container {
-    use super::loot::LootTableId;
     use super::Builder;
+    use crate::asset::loot::LootTableId;
     use crate::core::display::{ModelId, OrderWeight, Symbol};
     use crate::core::inventory::{Container, Held};
     use crate::core::item;
@@ -104,61 +104,6 @@ mod container {
                 entry.generate(container, builder)?;
             }
             Ok(())
-        }
-    }
-}
-
-mod loot {
-    use crate::asset;
-    use crate::core::item;
-    use rand::distributions::WeightedIndex;
-    use rand::Rng;
-    use serde::{Deserialize, Serialize};
-    use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
-
-    #[derive(Debug, Deserialize)]
-    struct LootEntry {
-        item: item::Type,
-        weight: u16,
-    }
-
-    #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub struct LootTableId(String);
-
-    pub struct LootTable {
-        entries: Vec<LootEntry>,
-        index_distribution: WeightedIndex<u16>,
-    }
-
-    impl LootTable {
-        fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
-            let entries: Vec<LootEntry> =
-                asset::load_json_simple(format!("loot_table/{name}.json"))?;
-            let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
-                .map_err(|error| error.to_string())?;
-            Ok(Self {
-                entries,
-                index_distribution,
-            })
-        }
-
-        pub fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
-            self.entries[rng.sample(&self.index_distribution)].item
-        }
-    }
-
-    #[derive(Default)]
-    pub struct LootTableCache(HashMap<LootTableId, LootTable>);
-
-    impl LootTableCache {
-        pub fn get_or_load(&mut self, loot_table_id: &LootTableId) -> Result<&LootTable, String> {
-            match self.0.entry(loot_table_id.clone()) {
-                HashMapEntry::Occupied(entry) => Ok(entry.into_mut()),
-                HashMapEntry::Vacant(entry) => {
-                    let loot_table = LootTable::load(loot_table_id)?;
-                    Ok(entry.insert(loot_table))
-                }
-            }
         }
     }
 }
