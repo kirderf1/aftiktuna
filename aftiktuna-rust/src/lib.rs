@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 mod action;
 mod ai;
+pub mod asset;
 mod command;
 pub mod core;
 pub mod game_interface;

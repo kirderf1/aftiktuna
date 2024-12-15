@@ -1,12 +1,11 @@
+use aftiktuna::asset;
+use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
-use egui::Color32;
-use macroquad::color::Color;
 use macroquad::math::Vec2;
 use macroquad::prelude::ImageFormat;
 use macroquad::texture::Texture2D;
-use serde::{Deserialize, Serialize};
 use serde_json::Error as JsonError;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -45,8 +44,8 @@ fn lookup_or_log_aftik_color(
         .cloned()
         .unwrap_or_else(|| {
             eprintln!("Missing aftik color data for color {aftik_color:?}!");
-            aftik_colors_map.insert(aftik_color.clone(), DEFAULT_COLOR);
-            DEFAULT_COLOR
+            aftik_colors_map.insert(aftik_color.clone(), color::DEFAULT_COLOR);
+            color::DEFAULT_COLOR
         })
 }
 
@@ -61,47 +60,11 @@ pub fn draw_object(
     let aftik_color_data = properties
         .aftik_color
         .as_ref()
-        .map_or(DEFAULT_COLOR, |aftik_color| {
+        .map_or(color::DEFAULT_COLOR, |aftik_color| {
             lookup_or_log_aftik_color(aftik_color, &mut assets.aftik_colors)
         });
 
     model.draw(pos, use_wield_offset, properties, &aftik_color_data);
-}
-
-pub const DEFAULT_COLOR: AftikColorData = AftikColorData {
-    primary_color: RGBColor::new(255, 255, 255),
-    secondary_color: RGBColor::new(0, 0, 0),
-};
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct AftikColorData {
-    pub primary_color: RGBColor,
-    pub secondary_color: RGBColor,
-}
-
-#[derive(Clone, Copy, Serialize, Deserialize)]
-pub struct RGBColor {
-    r: u8,
-    g: u8,
-    b: u8,
-}
-
-impl RGBColor {
-    pub const fn new(r: u8, g: u8, b: u8) -> Self {
-        Self { r, g, b }
-    }
-}
-
-impl From<RGBColor> for Color {
-    fn from(RGBColor { r, g, b }: RGBColor) -> Self {
-        Color::from_rgba(r, g, b, 255)
-    }
-}
-
-impl From<RGBColor> for Color32 {
-    fn from(RGBColor { r, g, b }: RGBColor) -> Self {
-        Color32::from_rgb(r, g, b)
-    }
 }
 
 pub fn load_texture(name: impl AsRef<str>) -> Result<Texture2D, io::Error> {
@@ -161,6 +124,15 @@ impl From<JsonError> for Error {
     }
 }
 
+impl From<asset::Error> for Error {
+    fn from(value: asset::Error) -> Self {
+        match value {
+            asset::Error::IO(error) => Self::IO(error),
+            asset::Error::Json(error) => Self::Json(error),
+        }
+    }
+}
+
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -177,18 +149,8 @@ pub fn load_assets() -> Result<RenderAssets, Error> {
     Ok(RenderAssets {
         backgrounds: background::load_backgrounds()?,
         models: model::prepare()?,
-        aftik_colors: load_aftik_color_data()?,
+        aftik_colors: color::load_aftik_color_data()?,
         left_mouse_icon: load_texture("left_mouse")?,
         side_arrow: load_texture("side_arrow")?,
     })
-}
-
-pub const AFTIK_COLORS_PATH: &str = "assets/aftik_colors.json";
-
-pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorData>, Error> {
-    let file = File::open(AFTIK_COLORS_PATH)?;
-    Ok(serde_json::from_reader::<
-        _,
-        HashMap<AftikColorId, AftikColorData>,
-    >(file)?)
 }

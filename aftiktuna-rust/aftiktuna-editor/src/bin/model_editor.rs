@@ -2,15 +2,14 @@ use std::fs::{self, File};
 use std::path::Path;
 use std::process::exit;
 
+use aftiktuna::asset::color::{AftikColorData, ColorSource, RGBColor};
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna_macroquad::egui::EguiWrapper;
-use aftiktuna_macroquad::texture::model::{ColorSource, Model, RawModel};
-use aftiktuna_macroquad::texture::{
-    background, model, AftikColorData, CachedTextures, RGBColor, TextureLoader,
-};
+use aftiktuna_macroquad::texture::model::{Model, RawModel};
+use aftiktuna_macroquad::texture::{background, model, CachedTextures, TextureLoader};
 use macroquad::window::Conf;
 use macroquad::{color, window};
 

@@ -1,6 +1,4 @@
-use std::fs::File;
-use std::process::exit;
-
+use aftiktuna::asset::color;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
@@ -8,10 +6,12 @@ use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::background::RawBGData;
-use aftiktuna_macroquad::texture::{self, background, model, CachedTextures, LazilyLoadedModels};
+use aftiktuna_macroquad::texture::{background, model, CachedTextures, LazilyLoadedModels};
 use indexmap::IndexMap;
-use macroquad::color;
+use macroquad::color as mq_color;
 use macroquad::window::{self, Conf};
+use std::fs::File;
+use std::process::exit;
 
 fn config() -> Conf {
     Conf {
@@ -42,7 +42,7 @@ async fn main() {
     let mut egui = EguiWrapper::init();
 
     loop {
-        window::clear_background(color::BLACK);
+        window::clear_background(mq_color::BLACK);
 
         let mut is_mouse_over_panel = false;
         egui.ui(|ctx| {
@@ -86,7 +86,7 @@ fn draw_example_content(
             pos,
             false,
             &RenderProperties::default(),
-            &texture::DEFAULT_COLOR,
+            &color::DEFAULT_COLOR,
         );
     };
 

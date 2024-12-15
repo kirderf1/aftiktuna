@@ -1,16 +1,15 @@
-use std::fs::File;
-use std::mem::take;
-use std::process::exit;
-
+use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::egui::EguiWrapper;
-use aftiktuna_macroquad::texture::model::Model;
-use aftiktuna_macroquad::texture::{self, model, AftikColorData, RGBColor};
+use aftiktuna_macroquad::texture::model::{self, Model};
 use indexmap::IndexMap;
-use macroquad::color;
+use macroquad::color as mq_color;
 use macroquad::math::Vec2;
 use macroquad::window::{self, Conf};
+use std::fs::File;
+use std::mem::take;
+use std::process::exit;
 
 fn config() -> Conf {
     Conf {
@@ -47,7 +46,7 @@ async fn main() {
     let mut egui = EguiWrapper::init();
 
     loop {
-        window::clear_background(color::LIGHTGRAY);
+        window::clear_background(mq_color::LIGHTGRAY);
 
         egui.ui(|ctx| {
             side_panel(
@@ -67,7 +66,7 @@ async fn main() {
 }
 
 fn load_aftik_colors_ordered() -> AftikColorMap {
-    let file = File::open(texture::AFTIK_COLORS_PATH).expect("Unable to open aftik color file");
+    let file = File::open(color::AFTIK_COLORS_PATH).expect("Unable to open aftik color file");
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load aftik color data")
 }
 
@@ -179,17 +178,17 @@ fn init_new_color(
     aftik_colors: &mut AftikColorMap,
 ) {
     if !aftik_colors.contains_key(&new_id) {
-        *selected_index = aftik_colors.insert_full(new_id, texture::DEFAULT_COLOR).0;
+        *selected_index = aftik_colors.insert_full(new_id, color::DEFAULT_COLOR).0;
     }
 }
 
 fn color_picker(ui: &mut egui::Ui, color: &mut RGBColor) {
-    let mut color32 = (*color).into();
+    let mut color32 = egui::Color32::from_rgb(color.r, color.g, color.b);
     egui::color_picker::color_picker_color32(ui, &mut color32, egui::color_picker::Alpha::Opaque);
     *color = RGBColor::new(color32.r(), color32.g(), color32.b());
 }
 
 fn save_map(aftik_colors: &mut AftikColorMap) {
-    let file = File::create(texture::AFTIK_COLORS_PATH).unwrap();
+    let file = File::create(color::AFTIK_COLORS_PATH).unwrap();
     serde_json_pretty::to_writer(file, aftik_colors).unwrap();
 }

@@ -1,12 +1,12 @@
-use macroquad::color::{self, Color};
-use macroquad::math::{Rect, Vec2};
-use macroquad::texture::{self, DrawTextureParams, Texture2D};
-use serde::{Deserialize, Serialize};
-
-use super::{AftikColorData, Error, TextureLoader};
+use super::{Error, TextureLoader};
+use aftiktuna::asset::color::{AftikColorData, ColorSource};
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use macroquad::color::Color;
+use macroquad::math::{Rect, Vec2};
+use macroquad::texture::{self, DrawTextureParams, Texture2D};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
@@ -89,11 +89,12 @@ impl TextureLayer {
         let dest_size = self.positioning.dest_size(&self.texture);
         let x = pos.x - dest_size.x / 2.;
         let y = pos.y + f32::from(self.positioning.y_offset) - dest_size.y;
+        let color = self.color.get_color(aftik_color_data);
         texture::draw_texture_ex(
             &self.texture,
             x,
             y,
-            self.color.get_color(aftik_color_data),
+            Color::from_rgba(color.r, color.g, color.b, 255),
             DrawTextureParams {
                 dest_size: Some(dest_size),
                 flip_x: !self.positioning.fixed && properties.direction == Direction::Left,
@@ -164,25 +165,6 @@ impl RawTextureLayer {
             positioning: self.positioning.clone(),
             condition: self.conditions.clone(),
         })
-    }
-}
-
-#[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ColorSource {
-    #[default]
-    Uncolored,
-    Primary,
-    Secondary,
-}
-
-impl ColorSource {
-    fn get_color(self, aftik_color_data: &AftikColorData) -> Color {
-        match self {
-            ColorSource::Uncolored => color::WHITE,
-            ColorSource::Primary => aftik_color_data.primary_color.into(),
-            ColorSource::Secondary => aftik_color_data.secondary_color.into(),
-        }
     }
 }
 
