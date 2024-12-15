@@ -6,6 +6,7 @@ use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
 use crate::action::{self, Action};
+use crate::asset::CrewData;
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
@@ -15,7 +16,7 @@ use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAction, Waiting};
 use crate::game_interface::{Phase, PhaseResult};
-use crate::location::{self, CrewData, GenerationState, PickResult};
+use crate::location::{self, GenerationState, PickResult};
 use crate::view::text::{self, CombinableMsgType, Messages};
 use crate::view::{self, Frame, StatusCache};
 use crate::{ai, command, serialization, StopType};

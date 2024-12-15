@@ -1,3 +1,7 @@
+use self::generate::creature;
+use self::generate::door::{self, DoorInfo};
+pub use self::generate::LocationData;
+use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
@@ -7,9 +11,6 @@ use crate::core::{inventory, item, CrewMember, Door, DoorKind, Waiting};
 use crate::game_loop::GameState;
 use crate::view::text::Messages;
 use crate::{asset, serialization};
-use generate::creature::{self, AftikProfile, ProfileOrRandom};
-use generate::door::{self, DoorInfo};
-pub use generate::LocationData;
 use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
 use rand::seq::index;
@@ -33,7 +34,7 @@ pub struct GenerationState {
 }
 
 fn load_profiles_or_default() -> Vec<AftikProfile> {
-    load_character_profiles().unwrap_or_else(|message| {
+    asset::load_character_profiles().unwrap_or_else(|message| {
         eprintln!("{message}");
         Vec::default()
     })
@@ -46,7 +47,7 @@ impl GenerationState {
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: locations_before_fortuna,
             },
-            character_profiles: load_character_profiles()?,
+            character_profiles: asset::load_character_profiles()?,
         })
     }
 
@@ -56,7 +57,7 @@ impl GenerationState {
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: 1,
             },
-            character_profiles: load_character_profiles()?,
+            character_profiles: asset::load_character_profiles()?,
         })
     }
 
@@ -205,25 +206,7 @@ pub struct Category {
     pub location_names: Vec<String>,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct CrewData {
-    points: i32,
-    crew: Vec<ProfileOrRandom>,
-}
-
-impl CrewData {
-    pub fn load_starting_crew() -> Result<CrewData, String> {
-        asset::load_json_simple("starting_crew.json")
-            .map_err(|message| format!("Problem loading \"starting_crew.json\": {message}"))
-    }
-}
-
-fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
-    asset::load_json_simple("character_profiles.json")
-        .map_err(|message| format!("Problem loading \"character_profiles.json\": {message}"))
-}
-
-pub fn spawn_starting_crew_and_ship(
+pub(crate) fn spawn_starting_crew_and_ship(
     world: &mut World,
     crew_data: CrewData,
     generation_state: &mut GenerationState,

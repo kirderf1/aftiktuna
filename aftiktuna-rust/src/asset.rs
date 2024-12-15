@@ -219,7 +219,11 @@ pub mod model {
     }
 }
 
+use crate::core::display::AftikColorId;
+use crate::core::status::{Stats, Traits};
+use rand::Rng;
 use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use std::fmt::Display;
 use std::fs::File;
 
@@ -249,4 +253,65 @@ pub(crate) fn load_json_simple<T: DeserializeOwned>(path: impl Display) -> Resul
     let file = File::open(format!("assets/{path}"))
         .map_err(|error| format!("Failed to open file: {error}"))?;
     serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {error}"))
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct AftikProfile {
+    pub name: String,
+    pub color: AftikColorId,
+    pub stats: Stats,
+    #[serde(default)]
+    pub traits: Traits,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub(crate) enum ProfileOrRandom {
+    #[default]
+    Random,
+    #[serde(untagged)]
+    Profile(AftikProfile),
+}
+
+impl ProfileOrRandom {
+    pub(crate) fn unwrap(
+        self,
+        character_profiles: &mut Vec<AftikProfile>,
+        rng: &mut impl Rng,
+    ) -> Option<AftikProfile> {
+        match self {
+            ProfileOrRandom::Random => remove_random_profile(character_profiles, rng),
+            ProfileOrRandom::Profile(profile) => Some(profile),
+        }
+    }
+}
+
+pub(crate) fn remove_random_profile(
+    character_profiles: &mut Vec<AftikProfile>,
+    rng: &mut impl Rng,
+) -> Option<AftikProfile> {
+    if character_profiles.is_empty() {
+        eprintln!("Tried picking a random profile, but there were none left to choose.");
+        return None;
+    }
+    let chosen_index = rng.gen_range(0..character_profiles.len());
+    Some(character_profiles.swap_remove(chosen_index))
+}
+
+pub(crate) fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
+    load_json_simple("character_profiles.json")
+        .map_err(|message| format!("Problem loading \"character_profiles.json\": {message}"))
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct CrewData {
+    pub points: i32,
+    pub crew: Vec<ProfileOrRandom>,
+}
+
+impl CrewData {
+    pub(crate) fn load_starting_crew() -> Result<CrewData, String> {
+        load_json_simple("starting_crew.json")
+            .map_err(|message| format!("Problem loading \"starting_crew.json\": {message}"))
+    }
 }

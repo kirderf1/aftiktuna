@@ -1,8 +1,9 @@
 use super::LocationGenContext;
+use crate::asset::{self, AftikProfile, ProfileOrRandom};
 use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
-use crate::core::status::{Health, Stamina, Stats, Traits};
+use crate::core::status::{Health, Stamina, Stats};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{item, CreatureAttribute, GivesHuntReward, Hostile, Recruitable, Tag};
 use hecs::{EntityBuilder, World};
@@ -154,49 +155,6 @@ impl CreatureSpawnData {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ProfileOrRandom {
-    #[default]
-    Random,
-    #[serde(untagged)]
-    Profile(AftikProfile),
-}
-
-impl ProfileOrRandom {
-    pub fn unwrap(
-        self,
-        character_profiles: &mut Vec<AftikProfile>,
-        rng: &mut impl Rng,
-    ) -> Option<AftikProfile> {
-        match self {
-            ProfileOrRandom::Random => remove_random_profile(character_profiles, rng),
-            ProfileOrRandom::Profile(profile) => Some(profile),
-        }
-    }
-}
-
-pub fn remove_random_profile(
-    character_profiles: &mut Vec<AftikProfile>,
-    rng: &mut impl Rng,
-) -> Option<AftikProfile> {
-    if character_profiles.is_empty() {
-        eprintln!("Tried picking a random profile, but there were none left to choose.");
-        return None;
-    }
-    let chosen_index = rng.gen_range(0..character_profiles.len());
-    Some(character_profiles.swap_remove(chosen_index))
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AftikProfile {
-    name: String,
-    color: AftikColorId,
-    stats: Stats,
-    #[serde(default)]
-    traits: Traits,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CharacterInteraction {
@@ -251,7 +209,7 @@ pub struct AftikCorpseData {
 impl AftikCorpseData {
     pub fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
         let Some(color) = self.color.clone().or_else(|| {
-            remove_random_profile(&mut gen_context.character_profiles, &mut gen_context.rng)
+            asset::remove_random_profile(&mut gen_context.character_profiles, &mut gen_context.rng)
                 .map(|profile| profile.color)
         }) else {
             return;
