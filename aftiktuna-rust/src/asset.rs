@@ -68,16 +68,47 @@ pub mod background {
     use std::fs::File;
 
     #[derive(Serialize, Deserialize)]
-    pub struct RawBGData {
+    pub struct BGData<T> {
         #[serde(flatten)]
-        pub primary: RawPrimaryBGData,
+        pub primary: PrimaryBGData<T>,
         #[serde(flatten)]
-        pub portrait: PortraitBGData<String>,
+        pub portrait: PortraitBGData<T>,
     }
 
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    #[serde(from = "ParallaxLayerOrList", into = "ParallaxLayerOrList")]
-    pub struct RawPrimaryBGData(pub Parallax<String>);
+    impl BGData<String> {
+        pub fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<BGData<T>, E> {
+            Ok(BGData {
+                primary: self.primary.load(loader)?,
+                portrait: self.portrait.load(loader)?,
+            })
+        }
+    }
+
+    #[derive(Debug, Clone, Deserialize)]
+    #[serde(from = "ParallaxLayerOrList<T>")]
+    pub struct PrimaryBGData<T>(pub Parallax<T>);
+
+    impl<T: Serialize> Serialize for PrimaryBGData<T> {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer,
+        {
+            if let [layer] = &self.0.layers[..] {
+                layer.serialize(serializer)
+            } else {
+                self.0.serialize(serializer)
+            }
+        }
+    }
+
+    impl PrimaryBGData<String> {
+        pub fn load<T, E>(
+            &self,
+            loader: &mut impl TextureLoader<T, E>,
+        ) -> Result<PrimaryBGData<T>, E> {
+            Ok(PrimaryBGData(self.0.load(loader)?))
+        }
+    }
 
     #[derive(Serialize, Deserialize)]
     pub enum PortraitBGData<T> {
@@ -103,13 +134,13 @@ pub mod background {
 
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(untagged)]
-    enum ParallaxLayerOrList {
-        Layer(ParallaxLayer<String>),
-        Parallax(Parallax<String>),
+    enum ParallaxLayerOrList<T> {
+        Layer(ParallaxLayer<T>),
+        Parallax(Parallax<T>),
     }
 
-    impl From<RawPrimaryBGData> for ParallaxLayerOrList {
-        fn from(RawPrimaryBGData(parallax): RawPrimaryBGData) -> Self {
+    impl<T> From<PrimaryBGData<T>> for ParallaxLayerOrList<T> {
+        fn from(PrimaryBGData(parallax): PrimaryBGData<T>) -> Self {
             if parallax.layers.len() != 1 {
                 Self::Parallax(parallax)
             } else {
@@ -118,8 +149,8 @@ pub mod background {
         }
     }
 
-    impl From<ParallaxLayerOrList> for RawPrimaryBGData {
-        fn from(value: ParallaxLayerOrList) -> Self {
+    impl<T> From<ParallaxLayerOrList<T>> for PrimaryBGData<T> {
+        fn from(value: ParallaxLayerOrList<T>) -> Self {
             Self(match value {
                 ParallaxLayerOrList::Layer(layer) => Parallax {
                     layers: vec![layer],
@@ -185,19 +216,20 @@ pub mod background {
 
     pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
 
-    pub fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Error> {
+    pub fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, BGData<String>>, super::Error> {
         let file = File::open(DATA_FILE_PATH)?;
         Ok(serde_json::from_reader::<
             _,
-            HashMap<BackgroundId, RawBGData>,
+            HashMap<BackgroundId, BGData<String>>,
         >(file)?)
     }
 
-    pub fn load_index_map_backgrounds() -> Result<IndexMap<BackgroundId, RawBGData>, super::Error> {
+    pub fn load_index_map_backgrounds(
+    ) -> Result<IndexMap<BackgroundId, BGData<String>>, super::Error> {
         let file = File::open(DATA_FILE_PATH)?;
         Ok(serde_json::from_reader::<
             _,
-            IndexMap<BackgroundId, RawBGData>,
+            IndexMap<BackgroundId, BGData<String>>,
         >(file)?)
     }
 

@@ -1,3 +1,5 @@
+pub use self::model::LazilyLoadedModels;
+use aftiktuna::asset::background::BGData;
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::{self, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
@@ -13,14 +15,11 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 
-use self::background::BGData;
-pub use self::model::LazilyLoadedModels;
-
 pub mod background;
 pub mod model;
 
 pub struct RenderAssets {
-    backgrounds: HashMap<BackgroundId, BGData>,
+    backgrounds: HashMap<BackgroundId, BGData<Texture2D>>,
     pub models: LazilyLoadedModels,
     aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: Texture2D,
@@ -28,7 +27,7 @@ pub struct RenderAssets {
 }
 
 impl RenderAssets {
-    pub fn lookup_background(&self, texture_id: &BackgroundId) -> &BGData {
+    pub fn lookup_background(&self, texture_id: &BackgroundId) -> &BGData<Texture2D> {
         self.backgrounds
             .get(texture_id)
             .unwrap_or_else(|| self.backgrounds.get(&BackgroundId::blank()).unwrap())

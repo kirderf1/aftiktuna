@@ -1,7 +1,6 @@
 use super::CachedTextures;
 use crate::camera::HorizontalDraggableCamera;
-use aftiktuna::asset::background::{self, Parallax, PortraitBGData, RawBGData, RawPrimaryBGData};
-use aftiktuna::asset::TextureLoader;
+use aftiktuna::asset::background::{self, BGData, PortraitBGData, PrimaryBGData};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::position::Coord;
 use macroquad::color::{self, Color};
@@ -11,46 +10,41 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::hash::Hash;
 
-pub struct BGData {
-    pub primary: PrimaryBGData,
-    pub portrait: PortraitBGData<Texture2D>,
-}
+pub fn draw_primary(
+    primary_data: &PrimaryBGData<Texture2D>,
+    offset: Coord,
+    camera: &HorizontalDraggableCamera,
+) {
+    fn draw_background_texture(texture: &Texture2D, x: f32, y: f32) {
+        texture::draw_texture(
+            texture,
+            x,
+            crate::WINDOW_HEIGHT_F - y - texture.height(),
+            color::WHITE,
+        );
+    }
 
-pub struct PrimaryBGData(Parallax<Texture2D>);
+    let offset = offset as f32 * 120.;
+    for layer in &primary_data.0.layers {
+        let layer_x =
+            f32::from(layer.offset.x) + camera.x_start * (1. - layer.move_factor) - offset;
+        let layer_y = f32::from(layer.offset.y);
+        let texture = &layer.texture;
 
-impl PrimaryBGData {
-    pub fn draw(&self, offset: Coord, camera: &HorizontalDraggableCamera) {
-        fn draw_background_texture(texture: &Texture2D, x: f32, y: f32) {
-            texture::draw_texture(
-                texture,
-                x,
-                crate::WINDOW_HEIGHT_F - y - texture.height(),
-                color::WHITE,
-            );
-        }
-
-        let offset = offset as f32 * 120.;
-        for layer in &self.0.layers {
-            let layer_x =
-                f32::from(layer.offset.x) + camera.x_start * (1. - layer.move_factor) - offset;
-            let layer_y = f32::from(layer.offset.y);
-            let texture = &layer.texture;
-
-            if layer.is_looping {
-                let repeat_start = f32::floor((camera.x_start - layer_x) / texture.width()) as i16;
-                let repeat_end = f32::floor(
-                    (camera.x_start + crate::WINDOW_WIDTH_F - layer_x) / texture.width(),
-                ) as i16;
-                for repeat_index in repeat_start..=repeat_end {
-                    draw_background_texture(
-                        texture,
-                        layer_x + texture.width() * f32::from(repeat_index),
-                        layer_y,
-                    );
-                }
-            } else {
-                draw_background_texture(texture, layer_x, layer_y);
+        if layer.is_looping {
+            let repeat_start = f32::floor((camera.x_start - layer_x) / texture.width()) as i16;
+            let repeat_end =
+                f32::floor((camera.x_start + crate::WINDOW_WIDTH_F - layer_x) / texture.width())
+                    as i16;
+            for repeat_index in repeat_start..=repeat_end {
+                draw_background_texture(
+                    texture,
+                    layer_x + texture.width() * f32::from(repeat_index),
+                    layer_y,
+                );
             }
+        } else {
+            draw_background_texture(texture, layer_x, layer_y);
         }
     }
 }
@@ -66,33 +60,12 @@ pub fn draw_portrait(portait_data: &PortraitBGData<Texture2D>) {
     }
 }
 
-pub fn load_bg_data<E>(
-    bg_data: &RawBGData,
-    loader: &mut impl TextureLoader<Texture2D, E>,
-) -> Result<BGData, E> {
-    Ok(BGData {
-        primary: load_primary(&bg_data.primary, loader)?,
-        portrait: bg_data.portrait.load(loader)?,
-    })
-}
-
-fn load_primary<E>(
-    primary_data: &RawPrimaryBGData,
-    loader: &mut impl TextureLoader<Texture2D, E>,
-) -> Result<PrimaryBGData, E> {
-    Ok(PrimaryBGData(primary_data.0.load(loader)?))
-}
-
-pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {
+pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData<Texture2D>>, super::Error> {
     let raw_backgrounds = background::load_raw_backgrounds()?;
     let mut textures = CachedTextures::default();
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
-        insert_or_log(
-            &mut backgrounds,
-            bg_type,
-            load_bg_data(&raw_data, &mut textures),
-        );
+        insert_or_log(&mut backgrounds, bg_type, raw_data.load(&mut textures));
     }
 
     backgrounds
@@ -117,14 +90,12 @@ fn insert_or_log<K: Eq + Hash, V, D: Display>(
     }
 }
 
-pub fn load_background_for_testing() -> PrimaryBGData {
-    load_primary(
-        &background::load_raw_backgrounds()
-            .unwrap()
-            .get(&BackgroundId::new("forest"))
-            .unwrap()
-            .primary,
-        &mut super::InPlaceLoader,
-    )
-    .unwrap()
+pub fn load_background_for_testing() -> PrimaryBGData<Texture2D> {
+    background::load_raw_backgrounds()
+        .unwrap()
+        .get(&BackgroundId::new("forest"))
+        .unwrap()
+        .primary
+        .load(&mut super::InPlaceLoader)
+        .unwrap()
 }

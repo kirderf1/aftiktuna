@@ -1,4 +1,4 @@
-use aftiktuna::asset::background::{self, RawBGData};
+use aftiktuna::asset::background::{self, BGData};
 use aftiktuna::asset::color;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
@@ -62,8 +62,8 @@ async fn main() {
         macroquad::camera::set_camera(&camera);
 
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
-        let loaded_background = mq_background::load_bg_data(raw_background, &mut textures).unwrap();
-        loaded_background.primary.draw(offset, &camera);
+        let loaded_background = raw_background.load(&mut textures).unwrap();
+        mq_background::draw_primary(&loaded_background.primary, offset, &camera);
 
         draw_example_content(example_content_type, area_size, &mut models);
 
@@ -155,7 +155,7 @@ fn display_parameters_ui(
 fn background_editor_ui(
     selected_bg: &mut usize,
     selected_layer: &mut usize,
-    backgrounds: &mut IndexMap<BackgroundId, RawBGData>,
+    backgrounds: &mut IndexMap<BackgroundId, BGData<String>>,
     ui: &mut egui::Ui,
 ) {
     let response = egui::ComboBox::from_id_source("background_id")

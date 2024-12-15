@@ -94,17 +94,21 @@ fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut Re
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction | Frame::Error(_) => {
             mq_camera::set_default_camera();
-            assets
-                .lookup_background(&BackgroundId::location_choice())
-                .primary
-                .draw(0, &HorizontalDraggableCamera::default());
+            background::draw_primary(
+                &assets
+                    .lookup_background(&BackgroundId::location_choice())
+                    .primary,
+                0,
+                &HorizontalDraggableCamera::default(),
+            );
         }
         Frame::AreaView { render_data, .. } => {
             mq_camera::set_camera(camera);
-            assets
-                .lookup_background(&render_data.background)
-                .primary
-                .draw(render_data.background_offset.unwrap_or(0), camera);
+            background::draw_primary(
+                &assets.lookup_background(&render_data.background).primary,
+                render_data.background_offset.unwrap_or(0),
+                camera,
+            );
 
             draw_objects(render_data, assets);
 
