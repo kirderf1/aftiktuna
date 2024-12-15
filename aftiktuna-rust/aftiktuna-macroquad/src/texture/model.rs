@@ -47,7 +47,7 @@ impl Model {
             .iter()
             .filter(|&layer| layer.conditions.meets_conditions(properties))
             .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
-                rect.combine_with(layer_size(layer, pos))
+                rect.combine_with(layer_render_rect(layer, pos))
             })
     }
 
@@ -82,25 +82,27 @@ fn draw_layer(
         return;
     }
 
-    let dest_size = layer.positioning.dest_size(&layer.texture);
-    let x = pos.x - dest_size.x / 2.;
-    let y = pos.y + f32::from(layer.positioning.y_offset) - dest_size.y;
+    let render_rect = layer_render_rect(layer, pos);
     let color = layer.color.get_color(aftik_color_data);
     texture::draw_texture_ex(
         &layer.texture,
-        x,
-        y,
+        render_rect.x,
+        render_rect.y,
         Color::from_rgba(color.r, color.g, color.b, 255),
         DrawTextureParams {
-            dest_size: Some(dest_size),
+            dest_size: Some(render_rect.size()),
             flip_x: !layer.positioning.fixed && properties.direction == Direction::Left,
             ..Default::default()
         },
     );
 }
 
-fn layer_size(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
-    let dest_size = layer.positioning.dest_size(&layer.texture);
+fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
+    let dest_size = layer
+        .positioning
+        .size
+        .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
+        .unwrap_or_else(|| layer.texture.size());
     Rect::new(
         pos.x - dest_size.x / 2.,
         pos.y - dest_size.y + f32::from(layer.positioning.y_offset),
@@ -171,14 +173,6 @@ pub struct LayerPositioning {
     pub y_offset: i16,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub fixed: bool,
-}
-
-impl LayerPositioning {
-    fn dest_size(&self, texture: &Texture2D) -> Vec2 {
-        self.size
-            .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
-            .unwrap_or_else(|| Vec2::new(texture.width(), texture.height()))
-    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
