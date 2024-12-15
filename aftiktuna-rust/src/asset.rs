@@ -59,6 +59,142 @@ pub mod color {
     }
 }
 
+pub mod background {
+    use super::TextureLoader;
+    use crate::core::area::BackgroundId;
+    use indexmap::IndexMap;
+    use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
+    use std::fs::File;
+
+    #[derive(Serialize, Deserialize)]
+    pub struct RawBGData {
+        #[serde(flatten)]
+        pub primary: RawPrimaryBGData,
+        #[serde(flatten)]
+        pub portrait: RawPortraitBGData,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(from = "ParallaxLayerOrList", into = "ParallaxLayerOrList")]
+    pub struct RawPrimaryBGData(pub Parallax<String>);
+
+    #[derive(Serialize, Deserialize)]
+    pub enum RawPortraitBGData {
+        #[serde(rename = "portrait_color")]
+        Color([u8; 3]),
+        #[serde(rename = "portrait_texture")]
+        Texture(String),
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(untagged)]
+    enum ParallaxLayerOrList {
+        Layer(ParallaxLayer<String>),
+        Parallax(Parallax<String>),
+    }
+
+    impl From<RawPrimaryBGData> for ParallaxLayerOrList {
+        fn from(RawPrimaryBGData(parallax): RawPrimaryBGData) -> Self {
+            if parallax.layers.len() != 1 {
+                Self::Parallax(parallax)
+            } else {
+                Self::Layer(parallax.layers.into_iter().next().unwrap())
+            }
+        }
+    }
+
+    impl From<ParallaxLayerOrList> for RawPrimaryBGData {
+        fn from(value: ParallaxLayerOrList) -> Self {
+            Self(match value {
+                ParallaxLayerOrList::Layer(layer) => Parallax {
+                    layers: vec![layer],
+                },
+                ParallaxLayerOrList::Parallax(parallax) => parallax,
+            })
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Parallax<T> {
+        pub layers: Vec<ParallaxLayer<T>>,
+    }
+
+    impl Parallax<String> {
+        pub fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<Parallax<T>, E> {
+            Ok(Parallax {
+                layers: self
+                    .layers
+                    .iter()
+                    .map(|layer| layer.load(loader))
+                    .collect::<Result<_, _>>()?,
+            })
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct ParallaxLayer<T> {
+        pub texture: T,
+        #[serde(default = "default_move_factor")]
+        pub move_factor: f32,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub is_looping: bool,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub offset: Offset,
+    }
+
+    fn default_move_factor() -> f32 {
+        1.
+    }
+
+    impl ParallaxLayer<String> {
+        pub fn load<T, E>(
+            &self,
+            loader: &mut impl TextureLoader<T, E>,
+        ) -> Result<ParallaxLayer<T>, E> {
+            Ok(ParallaxLayer {
+                texture: load_texture(&self.texture, loader)?,
+                move_factor: self.move_factor,
+                is_looping: self.is_looping,
+                offset: self.offset,
+            })
+        }
+    }
+
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+    pub struct Offset {
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub x: i16,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub y: i16,
+    }
+
+    pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
+
+    pub fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Error> {
+        let file = File::open(DATA_FILE_PATH)?;
+        Ok(serde_json::from_reader::<
+            _,
+            HashMap<BackgroundId, RawBGData>,
+        >(file)?)
+    }
+
+    pub fn load_index_map_backgrounds() -> Result<IndexMap<BackgroundId, RawBGData>, super::Error> {
+        let file = File::open(DATA_FILE_PATH)?;
+        Ok(serde_json::from_reader::<
+            _,
+            IndexMap<BackgroundId, RawBGData>,
+        >(file)?)
+    }
+
+    pub fn load_texture<T, E>(
+        texture: &str,
+        loader: &mut impl TextureLoader<T, E>,
+    ) -> Result<T, E> {
+        loader.load_texture(format!("background/{texture}"))
+    }
+}
+
 pub(crate) mod loot {
     use crate::core::item;
     use rand::distributions::WeightedIndex;

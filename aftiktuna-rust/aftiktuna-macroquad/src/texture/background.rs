@@ -1,19 +1,17 @@
 use super::CachedTextures;
 use crate::camera::HorizontalDraggableCamera;
+use aftiktuna::asset::background::{
+    self, Parallax, RawBGData, RawPortraitBGData, RawPrimaryBGData,
+};
 use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::position::Coord;
-use indexmap::IndexMap;
 use macroquad::color::{self, Color};
 use macroquad::texture::{self, Texture2D};
 use macroquad::window;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::fs::File;
 use std::hash::Hash;
-
-pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
 
 pub struct BGData {
     pub primary: PrimaryBGData,
@@ -75,155 +73,47 @@ impl PortraitBGData {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct RawBGData {
-    #[serde(flatten)]
-    pub primary: RawPrimaryBGData,
-    #[serde(flatten)]
-    portrait: RawPortraitBGData,
+pub fn load_bg_data<E>(
+    bg_data: &RawBGData,
+    loader: &mut impl TextureLoader<Texture2D, E>,
+) -> Result<BGData, E> {
+    Ok(BGData {
+        primary: load_primary(&bg_data.primary, loader)?,
+        portrait: load_portrait(&bg_data.portrait, loader)?,
+    })
 }
 
-impl RawBGData {
-    pub fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<BGData, E> {
-        Ok(BGData {
-            primary: self.primary.load(loader)?,
-            portrait: self.portrait.load(loader)?,
-        })
-    }
+fn load_primary<E>(
+    primary_data: &RawPrimaryBGData,
+    loader: &mut impl TextureLoader<Texture2D, E>,
+) -> Result<PrimaryBGData, E> {
+    Ok(PrimaryBGData(primary_data.0.load(loader)?))
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(from = "ParallaxLayerOrList", into = "ParallaxLayerOrList")]
-pub struct RawPrimaryBGData(pub Parallax<String>);
-
-impl RawPrimaryBGData {
-    fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<PrimaryBGData, E> {
-        Ok(PrimaryBGData(self.0.load(loader)?))
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum ParallaxLayerOrList {
-    Layer(ParallaxLayer<String>),
-    Parallax(Parallax<String>),
-}
-
-impl From<RawPrimaryBGData> for ParallaxLayerOrList {
-    fn from(RawPrimaryBGData(parallax): RawPrimaryBGData) -> Self {
-        if parallax.layers.len() != 1 {
-            Self::Parallax(parallax)
-        } else {
-            Self::Layer(parallax.layers.into_iter().next().unwrap())
+fn load_portrait<E>(
+    portait_data: &RawPortraitBGData,
+    loader: &mut impl TextureLoader<Texture2D, E>,
+) -> Result<PortraitBGData, E> {
+    Ok(match portait_data {
+        RawPortraitBGData::Color(color) => {
+            PortraitBGData::Color([color[0], color[1], color[2], 255].into())
         }
-    }
-}
-
-impl From<ParallaxLayerOrList> for RawPrimaryBGData {
-    fn from(value: ParallaxLayerOrList) -> Self {
-        Self(match value {
-            ParallaxLayerOrList::Layer(layer) => Parallax {
-                layers: vec![layer],
-            },
-            ParallaxLayerOrList::Parallax(parallax) => parallax,
-        })
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Parallax<T> {
-    pub layers: Vec<ParallaxLayer<T>>,
-}
-
-impl Parallax<String> {
-    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<Parallax<T>, E> {
-        Ok(Parallax {
-            layers: self
-                .layers
-                .iter()
-                .map(|layer| layer.load(loader))
-                .collect::<Result<_, _>>()?,
-        })
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ParallaxLayer<T> {
-    pub texture: T,
-    #[serde(default = "default_move_factor")]
-    pub move_factor: f32,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub is_looping: bool,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub offset: Offset,
-}
-
-fn default_move_factor() -> f32 {
-    1.
-}
-
-impl ParallaxLayer<String> {
-    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<ParallaxLayer<T>, E> {
-        Ok(ParallaxLayer {
-            texture: load_texture(&self.texture, loader)?,
-            move_factor: self.move_factor,
-            is_looping: self.is_looping,
-            offset: self.offset,
-        })
-    }
-}
-
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Offset {
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub x: i16,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub y: i16,
-}
-
-#[derive(Serialize, Deserialize)]
-enum RawPortraitBGData {
-    #[serde(rename = "portrait_color")]
-    Color([u8; 3]),
-    #[serde(rename = "portrait_texture")]
-    Texture(String),
-}
-
-impl RawPortraitBGData {
-    fn load<E>(&self, loader: &mut impl TextureLoader<Texture2D, E>) -> Result<PortraitBGData, E> {
-        Ok(match self {
-            RawPortraitBGData::Color(color) => {
-                PortraitBGData::Color([color[0], color[1], color[2], 255].into())
-            }
-            RawPortraitBGData::Texture(texture) => {
-                PortraitBGData::Texture(load_texture(texture, loader)?)
-            }
-        })
-    }
-}
-
-fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, RawBGData>, super::Error> {
-    let file = File::open(DATA_FILE_PATH)?;
-    Ok(serde_json::from_reader::<
-        _,
-        HashMap<BackgroundId, RawBGData>,
-    >(file)?)
-}
-
-pub fn load_index_map_backgrounds() -> Result<IndexMap<BackgroundId, RawBGData>, super::Error> {
-    let file = File::open(DATA_FILE_PATH)?;
-    Ok(serde_json::from_reader::<
-        _,
-        IndexMap<BackgroundId, RawBGData>,
-    >(file)?)
+        RawPortraitBGData::Texture(texture) => {
+            PortraitBGData::Texture(background::load_texture(texture, loader)?)
+        }
+    })
 }
 
 pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {
-    let raw_backgrounds = load_raw_backgrounds()?;
+    let raw_backgrounds = background::load_raw_backgrounds()?;
     let mut textures = CachedTextures::default();
     let mut backgrounds = HashMap::new();
     for (bg_type, raw_data) in raw_backgrounds {
-        insert_or_log(&mut backgrounds, bg_type, raw_data.load(&mut textures));
+        insert_or_log(
+            &mut backgrounds,
+            bg_type,
+            load_bg_data(&raw_data, &mut textures),
+        );
     }
 
     backgrounds
@@ -249,15 +139,13 @@ fn insert_or_log<K: Eq + Hash, V, D: Display>(
 }
 
 pub fn load_background_for_testing() -> PrimaryBGData {
-    load_raw_backgrounds()
-        .unwrap()
-        .get(&BackgroundId::new("forest"))
-        .unwrap()
-        .primary
-        .load(&mut super::InPlaceLoader)
-        .unwrap()
-}
-
-fn load_texture<T, E>(texture: &str, loader: &mut impl TextureLoader<T, E>) -> Result<T, E> {
-    loader.load_texture(format!("background/{texture}"))
+    load_primary(
+        &background::load_raw_backgrounds()
+            .unwrap()
+            .get(&BackgroundId::new("forest"))
+            .unwrap()
+            .primary,
+        &mut super::InPlaceLoader,
+    )
+    .unwrap()
 }

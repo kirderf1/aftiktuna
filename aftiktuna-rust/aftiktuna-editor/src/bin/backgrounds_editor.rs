@@ -1,3 +1,4 @@
+use aftiktuna::asset::background::{self, RawBGData};
 use aftiktuna::asset::color;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
@@ -5,8 +6,8 @@ use aftiktuna::core::position::Coord;
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
 use aftiktuna_macroquad::egui::EguiWrapper;
-use aftiktuna_macroquad::texture::background::RawBGData;
-use aftiktuna_macroquad::texture::{background, model, CachedTextures, LazilyLoadedModels};
+use aftiktuna_macroquad::texture::background as mq_background;
+use aftiktuna_macroquad::texture::{model, CachedTextures, LazilyLoadedModels};
 use indexmap::IndexMap;
 use macroquad::color as mq_color;
 use macroquad::window::{self, Conf};
@@ -61,7 +62,7 @@ async fn main() {
         macroquad::camera::set_camera(&camera);
 
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
-        let loaded_background = raw_background.load(&mut textures).unwrap();
+        let loaded_background = mq_background::load_bg_data(raw_background, &mut textures).unwrap();
         loaded_background.primary.draw(offset, &camera);
 
         draw_example_content(example_content_type, area_size, &mut models);

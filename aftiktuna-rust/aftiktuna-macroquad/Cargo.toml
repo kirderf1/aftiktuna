@@ -7,7 +7,6 @@ version.workspace = true
 aftiktuna = { path = ".." }
 egui.workspace = true
 egui-miniquad = "0.15.0"
-indexmap.workspace = true
 macroquad.workspace = true
 serde.workspace = true
 serde_json.workspace = true
