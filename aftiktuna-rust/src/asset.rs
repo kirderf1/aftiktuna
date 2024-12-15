@@ -72,7 +72,7 @@ pub mod background {
         #[serde(flatten)]
         pub primary: RawPrimaryBGData,
         #[serde(flatten)]
-        pub portrait: RawPortraitBGData,
+        pub portrait: PortraitBGData<String>,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -80,11 +80,25 @@ pub mod background {
     pub struct RawPrimaryBGData(pub Parallax<String>);
 
     #[derive(Serialize, Deserialize)]
-    pub enum RawPortraitBGData {
+    pub enum PortraitBGData<T> {
         #[serde(rename = "portrait_color")]
         Color([u8; 3]),
         #[serde(rename = "portrait_texture")]
-        Texture(String),
+        Texture(T),
+    }
+
+    impl PortraitBGData<String> {
+        pub fn load<T, E>(
+            &self,
+            loader: &mut impl TextureLoader<T, E>,
+        ) -> Result<PortraitBGData<T>, E> {
+            Ok(match self {
+                PortraitBGData::Color(color) => PortraitBGData::Color(*color),
+                PortraitBGData::Texture(texture) => {
+                    PortraitBGData::Texture(load_texture(texture, loader)?)
+                }
+            })
+        }
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -187,10 +201,7 @@ pub mod background {
         >(file)?)
     }
 
-    pub fn load_texture<T, E>(
-        texture: &str,
-        loader: &mut impl TextureLoader<T, E>,
-    ) -> Result<T, E> {
+    fn load_texture<T, E>(texture: &str, loader: &mut impl TextureLoader<T, E>) -> Result<T, E> {
         loader.load_texture(format!("background/{texture}"))
     }
 }

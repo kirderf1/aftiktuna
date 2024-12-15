@@ -1,8 +1,6 @@
 use super::CachedTextures;
 use crate::camera::HorizontalDraggableCamera;
-use aftiktuna::asset::background::{
-    self, Parallax, RawBGData, RawPortraitBGData, RawPrimaryBGData,
-};
+use aftiktuna::asset::background::{self, Parallax, PortraitBGData, RawBGData, RawPrimaryBGData};
 use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::position::Coord;
@@ -15,7 +13,7 @@ use std::hash::Hash;
 
 pub struct BGData {
     pub primary: PrimaryBGData,
-    pub portrait: PortraitBGData,
+    pub portrait: PortraitBGData<Texture2D>,
 }
 
 pub struct PrimaryBGData(Parallax<Texture2D>);
@@ -57,18 +55,13 @@ impl PrimaryBGData {
     }
 }
 
-pub enum PortraitBGData {
-    Color(Color),
-    Texture(Texture2D),
-}
-
-impl PortraitBGData {
-    pub fn draw(&self) {
-        match self {
-            PortraitBGData::Color(color) => window::clear_background(*color),
-            PortraitBGData::Texture(texture) => {
-                texture::draw_texture(texture, 0., 0., color::WHITE);
-            }
+pub fn draw_portrait(portait_data: &PortraitBGData<Texture2D>) {
+    match portait_data {
+        &PortraitBGData::Color([r, g, b]) => {
+            window::clear_background(Color::from_rgba(r, g, b, 255))
+        }
+        PortraitBGData::Texture(texture) => {
+            texture::draw_texture(texture, 0., 0., color::WHITE);
         }
     }
 }
@@ -79,7 +72,7 @@ pub fn load_bg_data<E>(
 ) -> Result<BGData, E> {
     Ok(BGData {
         primary: load_primary(&bg_data.primary, loader)?,
-        portrait: load_portrait(&bg_data.portrait, loader)?,
+        portrait: bg_data.portrait.load(loader)?,
     })
 }
 
@@ -88,20 +81,6 @@ fn load_primary<E>(
     loader: &mut impl TextureLoader<Texture2D, E>,
 ) -> Result<PrimaryBGData, E> {
     Ok(PrimaryBGData(primary_data.0.load(loader)?))
-}
-
-fn load_portrait<E>(
-    portait_data: &RawPortraitBGData,
-    loader: &mut impl TextureLoader<Texture2D, E>,
-) -> Result<PortraitBGData, E> {
-    Ok(match portait_data {
-        RawPortraitBGData::Color(color) => {
-            PortraitBGData::Color([color[0], color[1], color[2], 255].into())
-        }
-        RawPortraitBGData::Texture(texture) => {
-            PortraitBGData::Texture(background::load_texture(texture, loader)?)
-        }
-    })
 }
 
 pub fn load_backgrounds() -> Result<HashMap<BackgroundId, BGData>, super::Error> {

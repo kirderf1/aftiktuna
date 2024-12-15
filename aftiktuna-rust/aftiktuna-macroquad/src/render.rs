@@ -1,6 +1,6 @@
 use super::camera::HorizontalDraggableCamera;
-use super::texture::RenderAssets;
-use super::{camera, store_render, texture, tooltip, ui, AppWithEgui};
+use super::texture::{self, background, RenderAssets};
+use super::{camera, store_render, tooltip, ui, AppWithEgui};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
@@ -155,7 +155,7 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
 
 fn draw_dialogue_frame(data: &DialogueFrameData, assets: &mut RenderAssets) {
     mq_camera::set_default_camera();
-    assets.lookup_background(&data.background).portrait.draw();
+    background::draw_portrait(&assets.lookup_background(&data.background).portrait);
     let x = match data.direction {
         Direction::Left => super::WINDOW_WIDTH_F - 300.,
         Direction::Right => 300.,

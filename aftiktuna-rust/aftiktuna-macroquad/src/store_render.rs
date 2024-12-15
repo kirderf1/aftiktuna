@@ -1,4 +1,4 @@
-use super::texture::{self, RenderAssets};
+use super::texture::{self, background, RenderAssets};
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::Direction;
 use aftiktuna::core::store::StoreStock;
@@ -13,10 +13,7 @@ const STORE_UI_COLOR: Color = Color::new(0.2, 0.1, 0.4, 0.6);
 
 pub fn draw_store_view(assets: &mut RenderAssets, store_view: &StoreView) {
     camera::set_default_camera();
-    assets
-        .lookup_background(&store_view.background)
-        .portrait
-        .draw();
+    background::draw_portrait(&assets.lookup_background(&store_view.background).portrait);
     draw_shopkeeper_portrait(assets, store_view.shopkeeper_color.clone());
     draw_store_stock(store_view);
     draw_points_for_store(store_view.points);
