@@ -111,9 +111,9 @@ pub fn default_conf(title: impl Into<String>) -> Conf {
 
 pub fn logo() -> Icon {
     Icon {
-        small: *include_bytes!("../icon/icon_16x16.rgba"),
-        medium: *include_bytes!("../icon/icon_32x32.rgba"),
-        big: *include_bytes!("../icon/icon_64x64.rgba"),
+        small: *include_bytes!("../../icon/icon_16x16.rgba"),
+        medium: *include_bytes!("../../icon/icon_32x32.rgba"),
+        big: *include_bytes!("../../icon/icon_64x64.rgba"),
     }
 }
 
