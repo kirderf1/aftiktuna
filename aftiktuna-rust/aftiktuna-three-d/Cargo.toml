@@ -1,0 +1,8 @@
+[package]
+name = "aftiktuna-three-d"
+edition = "2021"
+version.workspace = true
+
+[dependencies]
+three-d = { version = "0.18.0", default-features = false, features = ["window"] }
+winit = "0.28"
