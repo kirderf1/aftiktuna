@@ -66,7 +66,7 @@ impl App {
     fn init(context: three_d::Context) -> Self {
         let gui = three_d::GUI::new(&context);
 
-        let mut texture_loader = InPlaceLoader(context);
+        let mut texture_loader = CachedLoader(HashMap::new(), context);
         let background_data = background::load_raw_backgrounds().unwrap();
         let backgrounds = background_data
             .into_iter()
@@ -248,14 +248,23 @@ fn text_box_panel<S: Into<String>>(
         });
 }
 
-struct InPlaceLoader(three_d::Context);
+struct CachedLoader(HashMap<String, three_d::Texture2DRef>, three_d::Context);
 
-impl TextureLoader<three_d::Texture2DRef, ()> for InPlaceLoader {
-    fn load_texture(&mut self, name: String) -> Result<three_d::Texture2DRef, ()> {
+impl TextureLoader<three_d::Texture2DRef, three_d_asset::Error> for CachedLoader {
+    fn load_texture(
+        &mut self,
+        name: String,
+    ) -> Result<three_d::Texture2DRef, three_d_asset::Error> {
+        if let Some(texture) = self.0.get(&name) {
+            return Ok(texture.clone());
+        }
+
         let path = format!("assets/texture/{name}.png");
 
-        let texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path).unwrap();
-        Ok(three_d::Texture2DRef::from_cpu_texture(&self.0, &texture))
+        let texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path)?;
+        let texture = three_d::Texture2DRef::from_cpu_texture(&self.1, &texture);
+        self.0.insert(name, texture.clone());
+        Ok(texture)
     }
 }
 
