@@ -8,6 +8,14 @@ use winit::platform::windows::WindowBuilderExtWindows;
 use winit::window::{Icon, WindowBuilder, WindowButtons};
 
 fn main() {
+    let window = init_window();
+
+    let mut app = App::init(window.gl());
+
+    window.render_loop(move |frame_input| app.handle_frame(frame_input));
+}
+
+fn init_window() -> three_d::Window {
     let event_loop = EventLoop::new();
     let small_icon = Icon::from_rgba(
         include_bytes!("../../icon/icon_16x16.rgba").to_vec(),
@@ -33,17 +41,13 @@ fn main() {
         .unwrap();
     winit_window.focus_window();
 
-    let window = three_d::Window::from_winit_window(
+    three_d::Window::from_winit_window(
         winit_window,
         event_loop,
         three_d::SurfaceSettings::default(),
         false,
     )
-    .expect("Unable to create window");
-
-    let mut app = App::init(window.gl());
-
-    window.render_loop(move |frame_input| app.handle_frame(frame_input));
+    .unwrap()
 }
 
 struct App {
@@ -56,7 +60,7 @@ struct App {
 impl App {
     fn init(context: three_d::Context) -> Self {
         let gui = three_d::GUI::new(&context);
-    
+
         let background = background::load_raw_backgrounds()
             .unwrap()
             .get(&BackgroundId::blank())
@@ -64,7 +68,7 @@ impl App {
             .load(&mut InPlaceLoader(context))
             .unwrap();
 
-            Self {
+        Self {
                 gui,
                 background,
                 text_box_text: vec!["Line1".to_string(), "Lineeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee2".to_string(), "Line3".to_string(), "Line4".to_string(), "Line5".to_string(), "Line6".to_string(), "Line7".to_string()],
