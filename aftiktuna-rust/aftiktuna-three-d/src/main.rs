@@ -2,6 +2,8 @@ use aftiktuna::asset::background::BGData;
 use aftiktuna::asset::{background, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::game_interface::{self, Game, GameResult};
+use aftiktuna::view::Frame;
+use std::collections::HashMap;
 use three_d::egui;
 use winit::dpi;
 use winit::event_loop::EventLoop;
@@ -53,8 +55,9 @@ fn init_window() -> three_d::Window {
 
 struct App {
     gui: three_d::GUI,
-    background: BGData<three_d::Texture2DRef>,
+    backgrounds: HashMap<BackgroundId, BGData<three_d::Texture2DRef>>,
     game: Game,
+    frame: Frame,
     text_box_text: Vec<String>,
     input_text: String,
 }
@@ -63,28 +66,30 @@ impl App {
     fn init(context: three_d::Context) -> Self {
         let gui = three_d::GUI::new(&context);
 
-        let background = background::load_raw_backgrounds()
-            .unwrap()
-            .get(&BackgroundId::blank())
-            .unwrap()
-            .load(&mut InPlaceLoader(context))
-            .unwrap();
+        let mut texture_loader = InPlaceLoader(context);
+        let background_data = background::load_raw_backgrounds().unwrap();
+        let backgrounds = background_data
+            .into_iter()
+            .map(|(id, data)| (id, data.load(&mut texture_loader).unwrap()))
+            .collect();
 
         Self {
-                gui,
-                background,
-                game: game_interface::setup_new(),
-                text_box_text: Vec::new(),
-                input_text: String::new(),
-            }
+            gui,
+            backgrounds,
+            game: game_interface::setup_new(),
+            frame: Frame::Introduction,
+            text_box_text: Vec::new(),
+            input_text: String::new(),
+        }
     }
 
     fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
         let mut events = frame_input.events.clone();
-        let camera = three_d::Camera::new_2d(frame_input.viewport);
+        let screen = frame_input.screen();
 
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
-            self.text_box_text.extend(frame_getter.get().as_text());
+            self.frame = frame_getter.get();
+            self.text_box_text.extend(self.frame.as_text());
         }
 
         self.gui.update(
@@ -108,18 +113,82 @@ impl App {
                 }
             },
         );
-        frame_input
-            .screen()
-            .clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.))
-            .render(
-                &camera,
-                get_render_objects_for_background(&self.background, &frame_input.context),
-                &[],
-            )
-            .write(|| self.gui.render())
-            .unwrap();
+        screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
+
+        self.render_frame(&screen, frame_input.viewport, &frame_input.context);
+
+        screen.write(|| self.gui.render()).unwrap();
         three_d::FrameOutput::default()
     }
+
+    fn render_frame(
+        &self,
+        screen: &three_d::RenderTarget<'_>,
+        viewport: three_d::Viewport,
+        context: &three_d::Context,
+    ) {
+        let camera = three_d::Camera::new_2d(viewport);
+        match &self.frame {
+            Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
+                let background_objects = get_render_objects_for_background(
+                    get_background_or_default(&BackgroundId::location_choice(), &self.backgrounds),
+                    context,
+                );
+                screen.render(&camera, background_objects, &[]);
+            }
+            Frame::AreaView { render_data, .. } => {
+                let background_objects = get_render_objects_for_background(
+                    get_background_or_default(&render_data.background, &self.backgrounds),
+                    context,
+                );
+                screen.render(&camera, background_objects, &[]);
+            }
+            Frame::Dialogue { data, .. } => {
+                let background_object = get_render_object_for_secondary_background(
+                    get_background_or_default(&data.background, &self.backgrounds),
+                    context,
+                );
+                screen.render(&camera, [background_object], &[]);
+            }
+            Frame::StoreView { view, .. } => {
+                let background_object = get_render_object_for_secondary_background(
+                    get_background_or_default(&view.background, &self.backgrounds),
+                    context,
+                );
+                screen.render(&camera, [background_object], &[]);
+            }
+            Frame::Ending { stop_type } => {
+                let color = match stop_type {
+                    aftiktuna::StopType::Win => three_d::Srgba::new_opaque(199, 199, 199),
+                    aftiktuna::StopType::Lose => three_d::Srgba::BLACK,
+                };
+                let background_object = three_d::Gm::new(
+                    three_d::Rectangle::new(
+                        context,
+                        three_d::vec2(400., 300.),
+                        three_d::degrees(0.),
+                        800.,
+                        600.,
+                    ),
+                    three_d::ColorMaterial {
+                        color,
+                        ..Default::default()
+                    },
+                );
+                screen.render(&camera, [background_object], &[]);
+            }
+        }
+    }
+}
+
+fn get_background_or_default<'a>(
+    id: &BackgroundId,
+    backgrounds: &'a HashMap<BackgroundId, BGData<three_d::Texture2DRef>>,
+) -> &'a BGData<three_d::Texture2DRef> {
+    backgrounds
+        .get(id)
+        .or_else(|| backgrounds.get(&BackgroundId::blank()))
+        .expect("Missing blank texture")
 }
 
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
@@ -209,11 +278,41 @@ fn get_render_objects_for_background(
                     600.,
                 ),
                 three_d::ColorMaterial {
-                    color: three_d::Srgba::WHITE,
                     texture: Some(layer.texture.clone()),
+                    render_states: three_d::RenderStates {
+                        depth_test: three_d::DepthTest::Always,
+                        blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
             )
         })
         .collect()
+}
+
+fn get_render_object_for_secondary_background(
+    background: &BGData<three_d::Texture2DRef>,
+    context: &three_d::Context,
+) -> impl three_d::Object {
+    let material = match &background.portrait {
+        &background::PortraitBGData::Color(color) => three_d::ColorMaterial {
+            color: color.into(),
+            ..Default::default()
+        },
+        background::PortraitBGData::Texture(texture) => three_d::ColorMaterial {
+            texture: Some(texture.clone()),
+            ..Default::default()
+        },
+    };
+    three_d::Gm::new(
+        three_d::Rectangle::new(
+            context,
+            three_d::vec2(400., 300.),
+            three_d::degrees(0.),
+            800.,
+            600.,
+        ),
+        material,
+    )
 }
