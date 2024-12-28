@@ -41,34 +41,49 @@ fn main() {
     )
     .expect("Unable to create window");
 
-    let context = window.gl();
-    let mut gui = three_d::GUI::new(&context);
-    let mut input_text = String::new();
+    let mut app = App::init(window.gl());
 
-    let background = background::load_raw_backgrounds()
-        .unwrap()
-        .get(&BackgroundId::blank())
-        .unwrap()
-        .load(&mut InPlaceLoader(context))
-        .unwrap();
+    window.render_loop(move |frame_input| app.handle_frame(frame_input));
+}
 
-    window.render_loop(move |frame_input| {
+struct App {
+    gui: three_d::GUI,
+    background: BGData<three_d::Texture2DRef>,
+    text_box_text: Vec<String>,
+    input_text: String,
+}
+
+impl App {
+    fn init(context: three_d::Context) -> Self {
+        let gui = three_d::GUI::new(&context);
+    
+        let background = background::load_raw_backgrounds()
+            .unwrap()
+            .get(&BackgroundId::blank())
+            .unwrap()
+            .load(&mut InPlaceLoader(context))
+            .unwrap();
+
+            Self {
+                gui,
+                background,
+                text_box_text: vec!["Line1".to_string(), "Lineeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee2".to_string(), "Line3".to_string(), "Line4".to_string(), "Line5".to_string(), "Line6".to_string(), "Line7".to_string()],
+                input_text: String::new(),
+            }
+    }
+
+    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
         let mut events = frame_input.events.clone();
         let camera = three_d::Camera::new_2d(frame_input.viewport);
 
-        gui.update(
+        self.gui.update(
             &mut events,
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                input_panel(&mut input_text, egui_context);
-                text_box_panel(
-                    [
-                        "Line1", "Lineeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee2", "Line3", "Line4", "Line5", "Line6", "Line7",
-                    ],
-                    egui_context,
-                );
+                input_panel(&mut self.input_text, egui_context);
+                text_box_panel(&self.text_box_text, egui_context);
             },
         );
         frame_input
@@ -76,13 +91,13 @@ fn main() {
             .clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.))
             .render(
                 &camera,
-                get_render_objects_for_background(&background, &frame_input.context),
+                get_render_objects_for_background(&self.background, &frame_input.context),
                 &[],
             )
-            .write(|| gui.render())
+            .write(|| self.gui.render())
             .unwrap();
         three_d::FrameOutput::default()
-    });
+    }
 }
 
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
