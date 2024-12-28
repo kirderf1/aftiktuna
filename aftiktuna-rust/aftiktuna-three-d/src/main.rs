@@ -1,6 +1,7 @@
 use aftiktuna::asset::background::BGData;
 use aftiktuna::asset::{background, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
+use aftiktuna::game_interface::{self, Game, GameResult};
 use three_d::egui;
 use winit::dpi;
 use winit::event_loop::EventLoop;
@@ -53,6 +54,7 @@ fn init_window() -> three_d::Window {
 struct App {
     gui: three_d::GUI,
     background: BGData<three_d::Texture2DRef>,
+    game: Game,
     text_box_text: Vec<String>,
     input_text: String,
 }
@@ -71,7 +73,8 @@ impl App {
         Self {
                 gui,
                 background,
-                text_box_text: vec!["Line1".to_string(), "Lineeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee2".to_string(), "Line3".to_string(), "Line4".to_string(), "Line5".to_string(), "Line6".to_string(), "Line7".to_string()],
+                game: game_interface::setup_new(),
+                text_box_text: Vec::new(),
                 input_text: String::new(),
             }
     }
@@ -80,14 +83,29 @@ impl App {
         let mut events = frame_input.events.clone();
         let camera = three_d::Camera::new_2d(frame_input.viewport);
 
+        if let GameResult::Frame(frame_getter) = self.game.next_result() {
+            self.text_box_text.extend(frame_getter.get().as_text());
+        }
+
         self.gui.update(
             &mut events,
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                input_panel(&mut self.input_text, egui_context);
+                let accept_input = input_panel(
+                    &mut self.input_text,
+                    self.game.ready_to_take_input(),
+                    egui_context,
+                );
                 text_box_panel(&self.text_box_text, egui_context);
+                if accept_input {
+                    let result = self.game.handle_input(&self.input_text);
+                    self.input_text.clear();
+                    if let Err(messages) = result {
+                        self.text_box_text.extend(messages);
+                    }
+                }
             },
         );
         frame_input
@@ -106,18 +124,22 @@ impl App {
 
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
 
-fn input_panel(input_text: &mut String, egui_context: &egui::Context) {
+fn input_panel(input_text: &mut String, enabled: bool, egui_context: &egui::Context) -> bool {
     egui::TopBottomPanel::bottom("input")
         .exact_height(25.)
         .show(egui_context, |ui| {
-            ui.add_enabled(
-                true,
+            let response = ui.add_enabled(
+                enabled,
                 egui::TextEdit::singleline(input_text)
                     .font(INPUT_FONT)
                     .desired_width(f32::INFINITY)
                     .lock_focus(true),
             );
-        });
+
+            response.lost_focus()
+                && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter))
+        })
+        .inner
 }
 
 const TEXT_BOX_COLOR: egui::Color32 = egui::Color32::from_rgba_premultiplied(
