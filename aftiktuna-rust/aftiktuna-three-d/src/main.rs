@@ -127,7 +127,9 @@ impl App {
         viewport: three_d::Viewport,
         context: &three_d::Context,
     ) {
-        let camera = three_d::Camera::new_2d(viewport);
+        let mut camera = three_d::Camera::new_2d(viewport);
+        camera.disable_tone_and_color_mapping();
+
         match &self.frame {
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
                 let background_objects = get_render_objects_for_background(
