@@ -60,6 +60,7 @@ struct App {
     frame: Frame,
     text_box_text: Vec<String>,
     input_text: String,
+    camera: Camera,
 }
 
 impl App {
@@ -80,20 +81,18 @@ impl App {
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
             input_text: String::new(),
+            camera: Camera::default(),
         }
     }
 
-    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
-        let mut events = frame_input.events.clone();
-        let screen = frame_input.screen();
-
+    fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> three_d::FrameOutput {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
             self.frame = frame_getter.get();
             self.text_box_text.extend(self.frame.as_text());
         }
 
         self.gui.update(
-            &mut events,
+            &mut frame_input.events,
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
@@ -113,6 +112,9 @@ impl App {
                 }
             },
         );
+        self.camera.handle_inputs(&mut frame_input.events);
+
+        let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
 
         self.render_frame(&screen, frame_input.viewport, &frame_input.context);
@@ -127,8 +129,8 @@ impl App {
         viewport: three_d::Viewport,
         context: &three_d::Context,
     ) {
-        let mut camera = three_d::Camera::new_2d(viewport);
-        camera.disable_tone_and_color_mapping();
+        let mut render_camera = self.camera.get_render_camera(viewport);
+        render_camera.disable_tone_and_color_mapping();
 
         match &self.frame {
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
@@ -136,28 +138,28 @@ impl App {
                     get_background_or_default(&BackgroundId::location_choice(), &self.backgrounds),
                     context,
                 );
-                screen.render(&camera, background_objects, &[]);
+                screen.render(&render_camera, background_objects, &[]);
             }
             Frame::AreaView { render_data, .. } => {
                 let background_objects = get_render_objects_for_background(
                     get_background_or_default(&render_data.background, &self.backgrounds),
                     context,
                 );
-                screen.render(&camera, background_objects, &[]);
+                screen.render(&render_camera, background_objects, &[]);
             }
             Frame::Dialogue { data, .. } => {
                 let background_object = get_render_object_for_secondary_background(
                     get_background_or_default(&data.background, &self.backgrounds),
                     context,
                 );
-                screen.render(&camera, [background_object], &[]);
+                screen.render(&render_camera, [background_object], &[]);
             }
             Frame::StoreView { view, .. } => {
                 let background_object = get_render_object_for_secondary_background(
                     get_background_or_default(&view.background, &self.backgrounds),
                     context,
                 );
-                screen.render(&camera, [background_object], &[]);
+                screen.render(&render_camera, [background_object], &[]);
             }
             Frame::Ending { stop_type } => {
                 let color = match stop_type {
@@ -177,7 +179,7 @@ impl App {
                         ..Default::default()
                     },
                 );
-                screen.render(&camera, [background_object], &[]);
+                screen.render(&render_camera, [background_object], &[]);
             }
         }
     }
@@ -326,4 +328,62 @@ fn get_render_object_for_secondary_background(
         ),
         material,
     )
+}
+
+#[derive(Default)]
+struct Camera {
+    camera_x: f32,
+    is_dragging: bool,
+}
+
+impl Camera {
+    fn get_render_camera(&self, viewport: three_d::Viewport) -> three_d::Camera {
+        three_d::Camera::new_orthographic(
+            viewport,
+            three_d::vec3(
+                self.camera_x + viewport.width as f32 * 0.5,
+                viewport.height as f32 * 0.5,
+                1.0,
+            ),
+            three_d::vec3(
+                self.camera_x + viewport.width as f32 * 0.5,
+                viewport.height as f32 * 0.5,
+                0.0,
+            ),
+            three_d::vec3(0.0, 1.0, 0.0),
+            viewport.height as f32,
+            0.0,
+            10.0,
+        )
+    }
+
+    fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
+        for event in events {
+            match event {
+                three_d::Event::MousePress {
+                    button, handled, ..
+                } => {
+                    if !*handled && *button == three_d::MouseButton::Left {
+                        self.is_dragging = true;
+                        *handled = true;
+                    }
+                }
+                three_d::Event::MouseRelease {
+                    button, handled, ..
+                } => {
+                    if self.is_dragging && *button == three_d::MouseButton::Left {
+                        self.is_dragging = false;
+                        *handled = true;
+                    }
+                }
+                three_d::Event::MouseMotion { delta, handled, .. } => {
+                    if !*handled && self.is_dragging {
+                        self.camera_x -= delta.0;
+                        *handled = true;
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
 }
