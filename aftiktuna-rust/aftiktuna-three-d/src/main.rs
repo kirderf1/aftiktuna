@@ -1,14 +1,16 @@
-use aftiktuna::asset::background::BGData;
-use aftiktuna::asset::{background, TextureLoader};
+use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::Frame;
+use background::BackgroundMap;
 use std::collections::HashMap;
 use three_d::egui;
 use winit::dpi;
 use winit::event_loop::EventLoop;
 use winit::platform::windows::WindowBuilderExtWindows;
 use winit::window::{Icon, WindowBuilder, WindowButtons};
+
+mod background;
 
 fn main() {
     let window = init_window();
@@ -55,7 +57,7 @@ fn init_window() -> three_d::Window {
 
 struct App {
     gui: three_d::GUI,
-    backgrounds: HashMap<BackgroundId, BGData<three_d::Texture2DRef>>,
+    backgrounds: BackgroundMap,
     game: Game,
     frame: Frame,
     text_box_text: Vec<String>,
@@ -67,16 +69,9 @@ impl App {
     fn init(context: three_d::Context) -> Self {
         let gui = three_d::GUI::new(&context);
 
-        let mut texture_loader = CachedLoader(HashMap::new(), context);
-        let background_data = background::load_raw_backgrounds().unwrap();
-        let backgrounds = background_data
-            .into_iter()
-            .map(|(id, data)| (id, data.load(&mut texture_loader).unwrap()))
-            .collect();
-
         Self {
             gui,
-            backgrounds,
+            backgrounds: BackgroundMap::load(context),
             game: game_interface::setup_new(),
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
@@ -134,31 +129,27 @@ impl App {
 
         match &self.frame {
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
-                let background_objects = get_render_objects_for_background(
-                    get_background_or_default(&BackgroundId::location_choice(), &self.backgrounds),
-                    context,
-                );
+                let background_objects = self
+                    .backgrounds
+                    .get_render_objects_for_primary(&BackgroundId::location_choice(), context);
                 screen.render(&render_camera, background_objects, &[]);
             }
             Frame::AreaView { render_data, .. } => {
-                let background_objects = get_render_objects_for_background(
-                    get_background_or_default(&render_data.background, &self.backgrounds),
-                    context,
-                );
+                let background_objects = self
+                    .backgrounds
+                    .get_render_objects_for_primary(&render_data.background, context);
                 screen.render(&render_camera, background_objects, &[]);
             }
             Frame::Dialogue { data, .. } => {
-                let background_object = get_render_object_for_secondary_background(
-                    get_background_or_default(&data.background, &self.backgrounds),
-                    context,
-                );
+                let background_object = self
+                    .backgrounds
+                    .get_render_object_for_secondary(&data.background, context);
                 screen.render(&render_camera, [background_object], &[]);
             }
             Frame::StoreView { view, .. } => {
-                let background_object = get_render_object_for_secondary_background(
-                    get_background_or_default(&view.background, &self.backgrounds),
-                    context,
-                );
+                let background_object = self
+                    .backgrounds
+                    .get_render_object_for_secondary(&view.background, context);
                 screen.render(&render_camera, [background_object], &[]);
             }
             Frame::Ending { stop_type } => {
@@ -183,16 +174,6 @@ impl App {
             }
         }
     }
-}
-
-fn get_background_or_default<'a>(
-    id: &BackgroundId,
-    backgrounds: &'a HashMap<BackgroundId, BGData<three_d::Texture2DRef>>,
-) -> &'a BGData<three_d::Texture2DRef> {
-    backgrounds
-        .get(id)
-        .or_else(|| backgrounds.get(&BackgroundId::blank()))
-        .expect("Missing blank texture")
 }
 
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
@@ -270,64 +251,6 @@ impl TextureLoader<three_d::Texture2DRef, three_d_asset::Error> for CachedLoader
         self.0.insert(name, texture.clone());
         Ok(texture)
     }
-}
-
-fn get_render_objects_for_background(
-    background: &BGData<three_d::Texture2DRef>,
-    context: &three_d::Context,
-) -> Vec<impl three_d::Object> {
-    background
-        .primary
-        .0
-        .layers
-        .iter()
-        .map(|layer| {
-            three_d::Gm::new(
-                three_d::Rectangle::new(
-                    context,
-                    three_d::vec2(400., 300.),
-                    three_d::degrees(0.),
-                    800.,
-                    600.,
-                ),
-                three_d::ColorMaterial {
-                    texture: Some(layer.texture.clone()),
-                    render_states: three_d::RenderStates {
-                        depth_test: three_d::DepthTest::Always,
-                        blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-            )
-        })
-        .collect()
-}
-
-fn get_render_object_for_secondary_background(
-    background: &BGData<three_d::Texture2DRef>,
-    context: &three_d::Context,
-) -> impl three_d::Object {
-    let material = match &background.portrait {
-        &background::PortraitBGData::Color(color) => three_d::ColorMaterial {
-            color: color.into(),
-            ..Default::default()
-        },
-        background::PortraitBGData::Texture(texture) => three_d::ColorMaterial {
-            texture: Some(texture.clone()),
-            ..Default::default()
-        },
-    };
-    three_d::Gm::new(
-        three_d::Rectangle::new(
-            context,
-            three_d::vec2(400., 300.),
-            three_d::degrees(0.),
-            800.,
-            600.,
-        ),
-        material,
-    )
 }
 
 #[derive(Default)]
