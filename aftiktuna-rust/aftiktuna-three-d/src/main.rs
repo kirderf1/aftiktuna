@@ -4,7 +4,7 @@ use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::Frame;
 use background::BackgroundMap;
 use std::collections::HashMap;
-use three_d::egui;
+use three_d::{egui, Object};
 use winit::dpi;
 use winit::event_loop::EventLoop;
 use winit::platform::windows::WindowBuilderExtWindows;
@@ -129,16 +129,36 @@ impl App {
 
         match &self.frame {
             Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
-                let background_objects = self
-                    .backgrounds
-                    .get_render_objects_for_primary(&BackgroundId::location_choice(), context);
-                screen.render(&render_camera, background_objects, &[]);
+                let background_objects = self.backgrounds.get_render_objects_for_primary(
+                    &BackgroundId::location_choice(),
+                    0,
+                    self.camera.camera_x,
+                    context,
+                );
+                screen
+                    .write::<three_d::RendererError>(|| {
+                        for object in background_objects {
+                            object.render(&render_camera, &[]);
+                        }
+                        Ok(())
+                    })
+                    .unwrap();
             }
             Frame::AreaView { render_data, .. } => {
-                let background_objects = self
-                    .backgrounds
-                    .get_render_objects_for_primary(&render_data.background, context);
-                screen.render(&render_camera, background_objects, &[]);
+                let background_objects = self.backgrounds.get_render_objects_for_primary(
+                    &render_data.background,
+                    render_data.background_offset.unwrap_or(0),
+                    self.camera.camera_x,
+                    context,
+                );
+                screen
+                    .write::<three_d::RendererError>(|| {
+                        for object in background_objects {
+                            object.render(&render_camera, &[]);
+                        }
+                        Ok(())
+                    })
+                    .unwrap();
             }
             Frame::Dialogue { data, .. } => {
                 let background_object = self
