@@ -64,6 +64,7 @@ struct App {
     frame: Frame,
     text_box_text: Vec<String>,
     input_text: String,
+    request_input_focus: bool,
     camera: Camera,
 }
 
@@ -78,6 +79,7 @@ impl App {
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
             input_text: String::new(),
+            request_input_focus: false,
             camera: Camera::default(),
         }
     }
@@ -86,6 +88,7 @@ impl App {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
             self.frame = frame_getter.get();
             self.text_box_text.extend(self.frame.as_text());
+            self.request_input_focus = self.game.ready_to_take_input();
         }
 
         self.gui.update(
@@ -97,6 +100,7 @@ impl App {
                 let accept_input = input_panel(
                     &mut self.input_text,
                     self.game.ready_to_take_input(),
+                    std::mem::take(&mut self.request_input_focus),
                     egui_context,
                 );
                 text_box_panel(&self.text_box_text, egui_context);
@@ -105,6 +109,7 @@ impl App {
                     self.input_text.clear();
                     if let Err(messages) = result {
                         self.text_box_text.extend(messages);
+                        self.request_input_focus = true;
                     }
                 }
             },
@@ -143,7 +148,12 @@ impl Assets {
 
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
 
-fn input_panel(input_text: &mut String, enabled: bool, egui_context: &egui::Context) -> bool {
+fn input_panel(
+    input_text: &mut String,
+    enabled: bool,
+    request_focus: bool,
+    egui_context: &egui::Context,
+) -> bool {
     egui::TopBottomPanel::bottom("input")
         .exact_height(25.)
         .show(egui_context, |ui| {
@@ -154,6 +164,10 @@ fn input_panel(input_text: &mut String, enabled: bool, egui_context: &egui::Cont
                     .desired_width(f32::INFINITY)
                     .lock_focus(true),
             );
+
+            if request_focus {
+                response.request_focus();
+            }
 
             response.lost_focus()
                 && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter))
