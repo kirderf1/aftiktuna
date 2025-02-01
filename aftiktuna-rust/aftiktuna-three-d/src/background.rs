@@ -7,7 +7,7 @@ pub struct BackgroundMap(HashMap<BackgroundId, BGData<three_d::Texture2DRef>>);
 
 impl BackgroundMap {
     pub fn load(context: three_d::Context) -> Self {
-        let mut texture_loader = super::CachedLoader(HashMap::new(), context);
+        let mut texture_loader = super::CachedLoader::new(context);
         let background_data = load_raw_backgrounds().unwrap();
         Self(
             background_data
