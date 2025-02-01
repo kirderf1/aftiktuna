@@ -4,7 +4,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::game_interface::{self, Game, GameResult};
-use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::Frame;
 use background::BackgroundMap;
 use std::collections::HashMap;
@@ -61,8 +61,7 @@ fn init_window() -> three_d::Window {
 
 struct App {
     gui: three_d::GUI,
-    backgrounds: BackgroundMap,
-    models: LazilyLoadedModels,
+    assets: Assets,
     game: Game,
     frame: Frame,
     text_box_text: Vec<String>,
@@ -76,8 +75,7 @@ impl App {
 
         Self {
             gui,
-            backgrounds: BackgroundMap::load(context.clone()),
-            models: LazilyLoadedModels::new(context),
+            assets: Assets::load(context),
             game: game_interface::setup_new(),
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
@@ -118,103 +116,126 @@ impl App {
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
 
-        self.render_frame(&screen, frame_input.viewport, &frame_input.context);
+        render_frame(
+            &self.frame,
+            &self.camera,
+            &screen,
+            &frame_input,
+            &mut self.assets,
+        );
 
         screen.write(|| self.gui.render()).unwrap();
         three_d::FrameOutput::default()
     }
+}
 
-    fn render_frame(
-        &mut self,
-        screen: &three_d::RenderTarget<'_>,
-        viewport: three_d::Viewport,
-        context: &three_d::Context,
-    ) {
-        let mut render_camera = self.camera.get_render_camera(viewport);
-        render_camera.disable_tone_and_color_mapping();
+struct Assets {
+    backgrounds: BackgroundMap,
+    models: LazilyLoadedModels,
+}
 
-        match &self.frame {
-            Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
-                let background_objects = self.backgrounds.get_render_objects_for_primary(
-                    &BackgroundId::location_choice(),
-                    0,
-                    self.camera.camera_x,
-                    context,
-                );
-                screen
-                    .write::<three_d::RendererError>(|| {
-                        for object in background_objects {
-                            object.render(&render_camera, &[]);
-                        }
-                        Ok(())
-                    })
-                    .unwrap();
-            }
-            Frame::AreaView { render_data, .. } => {
-                let background_objects = self.backgrounds.get_render_objects_for_primary(
-                    &render_data.background,
-                    render_data.background_offset.unwrap_or(0),
-                    self.camera.camera_x,
-                    context,
-                );
-                let entity_objects = position_objects(&render_data.objects, &mut self.models)
-                    .into_iter()
-                    .flat_map(|(pos, object)| {
-                        get_render_objects_for_entity(
-                            self.models.lookup_model(&object.model_id),
-                            pos,
-                            &object.properties,
-                            context,
-                        )
-                    })
-                    .collect::<Vec<_>>();
-
-                screen
-                    .write::<three_d::RendererError>(|| {
-                        for object in background_objects {
-                            object.render(&render_camera, &[]);
-                        }
-                        for object in entity_objects {
-                            object.render(&render_camera, &[]);
-                        }
-                        Ok(())
-                    })
-                    .unwrap();
-            }
-            Frame::Dialogue { data, .. } => {
-                let background_object = self
-                    .backgrounds
-                    .get_render_object_for_secondary(&data.background, context);
-                screen.render(&render_camera, [background_object], &[]);
-            }
-            Frame::StoreView { view, .. } => {
-                let background_object = self
-                    .backgrounds
-                    .get_render_object_for_secondary(&view.background, context);
-                screen.render(&render_camera, [background_object], &[]);
-            }
-            Frame::Ending { stop_type } => {
-                let color = match stop_type {
-                    aftiktuna::StopType::Win => three_d::Srgba::new_opaque(199, 199, 199),
-                    aftiktuna::StopType::Lose => three_d::Srgba::BLACK,
-                };
-                let background_object = three_d::Gm::new(
-                    three_d::Rectangle::new(
-                        context,
-                        three_d::vec2(400., 300.),
-                        three_d::degrees(0.),
-                        800.,
-                        600.,
-                    ),
-                    three_d::ColorMaterial {
-                        color,
-                        ..Default::default()
-                    },
-                );
-                screen.render(&render_camera, [background_object], &[]);
-            }
+impl Assets {
+    fn load(context: three_d::Context) -> Self {
+        Self {
+            backgrounds: BackgroundMap::load(context.clone()),
+            models: LazilyLoadedModels::new(context),
         }
     }
+}
+
+fn render_frame(
+    frame: &Frame,
+    camera: &Camera,
+    screen: &three_d::RenderTarget<'_>,
+    frame_input: &three_d::FrameInput,
+    assets: &mut Assets,
+) {
+
+    match frame {
+        Frame::Introduction | Frame::LocationChoice(_) | Frame::Error(_) => {
+            let background_objects = assets.backgrounds.get_render_objects_for_primary(
+                &BackgroundId::location_choice(),
+                0,
+                0.,
+                &frame_input.context,
+            );
+
+            let render_camera = default_render_camera(frame_input.viewport);
+            screen
+                .write::<three_d::RendererError>(|| {
+                    for object in background_objects {
+                        object.render(&render_camera, &[]);
+                    }
+                    Ok(())
+                })
+                .unwrap();
+        }
+        Frame::AreaView { render_data, .. } => {
+            draw_area_view(render_data, camera, screen, frame_input, assets);
+        }
+        Frame::Dialogue { data, .. } => {
+            let background_object = assets
+                .backgrounds
+                .get_render_object_for_secondary(&data.background, &frame_input.context);
+
+            let render_camera = default_render_camera(frame_input.viewport);
+            screen.render(&render_camera, [background_object], &[]);
+        }
+        Frame::StoreView { view, .. } => {
+            let background_object = assets
+                .backgrounds
+                .get_render_object_for_secondary(&view.background, &frame_input.context);
+
+            let render_camera = default_render_camera(frame_input.viewport);
+            screen.render(&render_camera, [background_object], &[]);
+        }
+        Frame::Ending { stop_type } => {
+            let (r, g, b) = match stop_type {
+                aftiktuna::StopType::Win => (0.78, 0.78, 0.78),
+                aftiktuna::StopType::Lose => (0., 0., 0.),
+            };
+            screen.clear(three_d::ClearState::color(r, g, b, 1.));
+        }
+    }
+}
+
+fn draw_area_view(
+    render_data: &RenderData,
+    camera: &Camera,
+    screen: &three_d::RenderTarget<'_>,
+    frame_input: &three_d::FrameInput,
+    assets: &mut Assets,
+) {
+    let background_objects = assets.backgrounds.get_render_objects_for_primary(
+        &render_data.background,
+        render_data.background_offset.unwrap_or(0),
+        camera.camera_x,
+        &frame_input.context,
+    );
+    let entity_objects = position_objects(&render_data.objects, &mut assets.models)
+        .into_iter()
+        .flat_map(|(pos, object)| {
+            get_render_objects_for_entity(
+                assets.models.lookup_model(&object.model_id),
+                pos,
+                &object.properties,
+                &frame_input.context,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let render_camera = camera.get_render_camera(frame_input.viewport);
+    screen
+        .write::<three_d::RendererError>(|| {
+            for object in background_objects {
+                object.render(&render_camera, &[]);
+            }
+            for object in entity_objects {
+                object.render(&render_camera, &[]);
+            }
+            Ok(())
+        })
+        .unwrap();
 }
 
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
@@ -389,7 +410,7 @@ struct Camera {
 
 impl Camera {
     fn get_render_camera(&self, viewport: three_d::Viewport) -> three_d::Camera {
-        three_d::Camera::new_orthographic(
+        let mut render_camera = three_d::Camera::new_orthographic(
             viewport,
             three_d::vec3(
                 self.camera_x + viewport.width as f32 * 0.5,
@@ -405,7 +426,9 @@ impl Camera {
             viewport.height as f32,
             0.0,
             10.0,
-        )
+        );
+        render_camera.disable_tone_and_color_mapping();
+        render_camera
     }
 
     fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
@@ -437,6 +460,12 @@ impl Camera {
             }
         }
     }
+}
+
+fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
+    let mut render_camera = three_d::Camera::new_2d(viewport);
+    render_camera.disable_tone_and_color_mapping();
+    render_camera
 }
 
 fn position_objects<'a>(
