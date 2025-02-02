@@ -117,10 +117,10 @@ impl BackgroundMap {
         three_d::Gm::new(
             three_d::Rectangle::new(
                 context,
-                three_d::vec2(400., 300.),
+                three_d::vec2(crate::WINDOW_WIDTH_F / 2., crate::WINDOW_HEIGHT_F / 2.),
                 three_d::degrees(0.),
-                800.,
-                600.,
+                crate::WINDOW_WIDTH_F,
+                crate::WINDOW_HEIGHT_F,
             ),
             material,
         )

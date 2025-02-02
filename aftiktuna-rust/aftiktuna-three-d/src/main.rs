@@ -14,6 +14,11 @@ use winit::window::{Icon, WindowBuilder, WindowButtons};
 mod background;
 mod render;
 
+pub const WINDOW_WIDTH: u16 = 800;
+pub const WINDOW_HEIGHT: u16 = 600;
+pub const WINDOW_WIDTH_F: f32 = WINDOW_WIDTH as f32;
+pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
+
 fn main() {
     let window = init_window();
 
@@ -41,7 +46,7 @@ fn init_window() -> three_d::Window {
         .with_window_icon(Some(small_icon))
         .with_taskbar_icon(Some(large_icon))
         .with_decorations(true)
-        .with_inner_size(dpi::LogicalSize::new(800, 600))
+        .with_inner_size(dpi::LogicalSize::new(WINDOW_WIDTH, WINDOW_HEIGHT))
         .with_resizable(false)
         .with_enabled_buttons(!WindowButtons::MAXIMIZE)
         .build(&event_loop)
@@ -72,7 +77,7 @@ impl App {
     fn init(context: three_d::Context) -> Self {
         let gui = three_d::GUI::new(&context);
 
-        Self {
+        let mut app = Self {
             gui,
             assets: Assets::load(context),
             game: game_interface::setup_new(),
@@ -81,39 +86,46 @@ impl App {
             input_text: String::new(),
             request_input_focus: false,
             camera: Camera::default(),
-        }
+        };
+        app.try_get_next_frame();
+        app
     }
 
     fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> three_d::FrameOutput {
-        if let GameResult::Frame(frame_getter) = self.game.next_result() {
-            self.frame = frame_getter.get();
-            self.text_box_text.extend(self.frame.as_text());
-            self.request_input_focus = self.game.ready_to_take_input();
-        }
-
+        let mut clicked_text_box = false;
+        let mut accept_input = false;
         self.gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                let accept_input = input_panel(
+                accept_input = input_panel(
                     &mut self.input_text,
                     self.game.ready_to_take_input(),
                     std::mem::take(&mut self.request_input_focus),
                     egui_context,
                 );
-                text_box_panel(&self.text_box_text, egui_context);
-                if accept_input {
-                    let result = self.game.handle_input(&self.input_text);
-                    self.input_text.clear();
-                    if let Err(messages) = result {
-                        self.text_box_text.extend(messages);
-                        self.request_input_focus = true;
-                    }
-                }
+                clicked_text_box = text_box_panel(&self.text_box_text, egui_context);
             },
         );
+
+        if clicked_text_box {
+            self.try_get_next_frame();
+        }
+        if accept_input {
+            let result = self.game.handle_input(&self.input_text);
+            self.input_text.clear();
+
+            match result {
+                Ok(()) => self.try_get_next_frame(),
+                Err(messages) => {
+                    self.text_box_text.extend(messages);
+                    self.request_input_focus = true;
+                }
+            }
+        }
+
         self.camera.handle_inputs(&mut frame_input.events);
 
         let screen = frame_input.screen();
@@ -128,24 +140,40 @@ impl App {
         );
 
         screen.write(|| self.gui.render()).unwrap();
+        if self.game.next_result().has_frame() {
+            draw_frame_click_icon(&self.assets.left_mouse_icon, screen, &frame_input);
+        }
         three_d::FrameOutput::default()
+    }
+
+    fn try_get_next_frame(&mut self) {
+        if let GameResult::Frame(frame_getter) = self.game.next_result() {
+            self.frame = frame_getter.get();
+            self.text_box_text = self.frame.as_text();
+            self.request_input_focus = self.game.ready_to_take_input();
+        }
     }
 }
 
 struct Assets {
     backgrounds: BackgroundMap,
     models: LazilyLoadedModels,
+    left_mouse_icon: three_d::Texture2DRef,
 }
 
 impl Assets {
     fn load(context: three_d::Context) -> Self {
+        let left_mouse_icon =
+            load_texture("left_mouse", &context).expect("Missing left_mouse.png texture");
         Self {
             backgrounds: BackgroundMap::load(context.clone()),
             models: LazilyLoadedModels::new(context),
+            left_mouse_icon,
         }
     }
 }
 
+const INPUT_PANEL_HEIGHT: f32 = 25.;
 const INPUT_FONT: egui::FontId = egui::FontId::monospace(15.0);
 
 fn input_panel(
@@ -155,7 +183,7 @@ fn input_panel(
     egui_context: &egui::Context,
 ) -> bool {
     egui::TopBottomPanel::bottom("input")
-        .exact_height(25.)
+        .exact_height(INPUT_PANEL_HEIGHT)
         .show(egui_context, |ui| {
             let response = ui.add_enabled(
                 enabled,
@@ -181,20 +209,21 @@ const TEXT_BOX_COLOR: egui::Color32 = egui::Color32::from_rgba_premultiplied(
     (0.4 * 0.6 * 255.) as u8,
     (0.6 * 255.) as u8,
 );
+const TEXT_PANEL_HEIGHT: f32 = 100.;
 const TEXT_BOX_MARGIN: f32 = 12.;
 const TEXT_BOX_FONT: egui::FontId = egui::FontId::monospace(12.0);
 
 fn text_box_panel<S: Into<String>>(
     lines: impl IntoIterator<Item = S>,
     egui_context: &egui::Context,
-) {
-    egui::TopBottomPanel::bottom("text_box")
+) -> bool {
+    let response = egui::TopBottomPanel::bottom("text_box")
         .frame(egui::Frame {
             inner_margin: egui::Margin::symmetric(TEXT_BOX_MARGIN, 6.),
             fill: TEXT_BOX_COLOR,
             ..Default::default()
         })
-        .exact_height(100.)
+        .exact_height(TEXT_PANEL_HEIGHT)
         .show_separator_line(false)
         .show(egui_context, |ui| {
             egui::ScrollArea::vertical()
@@ -209,7 +238,44 @@ fn text_box_panel<S: Into<String>>(
                         );
                     }
                 });
-        });
+        })
+        .response;
+    response.interact(egui::Sense::click()).clicked()
+}
+
+const CLICK_ICON_OFFSET: f32 = 5.;
+
+fn draw_frame_click_icon(
+    icon: &three_d::Texture2DRef,
+    screen: three_d::RenderTarget<'_>,
+    frame_input: &three_d::FrameInput,
+) {
+    let alpha = ((frame_input.accumulated_time / 1000. * 3.).sin() + 1.) / 2.;
+    let width = icon.width() as f32;
+    let height = icon.height() as f32;
+    let icon = three_d::Gm::new(
+        three_d::Rectangle::new(
+            &frame_input.context,
+            three_d::vec2(
+                WINDOW_WIDTH_F - CLICK_ICON_OFFSET - width / 2.,
+                INPUT_PANEL_HEIGHT + TEXT_PANEL_HEIGHT - CLICK_ICON_OFFSET - height / 2.,
+            ),
+            three_d::degrees(0.),
+            width,
+            height,
+        ),
+        three_d::ColorMaterial {
+            color: three_d::Srgba::new(255, 255, 255, (alpha * 255.).round() as u8),
+            texture: Some(icon.clone()),
+            render_states: three_d::RenderStates {
+                write_mask: three_d::WriteMask::COLOR,
+                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    );
+    screen.render(default_render_camera(frame_input.viewport), [icon], &[]);
 }
 
 struct CachedLoader(HashMap<String, three_d::Texture2DRef>, three_d::Context);
@@ -229,13 +295,20 @@ impl TextureLoader<three_d::Texture2DRef, three_d_asset::Error> for CachedLoader
             return Ok(texture.clone());
         }
 
-        let path = format!("assets/texture/{name}.png");
-
-        let texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path)?;
-        let texture = three_d::Texture2DRef::from_cpu_texture(&self.1, &texture);
+        let texture = load_texture(&name, &self.1)?;
         self.0.insert(name, texture.clone());
         Ok(texture)
     }
+}
+
+fn load_texture(
+    name: &str,
+    context: &three_d::Context,
+) -> Result<three_d::Texture2DRef, three_d_asset::Error> {
+    let path = format!("assets/texture/{name}.png");
+
+    let texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path)?;
+    Ok(three_d::Texture2DRef::from_cpu_texture(context, &texture))
 }
 
 struct LazilyLoadedModels {
