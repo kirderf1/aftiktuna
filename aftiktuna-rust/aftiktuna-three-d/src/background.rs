@@ -98,31 +98,40 @@ impl BackgroundMap {
             .collect()
     }
 
-    pub fn get_render_object_for_secondary(
-        &self,
-        id: &BackgroundId,
-        context: &three_d::Context,
-    ) -> impl three_d::Object {
-        let background = self.get_or_default(id);
-        let material = match &background.portrait {
-            &PortraitBGData::Color(color) => three_d::ColorMaterial {
-                color: color.into(),
-                ..Default::default()
-            },
-            PortraitBGData::Texture(texture) => three_d::ColorMaterial {
-                texture: Some(texture.clone()),
-                ..Default::default()
-            },
+    pub fn draw_secondary(
+        &mut self,
+        background_id: &BackgroundId,
+        screen: &three_d::RenderTarget<'_>,
+        frame_input: &three_d::FrameInput,
+    ) {
+        let background = self.get_or_default(background_id);
+        match &background.portrait {
+            &PortraitBGData::Color([r, g, b]) => {
+                screen.clear(three_d::ClearState::color(
+                    f32::from(r),
+                    f32::from(g),
+                    f32::from(b),
+                    1.,
+                ));
+            }
+            PortraitBGData::Texture(texture) => {
+                let background_object = three_d::Gm::new(
+                    three_d::Rectangle::new(
+                        &frame_input.context,
+                        three_d::vec2(crate::WINDOW_WIDTH_F / 2., crate::WINDOW_HEIGHT_F / 2.),
+                        three_d::degrees(0.),
+                        crate::WINDOW_WIDTH_F,
+                        crate::WINDOW_HEIGHT_F,
+                    ),
+                    three_d::ColorMaterial {
+                        texture: Some(texture.clone()),
+                        ..Default::default()
+                    },
+                );
+
+                let render_camera = super::default_render_camera(frame_input.viewport);
+                screen.render(&render_camera, [background_object], &[]);
+            }
         };
-        three_d::Gm::new(
-            three_d::Rectangle::new(
-                context,
-                three_d::vec2(crate::WINDOW_WIDTH_F / 2., crate::WINDOW_HEIGHT_F / 2.),
-                three_d::degrees(0.),
-                crate::WINDOW_WIDTH_F,
-                crate::WINDOW_HEIGHT_F,
-            ),
-            material,
-        )
     }
 }

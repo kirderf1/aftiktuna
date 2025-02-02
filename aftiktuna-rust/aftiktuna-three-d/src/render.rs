@@ -39,20 +39,14 @@ pub fn render_frame(
             draw_area_view(render_data, camera, screen, frame_input, assets);
         }
         Frame::Dialogue { data, .. } => {
-            let background_object = assets
+            assets
                 .backgrounds
-                .get_render_object_for_secondary(&data.background, &frame_input.context);
-
-            let render_camera = super::default_render_camera(frame_input.viewport);
-            screen.render(&render_camera, [background_object], &[]);
+                .draw_secondary(&data.background, screen, frame_input);
         }
         Frame::StoreView { view, .. } => {
-            let background_object = assets
+            assets
                 .backgrounds
-                .get_render_object_for_secondary(&view.background, &frame_input.context);
-
-            let render_camera = super::default_render_camera(frame_input.viewport);
-            screen.render(&render_camera, [background_object], &[]);
+                .draw_secondary(&view.background, screen, frame_input);
         }
         Frame::Ending { stop_type } => {
             let (r, g, b) = match stop_type {
