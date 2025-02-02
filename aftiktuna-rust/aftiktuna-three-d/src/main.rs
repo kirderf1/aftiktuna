@@ -1,6 +1,7 @@
+use aftiktuna::asset::color::AftikColorData;
 use aftiktuna::asset::model::{self, Model};
-use aftiktuna::asset::TextureLoader;
-use aftiktuna::core::display::ModelId;
+use aftiktuna::asset::{self, TextureLoader};
+use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::Frame;
 use background::BackgroundMap;
@@ -142,6 +143,7 @@ impl App {
 struct Assets {
     backgrounds: BackgroundMap,
     models: LazilyLoadedModels,
+    aftik_colors: HashMap<AftikColorId, AftikColorData>,
     left_mouse_icon: three_d::Texture2DRef,
 }
 
@@ -152,6 +154,7 @@ impl Assets {
         Self {
             backgrounds: BackgroundMap::load(context.clone()),
             models: LazilyLoadedModels::new(context),
+            aftik_colors: asset::color::load_aftik_color_data().unwrap(),
             left_mouse_icon,
         }
     }

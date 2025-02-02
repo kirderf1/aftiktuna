@@ -10,7 +10,7 @@ pub mod color {
         secondary_color: RGBColor::new(0, 0, 0),
     };
 
-    #[derive(Clone, Serialize, Deserialize)]
+    #[derive(Clone, Copy, Serialize, Deserialize)]
     pub struct AftikColorData {
         pub primary_color: RGBColor,
         pub secondary_color: RGBColor,

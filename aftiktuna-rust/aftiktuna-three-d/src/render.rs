@@ -1,5 +1,8 @@
+use aftiktuna::asset;
+use aftiktuna::asset::color::{AftikColorData, RGBColor};
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::area::BackgroundId;
+use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::Frame;
@@ -81,6 +84,7 @@ fn draw_area_view(
                 assets.models.lookup_model(&object.model_id),
                 pos,
                 &object.properties,
+                &mut assets.aftik_colors,
                 &frame_input.context,
             )
         })
@@ -104,19 +108,38 @@ fn get_render_objects_for_entity(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     properties: &RenderProperties,
+    aftik_colors: &mut HashMap<AftikColorId, AftikColorData>,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
+    let aftik_color = properties
+        .aftik_color
+        .as_ref()
+        .map_or(asset::color::DEFAULT_COLOR, |aftik_color| {
+            lookup_or_log_aftik_color(aftik_color, aftik_colors)
+        });
     model
         .layers
         .iter()
-        .flat_map(|layer| get_render_object_for_layer(layer, pos, properties, context))
+        .flat_map(|layer| get_render_object_for_layer(layer, pos, properties, aftik_color, context))
         .collect()
+}
+
+fn lookup_or_log_aftik_color(
+    color_id: &AftikColorId,
+    aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
+) -> AftikColorData {
+    aftik_colors_map.get(color_id).copied().unwrap_or_else(|| {
+        eprintln!("Missing aftik color data for color {color_id:?}!");
+        aftik_colors_map.insert(color_id.clone(), asset::color::DEFAULT_COLOR);
+        asset::color::DEFAULT_COLOR
+    })
 }
 
 fn get_render_object_for_layer(
     layer: &TextureLayer<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     properties: &RenderProperties,
+    aftik_color: AftikColorData,
     context: &three_d::Context,
 ) -> Option<impl three_d::Object> {
     if !layer.conditions.meets_conditions(properties) {
@@ -143,17 +166,62 @@ fn get_render_object_for_layer(
         width * direction,
         height,
     );
-    let material = three_d::ColorMaterial {
-        texture: Some(layer.texture.clone()),
-        render_states: three_d::RenderStates {
-            write_mask: three_d::WriteMask::COLOR,
-            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+
+    let color = layer.color.get_color(&aftik_color);
+    let material = UnalteredColorMaterial(
+        three_d::ColorMaterial {
+            texture: Some(layer.texture.clone()),
+            render_states: three_d::RenderStates {
+                write_mask: three_d::WriteMask::COLOR,
+                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                ..Default::default()
+            },
             ..Default::default()
         },
-        ..Default::default()
-    };
+        color,
+    );
 
     Some(three_d::Gm::new(rectangle, material))
+}
+
+pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub RGBColor);
+
+impl three_d::Material for UnalteredColorMaterial {
+    fn id(&self) -> three_d::EffectMaterialId {
+        self.0.id()
+    }
+
+    fn fragment_shader_source(&self, lights: &[&dyn three_d::Light]) -> String {
+        self.0.fragment_shader_source(lights)
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &three_d::Program,
+        viewer: &dyn three_d::Viewer,
+        _lights: &[&dyn three_d::Light],
+    ) {
+        viewer.color_mapping().use_uniforms(program);
+        let color = three_d::vec4(
+            f32::from(self.1.r) / 255.,
+            f32::from(self.1.g) / 255.,
+            f32::from(self.1.b) / 255.,
+            1.,
+        );
+        program.use_uniform("surfaceColor", color);
+        if let Some(ref tex) = self.0.texture {
+            program.use_uniform("textureTransformation", tex.transformation);
+            program.use_texture("tex", tex);
+        }
+    }
+
+    fn render_states(&self) -> three_d::RenderStates {
+        self.0.render_states()
+    }
+
+    fn material_type(&self) -> three_d::MaterialType {
+        self.0.material_type()
+    }
 }
 
 fn position_objects<'a>(
