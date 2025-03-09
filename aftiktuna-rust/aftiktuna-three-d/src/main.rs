@@ -1,8 +1,9 @@
 use aftiktuna::asset::color::AftikColorData;
-use aftiktuna::asset::model::{self, Model};
+use aftiktuna::asset::model::{self, Model, TextureLayer};
 use aftiktuna::asset::{self, TextureLoader};
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::game_interface::{self, Game, GameResult};
+use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::Frame;
 use background::BackgroundMap;
 use std::collections::HashMap;
@@ -72,6 +73,7 @@ struct App {
     input_text: String,
     request_input_focus: bool,
     camera: Camera,
+    mouse_pos: three_d::Vec2,
 }
 
 impl App {
@@ -87,6 +89,7 @@ impl App {
             input_text: String::new(),
             request_input_focus: false,
             camera: Camera::default(),
+            mouse_pos: three_d::vec2(0., 0.),
         };
         app.try_get_next_frame();
         app
@@ -112,6 +115,12 @@ impl App {
         }
 
         self.camera.handle_inputs(&mut frame_input.events);
+
+        for event in &frame_input.events {
+            if let three_d::Event::MouseMotion { position, .. } = event {
+                self.mouse_pos = three_d::vec2(position.x, position.y);
+            }
+        }
 
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
@@ -215,6 +224,83 @@ impl LazilyLoadedModels {
             self.loaded_models.insert(model_id.clone(), model);
         }
         self.loaded_models.get(model_id).unwrap()
+    }
+
+    fn get_rect_for_object(&mut self, object_data: &ObjectRenderData, pos: three_d::Vec2) -> Rect {
+        let model = self.lookup_model(&object_data.model_id);
+        model_render_rect(model, pos, &object_data.properties)
+    }
+}
+
+fn get_hovered_object_names<'a>(
+    render_data: &'a RenderData,
+    mouse_pos: three_d::Vec2,
+    models: &mut LazilyLoadedModels,
+) -> Vec<&'a String> {
+    render::position_objects(&render_data.objects, models)
+        .into_iter()
+        .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
+        .filter_map(|(_, data)| data.name_data.as_ref())
+        .map(|name_data| &name_data.modified_name)
+        .collect::<Vec<_>>()
+}
+
+fn model_render_rect(
+    model: &Model<three_d::Texture2DRef>,
+    pos: three_d::Vec2,
+    properties: &RenderProperties,
+) -> Rect {
+    model
+        .layers
+        .iter()
+        .filter(|&layer| layer.conditions.meets_conditions(properties))
+        .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
+            rect.combine(layer_render_rect(layer, pos))
+        })
+}
+
+fn layer_render_rect(layer: &TextureLayer<three_d::Texture2DRef>, pos: three_d::Vec2) -> Rect {
+    let (width, height) = layer
+        .positioning
+        .size
+        .map(|(width, height)| (f32::from(width), f32::from(height)))
+        .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
+    Rect::new(
+        pos.x - width / 2.,
+        pos.y - f32::from(layer.positioning.y_offset),
+        width,
+        height,
+    )
+}
+
+struct Rect {
+    left: f32,
+    right: f32,
+    bottom: f32,
+    top: f32,
+}
+
+impl Rect {
+    fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
+        Self {
+            left: x,
+            right: x + width,
+            bottom: y,
+            top: y + height,
+        }
+    }
+
+    fn combine(self, other: Self) -> Self {
+        Self {
+            left: self.left.min(other.left),
+            right: self.right.max(other.right),
+            bottom: self.bottom.min(other.bottom),
+            top: self.top.max(other.top),
+        }
+    }
+
+    fn contains(&self, pos: three_d::Vec2) -> bool {
+        self.left <= pos.x && pos.x < self.right && self.bottom <= pos.y && pos.y < self.top
     }
 }
 

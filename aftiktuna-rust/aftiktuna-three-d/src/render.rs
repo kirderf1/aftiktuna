@@ -218,7 +218,7 @@ impl three_d::Material for UnalteredColorMaterial {
     }
 }
 
-fn position_objects<'a>(
+pub fn position_objects<'a>(
     objects: &'a Vec<ObjectRenderData>,
     models: &mut super::LazilyLoadedModels,
 ) -> Vec<(three_d::Vec2, &'a ObjectRenderData)> {

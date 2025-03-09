@@ -1,3 +1,4 @@
+use aftiktuna::view::Frame;
 use three_d::egui;
 
 #[derive(Default)]
@@ -21,6 +22,17 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
                 egui_context,
             );
             ui_result.clicked_text_box = text_box_panel(&app.text_box_text, egui_context);
+
+            if !app.camera.is_dragging {
+                if let Frame::AreaView { render_data, .. } = &app.frame {
+                    let hovered_names = super::get_hovered_object_names(
+                        render_data,
+                        app.mouse_pos + three_d::vec2(app.camera.camera_x, 0.),
+                        &mut app.assets.models,
+                    );
+                    tooltip(egui_context, &hovered_names);
+                }
+            }
         },
     );
     ui_result
@@ -132,5 +144,30 @@ pub fn draw_frame_click_icon(
         super::default_render_camera(frame_input.viewport),
         [icon],
         &[],
+    );
+}
+
+fn tooltip(egui_context: &egui::Context, lines: &[&String]) {
+    if lines.is_empty() {
+        return;
+    }
+
+    egui_context.style_mut(|style| {
+        style.spacing.menu_margin = egui::Margin::symmetric(TEXT_BOX_MARGIN, 0.);
+        style.visuals.menu_rounding = egui::Rounding::ZERO;
+        style.visuals.popup_shadow = egui::Shadow::NONE;
+        style.visuals.window_fill = TEXT_BOX_COLOR;
+        style.visuals.window_stroke = egui::Stroke::NONE;
+    });
+    egui::show_tooltip_at_pointer(
+        egui_context,
+        egui::LayerId::background(),
+        egui::Id::new("game_tooltip"),
+        |ui| {
+            ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+            for &line in lines {
+                ui.label(egui::RichText::new(line).color(egui::Color32::WHITE));
+            }
+        },
     );
 }
