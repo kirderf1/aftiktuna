@@ -202,6 +202,10 @@ fn draw_secondary_background(
                 ),
                 three_d::ColorMaterial {
                     texture: Some(texture.clone()),
+                    render_states: three_d::RenderStates {
+                        write_mask: three_d::WriteMask::COLOR,
+                        ..Default::default()
+                    },
                     ..Default::default()
                 },
             );
