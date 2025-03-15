@@ -4,7 +4,7 @@ use aftiktuna::asset::background::{BGData, PortraitBGData};
 use aftiktuna::asset::color::{AftikColorData, RGBColor};
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::AftikColorId;
+use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::Frame;
@@ -48,6 +48,32 @@ pub fn render_frame(
                 screen,
                 frame_input,
             );
+
+            let x = match data.direction {
+                Direction::Left => super::WINDOW_WIDTH_F - 300.,
+                Direction::Right => 300.,
+            };
+            let objects = get_render_objects_for_entity(
+                assets.models.lookup_model(&ModelId::portrait()),
+                three_d::vec2(x, 0.),
+                &RenderProperties {
+                    direction: data.direction,
+                    aftik_color: data.color.clone(),
+                    is_badly_hurt: data.is_badly_hurt,
+                    ..RenderProperties::default()
+                },
+                &mut assets.aftik_colors,
+                &frame_input.context,
+            );
+            let render_camera = super::default_render_camera(frame_input.viewport);
+            screen
+                .write::<three_d::RendererError>(|| {
+                    for object in objects {
+                        object.render(&render_camera, &[]);
+                    }
+                    Ok(())
+                })
+                .unwrap();
         }
         Frame::StoreView { view, .. } => {
             draw_secondary_background(
