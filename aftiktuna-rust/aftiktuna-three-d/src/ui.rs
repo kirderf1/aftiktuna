@@ -76,7 +76,7 @@ const TEXT_BOX_COLOR: egui::Color32 = egui::Color32::from_rgba_premultiplied(
 );
 const TEXT_PANEL_HEIGHT: f32 = 100.;
 const TEXT_BOX_MARGIN: f32 = 12.;
-const TEXT_BOX_FONT: egui::FontId = egui::FontId::monospace(12.0);
+const TEXT_BOX_FONT: egui::FontId = egui::FontId::monospace(11.0);
 
 fn text_box_panel<S: Into<String>>(
     lines: impl IntoIterator<Item = S>,
@@ -98,7 +98,7 @@ fn text_box_panel<S: Into<String>>(
                         ui.label(
                             egui::RichText::new(line)
                                 .font(TEXT_BOX_FONT)
-                                .line_height(Some(16.))
+                                .line_height(Some(13.))
                                 .color(egui::Color32::WHITE),
                         );
                     }
