@@ -108,7 +108,7 @@ impl App {
             match result {
                 Ok(()) => self.try_get_next_frame(),
                 Err(messages) => {
-                    self.text_box_text.extend(messages);
+                    self.text_box_text = messages;
                     self.request_input_focus = true;
                 }
             }
@@ -147,7 +147,7 @@ impl App {
                 self.camera.camera_x =
                     render::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
             }
-            self.text_box_text = self.frame.as_text();
+            self.text_box_text = self.frame.get_messages();
             self.request_input_focus = self.game.ready_to_take_input();
         }
     }
