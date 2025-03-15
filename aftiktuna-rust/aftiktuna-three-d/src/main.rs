@@ -143,6 +143,10 @@ impl App {
     fn try_get_next_frame(&mut self) {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
             self.frame = frame_getter.get();
+            if let Frame::AreaView { render_data, .. } = &self.frame {
+                self.camera.camera_x =
+                    render::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
+            }
             self.text_box_text = self.frame.as_text();
             self.request_input_focus = self.game.ready_to_take_input();
         }

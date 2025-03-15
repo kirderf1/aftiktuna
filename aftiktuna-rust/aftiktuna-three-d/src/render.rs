@@ -267,6 +267,6 @@ impl Positioner {
 
 // Coordinates are mapped like this so that when the left edge of the window is 0,
 // coord 3 will be placed in the middle of the window.
-fn coord_to_center_x(coord: Coord) -> f32 {
+pub fn coord_to_center_x(coord: Coord) -> f32 {
     40. + 120. * coord as f32
 }
