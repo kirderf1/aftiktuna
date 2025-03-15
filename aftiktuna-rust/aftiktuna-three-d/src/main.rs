@@ -1,3 +1,4 @@
+use aftiktuna::core::position::Coord;
 use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::area::RenderData;
 use aftiktuna::view::Frame;
@@ -109,7 +110,10 @@ impl App {
             }
         }
 
-        self.camera.handle_inputs(&mut frame_input.events);
+        if let Frame::AreaView { render_data, .. } = &self.frame {
+            self.camera.handle_inputs(&mut frame_input.events);
+            self.camera.clamp(render_data.area_size);
+        }
 
         for event in &frame_input.events {
             if let three_d::Event::MouseMotion { position, .. } = event {
@@ -140,7 +144,8 @@ impl App {
             self.frame = frame_getter.get();
             if let Frame::AreaView { render_data, .. } = &self.frame {
                 self.camera.camera_x =
-                    render::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
+                    coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
+                self.camera.clamp(render_data.area_size);
             }
             self.text_box_text = self.frame.get_messages();
             self.request_input_focus = self.game.ready_to_take_input();
@@ -250,10 +255,27 @@ impl Camera {
             }
         }
     }
+
+    fn clamp(&mut self, area_size: Coord) {
+        self.camera_x = if area_size <= 6 {
+            (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2. - WINDOW_WIDTH_F / 2.
+        } else {
+            self.camera_x.clamp(
+                coord_to_center_x(0) - 100.,
+                coord_to_center_x(area_size - 1) + 100. - WINDOW_WIDTH_F,
+            )
+        };
+    }
 }
 
 fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
     let mut render_camera = three_d::Camera::new_2d(viewport);
     render_camera.disable_tone_and_color_mapping();
     render_camera
+}
+
+// Coordinates are mapped like this so that when the left edge of the window is 0,
+// coord 3 will be placed in the middle of the window.
+pub fn coord_to_center_x(coord: Coord) -> f32 {
+    40. + 120. * coord as f32
 }

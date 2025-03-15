@@ -352,7 +352,7 @@ pub fn position_objects<'a>(
 
 fn position_from_coord(coord: Coord, count: i32) -> three_d::Vec2 {
     three_d::vec2(
-        coord_to_center_x(coord) - count as f32 * 15.,
+        crate::coord_to_center_x(coord) - count as f32 * 15.,
         (190 - count * 15) as f32,
     )
 }
@@ -377,10 +377,4 @@ impl Positioner {
             position_from_coord(coord, 0)
         }
     }
-}
-
-// Coordinates are mapped like this so that when the left edge of the window is 0,
-// coord 3 will be placed in the middle of the window.
-pub fn coord_to_center_x(coord: Coord) -> f32 {
-    40. + 120. * coord as f32
 }
