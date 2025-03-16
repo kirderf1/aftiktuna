@@ -211,9 +211,9 @@ fn draw_secondary_background(
     match &background.portrait {
         &PortraitBGData::Color([r, g, b]) => {
             screen.clear(three_d::ClearState::color(
-                f32::from(r),
-                f32::from(g),
-                f32::from(b),
+                f32::from(r) / 255.,
+                f32::from(g) / 255.,
+                f32::from(b) / 255.,
                 1.,
             ));
         }
