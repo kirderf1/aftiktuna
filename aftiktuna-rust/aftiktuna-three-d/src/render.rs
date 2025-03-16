@@ -30,14 +30,7 @@ pub fn render_frame(
             );
 
             let render_camera = super::default_render_camera(frame_input.viewport);
-            screen
-                .write::<three_d::RendererError>(|| {
-                    for object in background_objects {
-                        object.render(&render_camera, &[]);
-                    }
-                    Ok(())
-                })
-                .unwrap();
+            draw_in_order(&background_objects, render_camera, screen);
         }
         Frame::AreaView { render_data, .. } => {
             draw_area_view(render_data, camera, screen, frame_input, assets);
@@ -66,14 +59,7 @@ pub fn render_frame(
                 &frame_input.context,
             );
             let render_camera = super::default_render_camera(frame_input.viewport);
-            screen
-                .write::<three_d::RendererError>(|| {
-                    for object in objects {
-                        object.render(&render_camera, &[]);
-                    }
-                    Ok(())
-                })
-                .unwrap();
+            draw_in_order(&objects, render_camera, screen);
         }
         Frame::StoreView { view, .. } => {
             draw_secondary_background(
@@ -81,6 +67,20 @@ pub fn render_frame(
                 screen,
                 frame_input,
             );
+
+            let objects = get_render_objects_for_entity(
+                assets.models.lookup_model(&ModelId::portrait()),
+                three_d::vec2(super::WINDOW_WIDTH_F - 200., 0.),
+                &RenderProperties {
+                    direction: Direction::Left,
+                    aftik_color: view.shopkeeper_color.clone(),
+                    ..RenderProperties::default()
+                },
+                &mut assets.aftik_colors,
+                &frame_input.context,
+            );
+            let render_camera = super::default_render_camera(frame_input.viewport);
+            draw_in_order(&objects, render_camera, screen);
         }
         Frame::Ending { stop_type } => {
             let (r, g, b) = match stop_type {
@@ -360,6 +360,21 @@ impl three_d::Material for UnalteredColorMaterial {
     fn material_type(&self) -> three_d::MaterialType {
         self.0.material_type()
     }
+}
+
+fn draw_in_order(
+    objects: &[impl three_d::Object],
+    camera: three_d::Camera,
+    screen: &three_d::RenderTarget<'_>,
+) {
+    screen
+        .write::<three_d::RendererError>(|| {
+            for object in objects {
+                object.render(&camera, &[]);
+            }
+            Ok(())
+        })
+        .unwrap();
 }
 
 pub fn position_objects<'a>(
