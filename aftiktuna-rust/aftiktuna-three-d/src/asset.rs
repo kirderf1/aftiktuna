@@ -13,6 +13,8 @@ pub struct Assets {
     pub models: LazilyLoadedModels,
     pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: three_d::Texture2DRef,
+    pub text_gen_size_16: three_d::TextGenerator<'static>,
+    pub text_gen_size_20: three_d::TextGenerator<'static>,
 }
 
 impl Assets {
@@ -24,6 +26,18 @@ impl Assets {
             models: LazilyLoadedModels::new(context),
             aftik_colors: asset_base::color::load_aftik_color_data().unwrap(),
             left_mouse_icon,
+            text_gen_size_16: three_d::TextGenerator::new(
+                epaint_default_fonts::HACK_REGULAR,
+                0,
+                16.,
+            )
+            .unwrap(),
+            text_gen_size_20: three_d::TextGenerator::new(
+                epaint_default_fonts::HACK_REGULAR,
+                0,
+                20.,
+            )
+            .unwrap(),
         }
     }
 }

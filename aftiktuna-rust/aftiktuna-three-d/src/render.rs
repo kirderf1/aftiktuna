@@ -1,13 +1,13 @@
 use crate::asset::{Assets, LazilyLoadedModels};
-use aftiktuna::asset;
 use aftiktuna::asset::background::{BGData, PortraitBGData};
-use aftiktuna::asset::color::{AftikColorData, RGBColor};
+use aftiktuna::asset::color::AftikColorData;
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::Frame;
+use aftiktuna::{asset, view};
 use std::collections::HashMap;
 use three_d::Object;
 
@@ -30,7 +30,7 @@ pub fn render_frame(
             );
 
             let render_camera = super::default_render_camera(frame_input.viewport);
-            draw_in_order(&background_objects, render_camera, screen);
+            draw_in_order(&background_objects, &render_camera, screen);
         }
         Frame::AreaView { render_data, .. } => {
             draw_area_view(render_data, camera, screen, frame_input, assets);
@@ -59,7 +59,7 @@ pub fn render_frame(
                 &frame_input.context,
             );
             let render_camera = super::default_render_camera(frame_input.viewport);
-            draw_in_order(&objects, render_camera, screen);
+            draw_in_order(&objects, &render_camera, screen);
         }
         Frame::StoreView { view, .. } => {
             draw_secondary_background(
@@ -80,7 +80,102 @@ pub fn render_frame(
                 &frame_input.context,
             );
             let render_camera = super::default_render_camera(frame_input.viewport);
-            draw_in_order(&objects, render_camera, screen);
+            draw_in_order(&objects, &render_camera, screen);
+            const STOCK_PANEL_COLOR: three_d::Vec4 = three_d::vec4(0.2, 0.1, 0.4, 0.6);
+            screen.render(
+                &render_camera,
+                [three_d::Gm::new(
+                    rect(30., 170., 400., 400., &frame_input.context),
+                    UnalteredColorMaterial(
+                        three_d::ColorMaterial {
+                            render_states: three_d::RenderStates {
+                                write_mask: three_d::WriteMask::COLOR,
+                                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        },
+                        STOCK_PANEL_COLOR,
+                    ),
+                )],
+                &[],
+            );
+            let place_mesh = |mut mesh: three_d::CpuMesh, x, y| {
+                mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(x, y, 0.)))
+                    .unwrap();
+                three_d::Gm::new(
+                    three_d::Mesh::new(&frame_input.context, &mesh),
+                    three_d::ColorMaterial::default(),
+                )
+            };
+            let text = view
+                .items
+                .iter()
+                .enumerate()
+                .flat_map(|(index, stock)| {
+                    let price = stock.price.buy_price();
+                    let quantity = stock.quantity;
+                    let y = 550. - (index as f32 * 24.);
+                    [
+                        place_mesh(
+                            assets.text_gen_size_16.generate(
+                                &view::text::capitalize(stock.item.noun_data().singular()),
+                                three_d::TextLayoutOptions::default(),
+                            ),
+                            40.,
+                            y,
+                        ),
+                        place_mesh(
+                            assets.text_gen_size_16.generate(
+                                &format!("| {price}p"),
+                                three_d::TextLayoutOptions::default(),
+                            ),
+                            210.,
+                            y,
+                        ),
+                        place_mesh(
+                            assets.text_gen_size_16.generate(
+                                &format!("| {quantity}"),
+                                three_d::TextLayoutOptions::default(),
+                            ),
+                            300.,
+                            y,
+                        ),
+                    ]
+                })
+                .collect::<Vec<_>>();
+            draw_in_order(&text, &render_camera, screen);
+
+            screen.render(
+                &render_camera,
+                [three_d::Gm::new(
+                    rect(450., 535., 320., 35., &frame_input.context),
+                    UnalteredColorMaterial(
+                        three_d::ColorMaterial {
+                            render_states: three_d::RenderStates {
+                                write_mask: three_d::WriteMask::COLOR,
+                                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                                ..Default::default()
+                            },
+                            ..Default::default()
+                        },
+                        STOCK_PANEL_COLOR,
+                    ),
+                )],
+                &[],
+            );
+            screen.render(
+                &render_camera,
+                [place_mesh(
+                    assets.text_gen_size_20.generate(
+                        &format!("Crew points: {}p", view.points),
+                        three_d::TextLayoutOptions::default(),
+                    ),
+                    460.,
+                    545.,
+                )],
+                &[],
+            );
         }
         Frame::Ending { stop_type } => {
             let (r, g, b) = match stop_type {
@@ -132,6 +227,16 @@ fn draw_area_view(
         .unwrap();
 }
 
+fn rect(x: f32, y: f32, width: f32, height: f32, context: &three_d::Context) -> three_d::Rectangle {
+    three_d::Rectangle::new(
+        context,
+        three_d::vec2(x + width / 2., y + height / 2.),
+        three_d::degrees(0.),
+        width,
+        height,
+    )
+}
+
 fn render_objects_for_primary_background(
     background: &BGData<three_d::Texture2DRef>,
     background_offset: Coord,
@@ -159,22 +264,6 @@ fn render_objects_for_primary_background(
                 },
                 ..Default::default()
             };
-
-            fn rect(
-                x: f32,
-                y: f32,
-                width: f32,
-                height: f32,
-                context: &three_d::Context,
-            ) -> three_d::Rectangle {
-                three_d::Rectangle::new(
-                    context,
-                    three_d::vec2(x + width / 2., y + height / 2.),
-                    three_d::degrees(0.),
-                    width,
-                    height,
-                )
-            }
 
             if layer.is_looping {
                 let repeat_start = f32::floor((camera_x - layer_x) / width) as i16;
@@ -316,13 +405,18 @@ fn get_render_object_for_layer(
             },
             ..Default::default()
         },
-        color,
+        three_d::vec4(
+            f32::from(color.r) / 255.,
+            f32::from(color.g) / 255.,
+            f32::from(color.b) / 255.,
+            1.,
+        ),
     );
 
     Some(three_d::Gm::new(rectangle, material))
 }
 
-pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub RGBColor);
+pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub three_d::Vec4);
 
 impl three_d::Material for UnalteredColorMaterial {
     fn id(&self) -> three_d::EffectMaterialId {
@@ -340,13 +434,7 @@ impl three_d::Material for UnalteredColorMaterial {
         _lights: &[&dyn three_d::Light],
     ) {
         viewer.color_mapping().use_uniforms(program);
-        let color = three_d::vec4(
-            f32::from(self.1.r) / 255.,
-            f32::from(self.1.g) / 255.,
-            f32::from(self.1.b) / 255.,
-            1.,
-        );
-        program.use_uniform("surfaceColor", color);
+        program.use_uniform("surfaceColor", self.1);
         if let Some(ref tex) = self.0.texture {
             program.use_uniform("textureTransformation", tex.transformation);
             program.use_texture("tex", tex);
@@ -364,7 +452,7 @@ impl three_d::Material for UnalteredColorMaterial {
 
 fn draw_in_order(
     objects: &[impl three_d::Object],
-    camera: three_d::Camera,
+    camera: &three_d::Camera,
     screen: &three_d::RenderTarget<'_>,
 ) {
     screen
