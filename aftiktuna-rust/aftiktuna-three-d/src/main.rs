@@ -1,4 +1,3 @@
-use aftiktuna::core::position::Coord;
 use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::area::RenderData;
 use aftiktuna::view::Frame;
@@ -11,6 +10,114 @@ use winit::window::{Icon, WindowBuilder, WindowButtons};
 mod asset;
 mod render;
 mod ui;
+
+mod placement {
+    use aftiktuna::{core::position::Coord, view::area::ObjectRenderData};
+    use std::collections::HashMap;
+
+    // Coordinates are mapped like this so that when the left edge of the window is 0,
+    // coord 3 will be placed in the middle of the window.
+    pub fn coord_to_center_x(coord: Coord) -> f32 {
+        40. + 120. * coord as f32
+    }
+
+    #[derive(Default)]
+    pub struct Camera {
+        pub camera_x: f32,
+        pub is_dragging: bool,
+    }
+
+    impl Camera {
+        pub fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
+            for event in events {
+                match event {
+                    three_d::Event::MousePress {
+                        button, handled, ..
+                    } => {
+                        if !*handled && *button == three_d::MouseButton::Left {
+                            self.is_dragging = true;
+                            *handled = true;
+                        }
+                    }
+                    three_d::Event::MouseRelease {
+                        button, handled, ..
+                    } => {
+                        if self.is_dragging && *button == three_d::MouseButton::Left {
+                            self.is_dragging = false;
+                            *handled = true;
+                        }
+                    }
+                    three_d::Event::MouseMotion { delta, handled, .. } => {
+                        if !*handled && self.is_dragging {
+                            self.camera_x -= delta.0;
+                            *handled = true;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
+        pub fn clamp(&mut self, area_size: Coord) {
+            self.camera_x = if area_size <= 6 {
+                (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2.
+                    - crate::WINDOW_WIDTH_F / 2.
+            } else {
+                self.camera_x.clamp(
+                    coord_to_center_x(0) - 100.,
+                    coord_to_center_x(area_size - 1) + 100. - crate::WINDOW_WIDTH_F,
+                )
+            };
+        }
+    }
+
+    pub fn position_objects<'a>(
+        objects: &'a Vec<ObjectRenderData>,
+        models: &mut crate::asset::LazilyLoadedModels,
+    ) -> Vec<(three_d::Vec2, &'a ObjectRenderData)> {
+        let mut positioned_objects = Vec::new();
+        let mut positioner = Positioner::new();
+
+        for data in objects {
+            let pos = positioner.position_object(
+                data.coord,
+                models.lookup_model(&data.model_id).is_displacing(),
+            );
+
+            positioned_objects.push((pos, data));
+        }
+        positioned_objects
+    }
+
+    fn position_from_coord(coord: Coord, count: i32) -> three_d::Vec2 {
+        three_d::vec2(
+            coord_to_center_x(coord) - count as f32 * 15.,
+            (190 - count * 15) as f32,
+        )
+    }
+
+    #[derive(Default)]
+    struct Positioner {
+        coord_counts: HashMap<Coord, i32>,
+    }
+
+    impl Positioner {
+        pub fn new() -> Self {
+            Self::default()
+        }
+
+        fn position_object(&mut self, coord: Coord, is_displacing: bool) -> three_d::Vec2 {
+            if is_displacing {
+                let count_ref = self.coord_counts.entry(coord).or_insert(0);
+                let count = *count_ref;
+                *count_ref = count + 1;
+                position_from_coord(coord, count)
+            } else {
+                position_from_coord(coord, 0)
+            }
+        }
+    }
+}
 
 pub const WINDOW_WIDTH: u16 = 800;
 pub const WINDOW_HEIGHT: u16 = 600;
@@ -68,7 +175,7 @@ struct App {
     text_box_text: Vec<String>,
     input_text: String,
     request_input_focus: bool,
-    camera: Camera,
+    camera: placement::Camera,
     mouse_pos: three_d::Vec2,
 }
 
@@ -84,7 +191,7 @@ impl App {
             text_box_text: Vec::new(),
             input_text: String::new(),
             request_input_focus: false,
-            camera: Camera::default(),
+            camera: placement::Camera::default(),
             mouse_pos: three_d::vec2(0., 0.),
         };
         app.try_get_next_frame();
@@ -144,7 +251,7 @@ impl App {
             self.frame = frame_getter.get();
             if let Frame::AreaView { render_data, .. } = &self.frame {
                 self.camera.camera_x =
-                    coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
+                    placement::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
                 self.camera.clamp(render_data.area_size);
             }
             self.text_box_text = self.frame.get_messages();
@@ -158,7 +265,7 @@ fn get_hovered_object_names<'a>(
     mouse_pos: three_d::Vec2,
     models: &mut asset::LazilyLoadedModels,
 ) -> Vec<&'a String> {
-    render::position_objects(&render_data.objects, models)
+    placement::position_objects(&render_data.objects, models)
         .into_iter()
         .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
         .filter_map(|(_, data)| data.name_data.as_ref())
@@ -197,85 +304,30 @@ impl Rect {
     }
 }
 
-#[derive(Default)]
-struct Camera {
-    camera_x: f32,
-    is_dragging: bool,
-}
-
-impl Camera {
-    fn get_render_camera(&self, viewport: three_d::Viewport) -> three_d::Camera {
-        let mut render_camera = three_d::Camera::new_orthographic(
-            viewport,
-            three_d::vec3(
-                self.camera_x + viewport.width as f32 * 0.5,
-                viewport.height as f32 * 0.5,
-                1.0,
-            ),
-            three_d::vec3(
-                self.camera_x + viewport.width as f32 * 0.5,
-                viewport.height as f32 * 0.5,
-                0.0,
-            ),
-            three_d::vec3(0.0, 1.0, 0.0),
-            viewport.height as f32,
+fn get_render_camera(camera: &placement::Camera, viewport: three_d::Viewport) -> three_d::Camera {
+    let mut render_camera = three_d::Camera::new_orthographic(
+        viewport,
+        three_d::vec3(
+            camera.camera_x + viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            1.0,
+        ),
+        three_d::vec3(
+            camera.camera_x + viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
             0.0,
-            10.0,
-        );
-        render_camera.disable_tone_and_color_mapping();
-        render_camera
-    }
-
-    fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
-        for event in events {
-            match event {
-                three_d::Event::MousePress {
-                    button, handled, ..
-                } => {
-                    if !*handled && *button == three_d::MouseButton::Left {
-                        self.is_dragging = true;
-                        *handled = true;
-                    }
-                }
-                three_d::Event::MouseRelease {
-                    button, handled, ..
-                } => {
-                    if self.is_dragging && *button == three_d::MouseButton::Left {
-                        self.is_dragging = false;
-                        *handled = true;
-                    }
-                }
-                three_d::Event::MouseMotion { delta, handled, .. } => {
-                    if !*handled && self.is_dragging {
-                        self.camera_x -= delta.0;
-                        *handled = true;
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-
-    fn clamp(&mut self, area_size: Coord) {
-        self.camera_x = if area_size <= 6 {
-            (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2. - WINDOW_WIDTH_F / 2.
-        } else {
-            self.camera_x.clamp(
-                coord_to_center_x(0) - 100.,
-                coord_to_center_x(area_size - 1) + 100. - WINDOW_WIDTH_F,
-            )
-        };
-    }
+        ),
+        three_d::vec3(0.0, 1.0, 0.0),
+        viewport.height as f32,
+        0.0,
+        10.0,
+    );
+    render_camera.disable_tone_and_color_mapping();
+    render_camera
 }
 
 fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
     let mut render_camera = three_d::Camera::new_2d(viewport);
     render_camera.disable_tone_and_color_mapping();
     render_camera
-}
-
-// Coordinates are mapped like this so that when the left edge of the window is 0,
-// coord 3 will be placed in the middle of the window.
-pub fn coord_to_center_x(coord: Coord) -> f32 {
-    40. + 120. * coord as f32
 }

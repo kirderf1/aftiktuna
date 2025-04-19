@@ -1,11 +1,12 @@
-use crate::asset::{Assets, LazilyLoadedModels};
+use crate::asset::Assets;
+use crate::placement;
 use aftiktuna::asset::background::{BGData, PortraitBGData};
 use aftiktuna::asset::color::AftikColorData;
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
-use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
+use aftiktuna::view::area::{RenderData, RenderProperties};
 use aftiktuna::view::Frame;
 use aftiktuna::{asset, view};
 use std::collections::HashMap;
@@ -13,7 +14,7 @@ use three_d::Object;
 
 pub fn render_frame(
     frame: &Frame,
-    camera: &super::Camera,
+    camera: &placement::Camera,
     screen: &three_d::RenderTarget<'_>,
     frame_input: &three_d::FrameInput,
     assets: &mut Assets,
@@ -76,7 +77,7 @@ pub fn render_frame(
 
 fn draw_area_view(
     render_data: &RenderData,
-    camera: &super::Camera,
+    camera: &placement::Camera,
     screen: &three_d::RenderTarget<'_>,
     frame_input: &three_d::FrameInput,
     assets: &mut Assets,
@@ -87,7 +88,7 @@ fn draw_area_view(
         camera.camera_x,
         &frame_input.context,
     );
-    let entity_objects = position_objects(&render_data.objects, &mut assets.models)
+    let entity_objects = placement::position_objects(&render_data.objects, &mut assets.models)
         .into_iter()
         .flat_map(|(pos, object)| {
             get_render_objects_for_entity(
@@ -100,7 +101,7 @@ fn draw_area_view(
         })
         .collect::<Vec<_>>();
 
-    let render_camera = camera.get_render_camera(frame_input.viewport);
+    let render_camera = super::get_render_camera(camera, frame_input.viewport);
     screen
         .write::<three_d::RendererError>(|| {
             for object in background_objects {
@@ -473,51 +474,4 @@ fn draw_in_order(
             Ok(())
         })
         .unwrap();
-}
-
-pub fn position_objects<'a>(
-    objects: &'a Vec<ObjectRenderData>,
-    models: &mut LazilyLoadedModels,
-) -> Vec<(three_d::Vec2, &'a ObjectRenderData)> {
-    let mut positioned_objects = Vec::new();
-    let mut positioner = Positioner::new();
-
-    for data in objects {
-        let pos = positioner.position_object(
-            data.coord,
-            models.lookup_model(&data.model_id).is_displacing(),
-        );
-
-        positioned_objects.push((pos, data));
-    }
-    positioned_objects
-}
-
-fn position_from_coord(coord: Coord, count: i32) -> three_d::Vec2 {
-    three_d::vec2(
-        crate::coord_to_center_x(coord) - count as f32 * 15.,
-        (190 - count * 15) as f32,
-    )
-}
-
-#[derive(Default)]
-struct Positioner {
-    coord_counts: HashMap<Coord, i32>,
-}
-
-impl Positioner {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    fn position_object(&mut self, coord: Coord, is_displacing: bool) -> three_d::Vec2 {
-        if is_displacing {
-            let count_ref = self.coord_counts.entry(coord).or_insert(0);
-            let count = *count_ref;
-            *count_ref = count + 1;
-            position_from_coord(coord, count)
-        } else {
-            position_from_coord(coord, 0)
-        }
-    }
 }
