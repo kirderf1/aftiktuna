@@ -144,17 +144,7 @@ fn draw_store_view(
         &render_camera,
         [three_d::Gm::new(
             rect(30., 170., 400., 400., &frame_input.context),
-            UnalteredColorMaterial(
-                three_d::ColorMaterial {
-                    render_states: three_d::RenderStates {
-                        write_mask: three_d::WriteMask::COLOR,
-                        blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-                STOCK_PANEL_COLOR,
-            ),
+            color_material(STOCK_PANEL_COLOR),
         )],
         &[],
     );
@@ -163,7 +153,7 @@ fn draw_store_view(
             .unwrap();
         three_d::Gm::new(
             three_d::Mesh::new(&frame_input.context, &mesh),
-            three_d::ColorMaterial::default(),
+            color_material(three_d::vec4(1., 1., 1., 1.)),
         )
     };
     let text = view
@@ -208,17 +198,7 @@ fn draw_store_view(
         &render_camera,
         [three_d::Gm::new(
             rect(450., 535., 320., 35., &frame_input.context),
-            UnalteredColorMaterial(
-                three_d::ColorMaterial {
-                    render_states: three_d::RenderStates {
-                        write_mask: three_d::WriteMask::COLOR,
-                        blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
-                STOCK_PANEL_COLOR,
-            ),
+            color_material(STOCK_PANEL_COLOR),
         )],
         &[],
     );
@@ -264,15 +244,7 @@ fn render_objects_for_primary_background(
             let height = layer.texture.height() as f32;
             let layer_x = f32::from(layer.offset.x) + camera_x * (1. - layer.move_factor) - offset;
             let layer_y = f32::from(layer.offset.y);
-            let material = three_d::ColorMaterial {
-                texture: Some(layer.texture.clone()),
-                render_states: three_d::RenderStates {
-                    write_mask: three_d::WriteMask::COLOR,
-                    blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
+            let material = texture_material(&layer.texture);
 
             if layer.is_looping {
                 let repeat_start = f32::floor((camera_x - layer_x) / width) as i16;
@@ -324,14 +296,7 @@ fn draw_secondary_background(
                     crate::WINDOW_WIDTH_F,
                     crate::WINDOW_HEIGHT_F,
                 ),
-                three_d::ColorMaterial {
-                    texture: Some(texture.clone()),
-                    render_states: three_d::RenderStates {
-                        write_mask: three_d::WriteMask::COLOR,
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                },
+                texture_material(texture),
             );
 
             let render_camera = super::default_render_camera(frame_input.viewport);
@@ -404,16 +369,8 @@ fn get_render_object_for_layer(
     );
 
     let color = layer.color.get_color(&aftik_color);
-    let material = UnalteredColorMaterial(
-        three_d::ColorMaterial {
-            texture: Some(layer.texture.clone()),
-            render_states: three_d::RenderStates {
-                write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
+    let material = texture_color_material(
+        &layer.texture,
         three_d::vec4(
             f32::from(color.r) / 255.,
             f32::from(color.g) / 255.,
@@ -423,6 +380,50 @@ fn get_render_object_for_layer(
     );
 
     Some(three_d::Gm::new(rectangle, material))
+}
+
+fn color_material(color: three_d::Vec4) -> impl three_d::Material {
+    UnalteredColorMaterial(
+        three_d::ColorMaterial {
+            render_states: three_d::RenderStates {
+                write_mask: three_d::WriteMask::COLOR,
+                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        color,
+    )
+}
+
+fn texture_material(texture: &three_d::Texture2DRef) -> impl three_d::Material + Clone {
+    three_d::ColorMaterial {
+        texture: Some(texture.clone()),
+        render_states: three_d::RenderStates {
+            write_mask: three_d::WriteMask::COLOR,
+            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+fn texture_color_material(
+    texture: &three_d::Texture2DRef,
+    color: three_d::Vec4,
+) -> impl three_d::Material {
+    UnalteredColorMaterial(
+        three_d::ColorMaterial {
+            texture: Some(texture.clone()),
+            render_states: three_d::RenderStates {
+                write_mask: three_d::WriteMask::COLOR,
+                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        color,
+    )
 }
 
 pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub three_d::Vec4);
