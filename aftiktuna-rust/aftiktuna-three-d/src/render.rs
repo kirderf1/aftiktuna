@@ -62,120 +62,7 @@ pub fn render_frame(
             draw_in_order(&objects, &render_camera, screen);
         }
         Frame::StoreView { view, .. } => {
-            draw_secondary_background(
-                assets.backgrounds.get_or_default(&view.background),
-                screen,
-                frame_input,
-            );
-
-            let objects = get_render_objects_for_entity(
-                assets.models.lookup_model(&ModelId::portrait()),
-                three_d::vec2(super::WINDOW_WIDTH_F - 200., 0.),
-                &RenderProperties {
-                    direction: Direction::Left,
-                    aftik_color: view.shopkeeper_color.clone(),
-                    ..RenderProperties::default()
-                },
-                &mut assets.aftik_colors,
-                &frame_input.context,
-            );
-            let render_camera = super::default_render_camera(frame_input.viewport);
-            draw_in_order(&objects, &render_camera, screen);
-            const STOCK_PANEL_COLOR: three_d::Vec4 = three_d::vec4(0.2, 0.1, 0.4, 0.6);
-            screen.render(
-                &render_camera,
-                [three_d::Gm::new(
-                    rect(30., 170., 400., 400., &frame_input.context),
-                    UnalteredColorMaterial(
-                        three_d::ColorMaterial {
-                            render_states: three_d::RenderStates {
-                                write_mask: three_d::WriteMask::COLOR,
-                                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        },
-                        STOCK_PANEL_COLOR,
-                    ),
-                )],
-                &[],
-            );
-            let place_mesh = |mut mesh: three_d::CpuMesh, x, y| {
-                mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(x, y, 0.)))
-                    .unwrap();
-                three_d::Gm::new(
-                    three_d::Mesh::new(&frame_input.context, &mesh),
-                    three_d::ColorMaterial::default(),
-                )
-            };
-            let text = view
-                .items
-                .iter()
-                .enumerate()
-                .flat_map(|(index, stock)| {
-                    let price = stock.price.buy_price();
-                    let quantity = stock.quantity;
-                    let y = 550. - (index as f32 * 24.);
-                    [
-                        place_mesh(
-                            assets.text_gen_size_16.generate(
-                                &view::text::capitalize(stock.item.noun_data().singular()),
-                                three_d::TextLayoutOptions::default(),
-                            ),
-                            40.,
-                            y,
-                        ),
-                        place_mesh(
-                            assets.text_gen_size_16.generate(
-                                &format!("| {price}p"),
-                                three_d::TextLayoutOptions::default(),
-                            ),
-                            210.,
-                            y,
-                        ),
-                        place_mesh(
-                            assets.text_gen_size_16.generate(
-                                &format!("| {quantity}"),
-                                three_d::TextLayoutOptions::default(),
-                            ),
-                            300.,
-                            y,
-                        ),
-                    ]
-                })
-                .collect::<Vec<_>>();
-            draw_in_order(&text, &render_camera, screen);
-
-            screen.render(
-                &render_camera,
-                [three_d::Gm::new(
-                    rect(450., 535., 320., 35., &frame_input.context),
-                    UnalteredColorMaterial(
-                        three_d::ColorMaterial {
-                            render_states: three_d::RenderStates {
-                                write_mask: three_d::WriteMask::COLOR,
-                                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        },
-                        STOCK_PANEL_COLOR,
-                    ),
-                )],
-                &[],
-            );
-            screen.render(
-                &render_camera,
-                [place_mesh(
-                    assets.text_gen_size_20.generate(
-                        &format!("Crew points: {}p", view.points),
-                        three_d::TextLayoutOptions::default(),
-                    ),
-                    460.,
-                    545.,
-                )],
-                &[],
-            );
+            draw_store_view(view, screen, frame_input, assets);
         }
         Frame::Ending { stop_type } => {
             let (r, g, b) = match stop_type {
@@ -225,6 +112,128 @@ fn draw_area_view(
             Ok(())
         })
         .unwrap();
+}
+
+fn draw_store_view(
+    view: &view::StoreView,
+    screen: &three_d::RenderTarget<'_>,
+    frame_input: &three_d::FrameInput,
+    assets: &mut Assets,
+) {
+    draw_secondary_background(
+        assets.backgrounds.get_or_default(&view.background),
+        screen,
+        frame_input,
+    );
+
+    let objects = get_render_objects_for_entity(
+        assets.models.lookup_model(&ModelId::portrait()),
+        three_d::vec2(super::WINDOW_WIDTH_F - 200., 0.),
+        &RenderProperties {
+            direction: Direction::Left,
+            aftik_color: view.shopkeeper_color.clone(),
+            ..RenderProperties::default()
+        },
+        &mut assets.aftik_colors,
+        &frame_input.context,
+    );
+    let render_camera = super::default_render_camera(frame_input.viewport);
+    draw_in_order(&objects, &render_camera, screen);
+    const STOCK_PANEL_COLOR: three_d::Vec4 = three_d::vec4(0.2, 0.1, 0.4, 0.6);
+    screen.render(
+        &render_camera,
+        [three_d::Gm::new(
+            rect(30., 170., 400., 400., &frame_input.context),
+            UnalteredColorMaterial(
+                three_d::ColorMaterial {
+                    render_states: three_d::RenderStates {
+                        write_mask: three_d::WriteMask::COLOR,
+                        blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                STOCK_PANEL_COLOR,
+            ),
+        )],
+        &[],
+    );
+    let place_mesh = |mut mesh: three_d::CpuMesh, x, y| {
+        mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(x, y, 0.)))
+            .unwrap();
+        three_d::Gm::new(
+            three_d::Mesh::new(&frame_input.context, &mesh),
+            three_d::ColorMaterial::default(),
+        )
+    };
+    let text = view
+        .items
+        .iter()
+        .enumerate()
+        .flat_map(|(index, stock)| {
+            let price = stock.price.buy_price();
+            let quantity = stock.quantity;
+            let y = 550. - (index as f32 * 24.);
+            [
+                place_mesh(
+                    assets.text_gen_size_16.generate(
+                        &view::text::capitalize(stock.item.noun_data().singular()),
+                        three_d::TextLayoutOptions::default(),
+                    ),
+                    40.,
+                    y,
+                ),
+                place_mesh(
+                    assets.text_gen_size_16.generate(
+                        &format!("| {price}p"),
+                        three_d::TextLayoutOptions::default(),
+                    ),
+                    210.,
+                    y,
+                ),
+                place_mesh(
+                    assets.text_gen_size_16.generate(
+                        &format!("| {quantity}"),
+                        three_d::TextLayoutOptions::default(),
+                    ),
+                    300.,
+                    y,
+                ),
+            ]
+        })
+        .collect::<Vec<_>>();
+    draw_in_order(&text, &render_camera, screen);
+
+    screen.render(
+        &render_camera,
+        [three_d::Gm::new(
+            rect(450., 535., 320., 35., &frame_input.context),
+            UnalteredColorMaterial(
+                three_d::ColorMaterial {
+                    render_states: three_d::RenderStates {
+                        write_mask: three_d::WriteMask::COLOR,
+                        blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                STOCK_PANEL_COLOR,
+            ),
+        )],
+        &[],
+    );
+    screen.render(
+        &render_camera,
+        [place_mesh(
+            assets.text_gen_size_20.generate(
+                &format!("Crew points: {}p", view.points),
+                three_d::TextLayoutOptions::default(),
+            ),
+            460.,
+            545.,
+        )],
+        &[],
+    );
 }
 
 fn rect(x: f32, y: f32, width: f32, height: f32, context: &three_d::Context) -> three_d::Rectangle {
