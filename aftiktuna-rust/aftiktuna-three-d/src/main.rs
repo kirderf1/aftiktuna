@@ -171,114 +171,27 @@ fn init_window() -> three_d::Window {
 struct App {
     gui: three_d::GUI,
     assets: Assets,
-    game: Game,
     state: State,
 }
 
 impl App {
     fn init(context: three_d::Context) -> Self {
-        let gui = three_d::GUI::new(&context);
-
-        let mut app = Self {
-            gui,
+        Self {
+            gui: three_d::GUI::new(&context),
             assets: Assets::load(context),
-            game: game_interface::setup_new(),
-            state: State {
-                frame: Frame::Introduction,
-                text_box_text: Vec::new(),
-                input_text: String::new(),
-                request_input_focus: false,
-                camera: placement::Camera::default(),
-                mouse_pos: three_d::vec2(0., 0.),
-                command_tooltip: None,
-            },
-        };
-        app.try_get_next_frame();
-        app
+            state: State::init(),
+        }
     }
 
-    fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> three_d::FrameOutput {
-        for event in &frame_input.events {
-            if let three_d::Event::MouseMotion { position, .. } = event {
-                self.state.mouse_pos = three_d::vec2(position.x, position.y);
-            }
-        }
-
-        let mut ui_result = ui::update_ui(self, &mut frame_input);
-
-        if ui_result.clicked_text_box {
-            self.try_get_next_frame();
-        }
-        if let Some(chosen_suggestion) = ui_result.clicked_suggestion {
-            match chosen_suggestion {
-                Suggestion::Simple(command) => {
-                    self.state.input_text = command;
-                    ui_result.triggered_input = true;
-                }
-                Suggestion::Recursive(_, commands) => {
-                    let pos = self.state.command_tooltip.as_ref().unwrap().pos;
-                    self.state.command_tooltip = Some(CommandTooltip { pos, commands });
-                }
-            }
-        }
-        if ui_result.triggered_input {
-            let result = self.game.handle_input(&self.state.input_text);
-            self.state.input_text.clear();
-            self.state.command_tooltip = None;
-
-            match result {
-                Ok(()) => self.try_get_next_frame(),
-                Err(messages) => {
-                    self.state.text_box_text = messages;
-                    self.state.request_input_focus = true;
-                }
-            }
-        }
-
-        handle_command_suggestion_input(
-            &mut frame_input.events,
-            &mut self.state,
-            &mut self.assets.models,
-        );
-
-        if let Frame::AreaView { render_data, .. } = &self.state.frame {
-            self.state.camera.handle_inputs(&mut frame_input.events);
-            self.state.camera.clamp(render_data.area_size);
-        }
-
-        let screen = frame_input.screen();
-        screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
-
-        render::render_frame(
-            &self.state.frame,
-            &self.state.camera,
-            &screen,
-            &frame_input,
-            &mut self.assets,
-        );
-
-        screen.write(|| self.gui.render()).unwrap();
-        if self.game.next_result().has_frame() {
-            ui::draw_frame_click_icon(&self.assets.left_mouse_icon, screen, &frame_input);
-        }
+    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
+        self.state
+            .handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
         three_d::FrameOutput::default()
-    }
-
-    fn try_get_next_frame(&mut self) {
-        if let GameResult::Frame(frame_getter) = self.game.next_result() {
-            self.state.frame = frame_getter.get();
-            if let Frame::AreaView { render_data, .. } = &self.state.frame {
-                self.state.camera.camera_x =
-                    placement::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
-                self.state.camera.clamp(render_data.area_size);
-            }
-            self.state.text_box_text = self.state.frame.get_messages();
-            self.state.request_input_focus = self.game.ready_to_take_input();
-        }
     }
 }
 
 struct State {
+    game: Game,
     frame: Frame,
     text_box_text: Vec<String>,
     input_text: String,
@@ -286,6 +199,97 @@ struct State {
     camera: placement::Camera,
     mouse_pos: three_d::Vec2,
     command_tooltip: Option<CommandTooltip>,
+}
+
+impl State {
+    fn init() -> Self {
+        let mut state = Self {
+            game: game_interface::setup_new(),
+            frame: Frame::Introduction,
+            text_box_text: Vec::new(),
+            input_text: String::new(),
+            request_input_focus: false,
+            camera: placement::Camera::default(),
+            mouse_pos: three_d::vec2(0., 0.),
+            command_tooltip: None,
+        };
+        state.try_get_next_frame();
+        state
+    }
+
+    fn handle_game_frame(
+        &mut self,
+        mut frame_input: three_d::FrameInput,
+        gui: &mut three_d::GUI,
+        assets: &mut Assets,
+    ) {
+        for event in &frame_input.events {
+            if let three_d::Event::MouseMotion { position, .. } = event {
+                self.mouse_pos = three_d::vec2(position.x, position.y);
+            }
+        }
+
+        let mut ui_result = ui::update_ui(gui, &mut frame_input, self, assets);
+
+        if ui_result.clicked_text_box {
+            self.try_get_next_frame();
+        }
+        if let Some(chosen_suggestion) = ui_result.clicked_suggestion {
+            match chosen_suggestion {
+                Suggestion::Simple(command) => {
+                    self.input_text = command;
+                    ui_result.triggered_input = true;
+                }
+                Suggestion::Recursive(_, commands) => {
+                    let pos = self.command_tooltip.as_ref().unwrap().pos;
+                    self.command_tooltip = Some(CommandTooltip { pos, commands });
+                }
+            }
+        }
+        if ui_result.triggered_input {
+            let result = self.game.handle_input(&self.input_text);
+            self.input_text.clear();
+            self.command_tooltip = None;
+
+            match result {
+                Ok(()) => self.try_get_next_frame(),
+                Err(messages) => {
+                    self.text_box_text = messages;
+                    self.request_input_focus = true;
+                }
+            }
+        }
+
+        handle_command_suggestion_input(&mut frame_input.events, self, &mut assets.models);
+
+        if let Frame::AreaView { render_data, .. } = &self.frame {
+            self.camera.handle_inputs(&mut frame_input.events);
+            self.camera.clamp(render_data.area_size);
+        }
+
+        let screen = frame_input.screen();
+        screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
+
+        render::render_frame(&self.frame, &self.camera, &screen, &frame_input, assets);
+
+        screen.write(|| gui.render()).unwrap();
+        if self.game.next_result().has_frame() {
+            ui::draw_frame_click_icon(&assets.left_mouse_icon, screen, &frame_input);
+        }
+    }
+
+    fn try_get_next_frame(&mut self) {
+        if let GameResult::Frame(frame_getter) = self.game.next_result() {
+            self.frame = frame_getter.get();
+            if let Frame::AreaView { render_data, .. } = &self.frame {
+                self.camera.camera_x =
+                    placement::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
+                self.camera.clamp(render_data.area_size);
+            }
+            self.text_box_text = self.frame.get_messages();
+            self.request_input_focus = self.game.ready_to_take_input();
+        }
+    }
 }
 
 fn get_hovered_object_names<'a>(

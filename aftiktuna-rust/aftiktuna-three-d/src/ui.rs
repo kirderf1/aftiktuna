@@ -1,4 +1,4 @@
-use crate::asset::LazilyLoadedModels;
+use crate::asset::{Assets, LazilyLoadedModels};
 use aftiktuna::command_suggestion::Suggestion;
 use aftiktuna::view::Frame;
 use three_d::egui;
@@ -10,25 +10,30 @@ pub struct UiResult {
     pub clicked_suggestion: Option<Suggestion>,
 }
 
-pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) -> UiResult {
+pub fn update_ui(
+    gui: &mut three_d::GUI,
+    frame_input: &mut three_d::FrameInput,
+    state: &mut crate::State,
+    assets: &mut Assets,
+) -> UiResult {
     let mut ui_result = UiResult::default();
-    app.gui.update(
+    gui.update(
         &mut frame_input.events,
         frame_input.accumulated_time,
         frame_input.viewport,
         frame_input.device_pixel_ratio,
         |egui_context| {
             ui_result.triggered_input = input_panel(
-                &mut app.state.input_text,
-                app.game.ready_to_take_input(),
-                std::mem::take(&mut app.state.request_input_focus),
+                &mut state.input_text,
+                state.game.ready_to_take_input(),
+                std::mem::take(&mut state.request_input_focus),
                 egui_context,
             );
-            ui_result.clicked_text_box = text_box_panel(&app.state.text_box_text, egui_context);
+            ui_result.clicked_text_box = text_box_panel(&state.text_box_text, egui_context);
 
-            if !app.state.camera.is_dragging {
+            if !state.camera.is_dragging {
                 ui_result.clicked_suggestion =
-                    show_tooltip_and_menu(&app.state, &mut app.assets.models, egui_context);
+                    show_tooltip_and_menu(state, &mut assets.models, egui_context);
             }
         },
     );
