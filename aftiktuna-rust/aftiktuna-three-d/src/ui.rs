@@ -25,15 +25,33 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
 
             if !app.camera.is_dragging {
                 if let Some(command_tooltip) = &app.command_tooltip {
-                    let commands = command_tooltip
-                        .commands
-                        .iter()
-                        .map(|suggestion| suggestion.text())
-                        .collect::<Vec<_>>();
                     tooltip(
+                        egui::Id::new("commands"),
                         egui_context,
                         command_tooltip.pos - three_d::vec2(app.camera.camera_x, 0.),
-                        &commands,
+                        |ui| {
+                            for suggestion in &command_tooltip.commands {
+                                let mut prepared = egui::Frame::none()
+                                    .outer_margin(egui::Margin::ZERO)
+                                    .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
+                                    .begin(ui);
+
+                                prepared.content_ui.label(
+                                    egui::RichText::new(suggestion.text())
+                                        .color(egui::Color32::WHITE),
+                                );
+
+                                let response = prepared.allocate_space(ui);
+
+                                prepared.frame.fill = if response.hovered() {
+                                    TEXT_BOX_HIGHLIGHT_COLOR
+                                } else {
+                                    TEXT_BOX_COLOR
+                                };
+
+                                prepared.paint(ui);
+                            }
+                        },
                     );
                 } else if let Frame::AreaView { render_data, .. } = &app.frame {
                     let hovered_names = super::get_hovered_object_names(
@@ -41,7 +59,27 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
                         app.mouse_pos + three_d::vec2(app.camera.camera_x, 0.),
                         &mut app.assets.models,
                     );
-                    tooltip(egui_context, app.mouse_pos, &hovered_names);
+                    if !hovered_names.is_empty() {
+                        tooltip(
+                            egui::Id::new("game_tooltip"),
+                            egui_context,
+                            app.mouse_pos,
+                            |ui| {
+                                for &line in &hovered_names {
+                                    egui::Frame::none()
+                                        .outer_margin(egui::Margin::ZERO)
+                                        .fill(TEXT_BOX_COLOR)
+                                        .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
+                                        .show(ui, |ui| {
+                                            ui.label(
+                                                egui::RichText::new(line)
+                                                    .color(egui::Color32::WHITE),
+                                            );
+                                        });
+                                }
+                            },
+                        );
+                    }
                 }
             }
         },
@@ -83,6 +121,12 @@ const TEXT_BOX_COLOR: egui::Color32 = egui::Color32::from_rgba_premultiplied(
     (0.2 * 0.6 * 255.) as u8,
     (0.1 * 0.6 * 255.) as u8,
     (0.4 * 0.6 * 255.) as u8,
+    (0.6 * 255.) as u8,
+);
+const TEXT_BOX_HIGHLIGHT_COLOR: egui::Color32 = egui::Color32::from_rgba_premultiplied(
+    (0.5 * 0.6 * 255.) as u8,
+    (0.3 * 0.6 * 255.) as u8,
+    (0.6 * 0.6 * 255.) as u8,
     (0.6 * 255.) as u8,
 );
 const TEXT_PANEL_HEIGHT: f32 = 100.;
@@ -158,28 +202,41 @@ pub fn draw_frame_click_icon(
     );
 }
 
-fn tooltip(egui_context: &egui::Context, pos: three_d::Vec2, lines: &[impl Into<String> + Copy]) {
-    if lines.is_empty() {
-        return;
-    }
-
+fn tooltip<T>(
+    id: egui::Id,
+    egui_context: &egui::Context,
+    pos: three_d::Vec2,
+    content: impl Fn(&mut egui::Ui) -> T,
+) -> T {
     egui_context.style_mut(|style| {
-        style.spacing.menu_margin = egui::Margin::symmetric(TEXT_BOX_MARGIN, 0.);
+        style.spacing.menu_margin = egui::Margin::ZERO;
+        style.spacing.item_spacing = egui::Vec2::ZERO;
         style.visuals.menu_rounding = egui::Rounding::ZERO;
         style.visuals.popup_shadow = egui::Shadow::NONE;
-        style.visuals.window_fill = TEXT_BOX_COLOR;
+        style.visuals.window_fill = egui::Color32::TRANSPARENT;
         style.visuals.window_stroke = egui::Stroke::NONE;
     });
     egui::show_tooltip_at(
         egui_context,
         egui::LayerId::background(),
-        egui::Id::new("game_tooltip"),
+        id,
         egui::pos2(pos.x, crate::WINDOW_HEIGHT_F - pos.y - 4.),
         |ui| {
             ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-            for &line in lines {
-                ui.label(egui::RichText::new(line).color(egui::Color32::WHITE));
-            }
+
+            let max_rect = {
+                let mut ui = ui.new_child(egui::UiBuilder::new().invisible());
+                content(&mut ui);
+                ui.min_rect()
+            };
+
+            ui.allocate_new_ui(
+                egui::UiBuilder::new()
+                    .max_rect(max_rect)
+                    .layout(egui::Layout::top_down_justified(egui::Align::Min)),
+                content,
+            )
         },
-    );
+    )
+    .inner
 }
