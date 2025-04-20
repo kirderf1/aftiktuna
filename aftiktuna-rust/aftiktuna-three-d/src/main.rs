@@ -198,6 +198,12 @@ impl App {
     }
 
     fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> three_d::FrameOutput {
+        for event in &frame_input.events {
+            if let three_d::Event::MouseMotion { position, .. } = event {
+                self.state.mouse_pos = three_d::vec2(position.x, position.y);
+            }
+        }
+
         let mut ui_result = ui::update_ui(self, &mut frame_input);
 
         if ui_result.clicked_text_box {
@@ -238,12 +244,6 @@ impl App {
         if let Frame::AreaView { render_data, .. } = &self.state.frame {
             self.state.camera.handle_inputs(&mut frame_input.events);
             self.state.camera.clamp(render_data.area_size);
-        }
-
-        for event in &frame_input.events {
-            if let three_d::Event::MouseMotion { position, .. } = event {
-                self.state.mouse_pos = three_d::vec2(position.x, position.y);
-            }
         }
 
         let screen = frame_input.screen();
