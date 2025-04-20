@@ -3,6 +3,7 @@ use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::area::RenderData;
 use aftiktuna::view::Frame;
 use asset::Assets;
+use three_d::egui;
 use winit::dpi;
 use winit::event_loop::EventLoop;
 use winit::platform::windows::WindowBuilderExtWindows;
@@ -171,7 +172,7 @@ fn init_window() -> three_d::Window {
 struct App {
     gui: three_d::GUI,
     assets: Assets,
-    state: State,
+    state: Option<State>,
 }
 
 impl App {
@@ -179,15 +180,73 @@ impl App {
         Self {
             gui: three_d::GUI::new(&context),
             assets: Assets::load(context),
-            state: State::init(),
+            state: None,
         }
     }
 
     fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
-        self.state
-            .handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
+        if let Some(state) = &mut self.state {
+            state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
+        } else {
+            let pressed_new_game = handle_menu_frame(frame_input, &mut self.gui);
+            if pressed_new_game {
+                self.state = Some(State::init(game_interface::setup_new()));
+            }
+        }
         three_d::FrameOutput::default()
     }
+}
+
+fn handle_menu_frame(mut frame_input: three_d::FrameInput, gui: &mut three_d::GUI) -> bool {
+    let mut pressed_new_game = false;
+    gui.update(
+        &mut frame_input.events,
+        frame_input.accumulated_time,
+        frame_input.viewport,
+        frame_input.device_pixel_ratio,
+        |egui_context| {
+            egui::CentralPanel::default()
+                .frame(egui::Frame::none())
+                .show(egui_context, |ui| {
+                    ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                        ui.add_space(116.);
+                        const TITLE_FONT: egui::FontId = egui::FontId::monospace(90.);
+                        ui.label(
+                            egui::RichText::new("AFTIKTUNA")
+                                .font(TITLE_FONT)
+                                .color(egui::Color32::WHITE),
+                        );
+
+                        ui.style_mut().spacing.button_padding = egui::vec2(50., 20.);
+                        ui.add_space(116.);
+                        const BUTTON_FONT: egui::FontId = egui::FontId::proportional(22.);
+                        pressed_new_game = ui
+                            .add(
+                                egui::Button::new(
+                                    egui::RichText::new("New Game")
+                                        .font(BUTTON_FONT)
+                                        .color(egui::Color32::WHITE),
+                                )
+                                .fill(
+                                    egui::Color32::from_rgba_premultiplied(
+                                        (0.2 * 0.6 * 255.) as u8,
+                                        (0.1 * 0.6 * 255.) as u8,
+                                        (0.4 * 0.6 * 255.) as u8,
+                                        (0.6 * 255.) as u8,
+                                    ),
+                                ),
+                            )
+                            .clicked();
+                    });
+                });
+        },
+    );
+
+    let screen = frame_input.screen();
+    screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
+    screen.write(|| gui.render()).unwrap();
+
+    pressed_new_game
 }
 
 struct State {
@@ -202,9 +261,9 @@ struct State {
 }
 
 impl State {
-    fn init() -> Self {
+    fn init(game: Game) -> Self {
         let mut state = Self {
-            game: game_interface::setup_new(),
+            game,
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
             input_text: String::new(),
