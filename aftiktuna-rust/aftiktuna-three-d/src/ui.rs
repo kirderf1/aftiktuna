@@ -1,4 +1,5 @@
 use crate::asset::LazilyLoadedModels;
+use aftiktuna::command_suggestion::Suggestion;
 use aftiktuna::view::Frame;
 use three_d::egui;
 
@@ -6,6 +7,7 @@ use three_d::egui;
 pub struct UiResult {
     pub triggered_input: bool,
     pub clicked_text_box: bool,
+    pub clicked_suggestion: Option<Suggestion>,
 }
 
 pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) -> UiResult {
@@ -25,7 +27,8 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
             ui_result.clicked_text_box = text_box_panel(&app.state.text_box_text, egui_context);
 
             if !app.state.camera.is_dragging {
-                show_tooltip_and_menu(&app.state, &mut app.assets.models, egui_context);
+                ui_result.clicked_suggestion =
+                    show_tooltip_and_menu(&app.state, &mut app.assets.models, egui_context);
             }
         },
     );
@@ -36,13 +39,14 @@ fn show_tooltip_and_menu(
     state: &crate::State,
     models: &mut LazilyLoadedModels,
     egui_context: &egui::Context,
-) {
+) -> Option<Suggestion> {
     if let Some(command_tooltip) = &state.command_tooltip {
         show_hovering(
             egui::Id::new("commands"),
             egui_context,
             command_tooltip.pos - three_d::vec2(state.camera.camera_x, 0.),
             |ui| {
+                let mut clicked_suggestion = None;
                 for suggestion in &command_tooltip.commands {
                     let mut prepared = egui::Frame::none()
                         .outer_margin(egui::Margin::ZERO)
@@ -53,7 +57,10 @@ fn show_tooltip_and_menu(
                         .content_ui
                         .label(egui::RichText::new(suggestion.text()).color(egui::Color32::WHITE));
 
-                    let response = prepared.allocate_space(ui);
+                    let response = prepared.allocate_space(ui).interact(egui::Sense::click());
+                    if response.clicked() {
+                        clicked_suggestion = Some(suggestion.clone());
+                    }
 
                     prepared.frame.fill = if response.hovered() {
                         TEXT_BOX_HIGHLIGHT_COLOR
@@ -63,8 +70,9 @@ fn show_tooltip_and_menu(
 
                     prepared.paint(ui);
                 }
+                clicked_suggestion
             },
-        );
+        )
     } else {
         let tooltips_list = if let Frame::AreaView { render_data, .. } = &state.frame {
             super::get_hovered_object_names(
@@ -94,6 +102,7 @@ fn show_tooltip_and_menu(
                 },
             );
         }
+        None
     }
 }
 

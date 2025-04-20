@@ -198,14 +198,27 @@ impl App {
     }
 
     fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> three_d::FrameOutput {
-        let ui_result = ui::update_ui(self, &mut frame_input);
+        let mut ui_result = ui::update_ui(self, &mut frame_input);
 
         if ui_result.clicked_text_box {
             self.try_get_next_frame();
         }
+        if let Some(chosen_suggestion) = ui_result.clicked_suggestion {
+            match chosen_suggestion {
+                Suggestion::Simple(command) => {
+                    self.state.input_text = command;
+                    ui_result.triggered_input = true;
+                }
+                Suggestion::Recursive(_, commands) => {
+                    let pos = self.state.command_tooltip.as_ref().unwrap().pos;
+                    self.state.command_tooltip = Some(CommandTooltip { pos, commands });
+                }
+            }
+        }
         if ui_result.triggered_input {
             let result = self.game.handle_input(&self.state.input_text);
             self.state.input_text.clear();
+            self.state.command_tooltip = None;
 
             match result {
                 Ok(()) => self.try_get_next_frame(),
