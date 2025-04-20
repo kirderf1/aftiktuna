@@ -6,6 +6,7 @@ use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
+use aftiktuna::core::store::StoreStock;
 use aftiktuna::view::area::{RenderData, RenderProperties};
 use aftiktuna::view::Frame;
 use aftiktuna::{asset, view};
@@ -215,6 +216,15 @@ fn draw_store_view(
         )],
         &[],
     );
+}
+
+pub fn find_stock_at(pos: three_d::Vec2, store_view: &view::StoreView) -> Option<&StoreStock> {
+    for (index, stock) in store_view.items.iter().enumerate() {
+        if crate::Rect::new(30., 546. - (index as f32 * 24.), 400., 24.).contains(pos) {
+            return Some(stock);
+        }
+    }
+    None
 }
 
 fn rect(x: f32, y: f32, width: f32, height: f32, context: &three_d::Context) -> three_d::Rectangle {

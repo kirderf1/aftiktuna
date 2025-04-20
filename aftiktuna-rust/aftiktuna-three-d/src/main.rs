@@ -351,15 +351,18 @@ fn handle_command_suggestion_input(
         } = event
         {
             if !*handled && *button == three_d::MouseButton::Left {
-                let mouse_pos = three_d::vec2(position.x + state.camera.camera_x, position.y);
-                *handled = handle_command_suggestion_click(mouse_pos, state, models)
+                *handled = handle_command_suggestion_click(
+                    three_d::vec2(position.x, position.y),
+                    state,
+                    models,
+                )
             }
         }
     }
 }
 
 fn handle_command_suggestion_click(
-    mouse_pos: three_d::Vec2,
+    screen_mouse_pos: three_d::Vec2,
     state: &mut State,
     models: &mut asset::LazilyLoadedModels,
 ) -> bool {
@@ -367,12 +370,12 @@ fn handle_command_suggestion_click(
         state.command_tooltip = None;
         false
     } else {
-        let commands = find_command_suggestions(mouse_pos, &state.frame, models);
+        let commands = find_command_suggestions(screen_mouse_pos, state, models);
         if commands.is_empty() {
             false
         } else {
             state.command_tooltip = Some(CommandTooltip {
-                pos: mouse_pos,
+                pos: screen_mouse_pos + three_d::vec2(state.camera.camera_x, 0.),
                 commands: command_suggestion::sorted_without_duplicates(commands),
             });
             true
@@ -381,12 +384,13 @@ fn handle_command_suggestion_click(
 }
 
 fn find_command_suggestions(
-    mouse_pos: three_d::Vec2,
-    frame: &Frame,
+    screen_mouse_pos: three_d::Vec2,
+    state: &State,
     models: &mut asset::LazilyLoadedModels,
 ) -> Vec<Suggestion> {
-    match frame {
+    match &state.frame {
         Frame::AreaView { render_data, .. } => {
+            let mouse_pos = screen_mouse_pos + three_d::vec2(state.camera.camera_x, 0.);
             placement::position_objects(&render_data.objects, models)
                 .into_iter()
                 .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
@@ -398,6 +402,11 @@ fn find_command_suggestions(
                 })
                 .collect::<Vec<_>>()
         }
+        Frame::StoreView { view, .. } => command_suggestion::for_store(
+            render::find_stock_at(screen_mouse_pos, view),
+            &view.sellable_items,
+        ),
+        Frame::LocationChoice(choice) => command_suggestion::for_location_choice(choice),
         _ => vec![],
     }
 }
