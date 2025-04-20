@@ -1,3 +1,5 @@
+use crate::asset::LazilyLoadedModels;
+use crate::CommandTooltip;
 use aftiktuna::view::Frame;
 use three_d::egui;
 
@@ -24,67 +26,86 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
             ui_result.clicked_text_box = text_box_panel(&app.text_box_text, egui_context);
 
             if !app.camera.is_dragging {
-                if let Some(command_tooltip) = &app.command_tooltip {
-                    tooltip(
-                        egui::Id::new("commands"),
-                        egui_context,
-                        command_tooltip.pos - three_d::vec2(app.camera.camera_x, 0.),
-                        |ui| {
-                            for suggestion in &command_tooltip.commands {
-                                let mut prepared = egui::Frame::none()
-                                    .outer_margin(egui::Margin::ZERO)
-                                    .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
-                                    .begin(ui);
-
-                                prepared.content_ui.label(
-                                    egui::RichText::new(suggestion.text())
-                                        .color(egui::Color32::WHITE),
-                                );
-
-                                let response = prepared.allocate_space(ui);
-
-                                prepared.frame.fill = if response.hovered() {
-                                    TEXT_BOX_HIGHLIGHT_COLOR
-                                } else {
-                                    TEXT_BOX_COLOR
-                                };
-
-                                prepared.paint(ui);
-                            }
-                        },
-                    );
-                } else if let Frame::AreaView { render_data, .. } = &app.frame {
-                    let hovered_names = super::get_hovered_object_names(
-                        render_data,
-                        app.mouse_pos + three_d::vec2(app.camera.camera_x, 0.),
-                        &mut app.assets.models,
-                    );
-                    if !hovered_names.is_empty() {
-                        tooltip(
-                            egui::Id::new("game_tooltip"),
-                            egui_context,
-                            app.mouse_pos,
-                            |ui| {
-                                for &line in &hovered_names {
-                                    egui::Frame::none()
-                                        .outer_margin(egui::Margin::ZERO)
-                                        .fill(TEXT_BOX_COLOR)
-                                        .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
-                                        .show(ui, |ui| {
-                                            ui.label(
-                                                egui::RichText::new(line)
-                                                    .color(egui::Color32::WHITE),
-                                            );
-                                        });
-                                }
-                            },
-                        );
-                    }
-                }
+                show_tooltip_and_menu(
+                    &app.frame,
+                    app.command_tooltip.as_ref(),
+                    app.camera.camera_x,
+                    app.mouse_pos,
+                    &mut app.assets.models,
+                    egui_context,
+                );
             }
         },
     );
     ui_result
+}
+
+fn show_tooltip_and_menu(
+    frame: &Frame,
+    command_tooltip: Option<&CommandTooltip>,
+    camera_x: f32,
+    mouse_pos: three_d::Vec2,
+    models: &mut LazilyLoadedModels,
+    egui_context: &egui::Context,
+) {
+    if let Some(command_tooltip) = command_tooltip {
+        show_hovering(
+            egui::Id::new("commands"),
+            egui_context,
+            command_tooltip.pos - three_d::vec2(camera_x, 0.),
+            |ui| {
+                for suggestion in &command_tooltip.commands {
+                    let mut prepared = egui::Frame::none()
+                        .outer_margin(egui::Margin::ZERO)
+                        .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
+                        .begin(ui);
+
+                    prepared
+                        .content_ui
+                        .label(egui::RichText::new(suggestion.text()).color(egui::Color32::WHITE));
+
+                    let response = prepared.allocate_space(ui);
+
+                    prepared.frame.fill = if response.hovered() {
+                        TEXT_BOX_HIGHLIGHT_COLOR
+                    } else {
+                        TEXT_BOX_COLOR
+                    };
+
+                    prepared.paint(ui);
+                }
+            },
+        );
+    } else {
+        let tooltips_list = if let Frame::AreaView { render_data, .. } = frame {
+            super::get_hovered_object_names(
+                render_data,
+                mouse_pos + three_d::vec2(camera_x, 0.),
+                models,
+            )
+        } else {
+            vec![]
+        };
+
+        if !tooltips_list.is_empty() {
+            show_hovering(
+                egui::Id::new("game_tooltip"),
+                egui_context,
+                mouse_pos,
+                |ui| {
+                    for &line in &tooltips_list {
+                        egui::Frame::none()
+                            .outer_margin(egui::Margin::ZERO)
+                            .fill(TEXT_BOX_COLOR)
+                            .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
+                            .show(ui, |ui| {
+                                ui.label(egui::RichText::new(line).color(egui::Color32::WHITE));
+                            });
+                    }
+                },
+            );
+        }
+    }
 }
 
 const INPUT_PANEL_HEIGHT: f32 = 25.;
@@ -202,7 +223,7 @@ pub fn draw_frame_click_icon(
     );
 }
 
-fn tooltip<T>(
+fn show_hovering<T>(
     id: egui::Id,
     egui_context: &egui::Context,
     pos: three_d::Vec2,
