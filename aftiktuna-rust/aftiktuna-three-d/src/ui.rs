@@ -24,13 +24,24 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
             ui_result.clicked_text_box = text_box_panel(&app.text_box_text, egui_context);
 
             if !app.camera.is_dragging {
-                if let Frame::AreaView { render_data, .. } = &app.frame {
+                if let Some(command_tooltip) = &app.command_tooltip {
+                    let commands = command_tooltip
+                        .commands
+                        .iter()
+                        .map(|suggestion| suggestion.text())
+                        .collect::<Vec<_>>();
+                    tooltip(
+                        egui_context,
+                        command_tooltip.pos - three_d::vec2(app.camera.camera_x, 0.),
+                        &commands,
+                    );
+                } else if let Frame::AreaView { render_data, .. } = &app.frame {
                     let hovered_names = super::get_hovered_object_names(
                         render_data,
                         app.mouse_pos + three_d::vec2(app.camera.camera_x, 0.),
                         &mut app.assets.models,
                     );
-                    tooltip(egui_context, &hovered_names);
+                    tooltip(egui_context, app.mouse_pos, &hovered_names);
                 }
             }
         },
@@ -147,7 +158,7 @@ pub fn draw_frame_click_icon(
     );
 }
 
-fn tooltip(egui_context: &egui::Context, lines: &[&String]) {
+fn tooltip(egui_context: &egui::Context, pos: three_d::Vec2, lines: &[impl Into<String> + Copy]) {
     if lines.is_empty() {
         return;
     }
@@ -159,10 +170,11 @@ fn tooltip(egui_context: &egui::Context, lines: &[&String]) {
         style.visuals.window_fill = TEXT_BOX_COLOR;
         style.visuals.window_stroke = egui::Stroke::NONE;
     });
-    egui::show_tooltip_at_pointer(
+    egui::show_tooltip_at(
         egui_context,
         egui::LayerId::background(),
         egui::Id::new("game_tooltip"),
+        egui::pos2(pos.x, crate::WINDOW_HEIGHT_F - pos.y - 4.),
         |ui| {
             ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
             for &line in lines {

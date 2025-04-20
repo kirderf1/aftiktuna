@@ -1,3 +1,4 @@
+use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{self, Game, GameResult};
 use aftiktuna::view::area::RenderData;
 use aftiktuna::view::Frame;
@@ -177,6 +178,7 @@ struct App {
     request_input_focus: bool,
     camera: placement::Camera,
     mouse_pos: three_d::Vec2,
+    command_tooltip: Option<CommandTooltip>,
 }
 
 impl App {
@@ -193,6 +195,7 @@ impl App {
             request_input_focus: false,
             camera: placement::Camera::default(),
             mouse_pos: three_d::vec2(0., 0.),
+            command_tooltip: None,
         };
         app.try_get_next_frame();
         app
@@ -216,6 +219,8 @@ impl App {
                 }
             }
         }
+
+        handle_command_suggestion_input(&mut frame_input.events, self);
 
         if let Frame::AreaView { render_data, .. } = &self.frame {
             self.camera.handle_inputs(&mut frame_input.events);
@@ -301,6 +306,69 @@ impl Rect {
 
     fn contains(&self, pos: three_d::Vec2) -> bool {
         self.left <= pos.x && pos.x < self.right && self.bottom <= pos.y && pos.y < self.top
+    }
+}
+
+struct CommandTooltip {
+    pos: three_d::Vec2,
+    commands: Vec<Suggestion>,
+}
+
+fn handle_command_suggestion_input(events: &mut [three_d::Event], app: &mut App) {
+    for event in events {
+        if let three_d::Event::MousePress {
+            button,
+            position,
+            handled,
+            ..
+        } = event
+        {
+            if !*handled && *button == three_d::MouseButton::Left {
+                let mouse_pos = three_d::vec2(position.x + app.camera.camera_x, position.y);
+                *handled = handle_command_suggestion_click(mouse_pos, app)
+            }
+        }
+    }
+}
+
+fn handle_command_suggestion_click(mouse_pos: three_d::Vec2, app: &mut App) -> bool {
+    if app.command_tooltip.is_some() {
+        app.command_tooltip = None;
+        false
+    } else {
+        let commands = find_command_suggestions(mouse_pos, app);
+        if commands.is_empty() {
+            false
+        } else {
+            app.command_tooltip = Some(CommandTooltip {
+                pos: mouse_pos,
+                commands: command_suggestion::sorted_without_duplicates(commands),
+            });
+            true
+        }
+    }
+}
+
+fn find_command_suggestions(mouse_pos: three_d::Vec2, app: &mut App) -> Vec<Suggestion> {
+    match &app.frame {
+        Frame::AreaView { render_data, .. } => {
+            placement::position_objects(&render_data.objects, &mut app.assets.models)
+                .into_iter()
+                .filter(|(pos, data)| {
+                    app.assets
+                        .models
+                        .get_rect_for_object(data, *pos)
+                        .contains(mouse_pos)
+                })
+                .filter_map(|(_, data)| data.name_data.as_ref().zip(Some(&data.interactions)))
+                .flat_map(|(name_data, interactions)| {
+                    interactions.iter().flat_map(|interaction| {
+                        interaction.commands(&name_data.name, &render_data.inventory)
+                    })
+                })
+                .collect::<Vec<_>>()
+        }
+        _ => vec![],
     }
 }
 
