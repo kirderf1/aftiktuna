@@ -1,5 +1,4 @@
 use crate::asset::LazilyLoadedModels;
-use crate::CommandTooltip;
 use aftiktuna::view::Frame;
 use three_d::egui;
 
@@ -18,22 +17,15 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
         frame_input.device_pixel_ratio,
         |egui_context| {
             ui_result.triggered_input = input_panel(
-                &mut app.input_text,
+                &mut app.state.input_text,
                 app.game.ready_to_take_input(),
-                std::mem::take(&mut app.request_input_focus),
+                std::mem::take(&mut app.state.request_input_focus),
                 egui_context,
             );
-            ui_result.clicked_text_box = text_box_panel(&app.text_box_text, egui_context);
+            ui_result.clicked_text_box = text_box_panel(&app.state.text_box_text, egui_context);
 
-            if !app.camera.is_dragging {
-                show_tooltip_and_menu(
-                    &app.frame,
-                    app.command_tooltip.as_ref(),
-                    app.camera.camera_x,
-                    app.mouse_pos,
-                    &mut app.assets.models,
-                    egui_context,
-                );
+            if !app.state.camera.is_dragging {
+                show_tooltip_and_menu(&app.state, &mut app.assets.models, egui_context);
             }
         },
     );
@@ -41,18 +33,15 @@ pub fn update_ui(app: &mut crate::App, frame_input: &mut three_d::FrameInput) ->
 }
 
 fn show_tooltip_and_menu(
-    frame: &Frame,
-    command_tooltip: Option<&CommandTooltip>,
-    camera_x: f32,
-    mouse_pos: three_d::Vec2,
+    state: &crate::State,
     models: &mut LazilyLoadedModels,
     egui_context: &egui::Context,
 ) {
-    if let Some(command_tooltip) = command_tooltip {
+    if let Some(command_tooltip) = &state.command_tooltip {
         show_hovering(
             egui::Id::new("commands"),
             egui_context,
-            command_tooltip.pos - three_d::vec2(camera_x, 0.),
+            command_tooltip.pos - three_d::vec2(state.camera.camera_x, 0.),
             |ui| {
                 for suggestion in &command_tooltip.commands {
                     let mut prepared = egui::Frame::none()
@@ -77,10 +66,10 @@ fn show_tooltip_and_menu(
             },
         );
     } else {
-        let tooltips_list = if let Frame::AreaView { render_data, .. } = frame {
+        let tooltips_list = if let Frame::AreaView { render_data, .. } = &state.frame {
             super::get_hovered_object_names(
                 render_data,
-                mouse_pos + three_d::vec2(camera_x, 0.),
+                state.mouse_pos + three_d::vec2(state.camera.camera_x, 0.),
                 models,
             )
         } else {
@@ -91,7 +80,7 @@ fn show_tooltip_and_menu(
             show_hovering(
                 egui::Id::new("game_tooltip"),
                 egui_context,
-                mouse_pos,
+                state.mouse_pos,
                 |ui| {
                     for &line in &tooltips_list {
                         egui::Frame::none()

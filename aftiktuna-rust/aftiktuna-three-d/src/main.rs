@@ -172,13 +172,7 @@ struct App {
     gui: three_d::GUI,
     assets: Assets,
     game: Game,
-    frame: Frame,
-    text_box_text: Vec<String>,
-    input_text: String,
-    request_input_focus: bool,
-    camera: placement::Camera,
-    mouse_pos: three_d::Vec2,
-    command_tooltip: Option<CommandTooltip>,
+    state: State,
 }
 
 impl App {
@@ -189,13 +183,15 @@ impl App {
             gui,
             assets: Assets::load(context),
             game: game_interface::setup_new(),
-            frame: Frame::Introduction,
-            text_box_text: Vec::new(),
-            input_text: String::new(),
-            request_input_focus: false,
-            camera: placement::Camera::default(),
-            mouse_pos: three_d::vec2(0., 0.),
-            command_tooltip: None,
+            state: State {
+                frame: Frame::Introduction,
+                text_box_text: Vec::new(),
+                input_text: String::new(),
+                request_input_focus: false,
+                camera: placement::Camera::default(),
+                mouse_pos: three_d::vec2(0., 0.),
+                command_tooltip: None,
+            },
         };
         app.try_get_next_frame();
         app
@@ -208,28 +204,32 @@ impl App {
             self.try_get_next_frame();
         }
         if ui_result.triggered_input {
-            let result = self.game.handle_input(&self.input_text);
-            self.input_text.clear();
+            let result = self.game.handle_input(&self.state.input_text);
+            self.state.input_text.clear();
 
             match result {
                 Ok(()) => self.try_get_next_frame(),
                 Err(messages) => {
-                    self.text_box_text = messages;
-                    self.request_input_focus = true;
+                    self.state.text_box_text = messages;
+                    self.state.request_input_focus = true;
                 }
             }
         }
 
-        handle_command_suggestion_input(&mut frame_input.events, self);
+        handle_command_suggestion_input(
+            &mut frame_input.events,
+            &mut self.state,
+            &mut self.assets.models,
+        );
 
-        if let Frame::AreaView { render_data, .. } = &self.frame {
-            self.camera.handle_inputs(&mut frame_input.events);
-            self.camera.clamp(render_data.area_size);
+        if let Frame::AreaView { render_data, .. } = &self.state.frame {
+            self.state.camera.handle_inputs(&mut frame_input.events);
+            self.state.camera.clamp(render_data.area_size);
         }
 
         for event in &frame_input.events {
             if let three_d::Event::MouseMotion { position, .. } = event {
-                self.mouse_pos = three_d::vec2(position.x, position.y);
+                self.state.mouse_pos = three_d::vec2(position.x, position.y);
             }
         }
 
@@ -237,8 +237,8 @@ impl App {
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
 
         render::render_frame(
-            &self.frame,
-            &self.camera,
+            &self.state.frame,
+            &self.state.camera,
             &screen,
             &frame_input,
             &mut self.assets,
@@ -253,16 +253,26 @@ impl App {
 
     fn try_get_next_frame(&mut self) {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
-            self.frame = frame_getter.get();
-            if let Frame::AreaView { render_data, .. } = &self.frame {
-                self.camera.camera_x =
+            self.state.frame = frame_getter.get();
+            if let Frame::AreaView { render_data, .. } = &self.state.frame {
+                self.state.camera.camera_x =
                     placement::coord_to_center_x(render_data.character_coord) - WINDOW_WIDTH_F / 2.;
-                self.camera.clamp(render_data.area_size);
+                self.state.camera.clamp(render_data.area_size);
             }
-            self.text_box_text = self.frame.get_messages();
-            self.request_input_focus = self.game.ready_to_take_input();
+            self.state.text_box_text = self.state.frame.get_messages();
+            self.state.request_input_focus = self.game.ready_to_take_input();
         }
     }
+}
+
+struct State {
+    frame: Frame,
+    text_box_text: Vec<String>,
+    input_text: String,
+    request_input_focus: bool,
+    camera: placement::Camera,
+    mouse_pos: three_d::Vec2,
+    command_tooltip: Option<CommandTooltip>,
 }
 
 fn get_hovered_object_names<'a>(
@@ -314,7 +324,11 @@ struct CommandTooltip {
     commands: Vec<Suggestion>,
 }
 
-fn handle_command_suggestion_input(events: &mut [three_d::Event], app: &mut App) {
+fn handle_command_suggestion_input(
+    events: &mut [three_d::Event],
+    state: &mut State,
+    models: &mut asset::LazilyLoadedModels,
+) {
     for event in events {
         if let three_d::Event::MousePress {
             button,
@@ -324,23 +338,27 @@ fn handle_command_suggestion_input(events: &mut [three_d::Event], app: &mut App)
         } = event
         {
             if !*handled && *button == three_d::MouseButton::Left {
-                let mouse_pos = three_d::vec2(position.x + app.camera.camera_x, position.y);
-                *handled = handle_command_suggestion_click(mouse_pos, app)
+                let mouse_pos = three_d::vec2(position.x + state.camera.camera_x, position.y);
+                *handled = handle_command_suggestion_click(mouse_pos, state, models)
             }
         }
     }
 }
 
-fn handle_command_suggestion_click(mouse_pos: three_d::Vec2, app: &mut App) -> bool {
-    if app.command_tooltip.is_some() {
-        app.command_tooltip = None;
+fn handle_command_suggestion_click(
+    mouse_pos: three_d::Vec2,
+    state: &mut State,
+    models: &mut asset::LazilyLoadedModels,
+) -> bool {
+    if state.command_tooltip.is_some() {
+        state.command_tooltip = None;
         false
     } else {
-        let commands = find_command_suggestions(mouse_pos, app);
+        let commands = find_command_suggestions(mouse_pos, &state.frame, models);
         if commands.is_empty() {
             false
         } else {
-            app.command_tooltip = Some(CommandTooltip {
+            state.command_tooltip = Some(CommandTooltip {
                 pos: mouse_pos,
                 commands: command_suggestion::sorted_without_duplicates(commands),
             });
@@ -349,17 +367,16 @@ fn handle_command_suggestion_click(mouse_pos: three_d::Vec2, app: &mut App) -> b
     }
 }
 
-fn find_command_suggestions(mouse_pos: three_d::Vec2, app: &mut App) -> Vec<Suggestion> {
-    match &app.frame {
+fn find_command_suggestions(
+    mouse_pos: three_d::Vec2,
+    frame: &Frame,
+    models: &mut asset::LazilyLoadedModels,
+) -> Vec<Suggestion> {
+    match frame {
         Frame::AreaView { render_data, .. } => {
-            placement::position_objects(&render_data.objects, &mut app.assets.models)
+            placement::position_objects(&render_data.objects, models)
                 .into_iter()
-                .filter(|(pos, data)| {
-                    app.assets
-                        .models
-                        .get_rect_for_object(data, *pos)
-                        .contains(mouse_pos)
-                })
+                .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
                 .filter_map(|(_, data)| data.name_data.as_ref().zip(Some(&data.interactions)))
                 .flat_map(|(name_data, interactions)| {
                     interactions.iter().flat_map(|interaction| {
