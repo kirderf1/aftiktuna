@@ -1,5 +1,7 @@
-use aftiktuna::game_interface;
+use aftiktuna::game_interface::{self, Game};
+use aftiktuna::serialization;
 use asset::Assets;
+use std::path::Path;
 use three_d::egui;
 use winit::dpi;
 use winit::event_loop::EventLoop;
@@ -60,7 +62,7 @@ fn init_window() -> three_d::Window {
 struct App {
     gui: three_d::GUI,
     assets: Assets,
-    state: Option<game::State>,
+    state: AppState,
 }
 
 impl App {
@@ -68,25 +70,58 @@ impl App {
         Self {
             gui: three_d::GUI::new(&context),
             assets: Assets::load(context),
-            state: None,
+            state: AppState::main_menu(),
         }
     }
 
     fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
-        if let Some(state) = &mut self.state {
-            state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
-        } else {
-            let pressed_new_game = handle_menu_frame(frame_input, &mut self.gui);
-            if pressed_new_game {
-                self.state = Some(game::State::init(game_interface::setup_new()));
+        match &mut self.state {
+            AppState::Game(state) => {
+                state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
+            }
+            AppState::MainMenu { has_save_file } => {
+                let menu_action = handle_menu_frame(*has_save_file, frame_input, &mut self.gui);
+                match menu_action {
+                    Some(MenuAction::NewGame) => {
+                        self.state = AppState::game(game_interface::setup_new())
+                    }
+                    Some(MenuAction::LoadGame) => {
+                        self.state = AppState::game(game_interface::load().unwrap())
+                    }
+                    None => {}
+                }
             }
         }
         three_d::FrameOutput::default()
     }
 }
 
-fn handle_menu_frame(mut frame_input: three_d::FrameInput, gui: &mut three_d::GUI) -> bool {
-    let mut pressed_new_game = false;
+enum AppState {
+    MainMenu { has_save_file: bool },
+    Game(Box<game::State>),
+}
+
+impl AppState {
+    fn main_menu() -> Self {
+        let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
+        Self::MainMenu { has_save_file }
+    }
+    fn game(game: Game) -> Self {
+        Self::Game(Box::new(game::State::init(game)))
+    }
+}
+
+enum MenuAction {
+    NewGame,
+    LoadGame,
+}
+
+fn handle_menu_frame(
+    has_save_file: bool,
+    mut frame_input: three_d::FrameInput,
+    gui: &mut three_d::GUI,
+) -> Option<MenuAction> {
+    let mut menu_action = None;
     gui.update(
         &mut frame_input.events,
         frame_input.accumulated_time,
@@ -105,26 +140,45 @@ fn handle_menu_frame(mut frame_input: three_d::FrameInput, gui: &mut three_d::GU
                                 .color(egui::Color32::WHITE),
                         );
 
-                        ui.style_mut().spacing.button_padding = egui::vec2(50., 20.);
-                        ui.add_space(116.);
+                        ui.style_mut().spacing.button_padding = egui::vec2(46., 18.);
                         const BUTTON_FONT: egui::FontId = egui::FontId::proportional(22.);
-                        pressed_new_game = ui
+                        const BUTTON_COLOR: egui::Color32 = egui::Color32::from_rgba_premultiplied(
+                            (0.2 * 0.6 * 255.) as u8,
+                            (0.1 * 0.6 * 255.) as u8,
+                            (0.4 * 0.6 * 255.) as u8,
+                            (0.6 * 255.) as u8,
+                        );
+
+                        ui.add_space(124.);
+                        let pressed_new_game = ui
                             .add(
                                 egui::Button::new(
                                     egui::RichText::new("New Game")
                                         .font(BUTTON_FONT)
                                         .color(egui::Color32::WHITE),
                                 )
-                                .fill(
-                                    egui::Color32::from_rgba_premultiplied(
-                                        (0.2 * 0.6 * 255.) as u8,
-                                        (0.1 * 0.6 * 255.) as u8,
-                                        (0.4 * 0.6 * 255.) as u8,
-                                        (0.6 * 255.) as u8,
-                                    ),
-                                ),
+                                .fill(BUTTON_COLOR),
                             )
                             .clicked();
+                        if pressed_new_game {
+                            menu_action = Some(MenuAction::NewGame);
+                        }
+                        if has_save_file {
+                            ui.add_space(38.);
+                            let pressed_load_game = ui
+                                .add(
+                                    egui::Button::new(
+                                        egui::RichText::new("Load Game")
+                                            .font(BUTTON_FONT)
+                                            .color(egui::Color32::WHITE),
+                                    )
+                                    .fill(BUTTON_COLOR),
+                                )
+                                .clicked();
+                            if pressed_load_game {
+                                menu_action = Some(MenuAction::LoadGame);
+                            }
+                        }
                     });
                 });
         },
@@ -134,7 +188,7 @@ fn handle_menu_frame(mut frame_input: three_d::FrameInput, gui: &mut three_d::GU
     screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
     screen.write(|| gui.render()).unwrap();
 
-    pressed_new_game
+    menu_action
 }
 
 struct Rect {
