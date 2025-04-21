@@ -1,5 +1,5 @@
+use super::placement;
 use crate::asset::Assets;
-use crate::placement;
 use aftiktuna::asset::background::{BGData, PortraitBGData};
 use aftiktuna::asset::color::AftikColorData;
 use aftiktuna::asset::model::{Model, TextureLayer};
@@ -45,7 +45,7 @@ pub fn render_frame(
             );
 
             let x = match data.direction {
-                Direction::Left => super::WINDOW_WIDTH_F - 300.,
+                Direction::Left => crate::WINDOW_WIDTH_F - 300.,
                 Direction::Right => 300.,
             };
             let objects = get_render_objects_for_entity(
@@ -130,7 +130,7 @@ fn draw_store_view(
 
     let objects = get_render_objects_for_entity(
         assets.models.lookup_model(&ModelId::portrait()),
-        three_d::vec2(super::WINDOW_WIDTH_F - 200., 0.),
+        three_d::vec2(crate::WINDOW_WIDTH_F - 200., 0.),
         &RenderProperties {
             direction: Direction::Left,
             aftik_color: view.shopkeeper_color.clone(),

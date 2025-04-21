@@ -13,7 +13,7 @@ pub struct UiResult {
 pub fn update_ui(
     gui: &mut three_d::GUI,
     frame_input: &mut three_d::FrameInput,
-    state: &mut crate::State,
+    state: &mut super::State,
     assets: &mut Assets,
 ) -> UiResult {
     let mut ui_result = UiResult::default();
@@ -41,7 +41,7 @@ pub fn update_ui(
 }
 
 fn show_tooltip_and_menu(
-    state: &crate::State,
+    state: &super::State,
     models: &mut LazilyLoadedModels,
     egui_context: &egui::Context,
 ) -> Option<Suggestion> {
