@@ -31,10 +31,8 @@ pub fn update_ui(
             );
             ui_result.clicked_text_box = text_box_panel(&state.text_box_text, egui_context);
 
-            if !state.camera.is_dragging {
-                ui_result.clicked_suggestion =
-                    show_tooltip_and_menu(state, &mut assets.models, egui_context);
-            }
+            ui_result.clicked_suggestion =
+                show_tooltip_and_menu(state, &mut assets.models, egui_context);
         },
     );
     ui_result
