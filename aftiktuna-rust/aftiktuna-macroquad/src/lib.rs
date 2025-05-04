@@ -271,7 +271,7 @@ impl App<'_> {
     }
 
     fn show_frame(&mut self, frame: Frame) {
-        if matches!(frame, Frame::Ending { .. }) {
+        if matches!(frame, Frame::Ending { .. }) && self.autosave {
             let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
         }
         self.last_frame_time = Some(Instant::now());

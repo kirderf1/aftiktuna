@@ -118,6 +118,7 @@ mod placement {
 }
 
 pub struct State {
+    delete_save_file_on_end: bool,
     game: Game,
     frame: Frame,
     text_box_text: Vec<String>,
@@ -129,8 +130,9 @@ pub struct State {
 }
 
 impl State {
-    pub fn init(game: Game) -> Self {
+    pub fn init(game: Game, delete_save_file_on_end: bool) -> Self {
         let mut state = Self {
+            delete_save_file_on_end,
             game,
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
@@ -240,7 +242,7 @@ impl State {
                     - crate::WINDOW_WIDTH_F / 2.;
                 self.camera.clamp(render_data.area_size);
             }
-            if matches!(self.frame, Frame::Ending { .. }) {
+            if matches!(self.frame, Frame::Ending { .. }) && self.delete_save_file_on_end {
                 let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
             }
             self.text_box_text = self.frame.get_messages();

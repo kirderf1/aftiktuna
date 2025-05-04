@@ -107,7 +107,7 @@ struct App {
     gui: three_d::GUI,
     assets: Assets,
     state: AppState,
-    save_on_exit: bool,
+    autosave: bool,
     close_after_ending: bool,
 }
 
@@ -118,9 +118,10 @@ impl App {
         if disable_autosave {
             println!("Running without autosave");
         }
+        let autosave = !disable_autosave;
 
         let state = if new_game {
-            AppState::game(game_interface::setup_new())
+            AppState::game(game_interface::setup_new(), autosave)
         } else {
             AppState::main_menu()
         };
@@ -129,7 +130,7 @@ impl App {
             gui: three_d::GUI::new(&context),
             assets: Assets::load(context),
             state,
-            save_on_exit: !disable_autosave,
+            autosave,
             close_after_ending: new_game,
         }
     }
@@ -153,10 +154,10 @@ impl App {
 
                 match menu_action {
                     Some(MenuAction::NewGame) => {
-                        self.state = AppState::game(game_interface::setup_new());
+                        self.state = AppState::game(game_interface::setup_new(), self.autosave);
                     }
                     Some(MenuAction::LoadGame) => {
-                        self.state = AppState::game(game_interface::load().unwrap());
+                        self.state = AppState::game(game_interface::load().unwrap(), self.autosave);
                     }
                     None => {}
                 }
@@ -168,7 +169,7 @@ impl App {
 
     fn on_exit(&self) {
         if let AppState::Game(state) = &self.state {
-            if self.save_on_exit {
+            if self.autosave {
                 state.save_game();
             }
         }
@@ -185,8 +186,8 @@ impl AppState {
         let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
         Self::MainMenu { has_save_file }
     }
-    fn game(game: Game) -> Self {
-        Self::Game(Box::new(game::State::init(game)))
+    fn game(game: Game, delete_save_file_on_end: bool) -> Self {
+        Self::Game(Box::new(game::State::init(game, delete_save_file_on_end)))
     }
 }
 
