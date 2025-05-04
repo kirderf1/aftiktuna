@@ -158,7 +158,9 @@ impl State {
 
         let mut ui_result = ui::update_ui(gui, &mut frame_input, self, assets);
 
-        if ui_result.clicked_text_box {
+        let pressed_enter = check_pressed_enter(&mut frame_input.events);
+
+        if ui_result.clicked_text_box || pressed_enter {
             self.try_get_next_frame();
         }
         if let Some(chosen_suggestion) = ui_result.clicked_suggestion {
@@ -247,6 +249,19 @@ fn get_hovered_object_names<'a>(
         .filter_map(|(_, data)| data.name_data.as_ref())
         .map(|name_data| &name_data.modified_name)
         .collect::<Vec<_>>()
+}
+
+fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {
+    let mut pressed = false;
+    for event in events {
+        if let three_d::Event::KeyPress { kind, handled, .. } = event {
+            if !*handled && *kind == three_d::Key::Enter {
+                *handled = true;
+                pressed = true;
+            }
+        }
+    }
+    pressed
 }
 
 struct CommandTooltip {
