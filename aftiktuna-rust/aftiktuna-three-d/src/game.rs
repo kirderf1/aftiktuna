@@ -187,7 +187,11 @@ impl State {
             }
         }
 
-        handle_command_suggestion_input(&mut frame_input.events, self, &mut assets.models);
+        if self.game.ready_to_take_input() {
+            handle_command_suggestion_input(&mut frame_input.events, self, &mut assets.models);
+        } else {
+            self.command_tooltip = None;
+        }
 
         if let Frame::AreaView { render_data, .. } = &self.frame {
             self.camera.handle_inputs(&mut frame_input.events);
