@@ -67,6 +67,17 @@ mod placement {
                 )
             };
         }
+
+        pub fn has_space_to_drag(&self, area_size: Coord) -> [bool; 2] {
+            if area_size <= 6 {
+                [false, false]
+            } else {
+                [
+                    self.camera_x > coord_to_center_x(0) - 100.,
+                    self.camera_x + crate::WINDOW_WIDTH_F < coord_to_center_x(area_size - 1) + 100.,
+                ]
+            }
+        }
     }
 
     pub fn position_objects<'a>(

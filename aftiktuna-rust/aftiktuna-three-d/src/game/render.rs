@@ -138,6 +138,73 @@ fn draw_area_view(
             Ok(())
         })
         .unwrap();
+
+    draw_camera_arrows(
+        camera.has_space_to_drag(render_data.area_size),
+        &assets.side_arrow_texture,
+        screen,
+        frame_input,
+    );
+}
+
+fn draw_camera_arrows(
+    [left_drag, right_drag]: [bool; 2],
+    arrow_texture: &three_d::Texture2DRef,
+    screen: &three_d::RenderTarget<'_>,
+    frame_input: &three_d::FrameInput,
+) {
+    if !left_drag && !right_drag {
+        return;
+    }
+
+    let alpha = ((frame_input.accumulated_time / 1000. * 3.).sin() + 1.) / 2.;
+    let arrow_material = three_d::ColorMaterial {
+        color: three_d::Srgba::new(255, 255, 255, (alpha * 255.).round() as u8),
+        texture: Some(arrow_texture.clone()),
+        render_states: three_d::RenderStates {
+            write_mask: three_d::WriteMask::COLOR,
+            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let texture_width = arrow_texture.width() as f32;
+    let texture_height = arrow_texture.height() as f32;
+    let mut arrow_objects = vec![];
+    if left_drag {
+        arrow_objects.push(three_d::Gm::new(
+            three_d::Rectangle::new(
+                &frame_input.context,
+                three_d::vec2(10. + texture_width / 2., 250.),
+                three_d::degrees(0.),
+                -texture_width,
+                texture_height,
+            ),
+            arrow_material.clone(),
+        ));
+    }
+    if right_drag {
+        arrow_objects.push(three_d::Gm::new(
+            three_d::Rectangle::new(
+                &frame_input.context,
+                three_d::vec2(crate::WINDOW_WIDTH_F - 10. - texture_width / 2., 250.),
+                three_d::degrees(0.),
+                texture_width,
+                texture_height,
+            ),
+            arrow_material,
+        ));
+    }
+
+    let default_camera = super::default_render_camera(frame_input.viewport);
+    screen
+        .write::<three_d::RendererError>(|| {
+            for object in arrow_objects {
+                object.render(&default_camera, &[]);
+            }
+            Ok(())
+        })
+        .unwrap();
 }
 
 fn draw_store_view(

@@ -13,6 +13,7 @@ pub struct Assets {
     pub models: LazilyLoadedModels,
     pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: three_d::Texture2DRef,
+    pub side_arrow_texture: three_d::Texture2DRef,
     pub text_gen_size_16: three_d::TextGenerator<'static>,
     pub text_gen_size_20: three_d::TextGenerator<'static>,
 }
@@ -21,11 +22,14 @@ impl Assets {
     pub fn load(context: three_d::Context) -> Self {
         let left_mouse_icon =
             load_texture("left_mouse", &context).expect("Missing left_mouse.png texture");
+        let side_arrow_texture =
+            load_texture("side_arrow", &context).expect("Missing side_arrow.png texture");
         Self {
             backgrounds: BackgroundMap::load(context.clone()),
             models: LazilyLoadedModels::new(context),
             aftik_colors: asset_base::color::load_aftik_color_data().unwrap(),
             left_mouse_icon,
+            side_arrow_texture,
             text_gen_size_16: three_d::TextGenerator::new(
                 epaint_default_fonts::HACK_REGULAR,
                 0,
