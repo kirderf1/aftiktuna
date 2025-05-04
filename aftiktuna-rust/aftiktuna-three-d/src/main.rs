@@ -1,6 +1,7 @@
 use aftiktuna::game_interface::{self, Game};
 use aftiktuna::serialization;
 use asset::Assets;
+use std::env;
 use std::path::Path;
 use three_d::egui;
 use winit::dpi;
@@ -53,11 +54,16 @@ fn main() -> ! {
         }
         WinitEvent::RedrawRequested(_) => {
             let frame_input = frame_input_generator.generate(&gl);
-            app.handle_frame(frame_input);
+            let action = app.handle_frame(frame_input);
 
-            gl.swap_buffers().unwrap();
-            *control_flow = ControlFlow::Poll;
-            window.request_redraw();
+            match action {
+                AppAction::Continue => {
+                    gl.swap_buffers().unwrap();
+                    *control_flow = ControlFlow::Poll;
+                    window.request_redraw();
+                }
+                AppAction::Exit => *control_flow = ControlFlow::Exit,
+            }
         }
         _ => (),
     });
@@ -92,32 +98,59 @@ fn init_window() -> (Window, EventLoop<()>) {
     (window, event_loop)
 }
 
+enum AppAction {
+    Continue,
+    Exit,
+}
+
 struct App {
     gui: three_d::GUI,
     assets: Assets,
     state: AppState,
+    save_on_exit: bool,
+    close_after_ending: bool,
 }
 
 impl App {
     fn init(context: three_d::Context) -> Self {
+        let disable_autosave = env::args().any(|arg| arg.eq("--disable-autosave"));
+        let new_game = env::args().any(|arg| arg.eq("--new-game"));
+        if disable_autosave {
+            println!("Running without autosave");
+        }
+
+        let state = if new_game {
+            AppState::game(game_interface::setup_new())
+        } else {
+            AppState::main_menu()
+        };
+
         Self {
             gui: three_d::GUI::new(&context),
             assets: Assets::load(context),
-            state: AppState::main_menu(),
+            state,
+            save_on_exit: !disable_autosave,
+            close_after_ending: new_game,
         }
     }
 
-    fn handle_frame(&mut self, frame_input: three_d::FrameInput) {
+    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> AppAction {
         match &mut self.state {
             AppState::Game(state) => {
                 let game_action =
                     state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
+
                 if let Some(GameAction::EndGame) = game_action {
-                    self.state = AppState::main_menu();
+                    if self.close_after_ending {
+                        return AppAction::Exit;
+                    } else {
+                        self.state = AppState::main_menu();
+                    }
                 }
             }
             AppState::MainMenu { has_save_file } => {
                 let menu_action = handle_menu_frame(*has_save_file, frame_input, &mut self.gui);
+
                 match menu_action {
                     Some(MenuAction::NewGame) => {
                         self.state = AppState::game(game_interface::setup_new());
@@ -129,11 +162,15 @@ impl App {
                 }
             }
         }
+
+        AppAction::Continue
     }
 
     fn on_exit(&self) {
         if let AppState::Game(state) = &self.state {
-            state.on_exit();
+            if self.save_on_exit {
+                state.save_game();
+            }
         }
     }
 }

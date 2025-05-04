@@ -222,7 +222,7 @@ impl State {
         action
     }
 
-    pub fn on_exit(&self) {
+    pub fn save_game(&self) {
         if !matches!(self.frame, Frame::Ending { .. }) {
             if let Err(error) = serialization::write_game_to_save_file(&self.game) {
                 eprintln!("Failed to save game: {error}");
