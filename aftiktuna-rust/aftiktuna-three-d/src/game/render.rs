@@ -392,10 +392,11 @@ fn get_render_object_for_layer(
     } else {
         1.
     };
+    let left_x = pos.x - width / 2.;
     let rectangle = three_d::Rectangle::new(
         context,
         three_d::vec2(
-            pos.x,
+            left_x.floor() + width / 2.,
             pos.y + height / 2. - f32::from(layer.positioning.y_offset),
         ),
         three_d::degrees(0.),

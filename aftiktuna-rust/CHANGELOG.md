@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
  showing the error message in-gui and letting the game save and return to the main menu
 - Slight improvement of messages for some other load errors
 - With executable flag `--disable-autosave`, the save file is no longer removed when reaching the victory/game over frame
+- Fix pixel-alignment for odd-number-width object texture layers
 
 ### Contributors for this release
 

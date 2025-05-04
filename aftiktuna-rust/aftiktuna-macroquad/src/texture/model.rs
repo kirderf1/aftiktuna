@@ -93,7 +93,7 @@ fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
         .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
         .unwrap_or_else(|| layer.texture.size());
     Rect::new(
-        pos.x - dest_size.x / 2.,
+        (pos.x - dest_size.x / 2.).floor(),
         pos.y - dest_size.y + f32::from(layer.positioning.y_offset),
         dest_size.x,
         dest_size.y,
