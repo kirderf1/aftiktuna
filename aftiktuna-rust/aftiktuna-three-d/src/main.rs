@@ -4,9 +4,10 @@ use asset::Assets;
 use std::path::Path;
 use three_d::egui;
 use winit::dpi;
-use winit::event_loop::EventLoop;
+use winit::event::{Event as WinitEvent, WindowEvent};
+use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::windows::WindowBuilderExtWindows;
-use winit::window::{Icon, WindowBuilder, WindowButtons};
+use winit::window::{Icon, Window, WindowBuilder, WindowButtons};
 
 mod asset;
 mod game;
@@ -16,15 +17,50 @@ pub const WINDOW_HEIGHT: u16 = 600;
 pub const WINDOW_WIDTH_F: f32 = WINDOW_WIDTH as f32;
 pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
 
-fn main() {
-    let window = init_window();
+fn main() -> ! {
+    let (window, event_loop) = init_window();
+    let gl = three_d::WindowedContext::from_winit_window(
+        &window,
+        three_d::SurfaceSettings {
+            multisamples: 0,
+            ..Default::default()
+        },
+    )
+    .unwrap();
 
-    let mut app = App::init(window.gl());
+    let mut app = App::init((*gl).clone());
 
-    window.render_loop(move |frame_input| app.handle_frame(frame_input));
+    let mut frame_input_generator = three_d::FrameInputGenerator::from_winit_window(&window);
+    event_loop.run(move |event, _, control_flow| match event {
+        WinitEvent::WindowEvent { ref event, .. } => {
+            frame_input_generator.handle_winit_window_event(event);
+            match event {
+                WindowEvent::Resized(physical_size) => {
+                    gl.resize(*physical_size);
+                }
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                    gl.resize(**new_inner_size);
+                }
+                _ => (),
+            }
+        }
+        WinitEvent::MainEventsCleared => {
+            window.request_redraw();
+        }
+        WinitEvent::RedrawRequested(_) => {
+            let frame_input = frame_input_generator.generate(&gl);
+            app.handle_frame(frame_input);
+
+            gl.swap_buffers().unwrap();
+            *control_flow = ControlFlow::Poll;
+            window.request_redraw();
+        }
+        _ => (),
+    });
 }
 
-fn init_window() -> three_d::Window {
+fn init_window() -> (Window, EventLoop<()>) {
     let event_loop = EventLoop::new();
     let small_icon = Icon::from_rgba(
         include_bytes!("../../icon/icon_16x16.rgba").to_vec(),
@@ -38,7 +74,7 @@ fn init_window() -> three_d::Window {
         64,
     )
     .unwrap();
-    let winit_window = WindowBuilder::new()
+    let window = WindowBuilder::new()
         .with_title("Aftiktuna")
         .with_window_icon(Some(small_icon))
         .with_taskbar_icon(Some(large_icon))
@@ -48,15 +84,9 @@ fn init_window() -> three_d::Window {
         .with_enabled_buttons(!WindowButtons::MAXIMIZE)
         .build(&event_loop)
         .unwrap();
-    winit_window.focus_window();
+    window.focus_window();
 
-    three_d::Window::from_winit_window(
-        winit_window,
-        event_loop,
-        three_d::SurfaceSettings::default(),
-        false,
-    )
-    .unwrap()
+    (window, event_loop)
 }
 
 struct App {
@@ -74,7 +104,7 @@ impl App {
         }
     }
 
-    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> three_d::FrameOutput {
+    fn handle_frame(&mut self, frame_input: three_d::FrameInput) {
         match &mut self.state {
             AppState::Game(state) => {
                 state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
@@ -92,7 +122,6 @@ impl App {
                 }
             }
         }
-        three_d::FrameOutput::default()
     }
 }
 
