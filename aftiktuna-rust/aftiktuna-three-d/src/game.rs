@@ -118,7 +118,7 @@ mod placement {
 }
 
 pub struct State {
-    delete_save_file_on_end: bool,
+    is_save_enabled: bool,
     game: Game,
     frame: Frame,
     text_box_text: Vec<String>,
@@ -130,9 +130,9 @@ pub struct State {
 }
 
 impl State {
-    pub fn init(game: Game, delete_save_file_on_end: bool) -> Self {
+    pub fn init(game: Game, is_save_enabled: bool) -> Self {
         let mut state = Self {
-            delete_save_file_on_end,
+            is_save_enabled,
             game,
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
@@ -167,7 +167,7 @@ impl State {
         if matches!(self.frame, Frame::Ending { .. }) {
             let clicked = check_clicked_anywhere(&mut frame_input.events);
             if clicked || pressed_enter {
-                action = Some(crate::GameAction::EndGame);
+                action = Some(crate::GameAction::ExitGame);
             }
         }
 
@@ -187,17 +187,23 @@ impl State {
             }
         }
         if ui_result.triggered_input {
-            let result = self.game.handle_input(&self.input_text);
-            self.input_text.clear();
-            self.command_tooltip = None;
+            if self.input_text.eq_ignore_ascii_case("exit game") {
+                self.save_game_if_enabled();
+                action = Some(crate::GameAction::ExitGame);
+            } else {
+                let result = self.game.handle_input(&self.input_text);
 
-            match result {
-                Ok(()) => self.try_get_next_frame(),
-                Err(messages) => {
-                    self.text_box_text = messages;
-                    self.request_input_focus = true;
+                match result {
+                    Ok(()) => self.try_get_next_frame(),
+                    Err(messages) => {
+                        self.text_box_text = messages;
+                        self.request_input_focus = true;
+                    }
                 }
             }
+
+            self.input_text.clear();
+            self.command_tooltip = None;
         }
 
         if self.game.ready_to_take_input() {
@@ -224,8 +230,8 @@ impl State {
         action
     }
 
-    pub fn save_game(&self) {
-        if !matches!(self.frame, Frame::Ending { .. }) {
+    pub fn save_game_if_enabled(&self) {
+        if !matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
             if let Err(error) = serialization::write_game_to_save_file(&self.game) {
                 eprintln!("Failed to save game: {error}");
             } else {
@@ -242,7 +248,7 @@ impl State {
                     - crate::WINDOW_WIDTH_F / 2.;
                 self.camera.clamp(render_data.area_size);
             }
-            if matches!(self.frame, Frame::Ending { .. }) && self.delete_save_file_on_end {
+            if matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
                 let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
             }
             self.text_box_text = self.frame.get_messages();

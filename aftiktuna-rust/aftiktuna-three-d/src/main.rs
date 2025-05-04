@@ -141,7 +141,7 @@ impl App {
                 let game_action =
                     state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
 
-                if let Some(GameAction::EndGame) = game_action {
+                if let Some(GameAction::ExitGame) = game_action {
                     if self.close_after_ending {
                         return AppAction::Exit;
                     } else {
@@ -169,9 +169,7 @@ impl App {
 
     fn on_exit(&self) {
         if let AppState::Game(state) = &self.state {
-            if self.autosave {
-                state.save_game();
-            }
+            state.save_game_if_enabled();
         }
     }
 }
@@ -186,13 +184,13 @@ impl AppState {
         let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
         Self::MainMenu { has_save_file }
     }
-    fn game(game: Game, delete_save_file_on_end: bool) -> Self {
-        Self::Game(Box::new(game::State::init(game, delete_save_file_on_end)))
+    fn game(game: Game, is_save_enabled: bool) -> Self {
+        Self::Game(Box::new(game::State::init(game, is_save_enabled)))
     }
 }
 
 enum GameAction {
-    EndGame,
+    ExitGame,
 }
 
 enum MenuAction {
