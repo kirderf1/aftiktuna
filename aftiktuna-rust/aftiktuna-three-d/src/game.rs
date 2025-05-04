@@ -1,8 +1,10 @@
 use crate::asset::{Assets, LazilyLoadedModels};
 use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
+use aftiktuna::serialization;
 use aftiktuna::view::area::RenderData;
 use aftiktuna::view::Frame;
+use std::fs;
 
 mod render;
 mod ui;
@@ -203,6 +205,16 @@ impl State {
         }
     }
 
+    pub fn on_exit(&self) {
+        if !matches!(self.frame, Frame::Ending { .. }) {
+            if let Err(error) = serialization::write_game_to_save_file(&self.game) {
+                eprintln!("Failed to save game: {error}");
+            } else {
+                println!("Saved the game successfully.")
+            }
+        }
+    }
+
     fn try_get_next_frame(&mut self) {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
             self.frame = frame_getter.get();
@@ -210,6 +222,9 @@ impl State {
                 self.camera.camera_x = placement::coord_to_center_x(render_data.character_coord)
                     - crate::WINDOW_WIDTH_F / 2.;
                 self.camera.clamp(render_data.area_size);
+            }
+            if matches!(self.frame, Frame::Ending { .. }) {
+                let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
             }
             self.text_box_text = self.frame.get_messages();
             self.request_input_focus = self.game.ready_to_take_input();

@@ -38,7 +38,10 @@ fn main() -> ! {
                 WindowEvent::Resized(physical_size) => {
                     gl.resize(*physical_size);
                 }
-                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::CloseRequested => {
+                    app.on_exit();
+                    *control_flow = ControlFlow::Exit;
+                }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                     gl.resize(**new_inner_size);
                 }
@@ -121,6 +124,12 @@ impl App {
                     None => {}
                 }
             }
+        }
+    }
+
+    fn on_exit(&self) {
+        if let AppState::Game(state) = &self.state {
+            state.on_exit();
         }
     }
 }
