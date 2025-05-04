@@ -110,16 +110,20 @@ impl App {
     fn handle_frame(&mut self, frame_input: three_d::FrameInput) {
         match &mut self.state {
             AppState::Game(state) => {
-                state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
+                let game_action =
+                    state.handle_game_frame(frame_input, &mut self.gui, &mut self.assets);
+                if let Some(GameAction::EndGame) = game_action {
+                    self.state = AppState::main_menu();
+                }
             }
             AppState::MainMenu { has_save_file } => {
                 let menu_action = handle_menu_frame(*has_save_file, frame_input, &mut self.gui);
                 match menu_action {
                     Some(MenuAction::NewGame) => {
-                        self.state = AppState::game(game_interface::setup_new())
+                        self.state = AppState::game(game_interface::setup_new());
                     }
                     Some(MenuAction::LoadGame) => {
-                        self.state = AppState::game(game_interface::load().unwrap())
+                        self.state = AppState::game(game_interface::load().unwrap());
                     }
                     None => {}
                 }
@@ -147,6 +151,10 @@ impl AppState {
     fn game(game: Game) -> Self {
         Self::Game(Box::new(game::State::init(game)))
     }
+}
+
+enum GameAction {
+    EndGame,
 }
 
 enum MenuAction {

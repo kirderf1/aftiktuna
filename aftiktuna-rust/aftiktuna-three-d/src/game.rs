@@ -149,7 +149,9 @@ impl State {
         mut frame_input: three_d::FrameInput,
         gui: &mut three_d::GUI,
         assets: &mut Assets,
-    ) {
+    ) -> Option<crate::GameAction> {
+        let mut action = None;
+
         for event in &frame_input.events {
             if let three_d::Event::MouseMotion { position, .. } = event {
                 self.mouse_pos = three_d::vec2(position.x, position.y);
@@ -159,6 +161,13 @@ impl State {
         let mut ui_result = ui::update_ui(gui, &mut frame_input, self, assets);
 
         let pressed_enter = check_pressed_enter(&mut frame_input.events);
+
+        if matches!(self.frame, Frame::Ending { .. }) {
+            let clicked = check_clicked_anywhere(&mut frame_input.events);
+            if clicked || pressed_enter {
+                action = Some(crate::GameAction::EndGame);
+            }
+        }
 
         if ui_result.clicked_text_box || pressed_enter {
             self.try_get_next_frame();
@@ -209,6 +218,8 @@ impl State {
         if self.game.next_result().has_frame() {
             ui::draw_frame_click_icon(&assets.left_mouse_icon, screen, &frame_input);
         }
+
+        action
     }
 
     pub fn on_exit(&self) {
@@ -262,6 +273,22 @@ fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {
         }
     }
     pressed
+}
+
+fn check_clicked_anywhere(events: &mut [three_d::Event]) -> bool {
+    let mut clicked = false;
+    for event in events {
+        if let three_d::Event::MousePress {
+            button, handled, ..
+        } = event
+        {
+            if !*handled && *button == three_d::MouseButton::Left {
+                *handled = true;
+                clicked = true;
+            }
+        }
+    }
+    clicked
 }
 
 struct CommandTooltip {
