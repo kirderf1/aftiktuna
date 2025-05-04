@@ -92,13 +92,37 @@ fn draw_area_view(
     let entity_objects = placement::position_objects(&render_data.objects, &mut assets.models)
         .into_iter()
         .flat_map(|(pos, object)| {
-            get_render_objects_for_entity(
+            let mut render_objects = get_render_objects_for_entity(
                 assets.models.lookup_model(&object.model_id),
                 pos,
                 &object.properties,
                 &mut assets.aftik_colors,
                 &frame_input.context,
-            )
+            );
+            if object.properties.is_alive {
+                if let Some(item_model_id) = &object.wielded_item {
+                    let item_model = assets.models.lookup_model(item_model_id);
+                    let direction_mod = match object.properties.direction {
+                        Direction::Left => -1,
+                        Direction::Right => 1,
+                    };
+                    let offset = three_d::vec2(
+                        f32::from(direction_mod * item_model.wield_offset.0),
+                        f32::from(-item_model.wield_offset.1),
+                    );
+                    render_objects.extend(get_render_objects_for_entity(
+                        item_model,
+                        pos + offset,
+                        &RenderProperties {
+                            direction: object.properties.direction,
+                            ..RenderProperties::default()
+                        },
+                        &mut assets.aftik_colors,
+                        &frame_input.context,
+                    ));
+                }
+            }
+            render_objects
         })
         .collect::<Vec<_>>();
 
