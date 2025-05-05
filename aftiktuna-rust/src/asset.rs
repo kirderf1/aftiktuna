@@ -224,7 +224,7 @@ use crate::core::status::{Stats, Traits};
 use rand::Rng;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::fs::File;
 
 #[derive(Debug)]
@@ -242,6 +242,15 @@ impl From<std::io::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(value: serde_json::Error) -> Self {
         Self::Json(value)
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::IO(error) => Display::fmt(error, f),
+            Error::Json(error) => Display::fmt(error, f),
+        }
     }
 }
 

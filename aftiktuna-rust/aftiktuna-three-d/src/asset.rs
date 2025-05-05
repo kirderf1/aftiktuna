@@ -7,6 +7,38 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
+
+#[derive(Debug)]
+pub enum Error {
+    Asset(asset_base::Error),
+    ThreeD(three_d_asset::Error),
+    MissingBlankBackground,
+}
+
+impl From<asset_base::Error> for Error {
+    fn from(value: asset_base::Error) -> Self {
+        Self::Asset(value)
+    }
+}
+
+impl From<three_d_asset::Error> for Error {
+    fn from(value: three_d_asset::Error) -> Self {
+        Self::ThreeD(value)
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Asset(error) => Display::fmt(error, f),
+            Error::ThreeD(error) => Display::fmt(error, f),
+            Error::MissingBlankBackground => {
+                Display::fmt("Missing Background: Blank background texture must exist", f)
+            }
+        }
+    }
+}
 
 pub struct Assets {
     pub backgrounds: BackgroundMap,
@@ -19,15 +51,13 @@ pub struct Assets {
 }
 
 impl Assets {
-    pub fn load(context: three_d::Context) -> Self {
-        let left_mouse_icon =
-            load_texture("left_mouse", &context).expect("Missing left_mouse.png texture");
-        let side_arrow_texture =
-            load_texture("side_arrow", &context).expect("Missing side_arrow.png texture");
-        Self {
-            backgrounds: BackgroundMap::load(context.clone()),
+    pub fn load(context: three_d::Context) -> Result<Self, Error> {
+        let left_mouse_icon = load_texture("left_mouse", &context)?;
+        let side_arrow_texture = load_texture("side_arrow", &context)?;
+        Ok(Self {
+            backgrounds: BackgroundMap::load(context.clone())?,
             models: LazilyLoadedModels::new(context),
-            aftik_colors: asset_base::color::load_aftik_color_data().unwrap(),
+            aftik_colors: asset_base::color::load_aftik_color_data()?,
             left_mouse_icon,
             side_arrow_texture,
             text_gen_size_16: three_d::TextGenerator::new(
@@ -35,14 +65,14 @@ impl Assets {
                 0,
                 16.,
             )
-            .unwrap(),
+            .expect("Unexpected error for builtin font"),
             text_gen_size_20: three_d::TextGenerator::new(
                 epaint_default_fonts::HACK_REGULAR,
                 0,
                 20.,
             )
-            .unwrap(),
-        }
+            .expect("Unexpected error for builtin font"),
+        })
     }
 }
 
@@ -82,15 +112,22 @@ fn load_texture(
 pub struct BackgroundMap(HashMap<BackgroundId, BGData<three_d::Texture2DRef>>);
 
 impl BackgroundMap {
-    fn load(context: three_d::Context) -> Self {
+    fn load(context: three_d::Context) -> Result<Self, Error> {
         let mut texture_loader = CachedLoader::new(context);
-        let background_data = background_base::load_raw_backgrounds().unwrap();
-        Self(
+        let background_data = background_base::load_raw_backgrounds()?;
+        if !background_data.contains_key(&BackgroundId::blank()) {
+            return Err(Error::MissingBlankBackground);
+        }
+
+        Ok(Self(
             background_data
                 .into_iter()
-                .map(|(id, data)| (id, data.load(&mut texture_loader).unwrap()))
-                .collect(),
-        )
+                .map(|(id, data)| {
+                    data.load(&mut texture_loader)
+                        .map(|loaded_data| (id, loaded_data))
+                })
+                .collect::<Result<_, _>>()?,
+        ))
     }
 
     pub fn get_or_default<'a>(&'a self, id: &BackgroundId) -> &'a BGData<three_d::Texture2DRef> {

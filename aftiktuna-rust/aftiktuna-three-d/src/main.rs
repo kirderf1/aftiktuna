@@ -128,7 +128,7 @@ impl App {
 
         Self {
             gui: three_d::GUI::new(&context),
-            assets: Assets::load(context),
+            assets: Assets::load(context).unwrap(),
             state,
             autosave,
             close_after_ending: new_game,
