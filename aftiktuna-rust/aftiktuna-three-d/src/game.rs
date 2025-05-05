@@ -175,9 +175,10 @@ impl State {
 
         let pressed_enter = check_pressed_enter(&mut frame_input.events);
 
-        if matches!(self.frame, Frame::Ending { .. }) {
+        if matches!(self.game.next_result(), GameResult::Stop) {
             let clicked = check_clicked_anywhere(&mut frame_input.events);
             if clicked || pressed_enter {
+                self.save_game_if_enabled();
                 action = Some(crate::GameAction::ExitGame);
             }
         }
