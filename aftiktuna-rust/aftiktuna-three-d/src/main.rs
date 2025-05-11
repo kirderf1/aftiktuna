@@ -140,22 +140,16 @@ impl App {
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
             let mut y = 350.;
             for line in &self.error_messages {
-                let mut mesh = self
-                    .builtin_fonts
-                    .text_gen_size_16
-                    .generate(line, three_d::TextLayoutOptions::default());
-                mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
-                    (WINDOW_WIDTH_F - mesh.compute_aabb().size().x) / 2.,
-                    y,
-                    0.,
-                )))
-                .unwrap();
+                let text_obj = make_centered_text_obj(
+                    line,
+                    three_d::vec2(WINDOW_WIDTH_F / 2., y),
+                    three_d::vec4(1., 0.4, 0.7, 1.),
+                    &self.builtin_fonts.text_gen_size_16,
+                    &frame_input.context,
+                );
                 screen.render(
                     default_render_camera(frame_input.viewport),
-                    &[three_d::Gm::new(
-                        three_d::Mesh::new(&frame_input.context, &mesh),
-                        color_material(three_d::vec4(1., 0.4, 0.7, 1.)),
-                    )],
+                    &[text_obj],
                     &[],
                 );
                 y -= 24.
@@ -177,22 +171,16 @@ impl App {
         } else {
             let screen = frame_input.screen();
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
-            let mut mesh = self
-                .builtin_fonts
-                .text_gen_size_20
-                .generate("Loading textures...", three_d::TextLayoutOptions::default());
-            mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
-                (WINDOW_WIDTH_F - mesh.compute_aabb().size().x) / 2.,
-                300.,
-                0.,
-            )))
-            .unwrap();
+            let text_obj = make_centered_text_obj(
+                "Loading textures...",
+                three_d::vec2(WINDOW_WIDTH_F / 2., 300.),
+                three_d::vec4(1., 1., 1., 1.),
+                &self.builtin_fonts.text_gen_size_20,
+                &frame_input.context,
+            );
             screen.render(
                 default_render_camera(frame_input.viewport),
-                &[three_d::Gm::new(
-                    three_d::Mesh::new(&frame_input.context, &mesh),
-                    color_material(three_d::vec4(1., 1., 1., 1.)),
-                )],
+                &[text_obj],
                 &[],
             );
             AppAction::Continue
@@ -222,6 +210,38 @@ impl BuiltinFonts {
             .expect("Unexpected error for builtin font"),
         }
     }
+}
+
+fn make_centered_text_obj(
+    text: &str,
+    pos: three_d::Vec2,
+    color: three_d::Vec4,
+    text_gen: &three_d::TextGenerator<'static>,
+    context: &three_d::Context,
+) -> impl three_d::Object {
+    let mut mesh = text_gen.generate(text, three_d::TextLayoutOptions::default());
+    mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
+        pos.x - (mesh.compute_aabb().size().x) / 2.,
+        pos.y,
+        0.,
+    )))
+    .unwrap();
+    three_d::Gm::new(three_d::Mesh::new(context, &mesh), color_material(color))
+}
+
+fn make_text_obj(
+    text: &str,
+    pos: three_d::Vec2,
+    color: three_d::Vec4,
+    text_gen: &three_d::TextGenerator<'static>,
+    context: &three_d::Context,
+) -> impl three_d::Object {
+    let mut mesh = text_gen.generate(text, three_d::TextLayoutOptions::default());
+    mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
+        pos.x, pos.y, 0.,
+    )))
+    .unwrap();
+    three_d::Gm::new(three_d::Mesh::new(context, &mesh), color_material(color))
 }
 
 fn split_screen_text_lines(

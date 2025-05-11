@@ -241,14 +241,6 @@ fn draw_store_view(
         )],
         &[],
     );
-    let place_mesh = |mut mesh: three_d::CpuMesh, x, y| {
-        mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(x, y, 0.)))
-            .unwrap();
-        three_d::Gm::new(
-            three_d::Mesh::new(&frame_input.context, &mesh),
-            crate::color_material(three_d::vec4(1., 1., 1., 1.)),
-        )
-    };
     let text = view
         .items
         .iter()
@@ -258,29 +250,26 @@ fn draw_store_view(
             let quantity = stock.quantity;
             let y = 550. - (index as f32 * 24.);
             [
-                place_mesh(
-                    assets.builtin_fonts.text_gen_size_16.generate(
-                        &view::text::capitalize(stock.item.noun_data().singular()),
-                        three_d::TextLayoutOptions::default(),
-                    ),
-                    40.,
-                    y,
+                crate::make_text_obj(
+                    &view::text::capitalize(stock.item.noun_data().singular()),
+                    three_d::vec2(40., y),
+                    three_d::vec4(1., 1., 1., 1.),
+                    &assets.builtin_fonts.text_gen_size_16,
+                    &frame_input.context,
                 ),
-                place_mesh(
-                    assets.builtin_fonts.text_gen_size_16.generate(
-                        &format!("| {price}p"),
-                        three_d::TextLayoutOptions::default(),
-                    ),
-                    210.,
-                    y,
+                crate::make_text_obj(
+                    &format!("| {price}p"),
+                    three_d::vec2(210., y),
+                    three_d::vec4(1., 1., 1., 1.),
+                    &assets.builtin_fonts.text_gen_size_16,
+                    &frame_input.context,
                 ),
-                place_mesh(
-                    assets.builtin_fonts.text_gen_size_16.generate(
-                        &format!("| {quantity}"),
-                        three_d::TextLayoutOptions::default(),
-                    ),
-                    300.,
-                    y,
+                crate::make_text_obj(
+                    &format!("| {quantity}"),
+                    three_d::vec2(300., y),
+                    three_d::vec4(1., 1., 1., 1.),
+                    &assets.builtin_fonts.text_gen_size_16,
+                    &frame_input.context,
                 ),
             ]
         })
@@ -297,13 +286,12 @@ fn draw_store_view(
     );
     screen.render(
         &render_camera,
-        [place_mesh(
-            assets.builtin_fonts.text_gen_size_20.generate(
-                &format!("Crew points: {}p", view.points),
-                three_d::TextLayoutOptions::default(),
-            ),
-            460.,
-            545.,
+        [crate::make_text_obj(
+            &format!("Crew points: {}p", view.points),
+            three_d::vec2(460., 545.),
+            three_d::vec4(1., 1., 1., 1.),
+            &assets.builtin_fonts.text_gen_size_20,
+            &frame_input.context,
         )],
         &[],
     );
