@@ -3,6 +3,7 @@ use aftiktuna::serialization;
 use asset::Assets;
 use std::env;
 use std::path::Path;
+use std::rc::Rc;
 use three_d::egui;
 use winit::dpi;
 use winit::event::{Event as WinitEvent, WindowEvent};
@@ -29,7 +30,10 @@ fn main() -> ! {
     )
     .unwrap();
 
-    let mut app = App::init((*gl).clone());
+    let mut app = App {
+        loaded_app: None,
+        builtin_fonts: Rc::new(BuiltinFonts::init()),
+    };
 
     let mut frame_input_generator = three_d::FrameInputGenerator::from_winit_window(&window);
     event_loop.run(move |event, _, control_flow| match event {
@@ -40,7 +44,9 @@ fn main() -> ! {
                     gl.resize(*physical_size);
                 }
                 WindowEvent::CloseRequested => {
-                    app.on_exit();
+                    if let Some(loaded_app) = &mut app.loaded_app {
+                        loaded_app.on_exit();
+                    }
                     *control_flow = ControlFlow::Exit;
                 }
                 WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
@@ -63,6 +69,10 @@ fn main() -> ! {
                     window.request_redraw();
                 }
                 AppAction::Exit => *control_flow = ControlFlow::Exit,
+            }
+
+            if app.loaded_app.is_none() {
+                app.loaded_app = Some(LoadedApp::load(&gl, app.builtin_fonts.clone()).unwrap());
             }
         }
         _ => (),
@@ -104,6 +114,65 @@ enum AppAction {
 }
 
 struct App {
+    loaded_app: Option<LoadedApp>,
+    builtin_fonts: Rc<BuiltinFonts>,
+}
+
+impl App {
+    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> AppAction {
+        if let Some(loaded_app) = &mut self.loaded_app {
+            loaded_app.handle_frame(frame_input)
+        } else {
+            let screen = frame_input.screen();
+            screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
+            let mut mesh = self
+                .builtin_fonts
+                .text_gen_size_20
+                .generate("Loading textures...", three_d::TextLayoutOptions::default());
+            mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
+                (WINDOW_WIDTH_F - mesh.compute_aabb().size().x) / 2.,
+                300.,
+                0.,
+            )))
+            .unwrap();
+            screen.render(
+                default_render_camera(frame_input.viewport),
+                &[three_d::Gm::new(
+                    three_d::Mesh::new(&frame_input.context, &mesh),
+                    color_material(three_d::vec4(1., 1., 1., 1.)),
+                )],
+                &[],
+            );
+            AppAction::Continue
+        }
+    }
+}
+
+struct BuiltinFonts {
+    pub text_gen_size_16: three_d::TextGenerator<'static>,
+    pub text_gen_size_20: three_d::TextGenerator<'static>,
+}
+
+impl BuiltinFonts {
+    fn init() -> Self {
+        Self {
+            text_gen_size_16: three_d::TextGenerator::new(
+                epaint_default_fonts::HACK_REGULAR,
+                0,
+                16.,
+            )
+            .expect("Unexpected error for builtin font"),
+            text_gen_size_20: three_d::TextGenerator::new(
+                epaint_default_fonts::HACK_REGULAR,
+                0,
+                20.,
+            )
+            .expect("Unexpected error for builtin font"),
+        }
+    }
+}
+
+struct LoadedApp {
     gui: three_d::GUI,
     assets: Assets,
     state: AppState,
@@ -111,8 +180,13 @@ struct App {
     close_after_ending: bool,
 }
 
-impl App {
-    fn init(context: three_d::Context) -> Self {
+impl LoadedApp {
+    fn load(
+        context: &three_d::Context,
+        builtin_fonts: Rc<BuiltinFonts>,
+    ) -> Result<Self, asset::Error> {
+        let assets = Assets::load(context.clone(), builtin_fonts)?;
+
         let disable_autosave = env::args().any(|arg| arg.eq("--disable-autosave"));
         let new_game = env::args().any(|arg| arg.eq("--new-game"));
         if disable_autosave {
@@ -126,13 +200,13 @@ impl App {
             AppState::main_menu()
         };
 
-        Self {
-            gui: three_d::GUI::new(&context),
-            assets: Assets::load(context).unwrap(),
+        Ok(Self {
+            gui: three_d::GUI::new(context),
+            assets,
             state,
             autosave,
             close_after_ending: new_game,
-        }
+        })
     }
 
     fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> AppAction {
@@ -301,5 +375,89 @@ impl Rect {
 
     fn contains(&self, pos: three_d::Vec2) -> bool {
         self.left <= pos.x && pos.x < self.right && self.bottom <= pos.y && pos.y < self.top
+    }
+}
+
+fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
+    let mut render_camera = three_d::Camera::new_2d(viewport);
+    render_camera.disable_tone_and_color_mapping();
+    render_camera
+}
+
+fn color_material(color: three_d::Vec4) -> impl three_d::Material {
+    UnalteredColorMaterial(
+        three_d::ColorMaterial {
+            render_states: three_d::RenderStates {
+                write_mask: three_d::WriteMask::COLOR,
+                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        color,
+    )
+}
+
+fn texture_material(texture: &three_d::Texture2DRef) -> impl three_d::Material + Clone {
+    three_d::ColorMaterial {
+        texture: Some(texture.clone()),
+        render_states: three_d::RenderStates {
+            write_mask: three_d::WriteMask::COLOR,
+            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            ..Default::default()
+        },
+        ..Default::default()
+    }
+}
+
+fn texture_color_material(
+    texture: &three_d::Texture2DRef,
+    color: three_d::Vec4,
+) -> impl three_d::Material {
+    UnalteredColorMaterial(
+        three_d::ColorMaterial {
+            texture: Some(texture.clone()),
+            render_states: three_d::RenderStates {
+                write_mask: three_d::WriteMask::COLOR,
+                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        color,
+    )
+}
+
+pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub three_d::Vec4);
+
+impl three_d::Material for UnalteredColorMaterial {
+    fn id(&self) -> three_d::EffectMaterialId {
+        self.0.id()
+    }
+
+    fn fragment_shader_source(&self, lights: &[&dyn three_d::Light]) -> String {
+        self.0.fragment_shader_source(lights)
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &three_d::Program,
+        viewer: &dyn three_d::Viewer,
+        _lights: &[&dyn three_d::Light],
+    ) {
+        viewer.color_mapping().use_uniforms(program);
+        program.use_uniform("surfaceColor", self.1);
+        if let Some(ref tex) = self.0.texture {
+            program.use_uniform("textureTransformation", tex.transformation);
+            program.use_texture("tex", tex);
+        }
+    }
+
+    fn render_states(&self) -> three_d::RenderStates {
+        self.0.render_states()
+    }
+
+    fn material_type(&self) -> three_d::MaterialType {
+        self.0.material_type()
     }
 }

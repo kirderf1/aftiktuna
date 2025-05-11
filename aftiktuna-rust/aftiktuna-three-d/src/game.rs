@@ -411,9 +411,3 @@ fn get_render_camera(camera: &placement::Camera, viewport: three_d::Viewport) ->
     render_camera.disable_tone_and_color_mapping();
     render_camera
 }
-
-fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
-    let mut render_camera = three_d::Camera::new_2d(viewport);
-    render_camera.disable_tone_and_color_mapping();
-    render_camera
-}

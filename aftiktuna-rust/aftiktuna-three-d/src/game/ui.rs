@@ -218,7 +218,7 @@ pub fn draw_frame_click_icon(
         },
     );
     screen.render(
-        super::default_render_camera(frame_input.viewport),
+        crate::default_render_camera(frame_input.viewport),
         [icon],
         &[],
     );

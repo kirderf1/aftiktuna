@@ -1,4 +1,4 @@
-use crate::Rect;
+use crate::{BuiltinFonts, Rect};
 use aftiktuna::asset::background::{self as background_base, BGData};
 use aftiktuna::asset::color::AftikColorData;
 use aftiktuna::asset::model::{self, Model, TextureLayer};
@@ -8,6 +8,7 @@ use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -46,12 +47,11 @@ pub struct Assets {
     pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
     pub left_mouse_icon: three_d::Texture2DRef,
     pub side_arrow_texture: three_d::Texture2DRef,
-    pub text_gen_size_16: three_d::TextGenerator<'static>,
-    pub text_gen_size_20: three_d::TextGenerator<'static>,
+    pub builtin_fonts: Rc<BuiltinFonts>,
 }
 
 impl Assets {
-    pub fn load(context: three_d::Context) -> Result<Self, Error> {
+    pub fn load(context: three_d::Context, builtin_fonts: Rc<BuiltinFonts>) -> Result<Self, Error> {
         let left_mouse_icon = load_texture("left_mouse", &context)?;
         let side_arrow_texture = load_texture("side_arrow", &context)?;
         Ok(Self {
@@ -60,18 +60,7 @@ impl Assets {
             aftik_colors: asset_base::color::load_aftik_color_data()?,
             left_mouse_icon,
             side_arrow_texture,
-            text_gen_size_16: three_d::TextGenerator::new(
-                epaint_default_fonts::HACK_REGULAR,
-                0,
-                16.,
-            )
-            .expect("Unexpected error for builtin font"),
-            text_gen_size_20: three_d::TextGenerator::new(
-                epaint_default_fonts::HACK_REGULAR,
-                0,
-                20.,
-            )
-            .expect("Unexpected error for builtin font"),
+            builtin_fonts,
         })
     }
 }

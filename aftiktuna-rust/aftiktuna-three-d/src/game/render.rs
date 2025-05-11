@@ -31,7 +31,7 @@ pub fn render_frame(
                 &frame_input.context,
             );
 
-            let render_camera = super::default_render_camera(frame_input.viewport);
+            let render_camera = crate::default_render_camera(frame_input.viewport);
             draw_in_order(&background_objects, &render_camera, screen);
         }
         Frame::AreaView { render_data, .. } => {
@@ -60,7 +60,7 @@ pub fn render_frame(
                 &mut assets.aftik_colors,
                 &frame_input.context,
             );
-            let render_camera = super::default_render_camera(frame_input.viewport);
+            let render_camera = crate::default_render_camera(frame_input.viewport);
             draw_in_order(&objects, &render_camera, screen);
         }
         Frame::StoreView { view, .. } => {
@@ -196,7 +196,7 @@ fn draw_camera_arrows(
         ));
     }
 
-    let default_camera = super::default_render_camera(frame_input.viewport);
+    let default_camera = crate::default_render_camera(frame_input.viewport);
     screen
         .write::<three_d::RendererError>(|| {
             for object in arrow_objects {
@@ -230,14 +230,14 @@ fn draw_store_view(
         &mut assets.aftik_colors,
         &frame_input.context,
     );
-    let render_camera = super::default_render_camera(frame_input.viewport);
+    let render_camera = crate::default_render_camera(frame_input.viewport);
     draw_in_order(&objects, &render_camera, screen);
     const STOCK_PANEL_COLOR: three_d::Vec4 = three_d::vec4(0.2, 0.1, 0.4, 0.6);
     screen.render(
         &render_camera,
         [three_d::Gm::new(
             rect(30., 170., 400., 400., &frame_input.context),
-            color_material(STOCK_PANEL_COLOR),
+            crate::color_material(STOCK_PANEL_COLOR),
         )],
         &[],
     );
@@ -246,7 +246,7 @@ fn draw_store_view(
             .unwrap();
         three_d::Gm::new(
             three_d::Mesh::new(&frame_input.context, &mesh),
-            color_material(three_d::vec4(1., 1., 1., 1.)),
+            crate::color_material(three_d::vec4(1., 1., 1., 1.)),
         )
     };
     let text = view
@@ -259,7 +259,7 @@ fn draw_store_view(
             let y = 550. - (index as f32 * 24.);
             [
                 place_mesh(
-                    assets.text_gen_size_16.generate(
+                    assets.builtin_fonts.text_gen_size_16.generate(
                         &view::text::capitalize(stock.item.noun_data().singular()),
                         three_d::TextLayoutOptions::default(),
                     ),
@@ -267,7 +267,7 @@ fn draw_store_view(
                     y,
                 ),
                 place_mesh(
-                    assets.text_gen_size_16.generate(
+                    assets.builtin_fonts.text_gen_size_16.generate(
                         &format!("| {price}p"),
                         three_d::TextLayoutOptions::default(),
                     ),
@@ -275,7 +275,7 @@ fn draw_store_view(
                     y,
                 ),
                 place_mesh(
-                    assets.text_gen_size_16.generate(
+                    assets.builtin_fonts.text_gen_size_16.generate(
                         &format!("| {quantity}"),
                         three_d::TextLayoutOptions::default(),
                     ),
@@ -291,14 +291,14 @@ fn draw_store_view(
         &render_camera,
         [three_d::Gm::new(
             rect(450., 535., 320., 35., &frame_input.context),
-            color_material(STOCK_PANEL_COLOR),
+            crate::color_material(STOCK_PANEL_COLOR),
         )],
         &[],
     );
     screen.render(
         &render_camera,
         [place_mesh(
-            assets.text_gen_size_20.generate(
+            assets.builtin_fonts.text_gen_size_20.generate(
                 &format!("Crew points: {}p", view.points),
                 three_d::TextLayoutOptions::default(),
             ),
@@ -346,7 +346,7 @@ fn render_objects_for_primary_background(
             let height = layer.texture.height() as f32;
             let layer_x = f32::from(layer.offset.x) + camera_x * (1. - layer.move_factor) - offset;
             let layer_y = f32::from(layer.offset.y);
-            let material = texture_material(&layer.texture);
+            let material = crate::texture_material(&layer.texture);
 
             if layer.is_looping {
                 let repeat_start = f32::floor((camera_x - layer_x) / width) as i16;
@@ -398,10 +398,10 @@ fn draw_secondary_background(
                     crate::WINDOW_WIDTH_F,
                     crate::WINDOW_HEIGHT_F,
                 ),
-                texture_material(texture),
+                crate::texture_material(texture),
             );
 
-            let render_camera = super::default_render_camera(frame_input.viewport);
+            let render_camera = crate::default_render_camera(frame_input.viewport);
             screen.render(&render_camera, [background_object], &[]);
         }
     };
@@ -472,7 +472,7 @@ fn get_render_object_for_layer(
     );
 
     let color = layer.color.get_color(&aftik_color);
-    let material = texture_color_material(
+    let material = crate::texture_color_material(
         &layer.texture,
         three_d::vec4(
             f32::from(color.r) / 255.,
@@ -483,84 +483,6 @@ fn get_render_object_for_layer(
     );
 
     Some(three_d::Gm::new(rectangle, material))
-}
-
-fn color_material(color: three_d::Vec4) -> impl three_d::Material {
-    UnalteredColorMaterial(
-        three_d::ColorMaterial {
-            render_states: three_d::RenderStates {
-                write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        color,
-    )
-}
-
-fn texture_material(texture: &three_d::Texture2DRef) -> impl three_d::Material + Clone {
-    three_d::ColorMaterial {
-        texture: Some(texture.clone()),
-        render_states: three_d::RenderStates {
-            write_mask: three_d::WriteMask::COLOR,
-            blend: three_d::Blend::STANDARD_TRANSPARENCY,
-            ..Default::default()
-        },
-        ..Default::default()
-    }
-}
-
-fn texture_color_material(
-    texture: &three_d::Texture2DRef,
-    color: three_d::Vec4,
-) -> impl three_d::Material {
-    UnalteredColorMaterial(
-        three_d::ColorMaterial {
-            texture: Some(texture.clone()),
-            render_states: three_d::RenderStates {
-                write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        color,
-    )
-}
-
-pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub three_d::Vec4);
-
-impl three_d::Material for UnalteredColorMaterial {
-    fn id(&self) -> three_d::EffectMaterialId {
-        self.0.id()
-    }
-
-    fn fragment_shader_source(&self, lights: &[&dyn three_d::Light]) -> String {
-        self.0.fragment_shader_source(lights)
-    }
-
-    fn use_uniforms(
-        &self,
-        program: &three_d::Program,
-        viewer: &dyn three_d::Viewer,
-        _lights: &[&dyn three_d::Light],
-    ) {
-        viewer.color_mapping().use_uniforms(program);
-        program.use_uniform("surfaceColor", self.1);
-        if let Some(ref tex) = self.0.texture {
-            program.use_uniform("textureTransformation", tex.transformation);
-            program.use_texture("tex", tex);
-        }
-    }
-
-    fn render_states(&self) -> three_d::RenderStates {
-        self.0.render_states()
-    }
-
-    fn material_type(&self) -> three_d::MaterialType {
-        self.0.material_type()
-    }
 }
 
 fn draw_in_order(
