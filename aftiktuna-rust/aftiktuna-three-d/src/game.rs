@@ -128,6 +128,10 @@ mod placement {
     }
 }
 
+pub enum GameAction {
+    ExitGame,
+}
+
 pub struct State {
     is_save_enabled: bool,
     game: Game,
@@ -162,7 +166,7 @@ impl State {
         mut frame_input: three_d::FrameInput,
         gui: &mut three_d::GUI,
         assets: &mut Assets,
-    ) -> Option<crate::GameAction> {
+    ) -> Option<GameAction> {
         let mut action = None;
 
         for event in &frame_input.events {
@@ -179,7 +183,7 @@ impl State {
             let clicked = crate::check_clicked_anywhere(&mut frame_input.events);
             if clicked || pressed_enter {
                 self.save_game_if_enabled();
-                action = Some(crate::GameAction::ExitGame);
+                action = Some(GameAction::ExitGame);
             }
         }
 
@@ -201,7 +205,7 @@ impl State {
         if ui_result.triggered_input {
             if self.input_text.eq_ignore_ascii_case("exit game") {
                 self.save_game_if_enabled();
-                action = Some(crate::GameAction::ExitGame);
+                action = Some(GameAction::ExitGame);
             } else {
                 let result = self.game.handle_input(&self.input_text);
 
