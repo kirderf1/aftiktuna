@@ -21,14 +21,9 @@ pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
 
 fn main() -> ! {
     let (window, event_loop) = init_window();
-    let gl = three_d::WindowedContext::from_winit_window(
-        &window,
-        three_d::SurfaceSettings {
-            multisamples: 0,
-            ..Default::default()
-        },
-    )
-    .unwrap();
+    let gl =
+        three_d::WindowedContext::from_winit_window(&window, three_d::SurfaceSettings::default())
+            .unwrap();
 
     let mut app = App {
         loaded_app: None,
