@@ -21,66 +21,9 @@ pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
 
 fn main() -> ! {
     let (window, event_loop) = init_window();
-    let gl =
-        three_d::WindowedContext::from_winit_window(&window, three_d::SurfaceSettings::default())
-            .unwrap();
 
-    let mut app = App {
-        loaded_app: None,
-        builtin_fonts: Rc::new(BuiltinFonts::init()),
-        error_messages: vec![],
-    };
-
-    let mut frame_input_generator = three_d::FrameInputGenerator::from_winit_window(&window);
-    event_loop.run(move |event, _, control_flow| match event {
-        WinitEvent::WindowEvent { ref event, .. } => {
-            frame_input_generator.handle_winit_window_event(event);
-            match event {
-                WindowEvent::Resized(physical_size) => {
-                    gl.resize(*physical_size);
-                }
-                WindowEvent::CloseRequested => {
-                    if let Some(loaded_app) = &mut app.loaded_app {
-                        loaded_app.on_exit();
-                    }
-                    *control_flow = ControlFlow::Exit;
-                }
-                WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                    gl.resize(**new_inner_size);
-                }
-                _ => (),
-            }
-        }
-        WinitEvent::MainEventsCleared => {
-            window.request_redraw();
-        }
-        WinitEvent::RedrawRequested(_) => {
-            let frame_input = frame_input_generator.generate(&gl);
-            let action = app.handle_frame(frame_input);
-
-            match action {
-                AppAction::Continue => {
-                    gl.swap_buffers().unwrap();
-                    *control_flow = ControlFlow::Poll;
-                    window.request_redraw();
-
-                    if app.loaded_app.is_none() && app.error_messages.is_empty() {
-                        match LoadedApp::load(&gl, app.builtin_fonts.clone()) {
-                            Ok(loaded_app) => app.loaded_app = Some(loaded_app),
-                            Err(error) => {
-                                app.error_messages = split_screen_text_lines(
-                                    &app.builtin_fonts.text_gen_size_16,
-                                    vec![format!("Unable to load assets:"), format!("{error}")],
-                                );
-                            }
-                        }
-                    }
-                }
-                AppAction::Exit => *control_flow = ControlFlow::Exit,
-            }
-        }
-        _ => (),
-    });
+    let mut app = App::init(window);
+    event_loop.run(move |event, _, control_flow| app.handle_event(event, control_flow));
 }
 
 fn init_window() -> (Window, EventLoop<()>) {
@@ -123,9 +66,81 @@ struct App {
     loaded_app: Option<LoadedApp>,
     builtin_fonts: Rc<BuiltinFonts>,
     error_messages: ErrorMessages,
+    gl: three_d::WindowedContext,
+    frame_input_generator: three_d::FrameInputGenerator,
+    window: Window,
 }
 
 impl App {
+    fn init(window: Window) -> Self {
+        let gl = three_d::WindowedContext::from_winit_window(
+            &window,
+            three_d::SurfaceSettings::default(),
+        )
+        .unwrap();
+
+        Self {
+            loaded_app: None,
+            builtin_fonts: Rc::new(BuiltinFonts::init()),
+            error_messages: vec![],
+            gl,
+            frame_input_generator: three_d::FrameInputGenerator::from_winit_window(&window),
+            window,
+        }
+    }
+
+    fn handle_event(&mut self, event: WinitEvent<'_, ()>, control_flow: &mut ControlFlow) {
+        match event {
+            WinitEvent::WindowEvent { ref event, .. } => {
+                self.frame_input_generator.handle_winit_window_event(event);
+                match event {
+                    WindowEvent::Resized(physical_size) => {
+                        self.gl.resize(*physical_size);
+                    }
+                    WindowEvent::CloseRequested => {
+                        if let Some(loaded_app) = &mut self.loaded_app {
+                            loaded_app.on_exit();
+                        }
+                        *control_flow = ControlFlow::Exit;
+                    }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        self.gl.resize(**new_inner_size);
+                    }
+                    _ => (),
+                }
+            }
+            WinitEvent::MainEventsCleared => {
+                self.window.request_redraw();
+            }
+            WinitEvent::RedrawRequested(_) => {
+                let frame_input = self.frame_input_generator.generate(&self.gl);
+                let action = self.handle_frame(frame_input);
+
+                match action {
+                    AppAction::Continue => {
+                        self.gl.swap_buffers().unwrap();
+                        *control_flow = ControlFlow::Poll;
+                        self.window.request_redraw();
+
+                        if self.loaded_app.is_none() && self.error_messages.is_empty() {
+                            match LoadedApp::load(&self.gl, self.builtin_fonts.clone()) {
+                                Ok(loaded_app) => self.loaded_app = Some(loaded_app),
+                                Err(error) => {
+                                    self.error_messages = split_screen_text_lines(
+                                        &self.builtin_fonts.text_gen_size_16,
+                                        vec![format!("Unable to load assets:"), format!("{error}")],
+                                    );
+                                }
+                            }
+                        }
+                    }
+                    AppAction::Exit => *control_flow = ControlFlow::Exit,
+                }
+            }
+            _ => (),
+        }
+    }
+
     fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> AppAction {
         if !self.error_messages.is_empty() {
             let clicked = check_clicked_anywhere(&mut frame_input.events);
