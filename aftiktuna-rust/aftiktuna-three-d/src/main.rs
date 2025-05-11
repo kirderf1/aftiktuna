@@ -1,5 +1,5 @@
 use aftiktuna::game_interface::{self, Game};
-use aftiktuna::serialization;
+use aftiktuna::serialization::{self, LoadError};
 use asset::Assets;
 use std::env;
 use std::path::Path;
@@ -33,6 +33,7 @@ fn main() -> ! {
     let mut app = App {
         loaded_app: None,
         builtin_fonts: Rc::new(BuiltinFonts::init()),
+        error_messages: vec![],
     };
 
     let mut frame_input_generator = three_d::FrameInputGenerator::from_winit_window(&window);
@@ -67,12 +68,20 @@ fn main() -> ! {
                     gl.swap_buffers().unwrap();
                     *control_flow = ControlFlow::Poll;
                     window.request_redraw();
+
+                    if app.loaded_app.is_none() && app.error_messages.is_empty() {
+                        match LoadedApp::load(&gl, app.builtin_fonts.clone()) {
+                            Ok(loaded_app) => app.loaded_app = Some(loaded_app),
+                            Err(error) => {
+                                app.error_messages = split_screen_text_lines(
+                                    &app.builtin_fonts.text_gen_size_16,
+                                    vec![format!("Unable to load assets:"), format!("{error}")],
+                                );
+                            }
+                        }
+                    }
                 }
                 AppAction::Exit => *control_flow = ControlFlow::Exit,
-            }
-
-            if app.loaded_app.is_none() {
-                app.loaded_app = Some(LoadedApp::load(&gl, app.builtin_fonts.clone()).unwrap());
             }
         }
         _ => (),
@@ -113,15 +122,58 @@ enum AppAction {
     Exit,
 }
 
+type ErrorMessages = Vec<String>;
+
 struct App {
     loaded_app: Option<LoadedApp>,
     builtin_fonts: Rc<BuiltinFonts>,
+    error_messages: ErrorMessages,
 }
 
 impl App {
-    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> AppAction {
-        if let Some(loaded_app) = &mut self.loaded_app {
-            loaded_app.handle_frame(frame_input)
+    fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> AppAction {
+        if !self.error_messages.is_empty() {
+            let clicked = check_clicked_anywhere(&mut frame_input.events);
+            let pressed_enter = check_pressed_enter(&mut frame_input.events);
+
+            let screen = frame_input.screen();
+            screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
+            let mut y = 350.;
+            for line in &self.error_messages {
+                let mut mesh = self
+                    .builtin_fonts
+                    .text_gen_size_16
+                    .generate(line, three_d::TextLayoutOptions::default());
+                mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
+                    (WINDOW_WIDTH_F - mesh.compute_aabb().size().x) / 2.,
+                    y,
+                    0.,
+                )))
+                .unwrap();
+                screen.render(
+                    default_render_camera(frame_input.viewport),
+                    &[three_d::Gm::new(
+                        three_d::Mesh::new(&frame_input.context, &mesh),
+                        color_material(three_d::vec4(1., 0.4, 0.7, 1.)),
+                    )],
+                    &[],
+                );
+                y -= 24.
+            }
+
+            if clicked || pressed_enter {
+                self.error_messages.clear();
+            }
+            if (clicked || pressed_enter) && self.loaded_app.is_none() {
+                AppAction::Exit
+            } else {
+                AppAction::Continue
+            }
+        } else if let Some(loaded_app) = &mut self.loaded_app {
+            let (app_action, error_messages) = loaded_app.handle_frame(frame_input);
+            self.error_messages =
+                split_screen_text_lines(&self.builtin_fonts.text_gen_size_16, error_messages);
+            app_action
         } else {
             let screen = frame_input.screen();
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
@@ -172,6 +224,62 @@ impl BuiltinFonts {
     }
 }
 
+fn split_screen_text_lines(
+    text_gen: &three_d::TextGenerator<'static>,
+    lines: Vec<String>,
+) -> Vec<String> {
+    lines
+        .into_iter()
+        .flat_map(|line| {
+            if text_fits_on_screen(text_gen, &line) {
+                return vec![line];
+            }
+
+            let mut remaining_line: &str = &line;
+            let mut vec = Vec::new();
+            loop {
+                let split_index = smallest_screen_text_split(text_gen, remaining_line);
+                vec.push(remaining_line[..split_index].to_owned());
+                remaining_line = &remaining_line[split_index..];
+
+                if text_fits_on_screen(text_gen, remaining_line) {
+                    vec.push(remaining_line.to_owned());
+                    return vec;
+                }
+            }
+        })
+        .collect()
+}
+
+fn text_fits_on_screen(text_gen: &three_d::TextGenerator<'static>, line: &str) -> bool {
+    text_gen
+        .generate(line, three_d::TextLayoutOptions::default())
+        .compute_aabb()
+        .size()
+        .x
+        <= 700.
+}
+
+fn smallest_screen_text_split(text_gen: &three_d::TextGenerator<'static>, line: &str) -> usize {
+    let mut last_space = 0;
+    let mut last_index = 0;
+    for (index, char) in line.char_indices() {
+        if !text_fits_on_screen(text_gen, &line[..index]) {
+            return if last_space != 0 {
+                last_space
+            } else {
+                last_index
+            };
+        }
+
+        if char.is_whitespace() {
+            last_space = index;
+        }
+        last_index = index;
+    }
+    line.len()
+}
+
 struct LoadedApp {
     gui: three_d::GUI,
     assets: Assets,
@@ -209,7 +317,7 @@ impl LoadedApp {
         })
     }
 
-    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> AppAction {
+    fn handle_frame(&mut self, frame_input: three_d::FrameInput) -> (AppAction, ErrorMessages) {
         match &mut self.state {
             AppState::Game(state) => {
                 let game_action =
@@ -217,7 +325,7 @@ impl LoadedApp {
 
                 if let Some(GameAction::ExitGame) = game_action {
                     if self.close_after_ending {
-                        return AppAction::Exit;
+                        return (AppAction::Exit, vec![]);
                     } else {
                         self.state = AppState::main_menu();
                     }
@@ -230,15 +338,32 @@ impl LoadedApp {
                     Some(MenuAction::NewGame) => {
                         self.state = AppState::game(game_interface::setup_new(), self.autosave);
                     }
-                    Some(MenuAction::LoadGame) => {
-                        self.state = AppState::game(game_interface::load().unwrap(), self.autosave);
-                    }
+                    Some(MenuAction::LoadGame) => match game_interface::load() {
+                        Ok(game) => self.state = AppState::game(game, self.autosave),
+                        Err(error) => {
+                            let recommendation = if matches!(
+                                error,
+                                LoadError::UnsupportedVersion(_, _)
+                            ) {
+                                "Consider starting a new game or using a different version of Aftiktuna."
+                            } else {
+                                "Consider starting a new game."
+                            };
+                            return (
+                                AppAction::Continue,
+                                vec![
+                                    format!("Unable to load save file: {error}"),
+                                    recommendation.to_string(),
+                                ],
+                            );
+                        }
+                    },
                     None => {}
                 }
             }
         }
 
-        AppAction::Continue
+        (AppAction::Continue, vec![])
     }
 
     fn on_exit(&self) {
@@ -460,4 +585,33 @@ impl three_d::Material for UnalteredColorMaterial {
     fn material_type(&self) -> three_d::MaterialType {
         self.0.material_type()
     }
+}
+
+fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {
+    let mut pressed = false;
+    for event in events {
+        if let three_d::Event::KeyPress { kind, handled, .. } = event {
+            if !*handled && *kind == three_d::Key::Enter {
+                *handled = true;
+                pressed = true;
+            }
+        }
+    }
+    pressed
+}
+
+fn check_clicked_anywhere(events: &mut [three_d::Event]) -> bool {
+    let mut clicked = false;
+    for event in events {
+        if let three_d::Event::MousePress {
+            button, handled, ..
+        } = event
+        {
+            if !*handled && *button == three_d::MouseButton::Left {
+                *handled = true;
+                clicked = true;
+            }
+        }
+    }
+    clicked
 }

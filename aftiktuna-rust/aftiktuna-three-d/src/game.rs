@@ -173,10 +173,10 @@ impl State {
 
         let mut ui_result = ui::update_ui(gui, &mut frame_input, self, assets);
 
-        let pressed_enter = check_pressed_enter(&mut frame_input.events);
+        let pressed_enter = crate::check_pressed_enter(&mut frame_input.events);
 
         if matches!(self.game.next_result(), GameResult::Stop) {
-            let clicked = check_clicked_anywhere(&mut frame_input.events);
+            let clicked = crate::check_clicked_anywhere(&mut frame_input.events);
             if clicked || pressed_enter {
                 self.save_game_if_enabled();
                 action = Some(crate::GameAction::ExitGame);
@@ -280,35 +280,6 @@ fn get_hovered_object_names<'a>(
         .filter_map(|(_, data)| data.name_data.as_ref())
         .map(|name_data| &name_data.modified_name)
         .collect::<Vec<_>>()
-}
-
-fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {
-    let mut pressed = false;
-    for event in events {
-        if let three_d::Event::KeyPress { kind, handled, .. } = event {
-            if !*handled && *kind == three_d::Key::Enter {
-                *handled = true;
-                pressed = true;
-            }
-        }
-    }
-    pressed
-}
-
-fn check_clicked_anywhere(events: &mut [three_d::Event]) -> bool {
-    let mut clicked = false;
-    for event in events {
-        if let three_d::Event::MousePress {
-            button, handled, ..
-        } = event
-        {
-            if !*handled && *button == three_d::MouseButton::Left {
-                *handled = true;
-                clicked = true;
-            }
-        }
-    }
-    clicked
 }
 
 struct CommandTooltip {
