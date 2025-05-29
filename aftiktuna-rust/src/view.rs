@@ -1,5 +1,6 @@
 use self::area::RenderData;
-pub use self::status::print_full_status;
+pub(crate) use self::status::get_full_status;
+pub use self::status::FullStatus;
 use self::text::Messages;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::AftikColorId;

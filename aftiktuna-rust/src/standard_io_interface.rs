@@ -36,8 +36,8 @@ fn input_loop(game: &mut Game) {
                 ),
                 Err(error) => eprintln!("Unable to save the game: {}", error),
             }
-        } else if let Err(text_lines) = game.handle_input(&input) {
-            for line in text_lines {
+        } else if let Err(command_info) = game.handle_input(&input) {
+            for line in command_info.into_text() {
                 println!("{line}");
             }
         } else {

@@ -1,7 +1,6 @@
 use crate::action::{trade, Action};
 use crate::game_loop::GameState;
 use crate::view;
-use crate::view::text::Messages;
 use hecs::Entity;
 use std::ops::Deref;
 
@@ -19,7 +18,27 @@ pub enum Target {
 pub enum CommandResult {
     Action(Action, Target),
     ChangeControlled(Entity),
-    Info(Vec<String>),
+    Info(CommandInfo),
+}
+
+pub enum CommandInfo {
+    Message(Vec<String>),
+    Status(view::FullStatus),
+}
+
+impl CommandInfo {
+    pub fn into_text(self) -> Vec<String> {
+        match self {
+            CommandInfo::Message(text_lines) => text_lines,
+            CommandInfo::Status(status) => status.into_text(),
+        }
+    }
+}
+
+impl From<Vec<String>> for CommandInfo {
+    fn from(value: Vec<String>) -> Self {
+        Self::Message(value)
+    }
 }
 
 fn action_result(action: impl Into<Action>) -> Result<CommandResult, String> {
@@ -40,7 +59,7 @@ pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, 
 }
 
 fn status(state: &GameState) -> Result<CommandResult, String> {
-    let mut messages = Messages::default();
-    view::print_full_status(&mut messages, state);
-    Ok(CommandResult::Info(messages.into_text()))
+    Ok(CommandResult::Info(CommandInfo::Status(
+        view::get_full_status(state),
+    )))
 }

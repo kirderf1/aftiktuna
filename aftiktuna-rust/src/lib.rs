@@ -13,6 +13,7 @@ pub mod standard_io_interface;
 pub mod view;
 
 pub use command::suggestion as command_suggestion;
+pub use command::CommandInfo;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum StopType {

@@ -270,8 +270,8 @@ fn held_item_targets(world: &World, holder: Entity) -> Vec<(String, Entity)> {
 }
 
 fn check(world: &World, item: Entity) -> Result<CommandResult, String> {
-    Ok(CommandResult::Info(core::item::description(
-        world.entity(item).unwrap(),
+    Ok(CommandResult::Info(crate::CommandInfo::Message(
+        core::item::description(world.entity(item).unwrap()),
     )))
 }
 

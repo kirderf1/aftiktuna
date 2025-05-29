@@ -24,16 +24,35 @@ struct CharacterCache {
     inventory: Vec<Entity>,
 }
 
-pub fn print_full_status(messages: &mut Messages, state: &GameState) {
-    maybe_print_points(&state.world, state.controlled, messages, None);
+pub struct FullStatus {
+    pub ship: Vec<String>,
+    pub crew: Vec<Vec<String>>,
+}
+
+impl FullStatus {
+    pub fn into_text(self) -> Vec<String> {
+        let Self { ship, crew } = self;
+        let mut lines = ship;
+        lines.push("Crew:".into());
+        for character_lines in crew {
+            lines.push("".into());
+            lines.extend(character_lines);
+        }
+        lines
+    }
+}
+
+pub fn get_full_status(state: &GameState) -> FullStatus {
+    let mut ship_messages = Messages::default();
+    maybe_print_points(&state.world, state.controlled, &mut ship_messages, None);
 
     match state.world.get::<&Ship>(state.ship).map(|ship| ship.status) {
-        Ok(ShipStatus::Refueled) => messages.add("The ship is refueled and ready to launch"),
+        Ok(ShipStatus::Refueled) => ship_messages.add("The ship is refueled and ready to launch"),
         Ok(ShipStatus::NeedFuel(FuelAmount::OneCan)) => {
-            messages.add("The ship needs one more fuel can before it can launch")
+            ship_messages.add("The ship needs one more fuel can before it can launch")
         }
         Ok(ShipStatus::NeedFuel(FuelAmount::TwoCans)) => {
-            messages.add("The ship needs two more fuel cans before it can launch")
+            ship_messages.add("The ship needs two more fuel cans before it can launch")
         }
         _ => {}
     }
@@ -45,27 +64,38 @@ pub fn print_full_status(messages: &mut Messages, state: &GameState) {
         .iter()
         .filter(|&(_, pos)| pos.is_in(state.ship))
         .count();
-    messages.add(format!("Food rations at ship: {ration_count}"));
+    ship_messages.add(format!("Food rations at ship: {ration_count}"));
 
-    messages.add("Crew:");
-    for (character, _) in state.world.query::<()>().with::<&CrewMember>().iter() {
-        messages.add("");
-        messages.add(format!(
-            "{} (Aftik):",
-            NameData::find(&state.world, character).definite()
-        ));
-        messages.add(stats_message(
-            &state.world.get::<&Stats>(character).unwrap(),
-        ));
-        if let Some(traits) = state
-            .world
-            .get::<&Traits>(character)
-            .ok()
-            .filter(|traits| traits.has_traits())
-        {
-            messages.add(traits_message(&traits));
-        }
-        print_character_without_cache(&state.world, character, messages);
+    let crew = state
+        .world
+        .query::<()>()
+        .with::<&CrewMember>()
+        .iter()
+        .map(|(character, _)| {
+            let mut character_messages = Messages::default();
+            character_messages.add(format!(
+                "{} (Aftik):",
+                NameData::find(&state.world, character).definite()
+            ));
+            character_messages.add(stats_message(
+                &state.world.get::<&Stats>(character).unwrap(),
+            ));
+            if let Some(traits) = state
+                .world
+                .get::<&Traits>(character)
+                .ok()
+                .filter(|traits| traits.has_traits())
+            {
+                character_messages.add(traits_message(&traits));
+            }
+            print_character_without_cache(&state.world, character, &mut character_messages);
+            character_messages.into_text()
+        })
+        .collect::<Vec<_>>();
+
+    FullStatus {
+        ship: ship_messages.into_text(),
+        crew,
     }
 }
 

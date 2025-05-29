@@ -211,8 +211,8 @@ impl State {
 
                 match result {
                     Ok(()) => self.try_get_next_frame(),
-                    Err(messages) => {
-                        self.text_box_text = messages;
+                    Err(command_info) => {
+                        self.text_box_text = command_info.into_text();
                         self.request_input_focus = true;
                     }
                 }

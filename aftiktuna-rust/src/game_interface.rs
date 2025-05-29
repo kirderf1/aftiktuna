@@ -3,7 +3,7 @@ use crate::game_loop::{self, GameState, Step};
 use crate::location::GenerationState;
 use crate::serialization::LoadError;
 use crate::view::Frame;
-use crate::{command, location, serialization, StopType};
+use crate::{command, location, serialization, CommandInfo, StopType};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
 use std::mem;
@@ -120,7 +120,7 @@ impl Game {
         }
     }
 
-    pub fn handle_input(&mut self, input: &str) -> Result<(), Vec<String>> {
+    pub fn handle_input(&mut self, input: &str) -> Result<(), CommandInfo> {
         match &self.phase {
             Phase::ChooseLocation(choice) => {
                 let location = self
@@ -138,7 +138,7 @@ impl Game {
                     CommandResult::ChangeControlled(character) => {
                         self.run_from_step(Step::ChangeControlled(character));
                     }
-                    CommandResult::Info(text_lines) => return Err(text_lines),
+                    CommandResult::Info(info) => return Err(info),
                 }
             }
             state => panic!("Handling input in unexpected state {state:?}"),

@@ -296,8 +296,9 @@ impl App<'_> {
             Ok(()) => {
                 self.show_next_frame = true;
             }
-            Err(text_lines) => {
-                self.render_state.show_input_text_lines(text_lines);
+            Err(command_info) => {
+                self.render_state
+                    .show_input_text_lines(command_info.into_text());
                 self.request_input_focus = true;
             }
         }
