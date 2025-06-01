@@ -109,7 +109,7 @@
     {
       "name": "Corridor",
       "background": "facility_size5",
-      "objects": [ "<", "", "^", "", ">" ],
+      "objects": [ "<", "T", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -127,18 +127,26 @@
           "pair_id": "room3",
           "display_type": "door",
           "adjective": "right"
+        },
+        "T": {
+          "type": "inanimate",
+          "model": "table"
         }
       }
     },
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "^", "", "Z", "!!" ],
+      "objects": [ "^", "", "Z", "T!!" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "room1",
           "display_type": "door"
+        },
+        "T": {
+          "type": "inanimate",
+          "model": "table"
         }
       }
     },

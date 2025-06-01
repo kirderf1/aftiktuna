@@ -143,14 +143,18 @@
     {
       "name": "Room",
       "background": "facility_size4",
-      "objects": [ "b", "", "", "^" ],
+      "objects": [ "b", "T", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "room2",
           "display_type": "door"
         },
-        "b": { "type": "item", "item": "blowtorch" }
+        "b": { "type": "item", "item": "blowtorch" },
+        "T": {
+          "type": "inanimate",
+          "model": "table"
+        }
       }
     },
     {

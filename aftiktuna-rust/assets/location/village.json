@@ -132,7 +132,7 @@
     {
       "name": "Store",
       "background": "shack",
-      "objects": [ "^", "", "S", "" ],
+      "objects": [ "^", "T", "S", "" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -148,6 +148,10 @@
             { "item": "food_ration", "quantity": 10 }
           ],
           "color": "green"
+        },
+        "T": {
+          "type": "inanimate",
+          "model": "table"
         }
       }
     },
@@ -174,7 +178,7 @@
     {
       "name": "House",
       "background": "shack",
-      "objects": [ "^", "", "Z", "" ],
+      "objects": [ "^", "", "Z", "T" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -186,13 +190,17 @@
           "creature": "azureclops",
           "attribute": "agile",
           "tag": "house_azureclops"
+        },
+        "T": {
+          "type": "inanimate",
+          "model": "table"
         }
       }
     },
     {
       "name": "Shack",
       "background": "shack",
-      "objects": [ "^", "", "¤", "" ],
+      "objects": [ "^", "", "T", "¤" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -206,6 +214,10 @@
             { "type": "loot", "table": "resource" },
             { "type": "loot", "table": "valuable" }
           ]
+        },
+        "T": {
+          "type": "inanimate",
+          "model": "table"
         }
       }
     }
