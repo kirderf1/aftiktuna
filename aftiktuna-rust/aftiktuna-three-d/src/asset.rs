@@ -56,7 +56,7 @@ impl Assets {
         let side_arrow_texture = load_texture("side_arrow", &context)?;
         Ok(Self {
             backgrounds: BackgroundMap::load(context.clone())?,
-            models: LazilyLoadedModels::new(context),
+            models: LazilyLoadedModels::new(context)?,
             aftik_colors: asset_base::color::load_aftik_color_data()?,
             left_mouse_icon,
             side_arrow_texture,
@@ -133,22 +133,38 @@ pub struct LazilyLoadedModels {
 }
 
 impl LazilyLoadedModels {
-    fn new(context: three_d::Context) -> Self {
-        Self {
+    fn new(context: three_d::Context) -> Result<Self, Error> {
+        let mut models = Self {
             texture_loader: CachedLoader::new(context),
             loaded_models: HashMap::new(),
-        }
+        };
+        models.load_and_insert_model(&ModelId::unknown())?;
+        models.load_and_insert_model(&ModelId::small_unknown())?;
+        Ok(models)
     }
 
     pub fn lookup_model(&mut self, model_id: &ModelId) -> &Model<three_d::Texture2DRef> {
         if !self.loaded_models.contains_key(model_id) {
-            let model = model::load_raw_model_from_path(model_id.file_path())
-                .unwrap()
-                .load(&mut self.texture_loader)
-                .unwrap();
-            self.loaded_models.insert(model_id.clone(), model);
+            if let Err(error) = self.load_and_insert_model(model_id) {
+                let path = model_id.path();
+                eprintln!("Unable to load model \"{path}\": {error}");
+                let fallback_id = if path.starts_with("item/") {
+                    ModelId::small_unknown()
+                } else {
+                    ModelId::unknown()
+                };
+                let fallback_model = self.loaded_models.get(&fallback_id).unwrap().clone();
+                self.loaded_models.insert(model_id.clone(), fallback_model);
+            }
         }
         self.loaded_models.get(model_id).unwrap()
+    }
+
+    fn load_and_insert_model(&mut self, model_id: &ModelId) -> Result<(), Error> {
+        let model = model::load_raw_model_from_path(model_id.file_path())?
+            .load(&mut self.texture_loader)?;
+        self.loaded_models.insert(model_id.clone(), model);
+        Ok(())
     }
 
     pub fn get_rect_for_object(
