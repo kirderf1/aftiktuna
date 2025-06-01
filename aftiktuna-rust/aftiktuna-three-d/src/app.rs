@@ -184,8 +184,10 @@ impl LoadedApp {
             AppState::main_menu()
         };
 
+        let gui = three_d::GUI::new(context);
+        gui.context().set_theme(egui::Theme::Dark);
         Ok(Self {
-            gui: three_d::GUI::new(context),
+            gui,
             assets,
             state,
             autosave,
