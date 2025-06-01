@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Switched to a different graphics framework
 - The primary text box is now built different (uses a scroll bar for large text instead of expanding vertically)
+- "status" command now shows the crew status in a gui window
 
 ### Removed
 

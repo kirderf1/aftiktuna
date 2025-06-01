@@ -3,7 +3,7 @@ use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
 use aftiktuna::serialization;
 use aftiktuna::view::area::RenderData;
-use aftiktuna::view::Frame;
+use aftiktuna::view::{Frame, FullStatus};
 use std::fs;
 
 mod render;
@@ -137,6 +137,7 @@ pub struct State {
     game: Game,
     frame: Frame,
     text_box_text: Vec<String>,
+    displayed_status: Option<FullStatus>,
     input_text: String,
     request_input_focus: bool,
     camera: placement::Camera,
@@ -151,6 +152,7 @@ impl State {
             game,
             frame: Frame::Introduction,
             text_box_text: Vec::new(),
+            displayed_status: None,
             input_text: String::new(),
             request_input_focus: false,
             camera: placement::Camera::default(),
@@ -176,6 +178,11 @@ impl State {
         }
 
         let mut ui_result = ui::update_ui(gui, &mut frame_input, self, assets);
+
+        if ui_result.closed_status_window {
+            self.displayed_status = None;
+            self.request_input_focus = true;
+        }
 
         let pressed_enter = crate::check_pressed_enter(&mut frame_input.events);
 
@@ -211,10 +218,16 @@ impl State {
 
                 match result {
                     Ok(()) => self.try_get_next_frame(),
-                    Err(command_info) => {
-                        self.text_box_text = command_info.into_text();
-                        self.request_input_focus = true;
-                    }
+                    Err(command_info) => match command_info {
+                        aftiktuna::CommandInfo::Message(items) => {
+                            self.text_box_text = items;
+                            self.request_input_focus = true;
+                        }
+                        aftiktuna::CommandInfo::Status(full_status) => {
+                            self.text_box_text = vec![];
+                            self.displayed_status = Some(full_status);
+                        }
+                    },
                 }
             }
 
@@ -222,15 +235,17 @@ impl State {
             self.command_tooltip = None;
         }
 
-        if self.game.ready_to_take_input() {
+        if self.game.ready_to_take_input() && self.displayed_status.is_none() {
             handle_command_suggestion_input(&mut frame_input.events, self, &mut assets.models);
         } else {
             self.command_tooltip = None;
         }
 
-        if let Frame::AreaView { render_data, .. } = &self.frame {
-            self.camera.handle_inputs(&mut frame_input.events);
-            self.camera.clamp(render_data.area_size);
+        if self.displayed_status.is_none() {
+            if let Frame::AreaView { render_data, .. } = &self.frame {
+                self.camera.handle_inputs(&mut frame_input.events);
+                self.camera.clamp(render_data.area_size);
+            }
         }
 
         let screen = frame_input.screen();
