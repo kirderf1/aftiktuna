@@ -4,7 +4,7 @@
       "name": "Field in front of a forest",
       "background": "forest_entrance",
       "background_offset": 1,
-      "objects": [ "", ".v", "-", "-", "/", "", "" ],
+      "objects": [ "", ".v", "-", "-", "/", "#", "" ],
       "symbols": {
         "/": {
           "type": "door",
@@ -14,6 +14,10 @@
         ".": {
           "type": "inanimate",
           "model": "path/left_end"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "tree_stump"
         }
       }
     },
@@ -47,7 +51,7 @@
       "name": "Forest path leading to a shack",
       "background": "forest",
       "background_offset": 6,
-      "objects": [ "", ".^", "-", "|", "-", "/" ],
+      "objects": [ "#", ".^", "-", "|", "-", "/" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -69,6 +73,10 @@
         ".": {
           "type": "inanimate",
           "model": "path/left_end"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "tree_stump"
         }
       }
     },
@@ -127,12 +135,16 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 1,
-      "objects": [ "%", "S", "", "", "^" ],
+      "objects": [ "#%", "S", "", "", "^" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "side_path",
           "display_type": "path"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "tree_stump"
         }
       }
     },
@@ -167,7 +179,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "<", "", ">", "", "G", "c" ],
+      "objects": [ "<", "#", ">", "", "G", "c" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -181,7 +193,11 @@
           "display_type": "path",
           "adjective": "right"
         },
-        "c": { "type": "item", "item": "crowbar" }
+        "c": { "type": "item", "item": "crowbar" },
+        "#": {
+          "type": "inanimate",
+          "model": "mossy_rock"
+        }
       }
     }
   ],

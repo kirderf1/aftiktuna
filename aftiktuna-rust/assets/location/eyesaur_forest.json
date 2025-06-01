@@ -28,7 +28,7 @@
       "name": "Forest entrance",
       "background": "forest",
       "background_offset": 0,
-      "objects": [ "<", "", "", "^", "", ">" ],
+      "objects": [ "<", "#", "", "^", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -47,6 +47,10 @@
           "pair_id": "mid_left1",
           "display_type": "path",
           "adjective": "right"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "mossy_rock"
         }
       }
     },
@@ -100,12 +104,16 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 5,
-      "objects": [ "^", "", "", "F", "t" ],
+      "objects": [ "^", "#", "", "F", "t" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "side_path",
           "display_type": "path"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "tree_stump"
         }
       }
     },
@@ -113,7 +121,7 @@
       "name": "Forest entrance",
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "<", "", "\\", "-%", "/", "" ],
+      "objects": [ "<", "#", "\\", "-%", "/", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -132,6 +140,11 @@
           "pair_id": "right1",
           "display_type": "right_path",
           "adjective": "right"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "mossy_rock",
+          "direction": "left"
         }
       }
     },
@@ -237,7 +250,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 2,
-      "objects": [ "<", "", "", "^", "", ">", "" ],
+      "objects": [ "<", "", "#", "^", "", ">", "" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -256,6 +269,10 @@
           "pair_id": "mid_right2",
           "display_type": "path",
           "adjective": "right"
+        },
+        "#": {
+          "type": "inanimate",
+          "model": "mossy_rock"
         }
       }
     }

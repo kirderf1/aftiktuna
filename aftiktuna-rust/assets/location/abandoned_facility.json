@@ -26,14 +26,18 @@
       "name": "Field",
       "background": "field",
       "background_offset": 0,
-      "objects": [ "^", "", "S", "k", "" ],
+      "objects": [ "^", "", "S", "k", "#" ],
       "symbols": {
         "^": {
           "type": "door",
           "pair_id": "path",
           "display_type": "path"
         },
-        "k": { "type": "item", "item": "keycard" }
+        "k": { "type": "item", "item": "keycard" },
+        "#": {
+          "type": "inanimate",
+          "model": "mossy_rock"
+        }
       }
     },
     {
