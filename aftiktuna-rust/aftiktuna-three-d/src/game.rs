@@ -10,9 +10,11 @@ mod render;
 mod ui;
 
 mod placement {
+    use aftiktuna::core::display::OrderWeight;
     use aftiktuna::core::position::Coord;
     use aftiktuna::view::area::ObjectRenderData;
     use std::collections::HashMap;
+    use std::mem;
 
     // Coordinates are mapped like this so that when the left edge of the window is 0,
     // coord 3 will be placed in the middle of the window.
@@ -87,15 +89,35 @@ mod placement {
     ) -> Vec<(three_d::Vec2, ObjectRenderData)> {
         let mut positioned_objects = Vec::new();
         let mut positioner = Positioner::new();
+        let mut groups_cache: Vec<Vec<ObjectRenderData>> =
+            vec![Vec::new(); objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1];
+        let mut last_weight = OrderWeight::Background;
 
         for data in objects {
-            let pos = positioner.position_object(
-                data.coord,
-                models.lookup_model(&data.model_id).is_displacing(),
-            );
+            if data.weight != last_weight {
+                for object_group in &mut groups_cache {
+                    positioned_objects
+                        .extend(positioner.position_group(mem::take(object_group), models));
+                }
+                last_weight = data.weight;
+            }
 
-            positioned_objects.push((pos, data.clone()));
+            let object_group = &mut groups_cache[data.coord];
+            if object_group
+                .first()
+                .is_some_and(|cached_object| cached_object.model_id != data.model_id)
+            {
+                positioned_objects
+                    .extend(positioner.position_group(mem::take(object_group), models));
+            }
+
+            object_group.push(data.clone());
         }
+
+        for object_group in groups_cache {
+            positioned_objects.extend(positioner.position_group(object_group, models));
+        }
+
         positioned_objects
     }
 
@@ -114,6 +136,32 @@ mod placement {
     impl Positioner {
         pub fn new() -> Self {
             Self::default()
+        }
+
+        fn position_group(
+            &mut self,
+            object_group: Vec<ObjectRenderData>,
+            models: &mut crate::asset::LazilyLoadedModels,
+        ) -> Vec<(three_d::Vec2, ObjectRenderData)> {
+            if let Some((coord, model)) = object_group
+                .first()
+                .map(|object| (object.coord, models.lookup_model(&object.model_id)))
+            {
+                model
+                    .group_placement
+                    .position(object_group.len() as u16)
+                    .into_iter()
+                    .flat_map(|offsets| {
+                        let base_pos = self.position_object(coord, model.is_displacing());
+                        offsets.into_iter().map(move |offset| {
+                            base_pos + three_d::vec2(offset.0.into(), offset.1.into())
+                        })
+                    })
+                    .zip(object_group)
+                    .collect()
+            } else {
+                Vec::default()
+            }
         }
 
         fn position_object(&mut self, coord: Coord, is_displacing: bool) -> three_d::Vec2 {

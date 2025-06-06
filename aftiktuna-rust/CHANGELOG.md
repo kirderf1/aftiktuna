@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased aftiktuna-three-d]
 
+### Added
+
+- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations
+
 ### Changed
 
 - Switched to a different graphics framework

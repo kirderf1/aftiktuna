@@ -122,6 +122,7 @@ pub mod model {
     use super::color::ColorSource;
     use super::TextureLoader;
     use crate::view::area::RenderProperties;
+    use indexmap::IndexMap;
     use serde::{Deserialize, Serialize};
     use std::fs::File;
     use std::path::Path;
@@ -133,6 +134,8 @@ pub mod model {
         pub wield_offset: (i16, i16),
         #[serde(default, skip_serializing_if = "crate::is_default")]
         pub mounted: bool,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub group_placement: GroupPlacement,
     }
 
     impl<T> Model<T> {
@@ -152,6 +155,7 @@ pub mod model {
                 layers,
                 wield_offset: self.wield_offset,
                 mounted: self.mounted,
+                group_placement: self.group_placement.clone(),
             })
         }
     }
@@ -208,6 +212,64 @@ pub mod model {
             (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
                 && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
                 && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
+        }
+    }
+
+    pub type Positions = Vec<(i16, i16)>;
+
+    #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(try_from = "IndexMap<u16, Positions>")]
+    pub struct GroupPlacement(IndexMap<u16, Positions>);
+
+    impl GroupPlacement {
+        pub fn position(&self, count: u16) -> Vec<Positions> {
+            let mut groups = Vec::new();
+            let mut remaining_count = count;
+            while remaining_count > 0 {
+                let consumed_count = self.floor_index(remaining_count);
+                groups.push(self.0[&consumed_count].clone());
+                remaining_count -= consumed_count;
+            }
+            groups
+        }
+
+        fn floor_index(&self, count: u16) -> u16 {
+            self.0
+                .keys()
+                .copied()
+                .filter(|&i| i <= count)
+                .max()
+                .unwrap()
+        }
+    }
+
+    impl Default for GroupPlacement {
+        fn default() -> Self {
+            let mut map = IndexMap::new();
+            map.insert(1, vec![(0, 0)]);
+            Self(map)
+        }
+    }
+
+    impl TryFrom<IndexMap<u16, Positions>> for GroupPlacement {
+        type Error = String;
+
+        fn try_from(value: IndexMap<u16, Positions>) -> Result<Self, Self::Error> {
+            if value.contains_key(&0) {
+                return Err("May not contain position group 0".to_string());
+            }
+            if !value.contains_key(&1) {
+                return Err("Must contain at least position group 1".to_string());
+            }
+            for (key, positions) in value.iter() {
+                if positions.len() != usize::from(*key) {
+                    return Err(format!(
+                        "Position group {key} has wrong number of positions: {}",
+                        positions.len()
+                    ));
+                }
+            }
+            Ok(Self(value))
         }
     }
 
