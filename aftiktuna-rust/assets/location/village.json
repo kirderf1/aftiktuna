@@ -109,7 +109,7 @@
     {
       "name": "House",
       "background": "shack",
-      "objects": [ "A", "", "^", "#" ],
+      "objects": [ "A", "", "^", "T" ],
       "symbols": {
         "^": {
           "type": "door",
@@ -122,10 +122,9 @@
             "type": "recruitable"
           }
         },
-        "#": {
-          "type": "container",
-          "container_type": "crate",
-          "content": []
+        "T": {
+          "type": "inanimate",
+          "model": "table"
         }
       }
     },
