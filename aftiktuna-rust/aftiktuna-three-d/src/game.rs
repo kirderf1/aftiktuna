@@ -190,7 +190,8 @@ impl State {
         let pressed_enter = crate::check_pressed_enter(&mut frame_input.events);
 
         if matches!(self.game.next_result(), GameResult::Stop) {
-            let clicked = crate::check_clicked_anywhere(&mut frame_input.events);
+            let clicked = ui_result.clicked_text_box
+                || crate::check_clicked_anywhere(&mut frame_input.events);
             if clicked || pressed_enter {
                 self.save_game_if_enabled();
                 action = Some(GameAction::ExitGame);
