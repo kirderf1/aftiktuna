@@ -169,7 +169,7 @@ impl LoadedApp {
         context: &three_d::Context,
         builtin_fonts: Rc<BuiltinFonts>,
     ) -> Result<Self, asset::Error> {
-        let assets = Assets::load(context.clone(), builtin_fonts)?;
+        let mut assets = Assets::load(context.clone(), builtin_fonts)?;
 
         let disable_autosave = env::args().any(|arg| arg.eq("--disable-autosave"));
         let new_game = env::args().any(|arg| arg.eq("--new-game"));
@@ -179,7 +179,7 @@ impl LoadedApp {
         let autosave = !disable_autosave;
 
         let state = if new_game {
-            AppState::game(game_interface::setup_new(), autosave)
+            AppState::game(game_interface::setup_new(), autosave, &mut assets)
         } else {
             AppState::main_menu()
         };
@@ -214,10 +214,16 @@ impl LoadedApp {
 
                 match menu_action {
                     Some(MenuAction::NewGame) => {
-                        self.state = AppState::game(game_interface::setup_new(), self.autosave);
+                        self.state = AppState::game(
+                            game_interface::setup_new(),
+                            self.autosave,
+                            &mut self.assets,
+                        );
                     }
                     Some(MenuAction::LoadGame) => match game_interface::load() {
-                        Ok(game) => self.state = AppState::game(game, self.autosave),
+                        Ok(game) => {
+                            self.state = AppState::game(game, self.autosave, &mut self.assets)
+                        }
                         Err(error) => {
                             let recommendation = if matches!(
                                 error,
@@ -261,8 +267,8 @@ impl AppState {
         let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
         Self::MainMenu { has_save_file }
     }
-    fn game(game: game_interface::Game, is_save_enabled: bool) -> Self {
-        Self::Game(Box::new(game::State::init(game, is_save_enabled)))
+    fn game(game: game_interface::Game, is_save_enabled: bool, assets: &mut Assets) -> Self {
+        Self::Game(Box::new(game::State::init(game, is_save_enabled, assets)))
     }
 }
 

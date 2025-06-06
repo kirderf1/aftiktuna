@@ -2,7 +2,7 @@ use crate::asset::{Assets, LazilyLoadedModels};
 use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
 use aftiktuna::serialization;
-use aftiktuna::view::area::RenderData;
+use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::{Frame, FullStatus};
 use std::fs;
 
@@ -10,7 +10,8 @@ mod render;
 mod ui;
 
 mod placement {
-    use aftiktuna::{core::position::Coord, view::area::ObjectRenderData};
+    use aftiktuna::core::position::Coord;
+    use aftiktuna::view::area::ObjectRenderData;
     use std::collections::HashMap;
 
     // Coordinates are mapped like this so that when the left edge of the window is 0,
@@ -80,10 +81,10 @@ mod placement {
         }
     }
 
-    pub fn position_objects<'a>(
-        objects: &'a Vec<ObjectRenderData>,
+    pub fn position_objects(
+        objects: &Vec<ObjectRenderData>,
         models: &mut crate::asset::LazilyLoadedModels,
-    ) -> Vec<(three_d::Vec2, &'a ObjectRenderData)> {
+    ) -> Vec<(three_d::Vec2, ObjectRenderData)> {
         let mut positioned_objects = Vec::new();
         let mut positioner = Positioner::new();
 
@@ -93,7 +94,7 @@ mod placement {
                 models.lookup_model(&data.model_id).is_displacing(),
             );
 
-            positioned_objects.push((pos, data));
+            positioned_objects.push((pos, data.clone()));
         }
         positioned_objects
     }
@@ -136,6 +137,7 @@ pub struct State {
     is_save_enabled: bool,
     game: Game,
     frame: Frame,
+    cached_objects: Vec<(three_d::Vec2, ObjectRenderData)>,
     text_box_text: Vec<String>,
     displayed_status: Option<FullStatus>,
     input_text: String,
@@ -146,11 +148,12 @@ pub struct State {
 }
 
 impl State {
-    pub fn init(game: Game, is_save_enabled: bool) -> Self {
+    pub fn init(game: Game, is_save_enabled: bool, assets: &mut Assets) -> Self {
         let mut state = Self {
             is_save_enabled,
             game,
             frame: Frame::Introduction,
+            cached_objects: Vec::new(),
             text_box_text: Vec::new(),
             displayed_status: None,
             input_text: String::new(),
@@ -159,7 +162,7 @@ impl State {
             mouse_pos: three_d::vec2(0., 0.),
             command_tooltip: None,
         };
-        state.try_get_next_frame();
+        state.try_get_next_frame(&mut assets.models);
         state
     }
 
@@ -195,7 +198,7 @@ impl State {
         }
 
         if ui_result.clicked_text_box || pressed_enter {
-            self.try_get_next_frame();
+            self.try_get_next_frame(&mut assets.models);
         }
         if let Some(chosen_suggestion) = ui_result.clicked_suggestion {
             match chosen_suggestion {
@@ -217,7 +220,7 @@ impl State {
                 let result = self.game.handle_input(&self.input_text);
 
                 match result {
-                    Ok(()) => self.try_get_next_frame(),
+                    Ok(()) => self.try_get_next_frame(&mut assets.models),
                     Err(command_info) => match command_info {
                         aftiktuna::CommandInfo::Message(items) => {
                             self.text_box_text = items;
@@ -251,7 +254,14 @@ impl State {
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
 
-        render::render_frame(&self.frame, &self.camera, &screen, &frame_input, assets);
+        render::render_frame(
+            &self.frame,
+            &self.cached_objects,
+            &self.camera,
+            &screen,
+            &frame_input,
+            assets,
+        );
 
         screen.write(|| gui.render()).unwrap();
         if self.game.next_result().has_frame() {
@@ -271,13 +281,16 @@ impl State {
         }
     }
 
-    fn try_get_next_frame(&mut self) {
+    fn try_get_next_frame(&mut self, models: &mut LazilyLoadedModels) {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
             self.frame = frame_getter.get();
             if let Frame::AreaView { render_data, .. } = &self.frame {
                 self.camera.camera_x = placement::coord_to_center_x(render_data.character_coord)
                     - crate::WINDOW_WIDTH_F / 2.;
                 self.camera.clamp(render_data.area_size);
+                self.cached_objects = placement::position_objects(&render_data.objects, models);
+            } else {
+                self.cached_objects = Vec::new();
             }
             if matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
                 let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
@@ -289,12 +302,12 @@ impl State {
 }
 
 fn get_hovered_object_names<'a>(
-    render_data: &'a RenderData,
+    objects: &'a [(three_d::Vec2, ObjectRenderData)],
     mouse_pos: three_d::Vec2,
     models: &mut LazilyLoadedModels,
 ) -> Vec<&'a String> {
-    placement::position_objects(&render_data.objects, models)
-        .into_iter()
+    objects
+        .iter()
         .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
         .filter_map(|(_, data)| data.name_data.as_ref())
         .map(|name_data| &name_data.modified_name)
@@ -360,8 +373,9 @@ fn find_command_suggestions(
     match &state.frame {
         Frame::AreaView { render_data, .. } => {
             let mouse_pos = screen_mouse_pos + three_d::vec2(state.camera.camera_x, 0.);
-            placement::position_objects(&render_data.objects, models)
-                .into_iter()
+            state
+                .cached_objects
+                .iter()
                 .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
                 .filter_map(|(_, data)| data.name_data.as_ref().zip(Some(&data.interactions)))
                 .flat_map(|(name_data, interactions)| {

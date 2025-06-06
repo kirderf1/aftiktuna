@@ -7,7 +7,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::store::StoreStock;
-use aftiktuna::view::area::{RenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::Frame;
 use aftiktuna::{asset, view};
 use std::collections::HashMap;
@@ -15,6 +15,7 @@ use three_d::Object;
 
 pub fn render_frame(
     frame: &Frame,
+    cached_objects: &[(three_d::Vec2, ObjectRenderData)],
     camera: &placement::Camera,
     screen: &three_d::RenderTarget<'_>,
     frame_input: &three_d::FrameInput,
@@ -35,7 +36,14 @@ pub fn render_frame(
             draw_in_order(&background_objects, &render_camera, screen);
         }
         Frame::AreaView { render_data, .. } => {
-            draw_area_view(render_data, camera, screen, frame_input, assets);
+            draw_area_view(
+                render_data,
+                cached_objects,
+                camera,
+                screen,
+                frame_input,
+                assets,
+            );
         }
         Frame::Dialogue { data, .. } => {
             draw_secondary_background(
@@ -78,6 +86,7 @@ pub fn render_frame(
 
 fn draw_area_view(
     render_data: &RenderData,
+    cached_objects: &[(three_d::Vec2, ObjectRenderData)],
     camera: &placement::Camera,
     screen: &three_d::RenderTarget<'_>,
     frame_input: &three_d::FrameInput,
@@ -89,12 +98,12 @@ fn draw_area_view(
         camera.camera_x,
         &frame_input.context,
     );
-    let entity_objects = placement::position_objects(&render_data.objects, &mut assets.models)
-        .into_iter()
+    let entity_objects = cached_objects
+        .iter()
         .flat_map(|(pos, object)| {
             let mut render_objects = get_render_objects_for_entity(
                 assets.models.lookup_model(&object.model_id),
-                pos,
+                *pos,
                 &object.properties,
                 &mut assets.aftik_colors,
                 &frame_input.context,

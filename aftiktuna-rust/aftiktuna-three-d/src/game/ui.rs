@@ -1,6 +1,6 @@
 use crate::asset::{Assets, LazilyLoadedModels};
 use aftiktuna::command_suggestion::Suggestion;
-use aftiktuna::view::{Frame, FullStatus};
+use aftiktuna::view::FullStatus;
 use three_d::egui;
 
 #[derive(Default)]
@@ -157,15 +157,11 @@ fn show_tooltip_and_menu(
             },
         )
     } else {
-        let tooltips_list = if let Frame::AreaView { render_data, .. } = &state.frame {
-            super::get_hovered_object_names(
-                render_data,
-                state.mouse_pos + three_d::vec2(state.camera.camera_x, 0.),
-                models,
-            )
-        } else {
-            vec![]
-        };
+        let tooltips_list = super::get_hovered_object_names(
+            &state.cached_objects,
+            state.mouse_pos + three_d::vec2(state.camera.camera_x, 0.),
+            models,
+        );
 
         if !tooltips_list.is_empty() {
             show_hovering(
