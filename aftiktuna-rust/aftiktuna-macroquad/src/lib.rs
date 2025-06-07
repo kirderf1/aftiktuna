@@ -5,6 +5,7 @@ use aftiktuna::view::Frame;
 use egui::EguiWrapper;
 use macroquad::color::{self, Color};
 use macroquad::input::{self, KeyCode, MouseButton};
+use macroquad::math::Vec2;
 use macroquad::miniquad::conf::Icon;
 use macroquad::text;
 use macroquad::window::{self, Conf};
@@ -325,6 +326,10 @@ pub fn draw_centered_text(text: &str, y: f32, font_size: u16, color: Color) {
         font_size as f32,
         color,
     );
+}
+
+pub fn to_vec2((x, y): (f32, f32)) -> Vec2 {
+    Vec2::new(x, WINDOW_HEIGHT_F - y)
 }
 
 pub mod egui {

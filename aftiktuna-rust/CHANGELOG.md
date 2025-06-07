@@ -7,10 +7,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased aftiktuna-three-d]
 
-### Added
-
-- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations and ancient coints
-
 ### Changed
 
 - Switched to a different graphics framework
@@ -33,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - "exit game" command, which may save the game and then return to the main menu
 - Added stun effect, which may be received when attacked by a bat
 - Additional decorative objects: mossy rock, tree stub, table
+- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations and ancient coints
 
 ### Changed
 

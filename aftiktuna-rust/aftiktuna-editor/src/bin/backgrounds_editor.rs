@@ -6,7 +6,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna_macroquad::camera::{self, HorizontalDraggableCamera};
+use aftiktuna_macroquad::camera::HorizontalDraggableCamera;
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::background as mq_background;
 use aftiktuna_macroquad::texture::{model, CachedTextures, LazilyLoadedModels};
@@ -87,7 +87,7 @@ fn draw_example_content(
         let (pos, _) = positioner.position_object(coord, model.is_displacing());
         model::draw_model(
             model,
-            camera::to_vec2(pos),
+            aftiktuna_macroquad::to_vec2(pos),
             false,
             &RenderProperties::default(),
             &color::DEFAULT_COLOR,

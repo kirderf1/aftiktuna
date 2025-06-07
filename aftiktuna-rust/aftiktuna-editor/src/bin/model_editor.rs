@@ -9,10 +9,11 @@ use aftiktuna::asset::TextureLoader;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna_macroquad::camera::{self, HorizontalDraggableCamera};
+use aftiktuna_macroquad::camera::HorizontalDraggableCamera;
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::model as mq_model;
 use aftiktuna_macroquad::texture::{background, CachedTextures};
+use aftiktuna_macroquad::to_vec2;
 use macroquad::texture::Texture2D;
 use macroquad::window::Conf;
 use macroquad::{color, window};
@@ -108,7 +109,7 @@ fn draw_examples(
     bidirectional(|direction| {
         mq_model::draw_model(
             model,
-            camera::to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+            to_vec2(positioner.position_object(get_and_move_coord(), false).0),
             false,
             &RenderProperties {
                 direction,
@@ -122,7 +123,7 @@ fn draw_examples(
         let coord = get_and_move_coord();
         mq_model::draw_model(
             model,
-            camera::to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, true).0),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -131,7 +132,7 @@ fn draw_examples(
         );
         mq_model::draw_model(
             aftik_model,
-            camera::to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, true).0),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -142,7 +143,7 @@ fn draw_examples(
         let coord = get_and_move_coord();
         mq_model::draw_model(
             aftik_model,
-            camera::to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, true).0),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -151,7 +152,7 @@ fn draw_examples(
         );
         mq_model::draw_model(
             model,
-            camera::to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, true).0),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -167,7 +168,7 @@ fn draw_examples(
         ) {
             mq_model::draw_model(
                 model,
-                camera::to_vec2(pos),
+                to_vec2(pos),
                 false,
                 &RenderProperties {
                     ..Default::default()
@@ -180,7 +181,7 @@ fn draw_examples(
             let coord = get_and_move_coord();
             mq_model::draw_model(
                 model,
-                camera::to_vec2(positioner.position_object(coord, false).0),
+                to_vec2(positioner.position_object(coord, false).0),
                 false,
                 &RenderProperties {
                     direction,
@@ -190,7 +191,7 @@ fn draw_examples(
             );
             mq_model::draw_model(
                 aftik_model,
-                camera::to_vec2(positioner.position_object(coord, true).0),
+                to_vec2(positioner.position_object(coord, true).0),
                 false,
                 &RenderProperties {
                     direction,
@@ -209,7 +210,7 @@ fn draw_examples(
         bidirectional(|direction| {
             mq_model::draw_model(
                 model,
-                camera::to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+                to_vec2(positioner.position_object(get_and_move_coord(), false).0),
                 false,
                 &RenderProperties {
                     direction,
@@ -229,7 +230,7 @@ fn draw_examples(
         bidirectional(|direction| {
             mq_model::draw_model(
                 model,
-                camera::to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+                to_vec2(positioner.position_object(get_and_move_coord(), false).0),
                 false,
                 &RenderProperties {
                     direction,
@@ -249,7 +250,7 @@ fn draw_examples(
         bidirectional(|direction| {
             mq_model::draw_model(
                 model,
-                camera::to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+                to_vec2(positioner.position_object(get_and_move_coord(), false).0),
                 false,
                 &RenderProperties {
                     direction,
@@ -263,7 +264,7 @@ fn draw_examples(
 
     if raw_model.wield_offset != (0, 0) {
         bidirectional(|direction| {
-            let pos = camera::to_vec2(positioner.position_object(get_and_move_coord(), false).0);
+            let pos = to_vec2(positioner.position_object(get_and_move_coord(), false).0);
             mq_model::draw_model(
                 aftik_model,
                 pos,

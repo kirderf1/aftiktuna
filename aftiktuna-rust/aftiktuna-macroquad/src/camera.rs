@@ -1,15 +1,11 @@
-use aftiktuna::asset::model::ModelAccess;
+use super::{render, ui};
 use aftiktuna::asset::placement;
 use aftiktuna::core::position::Coord;
-use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::Frame;
 use macroquad::camera as mq_camera;
 use macroquad::input::MouseButton;
 use macroquad::math::{Mat4, Vec2};
 use macroquad::{input, math};
-
-use super::texture::LazilyLoadedModels;
-use super::{render, ui};
 
 #[derive(Debug, Default)]
 pub struct HorizontalDraggableCamera {
@@ -121,29 +117,6 @@ impl mq_camera::Camera for HorizontalDraggableCamera {
     fn viewport(&self) -> Option<(i32, i32, i32, i32)> {
         self.viewport
     }
-}
-
-pub fn position_objects(
-    objects: &Vec<ObjectRenderData>,
-    models: &mut LazilyLoadedModels,
-) -> Vec<(Vec2, ObjectRenderData)> {
-    let mut positioned_objects = Vec::new();
-    let mut positioner = placement::Positioner::default();
-
-    for data in objects {
-        let (pos, _) = positioner.position_object(
-            data.coord,
-            models.lookup_model(&data.model_id).is_displacing(),
-        );
-
-        positioned_objects.push((to_vec2(pos), data.clone()));
-    }
-    positioned_objects.sort_by(|(pos1, _), (pos2, _)| pos1.y.total_cmp(&pos2.y));
-    positioned_objects
-}
-
-pub fn to_vec2((x, y): (f32, f32)) -> Vec2 {
-    Vec2::new(x, crate::WINDOW_HEIGHT_F - y)
 }
 
 pub(crate) fn try_drag_camera_for_state(state: &mut render::State) {

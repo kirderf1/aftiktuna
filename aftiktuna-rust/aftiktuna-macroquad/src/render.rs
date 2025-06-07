@@ -1,7 +1,8 @@
 use super::camera::HorizontalDraggableCamera;
 use super::texture::{self, background, RenderAssets};
-use super::{camera, store_render, tooltip, ui, AppWithEgui};
+use super::{store_render, tooltip, ui, AppWithEgui};
 use crate::texture::LazilyLoadedModels;
+use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
@@ -42,7 +43,10 @@ impl State {
                 render_data.character_coord,
                 render_data.area_size,
             );
-            self.cached_objects = camera::position_objects(&render_data.objects, models);
+            self.cached_objects = placement::position_objects(&render_data.objects, models)
+                .into_iter()
+                .map(|(pos, data)| (crate::to_vec2(pos), data))
+                .collect();
         } else {
             self.cached_objects = Vec::default();
         }
