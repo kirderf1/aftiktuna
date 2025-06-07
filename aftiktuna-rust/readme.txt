@@ -2,8 +2,6 @@ Hello! Here are some basic instructions to fill in spaces that the game can't do
 
 The goal of the game is to travel from planet to planet, collecting fuel cans to refuel the ship.
 
-The game has a graphical view and a text-only view. You can press tab to switch between them.
-
 You interact with the game by giving commands to a character in the crew, making them perform various actions.
 Currently available commands are:
 - take <item>
