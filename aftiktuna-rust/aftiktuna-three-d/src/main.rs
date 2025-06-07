@@ -1,6 +1,5 @@
 use winit::dpi;
 use winit::event_loop::EventLoop;
-use winit::platform::windows::WindowBuilderExtWindows;
 use winit::window::{Icon, Window, WindowBuilder, WindowButtons};
 
 mod app;
@@ -27,22 +26,26 @@ fn init_window() -> (Window, EventLoop<()>) {
         16,
     )
     .unwrap();
-    let large_icon = Icon::from_rgba(
-        include_bytes!("../../icon/icon_64x64.rgba").to_vec(),
-        64,
-        64,
-    )
-    .unwrap();
     let window = WindowBuilder::new()
         .with_title("Aftiktuna")
         .with_window_icon(Some(small_icon))
-        .with_taskbar_icon(Some(large_icon))
         .with_decorations(true)
         .with_inner_size(dpi::LogicalSize::new(WINDOW_WIDTH, WINDOW_HEIGHT))
         .with_resizable(false)
         .with_enabled_buttons(!WindowButtons::MAXIMIZE)
         .build(&event_loop)
         .unwrap();
+    #[cfg(target_os = "windows")]
+    {
+        use winit::platform::windows::WindowExtWindows;
+        let large_icon = Icon::from_rgba(
+            include_bytes!("../../icon/icon_64x64.rgba").to_vec(),
+            64,
+            64,
+        )
+        .unwrap();
+        window.set_taskbar_icon(Some(large_icon));
+    }
     window.focus_window();
 
     (window, event_loop)
