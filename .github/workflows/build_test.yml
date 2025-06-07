@@ -1,0 +1,22 @@
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    name: Build three-d ${{ matrix.target }}
+    runs-on: ${{ matrix.runner-os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [ x86_64-unknown-linux-gnu, x86_64-pc-windows-gnu ]
+        include:
+          - runner-os: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+      - name: Build binary
+        run: cargo build --manifest-path=aftiktuna-rust/Cargo.toml --release --target=${{ matrix.target }} --package=aftiktuna-three-d --bin=aftiktuna-three-d
