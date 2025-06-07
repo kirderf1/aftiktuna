@@ -48,6 +48,7 @@ async fn main() {
         "Layers must not be empty"
     );
     let mut selected_layer = 0;
+    let mut group_size = 3;
 
     let aftik_model = mq_model::load_model(&ModelId::aftik()).unwrap();
     let background = background::load_background_for_testing();
@@ -66,6 +67,7 @@ async fn main() {
                 ctx,
                 &mut selected_model,
                 &mut selected_layer,
+                &mut group_size,
                 &path,
                 &mut textures,
             );
@@ -76,7 +78,7 @@ async fn main() {
         let model = selected_model.load(&mut textures).unwrap();
         macroquad::camera::set_camera(&camera);
         background::draw_primary(&background, 0, &camera);
-        area_size = draw_examples(&selected_model, &model, &aftik_model);
+        area_size = draw_examples(&selected_model, &model, group_size, &aftik_model);
         macroquad::camera::set_default_camera();
 
         egui.draw();
@@ -92,6 +94,7 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
 fn draw_examples(
     raw_model: &Model<String>,
     model: &Model<Texture2D>,
+    group_size: u16,
     aftik_model: &Model<Texture2D>,
 ) -> Coord {
     let mut positioner = Positioner::default();
@@ -157,10 +160,14 @@ fn draw_examples(
         );
 
         let coord = get_and_move_coord();
-        for _ in 0..3 {
+        for pos in positioner.position_groups_from_offsets(
+            model.group_placement.position(group_size),
+            coord,
+            true,
+        ) {
             mq_model::draw_model(
                 model,
-                camera::to_vec2(positioner.position_object(coord, true)),
+                camera::to_vec2(pos),
                 false,
                 &RenderProperties {
                     ..Default::default()
@@ -292,6 +299,7 @@ fn side_panel(
     ctx: &egui::Context,
     model: &mut Model<String>,
     selected_layer: &mut usize,
+    group_size: &mut u16,
     path: impl AsRef<Path>,
     textures: &mut CachedTextures,
 ) -> bool {
@@ -300,6 +308,12 @@ fn side_panel(
         .resizable(false)
         .exact_width(200.)
         .show(ctx, |ui| {
+            if model.is_displacing() {
+                ui.label("Shown count:");
+                ui.add(egui::Slider::new(group_size, 1..=20));
+                ui.separator();
+            }
+
             ui.label("Wield offset:");
             ui.horizontal(|ui| {
                 ui.add(egui::DragValue::new(&mut model.wield_offset.0));

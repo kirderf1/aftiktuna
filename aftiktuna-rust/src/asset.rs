@@ -120,7 +120,7 @@ pub(crate) mod loot {
 }
 
 pub mod placement {
-    use crate::asset::model::ModelAccess;
+    use crate::asset::model::{ModelAccess, Offsets};
     use crate::core::display::OrderWeight;
     use crate::core::position::Coord;
     use crate::view::area::ObjectRenderData;
@@ -147,7 +147,7 @@ pub mod placement {
             if data.weight != last_weight {
                 for object_group in &mut groups_cache {
                     positioned_objects
-                        .extend(positioner.position_group(mem::take(object_group), models));
+                        .extend(positioner.position_object_group(mem::take(object_group), models));
                 }
                 last_weight = data.weight;
             }
@@ -158,14 +158,14 @@ pub mod placement {
                 .is_some_and(|cached_object| cached_object.model_id != data.model_id)
             {
                 positioned_objects
-                    .extend(positioner.position_group(mem::take(object_group), models));
+                    .extend(positioner.position_object_group(mem::take(object_group), models));
             }
 
             object_group.push(data.clone());
         }
 
         for object_group in groups_cache {
-            positioned_objects.extend(positioner.position_group(object_group, models));
+            positioned_objects.extend(positioner.position_object_group(object_group, models));
         }
 
         positioned_objects
@@ -177,7 +177,7 @@ pub mod placement {
     }
 
     impl Positioner {
-        pub fn position_group<T>(
+        fn position_object_group<T>(
             &mut self,
             object_group: Vec<ObjectRenderData>,
             models: &mut impl ModelAccess<T>,
@@ -186,24 +186,37 @@ pub mod placement {
                 .first()
                 .map(|object| (object.coord, models.lookup_model(&object.model_id)))
             {
-                model
-                    .group_placement
-                    .position(object_group.len() as u16)
-                    .into_iter()
-                    .flat_map(|offsets| {
-                        let base_pos = self.position_object(coord, model.is_displacing());
-                        offsets.into_iter().map(move |offset| {
-                            (
-                                base_pos.0 + f32::from(offset.0),
-                                base_pos.1 + f32::from(offset.1),
-                            )
-                        })
-                    })
-                    .zip(object_group)
-                    .collect()
+                self.position_groups_from_offsets(
+                    model.group_placement.position(object_group.len() as u16),
+                    coord,
+                    model.is_displacing(),
+                )
+                .into_iter()
+                .zip(object_group)
+                .collect()
             } else {
                 Vec::default()
             }
+        }
+
+        pub fn position_groups_from_offsets(
+            &mut self,
+            offset_groups: Vec<Offsets>,
+            coord: usize,
+            is_displacing: bool,
+        ) -> Vec<(f32, f32)> {
+            offset_groups
+                .into_iter()
+                .flat_map(|offsets| {
+                    let base_pos = self.position_object(coord, is_displacing);
+                    offsets.into_iter().map(move |offset| {
+                        (
+                            base_pos.0 + f32::from(offset.0),
+                            base_pos.1 + f32::from(offset.1),
+                        )
+                    })
+                })
+                .collect()
         }
 
         pub fn position_object(&mut self, coord: Coord, is_displacing: bool) -> (f32, f32) {

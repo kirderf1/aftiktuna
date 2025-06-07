@@ -95,14 +95,14 @@ impl LayerCondition {
     }
 }
 
-pub type Positions = Vec<(i16, i16)>;
+pub type Offsets = Vec<(i16, i16)>;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(try_from = "IndexMap<u16, Positions>")]
-pub struct GroupPlacement(IndexMap<u16, Positions>);
+#[serde(try_from = "IndexMap<u16, Offsets>")]
+pub struct GroupPlacement(IndexMap<u16, Offsets>);
 
 impl GroupPlacement {
-    pub fn position(&self, count: u16) -> Vec<Positions> {
+    pub fn position(&self, count: u16) -> Vec<Offsets> {
         let mut groups = Vec::new();
         let mut remaining_count = count;
         while remaining_count > 0 {
@@ -131,10 +131,10 @@ impl Default for GroupPlacement {
     }
 }
 
-impl TryFrom<IndexMap<u16, Positions>> for GroupPlacement {
+impl TryFrom<IndexMap<u16, Offsets>> for GroupPlacement {
     type Error = String;
 
-    fn try_from(value: IndexMap<u16, Positions>) -> Result<Self, Self::Error> {
+    fn try_from(value: IndexMap<u16, Offsets>) -> Result<Self, Self::Error> {
         if value.contains_key(&0) {
             return Err("May not contain position group 0".to_string());
         }
