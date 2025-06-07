@@ -1,6 +1,6 @@
 {
   "layers": [
-    { "texture": "item/food_ration" }
+    { "texture": "item/food_ration", "fixed": true }
   ],
   "group_placement": {
     "1": [
