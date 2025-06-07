@@ -84,7 +84,7 @@ fn draw_example_content(
     let mut positioner = Positioner::default();
     let mut draw_model = move |coord: Coord, model_id: &ModelId| {
         let model = models.lookup_model(model_id);
-        let pos = positioner.position_object(coord, model.is_displacing());
+        let (pos, _) = positioner.position_object(coord, model.is_displacing());
         model::draw_model(
             model,
             camera::to_vec2(pos),

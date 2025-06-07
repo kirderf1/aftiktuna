@@ -131,7 +131,7 @@ pub fn position_objects(
     let mut positioner = placement::Positioner::default();
 
     for data in objects {
-        let pos = positioner.position_object(
+        let (pos, _) = positioner.position_object(
             data.coord,
             models.lookup_model(&data.model_id).is_displacing(),
         );

@@ -121,11 +121,12 @@ pub(crate) mod loot {
 
 pub mod placement {
     use crate::asset::model::{ModelAccess, Offsets};
-    use crate::core::display::OrderWeight;
     use crate::core::position::Coord;
     use crate::view::area::ObjectRenderData;
     use std::collections::HashMap;
     use std::mem;
+
+    pub type Vec2 = (f32, f32);
 
     // Coordinates are mapped like this so that when the left edge of the window is 0,
     // coord 3 will be placed in the middle of the window.
@@ -136,22 +137,13 @@ pub mod placement {
     pub fn position_objects<T>(
         objects: &Vec<ObjectRenderData>,
         models: &mut impl ModelAccess<T>,
-    ) -> Vec<((f32, f32), ObjectRenderData)> {
+    ) -> Vec<(Vec2, ObjectRenderData)> {
         let mut positioned_objects = Vec::new();
         let mut positioner = Positioner::default();
         let mut groups_cache: Vec<Vec<ObjectRenderData>> =
             vec![Vec::new(); objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1];
-        let mut last_weight = OrderWeight::Background;
 
         for data in objects {
-            if data.weight != last_weight {
-                for object_group in &mut groups_cache {
-                    positioned_objects
-                        .extend(positioner.position_object_group(mem::take(object_group), models));
-                }
-                last_weight = data.weight;
-            }
-
             let object_group = &mut groups_cache[data.coord];
             if object_group
                 .first()
@@ -168,12 +160,22 @@ pub mod placement {
             positioned_objects.extend(positioner.position_object_group(object_group, models));
         }
 
+        positioned_objects.sort_by(|((_, z1), data1), ((_, z2), data2)| {
+            data2
+                .weight
+                .cmp(&data1.weight)
+                .then(z1.cmp(z2))
+                .then(data1.coord.cmp(&data2.coord))
+        });
         positioned_objects
+            .into_iter()
+            .map(|((pos, _), data)| (pos, data))
+            .collect()
     }
 
     #[derive(Default)]
     pub struct Positioner {
-        coord_counts: HashMap<Coord, i32>,
+        coord_counts: HashMap<Coord, u16>,
     }
 
     impl Positioner {
@@ -181,7 +183,7 @@ pub mod placement {
             &mut self,
             object_group: Vec<ObjectRenderData>,
             models: &mut impl ModelAccess<T>,
-        ) -> Vec<((f32, f32), ObjectRenderData)> {
+        ) -> Vec<((Vec2, u16), ObjectRenderData)> {
             if let Some((coord, model)) = object_group
                 .first()
                 .map(|object| (object.coord, models.lookup_model(&object.model_id)))
@@ -204,36 +206,39 @@ pub mod placement {
             offset_groups: Vec<Offsets>,
             coord: usize,
             is_displacing: bool,
-        ) -> Vec<(f32, f32)> {
+        ) -> Vec<(Vec2, u16)> {
             offset_groups
                 .into_iter()
                 .flat_map(|offsets| {
-                    let base_pos = self.position_object(coord, is_displacing);
+                    let (base_pos, z) = self.position_object(coord, is_displacing);
                     offsets.into_iter().map(move |offset| {
                         (
-                            base_pos.0 + f32::from(offset.0),
-                            base_pos.1 + f32::from(offset.1),
+                            (
+                                base_pos.0 + f32::from(offset.0),
+                                base_pos.1 + f32::from(offset.1),
+                            ),
+                            z,
                         )
                     })
                 })
                 .collect()
         }
 
-        pub fn position_object(&mut self, coord: Coord, is_displacing: bool) -> (f32, f32) {
+        pub fn position_object(&mut self, coord: Coord, is_displacing: bool) -> (Vec2, u16) {
             if is_displacing {
                 let count_ref = self.coord_counts.entry(coord).or_insert(0);
                 let count = *count_ref;
                 *count_ref = count + 1;
-                position_from_coord(coord, count)
+                (position_from_coord(coord, count), count + 1)
             } else {
-                position_from_coord(coord, 0)
+                (position_from_coord(coord, 0), 0)
             }
         }
     }
 
-    fn position_from_coord(coord: Coord, count: i32) -> (f32, f32) {
+    fn position_from_coord(coord: Coord, count: u16) -> Vec2 {
         (
-            coord_to_center_x(coord) - count as f32 * 15.,
+            coord_to_center_x(coord) - f32::from(count) * 15.,
             (190 - count * 15) as f32,
         )
     }
