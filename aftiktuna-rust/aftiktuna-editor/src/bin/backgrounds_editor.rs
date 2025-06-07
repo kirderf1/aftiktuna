@@ -1,10 +1,12 @@
 use aftiktuna::asset::background::{self, BGData};
 use aftiktuna::asset::color;
+use aftiktuna::asset::model::ModelAccess;
+use aftiktuna::asset::placement::Positioner;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna_macroquad::camera::{HorizontalDraggableCamera, Positioner};
+use aftiktuna_macroquad::camera::{self, HorizontalDraggableCamera};
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::background as mq_background;
 use aftiktuna_macroquad::texture::{model, CachedTextures, LazilyLoadedModels};
@@ -79,13 +81,13 @@ fn draw_example_content(
     area_size: Coord,
     models: &mut LazilyLoadedModels,
 ) {
-    let mut positioner = Positioner::new();
+    let mut positioner = Positioner::default();
     let mut draw_model = move |coord: Coord, model_id: &ModelId| {
         let model = models.lookup_model(model_id);
         let pos = positioner.position_object(coord, model.is_displacing());
         model::draw_model(
             model,
-            pos,
+            camera::to_vec2(pos),
             false,
             &RenderProperties::default(),
             &color::DEFAULT_COLOR,

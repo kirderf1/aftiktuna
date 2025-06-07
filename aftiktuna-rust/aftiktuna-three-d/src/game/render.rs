@@ -1,8 +1,8 @@
-use super::placement;
+use super::camera::Camera;
 use crate::asset::Assets;
 use aftiktuna::asset::background::{BGData, PortraitBGData};
 use aftiktuna::asset::color::AftikColorData;
-use aftiktuna::asset::model::{Model, TextureLayer};
+use aftiktuna::asset::model::{Model, ModelAccess, TextureLayer};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
@@ -16,7 +16,7 @@ use three_d::Object;
 pub fn render_frame(
     frame: &Frame,
     cached_objects: &[(three_d::Vec2, ObjectRenderData)],
-    camera: &placement::Camera,
+    camera: &Camera,
     screen: &three_d::RenderTarget<'_>,
     frame_input: &three_d::FrameInput,
     assets: &mut Assets,
@@ -87,7 +87,7 @@ pub fn render_frame(
 fn draw_area_view(
     render_data: &RenderData,
     cached_objects: &[(three_d::Vec2, ObjectRenderData)],
-    camera: &placement::Camera,
+    camera: &Camera,
     screen: &three_d::RenderTarget<'_>,
     frame_input: &three_d::FrameInput,
     assets: &mut Assets,

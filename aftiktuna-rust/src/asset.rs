@@ -121,6 +121,7 @@ pub(crate) mod loot {
 pub mod model {
     use super::color::ColorSource;
     use super::TextureLoader;
+    use crate::core::display::ModelId;
     use crate::view::area::RenderProperties;
     use indexmap::IndexMap;
     use serde::{Deserialize, Serialize};
@@ -278,6 +279,117 @@ pub mod model {
     ) -> Result<Model<String>, super::Error> {
         let file = File::open(file_path)?;
         Ok(serde_json::from_reader::<_, Model<String>>(file)?)
+    }
+
+    pub trait ModelAccess<T> {
+        fn lookup_model(&mut self, model_id: &ModelId) -> &Model<T>;
+    }
+}
+
+pub mod placement {
+    use crate::asset::model::ModelAccess;
+    use crate::core::display::OrderWeight;
+    use crate::core::position::Coord;
+    use crate::view::area::ObjectRenderData;
+    use std::collections::HashMap;
+    use std::mem;
+
+    // Coordinates are mapped like this so that when the left edge of the window is 0,
+    // coord 3 will be placed in the middle of the window.
+    pub fn coord_to_center_x(coord: Coord) -> f32 {
+        40. + 120. * coord as f32
+    }
+
+    pub fn position_objects<T>(
+        objects: &Vec<ObjectRenderData>,
+        models: &mut impl ModelAccess<T>,
+    ) -> Vec<((f32, f32), ObjectRenderData)> {
+        let mut positioned_objects = Vec::new();
+        let mut positioner = Positioner::default();
+        let mut groups_cache: Vec<Vec<ObjectRenderData>> =
+            vec![Vec::new(); objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1];
+        let mut last_weight = OrderWeight::Background;
+
+        for data in objects {
+            if data.weight != last_weight {
+                for object_group in &mut groups_cache {
+                    positioned_objects
+                        .extend(positioner.position_group(mem::take(object_group), models));
+                }
+                last_weight = data.weight;
+            }
+
+            let object_group = &mut groups_cache[data.coord];
+            if object_group
+                .first()
+                .is_some_and(|cached_object| cached_object.model_id != data.model_id)
+            {
+                positioned_objects
+                    .extend(positioner.position_group(mem::take(object_group), models));
+            }
+
+            object_group.push(data.clone());
+        }
+
+        for object_group in groups_cache {
+            positioned_objects.extend(positioner.position_group(object_group, models));
+        }
+
+        positioned_objects
+    }
+
+    #[derive(Default)]
+    pub struct Positioner {
+        coord_counts: HashMap<Coord, i32>,
+    }
+
+    impl Positioner {
+        pub fn position_group<T>(
+            &mut self,
+            object_group: Vec<ObjectRenderData>,
+            models: &mut impl ModelAccess<T>,
+        ) -> Vec<((f32, f32), ObjectRenderData)> {
+            if let Some((coord, model)) = object_group
+                .first()
+                .map(|object| (object.coord, models.lookup_model(&object.model_id)))
+            {
+                model
+                    .group_placement
+                    .position(object_group.len() as u16)
+                    .into_iter()
+                    .flat_map(|offsets| {
+                        let base_pos = self.position_object(coord, model.is_displacing());
+                        offsets.into_iter().map(move |offset| {
+                            (
+                                base_pos.0 + f32::from(offset.0),
+                                base_pos.1 + f32::from(offset.1),
+                            )
+                        })
+                    })
+                    .zip(object_group)
+                    .collect()
+            } else {
+                Vec::default()
+            }
+        }
+
+        pub fn position_object(&mut self, coord: Coord, is_displacing: bool) -> (f32, f32) {
+            if is_displacing {
+                let count_ref = self.coord_counts.entry(coord).or_insert(0);
+                let count = *count_ref;
+                *count_ref = count + 1;
+                position_from_coord(coord, count)
+            } else {
+                position_from_coord(coord, 0)
+            }
+        }
+    }
+
+    fn position_from_coord(coord: Coord, count: i32) -> (f32, f32) {
+        (
+            coord_to_center_x(coord) - count as f32 * 15.,
+            (190 - count * 15) as f32,
+        )
     }
 }
 

@@ -1,6 +1,6 @@
 use super::Error;
 use aftiktuna::asset::color::AftikColorData;
-use aftiktuna::asset::model::{self, Model, TextureLayer};
+use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
@@ -14,16 +14,18 @@ pub struct LazilyLoadedModels {
 }
 
 impl LazilyLoadedModels {
-    pub fn lookup_model(&mut self, model_id: &ModelId) -> &Model<Texture2D> {
+    pub fn get_rect_for_object(&mut self, object_data: &ObjectRenderData, pos: Vec2) -> Rect {
+        let model = self.lookup_model(&object_data.model_id);
+        model_render_rect(model, pos, &object_data.properties)
+    }
+}
+
+impl ModelAccess<Texture2D> for LazilyLoadedModels {
+    fn lookup_model(&mut self, model_id: &ModelId) -> &Model<Texture2D> {
         if !self.loaded_models.contains_key(model_id) {
             load_and_insert_or_default(model_id, &mut self.loaded_models);
         }
         self.loaded_models.get(model_id).unwrap()
-    }
-
-    pub fn get_rect_for_object(&mut self, object_data: &ObjectRenderData, pos: Vec2) -> Rect {
-        let model = self.lookup_model(&object_data.model_id);
-        model_render_rect(model, pos, &object_data.properties)
     }
 }
 

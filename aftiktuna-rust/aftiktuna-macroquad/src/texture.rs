@@ -1,6 +1,7 @@
 pub use self::model::LazilyLoadedModels;
 use aftiktuna::asset::background::BGData;
 use aftiktuna::asset::color::{self, AftikColorData};
+use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{self, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};

@@ -1,4 +1,6 @@
+use self::camera::Camera;
 use crate::asset::{Assets, LazilyLoadedModels};
+use aftiktuna::asset::placement;
 use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
 use aftiktuna::serialization;
@@ -9,18 +11,9 @@ use std::fs;
 mod render;
 mod ui;
 
-mod placement {
-    use aftiktuna::core::display::OrderWeight;
+mod camera {
+    use aftiktuna::asset::placement;
     use aftiktuna::core::position::Coord;
-    use aftiktuna::view::area::ObjectRenderData;
-    use std::collections::HashMap;
-    use std::mem;
-
-    // Coordinates are mapped like this so that when the left edge of the window is 0,
-    // coord 3 will be placed in the middle of the window.
-    pub fn coord_to_center_x(coord: Coord) -> f32 {
-        40. + 120. * coord as f32
-    }
 
     #[derive(Default)]
     pub struct Camera {
@@ -29,6 +22,10 @@ mod placement {
     }
 
     impl Camera {
+        pub fn set_center(&mut self, coord: Coord) {
+            self.camera_x = placement::coord_to_center_x(coord) - crate::WINDOW_WIDTH_F / 2.;
+        }
+
         pub fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
             for event in events {
                 match event {
@@ -61,12 +58,12 @@ mod placement {
 
         pub fn clamp(&mut self, area_size: Coord) {
             self.camera_x = if area_size <= 6 {
-                (coord_to_center_x(0) + coord_to_center_x(area_size - 1)) / 2.
+                (placement::coord_to_center_x(0) + placement::coord_to_center_x(area_size - 1)) / 2.
                     - crate::WINDOW_WIDTH_F / 2.
             } else {
                 self.camera_x.clamp(
-                    coord_to_center_x(0) - 100.,
-                    coord_to_center_x(area_size - 1) + 100. - crate::WINDOW_WIDTH_F,
+                    placement::coord_to_center_x(0) - 100.,
+                    placement::coord_to_center_x(area_size - 1) + 100. - crate::WINDOW_WIDTH_F,
                 )
             };
         }
@@ -76,102 +73,10 @@ mod placement {
                 [false, false]
             } else {
                 [
-                    self.camera_x > coord_to_center_x(0) - 100.,
-                    self.camera_x + crate::WINDOW_WIDTH_F < coord_to_center_x(area_size - 1) + 100.,
+                    self.camera_x > placement::coord_to_center_x(0) - 100.,
+                    self.camera_x + crate::WINDOW_WIDTH_F
+                        < placement::coord_to_center_x(area_size - 1) + 100.,
                 ]
-            }
-        }
-    }
-
-    pub fn position_objects(
-        objects: &Vec<ObjectRenderData>,
-        models: &mut crate::asset::LazilyLoadedModels,
-    ) -> Vec<(three_d::Vec2, ObjectRenderData)> {
-        let mut positioned_objects = Vec::new();
-        let mut positioner = Positioner::new();
-        let mut groups_cache: Vec<Vec<ObjectRenderData>> =
-            vec![Vec::new(); objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1];
-        let mut last_weight = OrderWeight::Background;
-
-        for data in objects {
-            if data.weight != last_weight {
-                for object_group in &mut groups_cache {
-                    positioned_objects
-                        .extend(positioner.position_group(mem::take(object_group), models));
-                }
-                last_weight = data.weight;
-            }
-
-            let object_group = &mut groups_cache[data.coord];
-            if object_group
-                .first()
-                .is_some_and(|cached_object| cached_object.model_id != data.model_id)
-            {
-                positioned_objects
-                    .extend(positioner.position_group(mem::take(object_group), models));
-            }
-
-            object_group.push(data.clone());
-        }
-
-        for object_group in groups_cache {
-            positioned_objects.extend(positioner.position_group(object_group, models));
-        }
-
-        positioned_objects
-    }
-
-    fn position_from_coord(coord: Coord, count: i32) -> three_d::Vec2 {
-        three_d::vec2(
-            coord_to_center_x(coord) - count as f32 * 15.,
-            (190 - count * 15) as f32,
-        )
-    }
-
-    #[derive(Default)]
-    struct Positioner {
-        coord_counts: HashMap<Coord, i32>,
-    }
-
-    impl Positioner {
-        pub fn new() -> Self {
-            Self::default()
-        }
-
-        fn position_group(
-            &mut self,
-            object_group: Vec<ObjectRenderData>,
-            models: &mut crate::asset::LazilyLoadedModels,
-        ) -> Vec<(three_d::Vec2, ObjectRenderData)> {
-            if let Some((coord, model)) = object_group
-                .first()
-                .map(|object| (object.coord, models.lookup_model(&object.model_id)))
-            {
-                model
-                    .group_placement
-                    .position(object_group.len() as u16)
-                    .into_iter()
-                    .flat_map(|offsets| {
-                        let base_pos = self.position_object(coord, model.is_displacing());
-                        offsets.into_iter().map(move |offset| {
-                            base_pos + three_d::vec2(offset.0.into(), offset.1.into())
-                        })
-                    })
-                    .zip(object_group)
-                    .collect()
-            } else {
-                Vec::default()
-            }
-        }
-
-        fn position_object(&mut self, coord: Coord, is_displacing: bool) -> three_d::Vec2 {
-            if is_displacing {
-                let count_ref = self.coord_counts.entry(coord).or_insert(0);
-                let count = *count_ref;
-                *count_ref = count + 1;
-                position_from_coord(coord, count)
-            } else {
-                position_from_coord(coord, 0)
             }
         }
     }
@@ -190,7 +95,7 @@ pub struct State {
     displayed_status: Option<FullStatus>,
     input_text: String,
     request_input_focus: bool,
-    camera: placement::Camera,
+    camera: Camera,
     mouse_pos: three_d::Vec2,
     command_tooltip: Option<CommandTooltip>,
 }
@@ -206,7 +111,7 @@ impl State {
             displayed_status: None,
             input_text: String::new(),
             request_input_focus: false,
-            camera: placement::Camera::default(),
+            camera: Camera::default(),
             mouse_pos: three_d::vec2(0., 0.),
             command_tooltip: None,
         };
@@ -334,10 +239,12 @@ impl State {
         if let GameResult::Frame(frame_getter) = self.game.next_result() {
             self.frame = frame_getter.get();
             if let Frame::AreaView { render_data, .. } = &self.frame {
-                self.camera.camera_x = placement::coord_to_center_x(render_data.character_coord)
-                    - crate::WINDOW_WIDTH_F / 2.;
+                self.camera.set_center(render_data.character_coord);
                 self.camera.clamp(render_data.area_size);
-                self.cached_objects = placement::position_objects(&render_data.objects, models);
+                self.cached_objects = placement::position_objects(&render_data.objects, models)
+                    .into_iter()
+                    .map(|(pos, data)| (pos.into(), data))
+                    .collect();
             } else {
                 self.cached_objects = Vec::new();
             }
@@ -443,7 +350,7 @@ fn find_command_suggestions(
     }
 }
 
-fn get_render_camera(camera: &placement::Camera, viewport: three_d::Viewport) -> three_d::Camera {
+fn get_render_camera(camera: &Camera, viewport: three_d::Viewport) -> three_d::Camera {
     let mut render_camera = three_d::Camera::new_orthographic(
         viewport,
         three_d::vec3(

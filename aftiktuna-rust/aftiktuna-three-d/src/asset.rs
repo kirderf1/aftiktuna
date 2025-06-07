@@ -1,7 +1,7 @@
 use crate::{BuiltinFonts, Rect};
 use aftiktuna::asset::background::{self as background_base, BGData};
 use aftiktuna::asset::color::AftikColorData;
-use aftiktuna::asset::model::{self, Model, TextureLayer};
+use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
@@ -143,23 +143,6 @@ impl LazilyLoadedModels {
         Ok(models)
     }
 
-    pub fn lookup_model(&mut self, model_id: &ModelId) -> &Model<three_d::Texture2DRef> {
-        if !self.loaded_models.contains_key(model_id) {
-            if let Err(error) = self.load_and_insert_model(model_id) {
-                let path = model_id.path();
-                eprintln!("Unable to load model \"{path}\": {error}");
-                let fallback_id = if path.starts_with("item/") {
-                    ModelId::small_unknown()
-                } else {
-                    ModelId::unknown()
-                };
-                let fallback_model = self.loaded_models.get(&fallback_id).unwrap().clone();
-                self.loaded_models.insert(model_id.clone(), fallback_model);
-            }
-        }
-        self.loaded_models.get(model_id).unwrap()
-    }
-
     fn load_and_insert_model(&mut self, model_id: &ModelId) -> Result<(), Error> {
         let model = model::load_raw_model_from_path(model_id.file_path())?
             .load(&mut self.texture_loader)?;
@@ -174,6 +157,25 @@ impl LazilyLoadedModels {
     ) -> Rect {
         let model = self.lookup_model(&object_data.model_id);
         model_render_rect(model, pos, &object_data.properties)
+    }
+}
+
+impl ModelAccess<three_d::Texture2DRef> for LazilyLoadedModels {
+    fn lookup_model(&mut self, model_id: &ModelId) -> &Model<three_d::Texture2DRef> {
+        if !self.loaded_models.contains_key(model_id) {
+            if let Err(error) = self.load_and_insert_model(model_id) {
+                let path = model_id.path();
+                eprintln!("Unable to load model \"{path}\": {error}");
+                let fallback_id = if path.starts_with("item/") {
+                    ModelId::small_unknown()
+                } else {
+                    ModelId::unknown()
+                };
+                let fallback_model = self.loaded_models.get(&fallback_id).unwrap().clone();
+                self.loaded_models.insert(model_id.clone(), fallback_model);
+            }
+        }
+        self.loaded_models.get(model_id).unwrap()
     }
 }
 
