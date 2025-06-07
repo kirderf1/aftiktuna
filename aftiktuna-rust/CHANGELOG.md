@@ -5,23 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
-## [Unreleased aftiktuna-three-d]
-
-### Changed
-
-- Switched to a different graphics framework
-- The primary text box is now built different (uses a scroll bar for large text instead of expanding vertically)
-- "status" command now shows the crew status in a gui window
-
-### Removed
-
-- Text-only view is no longer included
-
-### Contributors for this release
-
-- kirderf1
-
-
 ## [Unreleased]
 
 ### Added
@@ -46,6 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Background textures have been tweaked, indoor backgrounds are now slightly smaller vertically
 - Updated format for `backgrounds.json`, which now allows y offsets to be specified
 - Renamed `crew_data.json` to `starting_crew.json`
+- Switched to a different graphics framework
+- The primary text box is now built different (uses a scroll bar for large text instead of expanding vertically)
+- "status" command now shows the crew status in a gui window
+
 
 ### Fixed
 
@@ -54,6 +41,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Slight improvement of messages for some other load errors
 - With executable flag `--disable-autosave`, the save file is no longer removed when reaching the victory/game over frame
 - Fix pixel-alignment for odd-number-width object texture layers
+
+### Removed
+
+- Text-only view is no longer included
 
 ### Contributors for this release
 
