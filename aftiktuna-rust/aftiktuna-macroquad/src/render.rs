@@ -1,19 +1,21 @@
 use super::camera::HorizontalDraggableCamera;
 use super::texture::{self, background, RenderAssets};
 use super::{camera, store_render, tooltip, ui, AppWithEgui};
+use crate::texture::LazilyLoadedModels;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
-use aftiktuna::view::area::{RenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna::view::{DialogueFrameData, Frame};
 use aftiktuna::StopType;
 use macroquad::color::{BLACK, LIGHTGRAY};
 use macroquad::math::Vec2;
 use macroquad::{camera as mq_camera, window};
 
-pub struct State {
+pub(crate) struct State {
     pub text_log: Vec<String>,
     pub current_frame: Frame,
+    pub cached_objects: Vec<(Vec2, ObjectRenderData)>,
     pub text_box_text: Vec<String>,
     pub camera: HorizontalDraggableCamera,
 }
@@ -21,19 +23,28 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         Self {
-            text_log: vec![],
+            text_log: Vec::new(),
             current_frame: Frame::Introduction,
-            text_box_text: vec![],
+            cached_objects: Vec::default(),
+            text_box_text: Vec::default(),
             camera: HorizontalDraggableCamera::default(),
         }
     }
 
-    pub fn show_frame(&mut self, frame: Frame, ready_for_input: bool) {
+    pub fn show_frame(
+        &mut self,
+        frame: Frame,
+        ready_for_input: bool,
+        models: &mut LazilyLoadedModels,
+    ) {
         if let Frame::AreaView { render_data, .. } = &frame {
             self.camera = HorizontalDraggableCamera::centered_on_position(
                 render_data.character_coord,
                 render_data.area_size,
             );
+            self.cached_objects = camera::position_objects(&render_data.objects, models);
+        } else {
+            self.cached_objects = Vec::default();
         }
 
         self.text_log.extend(frame.as_text());
@@ -67,6 +78,7 @@ pub fn draw(app: &mut AppWithEgui) {
     if app.show_graphical {
         draw_frame(
             &app.render_state.current_frame,
+            &app.render_state.cached_objects,
             &app.render_state.camera,
             app.assets,
         );
@@ -90,7 +102,12 @@ pub fn draw(app: &mut AppWithEgui) {
     }
 }
 
-fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut RenderAssets) {
+fn draw_frame(
+    frame: &Frame,
+    cached_objects: &Vec<(Vec2, ObjectRenderData)>,
+    camera: &HorizontalDraggableCamera,
+    assets: &mut RenderAssets,
+) {
     match frame {
         Frame::LocationChoice(_) | Frame::Introduction | Frame::Error(_) => {
             mq_camera::set_default_camera();
@@ -110,7 +127,7 @@ fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut Re
                 camera,
             );
 
-            draw_objects(render_data, assets);
+            draw_objects(cached_objects, assets);
 
             mq_camera::set_default_camera();
             ui::draw_camera_arrows(
@@ -135,11 +152,9 @@ fn draw_frame(frame: &Frame, camera: &HorizontalDraggableCamera, assets: &mut Re
     }
 }
 
-fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
-    let mut positioned_objects = camera::position_objects(&render_data.objects, &mut assets.models);
-    positioned_objects.sort_by(|(pos1, _), (pos2, _)| pos1.y.total_cmp(&pos2.y));
-    for (pos, data) in positioned_objects {
-        texture::draw_object(&data.model_id, &data.properties, false, pos, assets);
+fn draw_objects(objects: &Vec<(Vec2, ObjectRenderData)>, assets: &mut RenderAssets) {
+    for (pos, data) in objects {
+        texture::draw_object(&data.model_id, &data.properties, false, *pos, assets);
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(
@@ -149,7 +164,7 @@ fn draw_objects(render_data: &RenderData, assets: &mut RenderAssets) {
                         ..RenderProperties::default()
                     },
                     true,
-                    pos,
+                    *pos,
                     assets,
                 );
             }

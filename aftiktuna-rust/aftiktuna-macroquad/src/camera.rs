@@ -123,10 +123,10 @@ impl mq_camera::Camera for HorizontalDraggableCamera {
     }
 }
 
-pub fn position_objects<'a>(
-    objects: &'a Vec<ObjectRenderData>,
+pub fn position_objects(
+    objects: &Vec<ObjectRenderData>,
     models: &mut LazilyLoadedModels,
-) -> Vec<(Vec2, &'a ObjectRenderData)> {
+) -> Vec<(Vec2, ObjectRenderData)> {
     let mut positioned_objects = Vec::new();
     let mut positioner = placement::Positioner::default();
 
@@ -136,8 +136,9 @@ pub fn position_objects<'a>(
             models.lookup_model(&data.model_id).is_displacing(),
         );
 
-        positioned_objects.push((to_vec2(pos), data));
+        positioned_objects.push((to_vec2(pos), data.clone()));
     }
+    positioned_objects.sort_by(|(pos1, _), (pos2, _)| pos1.y.total_cmp(&pos2.y));
     positioned_objects
 }
 
@@ -145,7 +146,7 @@ pub fn to_vec2((x, y): (f32, f32)) -> Vec2 {
     Vec2::new(x, crate::WINDOW_HEIGHT_F - y)
 }
 
-pub fn try_drag_camera_for_state(state: &mut render::State) {
+pub(crate) fn try_drag_camera_for_state(state: &mut render::State) {
     match &state.current_frame {
         Frame::AreaView { render_data, .. } => {
             state.camera.handle_drag(

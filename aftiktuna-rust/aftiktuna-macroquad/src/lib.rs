@@ -276,7 +276,8 @@ impl App<'_> {
         }
         self.last_frame_time = Some(Instant::now());
         let ready_for_input = self.game.ready_to_take_input();
-        self.render_state.show_frame(frame, ready_for_input);
+        self.render_state
+            .show_frame(frame, ready_for_input, &mut self.assets.models);
         self.request_input_focus = ready_for_input;
         self.command_tooltip = None;
     }

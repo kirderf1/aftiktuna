@@ -1,7 +1,7 @@
 use super::texture::LazilyLoadedModels;
-use super::{camera, render, store_render, App};
+use super::{render, store_render, App};
 use aftiktuna::command_suggestion::{self, Suggestion};
-use aftiktuna::view::area::RenderData;
+use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::Frame;
 use macroquad::color::{Color, WHITE};
 use macroquad::input::MouseButton;
@@ -94,8 +94,9 @@ fn find_raw_command_suggestions(
         Frame::AreaView { render_data, .. } => {
             let offset_pos = mouse_pos + state.camera.get_offset();
 
-            camera::position_objects(&render_data.objects, models)
-                .into_iter()
+            state
+                .cached_objects
+                .iter()
                 .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(offset_pos))
                 .filter_map(|(_, data)| data.name_data.as_ref().zip(Some(&data.interactions)))
                 .flat_map(|(name_data, interactions)| {
@@ -126,20 +127,23 @@ pub fn draw(
             &tooltip.commands,
             line_index_at(mouse_pos, tooltip.pos, &tooltip.commands),
         );
-    } else if let Frame::AreaView { render_data, .. } = &state.current_frame {
-        let names =
-            get_hovered_object_names(render_data, models, mouse_pos + state.camera.get_offset());
+    } else {
+        let names = get_hovered_object_names(
+            &state.cached_objects,
+            models,
+            mouse_pos + state.camera.get_offset(),
+        );
         draw_lines(mouse_pos, &names, None);
     }
 }
 
 fn get_hovered_object_names<'a>(
-    render_data: &'a RenderData,
+    objects: &'a [(Vec2, ObjectRenderData)],
     models: &mut LazilyLoadedModels,
     mouse_pos: Vec2,
 ) -> Vec<&'a String> {
-    camera::position_objects(&render_data.objects, models)
-        .into_iter()
+    objects
+        .iter()
         .filter(|(pos, data)| models.get_rect_for_object(data, *pos).contains(mouse_pos))
         .filter_map(|(_, data)| data.name_data.as_ref())
         .map(|name_data| &name_data.modified_name)
