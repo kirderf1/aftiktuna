@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - "exit game" command, which may save the game and then return to the main menu
 - Added stun effect, which may be received when attacked by a bat
 - Additional decorative objects: mossy rock, tree stub, table
-- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations and ancient coints
+- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations and ancient coins
 
 ### Changed
 
@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Various text improvements
   - Certain event-describing sentences will be merged together
   - When searching a container, items of the same kind will now be counted together in the resulting message
-  - Some messages now use numbers in words instead of numericals
+  - Some messages now use numbers in words instead of numerals
   - Fancier text lists in some places (ex "Mint, Cerulean and Moss")
   - Creature attributes like "agile" and "bulky" now show up in more places
 - Introduce doorways (with the same texture as the ship exit) and use them in place of certain doors in abandoned facility locations
