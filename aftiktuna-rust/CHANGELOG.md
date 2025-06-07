@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations
+- Rendering-relevant system for grouping multiple objects of the same kind in predetermined manner, implemented for food rations and ancient coints
 
 ### Changed
 
