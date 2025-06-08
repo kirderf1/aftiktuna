@@ -1,86 +1,16 @@
-use self::camera::Camera;
-use crate::asset::{Assets, LazilyLoadedModels};
+mod frame_render;
+mod ui;
+
+use crate::Assets;
 use aftiktuna::asset::placement;
 use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
 use aftiktuna::serialization;
 use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::{Frame, FullStatus};
+use aftiktuna_three_d::asset::LazilyLoadedModels;
+use aftiktuna_three_d::Camera;
 use std::fs;
-
-mod render;
-mod ui;
-
-mod camera {
-    use aftiktuna::asset::placement;
-    use aftiktuna::core::position::Coord;
-
-    #[derive(Default)]
-    pub struct Camera {
-        pub camera_x: f32,
-        pub is_dragging: bool,
-    }
-
-    impl Camera {
-        pub fn set_center(&mut self, coord: Coord) {
-            self.camera_x = placement::coord_to_center_x(coord) - crate::WINDOW_WIDTH_F / 2.;
-        }
-
-        pub fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
-            for event in events {
-                match event {
-                    three_d::Event::MousePress {
-                        button, handled, ..
-                    } => {
-                        if !*handled && *button == three_d::MouseButton::Left {
-                            self.is_dragging = true;
-                            *handled = true;
-                        }
-                    }
-                    three_d::Event::MouseRelease {
-                        button, handled, ..
-                    } => {
-                        if self.is_dragging && *button == three_d::MouseButton::Left {
-                            self.is_dragging = false;
-                            *handled = true;
-                        }
-                    }
-                    three_d::Event::MouseMotion { delta, handled, .. } => {
-                        if !*handled && self.is_dragging {
-                            self.camera_x -= delta.0;
-                            *handled = true;
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        pub fn clamp(&mut self, area_size: Coord) {
-            self.camera_x = if area_size <= 6 {
-                (placement::coord_to_center_x(0) + placement::coord_to_center_x(area_size - 1)) / 2.
-                    - crate::WINDOW_WIDTH_F / 2.
-            } else {
-                self.camera_x.clamp(
-                    placement::coord_to_center_x(0) - 100.,
-                    placement::coord_to_center_x(area_size - 1) + 100. - crate::WINDOW_WIDTH_F,
-                )
-            };
-        }
-
-        pub fn has_space_to_drag(&self, area_size: Coord) -> [bool; 2] {
-            if area_size <= 6 {
-                [false, false]
-            } else {
-                [
-                    self.camera_x > placement::coord_to_center_x(0) - 100.,
-                    self.camera_x + crate::WINDOW_WIDTH_F
-                        < placement::coord_to_center_x(area_size - 1) + 100.,
-                ]
-            }
-        }
-    }
-}
 
 pub enum GameAction {
     ExitGame,
@@ -208,7 +138,7 @@ impl State {
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
 
-        render::render_frame(
+        frame_render::render_frame(
             &self.frame,
             &self.cached_objects,
             &self.camera,
@@ -342,7 +272,7 @@ fn find_command_suggestions(
                 .collect::<Vec<_>>()
         }
         Frame::StoreView { view, .. } => command_suggestion::for_store(
-            render::find_stock_at(screen_mouse_pos, view),
+            frame_render::find_stock_at(screen_mouse_pos, view),
             &view.sellable_items,
         ),
         Frame::LocationChoice(choice) => command_suggestion::for_location_choice(choice),

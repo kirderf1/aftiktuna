@@ -1,15 +1,15 @@
+mod app;
+mod game;
+
+use aftiktuna::asset::color::{self, AftikColorData};
+use aftiktuna::core::display::AftikColorId;
+use aftiktuna_three_d::asset::{self, BackgroundMap, LazilyLoadedModels};
+use aftiktuna_three_d::render;
+use std::collections::HashMap;
+use std::rc::Rc;
 use winit::dpi;
 use winit::event_loop::EventLoop;
 use winit::window::{Icon, Window, WindowBuilder, WindowButtons};
-
-mod app;
-mod asset;
-mod game;
-
-pub const WINDOW_WIDTH: u16 = 800;
-pub const WINDOW_HEIGHT: u16 = 600;
-pub const WINDOW_WIDTH_F: f32 = WINDOW_WIDTH as f32;
-pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
 
 fn main() -> ! {
     let (window, event_loop) = init_window();
@@ -30,7 +30,10 @@ fn init_window() -> (Window, EventLoop<()>) {
         .with_title("Aftiktuna")
         .with_window_icon(Some(small_icon))
         .with_decorations(true)
-        .with_inner_size(dpi::LogicalSize::new(WINDOW_WIDTH, WINDOW_HEIGHT))
+        .with_inner_size(dpi::LogicalSize::new(
+            aftiktuna_three_d::WINDOW_WIDTH,
+            aftiktuna_three_d::WINDOW_HEIGHT,
+        ))
         .with_resizable(false)
         .with_enabled_buttons(!WindowButtons::MAXIMIZE)
         .build(&event_loop)
@@ -75,6 +78,33 @@ impl BuiltinFonts {
     }
 }
 
+struct Assets {
+    backgrounds: BackgroundMap,
+    models: LazilyLoadedModels,
+    aftik_colors: HashMap<AftikColorId, AftikColorData>,
+    left_mouse_icon: three_d::Texture2DRef,
+    side_arrow_texture: three_d::Texture2DRef,
+    builtin_fonts: Rc<BuiltinFonts>,
+}
+
+impl Assets {
+    fn load(
+        context: three_d::Context,
+        builtin_fonts: Rc<BuiltinFonts>,
+    ) -> Result<Self, asset::Error> {
+        let left_mouse_icon = asset::load_texture("left_mouse", &context)?;
+        let side_arrow_texture = asset::load_texture("side_arrow", &context)?;
+        Ok(Self {
+            backgrounds: BackgroundMap::load(context.clone())?,
+            models: LazilyLoadedModels::new(context)?,
+            aftik_colors: color::load_aftik_color_data()?,
+            left_mouse_icon,
+            side_arrow_texture,
+            builtin_fonts,
+        })
+    }
+}
+
 fn make_centered_text_obj(
     text: &str,
     pos: three_d::Vec2,
@@ -89,7 +119,10 @@ fn make_centered_text_obj(
         0.,
     )))
     .unwrap();
-    three_d::Gm::new(three_d::Mesh::new(context, &mesh), color_material(color))
+    three_d::Gm::new(
+        three_d::Mesh::new(context, &mesh),
+        render::color_material(color),
+    )
 }
 
 fn make_text_obj(
@@ -104,7 +137,10 @@ fn make_text_obj(
         pos.x, pos.y, 0.,
     )))
     .unwrap();
-    three_d::Gm::new(three_d::Mesh::new(context, &mesh), color_material(color))
+    three_d::Gm::new(
+        three_d::Mesh::new(context, &mesh),
+        render::color_material(color),
+    )
 }
 
 fn split_screen_text_lines(
@@ -161,121 +197,6 @@ fn smallest_screen_text_split(text_gen: &three_d::TextGenerator<'static>, line: 
         last_index = index;
     }
     line.len()
-}
-
-struct Rect {
-    left: f32,
-    right: f32,
-    bottom: f32,
-    top: f32,
-}
-
-impl Rect {
-    fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
-        Self {
-            left: x,
-            right: x + width,
-            bottom: y,
-            top: y + height,
-        }
-    }
-
-    fn combine(self, other: Self) -> Self {
-        Self {
-            left: self.left.min(other.left),
-            right: self.right.max(other.right),
-            bottom: self.bottom.min(other.bottom),
-            top: self.top.max(other.top),
-        }
-    }
-
-    fn contains(&self, pos: three_d::Vec2) -> bool {
-        self.left <= pos.x && pos.x < self.right && self.bottom <= pos.y && pos.y < self.top
-    }
-}
-
-fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
-    let mut render_camera = three_d::Camera::new_2d(viewport);
-    render_camera.disable_tone_and_color_mapping();
-    render_camera
-}
-
-fn color_material(color: three_d::Vec4) -> impl three_d::Material {
-    UnalteredColorMaterial(
-        three_d::ColorMaterial {
-            render_states: three_d::RenderStates {
-                write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        color,
-    )
-}
-
-fn texture_material(texture: &three_d::Texture2DRef) -> impl three_d::Material + Clone {
-    three_d::ColorMaterial {
-        texture: Some(texture.clone()),
-        render_states: three_d::RenderStates {
-            write_mask: three_d::WriteMask::COLOR,
-            blend: three_d::Blend::STANDARD_TRANSPARENCY,
-            ..Default::default()
-        },
-        ..Default::default()
-    }
-}
-
-fn texture_color_material(
-    texture: &three_d::Texture2DRef,
-    color: three_d::Vec4,
-) -> impl three_d::Material {
-    UnalteredColorMaterial(
-        three_d::ColorMaterial {
-            texture: Some(texture.clone()),
-            render_states: three_d::RenderStates {
-                write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
-                ..Default::default()
-            },
-            ..Default::default()
-        },
-        color,
-    )
-}
-
-pub struct UnalteredColorMaterial(pub three_d::ColorMaterial, pub three_d::Vec4);
-
-impl three_d::Material for UnalteredColorMaterial {
-    fn id(&self) -> three_d::EffectMaterialId {
-        self.0.id()
-    }
-
-    fn fragment_shader_source(&self, lights: &[&dyn three_d::Light]) -> String {
-        self.0.fragment_shader_source(lights)
-    }
-
-    fn use_uniforms(
-        &self,
-        program: &three_d::Program,
-        viewer: &dyn three_d::Viewer,
-        _lights: &[&dyn three_d::Light],
-    ) {
-        viewer.color_mapping().use_uniforms(program);
-        program.use_uniform("surfaceColor", self.1);
-        if let Some(ref tex) = self.0.texture {
-            program.use_uniform("textureTransformation", tex.transformation);
-            program.use_texture("tex", tex);
-        }
-    }
-
-    fn render_states(&self) -> three_d::RenderStates {
-        self.0.render_states()
-    }
-
-    fn material_type(&self) -> three_d::MaterialType {
-        self.0.material_type()
-    }
 }
 
 fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {

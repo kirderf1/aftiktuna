@@ -1,14 +1,12 @@
-use crate::{BuiltinFonts, Rect};
-use aftiktuna::asset::background::{self as background_base, BGData};
-use aftiktuna::asset::color::AftikColorData;
+use crate::Rect;
+use aftiktuna::asset::background::{self, BGData};
 use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::display::ModelId;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Error {
@@ -41,30 +39,6 @@ impl Display for Error {
     }
 }
 
-pub struct Assets {
-    pub backgrounds: BackgroundMap,
-    pub models: LazilyLoadedModels,
-    pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
-    pub left_mouse_icon: three_d::Texture2DRef,
-    pub side_arrow_texture: three_d::Texture2DRef,
-    pub builtin_fonts: Rc<BuiltinFonts>,
-}
-
-impl Assets {
-    pub fn load(context: three_d::Context, builtin_fonts: Rc<BuiltinFonts>) -> Result<Self, Error> {
-        let left_mouse_icon = load_texture("left_mouse", &context)?;
-        let side_arrow_texture = load_texture("side_arrow", &context)?;
-        Ok(Self {
-            backgrounds: BackgroundMap::load(context.clone())?,
-            models: LazilyLoadedModels::new(context)?,
-            aftik_colors: asset_base::color::load_aftik_color_data()?,
-            left_mouse_icon,
-            side_arrow_texture,
-            builtin_fonts,
-        })
-    }
-}
-
 struct CachedLoader(HashMap<String, three_d::Texture2DRef>, three_d::Context);
 
 impl CachedLoader {
@@ -88,7 +62,7 @@ impl TextureLoader<three_d::Texture2DRef, three_d_asset::Error> for CachedLoader
     }
 }
 
-fn load_texture(
+pub fn load_texture(
     name: &str,
     context: &three_d::Context,
 ) -> Result<three_d::Texture2DRef, three_d_asset::Error> {
@@ -101,9 +75,9 @@ fn load_texture(
 pub struct BackgroundMap(HashMap<BackgroundId, BGData<three_d::Texture2DRef>>);
 
 impl BackgroundMap {
-    fn load(context: three_d::Context) -> Result<Self, Error> {
+    pub fn load(context: three_d::Context) -> Result<Self, Error> {
         let mut texture_loader = CachedLoader::new(context);
-        let background_data = background_base::load_raw_backgrounds()?;
+        let background_data = background::load_raw_backgrounds()?;
         if !background_data.contains_key(&BackgroundId::blank()) {
             return Err(Error::MissingBlankBackground);
         }
@@ -133,7 +107,7 @@ pub struct LazilyLoadedModels {
 }
 
 impl LazilyLoadedModels {
-    fn new(context: three_d::Context) -> Result<Self, Error> {
+    pub fn new(context: three_d::Context) -> Result<Self, Error> {
         let mut models = Self {
             texture_loader: CachedLoader::new(context),
             loaded_models: HashMap::new(),

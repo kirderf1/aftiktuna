@@ -1,6 +1,8 @@
-use crate::asset::{Assets, LazilyLoadedModels};
+use crate::Assets;
 use aftiktuna::command_suggestion::Suggestion;
 use aftiktuna::view::FullStatus;
+use aftiktuna_three_d::asset::LazilyLoadedModels;
+use aftiktuna_three_d::render;
 use three_d::egui;
 
 #[derive(Default)]
@@ -85,8 +87,8 @@ fn show_status_screen(status: &FullStatus, egui_context: &egui::Context) -> bool
             egui::Rect::from_min_max(
                 egui::Pos2::ZERO,
                 egui::pos2(
-                    crate::WINDOW_WIDTH_F,
-                    crate::WINDOW_HEIGHT_F - INPUT_PANEL_HEIGHT,
+                    aftiktuna_three_d::WINDOW_WIDTH_F,
+                    aftiktuna_three_d::WINDOW_HEIGHT_F - INPUT_PANEL_HEIGHT,
                 ) - STATUS_WINDOW_END_COMPENSATION,
             )
             .shrink2(STATUS_DISPLAY_OUTER_MARGIN),
@@ -274,7 +276,7 @@ pub fn draw_frame_click_icon(
         three_d::Rectangle::new(
             &frame_input.context,
             three_d::vec2(
-                crate::WINDOW_WIDTH_F - CLICK_ICON_OFFSET - width / 2.,
+                aftiktuna_three_d::WINDOW_WIDTH_F - CLICK_ICON_OFFSET - width / 2.,
                 INPUT_PANEL_HEIGHT + TEXT_PANEL_HEIGHT - CLICK_ICON_OFFSET - height / 2.,
             ),
             three_d::degrees(0.),
@@ -293,7 +295,7 @@ pub fn draw_frame_click_icon(
         },
     );
     screen.render(
-        crate::default_render_camera(frame_input.viewport),
+        render::default_render_camera(frame_input.viewport),
         [icon],
         &[],
     );
@@ -309,7 +311,7 @@ fn show_hovering<T>(
         egui_context,
         egui::LayerId::background(),
         id,
-        egui::pos2(pos.x, crate::WINDOW_HEIGHT_F - pos.y - 4.),
+        egui::pos2(pos.x, aftiktuna_three_d::WINDOW_HEIGHT_F - pos.y - 4.),
         |ui| {
             ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
 
