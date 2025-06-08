@@ -6,6 +6,6 @@ version.workspace = true
 [dependencies]
 aftiktuna = { path = ".." }
 egui.workspace = true
-egui-miniquad = "0.15.0"
+egui-miniquad = "0.16.0"
 macroquad.workspace = true
 serde_json.workspace = true

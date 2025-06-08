@@ -110,7 +110,7 @@ impl mq_camera::Camera for HorizontalDraggableCamera {
         false
     }
 
-    fn render_pass(&self) -> Option<macroquad::miniquad::RenderPass> {
+    fn render_pass(&self) -> Option<macroquad::texture::RenderPass> {
         None
     }
 

@@ -352,7 +352,7 @@ pub mod egui {
             }
         }
 
-        pub fn ui(&mut self, f: impl FnOnce(&egui::Context)) {
+        pub fn ui(&mut self, mut f: impl FnMut(&egui::Context)) {
             input::utils::repeat_all_miniquad_input(
                 &mut EventTransfer(&mut self.egui_mq),
                 self.input_subscriber,
@@ -370,7 +370,7 @@ pub mod egui {
 
     struct EventTransfer<'a>(&'a mut egui_miniquad::EguiMq);
 
-    impl<'a> miniquad::EventHandler for EventTransfer<'a> {
+    impl miniquad::EventHandler for EventTransfer<'_> {
         fn mouse_motion_event(&mut self, x: f32, y: f32) {
             self.0.mouse_motion_event(x, y)
         }

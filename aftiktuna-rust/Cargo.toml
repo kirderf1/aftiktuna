@@ -5,9 +5,9 @@ members = ["aftiktuna-editor", "aftiktuna-macroquad", "aftiktuna-three-d"]
 version = "0.10.0"
 
 [workspace.dependencies]
-egui = "0.28.1"
+egui = "0.31.1"
 indexmap = { version = "2.2.6", features = ["serde"] }
-macroquad = "0.4.5"
+macroquad = "0.4.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
