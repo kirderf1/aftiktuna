@@ -131,7 +131,7 @@ fn draw_area_view(
         })
         .collect::<Vec<_>>();
 
-    let render_camera = super::get_render_camera(camera, frame_input.viewport);
+    let render_camera = render::get_render_camera(camera, frame_input.viewport);
     screen
         .write::<three_d::RendererError>(|| {
             for object in background_objects {

@@ -1,5 +1,5 @@
 [workspace]
-members = ["aftiktuna-editor", "aftiktuna-macroquad", "aftiktuna-three-d"]
+members = ["aftiktuna-editor", "aftiktuna-editor-three-d", "aftiktuna-macroquad", "aftiktuna-three-d"]
 
 [workspace.package]
 version = "0.10.0"
@@ -10,6 +10,7 @@ indexmap = { version = "2.2.6", features = ["serde"] }
 macroquad = "0.4.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+three-d = { version = "0.18.0", default-features = false, features = ["egui-gui", "text", "window"] }
 
 
 [package]

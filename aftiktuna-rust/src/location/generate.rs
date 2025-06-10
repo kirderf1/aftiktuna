@@ -110,7 +110,7 @@ mod container {
 
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
-    areas: Vec<AreaData>,
+    pub areas: Vec<AreaData>,
     door_pairs: HashMap<String, door::DoorPairData>,
 }
 
@@ -136,12 +136,12 @@ impl LocationData {
 }
 
 #[derive(Serialize, Deserialize)]
-struct AreaData {
-    name: String,
+pub struct AreaData {
+    pub name: String,
     #[serde(default)]
-    background: BackgroundId,
-    background_offset: Option<Coord>,
-    objects: Vec<String>,
+    pub background: BackgroundId,
+    pub background_offset: Option<Coord>,
+    pub objects: Vec<String>,
     symbols: HashMap<char, SymbolData>,
 }
 

@@ -1,6 +1,6 @@
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
-pub use self::generate::LocationData;
+pub use self::generate::{AreaData, LocationData};
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight, Symbol};

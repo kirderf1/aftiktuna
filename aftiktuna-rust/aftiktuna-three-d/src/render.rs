@@ -185,6 +185,28 @@ pub fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
     render_camera
 }
 
+pub fn get_render_camera(camera: &crate::Camera, viewport: three_d::Viewport) -> three_d::Camera {
+    let mut render_camera = three_d::Camera::new_orthographic(
+        viewport,
+        three_d::vec3(
+            camera.camera_x + viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            1.0,
+        ),
+        three_d::vec3(
+            camera.camera_x + viewport.width as f32 * 0.5,
+            viewport.height as f32 * 0.5,
+            0.0,
+        ),
+        three_d::vec3(0.0, 1.0, 0.0),
+        viewport.height as f32,
+        0.0,
+        10.0,
+    );
+    render_camera.disable_tone_and_color_mapping();
+    render_camera
+}
+
 pub fn color_material(color: three_d::Vec4) -> impl three_d::Material {
     UnalteredColorMaterial(
         three_d::ColorMaterial {

@@ -1,0 +1,11 @@
+[package]
+name = "aftiktuna-editor-three-d"
+edition = "2024"
+version.workspace = true
+
+[dependencies]
+aftiktuna = { path = ".." }
+aftiktuna-three-d = { path = "../aftiktuna-three-d" }
+rfd = "0.15.3"
+serde_json.workspace = true
+three-d.workspace = true
