@@ -14,7 +14,7 @@ use std::fs::File;
 pub mod creature;
 pub mod door;
 
-mod container {
+pub mod container {
     use super::Builder;
     use crate::asset::loot::LootTableId;
     use crate::core::display::{ModelId, OrderWeight, Symbol};
@@ -27,7 +27,7 @@ mod container {
 
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
-    enum ContainerType {
+    pub enum ContainerType {
         Tent,
         Cabinet,
         Drawer,
@@ -59,7 +59,7 @@ mod container {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[serde(tag = "type", rename_all = "snake_case")]
-    enum ItemOrLoot {
+    pub enum ItemOrLoot {
         Item { item: item::Type },
         Loot { table: LootTableId },
     }
@@ -83,14 +83,19 @@ mod container {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct ContainerData {
-        container_type: ContainerType,
-        content: Vec<ItemOrLoot>,
+        pub container_type: ContainerType,
+        pub content: Vec<ItemOrLoot>,
         #[serde(default)]
-        direction: Direction,
+        pub direction: Direction,
     }
 
     impl ContainerData {
-        pub fn place(&self, pos: Pos, symbol: Symbol, builder: &mut Builder) -> Result<(), String> {
+        pub(super) fn place(
+            &self,
+            pos: Pos,
+            symbol: Symbol,
+            builder: &mut Builder,
+        ) -> Result<(), String> {
             let container = builder.gen_context.world.spawn((
                 symbol,
                 self.container_type.model_id(),
@@ -111,7 +116,7 @@ mod container {
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
     pub areas: Vec<AreaData>,
-    door_pairs: HashMap<String, door::DoorPairData>,
+    pub door_pairs: HashMap<String, door::DoorPairData>,
 }
 
 impl LocationData {
@@ -142,7 +147,7 @@ pub struct AreaData {
     pub background: BackgroundId,
     pub background_offset: Option<Coord>,
     pub objects: Vec<String>,
-    symbols: HashMap<char, SymbolData>,
+    pub symbols: HashMap<char, SymbolData>,
 }
 
 impl AreaData {
@@ -199,7 +204,7 @@ fn builtin_symbols() -> Result<HashMap<char, SymbolData>, String> {
 
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-enum SymbolData {
+pub enum SymbolData {
     LocationEntry,
     FortunaChest,
     Item {

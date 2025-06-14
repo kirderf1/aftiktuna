@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Clone)]
-pub struct DoorInfo {
+pub(crate) struct DoorInfo {
     pub pos: Pos,
     pub symbol: Symbol,
     pub model_id: ModelId,
@@ -16,7 +16,7 @@ pub struct DoorInfo {
     pub name: Noun,
 }
 
-pub fn place_pair(
+pub(crate) fn place_pair(
     world: &mut World,
     door1: DoorInfo,
     door2: DoorInfo,
@@ -49,7 +49,7 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-enum DoorType {
+pub enum DoorType {
     Door,
     Doorway,
     Shack,
@@ -91,7 +91,7 @@ impl From<DoorType> for DoorKind {
 }
 
 impl DoorType {
-    pub fn noun(self, adjective: Option<Adjective>) -> Noun {
+    fn noun(self, adjective: Option<Adjective>) -> Noun {
         let noun = match self {
             DoorType::Door => Noun::new("door", "doors"),
             DoorType::Doorway => Noun::new("doorway", "doorways"),
@@ -112,7 +112,7 @@ impl DoorType {
 
 #[derive(Copy, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-enum Adjective {
+pub enum Adjective {
     Left,
     Middle,
     Right,
@@ -129,9 +129,9 @@ impl Adjective {
 }
 
 #[derive(Clone, Serialize, Deserialize)]
-pub(super) struct DoorPairData {
+pub struct DoorPairData {
     #[serde(default)]
-    block_type: Option<BlockType>,
+    pub block_type: Option<BlockType>,
 }
 
 enum DoorPairStatus {
@@ -188,11 +188,11 @@ impl DoorPairsBuilder {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(super) struct DoorSpawnData {
-    pair_id: String,
-    display_type: DoorType,
+pub struct DoorSpawnData {
+    pub pair_id: String,
+    pub display_type: DoorType,
     #[serde(default)]
-    adjective: Option<Adjective>,
+    pub adjective: Option<Adjective>,
 }
 
 impl DoorSpawnData {

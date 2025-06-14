@@ -1,6 +1,6 @@
 use aftiktuna::asset::background;
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::location::{AreaData, LocationData};
+use aftiktuna::location::generate::{AreaData, LocationData};
 use aftiktuna_three_d::{asset, render};
 use std::fs::{self, File};
 use three_d::egui;

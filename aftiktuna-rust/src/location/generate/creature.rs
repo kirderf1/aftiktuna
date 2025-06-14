@@ -95,17 +95,17 @@ impl Type {
 
 #[derive(Serialize, Deserialize)]
 pub struct CreatureSpawnData {
-    creature: Type,
+    pub creature: Type,
     #[serde(default = "full_health")]
-    health: f32,
+    pub health: f32,
     #[serde(default)]
-    attribute: AttributeChoice,
+    pub attribute: AttributeChoice,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    aggressive: Option<bool>,
+    pub aggressive: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    tag: Option<Tag>,
+    pub tag: Option<Tag>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    direction: Option<Direction>,
+    pub direction: Option<Direction>,
 }
 
 fn full_health() -> f32 {
@@ -113,7 +113,7 @@ fn full_health() -> f32 {
 }
 
 impl CreatureSpawnData {
-    pub fn place(&self, pos: Pos, symbol: Symbol, gen_context: &mut LocationGenContext) {
+    pub(super) fn place(&self, pos: Pos, symbol: Symbol, gen_context: &mut LocationGenContext) {
         let health = Health::from_fraction(self.health);
         let attribute = self.attribute.evaluate(&mut gen_context.rng);
         let is_alive = health.is_alive();
@@ -165,14 +165,14 @@ pub enum CharacterInteraction {
 #[derive(Serialize, Deserialize)]
 pub struct NpcSpawnData {
     #[serde(default)]
-    profile: ProfileOrRandom,
-    interaction: CharacterInteraction,
+    pub profile: ProfileOrRandom,
+    pub interaction: CharacterInteraction,
     #[serde(default)]
-    direction: Option<Direction>,
+    pub direction: Option<Direction>,
 }
 
 impl NpcSpawnData {
-    pub fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
+    pub(super) fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
         let Some(profile) = self
             .profile
             .clone()
@@ -201,13 +201,13 @@ impl NpcSpawnData {
 #[derive(Serialize, Deserialize)]
 pub struct AftikCorpseData {
     #[serde(default)]
-    color: Option<AftikColorId>,
+    pub color: Option<AftikColorId>,
     #[serde(default)]
-    direction: Option<Direction>,
+    pub direction: Option<Direction>,
 }
 
 impl AftikCorpseData {
-    pub fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
+    pub(super) fn place(&self, pos: Pos, gen_context: &mut LocationGenContext) {
         let Some(color) = self.color.clone().or_else(|| {
             asset::remove_random_profile(&mut gen_context.character_profiles, &mut gen_context.rng)
                 .map(|profile| profile.color)
@@ -226,7 +226,10 @@ impl AftikCorpseData {
     }
 }
 
-pub fn aftik_builder_with_stats(profile: AftikProfile, is_name_known: bool) -> EntityBuilder {
+pub(crate) fn aftik_builder_with_stats(
+    profile: AftikProfile,
+    is_name_known: bool,
+) -> EntityBuilder {
     let mut builder = aftik_builder(profile.color);
     builder.add_bundle((
         Name {
@@ -255,10 +258,10 @@ fn aftik_builder(color: AftikColorId) -> EntityBuilder {
 
 #[derive(Serialize, Deserialize)]
 pub struct ShopkeeperSpawnData {
-    stock: Vec<StockDefinition>,
-    color: AftikColorId,
+    pub stock: Vec<StockDefinition>,
+    pub color: AftikColorId,
     #[serde(default)]
-    direction: Option<Direction>,
+    pub direction: Option<Direction>,
 }
 
 impl ShopkeeperSpawnData {
@@ -287,11 +290,11 @@ impl ShopkeeperSpawnData {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct StockDefinition {
-    item: item::Type,
+    pub item: item::Type,
     #[serde(default)]
-    price: Option<item::Price>,
+    pub price: Option<item::Price>,
     #[serde(default)]
-    quantity: Option<StockQuantity>,
+    pub quantity: Option<StockQuantity>,
 }
 
 impl StockDefinition {
@@ -316,7 +319,7 @@ impl StockDefinition {
     }
 }
 
-pub fn align_aggressiveness(world: &mut World) {
+pub(super) fn align_aggressiveness(world: &mut World) {
     let areas_with_aggressive_creatures = world
         .query::<(&Pos, &Hostile)>()
         .iter()

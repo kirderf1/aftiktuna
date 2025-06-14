@@ -62,7 +62,7 @@ pub mod color {
     }
 }
 
-pub(crate) mod loot {
+pub mod loot {
     use crate::core::item;
     use rand::distributions::WeightedIndex;
     use rand::Rng;
@@ -70,7 +70,7 @@ pub(crate) mod loot {
     use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub(crate) struct LootTableId(String);
+    pub struct LootTableId(String);
 
     #[derive(Debug, Deserialize)]
     struct LootEntry {
@@ -290,7 +290,7 @@ pub(crate) fn load_json_simple<T: DeserializeOwned>(path: impl Display) -> Resul
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct AftikProfile {
+pub struct AftikProfile {
     pub name: String,
     pub color: AftikColorId,
     pub stats: Stats,
@@ -300,7 +300,7 @@ pub(crate) struct AftikProfile {
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub(crate) enum ProfileOrRandom {
+pub enum ProfileOrRandom {
     #[default]
     Random,
     #[serde(untagged)]

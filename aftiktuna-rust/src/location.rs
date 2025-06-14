@@ -1,6 +1,7 @@
+pub mod generate;
+
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
-pub use self::generate::{AreaData, LocationData};
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
@@ -16,8 +17,6 @@ use rand::rngs::ThreadRng;
 use rand::seq::index;
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
-
-mod generate;
 
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
 enum TrackedState {
@@ -277,7 +276,7 @@ pub fn setup_location_into_game(
 ) -> Result<(), String> {
     let mut gen_context = LocationGenContext::clone_from(state);
 
-    let start_pos = LocationData::load_from_json(location_name)
+    let start_pos = generate::LocationData::load_from_json(location_name)
         .and_then(|location_data| location_data.build(&mut gen_context))
         .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
 

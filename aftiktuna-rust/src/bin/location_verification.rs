@@ -22,7 +22,7 @@ fn main() {
 }
 
 fn try_load(location_name: &str) -> bool {
-    if let Err(message) = location::LocationData::load_from_json(location_name)
+    if let Err(message) = location::generate::LocationData::load_from_json(location_name)
         .and_then(|location_data| location_data.build(&mut location::LocationGenContext::default()))
     {
         eprintln!("Failed to load location \"{location_name}\":");
