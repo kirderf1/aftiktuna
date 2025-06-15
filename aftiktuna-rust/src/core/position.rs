@@ -114,11 +114,16 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn between(from: Pos, to: Pos) -> Direction {
-        if to.get_coord() < from.get_coord() {
-            Direction::Left
+    pub fn between(from: Pos, to: Pos) -> Self {
+        from.assert_is_in_same_area(to);
+        Self::between_coords(from.get_coord(), to.get_coord())
+    }
+
+    pub fn between_coords(from: Coord, to: Coord) -> Self {
+        if to < from {
+            Self::Left
         } else {
-            Direction::Right
+            Self::Right
         }
     }
 

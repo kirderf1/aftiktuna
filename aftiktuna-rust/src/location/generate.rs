@@ -36,7 +36,7 @@ pub mod container {
     }
 
     impl ContainerType {
-        fn model_id(self) -> ModelId {
+        pub fn model_id(self) -> ModelId {
             ModelId::new(match self {
                 ContainerType::Tent => "tent",
                 ContainerType::Cabinet => "cabinet",
@@ -126,7 +126,7 @@ impl LocationData {
 
     pub fn build(self, gen_context: &mut LocationGenContext) -> Result<Pos, String> {
         let mut builder = Builder::new(gen_context, self.door_pairs);
-        let base_symbols = builtin_symbols()?;
+        let base_symbols = load_base_symbols()?;
 
         for area in self.areas {
             area.build(&mut builder, &base_symbols)?;
@@ -178,24 +178,27 @@ impl AreaData {
     }
 }
 
-struct Symbols<'a> {
+pub struct Symbols<'a> {
     parent_map: &'a HashMap<char, SymbolData>,
     map: &'a HashMap<char, SymbolData>,
 }
 
 impl<'a> Symbols<'a> {
-    fn new(parent_map: &'a HashMap<char, SymbolData>, map: &'a HashMap<char, SymbolData>) -> Self {
+    pub fn new(
+        parent_map: &'a HashMap<char, SymbolData>,
+        map: &'a HashMap<char, SymbolData>,
+    ) -> Self {
         Self { parent_map, map }
     }
 
-    fn lookup(&self, symbol: char) -> Option<&'a SymbolData> {
+    pub fn lookup(&self, symbol: char) -> Option<&'a SymbolData> {
         self.map
             .get(&symbol)
             .or_else(|| self.parent_map.get(&symbol))
     }
 }
 
-fn builtin_symbols() -> Result<HashMap<char, SymbolData>, String> {
+pub fn load_base_symbols() -> Result<HashMap<char, SymbolData>, String> {
     let file = File::open("assets/symbols.json")
         .map_err(|error| format!("Failed to open symbols file: {error}"))?;
     serde_json::from_reader::<_, HashMap<char, SymbolData>>(file)
@@ -304,7 +307,7 @@ impl<'a> Builder<'a> {
 fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     world.spawn((
         symbol,
-        ModelId::new("fortuna_chest"),
+        ModelId::fortuna_chest(),
         OrderWeight::Background,
         Noun::new("fortuna chest", "fortuna chests"),
         pos,

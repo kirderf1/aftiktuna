@@ -34,6 +34,14 @@ pub mod display {
             Self::creature("aftik")
         }
 
+        pub fn fortuna_chest() -> Self {
+            Self::new("fortuna_chest")
+        }
+
+        pub fn ship() -> Self {
+            Self::new("ship")
+        }
+
         pub fn new(name: &str) -> Self {
             Self(name.to_owned())
         }

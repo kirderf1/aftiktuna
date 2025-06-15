@@ -72,7 +72,7 @@ impl Type {
         }
     }
 
-    fn model_id(self) -> ModelId {
+    pub fn model_id(self) -> ModelId {
         ModelId::creature(match self {
             Type::Goblin => "goblin",
             Type::Eyesaur => "eyesaur",

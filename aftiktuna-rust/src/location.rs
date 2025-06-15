@@ -288,7 +288,7 @@ pub fn setup_location_into_game(
         DoorInfo {
             pos: start_pos,
             symbol: Symbol('v'),
-            model_id: ModelId::new("ship"),
+            model_id: ModelId::ship(),
             kind: DoorKind::Door,
             name: Noun::new("ship", "ships"),
         },
