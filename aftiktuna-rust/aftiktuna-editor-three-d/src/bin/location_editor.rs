@@ -12,10 +12,11 @@ use std::fs::{self, File};
 use three_d::egui;
 
 const SIDE_PANEL_WIDTH: u32 = 200;
+const BOTTOM_PANEL_HEIGHT: u32 = 30;
 
 const SIZE: (u32, u32) = (
     aftiktuna_three_d::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
-    aftiktuna_three_d::WINDOW_HEIGHT as u32,
+    aftiktuna_three_d::WINDOW_HEIGHT as u32 + BOTTOM_PANEL_HEIGHT,
 );
 
 fn main() {
@@ -69,6 +70,15 @@ fn main() {
                     ui.separator();
                     area_editor_ui(ui, &mut location_data.areas[area_index], &background_types);
                 });
+
+                let area = &mut location_data.areas[area_index];
+                bottom_panel(egui_context, |ui| {
+                    ui.horizontal(|ui| {
+                        for symbols in &mut area.objects {
+                            ui.add(egui::TextEdit::singleline(symbols).desired_width(40.));
+                        }
+                    });
+                });
             },
         );
 
@@ -111,9 +121,15 @@ fn main() {
             })
             .collect::<Vec<_>>();
 
+        let render_viewport = three_d::Viewport {
+            x: 0,
+            y: BOTTOM_PANEL_HEIGHT as i32,
+            width: aftiktuna_three_d::WINDOW_WIDTH.into(),
+            height: aftiktuna_three_d::WINDOW_HEIGHT.into(),
+        };
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
-        let render_camera = render::get_render_camera(&camera, frame_input.viewport);
+        let render_camera = render::get_render_camera(&camera, render_viewport);
         render::draw_in_order(&background, &render_camera, &screen);
         render::draw_in_order(&objects, &render_camera, &screen);
 
@@ -128,6 +144,14 @@ fn side_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egu
         .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
         .resizable(false)
         .exact_width(SIDE_PANEL_WIDTH as f32)
+        .show(egui_context, panel_contents);
+}
+
+fn bottom_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
+    egui::TopBottomPanel::bottom("bottom")
+        .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+        .resizable(false)
+        .exact_height(BOTTOM_PANEL_HEIGHT as f32)
         .show(egui_context, panel_contents);
 }
 
