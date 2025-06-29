@@ -90,7 +90,11 @@ fn main() {
                 bottom_panel(egui_context, |ui| {
                     ui.horizontal(|ui| {
                         for symbols in &mut area.objects {
-                            ui.add(egui::TextEdit::singleline(symbols).desired_width(40.));
+                            ui.add(
+                                egui::TextEdit::singleline(symbols)
+                                    .desired_width(30.)
+                                    .font(egui::TextStyle::Monospace),
+                            );
                         }
                     });
                 });
