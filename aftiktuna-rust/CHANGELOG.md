@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed potential issue in command parsing with special symbols
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.10.0] - 2025-06-07
 
@@ -35,7 +43,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Switched to a different graphics framework
 - The primary text box is now built different (uses a scroll bar for large text instead of expanding vertically)
 - "status" command now shows the crew status in a gui window
-
 
 ### Fixed
 

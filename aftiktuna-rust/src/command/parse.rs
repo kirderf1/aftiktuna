@@ -100,7 +100,7 @@ impl<'a> Parse<'a> {
 
     fn next_word(&self) -> (&str, Parse) {
         let input = self.active_input();
-        for (i, char) in input.chars().enumerate() {
+        for (i, char) in input.char_indices() {
             if char == ' ' {
                 return (&input[..i], self.advance_start(i + 1));
             }
