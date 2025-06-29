@@ -46,7 +46,7 @@ pub mod container {
             })
         }
 
-        fn noun(self) -> Noun {
+        pub fn noun(self) -> Noun {
             match self {
                 ContainerType::Tent => Noun::new("tent", "tents"),
                 ContainerType::Cabinet => Noun::new("cabinet", "cabinets"),

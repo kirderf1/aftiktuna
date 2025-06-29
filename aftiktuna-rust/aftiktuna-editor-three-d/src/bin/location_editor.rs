@@ -4,6 +4,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
+use aftiktuna::location::generate::creature::CharacterInteraction;
 use aftiktuna::location::generate::{self, AreaData, LocationData, SymbolData, Symbols};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::LazilyLoadedModels;
@@ -11,13 +12,15 @@ use aftiktuna_three_d::{asset, render};
 use std::fs::{self, File};
 use three_d::egui;
 
-const SIDE_PANEL_WIDTH: u32 = 200;
+const SIDE_PANEL_WIDTH: u32 = 250;
 const BOTTOM_PANEL_HEIGHT: u32 = 30;
 
 const SIZE: (u32, u32) = (
     aftiktuna_three_d::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
     aftiktuna_three_d::WINDOW_HEIGHT as u32 + BOTTOM_PANEL_HEIGHT,
 );
+
+const SYMBOL_LABEL_FONT: egui::FontId = egui::FontId::monospace(12.);
 
 fn main() {
     let locations_directory = fs::canonicalize("./assets/location").unwrap();
@@ -69,6 +72,18 @@ fn main() {
                     );
                     ui.separator();
                     area_editor_ui(ui, &mut location_data.areas[area_index], &background_types);
+                    ui.separator();
+                    ui.collapsing("Global Symbols", |ui| {
+                        for (char, symbol_data) in &base_symbols {
+                            ui.label(
+                                egui::RichText::new(format!(
+                                    "{char} : {}",
+                                    name_from_symbol(symbol_data)
+                                ))
+                                .font(SYMBOL_LABEL_FONT),
+                            );
+                        }
+                    });
                 });
 
                 let area = &mut location_data.areas[area_index];
@@ -169,17 +184,61 @@ fn area_editor_ui(ui: &mut egui::Ui, area: &mut AreaData, background_types: &[Ba
                 }
             }
         });
+
     ui.label("Background offset:");
-    let mut has_offset = area.background_offset.is_some();
-    ui.add(egui::Checkbox::without_text(&mut has_offset));
-    if has_offset && area.background_offset.is_none() {
-        area.background_offset = Some(0);
-    }
-    if !has_offset && area.background_offset.is_some() {
-        area.background_offset = None;
-    }
-    if let Some(offset) = &mut area.background_offset {
-        ui.add(egui::Slider::new(offset, 0..=20));
+    ui.horizontal(|ui| {
+        let mut has_offset = area.background_offset.is_some();
+        ui.add(egui::Checkbox::without_text(&mut has_offset));
+        if has_offset && area.background_offset.is_none() {
+            area.background_offset = Some(0);
+        }
+        if !has_offset && area.background_offset.is_some() {
+            area.background_offset = None;
+        }
+        if let Some(offset) = &mut area.background_offset {
+            ui.add(egui::Slider::new(offset, 0..=20));
+        }
+    });
+
+    ui.collapsing("Local Symbols", |ui| {
+        for (char, symbol_data) in &area.symbols {
+            ui.label(
+                egui::RichText::new(format!("{char} : {}", name_from_symbol(symbol_data)))
+                    .font(SYMBOL_LABEL_FONT),
+            );
+        }
+    });
+}
+
+fn name_from_symbol(symbol_data: &SymbolData) -> String {
+    match symbol_data {
+        SymbolData::LocationEntry => "Landing Spot".to_owned(),
+        SymbolData::FortunaChest => "Fortuna Chest".to_owned(),
+        SymbolData::Item { item } => format!("Item ({})", item.noun_data().singular()),
+        SymbolData::Loot { table } => format!("Loot ({})", table.0),
+        SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
+        SymbolData::Inanimate { model, .. } => format!("Object ({})", model.0),
+        SymbolData::Container(container_data) => {
+            format!(
+                "Container ({})",
+                container_data.container_type.noun().singular()
+            )
+        }
+        SymbolData::Creature(creature_spawn_data) => {
+            format!(
+                "Creature ({})",
+                creature_spawn_data.creature.noun().singular()
+            )
+        }
+        SymbolData::Shopkeeper(_) => "Shopkeeper".to_owned(),
+        SymbolData::Character(npc_spawn_data) => {
+            let interaction = match &npc_spawn_data.interaction {
+                CharacterInteraction::Recruitable => "recruitable",
+                CharacterInteraction::GivesHuntReward(_) => "hunt quest",
+            };
+            format!("NCP ({interaction})")
+        }
+        SymbolData::AftikCorpse(_) => "Aftik Corpse".to_owned(),
     }
 }
 

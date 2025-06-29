@@ -70,7 +70,7 @@ pub mod loot {
     use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
 
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub struct LootTableId(String);
+    pub struct LootTableId(pub String);
 
     #[derive(Debug, Deserialize)]
     struct LootEntry {

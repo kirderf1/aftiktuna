@@ -82,7 +82,7 @@ impl Type {
         })
     }
 
-    fn noun(self) -> Noun {
+    pub fn noun(self) -> Noun {
         match self {
             Type::Goblin => Noun::new("goblin", "goblins"),
             Type::Eyesaur => Noun::new("eyesaur", "eyesaurs"),
