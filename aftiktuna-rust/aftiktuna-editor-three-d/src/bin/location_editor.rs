@@ -245,6 +245,23 @@ fn area_editor_ui(
         }
     });
 
+    ui.horizontal(|ui| {
+        if ui.button("Add Left").clicked() {
+            area.objects.insert(0, String::default());
+        }
+        if ui.button("Add Right").clicked() {
+            area.objects.push(String::default());
+        }
+    });
+    ui.horizontal(|ui| {
+        if ui.button("Remove Left").clicked() {
+            area.objects.remove(0);
+        }
+        if ui.button("Remove Right").clicked() {
+            area.objects.pop();
+        }
+    });
+
     ui.collapsing("Local Symbols", |ui| {
         for (char, symbol_data) in &area.symbols {
             let color = if base_symbols.contains_key(char) {
