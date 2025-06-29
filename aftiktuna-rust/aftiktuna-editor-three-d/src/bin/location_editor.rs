@@ -5,7 +5,7 @@ use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::location::generate::creature::CharacterInteraction;
-use aftiktuna::location::generate::{self, AreaData, LocationData, SymbolData, Symbols};
+use aftiktuna::location::generate::{self, AreaData, LocationData, SymbolData, SymbolMap, Symbols};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
@@ -141,7 +141,7 @@ fn main() {
 
 struct Assets {
     background_map: asset::BackgroundMap,
-    base_symbols: HashMap<char, SymbolData>,
+    base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     aftik_colors: HashMap<AftikColorId, color::AftikColorData>,
 }
@@ -214,7 +214,7 @@ fn area_editor_ui(
     ui: &mut egui::Ui,
     area: &mut AreaData,
     background_types: &[BackgroundId],
-    base_symbols: &HashMap<char, SymbolData>,
+    base_symbols: &SymbolMap,
 ) {
     ui.label("Background:");
     egui::ComboBox::from_id_salt("background")

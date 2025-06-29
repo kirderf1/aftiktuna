@@ -6,6 +6,7 @@ use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::{item, FortunaChest};
 use hecs::World;
+use indexmap::IndexMap;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::HashMap;
@@ -113,6 +114,8 @@ pub mod container {
     }
 }
 
+pub type SymbolMap = IndexMap<char, SymbolData>;
+
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
     pub areas: Vec<AreaData>,
@@ -147,15 +150,11 @@ pub struct AreaData {
     pub background: BackgroundId,
     pub background_offset: Option<Coord>,
     pub objects: Vec<String>,
-    pub symbols: HashMap<char, SymbolData>,
+    pub symbols: SymbolMap,
 }
 
 impl AreaData {
-    fn build(
-        self,
-        builder: &mut Builder,
-        parent_symbols: &HashMap<char, SymbolData>,
-    ) -> Result<(), String> {
+    fn build(self, builder: &mut Builder, parent_symbols: &SymbolMap) -> Result<(), String> {
         let room = builder.gen_context.world.spawn((Area {
             size: self.objects.len(),
             label: self.name,
@@ -179,15 +178,12 @@ impl AreaData {
 }
 
 pub struct Symbols<'a> {
-    parent_map: &'a HashMap<char, SymbolData>,
-    map: &'a HashMap<char, SymbolData>,
+    parent_map: &'a SymbolMap,
+    map: &'a SymbolMap,
 }
 
 impl<'a> Symbols<'a> {
-    pub fn new(
-        parent_map: &'a HashMap<char, SymbolData>,
-        map: &'a HashMap<char, SymbolData>,
-    ) -> Self {
+    pub fn new(parent_map: &'a SymbolMap, map: &'a SymbolMap) -> Self {
         Self { parent_map, map }
     }
 
@@ -198,10 +194,10 @@ impl<'a> Symbols<'a> {
     }
 }
 
-pub fn load_base_symbols() -> Result<HashMap<char, SymbolData>, String> {
+pub fn load_base_symbols() -> Result<SymbolMap, String> {
     let file = File::open("assets/symbols.json")
         .map_err(|error| format!("Failed to open symbols file: {error}"))?;
-    serde_json::from_reader::<_, HashMap<char, SymbolData>>(file)
+    serde_json::from_reader::<_, SymbolMap>(file)
         .map_err(|error| format!("Failed to parse symbols file: {error}"))
 }
 
