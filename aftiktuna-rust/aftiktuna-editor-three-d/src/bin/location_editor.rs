@@ -9,6 +9,7 @@ use aftiktuna::location::generate::{self, AreaData, LocationData, SymbolData, Sy
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
+use std::collections::HashMap;
 use std::fs::{self, File};
 use three_d::egui;
 
@@ -71,16 +72,23 @@ fn main() {
                         |index| location_data.areas[index].name.clone(),
                     );
                     ui.separator();
-                    area_editor_ui(ui, &mut location_data.areas[area_index], &background_types);
+                    let area = &mut location_data.areas[area_index];
+                    area_editor_ui(ui, area, &background_types, &base_symbols);
                     ui.separator();
                     ui.collapsing("Global Symbols", |ui| {
                         for (char, symbol_data) in &base_symbols {
+                            let color = if area.symbols.contains_key(char) {
+                                egui::Color32::DARK_GRAY
+                            } else {
+                                egui::Color32::GRAY
+                            };
                             ui.label(
                                 egui::RichText::new(format!(
                                     "{char} : {}",
                                     name_from_symbol(symbol_data)
                                 ))
-                                .font(SYMBOL_LABEL_FONT),
+                                .font(SYMBOL_LABEL_FONT)
+                                .color(color),
                             );
                         }
                     });
@@ -174,7 +182,12 @@ fn bottom_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut e
         .show(egui_context, panel_contents);
 }
 
-fn area_editor_ui(ui: &mut egui::Ui, area: &mut AreaData, background_types: &[BackgroundId]) {
+fn area_editor_ui(
+    ui: &mut egui::Ui,
+    area: &mut AreaData,
+    background_types: &[BackgroundId],
+    base_symbols: &HashMap<char, SymbolData>,
+) {
     ui.label("Background:");
     egui::ComboBox::from_id_salt("background")
         .selected_text(&area.background.0)
@@ -206,9 +219,15 @@ fn area_editor_ui(ui: &mut egui::Ui, area: &mut AreaData, background_types: &[Ba
 
     ui.collapsing("Local Symbols", |ui| {
         for (char, symbol_data) in &area.symbols {
+            let color = if base_symbols.contains_key(char) {
+                egui::Color32::LIGHT_GRAY
+            } else {
+                egui::Color32::GRAY
+            };
             ui.label(
                 egui::RichText::new(format!("{char} : {}", name_from_symbol(symbol_data)))
-                    .font(SYMBOL_LABEL_FONT),
+                    .font(SYMBOL_LABEL_FONT)
+                    .color(color),
             );
         }
     });
