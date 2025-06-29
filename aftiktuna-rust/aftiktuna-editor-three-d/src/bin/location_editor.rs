@@ -50,10 +50,12 @@ fn main() {
         .unwrap()
         .into_keys()
         .collect::<Vec<_>>();
-    let background_map = asset::BackgroundMap::load(window.gl()).unwrap();
-    let base_symbols = generate::load_base_symbols().unwrap();
-    let mut models = LazilyLoadedModels::new(window.gl()).unwrap();
-    let mut aftik_colors = color::load_aftik_color_data().unwrap();
+    let mut assets = Assets {
+        background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
+        base_symbols: generate::load_base_symbols().unwrap(),
+        models: LazilyLoadedModels::new(window.gl()).unwrap(),
+        aftik_colors: color::load_aftik_color_data().unwrap(),
+    };
     let mut camera = aftiktuna_three_d::Camera::default();
     let mut gui = three_d::GUI::new(&window.gl());
 
@@ -73,10 +75,10 @@ fn main() {
                     );
                     ui.separator();
                     let area = &mut location_data.areas[area_index];
-                    area_editor_ui(ui, area, &background_types, &base_symbols);
+                    area_editor_ui(ui, area, &background_types, &assets.base_symbols);
                     ui.separator();
                     ui.collapsing("Global Symbols", |ui| {
-                        for (char, symbol_data) in &base_symbols {
+                        for (char, symbol_data) in &assets.base_symbols {
                             let color = if area.symbols.contains_key(char) {
                                 egui::Color32::DARK_GRAY
                             } else {
@@ -113,40 +115,8 @@ fn main() {
         camera.handle_inputs(&mut frame_input.events);
         camera.clamp(area.objects.len());
 
-        let backgorund_data = background_map.get_or_default(&area.background);
-        let background = render::render_objects_for_primary_background(
-            backgorund_data,
-            area.background_offset.unwrap_or(0),
-            camera.camera_x,
-            &frame_input.context,
-        );
-        let symbol_lookup = Symbols::new(&base_symbols, &area.symbols);
-
-        let mut objects = area
-            .objects
-            .iter()
-            .enumerate()
-            .flat_map(|(coord, symbols)| {
-                symbols
-                    .chars()
-                    .filter_map(|char| symbol_lookup.lookup(char))
-                    .map(move |symbol| object_from_symbol(symbol, coord, area.objects.len()))
-            })
-            .collect::<Vec<_>>();
-        objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
-        let objects = placement::position_objects(&objects, &mut models);
-        let objects = objects
-            .into_iter()
-            .flat_map(|(pos, object)| {
-                render::get_render_objects_for_entity(
-                    models.lookup_model(&object.model_id),
-                    pos.into(),
-                    &object.properties,
-                    &mut aftik_colors,
-                    &frame_input.context,
-                )
-            })
-            .collect::<Vec<_>>();
+        let screen = frame_input.screen();
+        screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
 
         let render_viewport = three_d::Viewport {
             x: 0,
@@ -154,16 +124,74 @@ fn main() {
             width: aftiktuna_three_d::WINDOW_WIDTH.into(),
             height: aftiktuna_three_d::WINDOW_HEIGHT.into(),
         };
-        let screen = frame_input.screen();
-        screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
-        let render_camera = render::get_render_camera(&camera, render_viewport);
-        render::draw_in_order(&background, &render_camera, &screen);
-        render::draw_in_order(&objects, &render_camera, &screen);
+        render_game_view(
+            area,
+            &camera,
+            render_viewport,
+            &screen,
+            &frame_input.context,
+            &mut assets,
+        );
 
         screen.write(|| gui.render()).unwrap();
 
         three_d::FrameOutput::default()
     });
+}
+
+struct Assets {
+    background_map: asset::BackgroundMap,
+    base_symbols: HashMap<char, SymbolData>,
+    models: LazilyLoadedModels,
+    aftik_colors: HashMap<AftikColorId, color::AftikColorData>,
+}
+
+fn render_game_view(
+    area: &AreaData,
+    camera: &aftiktuna_three_d::Camera,
+    render_viewport: three_d::Viewport,
+    screen: &three_d::RenderTarget<'_>,
+    context: &three_d::Context,
+    assets: &mut Assets,
+) {
+    let backgorund_data = assets.background_map.get_or_default(&area.background);
+    let background = render::render_objects_for_primary_background(
+        backgorund_data,
+        area.background_offset.unwrap_or(0),
+        camera.camera_x,
+        context,
+    );
+    let symbol_lookup = Symbols::new(&assets.base_symbols, &area.symbols);
+
+    let mut objects = area
+        .objects
+        .iter()
+        .enumerate()
+        .flat_map(|(coord, symbols)| {
+            symbols
+                .chars()
+                .filter_map(|char| symbol_lookup.lookup(char))
+                .map(move |symbol| object_from_symbol(symbol, coord, area.objects.len()))
+        })
+        .collect::<Vec<_>>();
+    objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
+    let objects = placement::position_objects(&objects, &mut assets.models);
+    let objects = objects
+        .into_iter()
+        .flat_map(|(pos, object)| {
+            render::get_render_objects_for_entity(
+                assets.models.lookup_model(&object.model_id),
+                pos.into(),
+                &object.properties,
+                &mut assets.aftik_colors,
+                context,
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let render_camera = render::get_render_camera(camera, render_viewport);
+    render::draw_in_order(&background, &render_camera, screen);
+    render::draw_in_order(&objects, &render_camera, screen);
 }
 
 fn side_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
