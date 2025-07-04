@@ -34,9 +34,12 @@ fn main() {
         return;
     };
 
-    let mut location_data =
-        serde_json::from_reader::<_, LocationData>(File::open(path).unwrap()).unwrap();
-    let mut area_index = 0;
+    let mut editor_data = EditorData {
+        location_data: serde_json::from_reader::<_, LocationData>(File::open(path).unwrap())
+            .unwrap(),
+        area_index: 0,
+        char_edit: None,
+    };
 
     let window = three_d::Window::new(three_d::WindowSettings {
         title: "Aftiktuna: Location Editor".to_string(),
@@ -46,11 +49,11 @@ fn main() {
     })
     .unwrap();
 
-    let background_types = background::load_index_map_backgrounds()
-        .unwrap()
-        .into_keys()
-        .collect::<Vec<_>>();
     let mut assets = Assets {
+        background_types: background::load_index_map_backgrounds()
+            .unwrap()
+            .into_keys()
+            .collect::<Vec<_>>(),
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
         base_symbols: generate::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
@@ -58,7 +61,6 @@ fn main() {
     };
     let mut camera = aftiktuna_three_d::Camera::default();
     let mut gui = three_d::GUI::new(&window.gl());
-    let mut char_edit: Option<(char, SymbolEditData)> = None;
 
     window.render_loop(move |mut frame_input| {
         gui.update(
@@ -67,74 +69,11 @@ fn main() {
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                side_panel(egui_context, |ui| {
-                    if let Some((char, symbol_edit_data)) = &mut char_edit {
-                        let area = &mut location_data.areas[area_index];
-                        let done = symbol_editor_ui(ui, symbol_edit_data, |new_char| {
-                            if new_char != *char && area.symbols.contains_key(&new_char) {
-                                SymbolStatus::Conflicting
-                            } else if assets.base_symbols.contains_key(&new_char) {
-                                SymbolStatus::Overriding
-                            } else {
-                                SymbolStatus::Unique
-                            }
-                        });
-
-                        if done {
-                            let new_char = symbol_edit_data.new_char.chars().next().unwrap();
-                            area.symbols
-                                .insert(new_char, symbol_edit_data.symbol_data.clone());
-                            if *char != new_char {
-                                area.symbols.swap_remove(char);
-                            }
-                            for objects in &mut area.objects {
-                                *objects = objects.replace(*char, &new_char.to_string());
-                            }
-                            char_edit = None;
-                        }
-                    } else {
-                        let char_to_edit = selection_ui(
-                            ui,
-                            &mut location_data.areas,
-                            &mut area_index,
-                            &background_types,
-                            &assets.base_symbols,
-                        );
-                        if let Some(char_to_edit) = char_to_edit
-                            && let Some(symbol_data) = location_data.areas[area_index]
-                                .symbols
-                                .get(&char_to_edit)
-                                .cloned()
-                        {
-                            char_edit = Some((
-                                char_to_edit,
-                                SymbolEditData {
-                                    new_char: char_to_edit.to_string(),
-                                    symbol_data,
-                                },
-                            ));
-                        }
-                    }
-                });
-
-                let area = &mut location_data.areas[area_index];
-                bottom_panel(egui_context, |ui| {
-                    ui.add_enabled_ui(char_edit.is_none(), |ui| {
-                        ui.horizontal(|ui| {
-                            for symbols in &mut area.objects {
-                                ui.add(
-                                    egui::TextEdit::singleline(symbols)
-                                        .desired_width(30.)
-                                        .font(egui::TextStyle::Monospace),
-                                );
-                            }
-                        });
-                    });
-                });
+                editor_panels(&mut editor_data, &assets, egui_context);
             },
         );
 
-        let area = &location_data.areas[area_index];
+        let area = &editor_data.location_data.areas[editor_data.area_index];
         camera.handle_inputs(&mut frame_input.events);
         camera.clamp(area.objects.len());
 
@@ -162,11 +101,90 @@ fn main() {
     });
 }
 
+struct EditorData {
+    location_data: LocationData,
+    area_index: usize,
+    char_edit: Option<(char, SymbolEditData)>,
+}
+
 struct Assets {
+    background_types: Vec<BackgroundId>,
     background_map: asset::BackgroundMap,
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     aftik_colors: HashMap<AftikColorId, color::AftikColorData>,
+}
+
+fn editor_panels(editor_data: &mut EditorData, assets: &Assets, egui_context: &egui::Context) {
+    let EditorData {
+        location_data,
+        area_index,
+        char_edit,
+    } = editor_data;
+    side_panel(egui_context, |ui| {
+        if let Some((char, symbol_edit_data)) = char_edit {
+            let area = &mut location_data.areas[*area_index];
+            let done = symbol_editor_ui(ui, symbol_edit_data, |new_char| {
+                if new_char != *char && area.symbols.contains_key(&new_char) {
+                    SymbolStatus::Conflicting
+                } else if assets.base_symbols.contains_key(&new_char) {
+                    SymbolStatus::Overriding
+                } else {
+                    SymbolStatus::Unique
+                }
+            });
+
+            if done {
+                let new_char = symbol_edit_data.new_char.chars().next().unwrap();
+                area.symbols
+                    .insert(new_char, symbol_edit_data.symbol_data.clone());
+                if *char != new_char {
+                    area.symbols.swap_remove(char);
+                }
+                for objects in &mut area.objects {
+                    *objects = objects.replace(*char, &new_char.to_string());
+                }
+                *char_edit = None;
+            }
+        } else {
+            let char_to_edit = selection_ui(
+                ui,
+                &mut location_data.areas,
+                area_index,
+                &assets.background_types,
+                &assets.base_symbols,
+            );
+            if let Some(char_to_edit) = char_to_edit
+                && let Some(symbol_data) = location_data.areas[*area_index]
+                    .symbols
+                    .get(&char_to_edit)
+                    .cloned()
+            {
+                *char_edit = Some((
+                    char_to_edit,
+                    SymbolEditData {
+                        new_char: char_to_edit.to_string(),
+                        symbol_data,
+                    },
+                ));
+            }
+        }
+    });
+
+    let area = &mut location_data.areas[*area_index];
+    bottom_panel(egui_context, |ui| {
+        ui.add_enabled_ui(char_edit.is_none(), |ui| {
+            ui.horizontal(|ui| {
+                for symbols in &mut area.objects {
+                    ui.add(
+                        egui::TextEdit::singleline(symbols)
+                            .desired_width(30.)
+                            .font(egui::TextStyle::Monospace),
+                    );
+                }
+            });
+        });
+    });
 }
 
 fn render_game_view(
