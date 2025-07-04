@@ -12,7 +12,7 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum AttributeChoice {
     None,
@@ -23,6 +23,15 @@ pub enum AttributeChoice {
 }
 
 impl AttributeChoice {
+    pub fn variants() -> impl Iterator<Item = Self> {
+        [Self::None, Self::Random].into_iter().chain(
+            CreatureAttribute::variants()
+                .iter()
+                .copied()
+                .map(Self::Attribute),
+        )
+    }
+
     fn evaluate(self, rng: &mut impl Rng) -> Option<CreatureAttribute> {
         match self {
             AttributeChoice::None => None,
@@ -44,7 +53,7 @@ impl AttributeChoice {
     }
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
     Goblin,
@@ -55,6 +64,11 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn variants() -> &'static [Self] {
+        use Type::*;
+        &[Goblin, Eyesaur, Azureclops, Scarvie, VoraciousFrog]
+    }
+
     fn is_aggressive_by_default(self) -> bool {
         match self {
             Type::Goblin | Type::Eyesaur | Type::Scarvie => false,

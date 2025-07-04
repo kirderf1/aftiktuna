@@ -165,7 +165,7 @@ pub struct Hostile {
     pub aggressive: bool,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CreatureAttribute {
     Muscular,
@@ -174,6 +174,11 @@ pub enum CreatureAttribute {
 }
 
 impl CreatureAttribute {
+    pub fn variants() -> &'static [Self] {
+        use CreatureAttribute::*;
+        &[Muscular, Bulky, Agile]
+    }
+
     pub fn adjust_stats(self, stats: &mut status::Stats) {
         match self {
             CreatureAttribute::Muscular => {

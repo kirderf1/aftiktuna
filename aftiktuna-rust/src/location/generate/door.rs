@@ -47,7 +47,7 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
     ))
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
@@ -91,7 +91,22 @@ impl From<DoorType> for DoorKind {
 }
 
 impl DoorType {
-    fn noun(self, adjective: Option<Adjective>) -> Noun {
+    pub fn variants() -> &'static [Self] {
+        use DoorType::*;
+        &[
+            Door,
+            Doorway,
+            Shack,
+            House,
+            Store,
+            Path,
+            LeftPath,
+            RightPath,
+            CrossroadPath,
+        ]
+    }
+
+    pub fn noun(self, adjective: Option<Adjective>) -> Noun {
         let noun = match self {
             DoorType::Door => Noun::new("door", "doors"),
             DoorType::Doorway => Noun::new("doorway", "doorways"),
@@ -110,7 +125,7 @@ impl DoorType {
     }
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize)]
+#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Adjective {
     Left,
@@ -119,7 +134,12 @@ pub enum Adjective {
 }
 
 impl Adjective {
-    fn word(self) -> &'static str {
+    pub fn variants() -> &'static [Self] {
+        use Adjective::*;
+        &[Left, Middle, Right]
+    }
+
+    pub fn word(self) -> &'static str {
         match self {
             Adjective::Left => "left",
             Adjective::Middle => "middle",

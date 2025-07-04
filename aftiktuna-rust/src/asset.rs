@@ -72,6 +72,12 @@ pub mod loot {
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
     pub struct LootTableId(pub String);
 
+    impl LootTableId {
+        pub fn path(&self) -> String {
+            format!("loot_table/{}.json", self.0)
+        }
+    }
+
     #[derive(Debug, Deserialize)]
     struct LootEntry {
         item: item::Type,
@@ -84,9 +90,8 @@ pub mod loot {
     }
 
     impl LootTable {
-        fn load(LootTableId(name): &LootTableId) -> Result<Self, String> {
-            let entries: Vec<LootEntry> =
-                super::load_json_simple(format!("loot_table/{name}.json"))?;
+        fn load(id: &LootTableId) -> Result<Self, String> {
+            let entries: Vec<LootEntry> = super::load_json_simple(id.path())?;
             let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
                 .map_err(|error| error.to_string())?;
             Ok(Self {

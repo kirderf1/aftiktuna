@@ -90,6 +90,24 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn variants() -> &'static [Self] {
+        use Type::*;
+        &[
+            FuelCan,
+            FoodRation,
+            Crowbar,
+            Blowtorch,
+            Keycard,
+            Knife,
+            Bat,
+            Sword,
+            Medkit,
+            MeteorChunk,
+            AncientCoin,
+            BlackOrb,
+            FourLeafClover,
+        ]
+    }
     pub fn spawn(self, world: &mut World, location: impl Component) -> Entity {
         spawn(world, self, self.price(), location)
     }

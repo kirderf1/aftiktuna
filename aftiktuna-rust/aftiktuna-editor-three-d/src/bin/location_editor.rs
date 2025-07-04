@@ -1,16 +1,25 @@
+use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{ProfileOrRandom, background, color, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
+use aftiktuna::core::item;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
-use aftiktuna::location::generate::creature::CharacterInteraction;
+use aftiktuna::location::generate::container::{ContainerData, ContainerType};
+use aftiktuna::location::generate::creature::{
+    self, AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
+    ShopkeeperSpawnData,
+};
+use aftiktuna::location::generate::door::{Adjective, DoorSpawnData, DoorType};
 use aftiktuna::location::generate::{self, AreaData, LocationData, SymbolData, SymbolMap, Symbols};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
 use std::collections::HashMap;
 use std::fs::{self, File};
+use std::hash::Hash;
+use std::path::PathBuf;
 use three_d::egui;
 
 const SIDE_PANEL_WIDTH: u32 = 250;
@@ -388,6 +397,96 @@ fn symbol_editor_ui(
         .map(symbol_lookup)
         .unwrap_or(SymbolStatus::Unique);
 
+    match &mut symbol_edit_data.symbol_data {
+        SymbolData::LocationEntry => {}
+        SymbolData::FortunaChest => {}
+        SymbolData::Item { item } => {
+            item_type_editor(ui, item, "item");
+        }
+        SymbolData::Loot { table } => {
+            loot_table_editor(ui, table);
+        }
+        SymbolData::Door(DoorSpawnData {
+            pair_id,
+            display_type,
+            adjective,
+        }) => {
+            egui::ComboBox::from_label("Door Type")
+                .selected_text(format!("{display_type:?}"))
+                .show_ui(ui, |ui| {
+                    for selectable_type in DoorType::variants() {
+                        ui.selectable_value(
+                            display_type,
+                            *selectable_type,
+                            format!("{selectable_type:?}"),
+                        );
+                    }
+                });
+            fn adjective_name(adjective: Option<Adjective>) -> &'static str {
+                adjective.map(Adjective::word).unwrap_or("none")
+            }
+            egui::ComboBox::from_label("Adjective")
+                .selected_text(adjective_name(*adjective))
+                .show_ui(ui, |ui| {
+                    for selectable_type in [None]
+                        .into_iter()
+                        .chain(Adjective::variants().iter().copied().map(Some))
+                    {
+                        ui.selectable_value(
+                            adjective,
+                            selectable_type,
+                            adjective_name(selectable_type),
+                        );
+                    }
+                });
+        }
+        SymbolData::Inanimate { model, direction } => {
+            ui.text_edit_singleline(&mut model.0);
+            if !model.file_path().as_ref().exists() {
+                ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
+            }
+            direction_editor(ui, direction, "inanimate_direction");
+        }
+        SymbolData::Container(ContainerData {
+            container_type,
+            content,
+            direction,
+        }) => {
+            egui::ComboBox::from_label("Container Type")
+                .selected_text(container_type.noun().singular())
+                .show_ui(ui, |ui| {
+                    for selectable_type in ContainerType::variants() {
+                        ui.selectable_value(
+                            container_type,
+                            *selectable_type,
+                            selectable_type.noun().singular(),
+                        );
+                    }
+                });
+            direction_editor(ui, direction, "container_direction");
+        }
+        SymbolData::Creature(creature_spawn_data) => {
+            creature_spawn_data_editor(ui, creature_spawn_data);
+        }
+        SymbolData::Shopkeeper(ShopkeeperSpawnData {
+            stock,
+            color,
+            direction,
+        }) => {
+            option_direction_editor(ui, direction, "shopkeeper_direction");
+        }
+        SymbolData::Character(NpcSpawnData {
+            profile,
+            interaction,
+            direction,
+        }) => {
+            option_direction_editor(ui, direction, "character_direction");
+        }
+        SymbolData::AftikCorpse(AftikCorpseData { color, direction }) => {
+            option_direction_editor(ui, direction, "aftik_corpse_direction");
+        }
+    }
+
     if status == SymbolStatus::Conflicting {
         ui.label(
             egui::RichText::new("New character conflicts with existing").color(egui::Color32::RED),
@@ -403,6 +502,108 @@ fn symbol_editor_ui(
         egui::Button::new("Done"),
     )
     .clicked()
+}
+
+fn creature_spawn_data_editor(
+    ui: &mut egui::Ui,
+    CreatureSpawnData {
+        creature,
+        health,
+        attribute,
+        aggressive,
+        tag,
+        direction,
+    }: &mut CreatureSpawnData,
+) {
+    egui::ComboBox::from_label("Creature Type")
+        .selected_text(creature.noun().singular())
+        .show_ui(ui, |ui| {
+            for selectable_type in creature::Type::variants() {
+                ui.selectable_value(
+                    creature,
+                    *selectable_type,
+                    selectable_type.noun().singular(),
+                );
+            }
+        });
+    ui.label("Health:");
+    ui.add(egui::Slider::new(health, 0.0..=1.0));
+
+    fn attribute_name(attribute: AttributeChoice) -> &'static str {
+        match attribute {
+            AttributeChoice::None => "none",
+            AttributeChoice::Random => "random",
+            AttributeChoice::Attribute(creature_attribute) => creature_attribute.as_adjective(),
+        }
+    }
+    egui::ComboBox::from_label("Attribute")
+        .selected_text(attribute_name(*attribute))
+        .show_ui(ui, |ui| {
+            for selectable_type in AttributeChoice::variants() {
+                ui.selectable_value(attribute, selectable_type, attribute_name(selectable_type));
+            }
+        });
+
+    fn agression_name(agression: Option<bool>) -> &'static str {
+        match agression {
+            None => "default",
+            Some(false) => "false",
+            Some(true) => "true",
+        }
+    }
+    egui::ComboBox::from_label("Agressiveness")
+        .selected_text(agression_name(*aggressive))
+        .show_ui(ui, |ui| {
+            for selectable_type in [None, Some(false), Some(true)] {
+                ui.selectable_value(aggressive, selectable_type, agression_name(selectable_type));
+            }
+        });
+
+    option_direction_editor(ui, direction, "creature_direction");
+}
+
+fn direction_editor(ui: &mut egui::Ui, direction: &mut Direction, id: impl Hash) {
+    egui::ComboBox::new(id, "Direction")
+        .selected_text(format!("{direction:?}"))
+        .show_ui(ui, |ui| {
+            for selectable in [Direction::Left, Direction::Right] {
+                ui.selectable_value(direction, selectable, format!("{selectable:?}"));
+            }
+        });
+}
+
+fn option_direction_editor(ui: &mut egui::Ui, direction: &mut Option<Direction>, id: impl Hash) {
+    egui::ComboBox::new(id, "Direction")
+        .selected_text(format!("{direction:?}"))
+        .show_ui(ui, |ui| {
+            for selectable in [None, Some(Direction::Left), Some(Direction::Right)] {
+                ui.selectable_value(direction, selectable, format!("{selectable:?}"));
+            }
+        });
+}
+
+fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut item::Type, id: impl Hash) {
+    egui::ComboBox::new(id, "Item Type")
+        .selected_text(edited_type.noun_data().singular())
+        .show_ui(ui, |ui| {
+            for selectable_type in item::Type::variants() {
+                ui.selectable_value(
+                    edited_type,
+                    *selectable_type,
+                    selectable_type.noun_data().singular(),
+                );
+            }
+        });
+}
+
+fn loot_table_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
+    ui.text_edit_singleline(&mut loot_table_id.0);
+    let path = ["assets", &loot_table_id.path()]
+        .iter()
+        .collect::<PathBuf>();
+    if !path.exists() {
+        ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
+    }
 }
 
 fn name_from_symbol(symbol_data: &SymbolData) -> String {

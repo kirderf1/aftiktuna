@@ -37,6 +37,11 @@ pub mod container {
     }
 
     impl ContainerType {
+        pub fn variants() -> &'static [Self] {
+            use ContainerType::*;
+            &[Tent, Cabinet, Drawer, Crate, Chest]
+        }
+
         pub fn model_id(self) -> ModelId {
             ModelId::new(match self {
                 ContainerType::Tent => "tent",
