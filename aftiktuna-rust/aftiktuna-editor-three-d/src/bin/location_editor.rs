@@ -133,7 +133,7 @@ fn editor_panels(editor_data: &mut EditorData, assets: &Assets, egui_context: &e
     side_panel(egui_context, |ui| {
         if let Some((char, symbol_edit_data)) = char_edit {
             let area = &mut location_data.areas[*area_index];
-            let done = symbol_editor_ui(ui, symbol_edit_data, |new_char| {
+            let action = symbol_editor_ui(ui, symbol_edit_data, |new_char| {
                 if new_char != *char && area.symbols.contains_key(&new_char) {
                     SymbolStatus::Conflicting
                 } else if assets.base_symbols.contains_key(&new_char) {
@@ -143,17 +143,23 @@ fn editor_panels(editor_data: &mut EditorData, assets: &Assets, egui_context: &e
                 }
             });
 
-            if done {
-                let new_char = symbol_edit_data.new_char.chars().next().unwrap();
-                area.symbols
-                    .insert(new_char, symbol_edit_data.symbol_data.clone());
-                if *char != new_char {
-                    area.symbols.swap_remove(char);
+            match action {
+                Some(SymbolEditAction::Done) => {
+                    let new_char = symbol_edit_data.new_char.chars().next().unwrap();
+                    area.symbols
+                        .insert(new_char, symbol_edit_data.symbol_data.clone());
+                    if *char != new_char {
+                        area.symbols.swap_remove(char);
+                    }
+                    for objects in &mut area.objects {
+                        *objects = objects.replace(*char, &new_char.to_string());
+                    }
+                    *char_edit = None;
                 }
-                for objects in &mut area.objects {
-                    *objects = objects.replace(*char, &new_char.to_string());
+                Some(SymbolEditAction::Cancel) => {
+                    *char_edit = None;
                 }
-                *char_edit = None;
+                None => {}
             }
         } else {
             let char_to_edit = selection_ui(
@@ -381,11 +387,16 @@ enum SymbolStatus {
     Overriding,
 }
 
+enum SymbolEditAction {
+    Done,
+    Cancel,
+}
+
 fn symbol_editor_ui(
     ui: &mut egui::Ui,
     symbol_edit_data: &mut SymbolEditData,
     symbol_lookup: impl FnOnce(char) -> SymbolStatus,
-) -> bool {
+) -> Option<SymbolEditAction> {
     ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
 
     ui.add(egui::TextEdit::singleline(&mut symbol_edit_data.new_char).char_limit(1));
@@ -396,6 +407,16 @@ fn symbol_editor_ui(
         .next()
         .map(symbol_lookup)
         .unwrap_or(SymbolStatus::Unique);
+
+    if status == SymbolStatus::Conflicting {
+        ui.label(
+            egui::RichText::new("Character conflicts with existing").color(egui::Color32::RED),
+        );
+    } else if status == SymbolStatus::Overriding {
+        ui.label(egui::RichText::new("Character overrides global").color(egui::Color32::YELLOW));
+    }
+
+    ui.separator();
 
     match &mut symbol_edit_data.symbol_data {
         SymbolData::LocationEntry => {}
@@ -487,21 +508,26 @@ fn symbol_editor_ui(
         }
     }
 
-    if status == SymbolStatus::Conflicting {
-        ui.label(
-            egui::RichText::new("New character conflicts with existing").color(egui::Color32::RED),
-        );
-    } else if status == SymbolStatus::Overriding {
-        ui.label(
-            egui::RichText::new("New character overrides global").color(egui::Color32::YELLOW),
-        );
-    }
+    ui.separator();
 
-    ui.add_enabled(
-        !symbol_edit_data.new_char.is_empty() && status != SymbolStatus::Conflicting,
-        egui::Button::new("Done"),
-    )
-    .clicked()
+    ui.horizontal(|ui| {
+        let done = ui
+            .add_enabled(
+                !symbol_edit_data.new_char.is_empty() && status != SymbolStatus::Conflicting,
+                egui::Button::new("Done"),
+            )
+            .clicked();
+        let cancel = ui.add(egui::Button::new("Cancel")).clicked();
+
+        if cancel {
+            Some(SymbolEditAction::Cancel)
+        } else if done {
+            Some(SymbolEditAction::Done)
+        } else {
+            None
+        }
+    })
+    .inner
 }
 
 fn creature_spawn_data_editor(
