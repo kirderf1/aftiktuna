@@ -93,7 +93,7 @@ impl Type {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CreatureSpawnData {
     pub creature: Type,
     #[serde(default = "full_health")]
@@ -162,7 +162,7 @@ pub enum CharacterInteraction {
     GivesHuntReward(GivesHuntReward),
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct NpcSpawnData {
     #[serde(default)]
     pub profile: ProfileOrRandom,
@@ -198,7 +198,7 @@ impl NpcSpawnData {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AftikCorpseData {
     #[serde(default)]
     pub color: Option<AftikColorId>,
@@ -256,7 +256,7 @@ fn aftik_builder(color: AftikColorId) -> EntityBuilder {
     builder
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ShopkeeperSpawnData {
     pub stock: Vec<StockDefinition>,
     pub color: AftikColorId,

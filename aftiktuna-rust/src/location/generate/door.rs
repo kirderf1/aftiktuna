@@ -187,7 +187,7 @@ impl DoorPairsBuilder {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct DoorSpawnData {
     pub pair_id: String,
     pub display_type: DoorType,

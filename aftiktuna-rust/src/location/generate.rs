@@ -201,7 +201,7 @@ pub fn load_base_symbols() -> Result<SymbolMap, String> {
         .map_err(|error| format!("Failed to parse symbols file: {error}"))
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum SymbolData {
     LocationEntry,
