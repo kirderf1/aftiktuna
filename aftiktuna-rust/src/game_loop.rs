@@ -27,7 +27,6 @@ pub struct GameState {
     pub world: World,
     #[serde(skip)]
     pub rng: ThreadRng,
-    #[serde(alias = "locations")] // Backwards-compatibility with 3.0
     pub generation_state: GenerationState,
     pub ship: Entity,
     pub controlled: Entity,

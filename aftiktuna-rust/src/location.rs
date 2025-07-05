@@ -29,15 +29,7 @@ enum TrackedState {
 pub struct GenerationState {
     locations: Locations,
     state: TrackedState,
-    #[serde(default = "load_profiles_or_default")] // Backwards-compatibility with 3.0
     character_profiles: Vec<AftikProfile>,
-}
-
-fn load_profiles_or_default() -> Vec<AftikProfile> {
-    asset::load_character_profiles().unwrap_or_else(|message| {
-        eprintln!("{message}");
-        Vec::default()
-    })
 }
 
 impl GenerationState {

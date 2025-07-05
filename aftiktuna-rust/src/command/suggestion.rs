@@ -87,7 +87,6 @@ pub enum InteractionType {
     Item,
     Container,
     Wieldable,
-    UseMedkit, // backwards-compatibility with 3.0
     Door,
     Forceable,
     ShipControls,
@@ -109,7 +108,6 @@ impl InteractionType {
             InteractionType::Item => vec![simple!("take {name}"), simple!("check {name}")],
             InteractionType::Container => vec![simple!("search {name}")],
             InteractionType::Wieldable => vec![simple!("wield {name}")],
-            InteractionType::UseMedkit => vec![simple!("use medkit")],
             InteractionType::Door => vec![simple!("enter {name}")],
             InteractionType::Forceable => vec![simple!("force {name}")],
             InteractionType::ShipControls => {
@@ -121,7 +119,6 @@ impl InteractionType {
                     simple!("control {name}"),
                     simple!("status"),
                     simple!("rest"),
-                    simple!("talk to {name}"), // backwards-compatibility with 3.0
                     simple!("tell {name} to wait at ship"),
                     recursive!(inventory.iter().map(ItemProfile::name), "give {name} {}"),
                 ]
@@ -151,10 +148,7 @@ impl InteractionType {
             }
             InteractionType::Shopkeeper => vec![simple!("trade")],
             InteractionType::Recruitable => {
-                vec![
-                    simple!("recruit {name}"),
-                    simple!("talk to {name}"), // backwards-compatibility with 3.0
-                ]
+                vec![simple!("recruit {name}")]
             }
             InteractionType::Talkable => {
                 vec![simple!("talk to {name}")]
