@@ -84,7 +84,7 @@ fn draw_example_content(
     let mut positioner = Positioner::default();
     let mut draw_model = move |coord: Coord, model_id: &ModelId| {
         let model = models.lookup_model(model_id);
-        let (pos, _) = positioner.position_object(coord, model.is_displacing());
+        let pos = positioner.position_object(coord, model);
         model::draw_model(
             model,
             aftiktuna_macroquad::to_vec2(pos),

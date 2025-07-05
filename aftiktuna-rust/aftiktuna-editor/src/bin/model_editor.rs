@@ -109,7 +109,7 @@ fn draw_examples(
     bidirectional(|direction| {
         mq_model::draw_model(
             model,
-            to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+            to_vec2(positioner.position_object(get_and_move_coord(), model)),
             false,
             &RenderProperties {
                 direction,
@@ -123,7 +123,7 @@ fn draw_examples(
         let coord = get_and_move_coord();
         mq_model::draw_model(
             model,
-            to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, model)),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -132,7 +132,7 @@ fn draw_examples(
         );
         mq_model::draw_model(
             aftik_model,
-            to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, aftik_model)),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -143,7 +143,7 @@ fn draw_examples(
         let coord = get_and_move_coord();
         mq_model::draw_model(
             aftik_model,
-            to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, aftik_model)),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -152,7 +152,7 @@ fn draw_examples(
         );
         mq_model::draw_model(
             model,
-            to_vec2(positioner.position_object(coord, true).0),
+            to_vec2(positioner.position_object(coord, model)),
             false,
             &RenderProperties {
                 ..Default::default()
@@ -164,7 +164,7 @@ fn draw_examples(
         for (pos, _) in positioner.position_groups_from_offsets(
             model.group_placement.position(group_size),
             coord,
-            true,
+            model,
         ) {
             mq_model::draw_model(
                 model,
@@ -181,7 +181,7 @@ fn draw_examples(
             let coord = get_and_move_coord();
             mq_model::draw_model(
                 model,
-                to_vec2(positioner.position_object(coord, false).0),
+                to_vec2(positioner.position_object(coord, model)),
                 false,
                 &RenderProperties {
                     direction,
@@ -191,7 +191,7 @@ fn draw_examples(
             );
             mq_model::draw_model(
                 aftik_model,
-                to_vec2(positioner.position_object(coord, true).0),
+                to_vec2(positioner.position_object(coord, aftik_model)),
                 false,
                 &RenderProperties {
                     direction,
@@ -210,7 +210,7 @@ fn draw_examples(
         bidirectional(|direction| {
             mq_model::draw_model(
                 model,
-                to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+                to_vec2(positioner.position_object(get_and_move_coord(), model)),
                 false,
                 &RenderProperties {
                     direction,
@@ -230,7 +230,7 @@ fn draw_examples(
         bidirectional(|direction| {
             mq_model::draw_model(
                 model,
-                to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+                to_vec2(positioner.position_object(get_and_move_coord(), model)),
                 false,
                 &RenderProperties {
                     direction,
@@ -250,7 +250,7 @@ fn draw_examples(
         bidirectional(|direction| {
             mq_model::draw_model(
                 model,
-                to_vec2(positioner.position_object(get_and_move_coord(), false).0),
+                to_vec2(positioner.position_object(get_and_move_coord(), model)),
                 false,
                 &RenderProperties {
                     direction,
@@ -264,7 +264,7 @@ fn draw_examples(
 
     if raw_model.wield_offset != (0, 0) {
         bidirectional(|direction| {
-            let pos = to_vec2(positioner.position_object(get_and_move_coord(), false).0);
+            let pos = to_vec2(positioner.position_object(get_and_move_coord(), aftik_model));
             mq_model::draw_model(
                 aftik_model,
                 pos,
@@ -323,6 +323,9 @@ fn side_panel(
             if ui.button("Clear Offset").clicked() {
                 model.wield_offset = (0, 0);
             }
+
+            ui.label("Z-offset:");
+            ui.add(egui::DragValue::new(&mut model.z_offset));
 
             ui.checkbox(&mut model.mounted, "Mounted / Background");
 

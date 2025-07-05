@@ -126,7 +126,7 @@ pub mod loot {
 }
 
 pub mod placement {
-    use crate::asset::model::{ModelAccess, Offsets};
+    use crate::asset::model::{Model, ModelAccess, Offsets};
     use crate::core::position::Coord;
     use crate::view::area::ObjectRenderData;
     use std::collections::HashMap;
@@ -189,7 +189,7 @@ pub mod placement {
             &mut self,
             object_group: Vec<ObjectRenderData>,
             models: &mut impl ModelAccess<T>,
-        ) -> Vec<((Vec2, u16), ObjectRenderData)> {
+        ) -> Vec<((Vec2, i16), ObjectRenderData)> {
             if let Some((coord, model)) = object_group
                 .first()
                 .map(|object| (object.coord, models.lookup_model(&object.model_id)))
@@ -197,7 +197,7 @@ pub mod placement {
                 self.position_groups_from_offsets(
                     model.group_placement.position(object_group.len() as u16),
                     coord,
-                    model.is_displacing(),
+                    model,
                 )
                 .into_iter()
                 .zip(object_group)
@@ -207,45 +207,43 @@ pub mod placement {
             }
         }
 
-        pub fn position_groups_from_offsets(
+        pub fn position_groups_from_offsets<T>(
             &mut self,
             offset_groups: Vec<Offsets>,
             coord: usize,
-            is_displacing: bool,
-        ) -> Vec<(Vec2, u16)> {
+            model: &Model<T>,
+        ) -> Vec<(Vec2, i16)> {
             offset_groups
                 .into_iter()
                 .flat_map(|offsets| {
-                    let (base_pos, z) = self.position_object(coord, is_displacing);
+                    let (x, z) = self.position_object(coord, model);
                     offsets.into_iter().map(move |offset| {
                         (
-                            (
-                                base_pos.0 + f32::from(offset.0),
-                                base_pos.1 + f32::from(offset.1),
-                            ),
-                            z,
+                            (x + f32::from(offset.0), z + f32::from(offset.1)),
+                            -z as i16,
                         )
                     })
                 })
                 .collect()
         }
 
-        pub fn position_object(&mut self, coord: Coord, is_displacing: bool) -> (Vec2, u16) {
-            if is_displacing {
+        pub fn position_object<T>(&mut self, coord: Coord, model: &Model<T>) -> Vec2 {
+            let count = if model.is_displacing() {
                 let count_ref = self.coord_counts.entry(coord).or_insert(0);
                 let count = *count_ref;
                 *count_ref = count + 1;
-                (position_from_coord(coord, count), count + 1)
+                count
             } else {
-                (position_from_coord(coord, 0), 0)
-            }
+                0
+            };
+            position_from_coord(coord, count, model.z_offset)
         }
     }
 
-    fn position_from_coord(coord: Coord, count: u16) -> Vec2 {
+    fn position_from_coord(coord: Coord, count: u16, z_offset: i16) -> Vec2 {
         (
             coord_to_center_x(coord) - f32::from(count) * 15.,
-            (190 - count * 15) as f32,
+            f32::from(190 - count * 15) - f32::from(z_offset),
         )
     }
 }

@@ -1,7 +1,8 @@
 {
   "layers": [
-    { "texture": "shack", "y_offset": -30, "fixed": true, "if_cut": false },
-    { "texture": "cut_shack", "y_offset": -15, "fixed": true, "if_cut": true }
+    { "texture": "shack", "fixed": true, "if_cut": false },
+    { "texture": "cut_shack", "y_offset": 15, "fixed": true, "if_cut": true }
   ],
+  "z_offset": -30,
   "mounted": true
 }

@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "environment/tree2", "y_offset": -35, "fixed": true }
+    { "texture": "environment/tree2", "y_offset": 5, "fixed": true }
   ],
+  "z_offset": -40,
   "mounted": true
 }

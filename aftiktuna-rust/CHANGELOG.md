@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 4.0, making it incompatible with previous save files
 - Reworked field backgrounds with manually placed tree objects
+- New model field "z_offset" that helps influence the rendering order
 
 ### Fixed
 

@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "path/crossroad", "y_offset": 30, "fixed": true }
+    { "texture": "path/crossroad", "y_offset": 120, "fixed": true }
   ],
+  "z_offset": -90,
   "mounted": true
 }

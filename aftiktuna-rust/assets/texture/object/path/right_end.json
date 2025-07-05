@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "path/right_end", "y_offset": 30, "fixed": true }
+    { "texture": "path/right_end", "y_offset": 120, "fixed": true }
   ],
+  "z_offset": -90,
   "mounted": true
 }

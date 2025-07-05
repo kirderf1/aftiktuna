@@ -1,6 +1,7 @@
 {
   "layers": [
-    { "texture": "doorway", "y_offset": -30, "fixed": true }
+    { "texture": "doorway", "fixed": true }
   ],
+  "z_offset": -30,
   "mounted": true
 }

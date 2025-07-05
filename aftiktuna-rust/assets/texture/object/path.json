@@ -1,4 +1,7 @@
 {
-  "layers": [{ "texture": "path/detached", "fixed": true }],
+  "layers": [
+    { "texture": "path/detached", "y_offset": 90, "fixed": true }
+  ],
+  "z_offset": -90,
   "mounted": true
 }

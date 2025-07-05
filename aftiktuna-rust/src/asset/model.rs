@@ -13,6 +13,8 @@ pub struct Model<T> {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub wield_offset: (i16, i16),
     #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub z_offset: i16,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub mounted: bool,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub group_placement: GroupPlacement,
@@ -33,6 +35,7 @@ impl Model<String> {
         layers.reverse();
         Ok(Model {
             layers,
+            z_offset: self.z_offset,
             wield_offset: self.wield_offset,
             mounted: self.mounted,
             group_placement: self.group_placement.clone(),
