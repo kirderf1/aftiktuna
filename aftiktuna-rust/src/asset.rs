@@ -1,4 +1,5 @@
 pub mod background;
+pub mod location;
 pub mod model;
 
 pub mod color {

@@ -1,3 +1,4 @@
+use aftiktuna::asset::location::LocationData;
 use aftiktuna::location;
 
 fn main() {
@@ -22,9 +23,12 @@ fn main() {
 }
 
 fn try_load(location_name: &str) -> bool {
-    if let Err(message) = location::generate::LocationData::load_from_json(location_name)
-        .and_then(|location_data| location_data.build(&mut location::LocationGenContext::default()))
-    {
+    if let Err(message) = LocationData::load_from_json(location_name).and_then(|location_data| {
+        location::generate::build_location(
+            location_data,
+            &mut location::LocationGenContext::default(),
+        )
+    }) {
         eprintln!("Failed to load location \"{location_name}\":");
         eprintln!("{message}");
         false

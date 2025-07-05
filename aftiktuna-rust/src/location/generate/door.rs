@@ -1,10 +1,10 @@
 use super::Builder;
+use crate::asset::location::{DoorPairData, DoorSpawnData};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::Pos;
 use crate::core::{BlockType, Door, DoorKind};
 use hecs::{Entity, World};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -28,11 +28,11 @@ pub(crate) fn place_pair(
     };
     let dest1 = door2.pos;
     let dest2 = door1.pos;
-    place(world, door1, dest1, door_pair);
-    place(world, door2, dest2, door_pair);
+    spawn(world, door1, dest1, door_pair);
+    spawn(world, door2, dest2, door_pair);
 }
 
-fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
+fn spawn(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
     world.spawn((
         info.symbol,
         info.model_id,
@@ -45,113 +45,6 @@ fn place(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
             door_pair,
         },
     ))
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum DoorType {
-    Door,
-    Doorway,
-    Shack,
-    House,
-    Store,
-    Path,
-    LeftPath,
-    RightPath,
-    CrossroadPath,
-}
-
-impl From<DoorType> for ModelId {
-    fn from(value: DoorType) -> Self {
-        match value {
-            DoorType::Door => ModelId::new("door"),
-            DoorType::Doorway => ModelId::new("doorway"),
-            DoorType::Shack | DoorType::House | DoorType::Store => ModelId::new("shack"),
-            DoorType::Path => ModelId::new("path"),
-            DoorType::LeftPath => ModelId::new("path/left_corner"),
-            DoorType::RightPath => ModelId::new("path/right_corner"),
-            DoorType::CrossroadPath => ModelId::new("path/crossroad"),
-        }
-    }
-}
-
-impl From<DoorType> for DoorKind {
-    fn from(value: DoorType) -> Self {
-        match value {
-            DoorType::Door
-            | DoorType::Doorway
-            | DoorType::Shack
-            | DoorType::House
-            | DoorType::Store => DoorKind::Door,
-            DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
-                DoorKind::Path
-            }
-        }
-    }
-}
-
-impl DoorType {
-    pub fn variants() -> &'static [Self] {
-        use DoorType::*;
-        &[
-            Door,
-            Doorway,
-            Shack,
-            House,
-            Store,
-            Path,
-            LeftPath,
-            RightPath,
-            CrossroadPath,
-        ]
-    }
-
-    pub fn noun(self, adjective: Option<Adjective>) -> Noun {
-        let noun = match self {
-            DoorType::Door => Noun::new("door", "doors"),
-            DoorType::Doorway => Noun::new("doorway", "doorways"),
-            DoorType::Shack => Noun::new("shack", "shacks"),
-            DoorType::House => Noun::new("house", "houses"),
-            DoorType::Store => Noun::new("store", "stores"),
-            DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
-                Noun::new("path", "paths")
-            }
-        };
-        if let Some(adjective) = adjective {
-            noun.with_adjective(adjective.word())
-        } else {
-            noun
-        }
-    }
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Adjective {
-    Left,
-    Middle,
-    Right,
-}
-
-impl Adjective {
-    pub fn variants() -> &'static [Self] {
-        use Adjective::*;
-        &[Left, Middle, Right]
-    }
-
-    pub fn word(self) -> &'static str {
-        match self {
-            Adjective::Left => "left",
-            Adjective::Middle => "middle",
-            Adjective::Right => "right",
-        }
-    }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct DoorPairData {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub block_type: Option<BlockType>,
 }
 
 enum DoorPairStatus {
@@ -207,39 +100,29 @@ impl DoorPairsBuilder {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct DoorSpawnData {
-    pub pair_id: String,
-    pub display_type: DoorType,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub adjective: Option<Adjective>,
-}
+pub(super) fn place(
+    spawn_data: &DoorSpawnData,
+    pos: Pos,
+    symbol: Symbol,
+    builder: &mut Builder,
+) -> Result<(), String> {
+    {
+        let DoorSpawnData {
+            pair_id,
+            display_type,
+            adjective,
+        } = spawn_data;
 
-impl DoorSpawnData {
-    pub(super) fn place(
-        &self,
-        pos: Pos,
-        symbol: Symbol,
-        builder: &mut Builder,
-    ) -> Result<(), String> {
-        {
-            let Self {
-                pair_id,
-                display_type,
-                adjective,
-            } = self;
+        let door_info = DoorInfo {
+            pos,
+            symbol,
+            model_id: ModelId::from(*display_type),
+            kind: DoorKind::from(*display_type),
+            name: display_type.noun(*adjective),
+        };
 
-            let door_info = DoorInfo {
-                pos,
-                symbol,
-                model_id: ModelId::from(*display_type),
-                kind: DoorKind::from(*display_type),
-                name: display_type.noun(*adjective),
-            };
-
-            builder
-                .door_pair_builder
-                .add_door(pair_id, door_info, &mut builder.gen_context.world)
-        }
+        builder
+            .door_pair_builder
+            .add_door(pair_id, door_info, &mut builder.gen_context.world)
     }
 }

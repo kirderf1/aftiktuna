@@ -1,3 +1,11 @@
+use aftiktuna::asset::location::creature::{
+    self, AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
+    ShopkeeperSpawnData,
+};
+use aftiktuna::asset::location::{
+    self, AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType,
+    LocationData, SymbolData, SymbolMap,
+};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{ProfileOrRandom, background, color, placement};
@@ -6,13 +14,7 @@ use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::item;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
-use aftiktuna::location::generate::container::{ContainerData, ContainerType};
-use aftiktuna::location::generate::creature::{
-    self, AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
-    ShopkeeperSpawnData,
-};
-use aftiktuna::location::generate::door::{Adjective, DoorSpawnData, DoorType};
-use aftiktuna::location::generate::{self, AreaData, LocationData, SymbolData, SymbolMap, Symbols};
+use aftiktuna::location::generate::Symbols;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
@@ -64,7 +66,7 @@ fn main() {
             .into_keys()
             .collect::<Vec<_>>(),
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
-        base_symbols: generate::load_base_symbols().unwrap(),
+        base_symbols: location::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
         aftik_colors: color::load_aftik_color_data().unwrap(),
     };
@@ -466,15 +468,15 @@ fn symbol_editor_ui(
                         );
                     }
                 });
-            fn adjective_name(adjective: Option<Adjective>) -> &'static str {
-                adjective.map(Adjective::word).unwrap_or("none")
+            fn adjective_name(adjective: Option<DoorAdjective>) -> &'static str {
+                adjective.map(DoorAdjective::word).unwrap_or("none")
             }
             egui::ComboBox::from_label("Adjective")
                 .selected_text(adjective_name(*adjective))
                 .show_ui(ui, |ui| {
                     for selectable_type in [None]
                         .into_iter()
-                        .chain(Adjective::variants().iter().copied().map(Some))
+                        .chain(DoorAdjective::variants().iter().copied().map(Some))
                     {
                         ui.selectable_value(
                             adjective,

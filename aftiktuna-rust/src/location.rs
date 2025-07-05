@@ -2,6 +2,7 @@ pub mod generate;
 
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
+use crate::asset::location::LocationData;
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
@@ -276,8 +277,8 @@ pub fn setup_location_into_game(
 ) -> Result<(), String> {
     let mut gen_context = LocationGenContext::clone_from(state);
 
-    let start_pos = generate::LocationData::load_from_json(location_name)
-        .and_then(|location_data| location_data.build(&mut gen_context))
+    let start_pos = LocationData::load_from_json(location_name)
+        .and_then(|location_data| generate::build_location(location_data, &mut gen_context))
         .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
 
     gen_context.apply_to_game_state(state);
