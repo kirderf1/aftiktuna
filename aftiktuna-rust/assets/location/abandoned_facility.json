@@ -13,9 +13,9 @@
     },
     {
       "name": "Field",
-      "background": "field_with_trees",
-      "background_offset": 0,
-      "objects": [ "^", "", "S", "k", "#" ],
+      "background": "field",
+      "background_offset": 2,
+      "objects": [ "^", "1", "S", "k", "7" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "path", "display_type": "path" },
         "k": { "type": "item", "item": "keycard" },

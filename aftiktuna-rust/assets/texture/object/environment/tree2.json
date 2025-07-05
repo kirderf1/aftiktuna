@@ -1,0 +1,6 @@
+{
+  "layers": [
+    { "texture": "environment/tree2", "y_offset": -35, "fixed": true }
+  ],
+  "mounted": true
+}

@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 4.0, making it incompatible with previous save files
+- Reworked field backgrounds with manually placed tree objects
 
 ### Fixed
 

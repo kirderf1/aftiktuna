@@ -2,9 +2,9 @@
   "areas": [
     {
       "name": "Village road",
-      "background": "field_with_trees",
-      "background_offset": 5,
-      "objects": [ "", "<.", "-", "-", "-v", "-", "|", "-", ">,", "" ],
+      "background": "field",
+      "background_offset": 1,
+      "objects": [ "", "<.", "-", "-", "-v", "-4", "|", "-", ">,", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "aftik_house", "display_type": "house" },
         "|": { "type": "door", "pair_id": "road", "display_type": "crossroad_path" },
@@ -15,9 +15,9 @@
     },
     {
       "name": "Village road",
-      "background": "field_with_trees",
-      "background_offset": 5,
-      "objects": [ "", "\\", "-", "-", "-", "|", "-", "-", "-<", "-", "-", "-A", ".>", "" ],
+      "background": "field",
+      "background_offset": 0,
+      "objects": [ "3", "\\", "-7", "-", "-", "|", "-", "-", "-<", "-", "-5", "-A", ".>", "" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "side", "display_type": "left_path", "adjective": "left" },
         "|": { "type": "door", "pair_id": "road", "display_type": "crossroad_path", "adjective": "right" },

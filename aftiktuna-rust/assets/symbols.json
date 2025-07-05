@@ -10,5 +10,13 @@
   "E": { "type": "creature", "creature": "eyesaur" },
   "Z": { "type": "creature", "creature": "azureclops" },
   "S": { "type": "creature", "creature": "scarvie" },
-  "F": { "type": "creature", "creature": "voracious_frog" }
+  "F": { "type": "creature", "creature": "voracious_frog" },
+  "1": { "type": "inanimate", "model": "environment/tree1"},
+  "2": { "type": "inanimate", "model": "environment/tree2"},
+  "3": { "type": "inanimate", "model": "environment/tree3"},
+  "4": { "type": "inanimate", "model": "environment/tree4"},
+  "5": { "type": "inanimate", "model": "environment/tree5"},
+  "6": { "type": "inanimate", "model": "environment/tree6"},
+  "7": { "type": "inanimate", "model": "environment/tree7"},
+  "8": { "type": "inanimate", "model": "environment/tree8"}
 }
