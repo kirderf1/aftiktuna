@@ -654,7 +654,7 @@ fn main() {
 
         let area = &editor_data.location_data.areas[editor_data.area_index];
         camera.handle_inputs(&mut frame_input.events);
-        camera.clamp(area.objects.len());
+        camera.clamp(area.objects.len() as Coord);
 
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
@@ -729,7 +729,9 @@ fn render_game_view(
             symbols
                 .chars()
                 .filter_map(|char| symbol_lookup.lookup(char))
-                .map(move |symbol| object_from_symbol(symbol, coord, area.objects.len()))
+                .map(move |symbol| {
+                    object_from_symbol(symbol, coord as Coord, area.objects.len() as Coord)
+                })
         })
         .collect::<Vec<_>>();
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));

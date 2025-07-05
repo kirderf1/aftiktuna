@@ -21,14 +21,15 @@ pub(super) fn push_area_view_lines(text_lines: &mut Vec<String>, render_data: &R
     text_lines.push(format!("{name}:", name = render_data.area_label));
 
     let area_size = render_data.area_size;
-    let mut symbols_by_pos: Vec<Vec<(Symbol, OrderWeight)>> = init_symbol_vectors(area_size);
+    let mut symbols_by_pos: Vec<Vec<(Symbol, OrderWeight)>> =
+        init_symbol_vectors(area_size as usize);
     let mut labels: HashMap<Symbol, String> = HashMap::new();
 
     for object in &render_data.objects {
         if let Some(name_data) = &object.name_data {
             let symbol = insert_label_at_available_symbol(name_data, &mut labels);
 
-            symbols_by_pos[object.coord].push((symbol, object.weight));
+            symbols_by_pos[object.coord as usize].push((symbol, object.weight));
         }
     }
 
@@ -39,8 +40,8 @@ pub(super) fn push_area_view_lines(text_lines: &mut Vec<String>, render_data: &R
     let rows: usize = max(1, symbols_by_pos.iter().map(Vec::len).max().unwrap());
     for row in (0..rows).rev() {
         let base_symbol = if row == 0 { '_' } else { ' ' };
-        let mut symbols = vec![base_symbol; area_size];
-        for pos in 0..area_size {
+        let mut symbols = vec![base_symbol; area_size as usize];
+        for pos in 0..symbols.len() {
             if let Some(&(symbol, _)) = symbols_by_pos[pos].get(row) {
                 symbols[pos] = symbol.0;
             }

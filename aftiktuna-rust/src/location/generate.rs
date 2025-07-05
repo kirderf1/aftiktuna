@@ -10,7 +10,7 @@ use crate::core::area::Area;
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
-use crate::core::position::Pos;
+use crate::core::position::{Coord, Pos};
 use crate::core::FortunaChest;
 use hecs::{Entity, World};
 use rand::seq::SliceRandom;
@@ -39,7 +39,7 @@ fn build_area(
     parent_symbols: &SymbolMap,
 ) -> Result<(), String> {
     let room = builder.gen_context.world.spawn((Area {
-        size: area_data.objects.len(),
+        size: area_data.objects.len().try_into().unwrap(),
         label: area_data.name,
         background: area_data.background,
         background_offset: area_data.background_offset,
@@ -48,7 +48,7 @@ fn build_area(
     let symbols = Symbols::new(parent_symbols, &area_data.symbols);
 
     for (coord, objects) in area_data.objects.iter().enumerate() {
-        let pos = Pos::new(room, coord, &builder.gen_context.world);
+        let pos = Pos::new(room, coord as Coord, &builder.gen_context.world);
         for symbol in objects.chars() {
             match symbols.lookup(symbol) {
                 Some(symbol_data) => place_symbol(symbol_data, pos, Symbol(symbol), builder)?,

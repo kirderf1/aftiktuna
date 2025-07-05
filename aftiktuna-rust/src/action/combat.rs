@@ -31,7 +31,7 @@ pub(super) fn attack(
             other_pos.is_in(pos.get_area()) && status::is_alive(*entity, &state.world)
         })
         // collects the closest targets and also maps them to just the entity in one
-        .fold((usize::MAX, vec![]), |mut partial, (entity, other_pos)| {
+        .fold((u32::MAX, vec![]), |mut partial, (entity, other_pos)| {
             let distance = other_pos.distance_to(pos);
             match distance.cmp(&partial.0) {
                 Ordering::Less => (distance, vec![entity]),

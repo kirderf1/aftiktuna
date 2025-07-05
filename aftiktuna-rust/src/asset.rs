@@ -147,10 +147,10 @@ pub mod placement {
         let mut positioned_objects = Vec::new();
         let mut positioner = Positioner::default();
         let mut groups_cache: Vec<Vec<ObjectRenderData>> =
-            vec![Vec::new(); objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1];
+            vec![Vec::new(); (objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1) as usize];
 
         for data in objects {
-            let object_group = &mut groups_cache[data.coord];
+            let object_group = &mut groups_cache[data.coord as usize];
             if object_group
                 .first()
                 .is_some_and(|cached_object| cached_object.model_id != data.model_id)
@@ -210,7 +210,7 @@ pub mod placement {
         pub fn position_groups_from_offsets<T>(
             &mut self,
             offset_groups: Vec<Offsets>,
-            coord: usize,
+            coord: Coord,
             model: &Model<T>,
         ) -> Vec<(Vec2, i16)> {
             offset_groups

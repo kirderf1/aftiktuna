@@ -7,7 +7,7 @@ use std::ops::RangeBounds;
 
 use super::CrewMember;
 
-pub type Coord = usize;
+pub type Coord = u32;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Pos {
@@ -81,7 +81,7 @@ impl Pos {
         )
     }
 
-    pub fn try_offset(self, offset: isize, world: &World) -> Option<Pos> {
+    pub fn try_offset(self, offset: i32, world: &World) -> Option<Pos> {
         let coord = self.coord.checked_add_signed(offset)?;
         Pos::try_new(self.area, coord, world).ok()
     }
@@ -90,7 +90,7 @@ impl Pos {
         self.get_area().eq(&area)
     }
 
-    pub fn distance_to(&self, pos: Pos) -> usize {
+    pub fn distance_to(&self, pos: Pos) -> u32 {
         if self.get_coord() > pos.get_coord() {
             self.get_coord() - pos.get_coord()
         } else {
@@ -336,7 +336,7 @@ pub fn check_is_pos_blocked(target_pos: Pos, world: &World) -> Result<(), Blocka
 fn find_blocking_hostile_in_range(
     world: &World,
     area: Entity,
-    range: impl RangeBounds<usize>,
+    range: impl RangeBounds<Coord>,
 ) -> Option<Entity> {
     world
         .query::<&Pos>()
