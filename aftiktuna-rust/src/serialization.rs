@@ -9,8 +9,8 @@ use std::io;
 use std::io::{Read, Write};
 
 pub const SAVE_FILE_NAME: &str = "SAVE_FILE";
-const MAJOR_VERSION: u16 = 3;
-const MINOR_VERSION: u16 = 2;
+const MAJOR_VERSION: u16 = 4;
+const MINOR_VERSION: u16 = 0;
 
 fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
     if major != MAJOR_VERSION || minor > MINOR_VERSION {

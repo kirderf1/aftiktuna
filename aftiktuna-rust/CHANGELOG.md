@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Creatures can optionally be wandering
 
+### Changed
+
+- Save format version 4.0, making it incompatible with previous save files
+
 ### Fixed
 
 - Fixed potential issue in command parsing with special symbols
