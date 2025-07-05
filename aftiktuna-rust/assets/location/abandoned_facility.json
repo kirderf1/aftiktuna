@@ -19,7 +19,7 @@
       "symbols": {
         "^": { "type": "door", "pair_id": "path", "display_type": "path" },
         "k": { "type": "item", "item": "keycard" },
-        "#": { "type": "inanimate", "model": "mossy_rock" }
+        "#": { "type": "inanimate", "model": "environment/mossy_rock" }
       }
     },
     {
@@ -83,7 +83,7 @@
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
         "b": { "type": "item", "item": "blowtorch" },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {

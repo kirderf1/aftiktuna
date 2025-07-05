@@ -1,0 +1,5 @@
+{
+  "layers": [
+    { "texture": "environment/campfire", "fixed": true }
+  ]
+}

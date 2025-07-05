@@ -1,0 +1,5 @@
+{
+  "layers": [
+    { "texture": "environment/tree_stump", "fixed": true }
+  ]
+}

@@ -35,7 +35,7 @@ pub mod display {
         }
 
         pub fn fortuna_chest() -> Self {
-            Self::new("fortuna_chest")
+            Self::new("container/fortuna_chest")
         }
 
         pub fn ship() -> Self {

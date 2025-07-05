@@ -64,7 +64,7 @@
           "type": "character",
           "interaction": { "type": "recruitable" }
         },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {
@@ -83,7 +83,7 @@
           ],
           "color": "green"
         },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {
@@ -110,7 +110,7 @@
       "symbols": {
         "^": { "type": "door", "pair_id": "azureclops_house", "display_type": "door" },
         "Z": { "type": "creature", "creature": "azureclops", "attribute": "agile", "tag": "house_azureclops" },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {
@@ -128,7 +128,7 @@
           ],
           "direction": "right"
         },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     }
   ],

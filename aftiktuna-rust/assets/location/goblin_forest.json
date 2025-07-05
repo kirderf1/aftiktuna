@@ -8,7 +8,7 @@
       "symbols": {
         "/": { "type": "door", "pair_id": "entrance", "display_type": "right_path" },
         ".": { "type": "inanimate", "model": "path/left_end" },
-        "#": { "type": "inanimate", "model": "tree_stump" }
+        "#": { "type": "inanimate", "model": "environment/tree_stump" }
       }
     },
     {
@@ -32,7 +32,7 @@
         "|": { "type": "door", "pair_id": "path2", "display_type": "crossroad_path", "adjective": "left" },
         "/": { "type": "door", "pair_id": "path1", "display_type": "right_path", "adjective": "right" },
         ".": { "type": "inanimate", "model": "path/left_end" },
-        "#": { "type": "inanimate", "model": "tree_stump" }
+        "#": { "type": "inanimate", "model": "environment/tree_stump" }
       }
     },
     {
@@ -70,7 +70,7 @@
       "objects": [ "#%", "S", "", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "side_path", "display_type": "path" },
-        "#": { "type": "inanimate", "model": "tree_stump" }
+        "#": { "type": "inanimate", "model": "environment/tree_stump" }
       }
     },
     {
@@ -100,7 +100,7 @@
         "<": { "type": "door", "pair_id": "path4", "display_type": "path", "adjective": "left" },
         ">": { "type": "door", "pair_id": "path5", "display_type": "path", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
-        "#": { "type": "inanimate", "model": "mossy_rock" }
+        "#": { "type": "inanimate", "model": "environment/mossy_rock" }
       }
     }
   ],

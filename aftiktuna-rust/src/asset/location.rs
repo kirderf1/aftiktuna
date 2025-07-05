@@ -350,11 +350,11 @@ impl ContainerType {
 
     pub fn model_id(self) -> ModelId {
         ModelId::new(match self {
-            Self::Tent => "tent",
-            Self::Cabinet => "cabinet",
-            Self::Drawer => "drawer",
-            Self::Crate => "crate",
-            Self::Chest => "chest",
+            Self::Tent => "container/tent",
+            Self::Cabinet => "container/cabinet",
+            Self::Drawer => "container/drawer",
+            Self::Crate => "container/crate",
+            Self::Chest => "container/chest",
         })
     }
 

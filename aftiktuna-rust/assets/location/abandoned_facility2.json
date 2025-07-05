@@ -66,7 +66,7 @@
         "<": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "left" },
         "^": { "type": "door", "pair_id": "corridor2", "display_type": "doorway" },
         ">": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "right" },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {
@@ -75,7 +75,7 @@
       "objects": [ "^", "", "Z", "T!!" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
-        "T": { "type": "inanimate", "model": "table" }
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {
