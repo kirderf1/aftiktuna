@@ -1,3 +1,4 @@
+use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::location::creature::{
     self, AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     ShopkeeperSpawnData,
@@ -8,7 +9,7 @@ use aftiktuna::asset::location::{
 };
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::model::ModelAccess;
-use aftiktuna::asset::{ProfileOrRandom, background, color, placement};
+use aftiktuna::asset::{ProfileOrRandom, background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::item;
@@ -18,7 +19,7 @@ use aftiktuna::location::generate::Symbols;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
-use std::collections::HashMap;
+use indexmap::IndexMap;
 use std::fs::{self, File};
 use std::hash::Hash;
 use std::path::PathBuf;
@@ -68,7 +69,10 @@ fn main() {
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
         base_symbols: location::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
-        aftik_colors: color::load_aftik_color_data().unwrap(),
+        aftik_colors: serde_json::from_reader::<_, _>(
+            File::open(color::AFTIK_COLORS_PATH).unwrap(),
+        )
+        .unwrap(),
     };
     let mut camera = aftiktuna_three_d::Camera::default();
     let mut gui = three_d::GUI::new(&window.gl());
@@ -135,7 +139,7 @@ struct Assets {
     background_map: asset::BackgroundMap,
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
-    aftik_colors: HashMap<AftikColorId, color::AftikColorData>,
+    aftik_colors: IndexMap<AftikColorId, AftikColorData>,
 }
 
 fn editor_panels(
@@ -152,15 +156,20 @@ fn editor_panels(
     side_panel(egui_context, |ui| {
         if let Some((char, symbol_edit_data)) = char_edit {
             let area = &mut location_data.areas[*area_index];
-            let action = symbol_editor_ui(ui, symbol_edit_data, |new_char| {
-                if new_char != *char && area.symbols.contains_key(&new_char) {
-                    SymbolStatus::Conflicting
-                } else if assets.base_symbols.contains_key(&new_char) {
-                    SymbolStatus::Overriding
-                } else {
-                    SymbolStatus::Unique
-                }
-            });
+            let action = symbol_editor_ui(
+                ui,
+                symbol_edit_data,
+                |new_char| {
+                    if new_char != *char && area.symbols.contains_key(&new_char) {
+                        SymbolStatus::Conflicting
+                    } else if assets.base_symbols.contains_key(&new_char) {
+                        SymbolStatus::Overriding
+                    } else {
+                        SymbolStatus::Unique
+                    }
+                },
+                &assets.aftik_colors,
+            );
 
             match action {
                 Some(SymbolEditAction::Done) => {
@@ -260,11 +269,16 @@ fn render_game_view(
     let objects = objects
         .into_iter()
         .flat_map(|(pos, object)| {
-            render::get_render_objects_for_entity(
+            render::get_render_objects_for_entity_with_color(
                 assets.models.lookup_model(&object.model_id),
                 pos.into(),
+                object
+                    .properties
+                    .aftik_color
+                    .as_ref()
+                    .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
+                    .unwrap_or(color::DEFAULT_COLOR),
                 &object.properties,
-                &mut assets.aftik_colors,
                 context,
             )
         })
@@ -421,6 +435,7 @@ fn symbol_editor_ui(
     ui: &mut egui::Ui,
     symbol_edit_data: &mut SymbolEditData,
     symbol_lookup: impl FnOnce(char) -> SymbolStatus,
+    aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
 ) -> Option<SymbolEditAction> {
     ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
 
@@ -519,6 +534,7 @@ fn symbol_editor_ui(
             color,
             direction,
         }) => {
+            color_editor(ui, color, "shopkeeper_color", aftik_colors);
             option_direction_editor(ui, direction, "shopkeeper_direction");
         }
         SymbolData::Character(NpcSpawnData {
@@ -529,6 +545,19 @@ fn symbol_editor_ui(
             option_direction_editor(ui, direction, "character_direction");
         }
         SymbolData::AftikCorpse(AftikCorpseData { color, direction }) => {
+            egui::ComboBox::new("corpse_color", "Color")
+                .selected_text(
+                    color
+                        .as_ref()
+                        .map::<&str, _>(|color| &color.0)
+                        .unwrap_or("random"),
+                )
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(color, None, "random");
+                    for selectable in aftik_colors.keys() {
+                        ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
+                    }
+                });
             option_direction_editor(ui, direction, "aftik_corpse_direction");
         }
     }
@@ -658,6 +687,21 @@ fn loot_table_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
     if !path.exists() {
         ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
     }
+}
+
+fn color_editor(
+    ui: &mut egui::Ui,
+    edited_color: &mut AftikColorId,
+    id: impl Hash,
+    aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
+) {
+    egui::ComboBox::new(id, "Color")
+        .selected_text(&edited_color.0)
+        .show_ui(ui, |ui| {
+            for selectable in aftik_colors.keys() {
+                ui.selectable_value(edited_color, selectable.clone(), &selectable.0);
+            }
+        });
 }
 
 fn name_from_symbol(symbol_data: &SymbolData) -> String {

@@ -98,11 +98,7 @@ pub fn get_render_objects_for_entity(
         .map_or(color::DEFAULT_COLOR, |aftik_color| {
             lookup_or_log_aftik_color(aftik_color, aftik_colors)
         });
-    model
-        .layers
-        .iter()
-        .flat_map(|layer| get_render_object_for_layer(layer, pos, properties, aftik_color, context))
-        .collect()
+    get_render_objects_for_entity_with_color(model, pos, aftik_color, properties, context)
 }
 
 fn lookup_or_log_aftik_color(
@@ -114,6 +110,20 @@ fn lookup_or_log_aftik_color(
         aftik_colors_map.insert(color_id.clone(), color::DEFAULT_COLOR);
         color::DEFAULT_COLOR
     })
+}
+
+pub fn get_render_objects_for_entity_with_color(
+    model: &Model<three_d::Texture2DRef>,
+    pos: three_d::Vec2,
+    aftik_color: AftikColorData,
+    properties: &RenderProperties,
+    context: &three_d::Context,
+) -> Vec<impl three_d::Object> {
+    model
+        .layers
+        .iter()
+        .flat_map(|layer| get_render_object_for_layer(layer, pos, properties, aftik_color, context))
+        .collect()
 }
 
 fn get_render_object_for_layer(

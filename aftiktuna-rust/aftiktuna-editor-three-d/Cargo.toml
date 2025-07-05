@@ -6,6 +6,7 @@ version.workspace = true
 [dependencies]
 aftiktuna = { path = ".." }
 aftiktuna-three-d = { path = "../aftiktuna-three-d" }
+indexmap.workspace = true
 rfd = "0.15.3"
 serde_json.workspace = true
 serde_json_pretty = "0.1.0"
