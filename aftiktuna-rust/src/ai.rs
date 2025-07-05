@@ -5,8 +5,10 @@ use crate::action::Action;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, CrewMember, Hostile, RepeatingAction};
+use crate::core::{self, inventory, status, CrewMember, Door, Hostile, RepeatingAction, Wandering};
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
+use rand::seq::SliceRandom;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -53,7 +55,7 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
     None
 }
 
-pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World) {
+pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World, rng: &mut impl Rng) {
     let mut buffer = CommandBuffer::new();
 
     for (entity, _) in world
@@ -67,7 +69,7 @@ pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World) {
                 buffer.remove_one::<RepeatingAction>(entity);
                 Action::from(*action)
             } else {
-                pick_action(entity_ref, world).unwrap_or(Action::Wait)
+                pick_action(entity_ref, world, rng).unwrap_or(Action::Wait)
             };
 
             action_map.insert(entity, action);
@@ -83,9 +85,9 @@ pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World) {
     buffer.run_on(world);
 }
 
-fn pick_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
+fn pick_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) -> Option<Action> {
     if let Some(hostile) = entity_ref.get::<&Hostile>() {
-        pick_foe_action(entity_ref, &hostile, world)
+        pick_foe_action(entity_ref, &hostile, world, rng)
     } else if entity_ref.satisfies::<&CrewMember>() {
         pick_crew_action(entity_ref, world)
     } else {
@@ -93,7 +95,12 @@ fn pick_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
     }
 }
 
-fn pick_foe_action(entity_ref: EntityRef, hostile: &Hostile, world: &World) -> Option<Action> {
+fn pick_foe_action(
+    entity_ref: EntityRef,
+    hostile: &Hostile,
+    world: &World,
+    rng: &mut impl Rng,
+) -> Option<Action> {
     if hostile.aggressive {
         let area = entity_ref.get::<&Pos>()?.get_area();
 
@@ -106,6 +113,22 @@ fn pick_foe_action(entity_ref: EntityRef, hostile: &Hostile, world: &World) -> O
             .collect::<Vec<_>>();
         if !targets.is_empty() {
             return Some(Action::Attack(targets));
+        }
+    }
+
+    if entity_ref.has::<Wandering>() {
+        let area = entity_ref.get::<&Pos>()?.get_area();
+
+        let doors = world
+            .query::<&Pos>()
+            .with::<&Door>()
+            .iter()
+            .filter(|&(_, door_pos)| door_pos.is_in(area))
+            .map(|(entity, _)| entity)
+            .collect::<Vec<_>>();
+        let door = doors.choose(rng);
+        if let Some(&door) = door {
+            return Some(Action::EnterDoor(door));
         }
     }
 

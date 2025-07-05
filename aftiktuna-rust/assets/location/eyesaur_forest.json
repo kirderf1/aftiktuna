@@ -224,7 +224,7 @@
       "name": "Forest path",
       "background": "forest",
       "background_offset": 5,
-      "objects": [ "<", "", "^", "E", "", ">" ],
+      "objects": [ "<", "", "^", "EE", "", ">" ],
       "symbols": {
         "<": {
           "type": "door",
@@ -243,6 +243,12 @@
           "pair_id": "mid_right1",
           "display_type": "path",
           "adjective": "right"
+        },
+        "E": {
+          "type": "creature",
+          "creature": "eyesaur",
+          "aggressive": true,
+          "wandering": true
         }
       }
     },

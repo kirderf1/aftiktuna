@@ -177,6 +177,7 @@ pub mod world {
 
         core::CrewMember, CrewMember;
         core::Hostile, Hostile;
+        core::Wandering, Wandering;
         ai::Intention, Intention;
         core::Waiting, Waiting;
         core::RepeatingAction, RepeatingAction;

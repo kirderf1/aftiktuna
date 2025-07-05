@@ -537,6 +537,7 @@ fn creature_spawn_data_editor(
         health,
         attribute,
         aggressive,
+        wandering,
         tag,
         direction,
     }: &mut CreatureSpawnData,
@@ -584,6 +585,8 @@ fn creature_spawn_data_editor(
                 ui.selectable_value(aggressive, selectable_type, agression_name(selectable_type));
             }
         });
+
+    ui.checkbox(wandering, "Wandering");
 
     option_direction_editor(ui, direction, "creature_direction");
 }

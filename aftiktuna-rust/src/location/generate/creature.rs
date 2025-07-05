@@ -5,7 +5,7 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{item, CreatureAttribute, GivesHuntReward, Hostile, Recruitable, Tag};
+use crate::core::{item, CreatureAttribute, GivesHuntReward, Hostile, Recruitable, Tag, Wandering};
 use hecs::{EntityBuilder, World};
 use rand::seq::SliceRandom;
 use rand::Rng;
@@ -116,6 +116,8 @@ pub struct CreatureSpawnData {
     pub attribute: AttributeChoice,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aggressive: Option<bool>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub wandering: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tag: Option<Tag>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -163,6 +165,10 @@ impl CreatureSpawnData {
 
         if is_alive {
             builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
+        }
+
+        if self.wandering {
+            builder.add(Wandering);
         }
 
         gen_context.world.spawn(builder.build());

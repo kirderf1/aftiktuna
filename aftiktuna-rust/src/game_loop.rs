@@ -229,7 +229,7 @@ fn tick(
         insert_command_action(&mut action_map, action, target, state);
     }
 
-    ai::tick(&mut action_map, &mut state.world);
+    ai::tick(&mut action_map, &mut state.world, &mut state.rng);
 
     action::tick(action_map, state, view_buffer);
 
