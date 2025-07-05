@@ -6,20 +6,9 @@
       "background_offset": 0,
       "objects": [ "\\", "-", "-", "-^", ".", "v" ],
       "symbols": {
-        "\\": {
-          "type": "door",
-          "pair_id": "path",
-          "display_type": "left_path"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "entrance",
-          "display_type": "door"
-        },
-        ".": {
-          "type": "inanimate",
-          "model": "path/right_end"
-        }
+        "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
+        "^": { "type": "door", "pair_id": "entrance", "display_type": "door" },
+        ".": { "type": "inanimate", "model": "path/right_end" }
       }
     },
     {
@@ -28,20 +17,9 @@
       "background_offset": 3,
       "objects": [ ".^", "-", "-v", "-", "/" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "side",
-          "display_type": "door"
-        },
-        "/": {
-          "type": "door",
-          "pair_id": "path",
-          "display_type": "right_path"
-        },
-        ".": {
-          "type": "inanimate",
-          "model": "path/left_end"
-        }
+        "^": { "type": "door", "pair_id": "side", "display_type": "door" },
+        "/": { "type": "door", "pair_id": "path", "display_type": "right_path" },
+        ".": { "type": "inanimate", "model": "path/left_end" }
       }
     },
     {
@@ -49,29 +27,16 @@
       "background": "facility_size6",
       "objects": [ "<", "E", "", "^", "=", ">" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "corridor1",
-          "display_type": "doorway"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "entrance",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "room1",
-          "display_type": "door",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway" },
+        "^": { "type": "door", "pair_id": "entrance", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "room1", "display_type": "door", "adjective": "right" },
         "=": {
           "type": "container",
           "container_type": "drawer",
           "content": [
             { "type": "loot", "table": "tool" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     },
@@ -80,29 +45,16 @@
       "background": "facility_size6",
       "objects": [ "<", "E", "=", "^", "", ">" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "corridor1",
-          "display_type": "doorway",
-          "adjective": "left"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "corridor2",
-          "display_type": "doorway",
-          "adjective": "right"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "room2",
-          "display_type": "door"
-        },
+        "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "corridor2", "display_type": "doorway", "adjective": "right" },
+        ">": { "type": "door", "pair_id": "room2", "display_type": "door" },
         "=": {
           "type": "container",
           "container_type": "drawer",
           "content": [
             { "type": "loot", "table": "resource" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     },
@@ -111,27 +63,10 @@
       "background": "facility_size5",
       "objects": [ "<", "T", "^", "", ">" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "side",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "corridor2",
-          "display_type": "doorway"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "room3",
-          "display_type": "door",
-          "adjective": "right"
-        },
-        "T": {
-          "type": "inanimate",
-          "model": "table"
-        }
+        "<": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "corridor2", "display_type": "doorway" },
+        ">": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "right" },
+        "T": { "type": "inanimate", "model": "table" }
       }
     },
     {
@@ -139,15 +74,8 @@
       "background": "facility_size4",
       "objects": [ "^", "", "Z", "T!!" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "room1",
-          "display_type": "door"
-        },
-        "T": {
-          "type": "inanimate",
-          "model": "table"
-        }
+        "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
+        "T": { "type": "inanimate", "model": "table" }
       }
     },
     {
@@ -155,17 +83,14 @@
       "background": "facility_size4",
       "objects": [ "^", "", "I", "" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "room2",
-          "display_type": "door"
-        },
+        "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
         "I": {
           "type": "container",
           "container_type": "cabinet",
           "content": [
             { "type": "loot", "table": "tool" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     },
@@ -174,25 +99,16 @@
       "background": "facility_size4",
       "objects": [ "<", "G", "#", ">" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "room3",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "storage",
-          "display_type": "door",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "storage", "display_type": "door", "adjective": "right" },
         "#": {
           "type": "container",
           "container_type": "chest",
           "content": [
             { "type": "item", "item": "fuel_can" },
             { "type": "item", "item": "fuel_can" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     },
@@ -201,17 +117,14 @@
       "background": "facility_size3",
       "objects": [ "^", "#", "¤" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "storage",
-          "display_type": "door"
-        },
+        "^": { "type": "door", "pair_id": "storage", "display_type": "door" },
         "#": {
           "type": "container",
           "container_type": "crate",
           "content": [
             { "type": "loot", "table": "resource" }
-          ]
+          ],
+          "direction": "right"
         },
         "¤": {
           "type": "container",
@@ -219,7 +132,8 @@
           "content": [
             { "type": "item", "item": "fuel_can" },
             { "type": "loot", "table": "valuable" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     }

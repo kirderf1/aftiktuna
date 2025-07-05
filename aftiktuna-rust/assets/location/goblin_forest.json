@@ -6,19 +6,9 @@
       "background_offset": 1,
       "objects": [ "", ".v", "-", "-", "/", "#", "" ],
       "symbols": {
-        "/": {
-          "type": "door",
-          "pair_id": "entrance",
-          "display_type": "right_path"
-        },
-        ".": {
-          "type": "inanimate",
-          "model": "path/left_end"
-        },
-        "#": {
-          "type": "inanimate",
-          "model": "tree_stump"
-        }
+        "/": { "type": "door", "pair_id": "entrance", "display_type": "right_path" },
+        ".": { "type": "inanimate", "model": "path/left_end" },
+        "#": { "type": "inanimate", "model": "tree_stump" }
       }
     },
     {
@@ -27,24 +17,9 @@
       "background_offset": 0,
       "objects": [ "\\", "-", "/", "", ">" ],
       "symbols": {
-        "\\": {
-          "type": "door",
-          "pair_id": "path1",
-          "display_type": "left_path",
-          "adjective": "left"
-        },
-        "/": {
-          "type": "door",
-          "pair_id": "entrance",
-          "display_type": "right_path",
-          "adjective": "middle"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "path5",
-          "display_type": "path",
-          "adjective": "right"
-        }
+        "\\": { "type": "door", "pair_id": "path1", "display_type": "left_path", "adjective": "left" },
+        "/": { "type": "door", "pair_id": "entrance", "display_type": "right_path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "path5", "display_type": "path", "adjective": "right" }
       }
     },
     {
@@ -53,31 +28,11 @@
       "background_offset": 6,
       "objects": [ "#", ".^", "-", "|", "-", "/" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "shack",
-          "display_type": "shack"
-        },
-        "|": {
-          "type": "door",
-          "pair_id": "path2",
-          "display_type": "crossroad_path",
-          "adjective": "left"
-        },
-        "/": {
-          "type": "door",
-          "pair_id": "path1",
-          "display_type": "right_path",
-          "adjective": "right"
-        },
-        ".": {
-          "type": "inanimate",
-          "model": "path/left_end"
-        },
-        "#": {
-          "type": "inanimate",
-          "model": "tree_stump"
-        }
+        "^": { "type": "door", "pair_id": "shack", "display_type": "shack" },
+        "|": { "type": "door", "pair_id": "path2", "display_type": "crossroad_path", "adjective": "left" },
+        "/": { "type": "door", "pair_id": "path1", "display_type": "right_path", "adjective": "right" },
+        ".": { "type": "inanimate", "model": "path/left_end" },
+        "#": { "type": "inanimate", "model": "tree_stump" }
       }
     },
     {
@@ -85,23 +40,15 @@
       "background": "shack",
       "objects": [ "¤f", "fE", "", "^" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "shack",
-          "display_type": "door"
-        },
-        "E": {
-          "type": "creature",
-          "creature": "eyesaur",
-          "attribute": "bulky",
-          "aggressive": true
-        },
+        "^": { "type": "door", "pair_id": "shack", "display_type": "door" },
+        "E": { "type": "creature", "creature": "eyesaur", "attribute": "bulky", "aggressive": true },
         "¤": {
           "type": "container",
           "container_type": "chest",
           "content": [
             { "type": "loot", "table": "resource" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     },
@@ -111,24 +58,9 @@
       "background_offset": 5,
       "objects": [ "<", "", "^", "G", ">" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "path2",
-          "display_type": "path",
-          "adjective": "left"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "side_path",
-          "display_type": "path",
-          "adjective": "middle"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "path3",
-          "display_type": "path",
-          "adjective": "right"
-        }
+        "<": { "type": "door", "pair_id": "path2", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "side_path", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "path3", "display_type": "path", "adjective": "right" }
       }
     },
     {
@@ -137,15 +69,8 @@
       "background_offset": 1,
       "objects": [ "#%", "S", "", "", "^" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "side_path",
-          "display_type": "path"
-        },
-        "#": {
-          "type": "inanimate",
-          "model": "tree_stump"
-        }
+        "^": { "type": "door", "pair_id": "side_path", "display_type": "path" },
+        "#": { "type": "inanimate", "model": "tree_stump" }
       }
     },
     {
@@ -154,24 +79,15 @@
       "background_offset": 0,
       "objects": [ "<", "#", "G", "G", "", ">" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "path3",
-          "display_type": "path",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "path4",
-          "display_type": "path",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "path3", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "path4", "display_type": "path", "adjective": "right" },
         "#": {
           "type": "container",
           "container_type": "crate",
           "content": [
             { "type": "loot", "table": "valuable" }
-          ]
+          ],
+          "direction": "right"
         }
       }
     },
@@ -181,23 +97,10 @@
       "background_offset": 3,
       "objects": [ "<", "#", ">", "", "G", "c" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "path4",
-          "display_type": "path",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "path5",
-          "display_type": "path",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "path4", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "path5", "display_type": "path", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
-        "#": {
-          "type": "inanimate",
-          "model": "mossy_rock"
-        }
+        "#": { "type": "inanimate", "model": "mossy_rock" }
       }
     }
   ],

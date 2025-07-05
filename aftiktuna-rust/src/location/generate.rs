@@ -9,7 +9,6 @@ use hecs::World;
 use indexmap::IndexMap;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
-use std::collections::hash_map::HashMap;
 use std::fs::File;
 
 pub mod creature;
@@ -120,11 +119,12 @@ pub mod container {
 }
 
 pub type SymbolMap = IndexMap<char, SymbolData>;
+pub type DoorPairMap = IndexMap<String, door::DoorPairData>;
 
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
     pub areas: Vec<AreaData>,
-    pub door_pairs: HashMap<String, door::DoorPairData>,
+    pub door_pairs: DoorPairMap,
 }
 
 impl LocationData {
@@ -151,8 +151,9 @@ impl LocationData {
 #[derive(Serialize, Deserialize)]
 pub struct AreaData {
     pub name: String,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub background: BackgroundId,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background_offset: Option<Coord>,
     pub objects: Vec<String>,
     pub symbols: SymbolMap,
@@ -220,7 +221,7 @@ pub enum SymbolData {
     Door(door::DoorSpawnData),
     Inanimate {
         model: ModelId,
-        #[serde(default)]
+        #[serde(default, skip_serializing_if = "crate::is_default")]
         direction: Direction,
     },
     Container(container::ContainerData),
@@ -281,10 +282,7 @@ struct Builder<'a> {
 }
 
 impl<'a> Builder<'a> {
-    fn new(
-        gen_context: &'a mut LocationGenContext,
-        door_pair_data: HashMap<String, door::DoorPairData>,
-    ) -> Self {
+    fn new(gen_context: &'a mut LocationGenContext, door_pair_data: DoorPairMap) -> Self {
         Self {
             gen_context,
             entry_positions: Vec::new(),

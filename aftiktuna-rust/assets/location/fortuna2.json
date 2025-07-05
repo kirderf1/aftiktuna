@@ -6,15 +6,8 @@
       "background_offset": 5,
       "objects": [ "", "v", ".", "-", "/" ],
       "symbols": {
-        "/": {
-          "type": "door",
-          "pair_id": "path",
-          "display_type": "right_path"
-        },
-        ".": {
-          "type": "inanimate",
-          "model": "path/left_end"
-        }
+        "/": { "type": "door", "pair_id": "path", "display_type": "right_path" },
+        ".": { "type": "inanimate", "model": "path/left_end" }
       }
     },
     {
@@ -23,15 +16,8 @@
       "background_offset": 0,
       "objects": [ "\\", "-", "-G", "-G", "-", "-G", ".¤", "" ],
       "symbols": {
-        "\\": {
-          "type": "door",
-          "pair_id": "path",
-          "display_type": "left_path"
-        },
-        ".": {
-          "type": "inanimate",
-          "model": "path/right_end"
-        }
+        "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
+        ".": { "type": "inanimate", "model": "path/right_end" }
       }
     }
   ],

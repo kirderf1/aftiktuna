@@ -82,6 +82,9 @@ impl StatChanges {
 pub struct Traits(HashSet<Trait>);
 
 impl Traits {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
     pub fn has_traits(&self) -> bool {
         !self.0.is_empty()
     }

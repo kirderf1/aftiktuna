@@ -44,7 +44,7 @@ fn main() {
     };
 
     let mut editor_data = EditorData {
-        location_data: serde_json::from_reader::<_, LocationData>(File::open(path).unwrap())
+        location_data: serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap())
             .unwrap(),
         area_index: 0,
         char_edit: None,
@@ -72,13 +72,15 @@ fn main() {
     let mut gui = three_d::GUI::new(&window.gl());
 
     window.render_loop(move |mut frame_input| {
+        let mut save = false;
+
         gui.update(
             &mut frame_input.events,
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                editor_panels(&mut editor_data, &assets, egui_context);
+                save = editor_panels(&mut editor_data, &assets, egui_context);
             },
         );
 
@@ -106,7 +108,17 @@ fn main() {
 
         screen.write(|| gui.render()).unwrap();
 
-        three_d::FrameOutput::default()
+        if save {
+            let file = File::create(&path).unwrap();
+            serde_json_pretty::to_writer(file, &editor_data.location_data).unwrap();
+
+            three_d::FrameOutput {
+                exit: true,
+                ..Default::default()
+            }
+        } else {
+            three_d::FrameOutput::default()
+        }
     });
 }
 
@@ -124,7 +136,12 @@ struct Assets {
     aftik_colors: HashMap<AftikColorId, color::AftikColorData>,
 }
 
-fn editor_panels(editor_data: &mut EditorData, assets: &Assets, egui_context: &egui::Context) {
+fn editor_panels(
+    editor_data: &mut EditorData,
+    assets: &Assets,
+    egui_context: &egui::Context,
+) -> bool {
+    let mut save = false;
     let EditorData {
         location_data,
         area_index,
@@ -169,6 +186,10 @@ fn editor_panels(editor_data: &mut EditorData, assets: &Assets, egui_context: &e
                 &assets.background_types,
                 &assets.base_symbols,
             );
+
+            ui.separator();
+            save = ui.button("Save").clicked();
+
             if let Some(char_to_edit) = char_to_edit
                 && let Some(symbol_data) = location_data.areas[*area_index]
                     .symbols
@@ -200,6 +221,8 @@ fn editor_panels(editor_data: &mut EditorData, assets: &Assets, egui_context: &e
             });
         });
     });
+
+    save
 }
 
 fn render_game_view(

@@ -4,24 +4,9 @@
       "name": "Room",
       "objects": [ "<k", "v", "^", ">c" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "left",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "mid",
-          "display_type": "door",
-          "adjective": "middle"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "right",
-          "display_type": "door",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "mid", "display_type": "door", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
         "k": { "type": "item", "item": "keycard" }
       }
@@ -30,36 +15,16 @@
       "name": "Side Room",
       "objects": [ "", "<", ">", "f", "f" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "left",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "side",
-          "display_type": "door",
-          "adjective": "right"
-        }
+        "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" }
       }
     },
     {
       "name": "Side Room",
       "objects": [ "b", "", "", "G", "", "<", "", "", ">", "", "", "" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "right",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "side",
-          "display_type": "door",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
         "b": { "type": "item", "item": "blowtorch" }
       }
     },
@@ -67,11 +32,7 @@
       "name": "Room",
       "objects": [ "", "^", "", "", "" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "mid",
-          "display_type": "door"
-        }
+        "^": { "type": "door", "pair_id": "mid", "display_type": "door" }
       }
     }
   ],

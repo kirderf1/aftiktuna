@@ -299,7 +299,7 @@ pub struct AftikProfile {
     pub name: String,
     pub color: AftikColorId,
     pub stats: Stats,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Traits::is_empty")]
     pub traits: Traits,
 }
 
@@ -313,6 +313,10 @@ pub enum ProfileOrRandom {
 }
 
 impl ProfileOrRandom {
+    pub(crate) fn is_default(&self) -> bool {
+        matches!(self, Self::Random)
+    }
+
     pub(crate) fn unwrap(
         self,
         character_profiles: &mut Vec<AftikProfile>,

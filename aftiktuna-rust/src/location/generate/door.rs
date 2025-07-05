@@ -150,7 +150,7 @@ impl Adjective {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct DoorPairData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub block_type: Option<BlockType>,
 }
 
@@ -163,7 +163,7 @@ enum DoorPairStatus {
 pub(super) struct DoorPairsBuilder(HashMap<String, (DoorPairData, DoorPairStatus)>);
 
 impl DoorPairsBuilder {
-    pub(super) fn init(door_pairs: HashMap<String, DoorPairData>) -> Self {
+    pub(super) fn init(door_pairs: super::DoorPairMap) -> Self {
         Self(
             door_pairs
                 .into_iter()
@@ -211,7 +211,7 @@ impl DoorPairsBuilder {
 pub struct DoorSpawnData {
     pub pair_id: String,
     pub display_type: DoorType,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub adjective: Option<Adjective>,
 }
 

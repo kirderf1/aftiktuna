@@ -58,6 +58,7 @@ dependencies = [
  "aftiktuna-three-d",
  "rfd",
  "serde_json",
+ "serde_json_pretty",
  "three-d",
 ]
 

@@ -3,19 +3,9 @@
     {
       "name": "Room",
       "objects": [ "v", "", "kc<", ">" ],
-      "symbols":{
-        "<": {
-          "type": "door",
-          "pair_id": "lock",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "stuck",
-          "display_type": "door",
-          "adjective": "right"
-        },
+      "symbols": {
+        "<": { "type": "door", "pair_id": "lock", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "stuck", "display_type": "door", "adjective": "right" },
         "k": { "type": "item", "item": "keycard" },
         "c": { "type": "item", "item": "crowbar" }
       }
@@ -23,19 +13,9 @@
     {
       "name": "Room",
       "objects": [ "<", "K>", "E", "G" ],
-      "symbols":{
-        "<": {
-          "type": "door",
-          "pair_id": "lock",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "stuck",
-          "display_type": "door",
-          "adjective": "right"
-        },
+      "symbols": {
+        "<": { "type": "door", "pair_id": "lock", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "stuck", "display_type": "door", "adjective": "right" },
         "K": { "type": "item", "item": "knife" }
       }
     }

@@ -4,24 +4,9 @@
       "name": "Armory",
       "objects": [ "Ks", "<", "v", "^", ">", "cB" ],
       "symbols": {
-        "<": {
-          "type": "door",
-          "pair_id": "goblin",
-          "display_type": "door",
-          "adjective": "left"
-        },
-        "^": {
-          "type": "door",
-          "pair_id": "eyesaur",
-          "display_type": "door",
-          "adjective": "middle"
-        },
-        ">": {
-          "type": "door",
-          "pair_id": "azureclops",
-          "display_type": "door",
-          "adjective": "right"
-        },
+        "<": { "type": "door", "pair_id": "goblin", "display_type": "door", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "eyesaur", "display_type": "door", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "azureclops", "display_type": "door", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
         "K": { "type": "item", "item": "knife" },
         "B": { "type": "item", "item": "bat" },
@@ -32,33 +17,21 @@
       "name": "Goblin Room",
       "objects": [ "G", "", "^", "G", "" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "goblin",
-          "display_type": "door"
-        }
+        "^": { "type": "door", "pair_id": "goblin", "display_type": "door" }
       }
     },
     {
       "name": "Eyesaur Room",
       "objects": [ "", "", "^", "", "E" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "eyesaur",
-          "display_type": "door"
-        }
+        "^": { "type": "door", "pair_id": "eyesaur", "display_type": "door" }
       }
     },
     {
       "name": "Azureclops Room",
       "objects": [ "", "", "^", "", "Z" ],
       "symbols": {
-        "^": {
-          "type": "door",
-          "pair_id": "azureclops",
-          "display_type": "door"
-        }
+        "^": { "type": "door", "pair_id": "azureclops", "display_type": "door" }
       }
     }
   ],

@@ -110,9 +110,9 @@ impl Type {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreatureSpawnData {
     pub creature: Type,
-    #[serde(default = "full_health")]
+    #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
     pub health: f32,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub attribute: AttributeChoice,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aggressive: Option<bool>,
@@ -126,6 +126,10 @@ pub struct CreatureSpawnData {
 
 fn full_health() -> f32 {
     1.
+}
+
+fn is_full_health(health: &f32) -> bool {
+    *health == 1.
 }
 
 impl CreatureSpawnData {
@@ -184,10 +188,10 @@ pub enum CharacterInteraction {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct NpcSpawnData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "ProfileOrRandom::is_default")]
     pub profile: ProfileOrRandom,
     pub interaction: CharacterInteraction,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub direction: Option<Direction>,
 }
 
@@ -220,9 +224,9 @@ impl NpcSpawnData {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct AftikCorpseData {
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub color: Option<AftikColorId>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub direction: Option<Direction>,
 }
 
@@ -280,7 +284,7 @@ fn aftik_builder(color: AftikColorId) -> EntityBuilder {
 pub struct ShopkeeperSpawnData {
     pub stock: Vec<StockDefinition>,
     pub color: AftikColorId,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub direction: Option<Direction>,
 }
 
@@ -311,9 +315,9 @@ impl ShopkeeperSpawnData {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct StockDefinition {
     pub item: item::Type,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub price: Option<item::Price>,
-    #[serde(default)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub quantity: Option<StockQuantity>,
 }
 
