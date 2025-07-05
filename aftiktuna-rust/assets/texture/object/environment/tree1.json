@@ -3,5 +3,6 @@
     { "texture": "environment/tree1", "y_offset": 5, "fixed": true }
   ],
   "z_offset": -40,
-  "mounted": true
+  "has_x_displacement": false,
+  "z_displacement": 0
 }

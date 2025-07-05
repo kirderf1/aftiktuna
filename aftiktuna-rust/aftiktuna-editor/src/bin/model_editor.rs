@@ -119,7 +119,7 @@ fn draw_examples(
         );
     });
 
-    if model.is_displacing() {
+    if model.has_x_displacement || model.z_displacement != 0 {
         let coord = get_and_move_coord();
         mq_model::draw_model(
             model,
@@ -309,7 +309,7 @@ fn side_panel(
         .resizable(false)
         .exact_width(200.)
         .show(ctx, |ui| {
-            if model.is_displacing() {
+            if model.has_x_displacement || model.z_displacement != 0 {
                 ui.label("Shown count:");
                 ui.add(egui::Slider::new(group_size, 1..=20));
                 ui.separator();
@@ -327,7 +327,9 @@ fn side_panel(
             ui.label("Z-offset:");
             ui.add(egui::DragValue::new(&mut model.z_offset));
 
-            ui.checkbox(&mut model.mounted, "Mounted / Background");
+            ui.checkbox(&mut model.has_x_displacement, "X-displacement");
+            ui.label("Z-displacement:");
+            ui.add(egui::DragValue::new(&mut model.z_displacement));
 
             ui.separator();
 

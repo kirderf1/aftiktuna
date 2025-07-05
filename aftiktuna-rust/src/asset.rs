@@ -181,7 +181,7 @@ pub mod placement {
 
     #[derive(Default)]
     pub struct Positioner {
-        coord_counts: HashMap<Coord, u16>,
+        coord_counts: HashMap<Coord, (u16, i16)>,
     }
 
     impl Positioner {
@@ -228,22 +228,27 @@ pub mod placement {
         }
 
         pub fn position_object<T>(&mut self, coord: Coord, model: &Model<T>) -> Vec2 {
-            let count = if model.is_displacing() {
-                let count_ref = self.coord_counts.entry(coord).or_insert(0);
-                let count = *count_ref;
-                *count_ref = count + 1;
-                count
-            } else {
-                0
-            };
-            position_from_coord(coord, count, model.z_offset)
+            let (x_count, z_displacement) = self.coord_counts.entry(coord).or_insert((0, 0));
+
+            let pos = position_from_coord(coord, *x_count, *z_displacement, model.z_offset);
+
+            if model.has_x_displacement {
+                *x_count += 1;
+            }
+            *z_displacement += model.z_displacement;
+            pos
         }
     }
 
-    fn position_from_coord(coord: Coord, count: u16, z_offset: i16) -> Vec2 {
+    fn position_from_coord(
+        coord: Coord,
+        x_displacement_count: u16,
+        z_displacement: i16,
+        z_offset: i16,
+    ) -> Vec2 {
         (
-            coord_to_center_x(coord) - f32::from(count) * 15.,
-            f32::from(190 - count * 15) - f32::from(z_offset),
+            coord_to_center_x(coord) - f32::from(x_displacement_count * 15),
+            f32::from(190 - z_displacement - z_offset),
         )
     }
 }

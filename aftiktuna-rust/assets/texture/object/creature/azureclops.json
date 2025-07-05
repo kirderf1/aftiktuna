@@ -3,5 +3,6 @@
     { "texture": "creature/azureclops", "if_alive": true, "if_hurt": false },
     { "texture": "creature/wounded_azureclops", "if_alive": true, "if_hurt": true },
     { "texture": "creature/azureclops_corpse", "if_alive": false }
-  ]
+  ],
+  "z_displacement": 20
 }

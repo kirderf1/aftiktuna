@@ -3,5 +3,6 @@
     { "texture": "path/flat", "y_offset": 120, "fixed": true }
   ],
   "z_offset": -90,
-  "mounted": true
+  "has_x_displacement": false,
+  "z_displacement": 0
 }

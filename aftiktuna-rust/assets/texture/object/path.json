@@ -3,5 +3,6 @@
     { "texture": "path/detached", "y_offset": 90, "fixed": true }
   ],
   "z_offset": -90,
-  "mounted": true
+  "has_x_displacement": false,
+  "z_displacement": 0
 }

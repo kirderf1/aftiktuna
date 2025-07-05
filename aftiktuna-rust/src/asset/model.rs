@@ -14,16 +14,31 @@ pub struct Model<T> {
     pub wield_offset: (i16, i16),
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub z_offset: i16,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub mounted: bool,
+    #[serde(default = "value_true", skip_serializing_if = "is_true")]
+    pub has_x_displacement: bool,
+    #[serde(
+        default = "y_displacement_default",
+        skip_serializing_if = "is_y_displacement_default"
+    )]
+    pub z_displacement: i16,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub group_placement: GroupPlacement,
 }
 
-impl<T> Model<T> {
-    pub fn is_displacing(&self) -> bool {
-        !self.mounted
-    }
+fn value_true() -> bool {
+    true
+}
+
+fn is_true(b: &bool) -> bool {
+    *b
+}
+
+fn y_displacement_default() -> i16 {
+    15
+}
+
+fn is_y_displacement_default(y_displacement: &i16) -> bool {
+    *y_displacement == y_displacement_default()
 }
 
 impl Model<String> {
@@ -35,9 +50,10 @@ impl Model<String> {
         layers.reverse();
         Ok(Model {
             layers,
-            z_offset: self.z_offset,
             wield_offset: self.wield_offset,
-            mounted: self.mounted,
+            z_offset: self.z_offset,
+            has_x_displacement: self.has_x_displacement,
+            z_displacement: self.z_displacement,
             group_placement: self.group_placement.clone(),
         })
     }

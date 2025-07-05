@@ -3,5 +3,6 @@
     { "texture": "doorway", "fixed": true }
   ],
   "z_offset": -30,
-  "mounted": true
+  "has_x_displacement": false,
+  "z_displacement": 0
 }
