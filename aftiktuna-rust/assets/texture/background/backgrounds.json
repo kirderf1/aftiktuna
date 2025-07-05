@@ -38,6 +38,14 @@
     ],
     "portrait_texture": "field_portrait"
   },
+  "field_with_trees": {
+    "layers": [
+      { "texture": "lightly_cloudy_sky", "move_factor": 0.2, "is_looping": true },
+      { "texture": "field", "move_factor": 1.0, "is_looping": true },
+      { "texture": "field_trees", "move_factor": 1.0, "is_looping": true }
+    ],
+    "portrait_texture": "field_portrait"
+  },
   "shack": {
     "texture": "shack",
     "move_factor": 1.0,

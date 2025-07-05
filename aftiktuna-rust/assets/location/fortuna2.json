@@ -2,7 +2,7 @@
   "areas": [
     {
       "name": "Field",
-      "background": "field",
+      "background": "field_with_trees",
       "background_offset": 5,
       "objects": [ "", "v", ".", "-", "/" ],
       "symbols": {
@@ -19,7 +19,7 @@
     },
     {
       "name": "Field",
-      "background": "field",
+      "background": "field_with_trees",
       "background_offset": 0,
       "objects": [ "\\", "-", "-G", "-G", "-", "-G", ".¤", "" ],
       "symbols": {

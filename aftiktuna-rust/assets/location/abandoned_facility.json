@@ -24,7 +24,7 @@
     },
     {
       "name": "Field",
-      "background": "field",
+      "background": "field_with_trees",
       "background_offset": 0,
       "objects": [ "^", "", "S", "k", "#" ],
       "symbols": {
