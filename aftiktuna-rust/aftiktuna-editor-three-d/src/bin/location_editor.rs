@@ -1,18 +1,585 @@
+mod ui {
+    use aftiktuna::asset::color::AftikColorData;
+    use aftiktuna::asset::location::creature::{
+        self, AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData,
+        NpcSpawnData, ShopkeeperSpawnData,
+    };
+    use aftiktuna::asset::location::{
+        AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, SymbolData,
+        SymbolMap,
+    };
+    use aftiktuna::asset::loot::LootTableId;
+    use aftiktuna::core::area::BackgroundId;
+    use aftiktuna::core::display::AftikColorId;
+    use aftiktuna::core::item;
+    use aftiktuna::core::position::Direction;
+    use indexmap::IndexMap;
+    use std::{hash::Hash, path::PathBuf};
+    use three_d::egui;
+
+    const SYMBOL_LABEL_FONT: egui::FontId = egui::FontId::monospace(12.);
+
+    pub fn editor_panels(
+        editor_data: &mut super::EditorData,
+        assets: &super::Assets,
+        egui_context: &egui::Context,
+    ) -> bool {
+        let mut save = false;
+        let super::EditorData {
+            location_data,
+            area_index,
+            char_edit,
+        } = editor_data;
+        side_panel(egui_context, |ui| {
+            if let Some((char, symbol_edit_data)) = char_edit {
+                let area = &mut location_data.areas[*area_index];
+                let action = symbol_editor_ui(
+                    ui,
+                    symbol_edit_data,
+                    |new_char| {
+                        if new_char != *char && area.symbols.contains_key(&new_char) {
+                            SymbolStatus::Conflicting
+                        } else if assets.base_symbols.contains_key(&new_char) {
+                            SymbolStatus::Overriding
+                        } else {
+                            SymbolStatus::Unique
+                        }
+                    },
+                    &assets.aftik_colors,
+                );
+
+                match action {
+                    Some(SymbolEditAction::Done) => {
+                        let new_char = symbol_edit_data.new_char.chars().next().unwrap();
+                        area.symbols
+                            .insert(new_char, symbol_edit_data.symbol_data.clone());
+                        if *char != new_char {
+                            area.symbols.swap_remove(char);
+                        }
+                        for objects in &mut area.objects {
+                            *objects = objects.replace(*char, &new_char.to_string());
+                        }
+                        *char_edit = None;
+                    }
+                    Some(SymbolEditAction::Cancel) => {
+                        *char_edit = None;
+                    }
+                    None => {}
+                }
+            } else {
+                let char_to_edit = selection_ui(
+                    ui,
+                    &mut location_data.areas,
+                    area_index,
+                    &assets.background_types,
+                    &assets.base_symbols,
+                );
+
+                ui.separator();
+                save = ui.button("Save").clicked();
+
+                if let Some(char_to_edit) = char_to_edit
+                    && let Some(symbol_data) = location_data.areas[*area_index]
+                        .symbols
+                        .get(&char_to_edit)
+                        .cloned()
+                {
+                    *char_edit = Some((
+                        char_to_edit,
+                        SymbolEditData {
+                            new_char: char_to_edit.to_string(),
+                            symbol_data,
+                        },
+                    ));
+                }
+            }
+        });
+
+        let area = &mut location_data.areas[*area_index];
+        bottom_panel(egui_context, |ui| {
+            ui.add_enabled_ui(char_edit.is_none(), |ui| {
+                ui.horizontal(|ui| {
+                    for symbols in &mut area.objects {
+                        ui.add(
+                            egui::TextEdit::singleline(symbols)
+                                .desired_width(30.)
+                                .font(egui::TextStyle::Monospace),
+                        );
+                    }
+                });
+            });
+        });
+
+        save
+    }
+
+    fn side_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
+        egui::SidePanel::right("side")
+            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+            .resizable(false)
+            .exact_width(crate::SIDE_PANEL_WIDTH as f32)
+            .show(egui_context, panel_contents);
+    }
+
+    fn bottom_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
+        egui::TopBottomPanel::bottom("bottom")
+            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+            .resizable(false)
+            .exact_height(crate::BOTTOM_PANEL_HEIGHT as f32)
+            .show(egui_context, panel_contents);
+    }
+
+    fn selection_ui(
+        ui: &mut egui::Ui,
+        areas: &mut [AreaData],
+        area_index: &mut usize,
+        background_types: &[BackgroundId],
+        base_symbols: &SymbolMap,
+    ) -> Option<char> {
+        egui::ComboBox::from_id_salt("area").show_index(ui, area_index, areas.len(), |index| {
+            areas[index].name.clone()
+        });
+        ui.separator();
+
+        let area = &mut areas[*area_index];
+        let char_to_edit = area_editor_ui(ui, area, background_types, base_symbols);
+
+        ui.separator();
+        ui.collapsing("Global Symbols", |ui| {
+            for (char, symbol_data) in base_symbols {
+                let color = if area.symbols.contains_key(char) {
+                    egui::Color32::DARK_GRAY
+                } else {
+                    egui::Color32::GRAY
+                };
+                ui.label(
+                    egui::RichText::new(format!("{char} : {}", name_from_symbol(symbol_data)))
+                        .font(SYMBOL_LABEL_FONT)
+                        .color(color),
+                );
+            }
+        });
+        char_to_edit
+    }
+
+    fn area_editor_ui(
+        ui: &mut egui::Ui,
+        area: &mut AreaData,
+        background_types: &[BackgroundId],
+        base_symbols: &SymbolMap,
+    ) -> Option<char> {
+        ui.label("Background:");
+        egui::ComboBox::from_id_salt("background")
+            .selected_text(&area.background.0)
+            .show_ui(ui, |ui| {
+                for background_id in background_types {
+                    if ui
+                        .selectable_label(background_id == &area.background, &background_id.0)
+                        .clicked()
+                    {
+                        area.background = background_id.clone();
+                    }
+                }
+            });
+
+        ui.label("Background offset:");
+        ui.horizontal(|ui| {
+            let mut has_offset = area.background_offset.is_some();
+            ui.add(egui::Checkbox::without_text(&mut has_offset));
+            if has_offset && area.background_offset.is_none() {
+                area.background_offset = Some(0);
+            }
+            if !has_offset && area.background_offset.is_some() {
+                area.background_offset = None;
+            }
+            if let Some(offset) = &mut area.background_offset {
+                ui.add(egui::Slider::new(offset, 0..=20));
+            }
+        });
+
+        ui.horizontal(|ui| {
+            if ui.button("Add Left").clicked() {
+                area.objects.insert(0, String::default());
+            }
+            if ui.button("Add Right").clicked() {
+                area.objects.push(String::default());
+            }
+        });
+        ui.horizontal(|ui| {
+            if ui.button("Remove Left").clicked() {
+                area.objects.remove(0);
+            }
+            if ui.button("Remove Right").clicked() {
+                area.objects.pop();
+            }
+        });
+
+        ui.collapsing("Local Symbols", |ui| {
+            let mut char_to_edit = None;
+
+            for (char, symbol_data) in &area.symbols {
+                let color = if base_symbols.contains_key(char) {
+                    egui::Color32::LIGHT_GRAY
+                } else {
+                    egui::Color32::GRAY
+                };
+                ui.label(
+                    egui::RichText::new(format!("{char} : {}", name_from_symbol(symbol_data)))
+                        .font(SYMBOL_LABEL_FONT)
+                        .color(color),
+                );
+                if ui.button("Edit").clicked() {
+                    char_to_edit = Some(*char);
+                }
+            }
+            char_to_edit
+        })
+        .body_returned
+        .unwrap_or_default()
+    }
+    pub struct SymbolEditData {
+        new_char: String,
+        symbol_data: SymbolData,
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum SymbolStatus {
+        Unique,
+        Conflicting,
+        Overriding,
+    }
+
+    enum SymbolEditAction {
+        Done,
+        Cancel,
+    }
+
+    fn symbol_editor_ui(
+        ui: &mut egui::Ui,
+        symbol_edit_data: &mut SymbolEditData,
+        symbol_lookup: impl FnOnce(char) -> SymbolStatus,
+        aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
+    ) -> Option<SymbolEditAction> {
+        ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
+
+        ui.add(egui::TextEdit::singleline(&mut symbol_edit_data.new_char).char_limit(1));
+
+        let status = symbol_edit_data
+            .new_char
+            .chars()
+            .next()
+            .map(symbol_lookup)
+            .unwrap_or(SymbolStatus::Unique);
+
+        if status == SymbolStatus::Conflicting {
+            ui.label(
+                egui::RichText::new("Character conflicts with existing").color(egui::Color32::RED),
+            );
+        } else if status == SymbolStatus::Overriding {
+            ui.label(
+                egui::RichText::new("Character overrides global").color(egui::Color32::YELLOW),
+            );
+        }
+
+        ui.separator();
+
+        match &mut symbol_edit_data.symbol_data {
+            SymbolData::LocationEntry => {}
+            SymbolData::FortunaChest => {}
+            SymbolData::Item { item } => {
+                item_type_editor(ui, item, "item");
+            }
+            SymbolData::Loot { table } => {
+                loot_table_editor(ui, table);
+            }
+            SymbolData::Door(DoorSpawnData {
+                pair_id,
+                display_type,
+                adjective,
+            }) => {
+                egui::ComboBox::from_label("Door Type")
+                    .selected_text(format!("{display_type:?}"))
+                    .show_ui(ui, |ui| {
+                        for selectable_type in DoorType::variants() {
+                            ui.selectable_value(
+                                display_type,
+                                *selectable_type,
+                                format!("{selectable_type:?}"),
+                            );
+                        }
+                    });
+                fn adjective_name(adjective: Option<DoorAdjective>) -> &'static str {
+                    adjective.map(DoorAdjective::word).unwrap_or("none")
+                }
+                egui::ComboBox::from_label("Adjective")
+                    .selected_text(adjective_name(*adjective))
+                    .show_ui(ui, |ui| {
+                        for selectable_type in [None]
+                            .into_iter()
+                            .chain(DoorAdjective::variants().iter().copied().map(Some))
+                        {
+                            ui.selectable_value(
+                                adjective,
+                                selectable_type,
+                                adjective_name(selectable_type),
+                            );
+                        }
+                    });
+            }
+            SymbolData::Inanimate { model, direction } => {
+                ui.text_edit_singleline(&mut model.0);
+                if !model.file_path().as_ref().exists() {
+                    ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
+                }
+                direction_editor(ui, direction, "inanimate_direction");
+            }
+            SymbolData::Container(ContainerData {
+                container_type,
+                content,
+                direction,
+            }) => {
+                egui::ComboBox::from_label("Container Type")
+                    .selected_text(container_type.noun().singular())
+                    .show_ui(ui, |ui| {
+                        for selectable_type in ContainerType::variants() {
+                            ui.selectable_value(
+                                container_type,
+                                *selectable_type,
+                                selectable_type.noun().singular(),
+                            );
+                        }
+                    });
+                direction_editor(ui, direction, "container_direction");
+            }
+            SymbolData::Creature(creature_spawn_data) => {
+                creature_spawn_data_editor(ui, creature_spawn_data);
+            }
+            SymbolData::Shopkeeper(ShopkeeperSpawnData {
+                stock,
+                color,
+                direction,
+            }) => {
+                color_editor(ui, color, "shopkeeper_color", aftik_colors);
+                option_direction_editor(ui, direction, "shopkeeper_direction");
+            }
+            SymbolData::Character(NpcSpawnData {
+                profile,
+                interaction,
+                direction,
+            }) => {
+                option_direction_editor(ui, direction, "character_direction");
+            }
+            SymbolData::AftikCorpse(AftikCorpseData { color, direction }) => {
+                egui::ComboBox::new("corpse_color", "Color")
+                    .selected_text(
+                        color
+                            .as_ref()
+                            .map::<&str, _>(|color| &color.0)
+                            .unwrap_or("random"),
+                    )
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(color, None, "random");
+                        for selectable in aftik_colors.keys() {
+                            ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
+                        }
+                    });
+                option_direction_editor(ui, direction, "aftik_corpse_direction");
+            }
+        }
+
+        ui.separator();
+
+        ui.horizontal(|ui| {
+            let done = ui
+                .add_enabled(
+                    !symbol_edit_data.new_char.is_empty() && status != SymbolStatus::Conflicting,
+                    egui::Button::new("Done"),
+                )
+                .clicked();
+            let cancel = ui.add(egui::Button::new("Cancel")).clicked();
+
+            if cancel {
+                Some(SymbolEditAction::Cancel)
+            } else if done {
+                Some(SymbolEditAction::Done)
+            } else {
+                None
+            }
+        })
+        .inner
+    }
+
+    fn creature_spawn_data_editor(
+        ui: &mut egui::Ui,
+        CreatureSpawnData {
+            creature,
+            health,
+            attribute,
+            aggressive,
+            wandering,
+            tag,
+            direction,
+        }: &mut CreatureSpawnData,
+    ) {
+        egui::ComboBox::from_label("Creature Type")
+            .selected_text(creature.noun().singular())
+            .show_ui(ui, |ui| {
+                for selectable_type in creature::Type::variants() {
+                    ui.selectable_value(
+                        creature,
+                        *selectable_type,
+                        selectable_type.noun().singular(),
+                    );
+                }
+            });
+        ui.label("Health:");
+        ui.add(egui::Slider::new(health, 0.0..=1.0));
+
+        fn attribute_name(attribute: AttributeChoice) -> &'static str {
+            match attribute {
+                AttributeChoice::None => "none",
+                AttributeChoice::Random => "random",
+                AttributeChoice::Attribute(creature_attribute) => creature_attribute.as_adjective(),
+            }
+        }
+        egui::ComboBox::from_label("Attribute")
+            .selected_text(attribute_name(*attribute))
+            .show_ui(ui, |ui| {
+                for selectable_type in AttributeChoice::variants() {
+                    ui.selectable_value(
+                        attribute,
+                        selectable_type,
+                        attribute_name(selectable_type),
+                    );
+                }
+            });
+
+        fn agression_name(agression: Option<bool>) -> &'static str {
+            match agression {
+                None => "default",
+                Some(false) => "false",
+                Some(true) => "true",
+            }
+        }
+        egui::ComboBox::from_label("Agressiveness")
+            .selected_text(agression_name(*aggressive))
+            .show_ui(ui, |ui| {
+                for selectable_type in [None, Some(false), Some(true)] {
+                    ui.selectable_value(
+                        aggressive,
+                        selectable_type,
+                        agression_name(selectable_type),
+                    );
+                }
+            });
+
+        ui.checkbox(wandering, "Wandering");
+
+        option_direction_editor(ui, direction, "creature_direction");
+    }
+
+    fn direction_editor(ui: &mut egui::Ui, direction: &mut Direction, id: impl Hash) {
+        egui::ComboBox::new(id, "Direction")
+            .selected_text(format!("{direction:?}"))
+            .show_ui(ui, |ui| {
+                for selectable in [Direction::Left, Direction::Right] {
+                    ui.selectable_value(direction, selectable, format!("{selectable:?}"));
+                }
+            });
+    }
+
+    fn option_direction_editor(
+        ui: &mut egui::Ui,
+        direction: &mut Option<Direction>,
+        id: impl Hash,
+    ) {
+        egui::ComboBox::new(id, "Direction")
+            .selected_text(format!("{direction:?}"))
+            .show_ui(ui, |ui| {
+                for selectable in [None, Some(Direction::Left), Some(Direction::Right)] {
+                    ui.selectable_value(direction, selectable, format!("{selectable:?}"));
+                }
+            });
+    }
+
+    fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut item::Type, id: impl Hash) {
+        egui::ComboBox::new(id, "Item Type")
+            .selected_text(edited_type.noun_data().singular())
+            .show_ui(ui, |ui| {
+                for selectable_type in item::Type::variants() {
+                    ui.selectable_value(
+                        edited_type,
+                        *selectable_type,
+                        selectable_type.noun_data().singular(),
+                    );
+                }
+            });
+    }
+
+    fn loot_table_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
+        ui.text_edit_singleline(&mut loot_table_id.0);
+        let path = ["assets", &loot_table_id.path()]
+            .iter()
+            .collect::<PathBuf>();
+        if !path.exists() {
+            ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
+        }
+    }
+
+    fn color_editor(
+        ui: &mut egui::Ui,
+        edited_color: &mut AftikColorId,
+        id: impl Hash,
+        aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
+    ) {
+        egui::ComboBox::new(id, "Color")
+            .selected_text(&edited_color.0)
+            .show_ui(ui, |ui| {
+                for selectable in aftik_colors.keys() {
+                    ui.selectable_value(edited_color, selectable.clone(), &selectable.0);
+                }
+            });
+    }
+
+    fn name_from_symbol(symbol_data: &SymbolData) -> String {
+        match symbol_data {
+            SymbolData::LocationEntry => "Landing Spot".to_owned(),
+            SymbolData::FortunaChest => "Fortuna Chest".to_owned(),
+            SymbolData::Item { item } => format!("Item ({})", item.noun_data().singular()),
+            SymbolData::Loot { table } => format!("Loot ({})", table.0),
+            SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
+            SymbolData::Inanimate { model, .. } => format!("Object ({})", model.0),
+            SymbolData::Container(container_data) => {
+                format!(
+                    "Container ({})",
+                    container_data.container_type.noun().singular()
+                )
+            }
+            SymbolData::Creature(creature_spawn_data) => {
+                format!(
+                    "Creature ({})",
+                    creature_spawn_data.creature.noun().singular()
+                )
+            }
+            SymbolData::Shopkeeper(_) => "Shopkeeper".to_owned(),
+            SymbolData::Character(npc_spawn_data) => {
+                let interaction = match &npc_spawn_data.interaction {
+                    CharacterInteraction::Recruitable => "recruitable",
+                    CharacterInteraction::GivesHuntReward(_) => "hunt quest",
+                };
+                format!("NCP ({interaction})")
+            }
+            SymbolData::AftikCorpse(_) => "Aftik Corpse".to_owned(),
+        }
+    }
+}
+
 use aftiktuna::asset::color::{self, AftikColorData};
-use aftiktuna::asset::location::creature::{
-    self, AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
-    ShopkeeperSpawnData,
-};
-use aftiktuna::asset::location::{
-    self, AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType,
-    LocationData, SymbolData, SymbolMap,
-};
-use aftiktuna::asset::loot::LootTableId;
+use aftiktuna::asset::location::{self, AreaData, LocationData, SymbolData, SymbolMap};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{ProfileOrRandom, background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
-use aftiktuna::core::item;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::location::generate::Symbols;
@@ -21,9 +588,6 @@ use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
 use indexmap::IndexMap;
 use std::fs::{self, File};
-use std::hash::Hash;
-use std::path::PathBuf;
-use three_d::egui;
 
 const SIDE_PANEL_WIDTH: u32 = 250;
 const BOTTOM_PANEL_HEIGHT: u32 = 30;
@@ -32,8 +596,6 @@ const SIZE: (u32, u32) = (
     aftiktuna_three_d::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
     aftiktuna_three_d::WINDOW_HEIGHT as u32 + BOTTOM_PANEL_HEIGHT,
 );
-
-const SYMBOL_LABEL_FONT: egui::FontId = egui::FontId::monospace(12.);
 
 fn main() {
     let locations_directory = fs::canonicalize("./assets/location").unwrap();
@@ -86,7 +648,7 @@ fn main() {
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                save = editor_panels(&mut editor_data, &assets, egui_context);
+                save = ui::editor_panels(&mut editor_data, &assets, egui_context);
             },
         );
 
@@ -131,7 +693,7 @@ fn main() {
 struct EditorData {
     location_data: LocationData,
     area_index: usize,
-    char_edit: Option<(char, SymbolEditData)>,
+    char_edit: Option<(char, ui::SymbolEditData)>,
 }
 
 struct Assets {
@@ -140,100 +702,6 @@ struct Assets {
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     aftik_colors: IndexMap<AftikColorId, AftikColorData>,
-}
-
-fn editor_panels(
-    editor_data: &mut EditorData,
-    assets: &Assets,
-    egui_context: &egui::Context,
-) -> bool {
-    let mut save = false;
-    let EditorData {
-        location_data,
-        area_index,
-        char_edit,
-    } = editor_data;
-    side_panel(egui_context, |ui| {
-        if let Some((char, symbol_edit_data)) = char_edit {
-            let area = &mut location_data.areas[*area_index];
-            let action = symbol_editor_ui(
-                ui,
-                symbol_edit_data,
-                |new_char| {
-                    if new_char != *char && area.symbols.contains_key(&new_char) {
-                        SymbolStatus::Conflicting
-                    } else if assets.base_symbols.contains_key(&new_char) {
-                        SymbolStatus::Overriding
-                    } else {
-                        SymbolStatus::Unique
-                    }
-                },
-                &assets.aftik_colors,
-            );
-
-            match action {
-                Some(SymbolEditAction::Done) => {
-                    let new_char = symbol_edit_data.new_char.chars().next().unwrap();
-                    area.symbols
-                        .insert(new_char, symbol_edit_data.symbol_data.clone());
-                    if *char != new_char {
-                        area.symbols.swap_remove(char);
-                    }
-                    for objects in &mut area.objects {
-                        *objects = objects.replace(*char, &new_char.to_string());
-                    }
-                    *char_edit = None;
-                }
-                Some(SymbolEditAction::Cancel) => {
-                    *char_edit = None;
-                }
-                None => {}
-            }
-        } else {
-            let char_to_edit = selection_ui(
-                ui,
-                &mut location_data.areas,
-                area_index,
-                &assets.background_types,
-                &assets.base_symbols,
-            );
-
-            ui.separator();
-            save = ui.button("Save").clicked();
-
-            if let Some(char_to_edit) = char_to_edit
-                && let Some(symbol_data) = location_data.areas[*area_index]
-                    .symbols
-                    .get(&char_to_edit)
-                    .cloned()
-            {
-                *char_edit = Some((
-                    char_to_edit,
-                    SymbolEditData {
-                        new_char: char_to_edit.to_string(),
-                        symbol_data,
-                    },
-                ));
-            }
-        }
-    });
-
-    let area = &mut location_data.areas[*area_index];
-    bottom_panel(egui_context, |ui| {
-        ui.add_enabled_ui(char_edit.is_none(), |ui| {
-            ui.horizontal(|ui| {
-                for symbols in &mut area.objects {
-                    ui.add(
-                        egui::TextEdit::singleline(symbols)
-                            .desired_width(30.)
-                            .font(egui::TextStyle::Monospace),
-                    );
-                }
-            });
-        });
-    });
-
-    save
 }
 
 fn render_game_view(
@@ -287,453 +755,6 @@ fn render_game_view(
     let render_camera = render::get_render_camera(camera, render_viewport);
     render::draw_in_order(&background, &render_camera, screen);
     render::draw_in_order(&objects, &render_camera, screen);
-}
-
-fn side_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
-    egui::SidePanel::right("side")
-        .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
-        .resizable(false)
-        .exact_width(SIDE_PANEL_WIDTH as f32)
-        .show(egui_context, panel_contents);
-}
-
-fn bottom_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
-    egui::TopBottomPanel::bottom("bottom")
-        .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
-        .resizable(false)
-        .exact_height(BOTTOM_PANEL_HEIGHT as f32)
-        .show(egui_context, panel_contents);
-}
-
-fn selection_ui(
-    ui: &mut egui::Ui,
-    areas: &mut [AreaData],
-    area_index: &mut usize,
-    background_types: &[BackgroundId],
-    base_symbols: &SymbolMap,
-) -> Option<char> {
-    egui::ComboBox::from_id_salt("area").show_index(ui, area_index, areas.len(), |index| {
-        areas[index].name.clone()
-    });
-    ui.separator();
-
-    let area = &mut areas[*area_index];
-    let char_to_edit = area_editor_ui(ui, area, background_types, base_symbols);
-
-    ui.separator();
-    ui.collapsing("Global Symbols", |ui| {
-        for (char, symbol_data) in base_symbols {
-            let color = if area.symbols.contains_key(char) {
-                egui::Color32::DARK_GRAY
-            } else {
-                egui::Color32::GRAY
-            };
-            ui.label(
-                egui::RichText::new(format!("{char} : {}", name_from_symbol(symbol_data)))
-                    .font(SYMBOL_LABEL_FONT)
-                    .color(color),
-            );
-        }
-    });
-    char_to_edit
-}
-
-fn area_editor_ui(
-    ui: &mut egui::Ui,
-    area: &mut AreaData,
-    background_types: &[BackgroundId],
-    base_symbols: &SymbolMap,
-) -> Option<char> {
-    ui.label("Background:");
-    egui::ComboBox::from_id_salt("background")
-        .selected_text(&area.background.0)
-        .show_ui(ui, |ui| {
-            for background_id in background_types {
-                if ui
-                    .selectable_label(background_id == &area.background, &background_id.0)
-                    .clicked()
-                {
-                    area.background = background_id.clone();
-                }
-            }
-        });
-
-    ui.label("Background offset:");
-    ui.horizontal(|ui| {
-        let mut has_offset = area.background_offset.is_some();
-        ui.add(egui::Checkbox::without_text(&mut has_offset));
-        if has_offset && area.background_offset.is_none() {
-            area.background_offset = Some(0);
-        }
-        if !has_offset && area.background_offset.is_some() {
-            area.background_offset = None;
-        }
-        if let Some(offset) = &mut area.background_offset {
-            ui.add(egui::Slider::new(offset, 0..=20));
-        }
-    });
-
-    ui.horizontal(|ui| {
-        if ui.button("Add Left").clicked() {
-            area.objects.insert(0, String::default());
-        }
-        if ui.button("Add Right").clicked() {
-            area.objects.push(String::default());
-        }
-    });
-    ui.horizontal(|ui| {
-        if ui.button("Remove Left").clicked() {
-            area.objects.remove(0);
-        }
-        if ui.button("Remove Right").clicked() {
-            area.objects.pop();
-        }
-    });
-
-    ui.collapsing("Local Symbols", |ui| {
-        let mut char_to_edit = None;
-
-        for (char, symbol_data) in &area.symbols {
-            let color = if base_symbols.contains_key(char) {
-                egui::Color32::LIGHT_GRAY
-            } else {
-                egui::Color32::GRAY
-            };
-            ui.label(
-                egui::RichText::new(format!("{char} : {}", name_from_symbol(symbol_data)))
-                    .font(SYMBOL_LABEL_FONT)
-                    .color(color),
-            );
-            if ui.button("Edit").clicked() {
-                char_to_edit = Some(*char);
-            }
-        }
-        char_to_edit
-    })
-    .body_returned
-    .unwrap_or_default()
-}
-
-struct SymbolEditData {
-    new_char: String,
-    symbol_data: SymbolData,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum SymbolStatus {
-    Unique,
-    Conflicting,
-    Overriding,
-}
-
-enum SymbolEditAction {
-    Done,
-    Cancel,
-}
-
-fn symbol_editor_ui(
-    ui: &mut egui::Ui,
-    symbol_edit_data: &mut SymbolEditData,
-    symbol_lookup: impl FnOnce(char) -> SymbolStatus,
-    aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
-) -> Option<SymbolEditAction> {
-    ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
-
-    ui.add(egui::TextEdit::singleline(&mut symbol_edit_data.new_char).char_limit(1));
-
-    let status = symbol_edit_data
-        .new_char
-        .chars()
-        .next()
-        .map(symbol_lookup)
-        .unwrap_or(SymbolStatus::Unique);
-
-    if status == SymbolStatus::Conflicting {
-        ui.label(
-            egui::RichText::new("Character conflicts with existing").color(egui::Color32::RED),
-        );
-    } else if status == SymbolStatus::Overriding {
-        ui.label(egui::RichText::new("Character overrides global").color(egui::Color32::YELLOW));
-    }
-
-    ui.separator();
-
-    match &mut symbol_edit_data.symbol_data {
-        SymbolData::LocationEntry => {}
-        SymbolData::FortunaChest => {}
-        SymbolData::Item { item } => {
-            item_type_editor(ui, item, "item");
-        }
-        SymbolData::Loot { table } => {
-            loot_table_editor(ui, table);
-        }
-        SymbolData::Door(DoorSpawnData {
-            pair_id,
-            display_type,
-            adjective,
-        }) => {
-            egui::ComboBox::from_label("Door Type")
-                .selected_text(format!("{display_type:?}"))
-                .show_ui(ui, |ui| {
-                    for selectable_type in DoorType::variants() {
-                        ui.selectable_value(
-                            display_type,
-                            *selectable_type,
-                            format!("{selectable_type:?}"),
-                        );
-                    }
-                });
-            fn adjective_name(adjective: Option<DoorAdjective>) -> &'static str {
-                adjective.map(DoorAdjective::word).unwrap_or("none")
-            }
-            egui::ComboBox::from_label("Adjective")
-                .selected_text(adjective_name(*adjective))
-                .show_ui(ui, |ui| {
-                    for selectable_type in [None]
-                        .into_iter()
-                        .chain(DoorAdjective::variants().iter().copied().map(Some))
-                    {
-                        ui.selectable_value(
-                            adjective,
-                            selectable_type,
-                            adjective_name(selectable_type),
-                        );
-                    }
-                });
-        }
-        SymbolData::Inanimate { model, direction } => {
-            ui.text_edit_singleline(&mut model.0);
-            if !model.file_path().as_ref().exists() {
-                ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
-            }
-            direction_editor(ui, direction, "inanimate_direction");
-        }
-        SymbolData::Container(ContainerData {
-            container_type,
-            content,
-            direction,
-        }) => {
-            egui::ComboBox::from_label("Container Type")
-                .selected_text(container_type.noun().singular())
-                .show_ui(ui, |ui| {
-                    for selectable_type in ContainerType::variants() {
-                        ui.selectable_value(
-                            container_type,
-                            *selectable_type,
-                            selectable_type.noun().singular(),
-                        );
-                    }
-                });
-            direction_editor(ui, direction, "container_direction");
-        }
-        SymbolData::Creature(creature_spawn_data) => {
-            creature_spawn_data_editor(ui, creature_spawn_data);
-        }
-        SymbolData::Shopkeeper(ShopkeeperSpawnData {
-            stock,
-            color,
-            direction,
-        }) => {
-            color_editor(ui, color, "shopkeeper_color", aftik_colors);
-            option_direction_editor(ui, direction, "shopkeeper_direction");
-        }
-        SymbolData::Character(NpcSpawnData {
-            profile,
-            interaction,
-            direction,
-        }) => {
-            option_direction_editor(ui, direction, "character_direction");
-        }
-        SymbolData::AftikCorpse(AftikCorpseData { color, direction }) => {
-            egui::ComboBox::new("corpse_color", "Color")
-                .selected_text(
-                    color
-                        .as_ref()
-                        .map::<&str, _>(|color| &color.0)
-                        .unwrap_or("random"),
-                )
-                .show_ui(ui, |ui| {
-                    ui.selectable_value(color, None, "random");
-                    for selectable in aftik_colors.keys() {
-                        ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
-                    }
-                });
-            option_direction_editor(ui, direction, "aftik_corpse_direction");
-        }
-    }
-
-    ui.separator();
-
-    ui.horizontal(|ui| {
-        let done = ui
-            .add_enabled(
-                !symbol_edit_data.new_char.is_empty() && status != SymbolStatus::Conflicting,
-                egui::Button::new("Done"),
-            )
-            .clicked();
-        let cancel = ui.add(egui::Button::new("Cancel")).clicked();
-
-        if cancel {
-            Some(SymbolEditAction::Cancel)
-        } else if done {
-            Some(SymbolEditAction::Done)
-        } else {
-            None
-        }
-    })
-    .inner
-}
-
-fn creature_spawn_data_editor(
-    ui: &mut egui::Ui,
-    CreatureSpawnData {
-        creature,
-        health,
-        attribute,
-        aggressive,
-        wandering,
-        tag,
-        direction,
-    }: &mut CreatureSpawnData,
-) {
-    egui::ComboBox::from_label("Creature Type")
-        .selected_text(creature.noun().singular())
-        .show_ui(ui, |ui| {
-            for selectable_type in creature::Type::variants() {
-                ui.selectable_value(
-                    creature,
-                    *selectable_type,
-                    selectable_type.noun().singular(),
-                );
-            }
-        });
-    ui.label("Health:");
-    ui.add(egui::Slider::new(health, 0.0..=1.0));
-
-    fn attribute_name(attribute: AttributeChoice) -> &'static str {
-        match attribute {
-            AttributeChoice::None => "none",
-            AttributeChoice::Random => "random",
-            AttributeChoice::Attribute(creature_attribute) => creature_attribute.as_adjective(),
-        }
-    }
-    egui::ComboBox::from_label("Attribute")
-        .selected_text(attribute_name(*attribute))
-        .show_ui(ui, |ui| {
-            for selectable_type in AttributeChoice::variants() {
-                ui.selectable_value(attribute, selectable_type, attribute_name(selectable_type));
-            }
-        });
-
-    fn agression_name(agression: Option<bool>) -> &'static str {
-        match agression {
-            None => "default",
-            Some(false) => "false",
-            Some(true) => "true",
-        }
-    }
-    egui::ComboBox::from_label("Agressiveness")
-        .selected_text(agression_name(*aggressive))
-        .show_ui(ui, |ui| {
-            for selectable_type in [None, Some(false), Some(true)] {
-                ui.selectable_value(aggressive, selectable_type, agression_name(selectable_type));
-            }
-        });
-
-    ui.checkbox(wandering, "Wandering");
-
-    option_direction_editor(ui, direction, "creature_direction");
-}
-
-fn direction_editor(ui: &mut egui::Ui, direction: &mut Direction, id: impl Hash) {
-    egui::ComboBox::new(id, "Direction")
-        .selected_text(format!("{direction:?}"))
-        .show_ui(ui, |ui| {
-            for selectable in [Direction::Left, Direction::Right] {
-                ui.selectable_value(direction, selectable, format!("{selectable:?}"));
-            }
-        });
-}
-
-fn option_direction_editor(ui: &mut egui::Ui, direction: &mut Option<Direction>, id: impl Hash) {
-    egui::ComboBox::new(id, "Direction")
-        .selected_text(format!("{direction:?}"))
-        .show_ui(ui, |ui| {
-            for selectable in [None, Some(Direction::Left), Some(Direction::Right)] {
-                ui.selectable_value(direction, selectable, format!("{selectable:?}"));
-            }
-        });
-}
-
-fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut item::Type, id: impl Hash) {
-    egui::ComboBox::new(id, "Item Type")
-        .selected_text(edited_type.noun_data().singular())
-        .show_ui(ui, |ui| {
-            for selectable_type in item::Type::variants() {
-                ui.selectable_value(
-                    edited_type,
-                    *selectable_type,
-                    selectable_type.noun_data().singular(),
-                );
-            }
-        });
-}
-
-fn loot_table_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
-    ui.text_edit_singleline(&mut loot_table_id.0);
-    let path = ["assets", &loot_table_id.path()]
-        .iter()
-        .collect::<PathBuf>();
-    if !path.exists() {
-        ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
-    }
-}
-
-fn color_editor(
-    ui: &mut egui::Ui,
-    edited_color: &mut AftikColorId,
-    id: impl Hash,
-    aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
-) {
-    egui::ComboBox::new(id, "Color")
-        .selected_text(&edited_color.0)
-        .show_ui(ui, |ui| {
-            for selectable in aftik_colors.keys() {
-                ui.selectable_value(edited_color, selectable.clone(), &selectable.0);
-            }
-        });
-}
-
-fn name_from_symbol(symbol_data: &SymbolData) -> String {
-    match symbol_data {
-        SymbolData::LocationEntry => "Landing Spot".to_owned(),
-        SymbolData::FortunaChest => "Fortuna Chest".to_owned(),
-        SymbolData::Item { item } => format!("Item ({})", item.noun_data().singular()),
-        SymbolData::Loot { table } => format!("Loot ({})", table.0),
-        SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
-        SymbolData::Inanimate { model, .. } => format!("Object ({})", model.0),
-        SymbolData::Container(container_data) => {
-            format!(
-                "Container ({})",
-                container_data.container_type.noun().singular()
-            )
-        }
-        SymbolData::Creature(creature_spawn_data) => {
-            format!(
-                "Creature ({})",
-                creature_spawn_data.creature.noun().singular()
-            )
-        }
-        SymbolData::Shopkeeper(_) => "Shopkeeper".to_owned(),
-        SymbolData::Character(npc_spawn_data) => {
-            let interaction = match &npc_spawn_data.interaction {
-                CharacterInteraction::Recruitable => "recruitable",
-                CharacterInteraction::GivesHuntReward(_) => "hunt quest",
-            };
-            format!("NCP ({interaction})")
-        }
-        SymbolData::AftikCorpse(_) => "Aftik Corpse".to_owned(),
-    }
 }
 
 fn object_from_symbol(
