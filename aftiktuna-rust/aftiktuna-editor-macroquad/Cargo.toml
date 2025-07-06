@@ -1,5 +1,5 @@
 [package]
-name = "aftiktuna-editor"
+name = "aftiktuna-editor-macroquad"
 version.workspace = true
 edition = "2021"
 

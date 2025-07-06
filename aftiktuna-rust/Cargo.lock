@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "aftiktuna-editor"
+name = "aftiktuna-editor-macroquad"
 version = "0.10.0"
 dependencies = [
  "aftiktuna",
