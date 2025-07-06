@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a forest",
+      "pos_in_overview": [ -2, -12 ],
       "background": "forest_entrance",
       "background_offset": 6,
       "objects": [ "", "<", "", ".v", "-v", "-", "/", "" ],
@@ -13,6 +14,7 @@
     },
     {
       "name": "Forest entrance",
+      "pos_in_overview": [ -10, -5 ],
       "background": "forest",
       "background_offset": 0,
       "objects": [ "<", "#", "", "^", "", ">" ],
@@ -25,6 +27,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -14, 4 ],
       "background": "forest",
       "background_offset": 2,
       "objects": [ "<", "", ">", "E", "f", "" ],
@@ -35,6 +38,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -13, 11 ],
       "background": "forest",
       "background_offset": 4,
       "objects": [ "<", "^", "", ">" ],
@@ -46,6 +50,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -15, 19 ],
       "background": "forest",
       "background_offset": 5,
       "objects": [ "^", "#", "", "F", "t" ],
@@ -56,6 +61,7 @@
     },
     {
       "name": "Forest entrance",
+      "pos_in_overview": [ 5, -6 ],
       "background": "forest",
       "background_offset": 3,
       "objects": [ "<", "#", "\\", "-%", "/", "" ],
@@ -68,6 +74,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ 9, 6 ],
       "background": "forest",
       "background_offset": 0,
       "objects": [ "<", "f", "\\", "-", "/" ],
@@ -79,6 +86,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ 16, 15 ],
       "background": "forest",
       "background_offset": 3,
       "objects": [ "\\", "-", "-Ee", "-#", ".Ec", "Aa", "!f" ],
@@ -102,6 +110,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -2, 2 ],
       "background": "forest",
       "background_offset": 5,
       "objects": [ "<", "", "^", "EE", "", ">" ],
@@ -114,6 +123,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -2, 11 ],
       "background": "forest",
       "background_offset": 2,
       "objects": [ "<", "", "#", "^", "", ">", "" ],

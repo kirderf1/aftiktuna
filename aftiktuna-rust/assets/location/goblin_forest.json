@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a forest",
+      "pos_in_overview": [ -1, -5 ],
       "background": "forest_entrance",
       "background_offset": 1,
       "objects": [ "", ".v", "-", "-", "/", "#", "" ],
@@ -24,6 +25,7 @@
     },
     {
       "name": "Forest path leading to a shack",
+      "pos_in_overview": [ -10, 3 ],
       "background": "forest",
       "background_offset": 6,
       "objects": [ "#", ".^", "-", "|", "-", "/" ],
@@ -37,6 +39,7 @@
     },
     {
       "name": "Shack",
+      "pos_in_overview": [ -18, 0 ],
       "background": "shack",
       "objects": [ "¤f", "fE", "", "^" ],
       "symbols": {
@@ -54,6 +57,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -7, 10 ],
       "background": "forest",
       "background_offset": 5,
       "objects": [ "<", "", "^", "G", ">" ],
@@ -65,6 +69,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ -15, 16 ],
       "background": "forest",
       "background_offset": 1,
       "objects": [ "#%", "S", "", "", "^" ],
@@ -75,6 +80,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ 5, 10 ],
       "background": "forest",
       "background_offset": 0,
       "objects": [ "<", "#", "G", "G", "", ">" ],
@@ -93,6 +99,7 @@
     },
     {
       "name": "Forest path",
+      "pos_in_overview": [ 13, 5 ],
       "background": "forest",
       "background_offset": 3,
       "objects": [ "<", "#", ">", "", "G", "c" ],

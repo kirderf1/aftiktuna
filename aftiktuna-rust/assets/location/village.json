@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Village road",
+      "pos_in_overview": [ 0, -6 ],
       "background": "field",
       "background_offset": 1,
       "objects": [ "", "<.", "-", "-", "-v", "-4", "|", "-", ">,", "" ],
@@ -15,6 +16,7 @@
     },
     {
       "name": "Village road",
+      "pos_in_overview": [ 3, 2 ],
       "background": "field",
       "background_offset": 0,
       "objects": [ "3", "\\", "-7", "-", "-", "|", "-", "-", ".<", "-", "-5", "-A", ",>", "" ],
@@ -46,6 +48,7 @@
     },
     {
       "name": "Side path",
+      "pos_in_overview": [ -7, 10 ],
       "background": "forest_entrance",
       "background_offset": 6,
       "objects": [ "t", "\\", "-", "-S", "-E", "-", "-S", ".^", "" ],
@@ -57,6 +60,7 @@
     },
     {
       "name": "House",
+      "pos_in_overview": [ -4, -2 ],
       "background": "shack",
       "objects": [ "A", "", "^", "T" ],
       "symbols": {
@@ -70,6 +74,7 @@
     },
     {
       "name": "Store",
+      "pos_in_overview": [ 5, -2 ],
       "background": "shack",
       "objects": [ "^", "T", "S", "" ],
       "symbols": {
@@ -89,6 +94,7 @@
     },
     {
       "name": "House",
+      "pos_in_overview": [ 5, 7 ],
       "background": "shack",
       "objects": [ "^", "", "#", "" ],
       "symbols": {
@@ -106,6 +112,7 @@
     },
     {
       "name": "House",
+      "pos_in_overview": [ 11, 7 ],
       "background": "shack",
       "objects": [ "^", "", "Z", "T" ],
       "symbols": {
@@ -116,6 +123,7 @@
     },
     {
       "name": "Shack",
+      "pos_in_overview": [ -2, 16 ],
       "background": "shack",
       "objects": [ "^", "", "T", "¤" ],
       "symbols": {

@@ -12,6 +12,7 @@
     },
     {
       "name": "Field",
+      "pos_in_overview": [ 6, 3 ],
       "background": "field",
       "background_offset": 4,
       "objects": [ "\\", "-", "-G", "-", "-", "-Z", ".¤", "8" ],
