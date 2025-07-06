@@ -516,7 +516,9 @@ mod ui {
 }
 
 use aftiktuna::asset::color::{self, AftikColorData};
-use aftiktuna::asset::location::{self, AreaData, LocationData, SymbolLookup, SymbolMap};
+use aftiktuna::asset::location::{
+    self, AreaData, LocationData, SymbolData, SymbolLookup, SymbolMap,
+};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, placement};
 use aftiktuna::core::area::BackgroundId;
@@ -613,6 +615,7 @@ fn main() {
                 render_viewport,
                 &screen,
                 &frame_input.context,
+                &assets.base_symbols,
             );
         } else {
             render_game_view(
@@ -656,10 +659,60 @@ struct Assets {
     aftik_colors: IndexMap<AftikColorId, AftikColorData>,
 }
 
-const OVERVIEW_SCALE: f32 = 6.;
+const OVERVIEW_SCALE: f32 = 8.;
 
-const AREA_COLOR: three_d::Vec4 = three_d::vec4(0.5, 0.5, 0.5, 0.5);
-const SELECTED_AREA_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.8, 0.8, 0.8);
+const AREA_COLOR: three_d::Vec4 = three_d::vec4(0.2, 0.2, 0.2, 1.0);
+const SELECTED_AREA_COLOR: three_d::Vec4 = three_d::vec4(0.5, 0.5, 0.5, 1.0);
+const PATH_COLOR: three_d::Vec4 = three_d::vec4(0.4, 0.4, 0.7, 1.0);
+const SPECIAL_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.0, 0.8, 1.0);
+const ENTRY_COLOR: three_d::Vec4 = three_d::vec4(0.0, 0.0, 0.8, 1.0);
+const NPC_COLOR: three_d::Vec4 = three_d::vec4(0.0, 0.8, 0.0, 1.0);
+const FOE_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.0, 0.0, 1.0);
+const ITEM_COLOR: three_d::Vec4 = three_d::vec4(0.4, 0.7, 0.4, 1.0);
+
+fn color_for_pos(objects: &str, selected: bool, symbol_lookup: &SymbolLookup) -> three_d::Vec4 {
+    if objects
+        .chars()
+        .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::Door(_))))
+    {
+        PATH_COLOR
+    } else if objects
+        .chars()
+        .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::FortunaChest)))
+    {
+        SPECIAL_COLOR
+    } else if objects
+        .chars()
+        .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::LocationEntry)))
+    {
+        ENTRY_COLOR
+    } else if objects.chars().any(|char| {
+        matches!(
+            symbol_lookup.lookup(char),
+            Some(SymbolData::Character(_)) | Some(SymbolData::Shopkeeper(_))
+        )
+    }) {
+        NPC_COLOR
+    } else if objects
+        .chars()
+        .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::Creature(_))))
+    {
+        FOE_COLOR
+    } else if objects.chars().any(|char| {
+        matches!(
+            symbol_lookup.lookup(char),
+            Some(SymbolData::Item { .. })
+                | Some(SymbolData::Loot { .. })
+                | Some(SymbolData::Container(_))
+        )
+    }) {
+        ITEM_COLOR
+    } else if selected {
+        SELECTED_AREA_COLOR
+    } else {
+        AREA_COLOR
+    }
+}
 
 fn render_overview(
     location: &LocationData,
@@ -667,6 +720,7 @@ fn render_overview(
     render_viewport: three_d::Viewport,
     screen: &three_d::RenderTarget<'_>,
     context: &three_d::Context,
+    base_symbols: &SymbolMap,
 ) {
     let center = three_d::vec2(
         render_viewport.width as f32 / 2.,
@@ -676,29 +730,31 @@ fn render_overview(
         .areas
         .iter()
         .enumerate()
-        .map(|(index, area)| {
-            let color = if index == selected_index {
-                SELECTED_AREA_COLOR
-            } else {
-                AREA_COLOR
-            };
+        .flat_map(|(index, area)| {
+            let symbol_lookup = SymbolLookup::new(base_symbols, &area.symbols);
+            let selected = index == selected_index;
+            let offset = -(area.objects.len() as i32) / 2;
 
-            three_d::Gm::new(
-                {
-                    three_d::Rectangle::new(
-                        context,
-                        center
-                            + three_d::vec2(
-                                area.pos_in_overview.0 as f32,
-                                area.pos_in_overview.1 as f32,
-                            ) * OVERVIEW_SCALE,
-                        three_d::degrees(0.),
-                        area.objects.len() as f32 * OVERVIEW_SCALE,
-                        OVERVIEW_SCALE,
+            area.objects
+                .iter()
+                .enumerate()
+                .map(move |(coord, objects)| {
+                    let color = color_for_pos(objects, selected, &symbol_lookup);
+                    three_d::Gm::new(
+                        three_d::Rectangle::new(
+                            context,
+                            center
+                                + three_d::vec2(
+                                    (area.pos_in_overview.0 + offset + coord as i32) as f32,
+                                    area.pos_in_overview.1 as f32,
+                                ) * OVERVIEW_SCALE,
+                            three_d::degrees(0.),
+                            OVERVIEW_SCALE,
+                            OVERVIEW_SCALE,
+                        ),
+                        render::color_material(color),
                     )
-                },
-                render::color_material(color),
-            )
+                })
         })
         .collect::<Vec<_>>();
 
