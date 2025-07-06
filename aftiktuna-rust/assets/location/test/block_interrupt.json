@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Room",
+      "pos_in_overview": [ -4, -2 ],
       "objects": [ "v", "", "kc<", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "lock", "display_type": "door", "adjective": "left" },
@@ -12,6 +13,7 @@
     },
     {
       "name": "Room",
+      "pos_in_overview": [ -2, 2 ],
       "objects": [ "<", "K>", "E", "G" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "lock", "display_type": "door", "adjective": "left" },

@@ -555,6 +555,7 @@ fn main() {
         area_index: 0,
         symbol_edit_data: None,
         is_in_overview: false,
+        dragged_area: None,
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -594,8 +595,10 @@ fn main() {
             },
         );
 
-        let area = &editor_data.location_data.areas[editor_data.area_index];
-        if !editor_data.is_in_overview {
+        if editor_data.is_in_overview {
+            handle_overview_input(&mut frame_input.events, &mut editor_data);
+        } else {
+            let area = &editor_data.location_data.areas[editor_data.area_index];
             camera.handle_inputs(&mut frame_input.events);
             camera.clamp(area.objects.len() as Coord);
         }
@@ -619,6 +622,7 @@ fn main() {
                 &assets.base_symbols,
             );
         } else {
+            let area = &editor_data.location_data.areas[editor_data.area_index];
             render_game_view(
                 area,
                 &camera,
@@ -650,6 +654,7 @@ struct EditorData {
     area_index: usize,
     symbol_edit_data: Option<ui::SymbolEditData>,
     is_in_overview: bool,
+    dragged_area: Option<usize>,
 }
 
 struct Assets {
@@ -660,7 +665,65 @@ struct Assets {
     aftik_colors: IndexMap<AftikColorId, AftikColorData>,
 }
 
+fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut EditorData) {
+    for event in events {
+        match event {
+            three_d::Event::MousePress {
+                button,
+                position,
+                handled,
+                ..
+            } => {
+                if !*handled && *button == three_d::MouseButton::Left {
+                    let (mouse_x, mouse_y) = mouse_to_overview_pos(*position);
+                    editor_data.dragged_area = editor_data
+                        .location_data
+                        .areas
+                        .iter()
+                        .enumerate()
+                        .find(|(_, area)| {
+                            let offset = -(area.objects.len() as i32) / 2;
+                            area.pos_in_overview.0 + offset <= mouse_x
+                                && mouse_x
+                                    < area.pos_in_overview.0 + offset + area.objects.len() as i32
+                                && mouse_y == area.pos_in_overview.1
+                        })
+                        .map(|(index, _)| index);
+                    *handled = true;
+                }
+            }
+            three_d::Event::MouseRelease {
+                button, handled, ..
+            } => {
+                if editor_data.dragged_area.is_some() && *button == three_d::MouseButton::Left {
+                    editor_data.dragged_area = None;
+                    *handled = true;
+                }
+            }
+            three_d::Event::MouseMotion {
+                position, handled, ..
+            } => {
+                if !*handled && let Some(dragged_area) = editor_data.dragged_area {
+                    let area = &mut editor_data.location_data.areas[dragged_area];
+                    area.pos_in_overview = mouse_to_overview_pos(*position);
+                    *handled = true;
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
 const OVERVIEW_SCALE: f32 = 8.;
+
+fn mouse_to_overview_pos(pos: three_d::PhysicalPoint) -> (i32, i32) {
+    (
+        ((pos.x - aftiktuna_three_d::WINDOW_WIDTH_F / 2.) / OVERVIEW_SCALE).round() as i32,
+        ((pos.y - BOTTOM_PANEL_HEIGHT as f32 - aftiktuna_three_d::WINDOW_HEIGHT_F / 2.)
+            / OVERVIEW_SCALE)
+            .round() as i32,
+    )
+}
 
 const AREA_COLOR: three_d::Vec4 = three_d::vec4(0.2, 0.2, 0.2, 1.0);
 const SELECTED_AREA_COLOR: three_d::Vec4 = three_d::vec4(0.5, 0.5, 0.5, 1.0);
