@@ -79,7 +79,7 @@ async fn main() {
         let model = selected_model.load(&mut textures).unwrap();
         macroquad::camera::set_camera(&camera);
         background::draw_primary(&background, 0, &camera);
-        area_size = draw_examples(&selected_model, &model, group_size, &aftik_model);
+        area_size = draw_examples(&model, group_size, &aftik_model);
         macroquad::camera::set_default_camera();
 
         egui.draw();
@@ -93,7 +93,6 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
 };
 
 fn draw_examples(
-    raw_model: &Model<String>,
     model: &Model<Texture2D>,
     group_size: u16,
     aftik_model: &Model<Texture2D>,
@@ -202,7 +201,7 @@ fn draw_examples(
         })
     }
 
-    if raw_model
+    if model
         .layers
         .iter()
         .any(|layer| layer.conditions.if_cut.is_some())
@@ -222,7 +221,7 @@ fn draw_examples(
         });
     }
 
-    if raw_model
+    if model
         .layers
         .iter()
         .any(|layer| layer.conditions.if_hurt.is_some())
@@ -242,7 +241,7 @@ fn draw_examples(
         });
     }
 
-    if raw_model
+    if model
         .layers
         .iter()
         .any(|layer| layer.conditions.if_alive.is_some())
@@ -262,7 +261,7 @@ fn draw_examples(
         });
     }
 
-    if raw_model.wield_offset != (0, 0) {
+    if model.wield_offset != (0, 0) {
         bidirectional(|direction| {
             let pos = to_vec2(positioner.position_object(get_and_move_coord(), aftik_model));
             mq_model::draw_model(
