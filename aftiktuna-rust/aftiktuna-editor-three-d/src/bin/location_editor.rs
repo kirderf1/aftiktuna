@@ -731,7 +731,7 @@ const PATH_COLOR: three_d::Vec4 = three_d::vec4(0.4, 0.4, 0.7, 1.0);
 const SPECIAL_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.0, 0.8, 1.0);
 const ENTRY_COLOR: three_d::Vec4 = three_d::vec4(0.0, 0.0, 0.8, 1.0);
 const NPC_COLOR: three_d::Vec4 = three_d::vec4(0.0, 0.8, 0.0, 1.0);
-const FOE_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.0, 0.0, 1.0);
+const RED_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.0, 0.0, 1.0);
 const ITEM_COLOR: three_d::Vec4 = three_d::vec4(0.4, 0.7, 0.4, 1.0);
 
 fn color_for_pos(objects: &str, selected: bool, symbol_lookup: &SymbolLookup) -> three_d::Vec4 {
@@ -761,7 +761,7 @@ fn color_for_pos(objects: &str, selected: bool, symbol_lookup: &SymbolLookup) ->
         .chars()
         .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::Creature(_))))
     {
-        FOE_COLOR
+        RED_COLOR
     } else if objects.chars().any(|char| {
         matches!(
             symbol_lookup.lookup(char),
@@ -843,10 +843,14 @@ fn render_overview(
         })
         .collect::<Vec<_>>();
     let path_lines = path_positions
-        .values()
-        .filter_map(|positions| {
+        .iter()
+        .filter_map(|(pair_id, positions)| {
             if let [pos1, pos2] = positions[..] {
-                let color = PATH_COLOR;
+                let color = if location.door_pairs[pair_id].block_type.is_some() {
+                    RED_COLOR
+                } else {
+                    PATH_COLOR
+                };
                 Some(three_d::Gm::new(
                     three_d::Line::new(
                         context,
