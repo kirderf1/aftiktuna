@@ -516,13 +516,12 @@ mod ui {
 }
 
 use aftiktuna::asset::color::{self, AftikColorData};
-use aftiktuna::asset::location::{self, AreaData, LocationData, SymbolMap};
+use aftiktuna::asset::location::{self, AreaData, LocationData, SymbolLookup, SymbolMap};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::Coord;
-use aftiktuna::location::generate::Symbols;
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
 use indexmap::IndexMap;
@@ -722,7 +721,7 @@ fn render_game_view(
         camera.camera_x,
         context,
     );
-    let symbol_lookup = Symbols::new(&assets.base_symbols, &area.symbols);
+    let symbol_lookup = SymbolLookup::new(&assets.base_symbols, &area.symbols);
 
     let mut objects = area
         .objects

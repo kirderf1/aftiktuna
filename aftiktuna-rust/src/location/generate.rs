@@ -3,7 +3,8 @@ pub(super) mod door;
 
 use super::LocationGenContext;
 use crate::asset::location::{
-    AreaData, ContainerData, DoorPairMap, ItemOrLoot, LocationData, SymbolData, SymbolMap,
+    AreaData, ContainerData, DoorPairMap, ItemOrLoot, LocationData, SymbolData, SymbolLookup,
+    SymbolMap,
 };
 use crate::asset::{self, loot};
 use crate::core::area::Area;
@@ -45,7 +46,7 @@ fn build_area(
         background_offset: area_data.background_offset,
     },));
 
-    let symbols = Symbols::new(parent_symbols, &area_data.symbols);
+    let symbols = SymbolLookup::new(parent_symbols, &area_data.symbols);
 
     for (coord, objects) in area_data.objects.iter().enumerate() {
         let pos = Pos::new(room, coord as Coord, &builder.gen_context.world);
@@ -57,23 +58,6 @@ fn build_area(
         }
     }
     Ok(())
-}
-
-pub struct Symbols<'a> {
-    parent_map: &'a SymbolMap,
-    map: &'a SymbolMap,
-}
-
-impl<'a> Symbols<'a> {
-    pub fn new(parent_map: &'a SymbolMap, map: &'a SymbolMap) -> Self {
-        Self { parent_map, map }
-    }
-
-    pub fn lookup(&self, symbol: char) -> Option<&'a SymbolData> {
-        self.map
-            .get(&symbol)
-            .or_else(|| self.parent_map.get(&symbol))
-    }
 }
 
 fn place_symbol(
