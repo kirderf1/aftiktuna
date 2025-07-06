@@ -162,6 +162,11 @@ mod ui {
         char_to_edit
     }
 
+    enum SymbolOp {
+        Edit,
+        Delete,
+    }
+
     fn area_editor_ui(
         ui: &mut egui::Ui,
         area: &mut AreaData,
@@ -228,11 +233,25 @@ mod ui {
                         .font(SYMBOL_LABEL_FONT)
                         .color(color),
                 );
-                if ui.button("Edit").clicked() {
-                    char_to_edit = Some(*char);
-                }
+
+                ui.horizontal(|ui| {
+                    if ui.button("Edit").clicked() {
+                        char_to_edit = Some((*char, SymbolOp::Edit));
+                    }
+                    if ui.button("Delete").clicked() {
+                        char_to_edit = Some((*char, SymbolOp::Delete));
+                    }
+                });
             }
-            char_to_edit
+
+            match char_to_edit {
+                Some((char, SymbolOp::Delete)) => {
+                    area.symbols.shift_remove(&char);
+                    None
+                }
+                Some((char, SymbolOp::Edit)) => Some(char),
+                None => None,
+            }
         })
         .body_returned
         .unwrap_or_default()
