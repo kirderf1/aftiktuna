@@ -63,13 +63,19 @@ mod ui {
                     None => {}
                 }
             } else {
-                editor_data.symbol_edit_data = selection_ui(
-                    ui,
-                    &mut editor_data.location_data.areas,
-                    &mut editor_data.area_index,
-                    &assets.background_types,
-                    &assets.base_symbols,
-                );
+                if ui.button("Swap View").clicked() {
+                    editor_data.is_in_overview = !editor_data.is_in_overview;
+                }
+
+                if !editor_data.is_in_overview {
+                    editor_data.symbol_edit_data = selection_ui(
+                        ui,
+                        &mut editor_data.location_data.areas,
+                        &mut editor_data.area_index,
+                        &assets.background_types,
+                        &assets.base_symbols,
+                    );
+                }
 
                 ui.separator();
                 save = ui.button("Save").clicked();
@@ -78,17 +84,19 @@ mod ui {
 
         let area = { &mut editor_data.location_data.areas[editor_data.area_index] };
         bottom_panel(egui_context, |ui| {
-            ui.add_enabled_ui(editor_data.symbol_edit_data.is_none(), |ui| {
-                ui.horizontal(|ui| {
-                    for symbols in &mut area.objects {
-                        ui.add(
-                            egui::TextEdit::singleline(symbols)
-                                .desired_width(30.)
-                                .font(egui::TextStyle::Monospace),
-                        );
-                    }
+            if !editor_data.is_in_overview {
+                ui.add_enabled_ui(editor_data.symbol_edit_data.is_none(), |ui| {
+                    ui.horizontal(|ui| {
+                        for symbols in &mut area.objects {
+                            ui.add(
+                                egui::TextEdit::singleline(symbols)
+                                    .desired_width(30.)
+                                    .font(egui::TextStyle::Monospace),
+                            );
+                        }
+                    });
                 });
-            });
+            }
         });
 
         save
@@ -544,6 +552,7 @@ fn main() {
             .unwrap(),
         area_index: 0,
         symbol_edit_data: None,
+        is_in_overview: false,
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -584,8 +593,10 @@ fn main() {
         );
 
         let area = &editor_data.location_data.areas[editor_data.area_index];
-        camera.handle_inputs(&mut frame_input.events);
-        camera.clamp(area.objects.len() as Coord);
+        if !editor_data.is_in_overview {
+            camera.handle_inputs(&mut frame_input.events);
+            camera.clamp(area.objects.len() as Coord);
+        }
 
         let screen = frame_input.screen();
         screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
@@ -596,14 +607,24 @@ fn main() {
             width: aftiktuna_three_d::WINDOW_WIDTH.into(),
             height: aftiktuna_three_d::WINDOW_HEIGHT.into(),
         };
-        render_game_view(
-            area,
-            &camera,
-            render_viewport,
-            &screen,
-            &frame_input.context,
-            &mut assets,
-        );
+        if editor_data.is_in_overview {
+            render_overview(
+                &editor_data.location_data,
+                editor_data.area_index,
+                render_viewport,
+                &screen,
+                &frame_input.context,
+            );
+        } else {
+            render_game_view(
+                area,
+                &camera,
+                render_viewport,
+                &screen,
+                &frame_input.context,
+                &mut assets,
+            );
+        }
 
         screen.write(|| gui.render()).unwrap();
 
@@ -625,6 +646,7 @@ struct EditorData {
     location_data: LocationData,
     area_index: usize,
     symbol_edit_data: Option<ui::SymbolEditData>,
+    is_in_overview: bool,
 }
 
 struct Assets {
@@ -633,6 +655,56 @@ struct Assets {
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     aftik_colors: IndexMap<AftikColorId, AftikColorData>,
+}
+
+const OVERVIEW_SCALE: f32 = 6.;
+
+const AREA_COLOR: three_d::Vec4 = three_d::vec4(0.5, 0.5, 0.5, 0.5);
+const SELECTED_AREA_COLOR: three_d::Vec4 = three_d::vec4(0.8, 0.8, 0.8, 0.8);
+
+fn render_overview(
+    location: &LocationData,
+    selected_index: usize,
+    render_viewport: three_d::Viewport,
+    screen: &three_d::RenderTarget<'_>,
+    context: &three_d::Context,
+) {
+    let center = three_d::vec2(
+        render_viewport.width as f32 / 2.,
+        render_viewport.height as f32 / 2.,
+    );
+    let objects = location
+        .areas
+        .iter()
+        .enumerate()
+        .map(|(index, area)| {
+            let color = if index == selected_index {
+                SELECTED_AREA_COLOR
+            } else {
+                AREA_COLOR
+            };
+
+            three_d::Gm::new(
+                {
+                    three_d::Rectangle::new(
+                        context,
+                        center
+                            + three_d::vec2(
+                                area.pos_in_overview.0 as f32,
+                                area.pos_in_overview.1 as f32,
+                            ) * OVERVIEW_SCALE,
+                        three_d::degrees(0.),
+                        area.objects.len() as f32 * OVERVIEW_SCALE,
+                        OVERVIEW_SCALE,
+                    )
+                },
+                render::color_material(color),
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let render_camera = render::default_render_camera(render_viewport);
+    render::draw_in_order(&objects, &render_camera, screen);
 }
 
 fn render_game_view(

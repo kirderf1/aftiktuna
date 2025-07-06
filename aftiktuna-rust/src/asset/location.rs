@@ -179,6 +179,8 @@ impl LocationData {
 pub struct AreaData {
     pub name: String,
     #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub pos_in_overview: (i32, i32),
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub background: BackgroundId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background_offset: Option<Coord>,

@@ -2,6 +2,7 @@
   "areas": [
     {
       "name": "Armory",
+      "pos_in_overview": [ 0, -1 ],
       "objects": [ "Ks", "<", "v", "^", ">", "cB" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "goblin", "display_type": "door", "adjective": "left" },
@@ -15,6 +16,7 @@
     },
     {
       "name": "Goblin Room",
+      "pos_in_overview": [ -8, 2 ],
       "objects": [ "G", "", "^", "G", "" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "goblin", "display_type": "door" }
@@ -22,6 +24,7 @@
     },
     {
       "name": "Eyesaur Room",
+      "pos_in_overview": [ 0, 3 ],
       "objects": [ "", "", "^", "", "E" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "eyesaur", "display_type": "door" }
@@ -29,6 +32,7 @@
     },
     {
       "name": "Azureclops Room",
+      "pos_in_overview": [ 8, 2 ],
       "objects": [ "", "", "^", "", "Z" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "azureclops", "display_type": "door" }
