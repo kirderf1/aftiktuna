@@ -25,19 +25,15 @@ mod ui {
         egui_context: &egui::Context,
     ) -> bool {
         let mut save = false;
-        let super::EditorData {
-            location_data,
-            area_index,
-            char_edit,
-        } = editor_data;
         side_panel(egui_context, |ui| {
-            if let Some((char, symbol_edit_data)) = char_edit {
-                let area = &mut location_data.areas[*area_index];
+            if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
+                let area = &mut editor_data.location_data.areas[editor_data.area_index];
+                let old_char = symbol_edit_data.old_char;
                 let action = symbol_editor_ui(
                     ui,
                     symbol_edit_data,
                     |new_char| {
-                        if new_char != *char && area.symbols.contains_key(&new_char) {
+                        if new_char != old_char && area.symbols.contains_key(&new_char) {
                             SymbolStatus::Conflicting
                         } else if assets.base_symbols.contains_key(&new_char) {
                             SymbolStatus::Overriding
@@ -53,51 +49,37 @@ mod ui {
                         let new_char = symbol_edit_data.new_char.chars().next().unwrap();
                         area.symbols
                             .insert(new_char, symbol_edit_data.symbol_data.clone());
-                        if *char != new_char {
-                            area.symbols.swap_remove(char);
+                        if symbol_edit_data.old_char != new_char {
+                            area.symbols.swap_remove(&symbol_edit_data.old_char);
                         }
                         for objects in &mut area.objects {
-                            *objects = objects.replace(*char, &new_char.to_string());
+                            *objects =
+                                objects.replace(symbol_edit_data.old_char, &new_char.to_string());
                         }
-                        *char_edit = None;
+                        editor_data.symbol_edit_data = None;
                     }
                     Some(SymbolEditAction::Cancel) => {
-                        *char_edit = None;
+                        editor_data.symbol_edit_data = None;
                     }
                     None => {}
                 }
             } else {
-                let char_to_edit = selection_ui(
+                editor_data.symbol_edit_data = selection_ui(
                     ui,
-                    &mut location_data.areas,
-                    area_index,
+                    &mut editor_data.location_data.areas,
+                    &mut editor_data.area_index,
                     &assets.background_types,
                     &assets.base_symbols,
                 );
 
                 ui.separator();
                 save = ui.button("Save").clicked();
-
-                if let Some(char_to_edit) = char_to_edit
-                    && let Some(symbol_data) = location_data.areas[*area_index]
-                        .symbols
-                        .get(&char_to_edit)
-                        .cloned()
-                {
-                    *char_edit = Some((
-                        char_to_edit,
-                        SymbolEditData {
-                            new_char: char_to_edit.to_string(),
-                            symbol_data,
-                        },
-                    ));
-                }
             }
         });
 
-        let area = &mut location_data.areas[*area_index];
+        let area = { &mut editor_data.location_data.areas[editor_data.area_index] };
         bottom_panel(egui_context, |ui| {
-            ui.add_enabled_ui(char_edit.is_none(), |ui| {
+            ui.add_enabled_ui(editor_data.symbol_edit_data.is_none(), |ui| {
                 ui.horizontal(|ui| {
                     for symbols in &mut area.objects {
                         ui.add(
@@ -135,14 +117,14 @@ mod ui {
         area_index: &mut usize,
         background_types: &[BackgroundId],
         base_symbols: &SymbolMap,
-    ) -> Option<char> {
+    ) -> Option<SymbolEditData> {
         egui::ComboBox::from_id_salt("area").show_index(ui, area_index, areas.len(), |index| {
             areas[index].name.clone()
         });
         ui.separator();
 
         let area = &mut areas[*area_index];
-        let char_to_edit = area_editor_ui(ui, area, background_types, base_symbols);
+        let symbol_edit_data = area_editor_ui(ui, area, background_types, base_symbols);
 
         ui.separator();
         ui.collapsing("Global Symbols", |ui| {
@@ -159,12 +141,7 @@ mod ui {
                 );
             }
         });
-        char_to_edit
-    }
-
-    enum SymbolOp {
-        Edit,
-        Delete,
+        symbol_edit_data
     }
 
     fn area_editor_ui(
@@ -172,7 +149,7 @@ mod ui {
         area: &mut AreaData,
         background_types: &[BackgroundId],
         base_symbols: &SymbolMap,
-    ) -> Option<char> {
+    ) -> Option<SymbolEditData> {
         ui.label("Background:");
         egui::ComboBox::from_id_salt("background")
             .selected_text(&area.background.0)
@@ -220,7 +197,8 @@ mod ui {
         });
 
         ui.collapsing("Local Symbols", |ui| {
-            let mut char_to_edit = None;
+            let mut symbol_edit_data = None;
+            let mut char_to_delete = None;
 
             for (char, symbol_data) in &area.symbols {
                 let color = if base_symbols.contains_key(char) {
@@ -236,27 +214,31 @@ mod ui {
 
                 ui.horizontal(|ui| {
                     if ui.button("Edit").clicked() {
-                        char_to_edit = Some((*char, SymbolOp::Edit));
+                        symbol_edit_data = Some(SymbolEditData {
+                            old_char: *char,
+                            new_char: char.to_string(),
+                            symbol_data: symbol_data.clone(),
+                        });
                     }
                     if ui.button("Delete").clicked() {
-                        char_to_edit = Some((*char, SymbolOp::Delete));
+                        char_to_delete = Some(*char);
                     }
                 });
             }
 
-            match char_to_edit {
-                Some((char, SymbolOp::Delete)) => {
-                    area.symbols.shift_remove(&char);
-                    None
-                }
-                Some((char, SymbolOp::Edit)) => Some(char),
-                None => None,
+            if let Some(char_to_delete) = char_to_delete {
+                area.symbols.shift_remove(&char_to_delete);
+                None
+            } else {
+                symbol_edit_data
             }
         })
         .body_returned
         .unwrap_or_default()
     }
+
     pub struct SymbolEditData {
+        old_char: char,
         new_char: String,
         symbol_data: SymbolData,
     }
@@ -631,7 +613,7 @@ fn main() {
         location_data: serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap())
             .unwrap(),
         area_index: 0,
-        char_edit: None,
+        symbol_edit_data: None,
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -712,7 +694,7 @@ fn main() {
 struct EditorData {
     location_data: LocationData,
     area_index: usize,
-    char_edit: Option<(char, ui::SymbolEditData)>,
+    symbol_edit_data: Option<ui::SymbolEditData>,
 }
 
 struct Assets {
