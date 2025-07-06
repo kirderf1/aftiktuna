@@ -527,6 +527,7 @@ use aftiktuna::core::position::Coord;
 use aftiktuna_three_d::asset::LazilyLoadedModels;
 use aftiktuna_three_d::{asset, render};
 use indexmap::IndexMap;
+use std::collections::HashMap;
 use std::fs::{self, File};
 
 const SIDE_PANEL_WIDTH: u32 = 250;
@@ -722,6 +723,27 @@ fn render_overview(
     context: &three_d::Context,
     base_symbols: &SymbolMap,
 ) {
+    let mut path_positions = HashMap::new();
+    for door_pair_id in location.door_pairs.keys() {
+        path_positions.insert(door_pair_id.clone(), Vec::new());
+    }
+    for area in &location.areas {
+        let symbol_lookup = SymbolLookup::new(base_symbols, &area.symbols);
+        let offset = -(area.objects.len() as i32) / 2;
+        for (coord, objects) in area.objects.iter().enumerate() {
+            for symbol in objects.chars() {
+                if let Some(SymbolData::Door(door_spawn_data)) = symbol_lookup.lookup(symbol)
+                    && let Some(positions) = path_positions.get_mut(&door_spawn_data.pair_id)
+                {
+                    positions.push((
+                        area.pos_in_overview.0 + offset + coord as i32,
+                        area.pos_in_overview.1,
+                    ));
+                }
+            }
+        }
+    }
+
     let center = three_d::vec2(
         render_viewport.width as f32 / 2.,
         render_viewport.height as f32 / 2.,
@@ -757,8 +779,28 @@ fn render_overview(
                 })
         })
         .collect::<Vec<_>>();
+    let path_lines = path_positions
+        .values()
+        .filter_map(|positions| {
+            if let [pos1, pos2] = positions[..] {
+                let color = PATH_COLOR;
+                Some(three_d::Gm::new(
+                    three_d::Line::new(
+                        context,
+                        center + three_d::vec2(pos1.0 as f32, pos1.1 as f32) * OVERVIEW_SCALE,
+                        center + three_d::vec2(pos2.0 as f32, pos2.1 as f32) * OVERVIEW_SCALE,
+                        1.,
+                    ),
+                    render::color_material(color),
+                ))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
 
     let render_camera = render::default_render_camera(render_viewport);
+    render::draw_in_order(&path_lines, &render_camera, screen);
     render::draw_in_order(&objects, &render_camera, screen);
 }
 
