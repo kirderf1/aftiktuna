@@ -31,7 +31,7 @@
         "^": { "type": "door", "pair_id": "shack", "display_type": "shack" },
         "|": { "type": "door", "pair_id": "path2", "display_type": "crossroad_path", "adjective": "left" },
         "/": { "type": "door", "pair_id": "path1", "display_type": "right_path", "adjective": "right" },
-        ".": { "type": "inanimate", "model": "path/left_end" },
+        ".": { "type": "inanimate", "model": "path/left_corner" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" }
       }
     },
