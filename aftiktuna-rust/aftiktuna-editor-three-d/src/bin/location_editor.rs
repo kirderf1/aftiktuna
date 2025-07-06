@@ -9,7 +9,7 @@ mod ui {
         SymbolMap,
     };
     use aftiktuna::core::area::BackgroundId;
-    use aftiktuna::core::display::AftikColorId;
+    use aftiktuna::core::display::{AftikColorId, ModelId};
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
     use three_d::egui;
@@ -30,7 +30,7 @@ mod ui {
                     ui,
                     symbol_edit_data,
                     |new_char| {
-                        if new_char != old_char && area.symbols.contains_key(&new_char) {
+                        if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
                             SymbolStatus::Conflicting
                         } else if assets.base_symbols.contains_key(&new_char) {
                             SymbolStatus::Overriding
@@ -46,12 +46,14 @@ mod ui {
                         let new_char = symbol_edit_data.new_char.chars().next().unwrap();
                         area.symbols
                             .insert(new_char, symbol_edit_data.symbol_data.clone());
-                        if symbol_edit_data.old_char != new_char {
-                            area.symbols.swap_remove(&symbol_edit_data.old_char);
-                        }
-                        for objects in &mut area.objects {
-                            *objects =
-                                objects.replace(symbol_edit_data.old_char, &new_char.to_string());
+
+                        if let Some(old_char) = symbol_edit_data.old_char
+                            && old_char != new_char
+                        {
+                            area.symbols.swap_remove(&old_char);
+                            for objects in &mut area.objects {
+                                *objects = objects.replace(old_char, &new_char.to_string());
+                            }
                         }
                         editor_data.symbol_edit_data = None;
                     }
@@ -212,7 +214,7 @@ mod ui {
                 ui.horizontal(|ui| {
                     if ui.button("Edit").clicked() {
                         symbol_edit_data = Some(SymbolEditData {
-                            old_char: *char,
+                            old_char: Some(*char),
                             new_char: char.to_string(),
                             symbol_data: symbol_data.clone(),
                         });
@@ -221,6 +223,17 @@ mod ui {
                         char_to_delete = Some(*char);
                     }
                 });
+            }
+
+            if ui.button("Add Inanimate").clicked() {
+                symbol_edit_data = Some(SymbolEditData {
+                    old_char: None,
+                    new_char: String::new(),
+                    symbol_data: SymbolData::Inanimate {
+                        model: ModelId::unknown(),
+                        direction: Default::default(),
+                    },
+                })
             }
 
             if let Some(char_to_delete) = char_to_delete {
@@ -235,7 +248,7 @@ mod ui {
     }
 
     pub struct SymbolEditData {
-        old_char: char,
+        old_char: Option<char>,
         new_char: String,
         symbol_data: SymbolData,
     }
