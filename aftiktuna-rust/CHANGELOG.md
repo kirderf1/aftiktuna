@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 4.0, making it incompatible with previous save files
+- Noticeable rework of the eyesaur forest location
 - Reworked field backgrounds with manually placed tree objects
 - Tweak paths placed in front of doors to visually connect to the doors
 - New model field "z_offset" that helps influence the rendering order

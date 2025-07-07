@@ -359,12 +359,13 @@ pub enum ContainerType {
     Drawer,
     Crate,
     Chest,
+    CrashedShip,
 }
 
 impl ContainerType {
     pub fn variants() -> &'static [Self] {
         use ContainerType::*;
-        &[Tent, Cabinet, Drawer, Crate, Chest]
+        &[Tent, Cabinet, Drawer, Crate, Chest, CrashedShip]
     }
 
     pub fn model_id(self) -> ModelId {
@@ -374,6 +375,7 @@ impl ContainerType {
             Self::Drawer => "container/drawer",
             Self::Crate => "container/crate",
             Self::Chest => "container/chest",
+            Self::CrashedShip => "container/crashed_ship",
         })
     }
 
@@ -384,6 +386,7 @@ impl ContainerType {
             Self::Drawer => Noun::new("drawer", "drawers"),
             Self::Crate => Noun::new("crate", "crates"),
             Self::Chest => Noun::new("chest", "chests"),
+            Self::CrashedShip => Noun::new("crashed ship", "crashed ships"),
         }
     }
 }
