@@ -26,66 +26,68 @@ mod ui {
         editor_data.hovered_door_pair = None;
         let mut save = false;
         side_panel(egui_context, |ui| {
-            if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
-                let area = &mut editor_data.location_data.areas[editor_data.area_index];
-                let old_char = symbol_edit_data.old_char;
-                let action = symbol_editor_ui(
-                    ui,
-                    symbol_edit_data,
-                    |new_char| {
-                        if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
-                            SymbolStatus::Conflicting
-                        } else if assets.base_symbols.contains_key(&new_char) {
-                            SymbolStatus::Overriding
-                        } else {
-                            SymbolStatus::Unique
-                        }
-                    },
-                    &assets.aftik_colors,
-                );
-
-                match action {
-                    Some(SymbolEditAction::Done) => {
-                        let new_char = symbol_edit_data.new_char.chars().next().unwrap();
-                        area.symbols
-                            .insert(new_char, symbol_edit_data.symbol_data.clone());
-
-                        if let Some(old_char) = symbol_edit_data.old_char
-                            && old_char != new_char
-                        {
-                            area.symbols.swap_remove(&old_char);
-                            for objects in &mut area.objects {
-                                *objects = objects.replace(old_char, &new_char.to_string());
-                            }
-                        }
-                        editor_data.symbol_edit_data = None;
-                    }
-                    Some(SymbolEditAction::Cancel) => {
-                        editor_data.symbol_edit_data = None;
-                    }
-                    None => {}
-                }
-            } else {
-                if ui.button("Swap View").clicked() {
-                    editor_data.is_in_overview = !editor_data.is_in_overview;
-                }
-
-                if editor_data.is_in_overview {
-                    ui.separator();
-                    overview_ui(editor_data, ui);
-                } else {
-                    ui.separator();
-                    area_view_ui(
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
+                    let area = &mut editor_data.location_data.areas[editor_data.area_index];
+                    let old_char = symbol_edit_data.old_char;
+                    let action = symbol_editor_ui(
                         ui,
-                        editor_data,
-                        &assets.background_types,
-                        &assets.base_symbols,
+                        symbol_edit_data,
+                        |new_char| {
+                            if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
+                                SymbolStatus::Conflicting
+                            } else if assets.base_symbols.contains_key(&new_char) {
+                                SymbolStatus::Overriding
+                            } else {
+                                SymbolStatus::Unique
+                            }
+                        },
+                        &assets.aftik_colors,
                     );
-                }
 
-                ui.separator();
-                save = ui.button("Save").clicked();
-            }
+                    match action {
+                        Some(SymbolEditAction::Done) => {
+                            let new_char = symbol_edit_data.new_char.chars().next().unwrap();
+                            area.symbols
+                                .insert(new_char, symbol_edit_data.symbol_data.clone());
+
+                            if let Some(old_char) = symbol_edit_data.old_char
+                                && old_char != new_char
+                            {
+                                area.symbols.swap_remove(&old_char);
+                                for objects in &mut area.objects {
+                                    *objects = objects.replace(old_char, &new_char.to_string());
+                                }
+                            }
+                            editor_data.symbol_edit_data = None;
+                        }
+                        Some(SymbolEditAction::Cancel) => {
+                            editor_data.symbol_edit_data = None;
+                        }
+                        None => {}
+                    }
+                } else {
+                    if ui.button("Swap View").clicked() {
+                        editor_data.is_in_overview = !editor_data.is_in_overview;
+                    }
+
+                    if editor_data.is_in_overview {
+                        ui.separator();
+                        overview_ui(editor_data, ui);
+                    } else {
+                        ui.separator();
+                        area_view_ui(
+                            ui,
+                            editor_data,
+                            &assets.background_types,
+                            &assets.base_symbols,
+                        );
+                    }
+
+                    ui.separator();
+                    save = ui.button("Save").clicked();
+                }
+            });
         });
 
         let area = { &mut editor_data.location_data.areas[editor_data.area_index] };
@@ -261,6 +263,8 @@ mod ui {
                 ui.add(egui::Slider::new(offset, 0..=20));
             }
         });
+
+        ui.separator();
 
         ui.horizontal(|ui| {
             if ui.button("Add Left").clicked() {
