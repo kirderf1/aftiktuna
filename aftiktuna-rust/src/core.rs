@@ -280,6 +280,11 @@ pub enum BlockType {
 }
 
 impl BlockType {
+    pub fn variants() -> &'static [Self] {
+        use BlockType::*;
+        &[Stuck, Sealed, Locked]
+    }
+
     pub fn description(self) -> &'static str {
         match self {
             BlockType::Stuck => "stuck",

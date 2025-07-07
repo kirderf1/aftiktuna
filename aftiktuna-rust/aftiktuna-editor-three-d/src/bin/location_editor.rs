@@ -8,6 +8,7 @@ mod ui {
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, SymbolData,
         SymbolMap,
     };
+    use aftiktuna::core::BlockType;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::display::{AftikColorId, ModelId};
     use aftiktuna_editor_three_d::name_from_symbol;
@@ -67,7 +68,30 @@ mod ui {
                     editor_data.is_in_overview = !editor_data.is_in_overview;
                 }
 
-                if !editor_data.is_in_overview {
+                if editor_data.is_in_overview {
+                    for (door_pair, pair_data) in &mut editor_data.location_data.door_pairs {
+                        ui.label(door_pair);
+                        fn block_type_name(block_type: Option<BlockType>) -> String {
+                            block_type
+                                .map(|block_type| format!("{block_type:?}"))
+                                .unwrap_or("None".to_owned())
+                        }
+                        egui::ComboBox::new(door_pair, "Block Type")
+                            .selected_text(block_type_name(pair_data.block_type))
+                            .show_ui(ui, |ui| {
+                                for selectable_type in [None]
+                                    .into_iter()
+                                    .chain(BlockType::variants().iter().copied().map(Some))
+                                {
+                                    ui.selectable_value(
+                                        &mut pair_data.block_type,
+                                        selectable_type,
+                                        block_type_name(selectable_type),
+                                    );
+                                }
+                            });
+                    }
+                } else {
                     editor_data.symbol_edit_data = selection_ui(
                         ui,
                         &mut editor_data.location_data.areas,
