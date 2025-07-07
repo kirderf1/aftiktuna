@@ -98,6 +98,14 @@ mod ui {
                             .response
                             .hovered();
 
+                        let is_connecting = matches!(&editor_data.connecting_pair, Some((connecting_pair, _)) if connecting_pair == door_pair);
+                        if ui
+                            .add_enabled(!is_connecting, egui::Button::new("Connect"))
+                            .clicked()
+                        {
+                            editor_data.connecting_pair = Some((door_pair.clone(), Vec::new()));
+                        }
+
                         if hovered_label || hovered_selection {
                             editor_data.hovered_door_pair = Some(door_pair.clone());
                         }
@@ -593,6 +601,7 @@ fn main() {
         is_in_overview: false,
         dragged_area: None,
         hovered_door_pair: None,
+        connecting_pair: None,
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -692,6 +701,7 @@ struct EditorData {
     is_in_overview: bool,
     dragged_area: Option<usize>,
     hovered_door_pair: Option<String>,
+    connecting_pair: Option<(String, Vec<AreaSymbolId>)>,
 }
 
 struct Assets {
@@ -700,6 +710,18 @@ struct Assets {
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     aftik_colors: IndexMap<AftikColorId, AftikColorData>,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct AreaSymbolId {
+    area_index: usize,
+    symbol: char,
+}
+
+impl AreaSymbolId {
+    fn get(self, location_data: &mut LocationData) -> &mut SymbolData {
+        &mut location_data.areas[self.area_index].symbols[&self.symbol]
+    }
 }
 
 fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut EditorData) {
@@ -713,19 +735,49 @@ fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut Editor
             } => {
                 if !*handled && *button == three_d::MouseButton::Left {
                     let (mouse_x, mouse_y) = mouse_to_overview_pos(*position);
-                    editor_data.dragged_area = editor_data
+                    let clicked_area = editor_data
                         .location_data
                         .areas
                         .iter()
                         .enumerate()
                         .find(|(_, area)| {
-                            let offset = -(area.objects.len() as i32) / 2;
+                            let offset = area_offset(area);
                             area.pos_in_overview.0 + offset <= mouse_x
                                 && mouse_x
                                     < area.pos_in_overview.0 + offset + area.objects.len() as i32
                                 && mouse_y == area.pos_in_overview.1
                         })
                         .map(|(index, _)| index);
+
+                    if let Some((door_pair_id, current_selected)) = &mut editor_data.connecting_pair
+                        && let Some(clicked_area) = clicked_area
+                    {
+                        let area = &editor_data.location_data.areas[clicked_area];
+                        let offset = area_offset(area);
+                        let clicked_coord = mouse_x - area.pos_in_overview.0 - offset;
+
+                        if let Some(door_char) =
+                            area.objects[clicked_coord as usize].chars().find(|char| {
+                                matches!(area.symbols.get(char), Some(SymbolData::Door(_)))
+                            })
+                        {
+                            current_selected.push(AreaSymbolId {
+                                area_index: clicked_area,
+                                symbol: door_char,
+                            });
+                            if let [door_id_1, door_id_2] = current_selected[..] {
+                                connect_paths(
+                                    &mut editor_data.location_data,
+                                    door_pair_id.clone(),
+                                    door_id_1,
+                                    door_id_2,
+                                );
+                                editor_data.connecting_pair = None;
+                            }
+                        }
+                    } else {
+                        editor_data.dragged_area = clicked_area;
+                    }
                     *handled = true;
                 }
             }
@@ -748,6 +800,30 @@ fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut Editor
             }
             _ => {}
         }
+    }
+}
+
+fn connect_paths(
+    location_data: &mut LocationData,
+    door_pair_id: String,
+    door_id_1: AreaSymbolId,
+    door_id_2: AreaSymbolId,
+) {
+    for area in &mut location_data.areas {
+        for symbol_data in &mut area.symbols.values_mut() {
+            if let SymbolData::Door(door_data) = symbol_data
+                && door_data.pair_id == door_pair_id
+            {
+                door_data.pair_id = String::default();
+            }
+        }
+    }
+
+    if let SymbolData::Door(door_data) = door_id_1.get(location_data) {
+        door_data.pair_id = door_pair_id.clone();
+    }
+    if let SymbolData::Door(door_data) = door_id_2.get(location_data) {
+        door_data.pair_id = door_pair_id;
     }
 }
 
@@ -829,7 +905,7 @@ fn render_overview(
     }
     for area in &location.areas {
         let symbol_lookup = SymbolLookup::new(base_symbols, &area.symbols);
-        let offset = -(area.objects.len() as i32) / 2;
+        let offset = area_offset(area);
         for (coord, objects) in area.objects.iter().enumerate() {
             for symbol in objects.chars() {
                 if let Some(SymbolData::Door(door_spawn_data)) = symbol_lookup.lookup(symbol)
@@ -855,7 +931,7 @@ fn render_overview(
         .flat_map(|(index, area)| {
             let symbol_lookup = SymbolLookup::new(base_symbols, &area.symbols);
             let selected = index == editor_data.area_index;
-            let offset = -(area.objects.len() as i32) / 2;
+            let offset = area_offset(area);
 
             area.objects
                 .iter()
@@ -974,4 +1050,8 @@ fn render_game_view(
     let render_camera = render::get_render_camera(camera, render_viewport);
     render::draw_in_order(&background, &render_camera, screen);
     render::draw_in_order(&objects, &render_camera, screen);
+}
+
+fn area_offset(area: &AreaData) -> i32 {
+    -(area.objects.len() as i32) / 2
 }
