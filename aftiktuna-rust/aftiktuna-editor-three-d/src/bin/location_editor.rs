@@ -22,6 +22,7 @@ mod ui {
         assets: &super::Assets,
         egui_context: &egui::Context,
     ) -> bool {
+        editor_data.hovered_door_pair = None;
         let mut save = false;
         side_panel(egui_context, |ui| {
             if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
@@ -69,14 +70,18 @@ mod ui {
                 }
 
                 if editor_data.is_in_overview {
+                    ui.separator();
+
                     for (door_pair, pair_data) in &mut editor_data.location_data.door_pairs {
-                        ui.label(door_pair);
+                        let hovered_label =
+                            ui.label(door_pair).interact(egui::Sense::hover()).hovered();
+
                         fn block_type_name(block_type: Option<BlockType>) -> String {
                             block_type
                                 .map(|block_type| format!("{block_type:?}"))
                                 .unwrap_or("None".to_owned())
                         }
-                        egui::ComboBox::new(door_pair, "Block Type")
+                        let hovered_selection = egui::ComboBox::new(door_pair, "Block Type")
                             .selected_text(block_type_name(pair_data.block_type))
                             .show_ui(ui, |ui| {
                                 for selectable_type in [None]
@@ -89,9 +94,16 @@ mod ui {
                                         block_type_name(selectable_type),
                                     );
                                 }
-                            });
+                            })
+                            .response
+                            .hovered();
+
+                        if hovered_label || hovered_selection {
+                            editor_data.hovered_door_pair = Some(door_pair.clone());
+                        }
                     }
                 } else {
+                    ui.separator();
                     editor_data.symbol_edit_data = selection_ui(
                         ui,
                         &mut editor_data.location_data.areas,
@@ -580,6 +592,7 @@ fn main() {
         symbol_edit_data: None,
         is_in_overview: false,
         dragged_area: None,
+        hovered_door_pair: None,
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -638,8 +651,7 @@ fn main() {
         };
         if editor_data.is_in_overview {
             render_overview(
-                &editor_data.location_data,
-                editor_data.area_index,
+                &editor_data,
                 render_viewport,
                 &screen,
                 &frame_input.context,
@@ -679,6 +691,7 @@ struct EditorData {
     symbol_edit_data: Option<ui::SymbolEditData>,
     is_in_overview: bool,
     dragged_area: Option<usize>,
+    hovered_door_pair: Option<String>,
 }
 
 struct Assets {
@@ -803,13 +816,13 @@ fn color_for_pos(objects: &str, selected: bool, symbol_lookup: &SymbolLookup) ->
 }
 
 fn render_overview(
-    location: &LocationData,
-    selected_index: usize,
+    editor_data: &EditorData,
     render_viewport: three_d::Viewport,
     screen: &three_d::RenderTarget<'_>,
     context: &three_d::Context,
     base_symbols: &SymbolMap,
 ) {
+    let location = &editor_data.location_data;
     let mut path_positions = HashMap::new();
     for door_pair_id in location.door_pairs.keys() {
         path_positions.insert(door_pair_id.clone(), Vec::new());
@@ -841,7 +854,7 @@ fn render_overview(
         .enumerate()
         .flat_map(|(index, area)| {
             let symbol_lookup = SymbolLookup::new(base_symbols, &area.symbols);
-            let selected = index == selected_index;
+            let selected = index == editor_data.area_index;
             let offset = -(area.objects.len() as i32) / 2;
 
             area.objects
@@ -875,12 +888,21 @@ fn render_overview(
                 } else {
                     PATH_COLOR
                 };
+                let thickness = if editor_data
+                    .hovered_door_pair
+                    .as_ref()
+                    .is_some_and(|hovered_pair| hovered_pair == pair_id)
+                {
+                    3.
+                } else {
+                    1.
+                };
                 Some(three_d::Gm::new(
                     three_d::Line::new(
                         context,
                         center + three_d::vec2(pos1.0 as f32, pos1.1 as f32) * OVERVIEW_SCALE,
                         center + three_d::vec2(pos2.0 as f32, pos2.1 as f32) * OVERVIEW_SCALE,
-                        1.,
+                        thickness,
                     ),
                     render::color_material(color),
                 ))
