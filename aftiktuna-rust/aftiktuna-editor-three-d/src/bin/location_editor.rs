@@ -13,6 +13,7 @@ mod ui {
     use aftiktuna::core::display::{AftikColorId, ModelId};
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
+    use std::mem;
     use three_d::egui;
 
     const SYMBOL_LABEL_FONT: egui::FontId = egui::FontId::monospace(12.);
@@ -74,10 +75,9 @@ mod ui {
                     overview_ui(editor_data, ui);
                 } else {
                     ui.separator();
-                    editor_data.symbol_edit_data = area_view_ui(
+                    area_view_ui(
                         ui,
-                        &mut editor_data.location_data.areas,
-                        &mut editor_data.area_index,
+                        editor_data,
                         &assets.background_types,
                         &assets.base_symbols,
                     );
@@ -124,7 +124,7 @@ mod ui {
             .show(egui_context, panel_contents);
     }
 
-    fn overview_ui(editor_data: &mut crate::EditorData, ui: &mut egui::Ui) {
+    fn overview_ui(editor_data: &mut super::EditorData, ui: &mut egui::Ui) {
         for (door_pair, pair_data) in &mut editor_data.location_data.door_pairs {
             let hovered_label = ui.label(door_pair).interact(egui::Sense::hover()).hovered();
 
@@ -162,22 +162,38 @@ mod ui {
                 editor_data.hovered_door_pair = Some(door_pair.clone());
             }
         }
+
+        ui.separator();
+        ui.label("New Door Pair:");
+        let text_edit_response = ui.text_edit_singleline(&mut editor_data.new_door_pair_name);
+        if text_edit_response.lost_focus()
+            && ui.input(|input_state| input_state.key_pressed(egui::Key::Enter))
+        {
+            let new_door_pair_id = mem::take(&mut editor_data.new_door_pair_name);
+            editor_data
+                .location_data
+                .door_pairs
+                .entry(new_door_pair_id)
+                .or_default();
+        }
     }
 
     fn area_view_ui(
         ui: &mut egui::Ui,
-        areas: &mut [AreaData],
-        area_index: &mut usize,
+        editor_data: &mut super::EditorData,
         background_types: &[BackgroundId],
         base_symbols: &SymbolMap,
-    ) -> Option<SymbolEditData> {
-        egui::ComboBox::from_id_salt("area").show_index(ui, area_index, areas.len(), |index| {
-            areas[index].name.clone()
-        });
+    ) {
+        egui::ComboBox::from_id_salt("area").show_index(
+            ui,
+            &mut editor_data.area_index,
+            editor_data.location_data.areas.len(),
+            |index| editor_data.location_data.areas[index].name.clone(),
+        );
         ui.separator();
 
-        let area = &mut areas[*area_index];
-        let symbol_edit_data = area_editor_ui(ui, area, background_types, base_symbols);
+        let area = &mut editor_data.location_data.areas[editor_data.area_index];
+        editor_data.symbol_edit_data = area_editor_ui(ui, area, background_types, base_symbols);
 
         ui.separator();
         ui.collapsing("Global Symbols", |ui| {
@@ -194,7 +210,18 @@ mod ui {
                 );
             }
         });
-        symbol_edit_data
+
+        if ui.button("New Area").clicked() {
+            editor_data.location_data.areas.push(AreaData {
+                name: String::new(),
+                pos_in_overview: (0, 0),
+                background: BackgroundId::blank(),
+                background_offset: None,
+                objects: vec![String::default()],
+                symbols: SymbolMap::new(),
+            });
+            editor_data.area_index = editor_data.location_data.areas.len() - 1;
+        }
     }
 
     fn area_editor_ui(
@@ -203,6 +230,9 @@ mod ui {
         background_types: &[BackgroundId],
         base_symbols: &SymbolMap,
     ) -> Option<SymbolEditData> {
+        ui.label("Display Name:");
+        ui.text_edit_singleline(&mut area.name);
+
         ui.label("Background:");
         egui::ComboBox::from_id_salt("background")
             .selected_text(&area.background.0)
@@ -290,6 +320,18 @@ mod ui {
                 })
             }
 
+            if ui.button("Add Door").clicked() {
+                symbol_edit_data = Some(SymbolEditData {
+                    old_char: None,
+                    new_char: String::new(),
+                    symbol_data: SymbolData::Door(DoorSpawnData {
+                        pair_id: String::default(),
+                        display_type: DoorType::Door,
+                        adjective: None,
+                    }),
+                })
+            }
+
             if let Some(char_to_delete) = char_to_delete {
                 area.symbols.shift_remove(&char_to_delete);
                 None
@@ -358,7 +400,7 @@ mod ui {
                 aftiktuna_editor_three_d::loot_table_editor(ui, table);
             }
             SymbolData::Door(DoorSpawnData {
-                pair_id,
+                pair_id: _,
                 display_type,
                 adjective,
             }) => {
@@ -604,6 +646,7 @@ fn main() {
         dragged_area: None,
         hovered_door_pair: None,
         connecting_pair: None,
+        new_door_pair_name: String::new(),
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -704,6 +747,7 @@ struct EditorData {
     dragged_area: Option<usize>,
     hovered_door_pair: Option<String>,
     connecting_pair: Option<(String, Vec<AreaSymbolId>)>,
+    new_door_pair_name: String,
 }
 
 struct Assets {
