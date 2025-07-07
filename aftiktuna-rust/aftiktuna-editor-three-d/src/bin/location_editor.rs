@@ -71,48 +71,10 @@ mod ui {
 
                 if editor_data.is_in_overview {
                     ui.separator();
-
-                    for (door_pair, pair_data) in &mut editor_data.location_data.door_pairs {
-                        let hovered_label =
-                            ui.label(door_pair).interact(egui::Sense::hover()).hovered();
-
-                        fn block_type_name(block_type: Option<BlockType>) -> String {
-                            block_type
-                                .map(|block_type| format!("{block_type:?}"))
-                                .unwrap_or("None".to_owned())
-                        }
-                        let hovered_selection = egui::ComboBox::new(door_pair, "Block Type")
-                            .selected_text(block_type_name(pair_data.block_type))
-                            .show_ui(ui, |ui| {
-                                for selectable_type in [None]
-                                    .into_iter()
-                                    .chain(BlockType::variants().iter().copied().map(Some))
-                                {
-                                    ui.selectable_value(
-                                        &mut pair_data.block_type,
-                                        selectable_type,
-                                        block_type_name(selectable_type),
-                                    );
-                                }
-                            })
-                            .response
-                            .hovered();
-
-                        let is_connecting = matches!(&editor_data.connecting_pair, Some((connecting_pair, _)) if connecting_pair == door_pair);
-                        if ui
-                            .add_enabled(!is_connecting, egui::Button::new("Connect"))
-                            .clicked()
-                        {
-                            editor_data.connecting_pair = Some((door_pair.clone(), Vec::new()));
-                        }
-
-                        if hovered_label || hovered_selection {
-                            editor_data.hovered_door_pair = Some(door_pair.clone());
-                        }
-                    }
+                    overview_ui(editor_data, ui);
                 } else {
                     ui.separator();
-                    editor_data.symbol_edit_data = selection_ui(
+                    editor_data.symbol_edit_data = area_view_ui(
                         ui,
                         &mut editor_data.location_data.areas,
                         &mut editor_data.area_index,
@@ -162,7 +124,47 @@ mod ui {
             .show(egui_context, panel_contents);
     }
 
-    fn selection_ui(
+    fn overview_ui(editor_data: &mut crate::EditorData, ui: &mut egui::Ui) {
+        for (door_pair, pair_data) in &mut editor_data.location_data.door_pairs {
+            let hovered_label = ui.label(door_pair).interact(egui::Sense::hover()).hovered();
+
+            fn block_type_name(block_type: Option<BlockType>) -> String {
+                block_type
+                    .map(|block_type| format!("{block_type:?}"))
+                    .unwrap_or("None".to_owned())
+            }
+            let hovered_selection = egui::ComboBox::new(door_pair, "Block Type")
+                .selected_text(block_type_name(pair_data.block_type))
+                .show_ui(ui, |ui| {
+                    for selectable_type in [None]
+                        .into_iter()
+                        .chain(BlockType::variants().iter().copied().map(Some))
+                    {
+                        ui.selectable_value(
+                            &mut pair_data.block_type,
+                            selectable_type,
+                            block_type_name(selectable_type),
+                        );
+                    }
+                })
+                .response
+                .hovered();
+
+            let is_connecting = matches!(&editor_data.connecting_pair, Some((connecting_pair, _)) if connecting_pair == door_pair);
+            if ui
+                .add_enabled(!is_connecting, egui::Button::new("Connect"))
+                .clicked()
+            {
+                editor_data.connecting_pair = Some((door_pair.clone(), Vec::new()));
+            }
+
+            if hovered_label || hovered_selection {
+                editor_data.hovered_door_pair = Some(door_pair.clone());
+            }
+        }
+    }
+
+    fn area_view_ui(
         ui: &mut egui::Ui,
         areas: &mut [AreaData],
         area_index: &mut usize,
