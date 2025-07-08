@@ -4,7 +4,7 @@ use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
 use crate::core::name::{self, Article, CountFormat, NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
-use crate::core::{self, inventory, position, status, RepeatingAction};
+use crate::core::{self, RepeatingAction, inventory, position, status};
 use crate::view::text::{self, CombinableMsgType};
 use hecs::{Entity, World};
 
@@ -106,7 +106,9 @@ impl SearchAction {
 
         let items = inventory::get_held(world, container);
         if items.is_empty() {
-            return action::ok(format!("{performer_name} searched {container_name}, but did not find anything of interest."));
+            return action::ok(format!(
+                "{performer_name} searched {container_name}, but did not find anything of interest."
+            ));
         }
 
         inventory::drop_all_items(world, container);
@@ -281,7 +283,9 @@ impl UseAction {
         match usable {
             Usable::BlackOrb => {
                 let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
-                    return action::ok(format!("{performer_name} holds up and inspects the orb, but can't figure out what it is."));
+                    return action::ok(format!(
+                        "{performer_name} holds up and inspects the orb, but can't figure out what it is."
+                    ));
                 };
 
                 world.despawn(self.item).unwrap();

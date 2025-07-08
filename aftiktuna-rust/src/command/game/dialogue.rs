@@ -1,10 +1,10 @@
 use crate::action::Action;
 use crate::command;
-use crate::command::parse::{first_match, first_match_or, Parse};
 use crate::command::CommandResult;
+use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::{area, status, Recruitable};
+use crate::core::{Recruitable, area, status};
 use crate::game_loop::GameState;
 use hecs::Entity;
 

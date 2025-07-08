@@ -1,5 +1,5 @@
-use super::color::ColorSource;
 use super::TextureLoader;
+use super::color::ColorSource;
 use crate::core::display::ModelId;
 use crate::view::area::RenderProperties;
 use indexmap::IndexMap;

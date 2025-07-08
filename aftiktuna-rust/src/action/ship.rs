@@ -3,7 +3,7 @@ use crate::core::area::{FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{self, Pos};
-use crate::core::{inventory, CrewMember};
+use crate::core::{CrewMember, inventory};
 use crate::game_loop::GameState;
 use crate::view::text;
 use hecs::{Entity, World};
@@ -27,7 +27,7 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
         ShipStatus::Refueled => {
             return Err(Error::visible(format!(
                 "{name} goes to refuel the ship, but sees that it is already refueled."
-            )))
+            )));
         }
         ShipStatus::Launching => return action::silent_ok(),
     };
@@ -104,7 +104,10 @@ fn refuel_then_launch(
             } else {
                 (
                     ShipStatus::Refueled,
-                    format!("{name} refueled the ship. Warning: not all crew members have boarded the ship yet. {absent_crew} are still absent.", absent_crew = text::join_elements(absent_crew)),
+                    format!(
+                        "{name} refueled the ship. Warning: not all crew members have boarded the ship yet. {absent_crew} are still absent.",
+                        absent_crew = text::join_elements(absent_crew)
+                    ),
                 )
             }
         }

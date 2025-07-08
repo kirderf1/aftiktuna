@@ -7,7 +7,7 @@ use crate::core::item::{CanWield, Medkit, Usable};
 use crate::core::name::NameData;
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
-use crate::core::{inventory, BlockType, CreatureAttribute, Door, IsCut};
+use crate::core::{BlockType, CreatureAttribute, Door, IsCut, inventory};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::text;

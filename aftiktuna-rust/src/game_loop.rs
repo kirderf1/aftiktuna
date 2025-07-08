@@ -14,12 +14,12 @@ use crate::core::item::{self, FoodRation, FourLeafClover};
 use crate::core::name::{Article, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
-use crate::core::{self, inventory, status, CrewMember, OpenedChest, RepeatingAction, Waiting};
+use crate::core::{self, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory, status};
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, GenerationState, PickResult};
 use crate::view::text::{self, CombinableMsgType, Messages};
 use crate::view::{self, Frame, StatusCache};
-use crate::{ai, command, serialization, StopType};
+use crate::{StopType, ai, command, serialization};
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {

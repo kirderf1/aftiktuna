@@ -1,4 +1,4 @@
-use crate::action::{trade, Action};
+use crate::action::{Action, trade};
 use crate::game_loop::GameState;
 use crate::view;
 use hecs::Entity;

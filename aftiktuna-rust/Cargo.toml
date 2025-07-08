@@ -16,7 +16,7 @@ three-d = { version = "0.18.0", default-features = false, features = ["egui-gui"
 [package]
 name = "aftiktuna"
 version.workspace = true
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

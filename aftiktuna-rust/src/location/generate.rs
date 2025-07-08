@@ -7,12 +7,12 @@ use crate::asset::location::{
     SymbolMap,
 };
 use crate::asset::{self, loot};
+use crate::core::FortunaChest;
 use crate::core::area::Area;
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Pos};
-use crate::core::FortunaChest;
 use hecs::{Entity, World};
 use rand::seq::SliceRandom;
 

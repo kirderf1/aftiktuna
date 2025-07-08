@@ -1,7 +1,7 @@
-use crate::action::item::{SearchAction, UseAction};
 use crate::action::Action;
-use crate::command::parse::{first_match, first_match_or, Parse};
+use crate::action::item::{SearchAction, UseAction};
 use crate::command::CommandResult;
+use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::inventory::{Container, Held};
 use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Usable};
 use crate::core::name::{NameData, NameQuery};

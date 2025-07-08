@@ -2,7 +2,7 @@ use crate::action::{self, Error};
 use crate::core::name::NameWithAttribute;
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina, Stats};
-use crate::core::{self, inventory, item, position, status, Hostile};
+use crate::core::{self, Hostile, inventory, item, position, status};
 use crate::game_loop::GameState;
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;

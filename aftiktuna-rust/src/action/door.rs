@@ -4,7 +4,7 @@ use crate::core::item::{Keycard, Tool};
 use crate::core::name::NameData;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{
-    self, area, inventory, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction,
+    self, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
 };
 use crate::game_loop::GameState;
 use crate::view::text::CombinableMsgType;

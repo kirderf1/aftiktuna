@@ -4,7 +4,7 @@ use crate::core::item::{CanWield, Item};
 use crate::core::name::{Name, NameData};
 use crate::core::store::{Shopkeeper, StoreStock};
 use crate::core::{
-    status, BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting,
+    BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting, status,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;

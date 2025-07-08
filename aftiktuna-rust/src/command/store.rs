@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::command;
-use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
+use crate::command::parse::{Parse, first_match_or};
 use crate::core::inventory::Held;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::store::{Shopkeeper, StoreStock};

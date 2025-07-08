@@ -3,7 +3,7 @@ use crate::game_loop::{self, GameState, Step};
 use crate::location::GenerationState;
 use crate::serialization::LoadError;
 use crate::view::Frame;
-use crate::{command, location, serialization, CommandInfo, StopType};
+use crate::{CommandInfo, StopType, command, location, serialization};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
 use std::mem;

@@ -11,8 +11,8 @@ use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{CreatureAttribute, Hostile, Recruitable, Wandering};
 use hecs::{EntityBuilder, World};
-use rand::seq::SliceRandom;
 use rand::Rng;
+use rand::seq::SliceRandom;
 use std::collections::HashSet;
 
 fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<CreatureAttribute> {

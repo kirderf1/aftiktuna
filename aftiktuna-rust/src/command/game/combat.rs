@@ -4,11 +4,11 @@ use hecs::Entity;
 
 use crate::action::Action;
 use crate::command;
-use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
+use crate::command::parse::{Parse, first_match_or};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{status, CreatureAttribute, Hostile};
+use crate::core::{CreatureAttribute, Hostile, status};
 use crate::game_loop::GameState;
 
 pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {

@@ -1,13 +1,13 @@
 use crate::action::Action;
-use crate::command::parse::{first_match_or, Parse};
 use crate::command::CommandResult;
+use crate::command::parse::{Parse, first_match_or};
 use crate::core::area::{Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::FuelCan;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::store::Shopkeeper;
-use crate::core::{area, inventory, position, status, CrewMember, FortunaChest};
+use crate::core::{CrewMember, FortunaChest, area, inventory, position, status};
 use crate::game_loop::GameState;
 use crate::{command, core};
 use hecs::{Entity, World};

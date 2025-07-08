@@ -89,7 +89,7 @@ impl Traits {
         !self.0.is_empty()
     }
 
-    pub fn sorted_iter(&self) -> impl Iterator<Item = Trait> {
+    pub fn sorted_iter(&self) -> impl Iterator<Item = Trait> + use<> {
         let mut traits = self.0.iter().copied().collect::<Vec<_>>();
         traits.sort();
         traits.into_iter()

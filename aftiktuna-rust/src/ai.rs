@@ -1,14 +1,14 @@
 use std::collections::HashMap;
 
-use crate::action::item::UseAction;
 use crate::action::Action;
+use crate::action::item::UseAction;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{self, inventory, status, CrewMember, Door, Hostile, RepeatingAction, Wandering};
+use crate::core::{self, CrewMember, Door, Hostile, RepeatingAction, Wandering, inventory, status};
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
-use rand::seq::SliceRandom;
 use rand::Rng;
+use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -158,7 +158,7 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
     if let Some(intention) = intention {
         match *intention {
             Intention::Wield(item) => {
-                return Some(Action::Wield(item, NameData::find(world, item)))
+                return Some(Action::Wield(item, NameData::find(world, item)));
             }
             Intention::Force(door) => return Some(Action::ForceDoor(door, true)),
             _ => {}

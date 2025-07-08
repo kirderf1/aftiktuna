@@ -5,7 +5,7 @@ pub mod creature {
     use crate::core::position::Direction;
     use crate::core::status::Stats;
     use crate::core::store::StockQuantity;
-    use crate::core::{item, CreatureAttribute, GivesHuntReward, Tag};
+    use crate::core::{CreatureAttribute, GivesHuntReward, Tag, item};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -155,7 +155,7 @@ use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Direction};
-use crate::core::{item, BlockType, DoorKind};
+use crate::core::{BlockType, DoorKind, item};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::fs::File;

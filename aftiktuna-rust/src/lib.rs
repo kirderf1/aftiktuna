@@ -12,8 +12,8 @@ pub mod serialization;
 pub mod standard_io_interface;
 pub mod view;
 
-pub use command::suggestion as command_suggestion;
 pub use command::CommandInfo;
+pub use command::suggestion as command_suggestion;
 
 #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
 pub enum StopType {

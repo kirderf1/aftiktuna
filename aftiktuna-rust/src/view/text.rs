@@ -1,5 +1,5 @@
-use crate::core::name::{self, NameData};
 use crate::OneOrTwo;
+use crate::core::name::{self, NameData};
 
 #[derive(Debug)]
 pub enum Message {

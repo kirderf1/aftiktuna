@@ -1,15 +1,13 @@
 use crate::core::item::Type as ItemType;
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{position, status, CrewMember, FortunaChest, OpenedChest, RepeatingAction};
+use crate::core::{CrewMember, FortunaChest, OpenedChest, RepeatingAction, position, status};
 use crate::game_loop::GameState;
-use crate::view;
 use crate::view::text::{IntoMessage, Message};
-use crate::view::Frame;
+use crate::view::{self, Frame};
 use hecs::{Entity, World};
 use std::collections::HashMap;
 use std::result;
-use Action::*;
 
 mod combat;
 mod dialogue;
@@ -92,6 +90,7 @@ fn perform(
         state,
         dialogue_context: DialogueContext { view_buffer },
     };
+    use Action::*;
     let result = match action {
         OpenChest(chest) => open_chest(&mut state.world, performer, chest),
         TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),

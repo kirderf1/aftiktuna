@@ -1,7 +1,8 @@
 use self::area::RenderData;
-pub(crate) use self::status::get_full_status;
 pub use self::status::FullStatus;
+pub(crate) use self::status::get_full_status;
 use self::text::Messages;
+use crate::StopType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::AftikColorId;
 use crate::core::name::NameData;
@@ -10,7 +11,6 @@ use crate::core::status::Health;
 use crate::core::store::IsTrading;
 use crate::game_loop::GameState;
 use crate::location::Choice;
-use crate::StopType;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::mem::take;
@@ -20,7 +20,7 @@ mod status;
 pub mod text;
 
 mod store {
-    use super::{status, text, Buffer, Frame, StatusCache};
+    use super::{Buffer, Frame, StatusCache, status, text};
     use crate::core::area::{Area, BackgroundId};
     use crate::core::display::AftikColorId;
     use crate::core::inventory::Held;
@@ -85,8 +85,7 @@ mod store {
         let area = world.get::<&Pos>(shopkeeper).unwrap().get_area();
         // Use the cache in shop view before status messages so that points aren't shown in status messages too
         let points = status::fetch_points(world, character, cache);
-        let store_info = world.get::<&Shopkeeper>(shopkeeper).unwrap();
-        let items = store_info.0.clone();
+        let items = world.get::<&Shopkeeper>(shopkeeper).unwrap().0.clone();
         let sellable_items = world
             .query::<(&Held, NameQuery)>()
             .with::<&Price>()

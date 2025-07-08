@@ -58,7 +58,7 @@ pub mod display {
             &self.0
         }
 
-        pub fn file_path(&self) -> impl AsRef<Path> {
+        pub fn file_path(&self) -> impl AsRef<Path> + use<> {
             let Self(path) = self;
             format!("assets/texture/object/{path}.json")
         }

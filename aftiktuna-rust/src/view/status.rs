@@ -5,7 +5,7 @@ use crate::core::name::{self, NameData};
 use crate::core::position::Pos;
 use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::store::Points;
-use crate::core::{inventory, CrewMember};
+use crate::core::{CrewMember, inventory};
 use crate::game_loop::GameState;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};

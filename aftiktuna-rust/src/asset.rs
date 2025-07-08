@@ -65,8 +65,8 @@ pub mod color {
 
 pub mod loot {
     use crate::core::item;
-    use rand::distributions::WeightedIndex;
     use rand::Rng;
+    use rand::distributions::WeightedIndex;
     use serde::{Deserialize, Serialize};
     use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
 

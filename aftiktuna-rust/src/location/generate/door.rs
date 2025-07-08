@@ -83,7 +83,7 @@ impl DoorPairsBuilder {
                 DoorPairStatus::Placed
             }
             DoorPairStatus::Placed => {
-                return Err(format!("Doors for \"{pair_id}\" placed more than twice"))
+                return Err(format!("Doors for \"{pair_id}\" placed more than twice"));
             }
         };
         Ok(())

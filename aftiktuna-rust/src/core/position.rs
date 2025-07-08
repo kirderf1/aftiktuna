@@ -1,8 +1,8 @@
 use super::name::NameData;
-use super::{area::Area, Hostile};
+use super::{Hostile, area::Area};
 use hecs::{Entity, EntityRef, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
-use std::cmp::{max, min, Ordering};
+use std::cmp::{Ordering, max, min};
 use std::ops::RangeBounds;
 
 use super::CrewMember;
@@ -120,11 +120,7 @@ impl Direction {
     }
 
     pub fn between_coords(from: Coord, to: Coord) -> Self {
-        if to < from {
-            Self::Left
-        } else {
-            Self::Right
-        }
+        if to < from { Self::Left } else { Self::Right }
     }
 
     pub fn towards_center(pos: Pos, world: &World) -> Direction {

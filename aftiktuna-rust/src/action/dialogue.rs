@@ -3,8 +3,8 @@ use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{
-    self, area, position, status, CrewMember, GivesHuntReward, Recruitable, RepeatingAction, Tag,
-    Waiting,
+    self, CrewMember, GivesHuntReward, Recruitable, RepeatingAction, Tag, Waiting, area, position,
+    status,
 };
 use hecs::{Entity, World};
 

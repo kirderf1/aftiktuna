@@ -9,14 +9,14 @@ use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
-use crate::core::{inventory, item, CrewMember, Door, DoorKind, Waiting};
+use crate::core::{CrewMember, Door, DoorKind, Waiting, inventory, item};
 use crate::game_loop::GameState;
 use crate::view::text::Messages;
 use crate::{asset, serialization};
 use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
 use rand::seq::index;
-use rand::{thread_rng, Rng};
+use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
@@ -247,7 +247,9 @@ pub(crate) fn spawn_starting_crew_and_ship(
     'add_crew: for profile in crew_iter {
         while position::check_is_pos_blocked(iter_pos, world).is_err() {
             let Some(new_pos) = iter_pos.try_offset(1, world) else {
-                eprintln!("Tried initializing a crew that is too large. Not all crew members will be added.");
+                eprintln!(
+                    "Tried initializing a crew that is too large. Not all crew members will be added."
+                );
                 break 'add_crew;
             };
             iter_pos = new_pos;
