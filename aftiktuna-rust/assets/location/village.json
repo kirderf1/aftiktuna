@@ -19,7 +19,7 @@
       "pos_in_overview": [ 3, 2 ],
       "background": "field",
       "background_offset": 0,
-      "objects": [ "3", "\\", "-7", "-", "-", "|", "-", "-", ".<", "-", "-5", "-A", ",>", "" ],
+      "objects": [ "3", "\\", "-7", "-", "|", "-", "-", ".<", "-", "-5", "-A", ",>", "" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "side", "display_type": "left_path", "adjective": "left" },
         "|": { "type": "door", "pair_id": "road", "display_type": "crossroad_path", "adjective": "right" },
