@@ -1,6 +1,6 @@
 use crate::core::item::Type as ItemType;
 use crate::core::name::NameData;
-use crate::core::position::Pos;
+use crate::core::position::{Direction, Pos};
 use crate::core::{CrewMember, FortunaChest, OpenedChest, RepeatingAction, position, status};
 use crate::game_loop::GameState;
 use crate::view::text::{IntoMessage, Message};
@@ -29,6 +29,7 @@ pub enum Action {
     GoToShip,
     Attack(Vec<Entity>),
     Wait,
+    Examine(Entity),
     Rest(bool),
     Refuel,
     Launch,
@@ -105,6 +106,19 @@ fn perform(
         Attack(targets) => combat::attack(state, performer, targets),
         Wait => {
             state.world.insert_one(performer, WasWaiting).unwrap();
+            silent_ok()
+        }
+        Examine(target) => {
+            if let Some(target_pos) = state.world.get::<&Pos>(target).ok().map(|pos| *pos) {
+                let _ = position::move_adjacent(&mut state.world, performer, target_pos);
+                let performer_pos = *state.world.get::<&Pos>(performer).unwrap();
+                if performer_pos != target_pos {
+                    state
+                        .world
+                        .insert_one(performer, Direction::between(performer_pos, target_pos))
+                        .unwrap();
+                }
+            }
             silent_ok()
         }
         Rest(first) => rest(&mut state.world, performer, first),

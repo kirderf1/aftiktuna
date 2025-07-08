@@ -1,15 +1,17 @@
-use std::collections::HashMap;
-
 use crate::action::Action;
 use crate::action::item::UseAction;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
-use crate::core::{self, CrewMember, Door, Hostile, RepeatingAction, Wandering, inventory, status};
+use crate::core::{
+    self, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Wandering, inventory,
+    status,
+};
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
 use rand::seq::SliceRandom;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 pub enum Intention {
@@ -119,16 +121,29 @@ fn pick_foe_action(
     if entity_ref.has::<Wandering>() {
         let area = entity_ref.get::<&Pos>()?.get_area();
 
-        let doors = world
+        let observation_targets = world
             .query::<&Pos>()
-            .with::<&Door>()
+            .with::<&ObservationTarget>()
             .iter()
-            .filter(|&(_, door_pos)| door_pos.is_in(area))
+            .filter(|&(_, pos)| pos.is_in(area))
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();
-        let door = doors.choose(rng);
-        if let Some(&door) = door {
-            return Some(Action::EnterDoor(door));
+        if let Some(&observation_target) = observation_targets.choose(rng)
+            && rng.gen_range::<u8, _>(1..=10) != 1
+        {
+            return Some(Action::Examine(observation_target));
+        } else {
+            let doors = world
+                .query::<&Pos>()
+                .with::<&Door>()
+                .iter()
+                .filter(|&(_, door_pos)| door_pos.is_in(area))
+                .map(|(entity, _)| entity)
+                .collect::<Vec<_>>();
+            let door = doors.choose(rng);
+            if let Some(&door) = door {
+                return Some(Action::EnterDoor(door));
+            }
         }
     }
 

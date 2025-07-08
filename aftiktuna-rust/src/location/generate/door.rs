@@ -21,15 +21,17 @@ pub(crate) fn place_pair(
     door1: DoorInfo,
     door2: DoorInfo,
     block_type: Option<BlockType>,
-) {
+) -> (Entity, Entity) {
     let door_pair = match block_type {
         Some(block_type) => world.spawn((block_type,)),
         None => world.spawn(()),
     };
     let dest1 = door2.pos;
     let dest2 = door1.pos;
-    spawn(world, door1, dest1, door_pair);
-    spawn(world, door2, dest2, door_pair);
+    (
+        spawn(world, door1, dest1, door_pair),
+        spawn(world, door2, dest2, door_pair),
+    )
 }
 
 fn spawn(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {

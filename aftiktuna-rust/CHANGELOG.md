@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Creatures can optionally be wandering
+- When encountering the ship, wandering creatures may stay around and examine the ship
 
 ### Changed
 

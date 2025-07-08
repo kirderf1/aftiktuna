@@ -9,7 +9,7 @@ use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
-use crate::core::{CrewMember, Door, DoorKind, Waiting, inventory, item};
+use crate::core::{CrewMember, Door, DoorKind, ObservationTarget, Waiting, inventory, item};
 use crate::game_loop::GameState;
 use crate::view::text::Messages;
 use crate::{asset, serialization};
@@ -278,7 +278,7 @@ pub fn setup_location_into_game(
     gen_context.apply_to_game_state(state);
 
     let ship_exit = state.world.get::<&Ship>(state.ship).unwrap().exit_pos;
-    door::place_pair(
+    let (ship_entity, _) = door::place_pair(
         &mut state.world,
         DoorInfo {
             pos: start_pos,
@@ -296,6 +296,10 @@ pub fn setup_location_into_game(
         },
         None,
     );
+    state
+        .world
+        .insert_one(ship_entity, ObservationTarget)
+        .unwrap();
 
     deploy_crew_at_new_location(start_pos, state);
 

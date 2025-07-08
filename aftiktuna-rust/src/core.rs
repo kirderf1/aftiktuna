@@ -168,6 +168,9 @@ pub struct Hostile {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Wandering;
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObservationTarget;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CreatureAttribute {
