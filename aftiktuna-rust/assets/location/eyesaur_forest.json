@@ -55,7 +55,7 @@
       "pos_in_overview": [ 21, 24 ],
       "background": "forest_with_crashed_ship",
       "background_offset": 7,
-      "objects": [ "^", "", "", "F", "t" ],
+      "objects": [ "^", "", "", "F", "!" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "side_path", "display_type": "path" }
       }
@@ -90,7 +90,7 @@
       "pos_in_overview": [ 16, 11 ],
       "background": "forest_with_crashed_ship",
       "background_offset": 0,
-      "objects": [ "\\", "-", "-e", "-#", "-Ec", "-Aa", "-!f", "/" ],
+      "objects": [ "\\", "-", "-e", "-#", "-Ec", "-Aa", "-t", "/" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "right2", "display_type": "left_path", "adjective": "left" },
         "e": { "type": "creature", "creature": "eyesaur", "health": 0.4 },
