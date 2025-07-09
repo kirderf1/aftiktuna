@@ -3,7 +3,7 @@
     {
       "name": "Field",
       "background": "field",
-      "background_offset": 1,
+      "background_offset": 4,
       "objects": [ "", "v", ".", "-6", "/" ],
       "symbols": {
         "/": { "type": "door", "pair_id": "path", "display_type": "right_path" },
@@ -14,7 +14,7 @@
       "name": "Field",
       "pos_in_overview": [ 6, 3 ],
       "background": "field",
-      "background_offset": 4,
+      "background_offset": 0,
       "objects": [ "\\", "-", "-G", "-", "-", "-Z", ".¤", "8" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
