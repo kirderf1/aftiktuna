@@ -11,45 +11,30 @@ use hecs::{Entity, World};
 use super::DialogueContext;
 
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
-    let Context {
-        state,
-        mut dialogue_context,
-    } = context;
-    let world = &state.world;
-    if !status::is_alive(target, world) {
+    if !status::is_alive(target, &context.state.world) {
         return action::silent_ok();
     }
 
-    let performer_pos = *world.get::<&Pos>(performer).unwrap();
-    let target_pos = *world.get::<&Pos>(target).unwrap();
-
-    let movement = position::prepare_move_adjacent(world, performer, target_pos)
-        .map_err(|blockage| blockage.into_message(world))?;
-
-    dialogue_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
-
-    if performer_pos != target_pos {
-        movement.perform(world).unwrap();
-        world
-            .insert_one(target, Direction::between(target_pos, performer_pos))
-            .unwrap();
-    }
-
-    talk_dialogue(performer, target, world, dialogue_context);
-
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
-    action::ok(format!(
-        "{performer_name} finishes talking with {target_name}."
-    ))
+    full_dialogue_action(
+        context,
+        performer,
+        target,
+        true,
+        |Context {
+             state,
+             dialogue_context,
+         }| {
+            talk_dialogue(performer, target, &mut state.world, dialogue_context);
+            None
+        },
+    )
 }
 
 fn talk_dialogue(
     performer: Entity,
     target: Entity,
     world: &mut World,
-    mut context: DialogueContext,
+    context: &mut DialogueContext,
 ) {
     let target_ref = world.entity(target).unwrap();
     if target_ref
@@ -64,7 +49,7 @@ fn talk_dialogue(
         context.add_dialogue(world, performer, "\"Hi! What is your name?\"");
         context.add_dialogue(world, target, format!("\"My name is {name_string}.\""));
     } else {
-        regular_greeting(performer, target, world, &mut context);
+        regular_greeting(performer, target, world, context);
     }
 
     let gives_hunt_reward = target_ref.get::<&GivesHuntReward>();
@@ -139,98 +124,85 @@ fn any_alive_with_tag(target_tag: &Tag, world: &World) -> bool {
 }
 
 pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> action::Result {
-    let Context {
-        state,
-        mut dialogue_context,
-    } = context;
-    let world = &state.world;
-    let target_pos = *world.get::<&Pos>(target).unwrap();
-    let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let crew_size = world.query::<&CrewMember>().iter().count();
+    let crew = context.state.world.get::<&CrewMember>(performer).unwrap().0;
+    let crew_size = context.state.world.query::<&CrewMember>().iter().count();
     if crew_size >= core::CREW_SIZE_LIMIT {
         return Err(Error::private(
             "There is not enough room for another crew member.",
         ));
     }
 
-    let movement = position::prepare_move_adjacent(world, performer, target_pos)
-        .map_err(|blockage| blockage.into_message(world))?;
-
-    dialogue_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
-
-    movement.perform(world).unwrap();
-
-    dialogue_context.add_dialogue(
-        world,
+    full_dialogue_action(
+        context,
         performer,
-        "\"Hi! Do you want to join me in the search for Fortuna?\"",
-    );
-    if world
-        .get::<&Name>(target)
-        .ok()
-        .map_or(false, |name| !name.is_known)
-    {
-        let name_string = {
-            let mut name_ref = world.get::<&mut Name>(target).unwrap();
-            name_ref.is_known = true;
-            name_ref.name.clone()
-        };
-        dialogue_context.add_dialogue(
-            world,
-            target,
-            format!("\"Sure, I'll join you! My name is {name_string}.\""),
-        );
-    } else {
-        dialogue_context.add_dialogue(world, target, "\"Sure, I'll join you!\"");
-    }
+        target,
+        true,
+        |Context {
+             state,
+             dialogue_context,
+         }| {
+            dialogue_context.add_dialogue(
+                &state.world,
+                performer,
+                "\"Hi! Do you want to join me in the search for Fortuna?\"",
+            );
+            if state
+                .world
+                .get::<&Name>(target)
+                .ok()
+                .is_some_and(|name| !name.is_known)
+            {
+                let name_string = {
+                    let mut name_ref = state.world.get::<&mut Name>(target).unwrap();
+                    name_ref.is_known = true;
+                    name_ref.name.clone()
+                };
+                dialogue_context.add_dialogue(
+                    &state.world,
+                    target,
+                    format!("\"Sure, I'll join you! My name is {name_string}.\""),
+                );
+            } else {
+                dialogue_context.add_dialogue(&state.world, target, "\"Sure, I'll join you!\"");
+            }
 
-    world.remove_one::<Recruitable>(target).unwrap();
-    let name = NameData::find(world, target).definite();
-    world.insert_one(target, CrewMember(crew)).unwrap();
+            state.world.remove_one::<Recruitable>(target).unwrap();
+            let name = NameData::find(&state.world, target).definite();
+            state.world.insert_one(target, CrewMember(crew)).unwrap();
 
-    action::ok(format!("{name} joined the crew!"))
+            Some(action::ok(format!("{name} joined the crew!")))
+        },
+    )
 }
 
 pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) -> action::Result {
-    let Context {
-        state,
-        mut dialogue_context,
-    } = context;
-    if !status::is_alive(target, &state.world) || state.world.satisfies::<&Waiting>(target).unwrap()
+    if !status::is_alive(target, &context.state.world)
+        || context.state.world.satisfies::<&Waiting>(target).unwrap()
     {
         return action::silent_ok();
     }
 
-    let performer_pos = *state.world.get::<&Pos>(performer).unwrap();
-    let target_pos = *state.world.get::<&Pos>(target).unwrap();
-
-    dialogue_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
-
-    if performer_pos != target_pos {
-        world
-            .insert_one(performer, Direction::between(performer_pos, target_pos))
-            .unwrap();
-        world
-            .insert_one(target, Direction::between(target_pos, performer_pos))
-            .unwrap();
-    }
-
-    dialogue_context.add_dialogue(world, performer, "Please wait here for now.");
-    dialogue_context.add_dialogue(
-        world,
+    full_dialogue_action(
+        context,
+        performer,
         target,
-        "Sure thing. Just tell me when I should follow along again.",
-    );
+        false,
+        |Context {
+             state,
+             dialogue_context,
+         }| {
+            dialogue_context.add_dialogue(&state.world, performer, "Please wait here for now.");
+            dialogue_context.add_dialogue(
+                &state.world,
+                target,
+                "Sure thing. Just tell me when I should follow along again.",
+            );
 
-    world.insert_one(target, Waiting).unwrap();
+            state.world.insert_one(target, Waiting).unwrap();
 
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
-    action::ok(format!(
-        "{performer_name} finishes talking with {target_name}."
-    ))
+            None
+        },
+    )
 }
 
 pub(super) fn tell_to_wait_at_ship(
@@ -238,49 +210,43 @@ pub(super) fn tell_to_wait_at_ship(
     performer: Entity,
     target: Entity,
 ) -> action::Result {
-    let Context {
-        state,
-        mut dialogue_context,
-    } = context;
-    if !status::is_alive(target, &state.world) {
+    if !status::is_alive(target, &context.state.world) {
         return action::silent_ok();
     }
 
-    let performer_pos = *state.world.get::<&Pos>(performer).unwrap();
-    let target_pos = *state.world.get::<&Pos>(target).unwrap();
-
-    if area::is_ship(target_pos.get_area(), &state.world) {
+    let target_pos = *context.state.world.get::<&Pos>(target).unwrap();
+    if area::is_ship(target_pos.get_area(), &context.state.world) {
         return Err(Error::private("They are already at the ship."));
     }
 
-    dialogue_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
-
-    if performer_pos != target_pos {
-        world
-            .insert_one(performer, Direction::between(performer_pos, target_pos))
-            .unwrap();
-        world
-            .insert_one(target, Direction::between(target_pos, performer_pos))
-            .unwrap();
-    }
-
-    dialogue_context.add_dialogue(world, performer, "Please go back and wait at the ship.");
-    dialogue_context.add_dialogue(
-        world,
+    full_dialogue_action(
+        context,
+        performer,
         target,
-        "Sure thing. I will go and wait at the ship for now.",
-    );
+        false,
+        |Context {
+             state,
+             dialogue_context,
+         }| {
+            dialogue_context.add_dialogue(
+                &state.world,
+                performer,
+                "Please go back and wait at the ship.",
+            );
+            dialogue_context.add_dialogue(
+                &state.world,
+                target,
+                "Sure thing. I will go and wait at the ship for now.",
+            );
 
-    world
-        .insert(target, (Waiting, RepeatingAction::GoToShip))
-        .unwrap();
+            state
+                .world
+                .insert(target, (Waiting, RepeatingAction::GoToShip))
+                .unwrap();
 
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
-    action::ok(format!(
-        "{performer_name} finishes talking with {target_name}."
-    ))
+            None
+        },
+    )
 }
 
 pub(super) fn tell_to_follow(
@@ -288,39 +254,77 @@ pub(super) fn tell_to_follow(
     performer: Entity,
     target: Entity,
 ) -> action::Result {
-    let Context {
-        state,
-        mut dialogue_context,
-    } = context;
-    if !status::is_alive(target, &state.world)
-        || !state.world.satisfies::<&Waiting>(target).unwrap()
+    if !status::is_alive(target, &context.state.world)
+        || !context.state.world.satisfies::<&Waiting>(target).unwrap()
     {
         return action::silent_ok();
     }
 
-    let performer_pos = *state.world.get::<&Pos>(performer).unwrap();
-    let target_pos = *state.world.get::<&Pos>(target).unwrap();
+    full_dialogue_action(
+        context,
+        performer,
+        target,
+        false,
+        |Context {
+             state,
+             dialogue_context,
+         }| {
+            dialogue_context.add_dialogue(&state.world, performer, "Time to go, please follow me.");
+            dialogue_context.add_dialogue(&state.world, target, "Alright, let's go!");
 
-    dialogue_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
+            state.world.remove_one::<Waiting>(target).unwrap();
+
+            None
+        },
+    )
+}
+
+fn full_dialogue_action(
+    mut context: Context,
+    performer: Entity,
+    target: Entity,
+    move_adjacent: bool,
+    dialogue: impl FnOnce(&mut Context) -> Option<action::Result>,
+) -> action::Result {
+    let performer_pos = *context.state.world.get::<&Pos>(performer).unwrap();
+    let target_pos = *context.state.world.get::<&Pos>(target).unwrap();
+
+    let movement = if move_adjacent {
+        let movement = position::prepare_move_adjacent(&context.state.world, performer, target_pos)
+            .map_err(|blockage| blockage.into_message(&context.state.world))?;
+        Some(movement)
+    } else {
+        None
+    };
+
+    context
+        .dialogue_context
+        .capture_frame_for_dialogue(context.state);
 
     if performer_pos != target_pos {
-        world
-            .insert_one(performer, Direction::between(performer_pos, target_pos))
-            .unwrap();
-        world
+        if let Some(movement) = movement {
+            movement.perform(&mut context.state.world).unwrap();
+        } else {
+            context
+                .state
+                .world
+                .insert_one(performer, Direction::between(performer_pos, target_pos))
+                .unwrap();
+        }
+        context
+            .state
+            .world
             .insert_one(target, Direction::between(target_pos, performer_pos))
             .unwrap();
     }
 
-    dialogue_context.add_dialogue(world, performer, "Time to go, please follow me.");
-    dialogue_context.add_dialogue(world, target, "Alright, let's go!");
+    let result = dialogue(&mut context);
 
-    world.remove_one::<Waiting>(target).unwrap();
-
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
-    action::ok(format!(
-        "{performer_name} finishes talking with {target_name}."
-    ))
+    result.unwrap_or_else(|| {
+        let performer_name = NameData::find(&context.state.world, performer).definite();
+        let target_name = NameData::find(&context.state.world, target).definite();
+        action::ok(format!(
+            "{performer_name} finishes talking with {target_name}."
+        ))
+    })
 }
