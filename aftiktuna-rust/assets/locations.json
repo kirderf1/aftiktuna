@@ -2,6 +2,7 @@
   "categories": [
     {
       "name": "forest",
+      "description": "There is a path leading into a forest. The path should lead to something, but probably not much.",
       "location_names": [
         "goblin_forest",
         "eyesaur_forest"
@@ -9,6 +10,7 @@
     },
     {
       "name": "abandoned facility",
+      "description": "Some large and abandoned building stands on its own. It could have some good stuff in it, but that might come at additional risk.",
       "location_names": [
         "abandoned_facility",
         "abandoned_facility2"
@@ -16,6 +18,7 @@
     },
     {
       "name": "village",
+      "description": "A small settlement. This seems like the place to be in order to do trading and similar stuff.",
       "location_names": [
         "village"
       ]

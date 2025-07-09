@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Noticeable rework of the eyesaur forest location
 - Reworked field backgrounds with manually placed tree objects
 - Tweak paths placed in front of doors to visually connect to the doors
+- Changed location selection to also give a short description of the options
 - New model field "z_offset" that helps influence the rendering order
 - New model fields "has_x_displacement" and "z_displacement" that replaces "mounted"
 

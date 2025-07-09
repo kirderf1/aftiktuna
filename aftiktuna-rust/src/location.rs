@@ -11,7 +11,7 @@ use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
 use crate::core::{CrewMember, Door, DoorKind, ObservationTarget, Waiting, inventory, item};
 use crate::game_loop::GameState;
-use crate::view::text::Messages;
+use crate::view::text::{self, Messages};
 use crate::{asset, serialization};
 use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
@@ -112,6 +112,7 @@ impl Locations {
         Locations {
             categories: vec![Category {
                 name: "test".to_string(),
+                description: String::default(),
                 location_names: vec![location],
             }],
             fortuna_locations: vec![],
@@ -129,7 +130,11 @@ impl Locations {
 
         let alternatives = index::sample(rng, self.categories.len(), 2)
             .into_iter()
-            .map(|index| (index, self.categories[index].name.clone()))
+            .map(|index| Alternative {
+                index,
+                name: self.categories[index].name.clone(),
+                description: self.categories[index].description.clone(),
+            })
             .collect::<Vec<_>>();
 
         PickResult::Choice(Choice(alternatives))
@@ -164,22 +169,36 @@ pub enum PickResult {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Choice(Vec<(usize, String)>);
+struct Alternative {
+    index: usize,
+    name: String,
+    description: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Choice(Vec<Alternative>);
 
 impl Choice {
     pub fn presentation_text_lines(&self) -> Vec<String> {
         let Choice(alternatives) = self;
         let mut text_lines = Vec::new();
-        text_lines.push(format!(
-            "On the next planet, there are two destination targets: {}, {}",
-            alternatives[0].1, alternatives[1].1
-        ));
-        text_lines.push("Pick the location to travel to next.".into());
+        text_lines.push("On the next planet, there are two destination targets:".to_owned());
+        for alternative in alternatives {
+            text_lines.push(format!(
+                "{}: {}",
+                text::capitalize(&alternative.name),
+                alternative.description
+            ));
+        }
+        text_lines.push("Pick the location to travel to next.".to_owned());
         text_lines
     }
 
     pub fn alternatives(&self) -> Vec<String> {
-        self.0.iter().map(|(_, name)| name.clone()).collect()
+        self.0
+            .iter()
+            .map(|alternative| alternative.name.clone())
+            .collect()
     }
 }
 
@@ -187,14 +206,15 @@ impl Choice {
     fn try_choose(&self, input: &str) -> Option<usize> {
         self.0
             .iter()
-            .find(|(_, name)| name.eq_ignore_ascii_case(input))
-            .map(|(index, _)| *index)
+            .find(|alternative| alternative.name.eq_ignore_ascii_case(input))
+            .map(|alternative| alternative.index)
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Category {
     name: String,
+    description: String,
     pub location_names: Vec<String>,
 }
 
