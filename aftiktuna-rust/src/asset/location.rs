@@ -242,6 +242,8 @@ pub enum SymbolData {
 pub struct DoorPairData {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub block_type: Option<BlockType>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub is_cut: bool,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

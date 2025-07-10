@@ -5,24 +5,12 @@
       "pos_in_overview": [ 0, -2 ],
       "background": "facility_outside",
       "background_offset": 2,
-      "objects": [ "v", ".", ",^", "-", "-", "/" ],
+      "objects": [ ".v", "-", ":^", "-", "-v", "," ],
       "symbols": {
         "^": { "type": "door", "pair_id": "entrance", "display_type": "door" },
-        "/": { "type": "door", "pair_id": "path", "display_type": "right_path" },
         ".": { "type": "inanimate", "model": "path/left_end" },
-        ",": { "type": "inanimate", "model": "path/crossroad" }
-      }
-    },
-    {
-      "name": "Field",
-      "pos_in_overview": [ 7, -4 ],
-      "background": "field",
-      "background_offset": 2,
-      "objects": [ "^", "1", "S", "k", "7" ],
-      "symbols": {
-        "^": { "type": "door", "pair_id": "path", "display_type": "path" },
-        "k": { "type": "item", "item": "keycard" },
-        "#": { "type": "inanimate", "model": "environment/mossy_rock" }
+        ",": { "type": "inanimate", "model": "path/right_end" },
+        ":": { "type": "inanimate", "model": "path/crossroad" }
       }
     },
     {
@@ -154,7 +142,7 @@
       "pos_in_overview": [ -13, -14 ],
       "background": "facility_size4",
       "darkness": 0.6,
-      "objects": [ "#", "F", "", "^" ],
+      "objects": [ "#", "", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "basement_a", "display_type": "door" },
         "#": {
@@ -218,8 +206,7 @@
     }
   ],
   "door_pairs": {
-    "path": {},
-    "entrance": { "block_type": "locked" },
+    "entrance": { "is_cut": true },
     "sealed": { "block_type": "sealed" },
     "corridor1": {},
     "corridor2": {},

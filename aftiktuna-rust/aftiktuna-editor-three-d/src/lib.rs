@@ -1,6 +1,6 @@
 use aftiktuna::asset::ProfileOrRandom;
-use aftiktuna::asset::location::SymbolData;
 use aftiktuna::asset::location::creature::CharacterInteraction;
+use aftiktuna::asset::location::{DoorPairMap, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::item;
@@ -110,6 +110,7 @@ pub fn object_from_symbol(
     symbol_data: &SymbolData,
     coord: Coord,
     area_size: Coord,
+    door_pair_map: &DoorPairMap,
 ) -> ObjectRenderData {
     match symbol_data {
         SymbolData::LocationEntry => ObjectRenderData {
@@ -155,7 +156,12 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: RenderProperties {
+                is_cut: door_pair_map
+                    .get(&door_spawn_data.pair_id)
+                    .is_some_and(|pair_data| pair_data.is_cut),
+                ..Default::default()
+            },
         },
         SymbolData::Inanimate { model, direction } => ObjectRenderData {
             coord,

@@ -3,7 +3,7 @@ use crate::asset::location::{DoorPairData, DoorSpawnData};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::Pos;
-use crate::core::{BlockType, Door, DoorKind};
+use crate::core::{Door, DoorKind, IsCut};
 use hecs::{Entity, World};
 use std::collections::HashMap;
 
@@ -20,22 +20,28 @@ pub(crate) fn place_pair(
     world: &mut World,
     door1: DoorInfo,
     door2: DoorInfo,
-    block_type: Option<BlockType>,
+    pair_data: &DoorPairData,
 ) -> (Entity, Entity) {
-    let door_pair = match block_type {
+    let door_pair = match pair_data.block_type {
         Some(block_type) => world.spawn((block_type,)),
         None => world.spawn(()),
     };
     let dest1 = door2.pos;
     let dest2 = door1.pos;
     (
-        spawn(world, door1, dest1, door_pair),
-        spawn(world, door2, dest2, door_pair),
+        spawn(world, door1, dest1, door_pair, pair_data.is_cut),
+        spawn(world, door2, dest2, door_pair, pair_data.is_cut),
     )
 }
 
-fn spawn(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity) -> Entity {
-    world.spawn((
+fn spawn(
+    world: &mut World,
+    info: DoorInfo,
+    destination: Pos,
+    door_pair: Entity,
+    is_cut: bool,
+) -> Entity {
+    let door = world.spawn((
         info.symbol,
         info.model_id,
         OrderWeight::Background,
@@ -46,7 +52,11 @@ fn spawn(world: &mut World, info: DoorInfo, destination: Pos, door_pair: Entity)
             destination,
             door_pair,
         },
-    ))
+    ));
+    if is_cut {
+        world.insert_one(door, IsCut).unwrap();
+    }
+    door
 }
 
 enum DoorPairStatus {
@@ -81,7 +91,7 @@ impl DoorPairsBuilder {
         *status = match status {
             DoorPairStatus::None => DoorPairStatus::One(door_info),
             DoorPairStatus::One(other_door) => {
-                place_pair(world, door_info, other_door.clone(), data.block_type);
+                place_pair(world, door_info, other_door.clone(), data);
                 DoorPairStatus::Placed
             }
             DoorPairStatus::Placed => {

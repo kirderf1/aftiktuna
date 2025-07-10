@@ -151,6 +151,7 @@ mod ui {
                 })
                 .response
                 .hovered();
+            ui.checkbox(&mut pair_data.is_cut, "Is Cut");
 
             let is_connecting = matches!(&editor_data.connecting_pair, Some((connecting_pair, _)) if connecting_pair == door_pair);
             if ui
@@ -725,11 +726,9 @@ fn main() {
                 &assets.base_symbols,
             );
         } else {
-            let area = &editor_data.location_data.areas[editor_data.area_index];
             render_game_view(
-                area,
+                &editor_data,
                 &camera,
-                editor_data.mouse_pos,
                 render_viewport,
                 &screen,
                 &frame_input.context,
@@ -1055,14 +1054,14 @@ fn render_overview(
 }
 
 fn render_game_view(
-    area: &AreaData,
+    editor_data: &EditorData,
     camera: &aftiktuna_three_d::Camera,
-    mouse_pos: three_d::PhysicalPoint,
     render_viewport: three_d::Viewport,
     screen: &three_d::RenderTarget<'_>,
     context: &three_d::Context,
     assets: &mut Assets,
 ) {
+    let area = &editor_data.location_data.areas[editor_data.area_index];
     let backgorund_data = assets.background_map.get_or_default(&area.background);
     let background = render::render_objects_for_primary_background(
         backgorund_data,
@@ -1085,6 +1084,7 @@ fn render_game_view(
                         symbol,
                         coord as Coord,
                         area.objects.len() as Coord,
+                        &editor_data.location_data.door_pairs,
                     )
                 })
         })
@@ -1115,7 +1115,7 @@ fn render_game_view(
 
     if area.darkness > 0. {
         render::render_darkness(
-            mouse_pos.into(),
+            editor_data.mouse_pos.into(),
             200.,
             area.darkness,
             render_viewport,
