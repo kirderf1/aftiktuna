@@ -3,6 +3,7 @@ use crate::ai::Intention;
 use crate::core::item::{Keycard, Tool};
 use crate::core::name::NameData;
 use crate::core::position::{self, Direction, Pos};
+use crate::core::status::Stamina;
 use crate::core::{
     self, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
 };
@@ -84,6 +85,10 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
             .map_err(|_| blockage.into_message(world))?;
     }
     world.insert_one(performer, door_data.destination).unwrap();
+    if let Ok(mut stamina) = world.get::<&mut Stamina>(performer) {
+        stamina.on_move();
+    }
+
     let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
     if used_keycard {
         action::ok_at(

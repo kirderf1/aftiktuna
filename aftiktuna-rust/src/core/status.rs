@@ -210,7 +210,7 @@ pub struct Stamina {
 
 impl Stamina {
     pub fn with_max(stats: &Stats) -> Stamina {
-        let max = 4 + stats.endurance * 2;
+        let max = 6 + stats.endurance * 3;
         Stamina {
             max,
             dodge_stamina: max,
@@ -235,6 +235,10 @@ impl Stamina {
 
     pub fn on_dodge_attempt(&mut self) {
         self.dodge_stamina -= 3;
+    }
+
+    pub fn on_move(&mut self) {
+        self.dodge_stamina -= 1;
     }
 }
 
