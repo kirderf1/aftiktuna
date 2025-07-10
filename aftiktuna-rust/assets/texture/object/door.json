@@ -1,9 +1,0 @@
-{
-  "layers": [
-    { "texture": "door", "fixed": true, "if_cut": false },
-    { "texture": "cut_door", "y_offset": 15, "fixed": true, "if_cut": true }
-  ],
-  "z_offset": -30,
-  "has_x_displacement": false,
-  "z_displacement": 0
-}

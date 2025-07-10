@@ -1,5 +1,6 @@
 use aftiktuna::asset::background::{self, BGData};
 use aftiktuna::asset::color;
+use aftiktuna::asset::location::{creature, DoorType};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement::Positioner;
 use aftiktuna::core::area::BackgroundId;
@@ -97,26 +98,26 @@ fn draw_example_content(
     match example_content_type {
         ExampleContentType::None => {}
         ExampleContentType::Doors => {
-            let door = ModelId::new("door");
-            let ship_exit = ModelId::new("doorway");
+            let door = DoorType::Door.into();
+            let ship_exit = DoorType::Doorway.into();
             for coord in 0..area_size {
                 draw_model(coord, if coord % 2 == 0 { &door } else { &ship_exit });
             }
         }
         ExampleContentType::Paths => {
-            let path = ModelId::new("path");
+            let path = DoorType::Path.into();
             for coord in 0..area_size {
                 draw_model(coord, &path);
             }
         }
         ExampleContentType::BigObjectsOnEdges => {
-            let frog = ModelId::creature("voracious_frog");
+            let frog = creature::Type::VoraciousFrog.model_id();
             draw_model(0, &frog);
             if area_size > 1 {
                 draw_model(area_size - 1, &frog);
             }
             if area_size > 2 {
-                let azureclops = ModelId::creature("azureclops");
+                let azureclops = creature::Type::Azureclops.model_id();
                 draw_model(area_size / 2, &azureclops);
             }
         }

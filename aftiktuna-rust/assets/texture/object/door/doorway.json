@@ -1,6 +1,6 @@
 {
   "layers": [
-    { "texture": "downward_stairs" }
+    { "texture": "door/doorway", "fixed": true }
   ],
   "z_offset": -30,
   "has_x_displacement": false,

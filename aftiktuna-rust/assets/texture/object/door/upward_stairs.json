@@ -1,6 +1,6 @@
 {
   "layers": [
-    { "texture": "upward_stairs" }
+    { "texture": "door/upward_stairs" }
   ],
   "z_offset": -30,
   "has_x_displacement": false,

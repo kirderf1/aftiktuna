@@ -2,7 +2,7 @@ pub mod generate;
 
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
-use crate::asset::location::LocationData;
+use crate::asset::location::{DoorType, LocationData};
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
@@ -311,7 +311,7 @@ pub fn setup_location_into_game(
         DoorInfo {
             pos: ship_exit,
             symbol: Symbol('^'),
-            model_id: ModelId::new("doorway"),
+            model_id: DoorType::Doorway.into(),
             kind: DoorKind::Door,
             name: Noun::new("ship exit", "ship exits"),
         },
