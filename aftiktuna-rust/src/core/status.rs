@@ -174,7 +174,7 @@ impl Health {
         let endurance = entity_ref
             .get::<&Stats>()
             .map_or(1, |stats| stats.endurance);
-        self.value -= damage / f32::from(4 + endurance * 2);
+        self.value -= damage / f32::from(6 + endurance * 3);
         self.value <= 0.0
     }
 
