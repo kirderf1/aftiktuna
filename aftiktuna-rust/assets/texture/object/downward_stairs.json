@@ -1,0 +1,8 @@
+{
+  "layers": [
+    { "texture": "downward_stairs" }
+  ],
+  "z_offset": -30,
+  "has_x_displacement": false,
+  "z_displacement": 0
+}

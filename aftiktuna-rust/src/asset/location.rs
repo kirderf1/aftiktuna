@@ -249,6 +249,8 @@ pub struct DoorPairData {
 pub enum DoorType {
     Door,
     Doorway,
+    UpwardStairs,
+    DownwardStairs,
     Shack,
     House,
     Store,
@@ -260,15 +262,17 @@ pub enum DoorType {
 
 impl From<DoorType> for ModelId {
     fn from(value: DoorType) -> Self {
-        match value {
-            DoorType::Door => ModelId::new("door"),
-            DoorType::Doorway => ModelId::new("doorway"),
-            DoorType::Shack | DoorType::House | DoorType::Store => ModelId::new("shack"),
-            DoorType::Path => ModelId::new("path"),
-            DoorType::LeftPath => ModelId::new("path/left_corner"),
-            DoorType::RightPath => ModelId::new("path/right_corner"),
-            DoorType::CrossroadPath => ModelId::new("path/crossroad"),
-        }
+        ModelId::new(match value {
+            DoorType::Door => "door",
+            DoorType::Doorway => "doorway",
+            DoorType::UpwardStairs => "upward_stairs",
+            DoorType::DownwardStairs => "downward_stairs",
+            DoorType::Shack | DoorType::House | DoorType::Store => "shack",
+            DoorType::Path => "path",
+            DoorType::LeftPath => "path/left_corner",
+            DoorType::RightPath => "path/right_corner",
+            DoorType::CrossroadPath => "path/crossroad",
+        })
     }
 }
 
@@ -277,6 +281,8 @@ impl From<DoorType> for DoorKind {
         match value {
             DoorType::Door
             | DoorType::Doorway
+            | DoorType::UpwardStairs
+            | DoorType::DownwardStairs
             | DoorType::Shack
             | DoorType::House
             | DoorType::Store => DoorKind::Door,
@@ -293,6 +299,8 @@ impl DoorType {
         &[
             Door,
             Doorway,
+            UpwardStairs,
+            DownwardStairs,
             Shack,
             House,
             Store,
@@ -307,6 +315,8 @@ impl DoorType {
         let noun = match self {
             Self::Door => Noun::new("door", "doors"),
             Self::Doorway => Noun::new("doorway", "doorways"),
+            Self::UpwardStairs => Noun::new("upward stairs", "upward stairs"),
+            Self::DownwardStairs => Noun::new("downward stairs", "downward stairs"),
             Self::Shack => Noun::new("shack", "shacks"),
             Self::House => Noun::new("house", "houses"),
             Self::Store => Noun::new("store", "stores"),

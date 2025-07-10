@@ -80,9 +80,7 @@
         "I": {
           "type": "container",
           "container_type": "cabinet",
-          "content": [
-            { "type": "loot", "table": "tool" }
-          ],
+          "content": [],
           "direction": "left"
         }
       }
@@ -104,14 +102,14 @@
       "pos_in_overview": [ 12, 8 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "^", "E", "E", "f=" ],
+      "objects": [ "^", "", "E", "f=" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room3", "display_type": "door" },
         "=": {
           "type": "container",
           "container_type": "drawer",
           "content": [
-            { "type": "loot", "table": "valuable" }
+            { "type": "loot", "table": "tool" }
           ],
           "direction": "right"
         }
@@ -119,15 +117,98 @@
     },
     {
       "name": "Room",
-      "pos_in_overview": [ -6, 8 ],
+      "pos_in_overview": [ -7, 6 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "ff", "F", "^", "#" ],
+      "objects": [ "v", "", "^", "#" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "sealed", "display_type": "door" },
         "#": {
           "type": "container",
           "container_type": "crate",
+          "content": [
+            { "type": "item", "item": "fuel_can" }
+          ],
+          "direction": "right"
+        },
+        "v": { "type": "door", "pair_id": "stairs", "display_type": "downward_stairs" }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ -9, -10 ],
+      "background": "facility_size7",
+      "darkness": 0.6,
+      "objects": [ "T", "^", "<", "Z", "*", "F", ">" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "stairs", "display_type": "upward_stairs" },
+        "<": { "type": "door", "pair_id": "basement_a", "display_type": "door", "adjective": "left" },
+        "*": { "type": "door", "pair_id": "basement_b1", "display_type": "door", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "basement_c", "display_type": "door", "adjective": "right" },
+        "Z": { "type": "creature", "creature": "azureclops", "wandering": true },
+        "T": { "type": "inanimate", "model": "environment/table" }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ -13, -14 ],
+      "background": "facility_size4",
+      "darkness": 0.6,
+      "objects": [ "#", "F", "", "^" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "basement_a", "display_type": "door" },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "loot", "table": "resource" },
+            { "type": "item", "item": "food_ration" }
+          ],
+          "direction": "left"
+        }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ -8, -14 ],
+      "background": "facility_size5",
+      "darkness": 0.6,
+      "objects": [ "", "<", "Z", "T", ">" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "basement_b1", "display_type": "door" },
+        ">": { "type": "door", "pair_id": "basement_b2", "display_type": "doorway" },
+        "T": { "type": "inanimate", "model": "environment/table" }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ -6, -18 ],
+      "background": "facility_size3",
+      "darkness": 0.6,
+      "objects": [ "#", "^", "f" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "basement_b2", "display_type": "doorway" },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "loot", "table": "valuable" }
+          ],
+          "direction": "left"
+        }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ -2, -14 ],
+      "background": "facility_size4",
+      "darkness": 0.6,
+      "objects": [ "G", "^", "G", "I!" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "basement_c", "display_type": "door" },
+        "I": {
+          "type": "container",
+          "container_type": "cabinet",
           "content": [
             { "type": "loot", "table": "valuable" }
           ],
@@ -144,6 +225,11 @@
     "corridor2": {},
     "room1": {},
     "room2": {},
-    "room3": {}
+    "room3": {},
+    "stairs": {},
+    "basement_a": {},
+    "basement_b1": {},
+    "basement_b2": {},
+    "basement_c": {}
   }
 }
