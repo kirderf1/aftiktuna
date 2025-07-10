@@ -205,7 +205,6 @@ pub mod world {
         item::Usable, Usable;
         item::FourLeafClover, FourLeafClover;
         item::Tool, ForceTool;
-        item::Keycard, Keycard;
         item::CanWield, CanWield;
         item::Weapon, Weapon;
         item::StunAttack, StunAttack;

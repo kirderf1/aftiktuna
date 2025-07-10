@@ -279,27 +279,25 @@ pub struct IsCut;
 pub enum BlockType {
     Stuck,
     Sealed,
-    Locked,
 }
 
 impl BlockType {
     pub fn variants() -> &'static [Self] {
         use BlockType::*;
-        &[Stuck, Sealed, Locked]
+        &[Stuck, Sealed]
     }
 
     pub fn description(self) -> &'static str {
         match self {
             BlockType::Stuck => "stuck",
             BlockType::Sealed => "sealed shut",
-            BlockType::Locked => "locked",
         }
     }
 
     pub fn usable_tools(self) -> Vec<item::Tool> {
         match self {
             BlockType::Stuck => vec![item::Tool::Crowbar, item::Tool::Blowtorch],
-            BlockType::Sealed | BlockType::Locked => vec![item::Tool::Blowtorch],
+            BlockType::Sealed => vec![item::Tool::Blowtorch],
         }
     }
 }

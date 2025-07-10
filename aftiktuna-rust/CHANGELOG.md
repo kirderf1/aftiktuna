@@ -33,6 +33,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Fixed potential issue in command parsing with special symbols
 
+### Removed
+
+- Removed the "keycard" item and the "locked" block type
+
 ### Contributors for this release
 
 - kirderf1

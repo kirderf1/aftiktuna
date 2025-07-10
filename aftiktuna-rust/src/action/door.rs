@@ -1,6 +1,6 @@
 use crate::action::{self, Context, Error};
 use crate::ai::Intention;
-use crate::core::item::{Keycard, Tool};
+use crate::core::item::Tool;
 use crate::core::name::NameData;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::status::Stamina;
@@ -28,7 +28,7 @@ fn check_tool_for_forcing(
         BlockType::Stuck => Err(format!(
             "{performer_name} needs some sort of tool to force the door open.",
         )),
-        BlockType::Sealed | BlockType::Locked => Err(format!(
+        BlockType::Sealed => Err(format!(
             "{performer_name} needs some sort of tool to break the door open.",
         )),
     }
@@ -58,23 +58,17 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
         .map_err(|_| "The door ceased being a door.".to_string())
         .map(|door| door.deref().clone())?;
 
-    let used_keycard = if let Ok(block_type) = world
+    if let Ok(block_type) = world
         .get::<&BlockType>(door_data.door_pair)
         .map(|block_type| *block_type)
     {
-        if block_type == BlockType::Locked && inventory::is_holding::<&Keycard>(world, performer) {
-            true
-        } else {
-            on_door_failure(state, performer, door, block_type);
-            return Err(Error::visible(format!(
-                "{performer} is unable to enter the door as it is {blocked}.",
-                performer = performer_name.definite(),
-                blocked = block_type.description(),
-            )));
-        }
-    } else {
-        false
-    };
+        on_door_failure(state, performer, door, block_type);
+        return Err(Error::visible(format!(
+            "{performer} is unable to enter the door as it is {blocked}.",
+            performer = performer_name.definite(),
+            blocked = block_type.description(),
+        )));
+    }
 
     if let Err(blockage) = position::check_is_pos_blocked(door_data.destination, world) {
         blockage
@@ -90,24 +84,14 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
     }
 
     let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
-    if used_keycard {
-        action::ok_at(
-            format!(
-                "Using their keycard, {performer} entered the door into a new area.",
-                performer = performer_name.definite()
-            ),
-            areas,
-        )
-    } else {
-        action::ok_at(
-            match door_data.kind {
-                DoorKind::Door => CombinableMsgType::EnterDoor,
-                DoorKind::Path => CombinableMsgType::EnterPath,
-            }
-            .message(performer_name),
-            areas,
-        )
-    }
+    action::ok_at(
+        match door_data.kind {
+            DoorKind::Door => CombinableMsgType::EnterDoor,
+            DoorKind::Path => CombinableMsgType::EnterPath,
+        }
+        .message(performer_name),
+        areas,
+    )
 }
 
 pub(super) fn force_door(

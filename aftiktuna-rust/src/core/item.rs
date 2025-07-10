@@ -34,9 +34,6 @@ impl Tool {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Keycard;
-
 #[derive(Serialize, Deserialize)]
 pub struct Medkit;
 
@@ -78,7 +75,6 @@ pub enum Type {
     FoodRation,
     Crowbar,
     Blowtorch,
-    Keycard,
     Knife,
     Bat,
     Sword,
@@ -97,7 +93,6 @@ impl Type {
             FoodRation,
             Crowbar,
             Blowtorch,
-            Keycard,
             Knife,
             Bat,
             Sword,
@@ -118,7 +113,6 @@ impl Type {
             Type::FoodRation => Noun::new("food ration", "food rations"),
             Type::Crowbar => Noun::new("crowbar", "crowbars"),
             Type::Blowtorch => Noun::new("blowtorch", "blowtorches"),
-            Type::Keycard => Noun::new("keycard", "keycards"),
             Type::Knife => Noun::new("knife", "knives"),
             Type::Bat => Noun::new("bat", "bats"),
             Type::Sword => Noun::new("sword", "swords"),
@@ -136,7 +130,6 @@ impl Type {
             Type::FoodRation => '%',
             Type::Crowbar => 'c',
             Type::Blowtorch => 'b',
-            Type::Keycard => 'k',
             Type::Knife => 'K',
             Type::Bat => 'B',
             Type::Sword => 's',
@@ -174,7 +167,6 @@ impl From<Type> for ModelId {
             Type::FoodRation => "food_ration",
             Type::Crowbar => "crowbar",
             Type::Blowtorch => "blowtorch",
-            Type::Keycard => "keycard",
             Type::Knife => "knife",
             Type::Bat => "bat",
             Type::Sword => "sword",
@@ -219,9 +211,6 @@ pub fn spawn(
         Type::Blowtorch => {
             builder.add(Tool::Blowtorch);
         }
-        Type::Keycard => {
-            builder.add(Keycard);
-        }
         Type::Knife => {
             builder.add_bundle((CanWield, Weapon(3.0)));
         }
@@ -263,9 +252,6 @@ pub fn description(item_ref: EntityRef) -> Vec<String> {
             Tool::Crowbar => "Used to force open doors that are stuck.",
             Tool::Blowtorch => "Used to cut apart any door that won't open.",
         });
-    }
-    if item_ref.satisfies::<&Keycard>() {
-        messages.add("Used to let the holder pass through a locked door.");
     }
     if item_ref.satisfies::<&Medkit>() {
         messages.add("Used to recover some health of the user.");

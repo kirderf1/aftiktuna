@@ -3,11 +3,10 @@ use crate::action::item::{SearchAction, UseAction};
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::inventory::{Container, Held};
-use crate::core::item::{CanWield, FuelCan, Item, Keycard, Medkit, Usable};
+use crate::core::item::{CanWield, FuelCan, Item, Medkit, Usable};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::Health;
-use crate::core::{BlockType, Door};
 use crate::game_loop::GameState;
 use crate::{command, core};
 use hecs::{Entity, World};
@@ -229,26 +228,10 @@ fn use_item(state: &GameState, item_name: &str) -> Result<CommandResult, String>
         command::action_result(UseAction { item })
     } else if item_ref.satisfies::<&Usable>() {
         command::action_result(UseAction { item })
-    } else if item_ref.satisfies::<&Keycard>() {
-        let area = world.get::<&Pos>(character).unwrap().get_area();
-        let (door, _) = world
-            .query::<(&Pos, &Door)>()
-            .into_iter()
-            .find(|(_, (door_pos, door))| {
-                door_pos.is_in(area)
-                    && world
-                        .get::<&BlockType>(door.door_pair)
-                        .map_or(false, |block_type| BlockType::Locked.eq(&block_type))
-            })
-            .ok_or_else(|| {
-                "There is no accessible door here that requires a keycard.".to_string()
-            })?;
-
-        command::crew_action(Action::EnterDoor(door))
     } else if item_ref.satisfies::<&CanWield>() {
         if item_ref
             .get::<&Held>()
-            .map_or(false, |held| held.is_in_hand())
+            .is_some_and(|held| held.is_in_hand())
         {
             Err(format!(
                 "{} is already being held.",
