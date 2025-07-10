@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 4.0, making it incompatible with previous save files
 - Noticeable rework of most locations
+- Village store now stocks a blowtorch
 - Increased health of everything by 50%
 - Tweaked stamina stat, making stamina last longer but also making it not recover while moving
 - Reworked field backgrounds with manually placed tree objects
