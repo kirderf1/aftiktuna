@@ -1,5 +1,6 @@
 use crate::Assets;
 use aftiktuna::asset::model::ModelAccess;
+use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
@@ -66,6 +67,24 @@ pub fn render_frame(
             );
             let render_camera = render::default_render_camera(frame_input.viewport);
             render::draw_in_order(&objects, &render_camera, screen);
+
+            if data.darkness > 0. {
+                let light_pos = three_d::vec2(
+                    match data.direction {
+                        Direction::Left => 530.,
+                        Direction::Right => 270.,
+                    },
+                    320.,
+                );
+                render::render_darkness(
+                    light_pos,
+                    250.,
+                    data.darkness,
+                    frame_input.viewport,
+                    screen,
+                    &frame_input.context,
+                );
+            }
         }
         Frame::StoreView { view, .. } => {
             draw_store_view(view, screen, frame_input, assets);
@@ -143,6 +162,21 @@ fn draw_area_view(
             Ok(())
         })
         .unwrap();
+
+    if render_data.darkness > 0. {
+        let light_pos = three_d::vec2(
+            placement::coord_to_center_x(render_data.character_coord) - camera.camera_x,
+            300.,
+        );
+        render::render_darkness(
+            light_pos,
+            200.,
+            render_data.darkness,
+            frame_input.viewport,
+            screen,
+            &frame_input.context,
+        );
+    }
 
     draw_camera_arrows(
         camera.has_space_to_drag(render_data.area_size),

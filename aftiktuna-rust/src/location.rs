@@ -229,6 +229,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         size: 5,
         background: BackgroundId::new("ship"),
         background_offset: 0,
+        darkness: 0.,
     },));
     world
         .insert_one(

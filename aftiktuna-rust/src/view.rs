@@ -283,14 +283,16 @@ pub struct DialogueFrameData {
     pub color: Option<AftikColorId>,
     pub direction: Direction,
     pub is_badly_hurt: bool,
+    pub darkness: f32,
 }
 
 impl DialogueFrameData {
     fn build(character: Entity, world: &World) -> Self {
         let character_ref = world.entity(character).unwrap();
         let area = character_ref.get::<&Pos>().unwrap().get_area();
+        let area = world.get::<&Area>(area).unwrap();
         Self {
-            background: world.get::<&Area>(area).unwrap().background.clone(),
+            background: area.background.clone(),
             speaker: NameData::find_by_ref(character_ref),
             color: character_ref.get::<&AftikColorId>().as_deref().cloned(),
             direction: character_ref
@@ -300,7 +302,8 @@ impl DialogueFrameData {
                 .unwrap_or_default(),
             is_badly_hurt: character_ref
                 .get::<&Health>()
-                .map_or(false, |health| health.is_badly_hurt()),
+                .is_some_and(|health| health.is_badly_hurt()),
+            darkness: area.darkness,
         }
     }
 }

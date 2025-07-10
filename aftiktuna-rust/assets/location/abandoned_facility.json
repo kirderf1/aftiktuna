@@ -29,6 +29,7 @@
       "name": "Entrance hall",
       "pos_in_overview": [ -3, 2 ],
       "background": "facility_size7",
+      "darkness": 0.35,
       "objects": [ "#", "<", "", "^", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "sealed", "display_type": "door", "adjective": "left" },
@@ -48,6 +49,7 @@
       "name": "Corridor",
       "pos_in_overview": [ 1, 5 ],
       "background": "facility_size5",
+      "darkness": 0.35,
       "objects": [ "<", "", "^", "E", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway", "adjective": "left" },
@@ -59,6 +61,7 @@
       "name": "Corridor",
       "pos_in_overview": [ 8, 5 ],
       "background": "facility_size5",
+      "darkness": 0.35,
       "objects": [ "<", "", "^", "", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "corridor2", "display_type": "doorway" },
@@ -70,6 +73,7 @@
       "name": "Room",
       "pos_in_overview": [ 0, 8 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "", "I", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
@@ -87,6 +91,7 @@
       "name": "Room",
       "pos_in_overview": [ 6, 8 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "b", "T", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
@@ -98,6 +103,7 @@
       "name": "Room",
       "pos_in_overview": [ 12, 8 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "^", "E", "E", "f=" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room3", "display_type": "door" },
@@ -115,6 +121,7 @@
       "name": "Room",
       "pos_in_overview": [ -6, 8 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "ff", "F", "^", "#" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "sealed", "display_type": "door" },

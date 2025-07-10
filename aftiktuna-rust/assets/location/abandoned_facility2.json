@@ -29,6 +29,7 @@
       "name": "Entrance hall",
       "pos_in_overview": [ -2, 0 ],
       "background": "facility_size6",
+      "darkness": 0.35,
       "objects": [ "<", "E", "", "^", "=", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway" },
@@ -48,6 +49,7 @@
       "name": "Corridor",
       "pos_in_overview": [ -2, 4 ],
       "background": "facility_size6",
+      "darkness": 0.35,
       "objects": [ "<", "E", "=", "^", "", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway", "adjective": "left" },
@@ -67,6 +69,7 @@
       "name": "Corridor",
       "pos_in_overview": [ -2, 9 ],
       "background": "facility_size5",
+      "darkness": 0.35,
       "objects": [ "<", "T", "^", "", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "left" },
@@ -79,6 +82,7 @@
       "name": "Room",
       "pos_in_overview": [ 6, 0 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "^", "", "Z", "T!!" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
@@ -89,6 +93,7 @@
       "name": "Room",
       "pos_in_overview": [ 6, 4 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "^", "", "I", "" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
@@ -106,6 +111,7 @@
       "name": "Room",
       "pos_in_overview": [ 6, 9 ],
       "background": "facility_size4",
+      "darkness": 0.35,
       "objects": [ "<", "G", "#", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "left" },
@@ -125,6 +131,7 @@
       "name": "Storage Room",
       "pos_in_overview": [ 8, 13 ],
       "background": "facility_size3",
+      "darkness": 0.5,
       "objects": [ "^", "#", "¤" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "storage", "display_type": "door" },

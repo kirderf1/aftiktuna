@@ -184,6 +184,8 @@ pub struct AreaData {
     pub background: BackgroundId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background_offset: Option<i32>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub darkness: f32,
     pub objects: Vec<String>,
     pub symbols: SymbolMap,
 }

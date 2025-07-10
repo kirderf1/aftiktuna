@@ -219,6 +219,7 @@ mod ui {
                 pos_in_overview: (0, 0),
                 background: BackgroundId::blank(),
                 background_offset: None,
+                darkness: 0.,
                 objects: vec![String::default()],
                 symbols: SymbolMap::new(),
             });
@@ -264,6 +265,7 @@ mod ui {
             }
         });
 
+        ui.add(egui::Slider::new(&mut area.darkness, 0.0..=1.0));
         ui.separator();
 
         ui.horizontal(|ui| {
@@ -616,8 +618,8 @@ use aftiktuna::asset::{background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::Coord;
-use aftiktuna_three_d::asset::LazilyLoadedModels;
-use aftiktuna_three_d::{asset, render};
+use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
+use aftiktuna_three_d::render;
 use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -651,6 +653,7 @@ fn main() {
         hovered_door_pair: None,
         connecting_pair: None,
         new_door_pair_name: String::new(),
+        mouse_pos: three_d::vec2(0., 0.).into(),
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -678,6 +681,12 @@ fn main() {
     let mut gui = three_d::GUI::new(&window.gl());
 
     window.render_loop(move |mut frame_input| {
+        for event in &frame_input.events {
+            if let three_d::Event::MouseMotion { position, .. } = event {
+                editor_data.mouse_pos = *position;
+            }
+        }
+
         let mut save = false;
 
         gui.update(
@@ -720,6 +729,7 @@ fn main() {
             render_game_view(
                 area,
                 &camera,
+                editor_data.mouse_pos,
                 render_viewport,
                 &screen,
                 &frame_input.context,
@@ -752,6 +762,7 @@ struct EditorData {
     hovered_door_pair: Option<String>,
     connecting_pair: Option<(String, Vec<AreaSymbolId>)>,
     new_door_pair_name: String,
+    mouse_pos: three_d::PhysicalPoint,
 }
 
 struct Assets {
@@ -1046,6 +1057,7 @@ fn render_overview(
 fn render_game_view(
     area: &AreaData,
     camera: &aftiktuna_three_d::Camera,
+    mouse_pos: three_d::PhysicalPoint,
     render_viewport: three_d::Viewport,
     screen: &three_d::RenderTarget<'_>,
     context: &three_d::Context,
@@ -1100,6 +1112,17 @@ fn render_game_view(
     let render_camera = render::get_render_camera(camera, render_viewport);
     render::draw_in_order(&background, &render_camera, screen);
     render::draw_in_order(&objects, &render_camera, screen);
+
+    if area.darkness > 0. {
+        render::render_darkness(
+            mouse_pos.into(),
+            200.,
+            area.darkness,
+            render_viewport,
+            screen,
+            context,
+        );
+    }
 }
 
 fn area_offset(area: &AreaData) -> i32 {

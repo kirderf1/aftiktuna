@@ -295,6 +295,73 @@ impl three_d::Material for UnalteredColorMaterial {
     }
 }
 
+pub fn render_darkness(
+    center: three_d::Vec2,
+    radius: f32,
+    intensity: f32,
+    viewport: three_d::Viewport,
+    screen: &three_d::RenderTarget<'_>,
+    context: &three_d::Context,
+) {
+    let material = DarknessMaterial {
+        center,
+        radius,
+        intensity,
+        render_states: three_d::RenderStates {
+            write_mask: three_d::WriteMask::COLOR,
+            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            ..Default::default()
+        },
+    };
+    let object = three_d::Gm::new(
+        rect(
+            0.,
+            0.,
+            viewport.width as f32,
+            viewport.height as f32,
+            context,
+        ),
+        material,
+    );
+    draw_in_order(&[object], &default_render_camera(viewport), screen);
+}
+
+struct DarknessMaterial {
+    center: three_d::Vec2,
+    radius: f32,
+    intensity: f32,
+    render_states: three_d::RenderStates,
+}
+
+impl three_d::Material for DarknessMaterial {
+    fn fragment_shader_source(&self, _lights: &[&dyn three_d::Light]) -> String {
+        include_str!("darkness.frag").to_owned()
+    }
+
+    fn id(&self) -> three_d::EffectMaterialId {
+        three_d::EffectMaterialId(0x0000)
+    }
+
+    fn use_uniforms(
+        &self,
+        program: &three_d::Program,
+        _viewer: &dyn three_d::Viewer,
+        _lights: &[&dyn three_d::Light],
+    ) {
+        program.use_uniform("center", self.center);
+        program.use_uniform("radius", self.radius);
+        program.use_uniform("intensity", self.intensity);
+    }
+
+    fn render_states(&self) -> three_d::RenderStates {
+        self.render_states
+    }
+
+    fn material_type(&self) -> three_d::MaterialType {
+        three_d::MaterialType::Transparent
+    }
+}
+
 pub fn draw_in_order(
     objects: &[impl three_d::Object],
     camera: &three_d::Camera,
