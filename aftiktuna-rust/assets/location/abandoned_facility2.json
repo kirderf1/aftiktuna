@@ -2,7 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a building",
-      "pos_in_overview": [ -4, -4 ],
+      "pos_in_overview": [ -6, -3 ],
       "background": "facility_outside",
       "background_offset": 0,
       "objects": [ "\\", "-", "-", ".^", ",", "v" ],
@@ -15,7 +15,7 @@
     },
     {
       "name": "Field next to a building",
-      "pos_in_overview": [ -11, 3 ],
+      "pos_in_overview": [ -11, 2 ],
       "background": "facility_outside",
       "background_offset": 3,
       "objects": [ ".^", "-", "-v", "-", "/" ],
@@ -27,7 +27,7 @@
     },
     {
       "name": "Entrance hall",
-      "pos_in_overview": [ -2, 0 ],
+      "pos_in_overview": [ -2, 1 ],
       "background": "facility_size6",
       "darkness": 0.35,
       "objects": [ "<", "E", "", "^", "=", ">" ],
@@ -47,7 +47,7 @@
     },
     {
       "name": "Corridor",
-      "pos_in_overview": [ -2, 4 ],
+      "pos_in_overview": [ -2, 5 ],
       "background": "facility_size6",
       "darkness": 0.35,
       "objects": [ "<", "E", "=", "^", "", ">" ],
@@ -80,18 +80,19 @@
     },
     {
       "name": "Room",
-      "pos_in_overview": [ 6, 0 ],
+      "pos_in_overview": [ 6, 1 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "^", "", "Z", "T!!" ],
+      "objects": [ "^", "", "v", "T%" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "v": { "type": "door", "pair_id": "stairs", "display_type": "downward_stairs" }
       }
     },
     {
       "name": "Room",
-      "pos_in_overview": [ 6, 4 ],
+      "pos_in_overview": [ 6, 5 ],
       "background": "facility_size4",
       "darkness": 0.35,
       "objects": [ "^", "", "I", "" ],
@@ -132,22 +133,102 @@
       "pos_in_overview": [ 8, 13 ],
       "background": "facility_size3",
       "darkness": 0.5,
-      "objects": [ "^", "#", "¤" ],
+      "objects": [ "^", "%", "#" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "storage", "display_type": "door" },
         "#": {
           "type": "container",
+          "container_type": "chest",
+          "content": [
+            { "type": "loot", "table": "valuable" }
+          ],
+          "direction": "right"
+        }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ 5, -10 ],
+      "background": "facility_size3",
+      "darkness": 0.6,
+      "objects": [ "<", "", "^" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "stairs", "display_type": "upward_stairs" },
+        "<": { "type": "door", "pair_id": "basement_entrance", "display_type": "door" }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ 3, -13 ],
+      "background": "facility_size6",
+      "darkness": 0.6,
+      "objects": [ "", "<", "^Z", "T", ">", "" ],
+      "symbols": {
+        ">": { "type": "door", "pair_id": "basement_entrance", "display_type": "door", "adjective": "right" },
+        "^": { "type": "door", "pair_id": "basement_side", "display_type": "doorway" },
+        "<": { "type": "door", "pair_id": "basement1", "display_type": "door", "adjective": "left" },
+        "Z": { "type": "creature", "creature": "azureclops", "wandering": true },
+        "T": { "type": "inanimate", "model": "environment/table" }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ 3, -7 ],
+      "background": "facility_size3",
+      "darkness": 0.6,
+      "objects": [ "^", "#", "I" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "basement_side", "display_type": "doorway" },
+        "#": {
+          "type": "container",
           "container_type": "crate",
           "content": [
-            { "type": "loot", "table": "resource" }
+            { "type": "item", "item": "food_ration" },
+            { "type": "item", "item": "food_ration" }
           ],
           "direction": "right"
         },
-        "¤": {
+        "I": {
+          "type": "container",
+          "container_type": "cabinet",
+          "content": [
+            { "type": "loot", "table": "tool" }
+          ],
+          "direction": "right"
+        }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ 0, -16 ],
+      "background": "facility_size4",
+      "darkness": 0.6,
+      "objects": [ "<", "=E", "E", ">" ],
+      "symbols": {
+        ">": { "type": "door", "pair_id": "basement1", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "basement2", "display_type": "door", "adjective": "left" },
+        "=": {
+          "type": "container",
+          "container_type": "drawer",
+          "content": [
+            { "type": "item", "item": "fuel_can" }
+          ],
+          "direction": "right"
+        }
+      }
+    },
+    {
+      "name": "Basement",
+      "pos_in_overview": [ -2, -19 ],
+      "background": "facility_size4",
+      "darkness": 0.6,
+      "objects": [ "#", "", "^", "" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "basement2", "display_type": "door" },
+        "#": {
           "type": "container",
           "container_type": "chest",
           "content": [
-            { "type": "item", "item": "fuel_can" },
             { "type": "loot", "table": "valuable" }
           ],
           "direction": "right"
@@ -164,6 +245,11 @@
     "room1": {},
     "room2": {},
     "room3": {},
-    "storage": { "block_type": "sealed" }
+    "storage": { "block_type": "stuck" },
+    "stairs": {},
+    "basement_entrance": { "block_type": "sealed" },
+    "basement_side": {},
+    "basement1": {},
+    "basement2": {}
   }
 }
