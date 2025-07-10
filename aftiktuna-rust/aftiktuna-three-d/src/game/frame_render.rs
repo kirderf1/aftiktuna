@@ -90,7 +90,7 @@ fn draw_area_view(
 ) {
     let background_objects = render::render_objects_for_primary_background(
         assets.backgrounds.get_or_default(&render_data.background),
-        render_data.background_offset.unwrap_or(0),
+        render_data.background_offset,
         camera.camera_x,
         &frame_input.context,
     );

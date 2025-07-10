@@ -2,7 +2,6 @@ use super::CachedTextures;
 use crate::camera::HorizontalDraggableCamera;
 use aftiktuna::asset::background::{self, BGData, PortraitBGData, PrimaryBGData};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::position::Coord;
 use macroquad::color::{self, Color};
 use macroquad::texture::{self, Texture2D};
 use macroquad::window;
@@ -12,7 +11,7 @@ use std::hash::Hash;
 
 pub fn draw_primary(
     primary_data: &PrimaryBGData<Texture2D>,
-    offset: Coord,
+    offset: i32,
     camera: &HorizontalDraggableCamera,
 ) {
     fn draw_background_texture(texture: &Texture2D, x: f32, y: f32) {

@@ -127,7 +127,7 @@ fn draw_frame(
             mq_camera::set_camera(camera);
             background::draw_primary(
                 &assets.lookup_background(&render_data.background).primary,
-                render_data.background_offset.unwrap_or(0),
+                render_data.background_offset,
                 camera,
             );
 

@@ -7,7 +7,7 @@ pub struct Area {
     pub size: Coord,
     pub label: String,
     pub background: BackgroundId,
-    pub background_offset: Option<Coord>,
+    pub background_offset: i32,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

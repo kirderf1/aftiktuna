@@ -43,7 +43,7 @@ fn build_area(
         size: area_data.objects.len().try_into().unwrap(),
         label: area_data.name,
         background: area_data.background,
-        background_offset: area_data.background_offset,
+        background_offset: area_data.background_offset.unwrap_or(0),
     },));
 
     let symbols = SymbolLookup::new(parent_symbols, &area_data.symbols);

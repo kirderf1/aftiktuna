@@ -134,22 +134,22 @@ fn side_panel(ctx: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) -
 
 fn display_parameters_ui(
     area_size: &mut Coord,
-    offset: &mut Coord,
+    offset: &mut i32,
     current_type: &mut ExampleContentType,
     ui: &mut egui::Ui,
 ) {
     ui.label("Area Size:");
     ui.add(egui::Slider::new(area_size, 1..=20));
     ui.label("Offset:");
-    ui.add(egui::Slider::new(offset, 0..=20));
+    ui.add(egui::Slider::new(offset, -10..=10));
     egui::ComboBox::from_label("Content")
-        .selected_text(format!("{:?}", current_type))
+        .selected_text(format!("{current_type:?}"))
         .show_ui(ui, |ui| {
             for &selectable_type in ExampleContentType::variants() {
                 ui.selectable_value(
                     current_type,
                     selectable_type,
-                    format!("{:?}", selectable_type),
+                    format!("{selectable_type:?}"),
                 );
             }
         });

@@ -103,7 +103,7 @@ pub struct RenderData {
     pub area_label: String,
     pub area_size: Coord,
     pub background: BackgroundId,
-    pub background_offset: Option<Coord>,
+    pub background_offset: i32,
     pub character_coord: Coord,
     pub inventory: Vec<ItemProfile>,
     pub objects: Vec<ObjectRenderData>,

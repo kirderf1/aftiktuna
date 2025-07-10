@@ -154,7 +154,7 @@ use crate::asset::loot::{self, LootTableId};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
 use crate::core::name::Noun;
-use crate::core::position::{Coord, Direction};
+use crate::core::position::Direction;
 use crate::core::{BlockType, DoorKind, item};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -183,7 +183,7 @@ pub struct AreaData {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub background: BackgroundId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub background_offset: Option<Coord>,
+    pub background_offset: Option<i32>,
     pub objects: Vec<String>,
     pub symbols: SymbolMap,
 }

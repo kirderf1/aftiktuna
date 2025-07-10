@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Changed location selection to also give a short description of the options
 - New model field "z_offset" that helps influence the rendering order
 - New model fields "has_x_displacement" and "z_displacement" that replaces "mounted"
+- "background_offset" in area data can now be negative
 
 ### Fixed
 

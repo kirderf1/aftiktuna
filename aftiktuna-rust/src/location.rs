@@ -228,7 +228,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         label: "Ship".to_string(),
         size: 5,
         background: BackgroundId::new("ship"),
-        background_offset: None,
+        background_offset: 0,
     },));
     world
         .insert_one(

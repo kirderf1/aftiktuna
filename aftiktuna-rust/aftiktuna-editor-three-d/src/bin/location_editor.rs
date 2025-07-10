@@ -260,7 +260,7 @@ mod ui {
                 area.background_offset = None;
             }
             if let Some(offset) = &mut area.background_offset {
-                ui.add(egui::Slider::new(offset, 0..=20));
+                ui.add(egui::Slider::new(offset, -10..=10));
             }
         });
 

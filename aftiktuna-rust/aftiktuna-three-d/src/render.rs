@@ -2,13 +2,13 @@ use aftiktuna::asset::background::{BGData, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::display::AftikColorId;
-use aftiktuna::core::position::{Coord, Direction};
+use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::RenderProperties;
 use std::collections::HashMap;
 
 pub fn render_objects_for_primary_background(
     background: &BGData<three_d::Texture2DRef>,
-    background_offset: Coord,
+    background_offset: i32,
     camera_x: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
