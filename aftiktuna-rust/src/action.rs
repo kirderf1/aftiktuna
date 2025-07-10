@@ -151,7 +151,12 @@ fn perform(
             }
         }
         Err(error) => {
-            if error.visible || performer == controlled {
+            if performer == controlled
+                || error.visible
+                    && world.get::<&Pos>(performer).is_ok_and(|pos| {
+                        pos.is_in(world.get::<&Pos>(controlled).unwrap().get_area())
+                    })
+            {
                 view_buffer.messages.add(error.message);
                 view_buffer.capture_view(state);
             }
