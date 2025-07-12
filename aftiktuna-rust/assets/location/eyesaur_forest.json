@@ -16,8 +16,8 @@
       "name": "Forest entrance",
       "pos_in_overview": [ -10, -5 ],
       "background": "forest",
-      "background_offset": 0,
-      "objects": [ "<", "#", "", "^", "", ">" ],
+      "background_offset": -1,
+      "objects": [ "", "<", "#", "", "^", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left1", "display_type": "path", "adjective": "left" },
         "^": { "type": "door", "pair_id": "left_entrance", "display_type": "path", "adjective": "middle" },
@@ -26,11 +26,11 @@
       }
     },
     {
-      "name": "Forest path",
-      "pos_in_overview": [ -13, 3 ],
+      "name": "Forest",
+      "pos_in_overview": [ -14, 3 ],
       "background": "forest",
-      "background_offset": 2,
-      "objects": [ "<", "", ">", "E" ],
+      "background_offset": 1,
+      "objects": [ "", "<", "E", ">", "E" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left2", "display_type": "path", "adjective": "left" },
         ">": { "type": "door", "pair_id": "left1", "display_type": "path", "adjective": "right" },
@@ -38,24 +38,24 @@
       }
     },
     {
-      "name": "Forest path",
+      "name": "Forest",
       "pos_in_overview": [ -14, 11 ],
       "background": "forest",
-      "background_offset": 4,
-      "objects": [ "<", "#", "", ">" ],
+      "background_offset": 3,
+      "objects": [ "", "<", "#", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left2", "display_type": "path", "adjective": "left" },
         "^": { "type": "door", "pair_id": "", "display_type": "path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "mid_left2", "display_type": "path", "adjective": "right" },
+        ">": { "type": "door", "pair_id": "left3", "display_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" }
       }
     },
     {
-      "name": "Forest path",
-      "pos_in_overview": [ 21, 24 ],
+      "name": "Forest",
+      "pos_in_overview": [ 20, 23 ],
       "background": "forest_with_crashed_ship",
-      "background_offset": 7,
-      "objects": [ "^", "", "", "F", "!" ],
+      "background_offset": 6,
+      "objects": [ "", "^", "", "", "F", "!" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "side_path", "display_type": "path" }
       }
@@ -64,8 +64,8 @@
       "name": "Forest entrance",
       "pos_in_overview": [ 5, -6 ],
       "background": "forest",
-      "background_offset": 3,
-      "objects": [ "<", "#", "\\", "-%", "/", "" ],
+      "background_offset": 2,
+      "objects": [ "", "<", "#", "\\", "-%", "/", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "mid_right1", "display_type": "path", "adjective": "left" },
         "\\": { "type": "door", "pair_id": "right_entrance", "display_type": "left_path", "adjective": "middle" },
@@ -77,20 +77,20 @@
       "name": "Forest path",
       "pos_in_overview": [ 9, 2 ],
       "background": "forest_with_crashed_ship",
-      "background_offset": 5,
-      "objects": [ "<", "", "\\", "-", "/" ],
+      "background_offset": 4,
+      "objects": [ "", "<", "", "\\", "-", "/", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "mid_right2", "display_type": "path", "adjective": "left" },
+        "<": { "type": "door", "pair_id": "right3", "display_type": "path", "adjective": "left" },
         "\\": { "type": "door", "pair_id": "right2", "display_type": "left_path", "adjective": "middle" },
         "/": { "type": "door", "pair_id": "right1", "display_type": "right_path", "adjective": "right" }
       }
     },
     {
       "name": "Campsite",
-      "pos_in_overview": [ 16, 11 ],
+      "pos_in_overview": [ 13, 10 ],
       "background": "forest_with_crashed_ship",
-      "background_offset": 0,
-      "objects": [ "\\", "-", "-e", "-#", "-Ec", "-Aa", "-t", "/" ],
+      "background_offset": -1,
+      "objects": [ "", "\\", "-", "-e", "-#", "-Ec", "-Aa", "-t", "/", "" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "right2", "display_type": "left_path", "adjective": "left" },
         "e": { "type": "creature", "creature": "eyesaur", "health": 0.4 },
@@ -110,11 +110,11 @@
       }
     },
     {
-      "name": "Forest path",
+      "name": "Forest",
       "pos_in_overview": [ -2, 2 ],
       "background": "forest",
-      "background_offset": 5,
-      "objects": [ "<", "", "^", "EE", "", ">" ],
+      "background_offset": 4,
+      "objects": [ "", "<", "", "^", "EE", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "mid_left1", "display_type": "path", "adjective": "left" },
         "^": { "type": "door", "pair_id": "mid", "display_type": "path", "adjective": "middle" },
@@ -123,11 +123,11 @@
       }
     },
     {
-      "name": "Forest path",
-      "pos_in_overview": [ -2, 11 ],
+      "name": "Forest",
+      "pos_in_overview": [ -3, 8 ],
       "background": "forest",
-      "background_offset": 2,
-      "objects": [ "<", "", "#", "^", "", ">", "" ],
+      "background_offset": 1,
+      "objects": [ "", "<", "", "#", "^", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "mid_left2", "display_type": "path", "adjective": "left" },
         "^": { "type": "door", "pair_id": "mid", "display_type": "path", "adjective": "middle" },
@@ -137,10 +137,10 @@
     },
     {
       "name": "Crash site",
-      "pos_in_overview": [ 17, 18 ],
+      "pos_in_overview": [ 17, 17 ],
       "background": "forest",
-      "background_offset": 0,
-      "objects": [ "<", "", "E", "C", "#", ">" ],
+      "background_offset": -1,
+      "objects": [ "", "<", "", "E", "C", "#", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "crash_site_path", "display_type": "path", "adjective": "left" },
         ",": { "type": "inanimate", "model": "path/right_corner" },
@@ -157,6 +157,42 @@
         "#": { "type": "inanimate", "model": "environment/tree_stump" },
         ">": { "type": "door", "pair_id": "side_path", "display_type": "path", "adjective": "right" }
       }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ 3, 14 ],
+      "background": "forest",
+      "background_offset": 3,
+      "objects": [ "", "<", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "mid_right2", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "right3", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "mid_right3", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -5, 14 ],
+      "background": "forest",
+      "background_offset": 4,
+      "objects": [ "", "<", "S", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "mid_left2", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "mid_left3", "display_type": "path", "adjective": "right" },
+        "S": { "type": "creature", "creature": "scarvie", "aggressive": false, "wandering": true }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -4, 20 ],
+      "background": "forest",
+      "background_offset": 2,
+      "objects": [ "", "<", "", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "left3", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "mid_left3", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "mid_right3", "display_type": "path", "adjective": "right" }
+      }
     }
   ],
   "door_pairs": {
@@ -164,12 +200,16 @@
     "right_entrance": {},
     "left1": {},
     "left2": {},
+    "left3": {},
     "mid_left1": {},
     "mid_left2": {},
+    "mid_left3": {},
     "right1": {},
     "right2": {},
+    "right3": {},
     "mid_right1": {},
     "mid_right2": {},
+    "mid_right3": {},
     "mid": {},
     "side_path": {},
     "crash_site_path": {}

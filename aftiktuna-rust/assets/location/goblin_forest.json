@@ -2,7 +2,7 @@
   "areas": [
     {
       "name": "Field in front of a forest",
-      "pos_in_overview": [ 10, -5 ],
+      "pos_in_overview": [ 1, -4 ],
       "background": "forest_entrance",
       "background_offset": 1,
       "objects": [ "", ".v", "-", "-", "/", "#", "" ],
@@ -14,10 +14,10 @@
     },
     {
       "name": "Forest entrance",
-      "pos_in_overview": [ 11, 2 ],
+      "pos_in_overview": [ 2, 3 ],
       "background": "forest",
-      "background_offset": 0,
-      "objects": [ "\\", "-", "/", "", ">" ],
+      "background_offset": -1,
+      "objects": [ "", "\\", "-", "/", "", ">", "" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path1", "display_type": "left_path", "adjective": "left" },
         "/": { "type": "door", "pair_id": "entrance", "display_type": "right_path", "adjective": "middle" },
@@ -26,22 +26,22 @@
     },
     {
       "name": "Forest path",
-      "pos_in_overview": [ 1, 2 ],
+      "pos_in_overview": [ -10, 6 ],
       "background": "forest",
-      "background_offset": 5,
-      "objects": [ "<", "-", "^G", "-", ">" ],
+      "background_offset": 4,
+      "objects": [ "", "<", "-", "^G", "-", ">", "" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "path1", "display_type": "right_path", "adjective": "right" },
         "<": { "type": "door", "pair_id": "path2", "display_type": "left_path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a3", "display_type": "crossroad_path", "adjective": "middle" }
+        "^": { "type": "door", "pair_id": "alt_path_a10", "display_type": "crossroad_path", "adjective": "middle" }
       }
     },
     {
       "name": "Forest path",
-      "pos_in_overview": [ -8, 2 ],
+      "pos_in_overview": [ -22, 9 ],
       "background": "forest_with_shack",
       "background_offset": 2,
-      "objects": [ "<", "-#G", "-G", "^", "-", ">" ],
+      "objects": [ "G", "<", "-#G", "^", "-", ">", "" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "path2", "display_type": "right_path", "adjective": "right" },
         "<": { "type": "door", "pair_id": "path3", "display_type": "left_path", "adjective": "left" },
@@ -58,21 +58,22 @@
     },
     {
       "name": "Forest path leading to a shack",
-      "pos_in_overview": [ -18, 2 ],
+      "pos_in_overview": [ -31, 6 ],
       "background": "forest",
-      "background_offset": 6,
-      "objects": [ "#", ".<", "-", "^", "-", "-", "/" ],
+      "background_offset": 4,
+      "objects": [ "#", "<", "", ".v", "-", "^", "-", "-", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "shack", "display_type": "shack" },
-        "^": { "type": "door", "pair_id": "alt_path_b2", "display_type": "crossroad_path", "adjective": "left" },
-        "/": { "type": "door", "pair_id": "path3", "display_type": "right_path", "adjective": "right" },
+        "v": { "type": "door", "pair_id": "shack", "display_type": "shack" },
+        "^": { "type": "door", "pair_id": "alt_path_b2", "display_type": "crossroad_path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "path3", "display_type": "right_path", "adjective": "right" },
         ".": { "type": "inanimate", "model": "path/left_corner" },
-        "#": { "type": "inanimate", "model": "environment/tree_stump" }
+        "#": { "type": "inanimate", "model": "environment/tree_stump" },
+        "<": { "type": "door", "pair_id": "alt_path_b4", "display_type": "path", "adjective": "left" }
       }
     },
     {
       "name": "Shack",
-      "pos_in_overview": [ -21, -4 ],
+      "pos_in_overview": [ -34, 10 ],
       "background": "shack",
       "objects": [ "¤f", "fE", "", "^" ],
       "symbols": {
@@ -90,39 +91,112 @@
     },
     {
       "name": "Forest",
-      "pos_in_overview": [ 12, 8 ],
+      "pos_in_overview": [ 12, -3 ],
       "background": "forest",
-      "background_offset": 1,
-      "objects": [ "", "<", "G", "#", ">" ],
+      "background_offset": -1,
+      "objects": [ "", "<", "", "#", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a2", "display_type": "path", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "alt_path_a1", "display_type": "path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "alt_path_a1", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "alt_path_a2", "display_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/mossy_rock" }
       }
     },
     {
       "name": "Forest",
-      "pos_in_overview": [ 2, 8 ],
-      "background": "forest",
+      "pos_in_overview": [ -36, 2 ],
+      "background": "forest_with_shack",
       "background_offset": 1,
-      "objects": [ "#%", "S", "<", "", ">" ],
+      "objects": [ "#c", "S", "<", "", ">", "" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "alt_path_a2", "display_type": "path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "alt_path_a3", "display_type": "path", "adjective": "left" },
-        "#": { "type": "inanimate", "model": "environment/tree_stump" }
+        ">": { "type": "door", "pair_id": "alt_path_b3", "display_type": "path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "alt_path_b4", "display_type": "path", "adjective": "left" },
+        "#": { "type": "inanimate", "model": "environment/tree_stump" },
+        "c": { "type": "item", "item": "crowbar" }
       }
     },
     {
       "name": "Forest",
-      "pos_in_overview": [ -11, 8 ],
+      "pos_in_overview": [ -25, 2 ],
       "background": "forest_with_shack",
-      "background_offset": 3,
-      "objects": [ "<", "#", ">", "", "G", "c" ],
+      "background_offset": 1,
+      "objects": [ "", "<", "^", "#", ">", "G", "%" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "alt_path_b1", "display_type": "path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "alt_path_b2", "display_type": "path", "adjective": "left" },
-        "c": { "type": "item", "item": "crowbar" },
-        "#": { "type": "inanimate", "model": "environment/mossy_rock" }
+        "<": { "type": "door", "pair_id": "alt_path_b3", "display_type": "path", "adjective": "left" },
+        "#": { "type": "inanimate", "model": "environment/mossy_rock" },
+        "^": { "type": "door", "pair_id": "alt_path_b2", "display_type": "path", "adjective": "middle" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ 17, 3 ],
+      "background": "forest",
+      "background_offset": 1,
+      "objects": [ "", "<", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "alt_path_a3", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a2", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a4", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ 15, 11 ],
+      "background": "forest",
+      "background_offset": 2,
+      "objects": [ "", "<", "", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "alt_path_a5", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a4", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a6", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ 8, 7 ],
+      "background": "forest",
+      "background_offset": 3,
+      "objects": [ "", "<", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "alt_path_a8", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a3", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a5", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ 0, 19 ],
+      "background": "forest",
+      "background_offset": 4,
+      "objects": [ "", "<", "", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "alt_path_a9", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a7", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a6", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ 4, 11 ],
+      "background": "forest",
+      "background_offset": 1,
+      "objects": [ "GG", "<", "GG", ">", "#" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "alt_path_a8", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "alt_path_a7", "display_type": "path", "adjective": "right" },
+        "#": { "type": "inanimate", "model": "environment/mossy_rock" },
+        "G": { "type": "creature", "creature": "goblin", "wandering": true }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -5, 13 ],
+      "background": "forest",
+      "background_offset": 4,
+      "objects": [ "", "<", "", "^", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "alt_path_a9", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a10", "display_type": "path", "adjective": "middle" }
       }
     }
   ],
@@ -135,7 +209,16 @@
     "alt_path_a1": {},
     "alt_path_a2": {},
     "alt_path_a3": {},
+    "alt_path_a4": {},
+    "alt_path_a5": {},
+    "alt_path_a6": {},
+    "alt_path_a7": {},
+    "alt_path_a8": {},
+    "alt_path_a9": {},
+    "alt_path_a10": {},
     "alt_path_b1": {},
-    "alt_path_b2": {}
+    "alt_path_b2": {},
+    "alt_path_b3": {},
+    "alt_path_b4": {}
   }
 }
