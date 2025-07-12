@@ -7,12 +7,10 @@ use crate::core::item::{FoodRation, FuelCan};
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::store::Shopkeeper;
-use crate::core::{
-    Character, CreatureAttribute, CrewMember, FortunaChest, area, inventory, position, status,
-};
+use crate::core::{Character, CrewMember, FortunaChest, area, inventory, position, status};
 use crate::game_loop::GameState;
 use crate::{command, core};
-use hecs::{Entity, EntityRef, World};
+use hecs::{Entity, Query, World};
 
 mod combat;
 mod dialogue;
@@ -21,14 +19,24 @@ mod item;
 pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
+    let area = world.get::<&Pos>(character).unwrap().get_area();
+
     let parse = Parse::new(input);
     first_match_or!(
         item::commands(&parse, state),
         parse.literal("enter", |parse| {
-            parse.take_remaining(|door_name| enter(door_name, world, character))
+            parse.match_against(
+                targets_in_room::<&core::Door>(area, world),
+                |parse, door| parse.done_or_err(|| enter(door, character, world)),
+                |_| Err("There is no such door or path here to go through.".to_owned()),
+            )
         }),
         parse.literal("force", |parse| {
-            parse.take_remaining(|door_name| force(door_name, world, character))
+            parse.match_against(
+                targets_in_room::<&core::Door>(area, world),
+                |parse, door| parse.done_or_err(|| force(door, character, world)),
+                |_| Err("There is no such door here.".to_owned()),
+            )
         }),
         parse.literal("go to", |parse|
             first_match_or!(
@@ -92,7 +100,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         }),
         parse.literal("name", |parse| {
             parse.match_against(
-                crew_targets_in_room(world, world.get::<&Pos>(character).unwrap().get_area()),
+                crew_targets_in_room(area, world),
                 |parse, target| parse.take_remaining(|name| give_name(world, character, target, name.to_owned())),
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
@@ -110,45 +118,51 @@ fn crew_character_targets(world: &World) -> Vec<(String, Entity)> {
         .collect()
 }
 
-fn crew_targets_in_room(world: &World, area: Entity) -> Vec<(String, Entity)> {
+fn crew_targets_in_room(area: Entity, world: &World) -> Vec<(String, Entity)> {
+    targets_in_room::<&CrewMember>(area, world)
+}
+
+fn targets_in_room<Q: Query>(area: Entity, world: &World) -> Vec<(String, Entity)> {
     world
         .query::<&Pos>()
-        .with::<&CrewMember>()
+        .with::<Q>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(area))
         .flat_map(|(entity, _)| {
-            entity_names(world.entity(entity).unwrap())
+            super::entity_names(world.entity(entity).unwrap())
                 .into_iter()
                 .map(move |name| (name, entity))
         })
         .collect()
 }
 
-fn enter(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<&Pos>(character).unwrap().get_area();
-    let door = world
-        .query::<(&Pos, NameQuery)>()
-        .with::<&core::Door>()
+fn targets_by_proximity<Q: Query>(compare_pos: Pos, world: &World) -> Vec<(String, Entity)> {
+    let mut targets_with_pos = world
+        .query::<&Pos>()
+        .with::<Q>()
         .iter()
-        .find(|&(_, (pos, query))| pos.is_in(area) && NameData::from(query).matches(door_name))
-        .map(|(door, _)| door)
-        .ok_or_else(|| "There is no such door or path here to go through.".to_string())?;
+        .filter(|&(_, pos)| pos.is_in(compare_pos.get_area()))
+        .flat_map(|(entity, &pos)| {
+            super::entity_names(world.entity(entity).unwrap())
+                .into_iter()
+                .map(move |name| (name, entity, pos))
+        })
+        .collect::<Vec<_>>();
 
+    targets_with_pos.sort_by_key(|(_, _, pos)| pos.distance_to(compare_pos));
+    targets_with_pos
+        .into_iter()
+        .map(|(name, entity, _)| (name, entity))
+        .collect()
+}
+
+fn enter(door: Entity, character: Entity, world: &World) -> Result<CommandResult, String> {
     check_accessible_with_message(door, character, true, world)?;
 
     command::crew_action(Action::EnterDoor(door))
 }
 
-fn force(door_name: &str, world: &World, character: Entity) -> Result<CommandResult, String> {
-    let area = world.get::<&Pos>(character).unwrap().get_area();
-    let door = world
-        .query::<(&Pos, NameQuery)>()
-        .with::<&core::Door>()
-        .iter()
-        .find(|&(_, (pos, query))| pos.is_in(area) && NameData::from(query).matches(door_name))
-        .map(|(door, _)| door)
-        .ok_or_else(|| "There is no such door here.".to_string())?;
-
+fn force(door: Entity, character: Entity, world: &World) -> Result<CommandResult, String> {
     check_accessible_with_message(door, character, false, world)?;
 
     command::action_result(Action::ForceDoor(door, false))
@@ -334,21 +348,6 @@ fn give_name(
     }
 
     command::action_result(Action::Name(target, name))
-}
-
-fn entity_names(entity_ref: EntityRef<'_>) -> Vec<String> {
-    let name_data = NameData::find_by_ref(entity_ref);
-    let name = name_data.base().to_lowercase();
-    if let NameData::Noun(noun) = name_data
-        && let Some(attribute) = entity_ref.get::<&CreatureAttribute>()
-    {
-        vec![
-            name,
-            format!("{} {}", attribute.as_adjective(), noun.singular()),
-        ]
-    } else {
-        vec![name]
-    }
 }
 
 enum Inaccessible {

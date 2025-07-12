@@ -7,6 +7,7 @@ use crate::core::name::{NameData, NameQuery};
 use crate::core::store::{Shopkeeper, StoreStock};
 use crate::game_loop::GameState;
 use hecs::{Entity, World};
+use std::collections::HashMap;
 
 pub fn parse(
     input: &str,
@@ -36,14 +37,30 @@ pub fn parse(
         parse.literal("sell", |parse| {
             first_match_or!(
                 parse.literal("all", |parse| {
-                    parse.take_remaining(|item_name| sell_all(world, character, item_name))
+                    parse.match_against(
+                        held_item_lists_by_plurality(character, true, world),
+                        |parse, items| parse.done_or_err(|| command::action_result(Action::Sell(items))),
+                        |input| Err(format!(
+                            "{} is holding no item by the name \"{input}\".",
+                            NameData::find(world, character).definite(),
+                        )),
+                    )
                 }),
                 parse.numeric(|parse, count| {
-                    parse.take_remaining(|item_name| sell_count(world, character, count, item_name))
+                    parse.match_against(
+                        held_item_lists_by_plurality(character, count != 1, world),
+                        |parse, items| parse.done_or_err(|| {
+                            sell_count(count, prioritize_inventory(items, world), character, world)
+                        }),
+                        |input| Err(format!(
+                            "{} is holding no item by the name \"{input}\".",
+                            NameData::find(world, character).definite(),
+                        )),
+                    )
                 });
                 parse.match_against(
                     held_items(world, character),
-                    |parse, item| parse.done_or_err(|| sell(item)),
+                    |parse, item| parse.done_or_err(|| command::action_result(Action::Sell(vec![item]))),
                     |input| {
                         Err(format!(
                             "\"{input}\" does not match an item in your inventory.",
@@ -102,63 +119,47 @@ fn held_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
         .collect()
 }
 
-fn sell(item: Entity) -> Result<CommandResult, String> {
-    command::action_result(Action::Sell(vec![item]))
+fn held_item_lists_by_plurality(
+    character: Entity,
+    plural: bool,
+    world: &World,
+) -> HashMap<String, Vec<Entity>> {
+    let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
+    world
+        .query::<(NameQuery, &Held)>()
+        .iter()
+        .filter(|&(_, (_, held))| held.held_by(character))
+        .for_each(|(entity, (name_query, _))| {
+            let name_data = NameData::from(name_query);
+            let name = if plural {
+                name_data.base()
+            } else {
+                name_data.plural()
+            };
+            map.entry(name.to_owned()).or_default().push(entity);
+        });
+
+    map
+}
+
+fn prioritize_inventory(mut items: Vec<Entity>, world: &World) -> Vec<Entity> {
+    items.sort_by_key(|&item| world.get::<&Held>(item).unwrap().is_in_hand());
+    items
 }
 
 fn sell_count(
-    world: &World,
-    character: Entity,
     count: u16,
-    item_name: &str,
+    items: Vec<Entity>,
+    character: Entity,
+    world: &World,
 ) -> Result<CommandResult, String> {
-    let mut items = world
-        .query::<(NameQuery, &Held)>()
-        .iter()
-        .filter(|&(_, (query, held))| {
-            NameData::from(query).matches_with_count(item_name, count) && held.held_by(character)
-        })
-        .map(|(entity, (_, held))| (entity, held.is_in_hand()))
-        .collect::<Vec<_>>();
-    // Put item in hand at the end of the vec
-    items.sort_by_key(|(_, in_hand)| *in_hand);
-
-    if items.is_empty() {
-        return Err(format!(
-            "{} is holding no item by the name \"{}\".",
-            NameData::find(world, character).definite(),
-            item_name
-        ));
-    }
-    let count = count as usize;
+    let count = usize::from(count);
     if items.len() < count {
         return Err(format!(
             "{} does not have that many {}.",
             NameData::find(world, character).definite(),
-            item_name
+            NameData::find(world, *items.first().unwrap()).plural(),
         ));
     }
-    command::action_result(Action::Sell(
-        items[0..count].iter().map(|(item, _)| *item).collect(),
-    ))
-}
-
-fn sell_all(world: &World, character: Entity, item_name: &str) -> Result<CommandResult, String> {
-    let items = world
-        .query::<(NameQuery, &Held)>()
-        .iter()
-        .filter(|&(_, (query, held))| {
-            NameData::from(query).matches_plural(item_name) && held.held_by(character)
-        })
-        .map(|(entity, _)| entity)
-        .collect::<Vec<_>>();
-
-    if items.is_empty() {
-        return Err(format!(
-            "{} is holding no item by the name \"{}\".",
-            NameData::find(world, character).definite(),
-            item_name
-        ));
-    }
-    command::action_result(Action::Sell(items))
+    command::action_result(Action::Sell(items[0..count].to_owned()))
 }

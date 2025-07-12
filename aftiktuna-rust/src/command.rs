@@ -1,13 +1,15 @@
-use crate::action::{Action, trade};
-use crate::game_loop::GameState;
-use crate::view::{self, text};
-use hecs::Entity;
-use std::ops::Deref;
-
 mod game;
 mod parse;
 mod store;
 pub mod suggestion;
+
+use crate::action::{Action, trade};
+use crate::core::CreatureAttribute;
+use crate::core::name::NameData;
+use crate::game_loop::GameState;
+use crate::view::{self, text};
+use hecs::{Entity, EntityRef};
+use std::ops::Deref;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Target {
@@ -62,4 +64,19 @@ fn status(state: &GameState) -> Result<CommandResult, String> {
     Ok(CommandResult::Info(CommandInfo::Status(
         view::get_full_status(state),
     )))
+}
+
+fn entity_names(entity_ref: EntityRef<'_>) -> Vec<String> {
+    let name_data = NameData::find_by_ref(entity_ref);
+    let name = name_data.base().to_lowercase();
+    if let NameData::Noun(noun) = name_data
+        && let Some(attribute) = entity_ref.get::<&CreatureAttribute>()
+    {
+        vec![
+            name,
+            format!("{} {}", attribute.as_adjective(), noun.singular()),
+        ]
+    } else {
+        vec![name]
+    }
 }

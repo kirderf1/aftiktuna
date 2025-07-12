@@ -31,20 +31,6 @@ impl NameData {
         }
     }
 
-    pub fn matches(&self, string: &str) -> bool {
-        self.base().eq_ignore_ascii_case(string)
-    }
-    pub fn matches_plural(&self, string: &str) -> bool {
-        self.plural().eq_ignore_ascii_case(string)
-    }
-    pub fn matches_with_count(&self, string: &str, count: u16) -> bool {
-        match self {
-            NameData::Name(name) => name,
-            NameData::Noun(noun) => noun.for_count(count),
-        }
-        .eq_ignore_ascii_case(string)
-    }
-
     pub fn find_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
         if let Some(name) = entity_ref.get::<&Name>() {
             if name.is_known {

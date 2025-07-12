@@ -53,7 +53,7 @@ pub fn hostile_targets(world: &World, character: Entity) -> HashMap<String, Vec<
             target_pos.is_in(pos.get_area()) && status::is_alive(entity, world)
         })
         .for_each(|(entity, _)| {
-            for name in super::entity_names(world.entity(entity).unwrap()) {
+            for name in command::entity_names(world.entity(entity).unwrap()) {
                 map.entry(name).or_default().push(entity);
             }
         });
