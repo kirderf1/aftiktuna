@@ -84,15 +84,13 @@ impl<'a> Parse<'a> {
     fn try_advance(&self, word: &str) -> Option<Self> {
         let input = self.active_input();
 
-        if !input.starts_with(word) {
-            return None;
-        }
+        let input_word_advance = starts_with_ignore_ascii_case(input, word)?;
 
-        let remainder = input.split_at(word.len()).1;
+        let remainder = input.split_at(input_word_advance).1;
         if remainder.is_empty() {
-            Some(self.advance_start(word.len()))
+            Some(self.advance_start(input_word_advance))
         } else if remainder.starts_with(' ') {
-            Some(self.advance_start(word.len() + 1))
+            Some(self.advance_start(input_word_advance + ' '.len_utf8()))
         } else {
             None
         }
@@ -128,6 +126,22 @@ macro_rules! first_match {
             None
         }
     }
+}
+
+fn starts_with_ignore_ascii_case(input: &str, prefix: &str) -> Option<usize> {
+    let mut char_indices = input.char_indices();
+    for char_to_match in prefix.chars() {
+        let (_, char) = char_indices.next()?;
+        if !char_to_match.eq_ignore_ascii_case(&char) {
+            return None;
+        }
+    }
+    Some(
+        char_indices
+            .next()
+            .map(|(index, _)| index)
+            .unwrap_or(input.len()),
+    )
 }
 
 macro_rules! first_match_or {

@@ -50,11 +50,10 @@ fn crew_action(action: impl Into<Action>) -> Result<CommandResult, String> {
 }
 
 pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, String> {
-    let input = input.to_lowercase();
     if let Some(shopkeeper) = trade::get_shop_info(&state.world, state.controlled) {
-        store::parse(&input, shopkeeper.deref(), state)
+        store::parse(input, shopkeeper.deref(), state)
     } else {
-        game::parse(&input, state)
+        game::parse(input, state)
     }
     .map_err(text::capitalize)
 }
