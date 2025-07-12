@@ -160,6 +160,14 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
         return Some(UseAction { item }.into());
     }
 
+    if !entity_ref.has::<Character>()
+        && entity_ref
+            .get::<&status::Health>()
+            .is_some_and(|health| health.is_badly_hurt())
+    {
+        return Some(Action::GoToShip);
+    }
+
     let area = entity_ref.get::<&Pos>()?.get_area();
 
     let foes = world

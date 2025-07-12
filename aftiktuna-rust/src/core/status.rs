@@ -1,5 +1,6 @@
 use super::name::NameWithAttribute;
 use super::position::Pos;
+use crate::core::{Character, CrewMember};
 use crate::view::text::Messages;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -258,10 +259,17 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
         if !has_tag && visible_low_health && health.is_alive() {
             command_buffer.insert_one(entity, LowHealth);
             if entity != character {
-                messages.add(format!(
-                    "{the_entity} is badly hurt.",
-                    the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
-                ));
+                if entity_ref.has::<CrewMember>() && !entity_ref.has::<Character>() {
+                    messages.add(format!(
+                        "{the_entity} is badly hurt, and turns to flee back to the ship.",
+                        the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
+                    ));
+                } else {
+                    messages.add(format!(
+                        "{the_entity} is badly hurt.",
+                        the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
+                    ));
+                }
             }
         }
     }
