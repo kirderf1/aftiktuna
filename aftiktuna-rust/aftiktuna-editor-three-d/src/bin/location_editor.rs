@@ -8,9 +8,9 @@ mod ui {
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, SymbolData,
         SymbolMap,
     };
-    use aftiktuna::core::BlockType;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::display::{AftikColorId, ModelId};
+    use aftiktuna::core::{BlockType, item};
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
     use std::mem;
@@ -316,6 +316,8 @@ mod ui {
                 });
             }
 
+            ui.separator();
+
             if ui.button("Add Inanimate").clicked() {
                 symbol_edit_data = Some(SymbolEditData {
                     old_char: None,
@@ -335,6 +337,32 @@ mod ui {
                         pair_id: String::default(),
                         display_type: DoorType::Door,
                         adjective: None,
+                    }),
+                })
+            }
+
+            if ui.button("Add Item").clicked() {
+                symbol_edit_data = Some(SymbolEditData {
+                    old_char: None,
+                    new_char: String::new(),
+                    symbol_data: SymbolData::Item {
+                        item: item::Type::MeteorChunk,
+                    },
+                })
+            }
+
+            if ui.button("Add Creature").clicked() {
+                symbol_edit_data = Some(SymbolEditData {
+                    old_char: None,
+                    new_char: String::new(),
+                    symbol_data: SymbolData::Creature(CreatureSpawnData {
+                        creature: creature::Type::Goblin,
+                        health: 1.,
+                        attribute: AttributeChoice::Random,
+                        aggressive: None,
+                        wandering: false,
+                        tag: None,
+                        direction: None,
                     }),
                 })
             }
