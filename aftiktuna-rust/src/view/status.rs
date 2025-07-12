@@ -1,7 +1,7 @@
 use super::text::{self, Messages};
 use crate::core::area::{FuelAmount, Ship, ShipStatus};
 use crate::core::item::FoodRation;
-use crate::core::name::{self, NameData};
+use crate::core::name::{self, Name, NameData, Noun};
 use crate::core::position::Pos;
 use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::store::Points;
@@ -73,10 +73,17 @@ pub fn get_full_status(state: &GameState) -> FullStatus {
         .iter()
         .map(|(character, _)| {
             let mut character_messages = Messages::default();
-            character_messages.add(format!(
-                "{} (Aftik):",
-                NameData::find(&state.world, character).definite()
-            ));
+
+            character_messages.add(
+                if let Ok(mut query) = state.world.query_one::<(&Name, &Noun)>(character)
+                    && let Some((name, noun)) = query.get()
+                {
+                    format!("{} ({}):", name.name, text::capitalize(noun.singular()))
+                } else {
+                    format!("{}:", NameData::find(&state.world, character).definite())
+                },
+            );
+
             character_messages.add(stats_message(
                 &state.world.get::<&Stats>(character).unwrap(),
             ));

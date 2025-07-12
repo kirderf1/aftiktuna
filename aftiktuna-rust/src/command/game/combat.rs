@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-
-use hecs::Entity;
-
 use crate::action::Action;
 use crate::command;
 use crate::command::CommandResult;
@@ -10,13 +6,15 @@ use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::{CreatureAttribute, Hostile, status};
 use crate::game_loop::GameState;
+use hecs::{Entity, World};
+use std::collections::HashMap;
 
 pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {
     parse.literal("attack", |parse| {
         first_match_or!(
             parse.empty(|| attack_any(state));
             parse.match_against(
-                get_targets_by_name(state),
+                hostile_targets(&state.world, state.controlled),
                 |parse, targets| parse.done_or_err(|| attack(targets, state)),
                 |_| Err("There is no such target here.".to_string())
             )
@@ -46,19 +44,18 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
     }
 }
 
-fn get_targets_by_name(state: &GameState) -> HashMap<String, Vec<Entity>> {
-    let pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+pub fn hostile_targets(world: &World, character: Entity) -> HashMap<String, Vec<Entity>> {
+    let pos = *world.get::<&Pos>(character).unwrap();
     let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
-    state
-        .world
+    world
         .query::<&Pos>()
         .with::<&Hostile>()
         .iter()
         .filter(|&(entity, target_pos)| {
-            target_pos.is_in(pos.get_area()) && status::is_alive(entity, &state.world)
+            target_pos.is_in(pos.get_area()) && status::is_alive(entity, world)
         })
         .for_each(|(entity, _)| {
-            let entity_ref = state.world.entity(entity).unwrap();
+            let entity_ref = world.entity(entity).unwrap();
             let name_data = NameData::find_by_ref(entity_ref);
             map.entry(name_data.base().to_owned())
                 .or_default()

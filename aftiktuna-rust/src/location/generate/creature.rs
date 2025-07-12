@@ -82,6 +82,10 @@ pub(super) fn place_creature(
         builder.add(Wandering);
     }
 
+    if spawn_data.creature.is_tameable() {
+        builder.add(Recruitable);
+    }
+
     gen_context.world.spawn(builder.build());
 }
 

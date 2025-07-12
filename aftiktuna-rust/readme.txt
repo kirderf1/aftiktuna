@@ -29,6 +29,7 @@ Currently available commands are:
 - tell <character> to wait at ship
 - tell <character> to follow
 - open fortuna chest
+- tame <creature>
 
 When trading at a store, there are the following commands:
 - buy <item>

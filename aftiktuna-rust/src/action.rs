@@ -1,7 +1,10 @@
-use crate::core::item::Type as ItemType;
+use crate::core::item::{FoodRation, Type as ItemType};
 use crate::core::name::NameData;
-use crate::core::position::{Direction, Pos};
-use crate::core::{CrewMember, FortunaChest, OpenedChest, RepeatingAction, position, status};
+use crate::core::position::{self, Direction, Pos};
+use crate::core::{
+    self, CrewMember, FortunaChest, Hostile, OpenedChest, Recruitable, RepeatingAction, inventory,
+    status,
+};
 use crate::game_loop::GameState;
 use crate::view::text::{IntoMessage, Message};
 use crate::view::{self, Frame};
@@ -43,6 +46,7 @@ pub enum Action {
     Sell(Vec<Entity>),
     ExitTrade,
     OpenChest(Entity),
+    Tame(Entity),
 }
 
 pub fn tick(
@@ -133,6 +137,7 @@ fn perform(
         Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
         Sell(items) => trade::sell(&mut state.world, performer, items),
         ExitTrade => trade::exit(&mut state.world, performer),
+        Tame(target) => tame(&mut state.world, performer, target),
     };
 
     let world = &state.world;
@@ -231,6 +236,68 @@ fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
     ok(format!(
         "{} opened the fortuna chest and found the item that they desired the most.",
         NameData::find(world, performer).definite()
+    ))
+}
+
+fn tame(world: &mut World, performer: Entity, target: Entity) -> Result {
+    let crew = world.get::<&CrewMember>(performer).unwrap().0;
+    let crew_size = world.query::<&CrewMember>().iter().count();
+    if crew_size >= core::CREW_SIZE_LIMIT {
+        return Err(Error::private(
+            "There is not enough room for another crew member.",
+        ));
+    }
+
+    let performer_name = NameData::find(world, performer).definite();
+    let target_name = NameData::find(world, target).definite();
+    let target_pos = *world.get::<&Pos>(target).unwrap();
+
+    if !status::is_alive(target, world) {
+        return Err(Error::private(format!(
+            "{target_name} is not a tameable creature."
+        )));
+    }
+
+    {
+        let mut query = world
+            .query_one::<&Hostile>(target)
+            .unwrap()
+            .with::<&Recruitable>();
+        let Some(hostile) = query.get() else {
+            return Err(Error::private(format!(
+                "{target_name} is not a tameable creature."
+            )));
+        };
+        if hostile.aggressive {
+            return Err(Error::private(format!(
+                "{target_name} is on the attack and does not let {performer_name} approach it."
+            )));
+        }
+    }
+
+    let creature_count = world
+        .query::<&Pos>()
+        .with::<&Hostile>()
+        .iter()
+        .filter(|(_, pos)| pos.is_in(target_pos.get_area()))
+        .count();
+    if creature_count > 1 {
+        return Err(Error::private(format!(
+            "{performer_name} is unable to approach {target_name} as the latter is not alone."
+        )));
+    }
+
+    position::move_adjacent(world, performer, target_pos)?;
+
+    inventory::consume_one::<&FoodRation>(world, performer).ok_or_else(|| {
+        Error::private(format!("{performer_name} needs a food ration for taming."))
+    })?;
+
+    world
+        .exchange_one::<Hostile, _>(target, CrewMember(crew))
+        .unwrap();
+    ok(format!(
+        "{performer_name} offered a food ration to {target_name} and tamed it."
     ))
 }
 

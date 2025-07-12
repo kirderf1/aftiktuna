@@ -99,6 +99,7 @@ pub enum InteractionType {
     Waiting,
     Following,
     Foe,
+    Tameable,
 }
 
 impl InteractionType {
@@ -156,6 +157,7 @@ impl InteractionType {
             InteractionType::Waiting => vec![simple!("tell {name} to follow")],
             InteractionType::Following => vec![simple!("tell {name} to wait")],
             InteractionType::Foe => vec![simple!("attack {name}")],
+            InteractionType::Tameable => vec![simple!("tame {name}")],
         }
     }
 }
@@ -202,7 +204,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&Shopkeeper>() {
         interactions.push(InteractionType::Shopkeeper);
     }
-    if entity_ref.satisfies::<&Recruitable>() {
+    if entity_ref.satisfies::<(&Recruitable, &Character)>() {
         interactions.push(InteractionType::Recruitable);
     }
     if entity != state.controlled
@@ -211,8 +213,11 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     {
         interactions.push(InteractionType::Talkable);
     }
-    if entity_ref.satisfies::<&Hostile>() && status::is_alive_ref(entity_ref) {
+    if entity_ref.has::<Hostile>() && status::is_alive_ref(entity_ref) {
         interactions.push(InteractionType::Foe);
+        if entity_ref.has::<Recruitable>() {
+            interactions.push(InteractionType::Tameable);
+        }
     }
     interactions
 }

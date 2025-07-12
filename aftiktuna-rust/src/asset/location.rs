@@ -52,6 +52,10 @@ pub mod creature {
             }
         }
 
+        pub fn is_tameable(self) -> bool {
+            matches!(self, Self::Eyesaur | Self::Scarvie)
+        }
+
         pub fn default_stats(self) -> Stats {
             match self {
                 Self::Goblin => Stats::new(2, 4, 10, 2),

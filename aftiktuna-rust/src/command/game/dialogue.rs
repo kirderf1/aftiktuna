@@ -100,7 +100,7 @@ fn recruit_targets(state: &GameState) -> Vec<(String, Entity)> {
     state
         .world
         .query::<(NameQuery, &Pos)>()
-        .with::<&Recruitable>()
+        .with::<(&Recruitable, &Character)>()
         .iter()
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
         .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))

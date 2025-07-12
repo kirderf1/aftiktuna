@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Creatures can optionally be wandering
 - When encountering the ship, wandering creatures may stay around and examine the ship
 - Visual darkness effect for areas with "darkness" setting, used in the abandoned facility locations
+- Creature taming mechanics with new command "tame", currently only applying to lone scarvies and eyesaurs
 
 ### Changed
 

@@ -3,7 +3,7 @@ use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
 use crate::core::area::{Ship, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::FuelCan;
+use crate::core::item::{FoodRation, FuelCan};
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::store::Shopkeeper;
@@ -78,6 +78,12 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             parse.match_against(
                 fortuna_chest_targets(world, character),
                 |parse, target| parse.done_or_err(|| open(world, character, target)),
+                |input| Err(format!("\"{input}\" is not a valid target.")),
+            )
+        }),
+        parse.literal("tame", |parse| {
+            parse.match_against(combat::hostile_targets(world, character).into_iter().flat_map(|(name, targets)| targets.into_iter().map(move |target| (name.clone(), target))),
+                |parse, target| parse.done_or_err(|| tame(world, character, target)),
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         });
@@ -273,6 +279,19 @@ fn check(world: &World, item: Entity) -> Result<CommandResult, String> {
     Ok(CommandResult::Info(crate::CommandInfo::Message(
         core::item::description(world.entity(item).unwrap()),
     )))
+}
+
+fn tame(world: &World, character: Entity, target: Entity) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(target, character, world)?;
+
+    if !inventory::is_holding::<&FoodRation>(world, character) {
+        return Err(format!(
+            "{} needs a food ration to tame.",
+            NameData::find(world, character).definite()
+        ));
+    }
+
+    command::action_result(Action::Tame(target))
 }
 
 enum Inaccessible {
