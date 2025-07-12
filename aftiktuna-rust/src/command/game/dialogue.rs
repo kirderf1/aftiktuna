@@ -4,7 +4,7 @@ use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::{Recruitable, area, status};
+use crate::core::{Character, Recruitable, area, status};
 use crate::game_loop::GameState;
 use hecs::Entity;
 
@@ -69,7 +69,7 @@ fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
     state
         .world
         .query::<(NameQuery, &Pos)>()
-        .with::<&Name>()
+        .with::<(&Name, &Character)>()
         .iter()
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
         .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))

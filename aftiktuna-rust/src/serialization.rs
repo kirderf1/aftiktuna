@@ -176,6 +176,7 @@ pub mod world {
         status::IsStunned, IsStunned;
 
         core::CrewMember, CrewMember;
+        core::Character, Character;
         core::Hostile, Hostile;
         core::Wandering, Wandering;
         core::ObservationTarget, ObservationTarget;

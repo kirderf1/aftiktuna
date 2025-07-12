@@ -4,8 +4,8 @@ use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::{
-    self, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Wandering, inventory,
-    status,
+    self, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Wandering,
+    inventory, status,
 };
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
@@ -23,7 +23,11 @@ pub enum Intention {
 pub fn prepare_intentions(world: &mut World) {
     let mut buffer = CommandBuffer::new();
 
-    for (crew_member, _) in world.query::<()>().with::<&CrewMember>().iter() {
+    for (crew_member, _) in world
+        .query::<()>()
+        .with::<(&CrewMember, &Character)>()
+        .iter()
+    {
         if let Some(intention) = pick_intention(crew_member, world) {
             buffer.insert_one(crew_member, intention);
         };

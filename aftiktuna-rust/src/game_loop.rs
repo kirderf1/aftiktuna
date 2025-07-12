@@ -14,7 +14,9 @@ use crate::core::item::{self, FoodRation, FourLeafClover};
 use crate::core::name::{Article, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
-use crate::core::{self, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory, status};
+use crate::core::{
+    self, Character, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory, status,
+};
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, GenerationState, PickResult};
 use crate::view::text::{self, CombinableMsgType, Messages};
@@ -243,7 +245,7 @@ fn tick(
         state.controlled,
     );
 
-    handle_aftik_deaths(state, view_buffer);
+    handle_crew_deaths(state, view_buffer);
 
     let mut buffer = CommandBuffer::new();
     for stun_recovering_entity in stun_recovering_entities {
@@ -305,7 +307,7 @@ fn insert_command_action(
     }
 }
 
-fn handle_aftik_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
+fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let dead_crew = state
         .world
         .query::<&Health>()
@@ -341,7 +343,7 @@ fn check_player_state(
         let (next_character, _) = state
             .world
             .query::<()>()
-            .with::<&CrewMember>()
+            .with::<(&CrewMember, &Character)>()
             .iter()
             .next()
             .ok_or(StopType::Lose)?;

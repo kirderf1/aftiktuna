@@ -5,7 +5,7 @@ use crate::core::name::NameData;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::status::Stamina;
 use crate::core::{
-    self, BlockType, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
+    self, BlockType, Character, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
 };
 use crate::game_loop::GameState;
 use crate::view::text::CombinableMsgType;
@@ -169,7 +169,7 @@ fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block
 
     let crew_member = world
         .query::<&Pos>()
-        .with::<&CrewMember>()
+        .with::<(&CrewMember, &Character)>()
         .iter()
         .find(|&(crew_member, pos)| {
             crew_member != state.controlled

@@ -7,7 +7,7 @@ use crate::core::item::FuelCan;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::store::Shopkeeper;
-use crate::core::{CrewMember, FortunaChest, area, inventory, position, status};
+use crate::core::{Character, CrewMember, FortunaChest, area, inventory, position, status};
 use crate::game_loop::GameState;
 use crate::{command, core};
 use hecs::{Entity, World};
@@ -88,7 +88,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
 fn crew_targets(world: &World) -> Vec<(String, Entity)> {
     world
         .query::<NameQuery>()
-        .with::<&CrewMember>()
+        .with::<(&CrewMember, &Character)>()
         .iter()
         .map(|(entity, query)| (NameData::from(query).base().to_lowercase(), entity))
         .collect()

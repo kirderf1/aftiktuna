@@ -9,7 +9,7 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{CreatureAttribute, Hostile, Recruitable, Wandering};
+use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, Wandering};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::SliceRandom;
@@ -147,6 +147,7 @@ pub(crate) fn aftik_builder_with_stats(
         OccupiesSpace,
         profile.stats,
         profile.traits,
+        Character,
     ));
     builder
 }

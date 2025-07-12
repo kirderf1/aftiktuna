@@ -161,6 +161,9 @@ pub const CREW_SIZE_LIMIT: usize = 3;
 pub struct CrewMember(pub Entity);
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Character;
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Hostile {
     pub aggressive: bool,
 }

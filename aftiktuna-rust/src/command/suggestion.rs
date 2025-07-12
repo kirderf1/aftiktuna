@@ -4,7 +4,7 @@ use crate::core::item::{CanWield, Item};
 use crate::core::name::{Name, NameData};
 use crate::core::store::{Shopkeeper, StoreStock};
 use crate::core::{
-    BlockType, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting, status,
+    BlockType, Character, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting, status,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;
@@ -185,7 +185,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&FortunaChest>() {
         interactions.push(InteractionType::Openable);
     }
-    if entity != state.controlled && entity_ref.satisfies::<&CrewMember>() {
+    if entity != state.controlled && entity_ref.satisfies::<(&CrewMember, &Character)>() {
         interactions.push(InteractionType::CrewMember);
         if entity_ref.satisfies::<&Waiting>() {
             interactions.push(InteractionType::Waiting);
@@ -205,7 +205,10 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     if entity_ref.satisfies::<&Recruitable>() {
         interactions.push(InteractionType::Recruitable);
     }
-    if entity != state.controlled && entity_ref.has::<Name>() && status::is_alive_ref(entity_ref) {
+    if entity != state.controlled
+        && entity_ref.satisfies::<(&Name, &Character)>()
+        && status::is_alive_ref(entity_ref)
+    {
         interactions.push(InteractionType::Talkable);
     }
     if entity_ref.satisfies::<&Hostile>() && status::is_alive_ref(entity_ref) {
