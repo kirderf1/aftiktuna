@@ -31,7 +31,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
         }),
         parse.literal("tell", |parse| {
             parse.match_against(
-                super::crew_targets(&state.world),
+                super::crew_character_targets(&state.world),
                 |parse, target| {
                     first_match_or!(
                         parse.literal("to", |parse|

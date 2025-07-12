@@ -4,13 +4,15 @@ use crate::command::parse::{Parse, first_match_or};
 use crate::core::area::{Ship, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{FoodRation, FuelCan};
-use crate::core::name::{NameData, NameQuery};
+use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::store::Shopkeeper;
-use crate::core::{Character, CrewMember, FortunaChest, area, inventory, position, status};
+use crate::core::{
+    Character, CreatureAttribute, CrewMember, FortunaChest, area, inventory, position, status,
+};
 use crate::game_loop::GameState;
 use crate::{command, core};
-use hecs::{Entity, World};
+use hecs::{Entity, EntityRef, World};
 
 mod combat;
 mod dialogue;
@@ -66,7 +68,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
         }),
         parse.literal("control", |parse| {
             parse.match_against(
-                crew_targets(world),
+                crew_character_targets(world),
                 |parse, target| parse.done_or_err(|| control(character, target)),
                 |input| Err(format!("There is no crew member by the name \"{input}\".")),
             )
@@ -82,8 +84,16 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
             )
         }),
         parse.literal("tame", |parse| {
-            parse.match_against(combat::hostile_targets(world, character).into_iter().flat_map(|(name, targets)| targets.into_iter().map(move |target| (name.clone(), target))),
+            parse.match_against(
+                combat::hostile_targets(world, character).into_iter().flat_map(|(name, targets)| targets.into_iter().map(move |target| (name.clone(), target))),
                 |parse, target| parse.done_or_err(|| tame(world, character, target)),
+                |input| Err(format!("\"{input}\" is not a valid target.")),
+            )
+        }),
+        parse.literal("name", |parse| {
+            parse.match_against(
+                crew_targets_in_room(world, world.get::<&Pos>(character).unwrap().get_area()),
+                |parse, target| parse.take_remaining(|name| give_name(world, character, target, name.to_owned())),
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         });
@@ -91,12 +101,26 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     )
 }
 
-fn crew_targets(world: &World) -> Vec<(String, Entity)> {
+fn crew_character_targets(world: &World) -> Vec<(String, Entity)> {
     world
         .query::<NameQuery>()
         .with::<(&CrewMember, &Character)>()
         .iter()
         .map(|(entity, query)| (NameData::from(query).base().to_lowercase(), entity))
+        .collect()
+}
+
+fn crew_targets_in_room(world: &World, area: Entity) -> Vec<(String, Entity)> {
+    world
+        .query::<&Pos>()
+        .with::<&CrewMember>()
+        .iter()
+        .filter(|&(_, pos)| pos.is_in(area))
+        .flat_map(|(entity, _)| {
+            entity_names(world.entity(entity).unwrap())
+                .into_iter()
+                .map(move |name| (name, entity))
+        })
         .collect()
 }
 
@@ -292,6 +316,39 @@ fn tame(world: &World, character: Entity, target: Entity) -> Result<CommandResul
     }
 
     command::action_result(Action::Tame(target))
+}
+
+fn give_name(
+    world: &World,
+    character: Entity,
+    target: Entity,
+    name: String,
+) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(target, character, world)?;
+
+    if world.entity(target).unwrap().has::<Name>() {
+        return Err(format!(
+            "{} already has a name.",
+            NameData::find(world, target).definite()
+        ));
+    }
+
+    command::action_result(Action::Name(target, name))
+}
+
+fn entity_names(entity_ref: EntityRef<'_>) -> Vec<String> {
+    let name_data = NameData::find_by_ref(entity_ref);
+    let name = name_data.base().to_lowercase();
+    if let NameData::Noun(noun) = name_data
+        && let Some(attribute) = entity_ref.get::<&CreatureAttribute>()
+    {
+        vec![
+            name,
+            format!("{} {}", attribute.as_adjective(), noun.singular()),
+        ]
+    } else {
+        vec![name]
+    }
 }
 
 enum Inaccessible {

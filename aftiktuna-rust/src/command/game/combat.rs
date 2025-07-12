@@ -1,10 +1,8 @@
 use crate::action::Action;
-use crate::command;
-use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
-use crate::core::name::NameData;
+use crate::command::{self, CommandResult};
 use crate::core::position::Pos;
-use crate::core::{CreatureAttribute, Hostile, status};
+use crate::core::{Hostile, status};
 use crate::game_loop::GameState;
 use hecs::{Entity, World};
 use std::collections::HashMap;
@@ -55,15 +53,8 @@ pub fn hostile_targets(world: &World, character: Entity) -> HashMap<String, Vec<
             target_pos.is_in(pos.get_area()) && status::is_alive(entity, world)
         })
         .for_each(|(entity, _)| {
-            let entity_ref = world.entity(entity).unwrap();
-            let name_data = NameData::find_by_ref(entity_ref);
-            map.entry(name_data.base().to_owned())
-                .or_default()
-                .push(entity);
-            if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
-                map.entry(format!("{} {}", attribute.as_adjective(), name_data.base()))
-                    .or_default()
-                    .push(entity);
+            for name in super::entity_names(world.entity(entity).unwrap()) {
+                map.entry(name).or_default().push(entity);
             }
         });
     map

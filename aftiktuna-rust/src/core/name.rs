@@ -74,10 +74,14 @@ pub struct NameWithAttribute(NameData, Option<CreatureAttribute>);
 
 impl NameWithAttribute {
     pub fn lookup_by_ref(entity_ref: EntityRef) -> Self {
-        Self(
-            NameData::find_by_ref(entity_ref),
+        Self::lookup_option_by_ref(entity_ref).unwrap_or_default()
+    }
+
+    pub fn lookup_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
+        Some(Self(
+            NameData::find_option_by_ref(entity_ref)?,
             entity_ref.get::<&CreatureAttribute>().as_deref().copied(),
-        )
+        ))
     }
 
     pub fn lookup(entity: Entity, world: &World) -> Self {
@@ -88,20 +92,31 @@ impl NameWithAttribute {
             .unwrap_or_default()
     }
 
-    pub fn definite(&self) -> String {
-        match &self.0 {
-            NameData::Name(name) => name.to_string(),
-            NameData::Noun(noun) => {
-                if let Some(attribute) = self.1 {
-                    format!(
-                        "the {adjective} {entity}",
-                        adjective = attribute.as_adjective(),
-                        entity = noun.singular
-                    )
-                } else {
-                    format!("the {entity}", entity = noun.singular)
-                }
+    pub fn base(&self) -> String {
+        match (&self.0, self.1) {
+            (NameData::Name(name), _) => name.to_owned(),
+            (NameData::Noun(noun), Some(attribute)) => {
+                format!(
+                    "{adjective} {entity}",
+                    adjective = attribute.as_adjective(),
+                    entity = noun.singular
+                )
             }
+            (NameData::Noun(noun), None) => noun.singular.to_owned(),
+        }
+    }
+
+    pub fn definite(&self) -> String {
+        match (&self.0, self.1) {
+            (NameData::Name(name), _) => name.to_owned(),
+            (NameData::Noun(noun), Some(attribute)) => {
+                format!(
+                    "the {adjective} {entity}",
+                    adjective = attribute.as_adjective(),
+                    entity = noun.singular
+                )
+            }
+            (NameData::Noun(noun), None) => format!("the {entity}", entity = noun.singular),
         }
     }
 }

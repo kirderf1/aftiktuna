@@ -1,6 +1,6 @@
 use crate::action::{Action, trade};
 use crate::game_loop::GameState;
-use crate::view;
+use crate::view::{self, text};
 use hecs::Entity;
 use std::ops::Deref;
 
@@ -56,6 +56,7 @@ pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, 
     } else {
         game::parse(&input, state)
     }
+    .map_err(text::capitalize)
 }
 
 fn status(state: &GameState) -> Result<CommandResult, String> {

@@ -30,7 +30,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
         }),
         parse.literal("give", |parse| {
             parse.match_against(
-                super::crew_targets(&state.world),
+                super::crew_character_targets(&state.world),
                 |parse, receiver| {
                     parse.take_remaining(|item_name| give(receiver, item_name, state))
                 },

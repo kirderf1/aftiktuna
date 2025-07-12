@@ -4,10 +4,10 @@ use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, Medkit, Usable};
-use crate::core::name::NameData;
+use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
-use crate::core::{BlockType, CreatureAttribute, Door, IsCut, inventory};
+use crate::core::{BlockType, Door, IsCut, inventory};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::text;
@@ -131,7 +131,7 @@ pub struct ObjectNameData {
 
 impl ObjectNameData {
     fn build(entity_ref: EntityRef, world: &World) -> Option<Self> {
-        let name = get_name(entity_ref)?;
+        let name = NameWithAttribute::lookup_option_by_ref(entity_ref)?.base();
         Some(Self {
             modified_name: text::capitalize(get_extended_name(&name, entity_ref, world)),
             name: text::capitalize(&name),
@@ -141,19 +141,6 @@ impl ObjectNameData {
                 .unwrap_or_else(|| Symbol::from_name(&name)),
         })
     }
-}
-
-fn get_name(entity_ref: EntityRef) -> Option<String> {
-    let name_data = NameData::find_option_by_ref(entity_ref)?;
-    let name = name_data.base();
-
-    Some(
-        if let Some(attribute) = entity_ref.get::<&CreatureAttribute>() {
-            format!("{} {name}", attribute.as_adjective())
-        } else {
-            name.to_owned()
-        },
-    )
 }
 
 fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String {

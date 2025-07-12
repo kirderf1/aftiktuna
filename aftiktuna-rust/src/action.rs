@@ -1,5 +1,5 @@
 use crate::core::item::{FoodRation, Type as ItemType};
-use crate::core::name::NameData;
+use crate::core::name::{Name, NameData};
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{
     self, CrewMember, FortunaChest, Hostile, OpenedChest, Recruitable, RepeatingAction, inventory,
@@ -47,6 +47,7 @@ pub enum Action {
     ExitTrade,
     OpenChest(Entity),
     Tame(Entity),
+    Name(Entity, String),
 }
 
 pub fn tick(
@@ -138,6 +139,7 @@ fn perform(
         Sell(items) => trade::sell(&mut state.world, performer, items),
         ExitTrade => trade::exit(&mut state.world, performer),
         Tame(target) => tame(&mut state.world, performer, target),
+        Name(target, name) => give_name(&mut state.world, performer, target, name),
     };
 
     let world = &state.world;
@@ -298,6 +300,32 @@ fn tame(world: &mut World, performer: Entity, target: Entity) -> Result {
         .unwrap();
     ok(format!(
         "{performer_name} offered a food ration to {target_name} and tamed it."
+    ))
+}
+
+fn give_name(world: &mut World, performer: Entity, target: Entity, name: String) -> Result {
+    let performer_name = NameData::find(world, performer).definite();
+    let target_name = NameData::find(world, target).definite();
+    let target_pos = *world.get::<&Pos>(target).unwrap();
+
+    {
+        let target = world.entity(target).unwrap();
+        if !target.has::<CrewMember>() {
+            return Err(Error::private(format!(
+                "{performer_name} cannot name {target_name}."
+            )));
+        }
+
+        if target.has::<Name>() {
+            return Err(Error::private(format!("{target_name} already has a name.")));
+        }
+    }
+
+    position::move_adjacent(world, performer, target_pos)?;
+
+    world.insert_one(target, Name::known(&name)).unwrap();
+    ok(format!(
+        "{performer_name} dubbed {target_name} to be named {name}."
     ))
 }
 
