@@ -196,7 +196,13 @@ mod ui {
         ui.separator();
 
         let area = &mut editor_data.location_data.areas[editor_data.area_index];
-        editor_data.symbol_edit_data = area_editor_ui(ui, area, background_types, base_symbols);
+        editor_data.symbol_edit_data = area_editor_ui(
+            ui,
+            area,
+            &mut editor_data.selected_extra_background_layer,
+            background_types,
+            base_symbols,
+        );
 
         ui.separator();
         ui.collapsing("Global Symbols", |ui| {
@@ -232,6 +238,7 @@ mod ui {
     fn area_editor_ui(
         ui: &mut egui::Ui,
         area: &mut AreaData,
+        selected_extra_background_layer: &mut usize,
         background_types: &[BackgroundId],
         base_symbols: &SymbolMap,
     ) -> Option<SymbolEditData> {
@@ -268,6 +275,12 @@ mod ui {
         });
 
         ui.add(egui::Slider::new(&mut area.darkness, 0.0..=1.0));
+
+        aftiktuna_editor_three_d::background_layer_list_editor(
+            ui,
+            selected_extra_background_layer,
+            &mut area.extra_background_layers,
+        );
         ui.separator();
 
         ui.horizontal(|ui| {
@@ -677,6 +690,7 @@ fn main() {
         location_data: serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap())
             .unwrap(),
         area_index: 0,
+        selected_extra_background_layer: 0,
         symbol_edit_data: None,
         is_in_overview: false,
         dragged_area: None,
@@ -784,6 +798,7 @@ fn main() {
 struct EditorData {
     location_data: LocationData,
     area_index: usize,
+    selected_extra_background_layer: usize,
     symbol_edit_data: Option<ui::SymbolEditData>,
     is_in_overview: bool,
     dragged_area: Option<usize>,

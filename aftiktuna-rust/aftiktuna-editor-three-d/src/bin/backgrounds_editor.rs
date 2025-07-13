@@ -85,26 +85,27 @@ fn main() {
         };
 
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();
-        let loaded_background = raw_background.load(&mut texture_loader).unwrap();
-        let render_camera = render::get_render_camera(&camera, render_viewport);
+        if let Ok(loaded_background) = raw_background.load(&mut texture_loader) {
+            let render_camera = render::get_render_camera(&camera, render_viewport);
 
-        let background_objects = render::render_objects_for_primary_background(
-            &loaded_background,
-            offset,
-            camera.camera_x,
-            &[],
-            &frame_input.context,
-        );
-        render::draw_in_order(&background_objects, &render_camera, &screen);
+            let background_objects = render::render_objects_for_primary_background(
+                &loaded_background,
+                offset,
+                camera.camera_x,
+                &[],
+                &frame_input.context,
+            );
+            render::draw_in_order(&background_objects, &render_camera, &screen);
 
-        draw_example_content(
-            example_content_type,
-            area_size,
-            render_camera,
-            &screen,
-            &frame_input.context,
-            &mut models,
-        );
+            draw_example_content(
+                example_content_type,
+                area_size,
+                render_camera,
+                &screen,
+                &frame_input.context,
+                &mut models,
+            );
+        }
 
         screen.write(|| gui.render()).unwrap();
 
@@ -173,28 +174,11 @@ fn backgrounds_editor_ui(
 
     let (_, raw_background) = backgrounds.get_index_mut(*selected_bg).unwrap();
 
-    ui.label("Layers:");
-
-    for (layer_index, layer) in raw_background.primary.0.layers.iter().enumerate() {
-        ui.add_enabled_ui(layer_index != *selected_layer, |ui| {
-            if ui.button(&layer.texture).clicked() {
-                *selected_layer = layer_index;
-            }
-        });
-    }
-
-    ui.separator();
-
-    let layer = &mut raw_background.primary.0.layers[*selected_layer];
-
-    ui.label("Move Factor:");
-    ui.add(egui::DragValue::new(&mut layer.move_factor).speed(0.01));
-    ui.checkbox(&mut layer.is_looping, "Is Looping");
-    ui.label("Offset:");
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut layer.offset.x));
-        ui.add(egui::DragValue::new(&mut layer.offset.y));
-    });
+    aftiktuna_editor_three_d::background_layer_list_editor(
+        ui,
+        selected_layer,
+        &mut raw_background.primary.0.layers,
+    );
 
     ui.separator();
     ui.button("Save").clicked()

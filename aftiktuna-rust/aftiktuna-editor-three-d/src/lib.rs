@@ -1,12 +1,13 @@
-use aftiktuna::asset::ProfileOrRandom;
 use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
+use aftiktuna::asset::{ProfileOrRandom, background};
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::item;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use std::fs;
 use std::hash::Hash;
 use std::path::PathBuf;
 use three_d::egui;
@@ -72,6 +73,74 @@ pub fn color_editor<'a, I: Iterator<Item = &'a AftikColorId>>(
                 ui.selectable_value(edited_color, selectable.clone(), &selectable.0);
             }
         });
+}
+
+pub fn background_layer_list_editor(
+    ui: &mut egui::Ui,
+    selected_layer: &mut usize,
+    layer_list: &mut Vec<background::ParallaxLayer<String>>,
+) {
+    egui::ComboBox::from_label("Background Layers")
+        .selected_text(
+            layer_list
+                .get(*selected_layer)
+                .map_or("", |layer| &layer.texture),
+        )
+        .show_ui(ui, |ui| {
+            for (layer_index, layer) in layer_list.iter().enumerate() {
+                ui.selectable_value(selected_layer, layer_index, &layer.texture);
+            }
+        });
+
+    if ui.button("New Layer").clicked() {
+        layer_list.push(background::ParallaxLayer {
+            texture: "white_space".to_owned(),
+            move_factor: 1.,
+            is_looping: false,
+            offset: background::Offset::default(),
+        });
+        *selected_layer = layer_list.len() - 1;
+    }
+
+    ui.separator();
+
+    if let Some(layer) = layer_list.get_mut(*selected_layer) {
+        background_layer_editor(ui, layer);
+    }
+}
+
+fn background_layer_editor(ui: &mut egui::Ui, layer: &mut background::ParallaxLayer<String>) {
+    if ui.button("Select Texture").clicked() {
+        let textures_directory = fs::canonicalize("./assets/texture/background").unwrap();
+        let path = rfd::FileDialog::new()
+            .set_title("Pick a texture")
+            .add_filter("PNG", &["png"])
+            .set_directory(&textures_directory)
+            .pick_file();
+
+        if let Some(path) = path {
+            let mut path = fs::canonicalize(path).unwrap();
+            path.set_extension("");
+            if let Ok(path) = path
+                .strip_prefix(&textures_directory)
+                .inspect_err(|error| eprintln!("Got error preparing path: {error}"))
+            {
+                layer.texture = path.to_str().unwrap().to_owned();
+            }
+        } else {
+            println!("No valid path")
+        }
+    }
+
+    ui.text_edit_singleline(&mut layer.texture);
+    ui.label("Move Factor:");
+    ui.add(egui::DragValue::new(&mut layer.move_factor).speed(0.01));
+    ui.checkbox(&mut layer.is_looping, "Is Looping");
+    ui.label("Offset:");
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut layer.offset.x));
+        ui.add(egui::DragValue::new(&mut layer.offset.y));
+    });
 }
 
 pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
