@@ -117,7 +117,7 @@
         {
           "texture": "distant_shack",
           "move_factor": 0.9,
-          "offset": { "x": 310, "y": 275 }
+          "offset": { "x": 320, "y": 275 }
         }
       ],
       "objects": [ "#c", "S", "<", "", ">", "" ],
@@ -137,10 +137,10 @@
         {
           "texture": "distant_shack",
           "move_factor": 0.9,
-          "offset": { "x": 310, "y": 275 }
+          "offset": { "x": 370, "y": 275 }
         }
       ],
-      "objects": [ "", "<", "^", "#", ">", "G", "%" ],
+      "objects": [ "", "<", "#", "^", ">", "G", "%" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "alt_path_b1", "display_type": "path", "adjective": "right" },
         "<": { "type": "door", "pair_id": "alt_path_b3", "display_type": "path", "adjective": "left" },

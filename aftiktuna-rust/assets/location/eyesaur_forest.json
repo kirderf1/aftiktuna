@@ -89,7 +89,7 @@
         {
           "texture": "crashed_ship",
           "move_factor": 0.9,
-          "offset": { "x": 295, "y": 286 }
+          "offset": { "x": 295, "y": 274 }
         }
       ],
       "objects": [ "", "<", "", "\\", "-", "/", "" ],
@@ -108,7 +108,7 @@
         {
           "texture": "crashed_ship",
           "move_factor": 0.9,
-          "offset": { "x": 895, "y": 286 }
+          "offset": { "x": 956, "y": 286 }
         }
       ],
       "objects": [ "", "\\", "-", "-e", "-#", "-Ec", "-Aa", "-t", "/", "" ],
