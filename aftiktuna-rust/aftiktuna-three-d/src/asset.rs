@@ -39,10 +39,10 @@ impl Display for Error {
     }
 }
 
-struct CachedLoader(HashMap<String, three_d::Texture2DRef>, three_d::Context);
+pub struct CachedLoader(HashMap<String, three_d::Texture2DRef>, three_d::Context);
 
 impl CachedLoader {
-    fn new(context: three_d::Context) -> Self {
+    pub fn new(context: three_d::Context) -> Self {
         Self(HashMap::new(), context)
     }
 }
