@@ -3,8 +3,15 @@
     {
       "name": "Field in front of a building",
       "pos_in_overview": [ 0, -2 ],
-      "background": "facility_outside",
+      "background": "field",
       "background_offset": 2,
+      "extra_background_layers": [
+        {
+          "texture": "facility_outside",
+          "move_factor": 1.0,
+          "offset": { "x": -94, "y": 218 }
+        }
+      ],
       "objects": [ ".v", "-", ":^", "-", "-v", "," ],
       "symbols": {
         "^": { "type": "door", "pair_id": "entrance", "display_type": "door" },

@@ -1,3 +1,4 @@
+use crate::asset::background::ParallaxLayer;
 use crate::core::position::{Coord, Pos};
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -8,6 +9,7 @@ pub struct Area {
     pub label: String,
     pub background: BackgroundId,
     pub background_offset: i32,
+    pub extra_background_layers: Vec<ParallaxLayer<String>>,
     pub darkness: f32,
 }
 

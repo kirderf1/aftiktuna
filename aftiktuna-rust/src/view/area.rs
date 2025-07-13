@@ -1,3 +1,4 @@
+use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
@@ -104,6 +105,7 @@ pub struct RenderData {
     pub area_size: Coord,
     pub background: BackgroundId,
     pub background_offset: i32,
+    pub extra_background_layers: Vec<ParallaxLayer<String>>,
     pub darkness: f32,
     pub character_coord: Coord,
     pub inventory: Vec<ItemProfile>,
@@ -228,6 +230,7 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
         area_size: area.size,
         background: area.background.clone(),
         background_offset: area.background_offset,
+        extra_background_layers: area.extra_background_layers.clone(),
         darkness: area.darkness,
         character_coord: character_pos.get_coord(),
         inventory,

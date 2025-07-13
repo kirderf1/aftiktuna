@@ -92,6 +92,7 @@ fn main() {
             &loaded_background,
             offset,
             camera.camera_x,
+            &[],
             &frame_input.context,
         );
         render::draw_in_order(&background_objects, &render_camera, &screen);

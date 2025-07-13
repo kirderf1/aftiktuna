@@ -3,8 +3,15 @@
     {
       "name": "Field in front of a building",
       "pos_in_overview": [ -6, -3 ],
-      "background": "facility_outside",
+      "background": "field",
       "background_offset": 0,
+      "extra_background_layers": [
+        {
+          "texture": "facility_outside",
+          "move_factor": 1.0,
+          "offset": { "x": 146, "y": 218 }
+        }
+      ],
       "objects": [ "\\", "-", "-", ".^", ",", "v" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
@@ -16,8 +23,15 @@
     {
       "name": "Field next to a building",
       "pos_in_overview": [ -11, 2 ],
-      "background": "facility_outside",
+      "background": "field",
       "background_offset": 3,
+      "extra_background_layers": [
+        {
+          "texture": "facility_outside",
+          "move_factor": 1.0,
+          "offset": { "x": -214, "y": 218 }
+        }
+      ],
       "objects": [ ".^", "-", "-v", "-", "/" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "side", "display_type": "door" },

@@ -53,8 +53,15 @@
     {
       "name": "Forest",
       "pos_in_overview": [ 20, 23 ],
-      "background": "forest_with_crashed_ship",
+      "background": "forest",
       "background_offset": 6,
+      "extra_background_layers": [
+        {
+          "texture": "crashed_ship",
+          "move_factor": 0.9,
+          "offset": { "x": 55, "y": 286 }
+        }
+      ],
       "objects": [ "", "^", "", "", "F", "!" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "side_path", "display_type": "path" }
@@ -76,8 +83,15 @@
     {
       "name": "Forest path",
       "pos_in_overview": [ 9, 2 ],
-      "background": "forest_with_crashed_ship",
+      "background": "forest",
       "background_offset": 4,
+      "extra_background_layers": [
+        {
+          "texture": "crashed_ship",
+          "move_factor": 0.9,
+          "offset": { "x": 295, "y": 286 }
+        }
+      ],
       "objects": [ "", "<", "", "\\", "-", "/", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "right3", "display_type": "path", "adjective": "left" },
@@ -88,8 +102,15 @@
     {
       "name": "Campsite",
       "pos_in_overview": [ 13, 10 ],
-      "background": "forest_with_crashed_ship",
+      "background": "forest",
       "background_offset": -1,
+      "extra_background_layers": [
+        {
+          "texture": "crashed_ship",
+          "move_factor": 0.9,
+          "offset": { "x": 895, "y": 286 }
+        }
+      ],
       "objects": [ "", "\\", "-", "-e", "-#", "-Ec", "-Aa", "-t", "/", "" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "right2", "display_type": "left_path", "adjective": "left" },

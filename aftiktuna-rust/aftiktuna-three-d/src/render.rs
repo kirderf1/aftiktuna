@@ -1,4 +1,4 @@
-use aftiktuna::asset::background::{BGData, PortraitBGData};
+use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::display::AftikColorId;
@@ -10,16 +10,24 @@ pub fn render_objects_for_primary_background(
     background: &BGData<three_d::Texture2DRef>,
     background_offset: i32,
     camera_x: f32,
+    extra_background_layers: &[ParallaxLayer<three_d::Texture2DRef>],
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
     let offset = background_offset as f32 * 120.;
 
-    background
+    let mut layers = background
         .primary
         .0
         .layers
         .iter()
-        .flat_map(|layer| {
+        .map(|layer| (offset, layer))
+        .chain(extra_background_layers.iter().map(|layer| (0., layer)))
+        .collect::<Vec<_>>();
+    layers.sort_by(|(_, layer1), (_, layer2)| layer1.move_factor.total_cmp(&layer2.move_factor));
+
+    layers
+        .into_iter()
+        .flat_map(|(offset, layer)| {
             let width = layer.texture.width() as f32;
             let height = layer.texture.height() as f32;
             let layer_x = f32::from(layer.offset.x) + camera_x * (1. - layer.move_factor) - offset;

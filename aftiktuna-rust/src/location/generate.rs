@@ -44,6 +44,7 @@ fn build_area(
         label: area_data.name,
         background: area_data.background,
         background_offset: area_data.background_offset.unwrap_or(0),
+        extra_background_layers: area_data.extra_background_layers,
         darkness: area_data.darkness,
     },));
 

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::File;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct BGData<T> {
     #[serde(flatten)]
     pub primary: PrimaryBGData<T>,
@@ -45,7 +45,7 @@ impl PrimaryBGData<String> {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum PortraitBGData<T> {
     #[serde(rename = "portrait_color")]
     Color([u8; 3]),

@@ -39,8 +39,15 @@
     {
       "name": "Forest path",
       "pos_in_overview": [ -22, 9 ],
-      "background": "forest_with_shack",
+      "background": "forest",
       "background_offset": 2,
+      "extra_background_layers": [
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 190, "y": 275 }
+        }
+      ],
       "objects": [ "G", "<", "-#G", "^", "-", ">", "" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "path2", "display_type": "right_path", "adjective": "right" },
@@ -104,8 +111,15 @@
     {
       "name": "Forest",
       "pos_in_overview": [ -36, 2 ],
-      "background": "forest_with_shack",
+      "background": "forest",
       "background_offset": 1,
+      "extra_background_layers": [
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 310, "y": 275 }
+        }
+      ],
       "objects": [ "#c", "S", "<", "", ">", "" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "alt_path_b3", "display_type": "path", "adjective": "right" },
@@ -117,8 +131,15 @@
     {
       "name": "Forest",
       "pos_in_overview": [ -25, 2 ],
-      "background": "forest_with_shack",
+      "background": "forest",
       "background_offset": 1,
+      "extra_background_layers": [
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 310, "y": 275 }
+        }
+      ],
       "objects": [ "", "<", "^", "#", ">", "G", "%" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "alt_path_b1", "display_type": "path", "adjective": "right" },

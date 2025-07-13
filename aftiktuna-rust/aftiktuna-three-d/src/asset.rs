@@ -1,5 +1,5 @@
 use crate::Rect;
-use aftiktuna::asset::background::{self, BGData};
+use aftiktuna::asset::background::{self, BGData, ParallaxLayer};
 use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
@@ -72,32 +72,44 @@ pub fn load_texture(
     Ok(three_d::Texture2DRef::from_cpu_texture(context, &texture))
 }
 
-pub struct BackgroundMap(HashMap<BackgroundId, BGData<three_d::Texture2DRef>>);
+pub struct BackgroundMap(
+    CachedLoader,
+    HashMap<BackgroundId, BGData<three_d::Texture2DRef>>,
+);
 
 impl BackgroundMap {
     pub fn load(context: three_d::Context) -> Result<Self, Error> {
-        let mut texture_loader = CachedLoader::new(context);
         let background_data = background::load_raw_backgrounds()?;
         if !background_data.contains_key(&BackgroundId::blank()) {
             return Err(Error::MissingBlankBackground);
         }
 
-        Ok(Self(
-            background_data
-                .into_iter()
-                .map(|(id, data)| {
-                    data.load(&mut texture_loader)
-                        .map(|loaded_data| (id, loaded_data))
-                })
-                .collect::<Result<_, _>>()?,
-        ))
+        let mut texture_loader = CachedLoader::new(context);
+        let backgrounds_map = background_data
+            .into_iter()
+            .map(|(id, data)| {
+                data.load(&mut texture_loader)
+                    .map(|loaded_data| (id, loaded_data))
+            })
+            .collect::<Result<_, _>>()?;
+        Ok(Self(texture_loader, backgrounds_map))
     }
 
     pub fn get_or_default<'a>(&'a self, id: &BackgroundId) -> &'a BGData<three_d::Texture2DRef> {
-        self.0
+        self.1
             .get(id)
-            .or_else(|| self.0.get(&BackgroundId::blank()))
+            .or_else(|| self.1.get(&BackgroundId::blank()))
             .expect("Missing blank texture")
+    }
+
+    pub fn load_extra_layers(
+        &mut self,
+        extra_layers: &[ParallaxLayer<String>],
+    ) -> Result<Vec<ParallaxLayer<three_d::Texture2DRef>>, three_d_asset::Error> {
+        extra_layers
+            .iter()
+            .map(|layer| layer.load(&mut self.0))
+            .collect()
     }
 }
 

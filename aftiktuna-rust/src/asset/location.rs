@@ -154,6 +154,7 @@ pub mod creature {
     }
 }
 
+use crate::asset::background::ParallaxLayer;
 use crate::asset::loot::{self, LootTableId};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
@@ -188,6 +189,8 @@ pub struct AreaData {
     pub background: BackgroundId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background_offset: Option<i32>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub extra_background_layers: Vec<ParallaxLayer<String>>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub darkness: f32,
     pub objects: Vec<String>,

@@ -229,6 +229,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         size: 5,
         background: BackgroundId::new("ship"),
         background_offset: 0,
+        extra_background_layers: Vec::default(),
         darkness: 0.,
     },));
     world

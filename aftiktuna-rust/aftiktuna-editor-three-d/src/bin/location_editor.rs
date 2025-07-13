@@ -220,6 +220,7 @@ mod ui {
                 pos_in_overview: (0, 0),
                 background: BackgroundId::blank(),
                 background_offset: None,
+                extra_background_layers: Vec::default(),
                 darkness: 0.,
                 objects: vec![String::default()],
                 symbols: SymbolMap::new(),
@@ -1090,11 +1091,16 @@ fn render_game_view(
     assets: &mut Assets,
 ) {
     let area = &editor_data.location_data.areas[editor_data.area_index];
+    let extra_background_layers = assets
+        .background_map
+        .load_extra_layers(&area.extra_background_layers)
+        .unwrap_or_default();
     let backgorund_data = assets.background_map.get_or_default(&area.background);
     let background = render::render_objects_for_primary_background(
         backgorund_data,
         area.background_offset.unwrap_or(0),
         camera.camera_x,
+        &extra_background_layers,
         context,
     );
     let symbol_lookup = SymbolLookup::new(&assets.base_symbols, &area.symbols);

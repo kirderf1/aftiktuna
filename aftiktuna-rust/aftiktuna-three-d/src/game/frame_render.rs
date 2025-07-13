@@ -26,6 +26,7 @@ pub fn render_frame(
                     .get_or_default(&BackgroundId::location_choice()),
                 0,
                 0.,
+                &[],
                 &frame_input.context,
             );
 
@@ -107,10 +108,15 @@ fn draw_area_view(
     frame_input: &three_d::FrameInput,
     assets: &mut Assets,
 ) {
+    let extra_background_layers = assets
+        .backgrounds
+        .load_extra_layers(&render_data.extra_background_layers)
+        .unwrap_or_default();
     let background_objects = render::render_objects_for_primary_background(
         assets.backgrounds.get_or_default(&render_data.background),
         render_data.background_offset,
         camera.camera_x,
+        &extra_background_layers,
         &frame_input.context,
     );
     let entity_objects = cached_objects
