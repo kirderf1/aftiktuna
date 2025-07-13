@@ -26,7 +26,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "aftiktuna"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "hecs",
  "indexmap",
@@ -38,7 +38,7 @@ dependencies = [
 
 [[package]]
 name = "aftiktuna-editor-macroquad"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "aftiktuna",
  "aftiktuna-macroquad",
@@ -52,7 +52,7 @@ dependencies = [
 
 [[package]]
 name = "aftiktuna-editor-three-d"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "aftiktuna",
  "aftiktuna-three-d",
@@ -65,7 +65,7 @@ dependencies = [
 
 [[package]]
 name = "aftiktuna-macroquad"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "aftiktuna",
  "egui 0.31.1",
@@ -76,7 +76,7 @@ dependencies = [
 
 [[package]]
 name = "aftiktuna-three-d"
-version = "0.10.0"
+version = "0.11.0"
 dependencies = [
  "aftiktuna",
  "epaint_default_fonts 0.29.1",

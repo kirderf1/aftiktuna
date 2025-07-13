@@ -2,7 +2,7 @@
 members = ["aftiktuna-editor-macroquad", "aftiktuna-editor-three-d", "aftiktuna-macroquad", "aftiktuna-three-d"]
 
 [workspace.package]
-version = "0.10.0"
+version = "0.11.0"
 
 [workspace.dependencies]
 egui = "0.31.1"
