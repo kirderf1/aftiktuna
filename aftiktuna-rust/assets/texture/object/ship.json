@@ -1,3 +1,6 @@
 {
-  "layers": [{ "texture": "ship", "fixed": true }]
+  "layers": [
+    { "texture": "ship" }
+  ],
+  "fixed_orientation": true
 }

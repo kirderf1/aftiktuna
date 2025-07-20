@@ -1,9 +1,10 @@
 {
   "layers": [
-    { "texture": "door/shack", "fixed": true, "if_cut": false },
-    { "texture": "door/cut_shack", "y_offset": 15, "fixed": true, "if_cut": true }
+    { "texture": "door/shack", "if_cut": false },
+    { "texture": "door/cut_shack", "y_offset": 15, "if_cut": true }
   ],
   "z_offset": -30,
+  "fixed_orientation": true,
   "has_x_displacement": false,
   "z_displacement": 0
 }

@@ -44,14 +44,16 @@ pub fn draw_model(
             Direction::Right => model.wield_offset.0,
         })
     }
+    let flip_x = model.fixed_orientation && properties.direction == Direction::Left;
     for layer in &model.layers {
-        draw_layer(layer, pos, properties, aftik_color_data);
+        draw_layer(layer, pos, flip_x, properties, aftik_color_data);
     }
 }
 
 fn draw_layer(
     layer: &TextureLayer<Texture2D>,
     pos: Vec2,
+    flip_x: bool,
     properties: &RenderProperties,
     aftik_color_data: &AftikColorData,
 ) {
@@ -68,7 +70,7 @@ fn draw_layer(
         Color::from_rgba(color.r, color.g, color.b, 255),
         DrawTextureParams {
             dest_size: Some(render_rect.size()),
-            flip_x: !layer.positioning.fixed && properties.direction == Direction::Left,
+            flip_x,
             ..Default::default()
         },
     );

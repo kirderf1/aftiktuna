@@ -1,8 +1,9 @@
 {
   "layers": [
-    { "texture": "path/crossroad", "y_offset": 120, "fixed": true }
+    { "texture": "path/crossroad", "y_offset": 120 }
   ],
   "z_offset": -90,
+  "fixed_orientation": true,
   "has_x_displacement": false,
   "z_displacement": 0
 }

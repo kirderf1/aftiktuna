@@ -1,7 +1,8 @@
 {
   "layers": [
-    { "texture": "item/ancient_coin", "fixed": true }
+    { "texture": "item/ancient_coin" }
   ],
+  "fixed_orientation": true,
   "group_placement": {
     "1": [
       [ 0, 0 ]

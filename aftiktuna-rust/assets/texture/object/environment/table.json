@@ -1,5 +1,6 @@
 {
   "layers": [
-    { "texture": "environment/table", "fixed": true }
-  ]
+    { "texture": "environment/table" }
+  ],
+  "fixed_orientation": true
 }

@@ -1,4 +1,6 @@
 {
-  "layers": [{ "texture": "item/bat" }],
+  "layers": [
+    { "texture": "item/bat" }
+  ],
   "wield_offset": [ 30, -40 ]
 }

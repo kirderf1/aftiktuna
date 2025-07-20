@@ -161,6 +161,8 @@ fn side_panel(
             ui.label("Z-offset:");
             ui.add(egui::DragValue::new(&mut model.z_offset));
 
+            ui.checkbox(&mut model.fixed_orientation, "Fixed Direction");
+
             ui.checkbox(&mut model.has_x_displacement, "X-displacement");
             ui.label("Z-displacement:");
             ui.add(egui::DragValue::new(&mut model.z_displacement));
@@ -217,8 +219,6 @@ fn side_panel(
 
             ui.label("Y-offset:");
             ui.add(egui::DragValue::new(&mut layer.positioning.y_offset));
-
-            ui.checkbox(&mut layer.positioning.fixed, "Fixed Direction");
 
             ui.separator();
 

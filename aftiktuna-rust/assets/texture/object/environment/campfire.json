@@ -1,5 +1,6 @@
 {
   "layers": [
-    { "texture": "environment/campfire", "fixed": true }
-  ]
+    { "texture": "environment/campfire" }
+  ],
+  "fixed_orientation": true
 }

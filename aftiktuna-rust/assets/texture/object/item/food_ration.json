@@ -1,7 +1,8 @@
 {
   "layers": [
-    { "texture": "item/food_ration", "fixed": true }
+    { "texture": "item/food_ration" }
   ],
+  "fixed_orientation": true,
   "group_placement": {
     "1": [
       [ 0, 0 ]

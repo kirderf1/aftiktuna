@@ -1,5 +1,6 @@
 {
   "layers": [
-    { "texture": "environment/tree_stump", "fixed": true }
-  ]
+    { "texture": "environment/tree_stump" }
+  ],
+  "fixed_orientation": true
 }

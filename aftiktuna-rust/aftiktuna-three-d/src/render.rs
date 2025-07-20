@@ -127,16 +127,24 @@ pub fn get_render_objects_for_entity_with_color(
     properties: &RenderProperties,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
+    let direction = if !model.fixed_orientation && properties.direction == Direction::Left {
+        -1.
+    } else {
+        1.
+    };
     model
         .layers
         .iter()
-        .flat_map(|layer| get_render_object_for_layer(layer, pos, properties, aftik_color, context))
+        .flat_map(|layer| {
+            get_render_object_for_layer(layer, pos, direction, properties, aftik_color, context)
+        })
         .collect()
 }
 
 fn get_render_object_for_layer(
     layer: &TextureLayer<three_d::Texture2DRef>,
     pos: three_d::Vec2,
+    direction: f32,
     properties: &RenderProperties,
     aftik_color: AftikColorData,
     context: &three_d::Context,
@@ -150,11 +158,6 @@ fn get_render_object_for_layer(
         .size
         .map(|(width, height)| (f32::from(width), f32::from(height)))
         .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
-    let direction = if !layer.positioning.fixed && properties.direction == Direction::Left {
-        -1.
-    } else {
-        1.
-    };
     let left_x = pos.x - width / 2.;
     let rectangle = three_d::Rectangle::new(
         context,

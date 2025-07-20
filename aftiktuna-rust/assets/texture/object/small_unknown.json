@@ -1,3 +1,9 @@
 {
-  "layers": [{ "texture": "unknown", "size": [ 100, 100 ], "fixed": true }]
+  "layers": [
+    {
+      "texture": "unknown",
+      "size": [ 100, 100 ]
+    }
+  ],
+  "fixed_orientation": true
 }
