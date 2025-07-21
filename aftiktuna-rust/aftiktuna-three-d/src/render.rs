@@ -158,11 +158,10 @@ fn get_render_object_for_layer(
         .size
         .map(|(width, height)| (f32::from(width), f32::from(height)))
         .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
-    let left_x = pos.x - width / 2.;
     let rectangle = three_d::Rectangle::new(
         context,
         three_d::vec2(
-            left_x.floor() + width / 2. + direction_mod * f32::from(layer.positioning.offset.0),
+            pos.x + direction_mod * f32::from(layer.positioning.offset.0),
             pos.y + height / 2. - f32::from(layer.positioning.offset.1),
         ),
         three_d::degrees(0.),

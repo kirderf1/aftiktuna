@@ -69,7 +69,9 @@ pub fn load_texture(
 ) -> Result<three_d::Texture2DRef, three_d_asset::Error> {
     let path = format!("assets/texture/{name}.png");
 
-    let texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path)?;
+    let mut texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path)?;
+    texture.wrap_s = three_d::Wrapping::ClampToEdge;
+    texture.wrap_t = three_d::Wrapping::ClampToEdge;
     Ok(three_d::Texture2DRef::from_cpu_texture(context, &texture))
 }
 
