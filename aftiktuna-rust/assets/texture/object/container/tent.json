@@ -1,5 +1,8 @@
 {
   "layers": [
-    { "texture": "container/tent", "y_offset": 5 }
+    {
+      "texture": "container/tent",
+      "offset": [ 0, 5 ]
+    }
   ]
 }

@@ -4,6 +4,7 @@ use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
+use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -170,24 +171,33 @@ fn model_render_rect(
     pos: three_d::Vec2,
     properties: &RenderProperties,
 ) -> Rect {
+    let direction_mod = if !model.fixed_orientation && properties.direction == Direction::Left {
+        -1.
+    } else {
+        1.
+    };
     model
         .layers
         .iter()
         .filter(|&layer| layer.conditions.meets_conditions(properties))
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
-            rect.combine(layer_render_rect(layer, pos))
+            rect.combine(layer_render_rect(layer, pos, direction_mod))
         })
 }
 
-fn layer_render_rect(layer: &TextureLayer<three_d::Texture2DRef>, pos: three_d::Vec2) -> Rect {
+fn layer_render_rect(
+    layer: &TextureLayer<three_d::Texture2DRef>,
+    pos: three_d::Vec2,
+    direction_mod: f32,
+) -> Rect {
     let (width, height) = layer
         .positioning
         .size
         .map(|(width, height)| (f32::from(width), f32::from(height)))
         .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
     Rect::new(
-        pos.x - width / 2.,
-        pos.y - f32::from(layer.positioning.y_offset),
+        pos.x - width / 2. + direction_mod * f32::from(layer.positioning.offset.0),
+        pos.y - f32::from(layer.positioning.offset.1),
         width,
         height,
     )

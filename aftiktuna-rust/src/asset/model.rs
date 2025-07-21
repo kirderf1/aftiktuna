@@ -94,7 +94,7 @@ pub struct LayerPositioning {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub size: Option<(i16, i16)>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub y_offset: i16,
+    pub offset: (i16, i16),
 }
 
 #[derive(Clone, Serialize, Deserialize)]

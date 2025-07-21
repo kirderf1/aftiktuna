@@ -2,7 +2,11 @@
   "layers": [
     { "texture": "creature/voracious_frog", "if_alive": true, "if_hurt": false },
     { "texture": "creature/wounded_voracious_frog", "if_alive": true, "if_hurt": true },
-    { "texture": "creature/voracious_frog_corpse", "y_offset": -5, "if_alive": false }
+    {
+      "texture": "creature/voracious_frog_corpse",
+      "offset": [ 0, -5 ],
+      "if_alive": false
+    }
   ],
   "z_offset": 15,
   "z_displacement": 30

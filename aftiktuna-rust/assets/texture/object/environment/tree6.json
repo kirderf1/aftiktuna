@@ -1,6 +1,9 @@
 {
   "layers": [
-    { "texture": "environment/tree6", "y_offset": 5 }
+    {
+      "texture": "environment/tree6",
+      "offset": [ 0, 5 ]
+    }
   ],
   "z_offset": -40,
   "fixed_orientation": true,

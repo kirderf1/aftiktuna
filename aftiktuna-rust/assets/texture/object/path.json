@@ -1,6 +1,9 @@
 {
   "layers": [
-    { "texture": "path/detached", "y_offset": 90 }
+    {
+      "texture": "path/detached",
+      "offset": [ 0, 90 ]
+    }
   ],
   "z_offset": -90,
   "fixed_orientation": true,

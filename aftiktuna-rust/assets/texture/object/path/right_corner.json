@@ -1,6 +1,9 @@
 {
   "layers": [
-    { "texture": "path/right_corner", "y_offset": 120 }
+    {
+      "texture": "path/right_corner",
+      "offset": [ 0, 120 ]
+    }
   ],
   "z_offset": -90,
   "fixed_orientation": true,

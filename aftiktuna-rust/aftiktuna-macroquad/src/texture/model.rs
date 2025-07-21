@@ -61,7 +61,7 @@ fn draw_layer(
         return;
     }
 
-    let render_rect = layer_render_rect(layer, pos);
+    let render_rect = layer_render_rect(layer, pos, if flip_x { -1. } else { 1. });
     let color = layer.color.get_color(aftik_color_data);
     texture::draw_texture_ex(
         &layer.texture,
@@ -81,24 +81,29 @@ pub fn model_render_rect(
     pos: Vec2,
     properties: &RenderProperties,
 ) -> Rect {
+    let direction_mod = if !model.fixed_orientation && properties.direction == Direction::Left {
+        -1.
+    } else {
+        1.
+    };
     model
         .layers
         .iter()
         .filter(|&layer| layer.conditions.meets_conditions(properties))
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
-            rect.combine_with(layer_render_rect(layer, pos))
+            rect.combine_with(layer_render_rect(layer, pos, direction_mod))
         })
 }
 
-fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2) -> Rect {
+fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2, direction_mod: f32) -> Rect {
     let dest_size = layer
         .positioning
         .size
         .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
         .unwrap_or_else(|| layer.texture.size());
     Rect::new(
-        (pos.x - dest_size.x / 2.).floor(),
-        pos.y - dest_size.y + f32::from(layer.positioning.y_offset),
+        (pos.x - dest_size.x / 2. + direction_mod * f32::from(layer.positioning.offset.0)).floor(),
+        pos.y - dest_size.y + f32::from(layer.positioning.offset.1),
         dest_size.x,
         dest_size.y,
     )

@@ -217,8 +217,10 @@ fn side_panel(
                 layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
             }
 
+            ui.label("X-offset:");
+            ui.add(egui::DragValue::new(&mut layer.positioning.offset.0));
             ui.label("Y-offset:");
-            ui.add(egui::DragValue::new(&mut layer.positioning.y_offset));
+            ui.add(egui::DragValue::new(&mut layer.positioning.offset.1));
 
             ui.separator();
 
