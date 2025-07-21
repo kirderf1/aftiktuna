@@ -1,11 +1,66 @@
 {
   "layers": [
-    { "texture": "creature/aftik_details", "color": "uncolored", "if_alive": true,  "if_hurt": false },
-    { "texture": "creature/wounded_aftik_details", "color": "uncolored", "if_alive": true,  "if_hurt": true },
-    { "texture": "creature/aftik_secondary", "color": "secondary", "if_alive": true },
-    { "texture": "creature/aftik_primary", "color": "primary", "if_alive": true },
-    { "texture": "creature/aftik_corpse_details", "color": "uncolored", "if_alive": false },
-    { "texture": "creature/aftik_corpse_secondary", "color": "secondary", "if_alive": false },
-    { "texture": "creature/aftik_corpse_primary", "color": "primary", "if_alive": false }
+    {
+      "texture": "creature/aftik/head_details",
+      "offset": [ 4, -82 ],
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/aftik/head_details_wounded",
+      "offset": [ 4, -82 ],
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/aftik/head_secondary",
+      "color": "secondary",
+      "offset": [ 4, -82 ],
+      "if_alive": true
+    },
+    {
+      "texture": "creature/aftik/head_primary",
+      "color": "primary",
+      "offset": [ 4, -82 ],
+      "if_alive": true
+    },
+    {
+      "texture": "creature/aftik/body_details",
+      "offset": [ -3, 0 ],
+      "if_alive": true
+    },
+    {
+      "texture": "creature/aftik/body_primary",
+      "color": "primary",
+      "offset": [ -3, 0 ],
+      "if_alive": true
+    },
+    {
+      "texture": "creature/aftik/tail_details",
+      "offset": [ -23, -15 ],
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/aftik/tail_details_wounded",
+      "offset": [ -23, -15 ],
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/aftik/tail_secondary",
+      "color": "secondary",
+      "offset": [ -23, -15 ],
+      "if_alive": true
+    },
+    {
+      "texture": "creature/aftik/tail_primary",
+      "color": "primary",
+      "offset": [ -23, -15 ],
+      "if_alive": true
+    },
+    { "texture": "creature/aftik/corpse_details", "if_alive": false },
+    { "texture": "creature/aftik/corpse_secondary", "color": "secondary", "if_alive": false },
+    { "texture": "creature/aftik/corpse_primary", "color": "primary", "if_alive": false }
   ]
 }
