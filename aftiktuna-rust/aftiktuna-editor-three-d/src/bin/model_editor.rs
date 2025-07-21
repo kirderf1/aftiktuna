@@ -143,90 +143,104 @@ fn side_panel(
         .resizable(false)
         .exact_width(SIDE_PANEL_WIDTH as f32)
         .show(ctx, |ui| {
-            if model.has_x_displacement || model.z_displacement != 0 {
-                ui.label("Shown count:");
-                ui.add(egui::Slider::new(group_size, 1..=20));
-                ui.separator();
-            }
-
-            ui.label("Wield offset:");
-            ui.horizontal(|ui| {
-                ui.add(egui::DragValue::new(&mut model.wield_offset.0));
-                ui.add(egui::DragValue::new(&mut model.wield_offset.1));
-            });
-            if ui.button("Clear Offset").clicked() {
-                model.wield_offset = (0, 0);
-            }
-
-            ui.label("Z-offset:");
-            ui.add(egui::DragValue::new(&mut model.z_offset));
-
-            ui.checkbox(&mut model.fixed_orientation, "Fixed Direction");
-
-            ui.checkbox(&mut model.has_x_displacement, "X-displacement");
-            ui.label("Z-displacement:");
-            ui.add(egui::DragValue::new(&mut model.z_displacement));
-
-            ui.separator();
-
-            ui.label("Layers:");
-
-            for (layer_index, layer) in model.layers.iter().enumerate() {
-                ui.add_enabled_ui(layer_index != *selected_layer, |ui| {
-                    if ui.button(&layer.texture).clicked() {
-                        *selected_layer = layer_index;
-                    }
-                });
-            }
-
-            let layer = &mut model.layers[*selected_layer];
-
-            ui.separator();
-
-            egui::ComboBox::from_label("Coloration")
-                .selected_text(format!("{:?}", layer.color))
-                .show_ui(ui, |ui| {
-                    for color in [
-                        ColorSource::Uncolored,
-                        ColorSource::Primary,
-                        ColorSource::Secondary,
-                    ] {
-                        ui.selectable_value(&mut layer.color, color, format!("{color:?}"));
-                    }
-                });
-
-            ui.collapsing("Conditions", |ui| {
-                add_option_condition_combo_box("If Cut", &mut layer.conditions.if_cut, ui);
-                add_option_condition_combo_box("If Alive", &mut layer.conditions.if_alive, ui);
-                add_option_condition_combo_box("If Hurt", &mut layer.conditions.if_hurt, ui);
-            });
-
-            ui.separator();
-
-            if let Some((width, height)) = &mut layer.positioning.size {
-                ui.label("Size:");
-                ui.horizontal(|ui| {
-                    ui.add(egui::DragValue::new(width));
-                    ui.add(egui::DragValue::new(height));
-                });
-                if ui.button("Use Texture Size").clicked() {
-                    layer.positioning.size = None;
-                }
-            } else if ui.button("Use Custom Size").clicked() {
-                let texture = textures.load_texture(layer.texture_path()).unwrap();
-                layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
-            }
-
-            ui.label("X-offset:");
-            ui.add(egui::DragValue::new(&mut layer.positioning.offset.0));
-            ui.label("Y-offset:");
-            ui.add(egui::DragValue::new(&mut layer.positioning.offset.1));
-
-            ui.separator();
-
-            ui.button("Save").clicked()
+            egui::ScrollArea::vertical()
+                .show(ui, |ui| {
+                    model_editor_ui(ui, model, selected_layer, group_size, textures)
+                })
+                .inner
         })
         .inner
+}
+
+fn model_editor_ui(
+    ui: &mut egui::Ui,
+    model: &mut Model<String>,
+    selected_layer: &mut usize,
+    group_size: &mut u16,
+    textures: &mut CachedLoader,
+) -> bool {
+    if model.has_x_displacement || model.z_displacement != 0 {
+        ui.label("Shown count:");
+        ui.add(egui::Slider::new(group_size, 1..=20));
+        ui.separator();
+    }
+
+    ui.label("Wield offset:");
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut model.wield_offset.0));
+        ui.add(egui::DragValue::new(&mut model.wield_offset.1));
+    });
+    if ui.button("Clear Offset").clicked() {
+        model.wield_offset = (0, 0);
+    }
+
+    ui.label("Z-offset:");
+    ui.add(egui::DragValue::new(&mut model.z_offset));
+
+    ui.checkbox(&mut model.fixed_orientation, "Fixed Direction");
+
+    ui.checkbox(&mut model.has_x_displacement, "X-displacement");
+    ui.label("Z-displacement:");
+    ui.add(egui::DragValue::new(&mut model.z_displacement));
+
+    ui.separator();
+
+    ui.label("Layers:");
+
+    for (layer_index, layer) in model.layers.iter().enumerate() {
+        ui.add_enabled_ui(layer_index != *selected_layer, |ui| {
+            if ui.button(&layer.texture).clicked() {
+                *selected_layer = layer_index;
+            }
+        });
+    }
+
+    let layer = &mut model.layers[*selected_layer];
+
+    ui.separator();
+
+    egui::ComboBox::from_label("Coloration")
+        .selected_text(format!("{:?}", layer.color))
+        .show_ui(ui, |ui| {
+            for color in [
+                ColorSource::Uncolored,
+                ColorSource::Primary,
+                ColorSource::Secondary,
+            ] {
+                ui.selectable_value(&mut layer.color, color, format!("{color:?}"));
+            }
+        });
+
+    ui.collapsing("Conditions", |ui| {
+        add_option_condition_combo_box("If Cut", &mut layer.conditions.if_cut, ui);
+        add_option_condition_combo_box("If Alive", &mut layer.conditions.if_alive, ui);
+        add_option_condition_combo_box("If Hurt", &mut layer.conditions.if_hurt, ui);
+    });
+
+    ui.separator();
+
+    if let Some((width, height)) = &mut layer.positioning.size {
+        ui.label("Size:");
+        ui.horizontal(|ui| {
+            ui.add(egui::DragValue::new(width));
+            ui.add(egui::DragValue::new(height));
+        });
+        if ui.button("Use Texture Size").clicked() {
+            layer.positioning.size = None;
+        }
+    } else if ui.button("Use Custom Size").clicked() {
+        let texture = textures.load_texture(layer.texture_path()).unwrap();
+        layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
+    }
+
+    ui.label("X-offset:");
+    ui.add(egui::DragValue::new(&mut layer.positioning.offset.0));
+    ui.label("Y-offset:");
+    ui.add(egui::DragValue::new(&mut layer.positioning.offset.1));
+
+    ui.separator();
+
+    ui.button("Save").clicked()
 }
 
 fn option_condition_text(condition: Option<bool>) -> &'static str {
