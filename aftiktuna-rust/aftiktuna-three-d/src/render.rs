@@ -158,13 +158,16 @@ fn get_render_object_for_layer(
         .size
         .map(|(width, height)| (f32::from(width), f32::from(height)))
         .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
+    let offset = to_vec(layer.positioning.offset, direction_mod);
+    let center = pos + offset + three_d::vec2(0., height / 2.);
+    let rotation_angle = three_d::degrees(direction_mod * layer.positioning.rotation);
+    let anchor = pos + offset + to_vec(layer.positioning.anchor, direction_mod);
+    let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
+
     let rectangle = three_d::Rectangle::new(
         context,
-        three_d::vec2(
-            pos.x + direction_mod * f32::from(layer.positioning.offset.0),
-            pos.y + height / 2. - f32::from(layer.positioning.offset.1),
-        ),
-        three_d::degrees(0.),
+        center,
+        rotation_angle,
         width * direction_mod,
         height,
     );
@@ -181,6 +184,10 @@ fn get_render_object_for_layer(
     );
 
     Some(three_d::Gm::new(rectangle, material))
+}
+
+fn to_vec(pos: (i16, i16), direction_mod: f32) -> three_d::Vec2 {
+    three_d::vec2(direction_mod * f32::from(pos.0), -f32::from(pos.1))
 }
 
 pub fn rect(

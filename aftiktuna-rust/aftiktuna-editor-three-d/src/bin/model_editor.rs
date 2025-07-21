@@ -233,10 +233,24 @@ fn model_editor_ui(
         layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
     }
 
-    ui.label("X-offset:");
-    ui.add(egui::DragValue::new(&mut layer.positioning.offset.0));
-    ui.label("Y-offset:");
-    ui.add(egui::DragValue::new(&mut layer.positioning.offset.1));
+    ui.label("Offset:");
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut layer.positioning.offset.0));
+        ui.add(egui::DragValue::new(&mut layer.positioning.offset.1));
+    });
+
+    ui.separator();
+
+    ui.label("Anchor:");
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut layer.positioning.anchor.0));
+        ui.add(egui::DragValue::new(&mut layer.positioning.anchor.1));
+    });
+    ui.label("Rotation:");
+    ui.add(egui::Slider::new(
+        &mut layer.positioning.rotation,
+        -180.0..=180.0,
+    ));
 
     ui.separator();
 

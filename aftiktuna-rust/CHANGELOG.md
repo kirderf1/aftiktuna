@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Model format changes:
   - "fixed" layer property replaced by "fixed_orientation" model property
   - "y_offset" layer property replaced by "offset" layer property with both x- and y-offsets
+  - New layer properties for rotation and rotation-anchor
 
 ### Contributors for this release
 
