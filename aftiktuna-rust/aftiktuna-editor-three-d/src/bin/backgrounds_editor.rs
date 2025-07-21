@@ -101,8 +101,7 @@ fn main() {
                 example_content_type,
                 area_size,
                 render_camera,
-                &screen,
-                &frame_input.context,
+                &frame_input,
                 &mut models,
             );
         }
@@ -203,8 +202,7 @@ fn draw_example_content(
     example_content_type: ExampleContentType,
     area_size: Coord,
     camera: three_d::Camera,
-    screen: &three_d::RenderTarget<'_>,
-    context: &three_d::Context,
+    frame_input: &three_d::FrameInput,
     models: &mut LazilyLoadedModels,
 ) {
     let mut positioner = Positioner::default();
@@ -216,9 +214,10 @@ fn draw_example_content(
             pos.into(),
             color::DEFAULT_COLOR,
             &RenderProperties::default(),
-            context,
+            frame_input.accumulated_time as f32,
+            &frame_input.context,
         );
-        render::draw_in_order(&objects, &camera, screen);
+        render::draw_in_order(&objects, &camera, &frame_input.screen());
     };
 
     match example_content_type {

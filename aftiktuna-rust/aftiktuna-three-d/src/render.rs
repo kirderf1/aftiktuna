@@ -98,6 +98,7 @@ pub fn get_render_objects_for_entity(
     pos: three_d::Vec2,
     properties: &RenderProperties,
     aftik_colors: &mut HashMap<AftikColorId, AftikColorData>,
+    time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
     let aftik_color = properties
@@ -106,7 +107,7 @@ pub fn get_render_objects_for_entity(
         .map_or(color::DEFAULT_COLOR, |aftik_color| {
             lookup_or_log_aftik_color(aftik_color, aftik_colors)
         });
-    get_render_objects_for_entity_with_color(model, pos, aftik_color, properties, context)
+    get_render_objects_for_entity_with_color(model, pos, aftik_color, properties, time, context)
 }
 
 fn lookup_or_log_aftik_color(
@@ -125,6 +126,7 @@ pub fn get_render_objects_for_entity_with_color(
     pos: three_d::Vec2,
     aftik_color: AftikColorData,
     properties: &RenderProperties,
+    time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
     let direction_mod = if !model.fixed_orientation && properties.direction == Direction::Left {
@@ -136,7 +138,15 @@ pub fn get_render_objects_for_entity_with_color(
         .layers
         .iter()
         .flat_map(|layer| {
-            get_render_object_for_layer(layer, pos, direction_mod, properties, aftik_color, context)
+            get_render_object_for_layer(
+                layer,
+                pos,
+                direction_mod,
+                properties,
+                aftik_color,
+                time,
+                context,
+            )
         })
         .collect()
 }
@@ -147,12 +157,19 @@ fn get_render_object_for_layer(
     direction_mod: f32,
     properties: &RenderProperties,
     aftik_color: AftikColorData,
+    time: f32,
     context: &three_d::Context,
 ) -> Option<impl three_d::Object> {
     if !layer.conditions.meets_conditions(properties) {
         return None;
     }
 
+    let animation_factor = if layer.positioning.animation_length == 0. {
+        0.
+    } else {
+        ((time / 1000. / layer.positioning.animation_length * std::f32::consts::TAU).sin() + 1.)
+            / 2.
+    };
     let (width, height) = layer
         .positioning
         .size
@@ -160,7 +177,9 @@ fn get_render_object_for_layer(
         .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
     let offset = to_vec(layer.positioning.offset, direction_mod);
     let center = pos + offset + three_d::vec2(0., height / 2.);
-    let rotation_angle = three_d::degrees(direction_mod * layer.positioning.rotation);
+    let rotation = layer.positioning.rotation;
+    let rotation_value = rotation.0 + animation_factor * (rotation.1 - rotation.0);
+    let rotation_angle = three_d::degrees(direction_mod * rotation_value);
     let anchor = pos + offset + to_vec(layer.positioning.anchor, direction_mod);
     let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
 

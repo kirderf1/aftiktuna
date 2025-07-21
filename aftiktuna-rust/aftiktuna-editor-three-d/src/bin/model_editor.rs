@@ -111,8 +111,7 @@ fn main() {
             group_size,
             &aftik_model,
             &render_camera,
-            &screen,
-            &frame_input.context,
+            &frame_input,
         );
 
         screen.write(|| gui.render()).unwrap();
@@ -248,9 +247,22 @@ fn model_editor_ui(
     });
     ui.label("Rotation:");
     ui.add(egui::Slider::new(
-        &mut layer.positioning.rotation,
+        &mut layer.positioning.rotation.0,
         -180.0..=180.0,
     ));
+    ui.add(egui::Slider::new(
+        &mut layer.positioning.rotation.1,
+        -180.0..=180.0,
+    ));
+
+    ui.horizontal(|ui| {
+        ui.label("Animation time:");
+        ui.add(
+            egui::DragValue::new(&mut layer.positioning.animation_length)
+                .speed(0.1)
+                .range(0.0..=f32::INFINITY),
+        );
+    });
 
     ui.separator();
 
@@ -289,9 +301,10 @@ fn draw_examples(
     group_size: u16,
     aftik_model: &Model<Texture2DRef>,
     camera: &three_d::Camera,
-    screen: &three_d::RenderTarget,
-    context: &three_d::Context,
+    frame_input: &three_d::FrameInput,
 ) -> Coord {
+    let time = frame_input.accumulated_time as f32;
+    let context = &frame_input.context;
     let mut positioner = Positioner::default();
     let mut next_coord = 0;
     let mut get_and_move_coord = || {
@@ -312,6 +325,7 @@ fn draw_examples(
                 direction,
                 ..Default::default()
             },
+            time,
             context,
         ));
     });
@@ -325,6 +339,7 @@ fn draw_examples(
             &RenderProperties {
                 ..Default::default()
             },
+            time,
             context,
         ));
         objects.extend(render::get_render_objects_for_entity_with_color(
@@ -334,6 +349,7 @@ fn draw_examples(
             &RenderProperties {
                 ..Default::default()
             },
+            time,
             context,
         ));
 
@@ -345,6 +361,7 @@ fn draw_examples(
             &RenderProperties {
                 ..Default::default()
             },
+            time,
             context,
         ));
         objects.extend(render::get_render_objects_for_entity_with_color(
@@ -354,6 +371,7 @@ fn draw_examples(
             &RenderProperties {
                 ..Default::default()
             },
+            time,
             context,
         ));
 
@@ -370,6 +388,7 @@ fn draw_examples(
                 &RenderProperties {
                     ..Default::default()
                 },
+                time,
                 context,
             ));
         }
@@ -384,6 +403,7 @@ fn draw_examples(
                     direction,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
             objects.extend(render::get_render_objects_for_entity_with_color(
@@ -394,6 +414,7 @@ fn draw_examples(
                     direction,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
         })
@@ -416,6 +437,7 @@ fn draw_examples(
                     is_cut: true,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
         });
@@ -438,6 +460,7 @@ fn draw_examples(
                     is_badly_hurt: true,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
         });
@@ -460,6 +483,7 @@ fn draw_examples(
                     is_alive: false,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
         });
@@ -478,6 +502,7 @@ fn draw_examples(
                     direction,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
             let direction_mod = match direction {
@@ -496,12 +521,13 @@ fn draw_examples(
                     direction,
                     ..Default::default()
                 },
+                time,
                 context,
             ));
         });
     }
 
-    render::draw_in_order(&objects, camera, screen);
+    render::draw_in_order(&objects, camera, &frame_input.screen());
 
     next_coord - 1
 }

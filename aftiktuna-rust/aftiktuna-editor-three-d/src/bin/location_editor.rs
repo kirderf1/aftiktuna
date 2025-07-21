@@ -773,8 +773,7 @@ fn main() {
                 &editor_data,
                 &camera,
                 render_viewport,
-                &screen,
-                &frame_input.context,
+                &frame_input,
                 &mut assets,
             );
         }
@@ -1101,8 +1100,7 @@ fn render_game_view(
     editor_data: &EditorData,
     camera: &aftiktuna_three_d::Camera,
     render_viewport: three_d::Viewport,
-    screen: &three_d::RenderTarget<'_>,
-    context: &three_d::Context,
+    frame_input: &three_d::FrameInput,
     assets: &mut Assets,
 ) {
     let area = &editor_data.location_data.areas[editor_data.area_index];
@@ -1116,7 +1114,7 @@ fn render_game_view(
         area.background_offset.unwrap_or(0),
         camera.camera_x,
         &extra_background_layers,
-        context,
+        &frame_input.context,
     );
     let symbol_lookup = SymbolLookup::new(&assets.base_symbols, &area.symbols);
 
@@ -1153,14 +1151,16 @@ fn render_game_view(
                     .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
                     .unwrap_or(color::DEFAULT_COLOR),
                 &object.properties,
-                context,
+                frame_input.accumulated_time as f32,
+                &frame_input.context,
             )
         })
         .collect::<Vec<_>>();
 
     let render_camera = render::get_render_camera(camera, render_viewport);
-    render::draw_in_order(&background, &render_camera, screen);
-    render::draw_in_order(&objects, &render_camera, screen);
+    let screen = frame_input.screen();
+    render::draw_in_order(&background, &render_camera, &screen);
+    render::draw_in_order(&objects, &render_camera, &screen);
 
     if area.darkness > 0. {
         render::render_darkness(
@@ -1168,8 +1168,8 @@ fn render_game_view(
             200.,
             area.darkness,
             render_viewport,
-            screen,
-            context,
+            &screen,
+            &frame_input.context,
         );
     }
 }

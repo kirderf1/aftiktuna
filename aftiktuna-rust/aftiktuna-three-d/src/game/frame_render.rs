@@ -64,6 +64,7 @@ pub fn render_frame(
                     ..RenderProperties::default()
                 },
                 &mut assets.aftik_colors,
+                frame_input.accumulated_time as f32,
                 &frame_input.context,
             );
             let render_camera = render::default_render_camera(frame_input.viewport);
@@ -127,6 +128,7 @@ fn draw_area_view(
                 *pos,
                 &object.properties,
                 &mut assets.aftik_colors,
+                frame_input.accumulated_time as f32,
                 &frame_input.context,
             );
             if object.properties.is_alive {
@@ -148,6 +150,7 @@ fn draw_area_view(
                             ..RenderProperties::default()
                         },
                         &mut assets.aftik_colors,
+                        frame_input.accumulated_time as f32,
                         &frame_input.context,
                     ));
                 }
@@ -276,6 +279,7 @@ fn draw_store_view(
             ..RenderProperties::default()
         },
         &mut assets.aftik_colors,
+        frame_input.accumulated_time as f32,
         &frame_input.context,
     );
     let render_camera = render::default_render_camera(frame_input.viewport);

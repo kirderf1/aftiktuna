@@ -4,6 +4,8 @@
       "texture": "creature/aftik/head_details",
       "offset": [ 4, -82 ],
       "anchor": [ -5, -5 ],
+      "rotation": [ 0.0, -3.0 ],
+      "animation_length": 4.0,
       "if_alive": true,
       "if_hurt": false
     },
@@ -11,6 +13,8 @@
       "texture": "creature/aftik/head_details_wounded",
       "offset": [ 4, -82 ],
       "anchor": [ -5, -5 ],
+      "rotation": [ 0.0, -3.0 ],
+      "animation_length": 4.0,
       "if_alive": true,
       "if_hurt": true
     },
@@ -19,6 +23,8 @@
       "color": "secondary",
       "offset": [ 4, -82 ],
       "anchor": [ -5, -5 ],
+      "rotation": [ 0.0, -3.0 ],
+      "animation_length": 4.0,
       "if_alive": true
     },
     {
@@ -26,6 +32,8 @@
       "color": "primary",
       "offset": [ 4, -82 ],
       "anchor": [ -5, -5 ],
+      "rotation": [ 0.0, -3.0 ],
+      "animation_length": 4.0,
       "if_alive": true
     },
     {
@@ -43,6 +51,8 @@
       "texture": "creature/aftik/tail_details",
       "offset": [ -23, -15 ],
       "anchor": [ 20, -25 ],
+      "rotation": [ 0.0, -15.0 ],
+      "animation_length": 2.5,
       "if_alive": true,
       "if_hurt": false
     },
@@ -51,6 +61,8 @@
       "color": "secondary",
       "offset": [ -23, -15 ],
       "anchor": [ 20, -25 ],
+      "rotation": [ 0.0, -15.0 ],
+      "animation_length": 2.5,
       "if_alive": true,
       "if_hurt": false
     },
@@ -59,6 +71,8 @@
       "color": "primary",
       "offset": [ -23, -15 ],
       "anchor": [ 20, -25 ],
+      "rotation": [ 0.0, -15.0 ],
+      "animation_length": 2.5,
       "if_alive": true,
       "if_hurt": false
     },
@@ -66,7 +80,8 @@
       "texture": "creature/aftik/tail_details_wounded",
       "offset": [ -23, -15 ],
       "anchor": [ 20, -25 ],
-      "rotation": 15.0,
+      "rotation": [ 0.0, 10.0 ],
+      "animation_length": 3.0,
       "if_alive": true,
       "if_hurt": true
     },
@@ -75,7 +90,8 @@
       "color": "secondary",
       "offset": [ -23, -15 ],
       "anchor": [ 20, -25 ],
-      "rotation": 15.0,
+      "rotation": [ 0.0, 10.0 ],
+      "animation_length": 3.0,
       "if_alive": true,
       "if_hurt": true
     },
@@ -84,7 +100,8 @@
       "color": "primary",
       "offset": [ -23, -15 ],
       "anchor": [ 20, -25 ],
-      "rotation": 15.0,
+      "rotation": [ 0.0, 10.0 ],
+      "animation_length": 3.0,
       "if_alive": true,
       "if_hurt": true
     },

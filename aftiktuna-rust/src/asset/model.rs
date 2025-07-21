@@ -98,7 +98,9 @@ pub struct LayerPositioning {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub anchor: (i16, i16),
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub rotation: f32,
+    pub rotation: (f32, f32),
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub animation_length: f32,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
