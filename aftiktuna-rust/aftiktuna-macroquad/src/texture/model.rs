@@ -39,10 +39,7 @@ pub fn draw_model(
     let mut pos = pos;
     if use_wield_offset {
         pos.y += f32::from(model.wield_offset.1);
-        pos.x += f32::from(match properties.direction {
-            Direction::Left => -model.wield_offset.0,
-            Direction::Right => model.wield_offset.0,
-        })
+        pos.x += f32::from(i16::from(properties.direction) * model.wield_offset.0)
     }
     let flip_x = model.fixed_orientation && properties.direction == Direction::Left;
     for layer in &model.layers {
@@ -84,10 +81,10 @@ pub fn model_render_rect(
     pos: Vec2,
     properties: &RenderProperties,
 ) -> Rect {
-    let direction_mod = if !model.fixed_orientation && properties.direction == Direction::Left {
-        -1.
-    } else {
+    let direction_mod = if model.fixed_orientation {
         1.
+    } else {
+        properties.direction.into()
     };
     model
         .layers

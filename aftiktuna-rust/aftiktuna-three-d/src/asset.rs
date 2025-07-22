@@ -4,7 +4,6 @@ use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
-use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -173,10 +172,10 @@ fn model_render_rect(
     pos: three_d::Vec2,
     properties: &RenderProperties,
 ) -> Rect {
-    let direction_mod = if !model.fixed_orientation && properties.direction == Direction::Left {
-        -1.
-    } else {
+    let direction_mod = if model.fixed_orientation {
         1.
+    } else {
+        properties.direction.into()
     };
     model
         .layers

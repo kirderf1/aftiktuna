@@ -2,7 +2,6 @@ use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{self, Model, TextureLayer};
 use aftiktuna::core::display::AftikColorId;
-use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::RenderProperties;
 use std::collections::HashMap;
 
@@ -129,10 +128,10 @@ pub fn get_render_objects_for_entity_with_color(
     time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
-    let direction_mod = if !model.fixed_orientation && properties.direction == Direction::Left {
-        -1.
-    } else {
+    let direction_mod = if model.fixed_orientation {
         1.
+    } else {
+        properties.direction.into()
     };
     model
         .layers

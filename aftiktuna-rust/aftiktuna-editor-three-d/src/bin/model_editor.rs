@@ -502,12 +502,8 @@ fn draw_examples(
                 time,
                 context,
             ));
-            let direction_mod = match direction {
-                Direction::Left => -1,
-                Direction::Right => 1,
-            };
             let offset = three_d::vec2(
-                f32::from(direction_mod * model.wield_offset.0),
+                f32::from(i16::from(direction) * model.wield_offset.0),
                 f32::from(-model.wield_offset.1),
             );
             objects.extend(render::get_render_objects_for_entity_with_color(

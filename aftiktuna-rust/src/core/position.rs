@@ -72,13 +72,7 @@ impl Pos {
     }
 
     pub fn try_offset_direction(self, direction: Direction, world: &World) -> Option<Pos> {
-        self.try_offset(
-            match direction {
-                Direction::Left => -1,
-                Direction::Right => 1,
-            },
-            world,
-        )
+        self.try_offset(direction.into(), world)
     }
 
     pub fn try_offset(self, offset: i32, world: &World) -> Option<Pos> {
@@ -132,6 +126,33 @@ impl Direction {
         match self {
             Direction::Left => Direction::Right,
             Direction::Right => Direction::Left,
+        }
+    }
+}
+
+impl From<Direction> for i16 {
+    fn from(value: Direction) -> Self {
+        match value {
+            Direction::Left => -1,
+            Direction::Right => 1,
+        }
+    }
+}
+
+impl From<Direction> for i32 {
+    fn from(value: Direction) -> Self {
+        match value {
+            Direction::Left => -1,
+            Direction::Right => 1,
+        }
+    }
+}
+
+impl From<Direction> for f32 {
+    fn from(value: Direction) -> Self {
+        match value {
+            Direction::Left => -1.,
+            Direction::Right => 1.,
         }
     }
 }
