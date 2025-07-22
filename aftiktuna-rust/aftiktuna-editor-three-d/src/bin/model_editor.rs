@@ -166,11 +166,11 @@ fn model_editor_ui(
 
     ui.label("Wield offset:");
     ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut model.wield_offset.0));
-        ui.add(egui::DragValue::new(&mut model.wield_offset.1));
+        ui.add(egui::DragValue::new(&mut model.wield_offset.x));
+        ui.add(egui::DragValue::new(&mut model.wield_offset.y));
     });
     if ui.button("Clear Offset").clicked() {
-        model.wield_offset = (0, 0);
+        model.wield_offset = Default::default();
     }
 
     ui.label("Z-offset:");
@@ -486,7 +486,7 @@ fn draw_examples(
         });
     }
 
-    if model.wield_offset != (0, 0) {
+    if model.wield_offset != Default::default() {
         bidirectional(|direction| {
             let pos = positioner
                 .position_object(get_and_move_coord(), aftik_model)
@@ -502,10 +502,7 @@ fn draw_examples(
                 time,
                 context,
             ));
-            let offset = three_d::vec2(
-                f32::from(i16::from(direction) * model.wield_offset.0),
-                f32::from(-model.wield_offset.1),
-            );
+            let offset = aftiktuna_three_d::to_vec(model.wield_offset, direction.into());
             objects.extend(render::get_render_objects_for_entity_with_color(
                 model,
                 pos + offset,

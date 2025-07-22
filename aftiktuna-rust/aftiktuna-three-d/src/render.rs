@@ -179,14 +179,14 @@ fn get_render_object_for_layer(
                 layer.primary_texture().height() as f32,
             )
         });
-    let offset = to_vec(
+    let offset = crate::to_vec(
         layer.positioning.offset.interpolate(animation_factor),
         direction_mod,
     );
     let center = pos + offset + three_d::vec2(0., height / 2.);
     let rotation_value = layer.positioning.rotation.interpolate(animation_factor);
     let rotation_angle = three_d::degrees(direction_mod * rotation_value);
-    let anchor = pos + offset + to_vec(layer.positioning.anchor, direction_mod);
+    let anchor = pos + offset + crate::to_vec(layer.positioning.anchor, direction_mod);
     let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
 
     layer
@@ -214,10 +214,6 @@ fn get_render_object_for_layer(
             three_d::Gm::new(rectangle, material)
         })
         .collect()
-}
-
-fn to_vec(pos: aftiktuna::Vec2, direction_mod: f32) -> three_d::Vec2 {
-    three_d::vec2(direction_mod * pos.x, -pos.y)
 }
 
 pub fn rect(

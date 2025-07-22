@@ -2,5 +2,5 @@
   "layers": [
     { "texture": "item/bat" }
   ],
-  "wield_offset": [ 30, -40 ]
+  "wield_offset": { "x": 30.0, "y": -40.0 }
 }

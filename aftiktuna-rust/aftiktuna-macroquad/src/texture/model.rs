@@ -38,8 +38,8 @@ pub fn draw_model(
 ) {
     let mut pos = pos;
     if use_wield_offset {
-        pos.y += f32::from(model.wield_offset.1);
-        pos.x += f32::from(i16::from(properties.direction) * model.wield_offset.0)
+        pos.y += model.wield_offset.y;
+        pos.x += f32::from(properties.direction) * model.wield_offset.x;
     }
     let flip_x = model.fixed_orientation && properties.direction == Direction::Left;
     for layer in &model.layers {

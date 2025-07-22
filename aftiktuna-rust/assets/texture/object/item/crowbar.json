@@ -1,4 +1,6 @@
 {
-  "layers": [{ "texture": "item/crowbar" }],
-  "wield_offset": [ 15, -45 ]
+  "layers": [
+    { "texture": "item/crowbar" }
+  ],
+  "wield_offset": { "x": 15.0, "y": -45.0 }
 }

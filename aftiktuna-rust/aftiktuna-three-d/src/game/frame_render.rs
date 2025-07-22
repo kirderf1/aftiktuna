@@ -134,11 +134,9 @@ fn draw_area_view(
             if object.properties.is_alive {
                 if let Some(item_model_id) = &object.wielded_item {
                     let item_model = assets.models.lookup_model(item_model_id);
-                    let offset = three_d::vec2(
-                        f32::from(
-                            i16::from(object.properties.direction) * item_model.wield_offset.0,
-                        ),
-                        f32::from(-item_model.wield_offset.1),
+                    let offset = aftiktuna_three_d::to_vec(
+                        item_model.wield_offset,
+                        object.properties.direction.into(),
                     );
                     render_objects.extend(render::get_render_objects_for_entity(
                         item_model,

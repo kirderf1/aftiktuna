@@ -12,7 +12,7 @@ use std::path::Path;
 pub struct Model<T> {
     pub layers: Vec<TextureLayer<T>>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub wield_offset: (i16, i16),
+    pub wield_offset: Vec2,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub z_offset: i16,
     #[serde(default, skip_serializing_if = "crate::is_default")]

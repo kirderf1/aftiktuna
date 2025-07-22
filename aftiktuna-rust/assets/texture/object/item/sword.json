@@ -1,4 +1,6 @@
 {
-  "layers": [{ "texture": "item/sword" }],
-  "wield_offset": [ 20, -20 ]
+  "layers": [
+    { "texture": "item/sword" }
+  ],
+  "wield_offset": { "x": 20.0, "y": -20.0 }
 }

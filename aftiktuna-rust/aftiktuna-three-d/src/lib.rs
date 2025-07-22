@@ -109,3 +109,7 @@ impl Rect {
         self.left <= pos.x && pos.x < self.right && self.bottom <= pos.y && pos.y < self.top
     }
 }
+
+pub fn to_vec(pos: aftiktuna::Vec2, direction_mod: f32) -> three_d::Vec2 {
+    three_d::vec2(direction_mod * pos.x, -pos.y)
+}
