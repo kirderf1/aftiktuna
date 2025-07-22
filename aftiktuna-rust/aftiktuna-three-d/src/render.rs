@@ -1,6 +1,6 @@
 use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
-use aftiktuna::asset::model::{self, Model, TextureLayer};
+use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::view::area::RenderProperties;
 use std::collections::HashMap;
@@ -216,7 +216,7 @@ fn get_render_object_for_layer(
         .collect()
 }
 
-fn to_vec(pos: model::Vec2, direction_mod: f32) -> three_d::Vec2 {
+fn to_vec(pos: aftiktuna::Vec2, direction_mod: f32) -> three_d::Vec2 {
     three_d::vec2(direction_mod * pos.x, -pos.y)
 }
 

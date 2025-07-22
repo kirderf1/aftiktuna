@@ -2,10 +2,10 @@ use super::TextureLoader;
 use super::color::ColorSource;
 use crate::core::display::ModelId;
 use crate::view::area::RenderProperties;
+use crate::{Range, Vec2};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
 use std::fs::File;
-use std::ops::{Add, Mul, Sub};
 use std::path::Path;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -154,88 +154,6 @@ impl TextureLayer<String> {
             positioning: self.positioning.clone(),
             conditions: self.conditions.clone(),
         })
-    }
-}
-
-#[derive(Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
-#[serde(
-    from = "OneOrTwo<T>",
-    into = "OneOrTwo<T>",
-    bound = "for <'a> T: Copy + PartialEq + Serialize + Deserialize<'a>"
-)]
-pub struct Range<T>(pub T, pub T);
-
-impl<T: Copy + Add<Output = T> + Sub<Output = T>> Range<T>
-where
-    f32: Mul<T, Output = T>,
-{
-    pub fn interpolate(&self, fraction: f32) -> T {
-        self.0 + fraction * (self.1 - self.0)
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(untagged)]
-enum OneOrTwo<T> {
-    One(T),
-    Two(T, T),
-}
-
-impl<T: Copy> From<OneOrTwo<T>> for Range<T> {
-    fn from(value: OneOrTwo<T>) -> Self {
-        match value {
-            OneOrTwo::One(value) => Self(value, value),
-            OneOrTwo::Two(value1, value2) => Self(value1, value2),
-        }
-    }
-}
-
-impl<T: PartialEq> From<Range<T>> for OneOrTwo<T> {
-    fn from(value: Range<T>) -> Self {
-        if value.0 == value.1 {
-            Self::One(value.0)
-        } else {
-            Self::Two(value.0, value.1)
-        }
-    }
-}
-
-#[derive(Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
-pub struct Vec2 {
-    pub x: f32,
-    pub y: f32,
-}
-
-impl Add for Vec2 {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
-}
-
-impl Sub for Vec2 {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-        }
-    }
-}
-
-impl Mul<Vec2> for f32 {
-    type Output = Vec2;
-
-    fn mul(self, rhs: Vec2) -> Self::Output {
-        Vec2 {
-            x: self * rhs.x,
-            y: self * rhs.y,
-        }
     }
 }
 
