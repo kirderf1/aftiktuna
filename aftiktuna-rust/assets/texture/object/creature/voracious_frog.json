@@ -4,7 +4,7 @@
     { "texture": "creature/wounded_voracious_frog", "if_alive": true, "if_hurt": true },
     {
       "texture": "creature/voracious_frog_corpse",
-      "offset": { "x": 0.0, "y": -5.0 },
+      "offset": { "x": 0.0, "y": 5.0 },
       "if_alive": false
     }
   ],

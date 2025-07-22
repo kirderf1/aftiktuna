@@ -4,7 +4,7 @@
     { "texture": "creature/wounded_scarvie", "if_alive": true, "if_hurt": true },
     {
       "texture": "creature/scarvie_corpse",
-      "offset": { "x": 0.0, "y": 5.0 },
+      "offset": { "x": 0.0, "y": -5.0 },
       "if_alive": false
     }
   ]

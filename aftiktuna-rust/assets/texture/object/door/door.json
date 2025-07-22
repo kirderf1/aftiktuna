@@ -3,7 +3,7 @@
     { "texture": "door/door", "if_cut": false },
     {
       "texture": "door/cut_door",
-      "offset": { "x": 0.0, "y": 15.0 },
+      "offset": { "x": 0.0, "y": -15.0 },
       "if_cut": true
     }
   ],

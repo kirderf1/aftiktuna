@@ -38,7 +38,7 @@ pub fn draw_model(
 ) {
     let mut pos = pos;
     if use_wield_offset {
-        pos.y += model.wield_offset.y;
+        pos.y -= model.wield_offset.y;
         pos.x += f32::from(properties.direction) * model.wield_offset.x;
     }
     let flip_x = model.fixed_orientation && properties.direction == Direction::Left;
@@ -103,7 +103,7 @@ fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2, direction_mod: 
         .unwrap_or_else(|| layer.primary_texture().size());
     Rect::new(
         (pos.x - dest_size.x / 2. + direction_mod * layer.positioning.offset.0.x).floor(),
-        pos.y - dest_size.y + layer.positioning.offset.0.y,
+        pos.y - dest_size.y - layer.positioning.offset.0.y,
         dest_size.x,
         dest_size.y,
     )

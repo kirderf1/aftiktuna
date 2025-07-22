@@ -2,7 +2,7 @@
   "layers": [
     {
       "texture": "path/crossroad",
-      "offset": { "x": 0.0, "y": 120.0 }
+      "offset": { "x": 0.0, "y": -120.0 }
     }
   ],
   "z_offset": -90,

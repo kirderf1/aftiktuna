@@ -2,7 +2,7 @@
   "layers": [
     {
       "texture": "path/detached",
-      "offset": { "x": 0.0, "y": 90.0 }
+      "offset": { "x": 0.0, "y": -90.0 }
     }
   ],
   "z_offset": -90,

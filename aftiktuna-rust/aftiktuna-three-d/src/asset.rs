@@ -201,10 +201,6 @@ fn layer_render_rect(
                 layer.primary_texture().height() as f32,
             )
         });
-    Rect::new(
-        pos.x - width / 2. + direction_mod * layer.positioning.offset.0.x,
-        pos.y - layer.positioning.offset.0.y,
-        width,
-        height,
-    )
+    let layer_pos = pos + crate::to_vec(layer.positioning.offset.0, direction_mod);
+    Rect::new(layer_pos.x - width / 2., layer_pos.y, width, height)
 }

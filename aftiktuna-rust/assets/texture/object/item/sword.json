@@ -2,5 +2,5 @@
   "layers": [
     { "texture": "item/sword" }
   ],
-  "wield_offset": { "x": 20.0, "y": -20.0 }
+  "wield_offset": { "x": 20.0, "y": 20.0 }
 }
