@@ -226,16 +226,20 @@ fn model_editor_ui(
 
     ui.label("Offset:");
     ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut layer.positioning.offset.0));
-        ui.add(egui::DragValue::new(&mut layer.positioning.offset.1));
+        ui.add(egui::DragValue::new(&mut layer.positioning.offset.0.x));
+        ui.add(egui::DragValue::new(&mut layer.positioning.offset.0.y));
+    });
+    ui.horizontal(|ui| {
+        ui.add(egui::DragValue::new(&mut layer.positioning.offset.1.x));
+        ui.add(egui::DragValue::new(&mut layer.positioning.offset.1.y));
     });
 
     ui.separator();
 
     ui.label("Anchor:");
     ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut layer.positioning.anchor.0));
-        ui.add(egui::DragValue::new(&mut layer.positioning.anchor.1));
+        ui.add(egui::DragValue::new(&mut layer.positioning.anchor.x));
+        ui.add(egui::DragValue::new(&mut layer.positioning.anchor.y));
     });
     ui.label("Rotation:");
     ui.add(egui::Slider::new(
@@ -247,6 +251,7 @@ fn model_editor_ui(
         -180.0..=180.0,
     ));
 
+    ui.separator();
     ui.horizontal(|ui| {
         ui.label("Animation time:");
         ui.add(

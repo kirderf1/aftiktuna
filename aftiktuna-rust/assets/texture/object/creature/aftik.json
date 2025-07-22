@@ -6,8 +6,8 @@
         [ "secondary", "creature/aftik/head_secondary" ],
         [ "primary", "creature/aftik/head_primary" ]
       ],
-      "offset": [ 4, -82 ],
-      "anchor": [ -5, -5 ],
+      "offset": { "x": 4.0, "y": -82.0 },
+      "anchor": { "x": -5.0, "y": -5.0 },
       "rotation": [ 0.0, -3.0 ],
       "animation_length": 4.0,
       "if_alive": true,
@@ -19,8 +19,8 @@
         [ "secondary", "creature/aftik/head_secondary" ],
         [ "primary", "creature/aftik/head_primary" ]
       ],
-      "offset": [ 4, -82 ],
-      "anchor": [ -5, -5 ],
+      "offset": { "x": 4.0, "y": -82.0 },
+      "anchor": { "x": -5.0, "y": -5.0 },
       "rotation": [ 0.0, -3.0 ],
       "animation_length": 4.0,
       "if_alive": true,
@@ -31,7 +31,7 @@
         [ "uncolored", "creature/aftik/body_details" ],
         [ "primary", "creature/aftik/body_primary" ]
       ],
-      "offset": [ -3, 0 ],
+      "offset": { "x": -3.0, "y": 0.0 },
       "if_alive": true
     },
     {
@@ -40,8 +40,8 @@
         [ "secondary", "creature/aftik/tail_secondary" ],
         [ "primary", "creature/aftik/tail_primary" ]
       ],
-      "offset": [ -23, -15 ],
-      "anchor": [ 20, -25 ],
+      "offset": { "x": -23.0, "y": -15.0 },
+      "anchor": { "x": 20.0, "y": -25.0 },
       "rotation": [ 0.0, -15.0 ],
       "animation_length": 2.5,
       "if_alive": true,
@@ -53,8 +53,8 @@
         [ "secondary", "creature/aftik/tail_secondary" ],
         [ "primary", "creature/aftik/tail_primary" ]
       ],
-      "offset": [ -23, -15 ],
-      "anchor": [ 20, -25 ],
+      "offset": { "x": -23.0, "y": -15.0 },
+      "anchor": { "x": 20.0, "y": -25.0 },
       "rotation": [ 0.0, 10.0 ],
       "animation_length": 3.0,
       "if_alive": true,

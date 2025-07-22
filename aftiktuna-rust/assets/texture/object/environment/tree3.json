@@ -2,7 +2,7 @@
   "layers": [
     {
       "texture": "environment/tree3",
-      "offset": [ 0, 5 ]
+      "offset": { "x": 0.0, "y": 5.0 }
     }
   ],
   "z_offset": -40,

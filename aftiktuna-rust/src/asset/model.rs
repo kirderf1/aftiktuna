@@ -200,14 +200,53 @@ impl<T: PartialEq> From<Range<T>> for OneOrTwo<T> {
     }
 }
 
+#[derive(Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+pub struct Vec2 {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl Add for Vec2 {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Sub for Vec2 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+impl Mul<Vec2> for f32 {
+    type Output = Vec2;
+
+    fn mul(self, rhs: Vec2) -> Self::Output {
+        Vec2 {
+            x: self * rhs.x,
+            y: self * rhs.y,
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct LayerPositioning {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub size: Option<(i16, i16)>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub offset: (i16, i16),
+    pub offset: Range<Vec2>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub anchor: (i16, i16),
+    pub anchor: Vec2,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub rotation: Range<f32>,
     #[serde(default, skip_serializing_if = "crate::is_default")]

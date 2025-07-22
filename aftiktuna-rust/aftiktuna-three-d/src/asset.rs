@@ -203,8 +203,8 @@ fn layer_render_rect(
             )
         });
     Rect::new(
-        pos.x - width / 2. + direction_mod * f32::from(layer.positioning.offset.0),
-        pos.y - f32::from(layer.positioning.offset.1),
+        pos.x - width / 2. + direction_mod * layer.positioning.offset.0.x,
+        pos.y - layer.positioning.offset.0.y,
         width,
         height,
     )

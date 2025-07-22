@@ -1,6 +1,6 @@
 use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
-use aftiktuna::asset::model::{Model, TextureLayer};
+use aftiktuna::asset::model::{self, Model, TextureLayer};
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::RenderProperties;
@@ -180,7 +180,10 @@ fn get_render_object_for_layer(
                 layer.primary_texture().height() as f32,
             )
         });
-    let offset = to_vec(layer.positioning.offset, direction_mod);
+    let offset = to_vec(
+        layer.positioning.offset.interpolate(animation_factor),
+        direction_mod,
+    );
     let center = pos + offset + three_d::vec2(0., height / 2.);
     let rotation_value = layer.positioning.rotation.interpolate(animation_factor);
     let rotation_angle = three_d::degrees(direction_mod * rotation_value);
@@ -214,8 +217,8 @@ fn get_render_object_for_layer(
         .collect()
 }
 
-fn to_vec(pos: (i16, i16), direction_mod: f32) -> three_d::Vec2 {
-    three_d::vec2(direction_mod * f32::from(pos.0), -f32::from(pos.1))
+fn to_vec(pos: model::Vec2, direction_mod: f32) -> three_d::Vec2 {
+    three_d::vec2(direction_mod * pos.x, -pos.y)
 }
 
 pub fn rect(

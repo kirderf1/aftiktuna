@@ -4,7 +4,7 @@
     { "texture": "creature/wounded_eyesaur", "if_alive": true, "if_hurt": true },
     {
       "texture": "creature/eyesaur_corpse",
-      "offset": [ 0, 10 ],
+      "offset": { "x": 0.0, "y": 10.0 },
       "if_alive": false
     }
   ]
