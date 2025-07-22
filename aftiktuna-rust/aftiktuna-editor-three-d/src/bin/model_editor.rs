@@ -1,5 +1,5 @@
-use aftiktuna::asset::color::{AftikColorData, ColorSource, RGBColor};
-use aftiktuna::asset::model::{self, Model};
+use aftiktuna::asset::color::{AftikColorData, RGBColor};
+use aftiktuna::asset::model::{self, Model, TextureLayer};
 use aftiktuna::asset::placement::Positioner;
 use aftiktuna::asset::{TextureLoader, background};
 use aftiktuna::core::area::BackgroundId;
@@ -188,7 +188,7 @@ fn model_editor_ui(
 
     for (layer_index, layer) in model.layers.iter().enumerate() {
         ui.add_enabled_ui(layer_index != *selected_layer, |ui| {
-            if ui.button(&layer.texture).clicked() {
+            if ui.button(layer.primary_texture()).clicked() {
                 *selected_layer = layer_index;
             }
         });
@@ -197,18 +197,6 @@ fn model_editor_ui(
     let layer = &mut model.layers[*selected_layer];
 
     ui.separator();
-
-    egui::ComboBox::from_label("Coloration")
-        .selected_text(format!("{:?}", layer.color))
-        .show_ui(ui, |ui| {
-            for color in [
-                ColorSource::Uncolored,
-                ColorSource::Primary,
-                ColorSource::Secondary,
-            ] {
-                ui.selectable_value(&mut layer.color, color, format!("{color:?}"));
-            }
-        });
 
     ui.collapsing("Conditions", |ui| {
         add_option_condition_combo_box("If Cut", &mut layer.conditions.if_cut, ui);
@@ -228,7 +216,11 @@ fn model_editor_ui(
             layer.positioning.size = None;
         }
     } else if ui.button("Use Custom Size").clicked() {
-        let texture = textures.load_texture(layer.texture_path()).unwrap();
+        let texture = textures
+            .load_texture(TextureLayer::<String>::texture_path(
+                layer.primary_texture(),
+            ))
+            .unwrap();
         layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
     }
 

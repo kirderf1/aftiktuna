@@ -159,9 +159,9 @@ fn get_render_object_for_layer(
     aftik_color: AftikColorData,
     time: f32,
     context: &three_d::Context,
-) -> Option<impl three_d::Object> {
+) -> Vec<impl three_d::Object> {
     if !layer.conditions.meets_conditions(properties) {
-        return None;
+        return vec![];
     }
 
     let animation_factor = if layer.positioning.animation_length == 0. {
@@ -174,7 +174,12 @@ fn get_render_object_for_layer(
         .positioning
         .size
         .map(|(width, height)| (f32::from(width), f32::from(height)))
-        .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
+        .unwrap_or_else(|| {
+            (
+                layer.primary_texture().width() as f32,
+                layer.primary_texture().height() as f32,
+            )
+        });
     let offset = to_vec(layer.positioning.offset, direction_mod);
     let center = pos + offset + three_d::vec2(0., height / 2.);
     let rotation = layer.positioning.rotation;
@@ -183,26 +188,31 @@ fn get_render_object_for_layer(
     let anchor = pos + offset + to_vec(layer.positioning.anchor, direction_mod);
     let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
 
-    let rectangle = three_d::Rectangle::new(
-        context,
-        center,
-        rotation_angle,
-        width * direction_mod,
-        height,
-    );
+    layer
+        .texture
+        .iter()
+        .map(|(color_source, texture)| {
+            let rectangle = three_d::Rectangle::new(
+                context,
+                center,
+                rotation_angle,
+                width * direction_mod,
+                height,
+            );
 
-    let color = layer.color.get_color(&aftik_color);
-    let material = texture_color_material(
-        &layer.texture,
-        three_d::vec4(
-            f32::from(color.r) / 255.,
-            f32::from(color.g) / 255.,
-            f32::from(color.b) / 255.,
-            1.,
-        ),
-    );
-
-    Some(three_d::Gm::new(rectangle, material))
+            let color = color_source.get_color(&aftik_color);
+            let material = texture_color_material(
+                texture,
+                three_d::vec4(
+                    f32::from(color.r) / 255.,
+                    f32::from(color.g) / 255.,
+                    f32::from(color.b) / 255.,
+                    1.,
+                ),
+            );
+            three_d::Gm::new(rectangle, material)
+        })
+        .collect()
 }
 
 fn to_vec(pos: (i16, i16), direction_mod: f32) -> three_d::Vec2 {

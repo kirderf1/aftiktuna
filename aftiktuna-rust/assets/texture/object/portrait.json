@@ -1,8 +1,20 @@
 {
   "layers": [
-    { "texture": "portrait_details", "color": "uncolored", "if_hurt": false },
-    { "texture": "wounded_portrait_details", "color": "uncolored", "if_hurt": true },
-    { "texture": "portrait_secondary", "color": "secondary" },
-    { "texture": "portrait_primary", "color": "primary" }
+    {
+      "texture": [
+        [ "uncolored", "portrait_details" ],
+        [ "secondary", "portrait_secondary" ],
+        [ "primary", "portrait_primary" ]
+      ],
+      "if_hurt": false
+    },
+    {
+      "texture": [
+        [ "uncolored", "wounded_portrait_details" ],
+        [ "secondary", "portrait_secondary" ],
+        [ "primary", "portrait_primary" ]
+      ],
+      "if_hurt": true
+    }
   ]
 }

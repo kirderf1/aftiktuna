@@ -3,7 +3,7 @@ use super::color::ColorSource;
 use crate::core::display::ModelId;
 use crate::view::area::RenderProperties;
 use indexmap::IndexMap;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use std::fs::File;
 use std::path::Path;
 
@@ -62,27 +62,94 @@ impl Model<String> {
     }
 }
 
+#[derive(Clone, Deserialize)]
+#[serde(try_from = "TextureOrMap<T>")]
+pub struct ColoredTextures<T>(Vec<(ColorSource, T)>);
+
+impl<T> ColoredTextures<T> {
+    pub fn iter(&self) -> impl Iterator<Item = (ColorSource, &T)> {
+        self.0.iter().map(|(color, texture)| (*color, texture))
+    }
+}
+
+impl<T> From<T> for ColoredTextures<T> {
+    fn from(value: T) -> Self {
+        Self(vec![(ColorSource::Uncolored, value)])
+    }
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum TextureOrMap<T> {
+    Texture(T),
+    List(Vec<(ColorSource, T)>),
+}
+
+impl<T> TryFrom<TextureOrMap<T>> for ColoredTextures<T> {
+    type Error = &'static str;
+
+    fn try_from(value: TextureOrMap<T>) -> Result<Self, Self::Error> {
+        match value {
+            TextureOrMap::Texture(texture) => Ok(Self::from(texture)),
+            TextureOrMap::List(list) => {
+                if list.is_empty() {
+                    Err("Texture list must not be empty")
+                } else {
+                    Ok(Self(list))
+                }
+            }
+        }
+    }
+}
+
+impl<T: Serialize> Serialize for ColoredTextures<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if self.0.len() == 1
+            && let Some((ColorSource::Uncolored, texture)) = self.0.first()
+        {
+            texture.serialize(serializer)
+        } else {
+            self.0.serialize(serializer)
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TextureLayer<T> {
-    pub texture: T,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    pub color: ColorSource,
+    pub texture: ColoredTextures<T>,
     #[serde(flatten)]
     pub positioning: LayerPositioning,
     #[serde(flatten)]
     pub conditions: LayerCondition,
 }
 
+impl<T> TextureLayer<T> {
+    pub fn primary_texture(&self) -> &T {
+        &self.texture.0.first().unwrap().1
+    }
+}
+
 impl TextureLayer<String> {
-    pub fn texture_path(&self) -> String {
-        format!("object/{}", self.texture)
+    pub fn texture_path(texture: &str) -> String {
+        format!("object/{texture}")
     }
 
     fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<TextureLayer<T>, E> {
-        let texture = loader.load_texture(self.texture_path())?;
+        let mut texture = ColoredTextures(
+            self.texture
+                .0
+                .iter()
+                .map(|(color, texture)| {
+                    Ok((*color, loader.load_texture(Self::texture_path(texture))?))
+                })
+                .collect::<Result<_, E>>()?,
+        );
+        texture.0.reverse();
         Ok(TextureLayer {
             texture,
-            color: self.color,
             positioning: self.positioning.clone(),
             conditions: self.conditions.clone(),
         })

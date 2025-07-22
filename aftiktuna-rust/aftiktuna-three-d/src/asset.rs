@@ -196,7 +196,12 @@ fn layer_render_rect(
         .positioning
         .size
         .map(|(width, height)| (f32::from(width), f32::from(height)))
-        .unwrap_or_else(|| (layer.texture.width() as f32, layer.texture.height() as f32));
+        .unwrap_or_else(|| {
+            (
+                layer.primary_texture().width() as f32,
+                layer.primary_texture().height() as f32,
+            )
+        });
     Rect::new(
         pos.x - width / 2. + direction_mod * f32::from(layer.positioning.offset.0),
         pos.y - f32::from(layer.positioning.offset.1),

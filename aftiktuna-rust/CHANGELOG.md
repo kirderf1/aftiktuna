@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - "fixed" layer property replaced by "fixed_orientation" model property
   - "y_offset" layer property replaced by "offset" layer property with both x- and y-offsets
   - New layer properties for rotation animation and rotation-anchor
+  - Colored texture layers are now defined differently
 
 ### Contributors for this release
 

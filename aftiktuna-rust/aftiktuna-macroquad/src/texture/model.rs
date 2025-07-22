@@ -62,18 +62,21 @@ fn draw_layer(
     }
 
     let render_rect = layer_render_rect(layer, pos, if flip_x { -1. } else { 1. });
-    let color = layer.color.get_color(aftik_color_data);
-    texture::draw_texture_ex(
-        &layer.texture,
-        render_rect.x,
-        render_rect.y,
-        Color::from_rgba(color.r, color.g, color.b, 255),
-        DrawTextureParams {
-            dest_size: Some(render_rect.size()),
-            flip_x,
-            ..Default::default()
-        },
-    );
+
+    for (color_source, texture) in layer.texture.iter() {
+        let color = color_source.get_color(aftik_color_data);
+        texture::draw_texture_ex(
+            texture,
+            render_rect.x,
+            render_rect.y,
+            Color::from_rgba(color.r, color.g, color.b, 255),
+            DrawTextureParams {
+                dest_size: Some(render_rect.size()),
+                flip_x,
+                ..Default::default()
+            },
+        );
+    }
 }
 
 pub fn model_render_rect(
@@ -100,7 +103,7 @@ fn layer_render_rect(layer: &TextureLayer<Texture2D>, pos: Vec2, direction_mod: 
         .positioning
         .size
         .map(|(width, height)| Vec2::new(f32::from(width), f32::from(height)))
-        .unwrap_or_else(|| layer.texture.size());
+        .unwrap_or_else(|| layer.primary_texture().size());
     Rect::new(
         (pos.x - dest_size.x / 2. + direction_mod * f32::from(layer.positioning.offset.0)).floor(),
         pos.y - dest_size.y + f32::from(layer.positioning.offset.1),
