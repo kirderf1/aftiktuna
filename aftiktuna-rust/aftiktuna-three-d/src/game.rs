@@ -59,7 +59,8 @@ impl State {
 
         for event in &frame_input.events {
             if let three_d::Event::MouseMotion { position, .. } = event {
-                self.mouse_pos = three_d::vec2(position.x, position.y);
+                self.mouse_pos =
+                    three_d::vec2(position.x, position.y) / frame_input.device_pixel_ratio;
             }
         }
 
@@ -123,7 +124,12 @@ impl State {
         }
 
         if self.game.ready_to_take_input() && self.displayed_status.is_none() {
-            handle_command_suggestion_input(&mut frame_input.events, self, &mut assets.models);
+            handle_command_suggestion_input(
+                &mut frame_input.events,
+                frame_input.device_pixel_ratio,
+                self,
+                &mut assets.models,
+            );
         } else {
             self.command_tooltip = None;
         }
@@ -207,6 +213,7 @@ struct CommandTooltip {
 
 fn handle_command_suggestion_input(
     events: &mut [three_d::Event],
+    scale_factor: f32,
     state: &mut State,
     models: &mut LazilyLoadedModels,
 ) {
@@ -220,7 +227,7 @@ fn handle_command_suggestion_input(
         {
             if !*handled && *button == three_d::MouseButton::Left {
                 *handled = handle_command_suggestion_click(
-                    three_d::vec2(position.x, position.y),
+                    three_d::vec2(position.x, position.y) / scale_factor,
                     state,
                     models,
                 )

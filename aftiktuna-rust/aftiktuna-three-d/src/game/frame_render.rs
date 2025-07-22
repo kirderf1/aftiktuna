@@ -83,6 +83,7 @@ pub fn render_frame(
                     250.,
                     data.darkness,
                     frame_input.viewport,
+                    frame_input.device_pixel_ratio,
                     screen,
                     &frame_input.context,
                 );
@@ -178,6 +179,7 @@ fn draw_area_view(
             200.,
             render_data.darkness,
             frame_input.viewport,
+            frame_input.device_pixel_ratio,
             screen,
             &frame_input.context,
         );

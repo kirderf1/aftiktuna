@@ -233,26 +233,24 @@ pub fn rect(
 }
 
 pub fn default_render_camera(viewport: three_d::Viewport) -> three_d::Camera {
-    let mut render_camera = three_d::Camera::new_2d(viewport);
-    render_camera.disable_tone_and_color_mapping();
-    render_camera
+    get_render_camera(&crate::Camera::default(), viewport)
 }
 
 pub fn get_render_camera(camera: &crate::Camera, viewport: three_d::Viewport) -> three_d::Camera {
     let mut render_camera = three_d::Camera::new_orthographic(
         viewport,
         three_d::vec3(
-            camera.camera_x + viewport.width as f32 * 0.5,
-            viewport.height as f32 * 0.5,
+            camera.camera_x + crate::WINDOW_WIDTH_F * 0.5,
+            crate::WINDOW_HEIGHT_F * 0.5,
             1.0,
         ),
         three_d::vec3(
-            camera.camera_x + viewport.width as f32 * 0.5,
-            viewport.height as f32 * 0.5,
+            camera.camera_x + crate::WINDOW_WIDTH_F * 0.5,
+            crate::WINDOW_HEIGHT_F * 0.5,
             0.0,
         ),
         three_d::vec3(0.0, 1.0, 0.0),
-        viewport.height as f32,
+        crate::WINDOW_HEIGHT_F,
         0.0,
         10.0,
     );
@@ -343,12 +341,13 @@ pub fn render_darkness(
     radius: f32,
     intensity: f32,
     viewport: three_d::Viewport,
+    scale_factor: f32,
     screen: &three_d::RenderTarget<'_>,
     context: &three_d::Context,
 ) {
     let material = DarknessMaterial {
-        center,
-        radius,
+        center: scale_factor * center,
+        radius: scale_factor * radius,
         intensity,
         render_states: three_d::RenderStates {
             write_mask: three_d::WriteMask::COLOR,

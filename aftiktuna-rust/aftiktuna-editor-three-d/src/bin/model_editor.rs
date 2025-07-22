@@ -90,8 +90,10 @@ fn main() {
         let render_viewport = three_d::Viewport {
             x: 0,
             y: 0,
-            width: aftiktuna_three_d::WINDOW_WIDTH.into(),
-            height: aftiktuna_three_d::WINDOW_HEIGHT.into(),
+            width: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_WIDTH))
+                as u32,
+            height: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_HEIGHT))
+                as u32,
         };
 
         let model = selected_model.load(&mut texture_loader).unwrap();

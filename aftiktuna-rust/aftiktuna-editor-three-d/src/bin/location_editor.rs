@@ -697,7 +697,7 @@ fn main() {
         hovered_door_pair: None,
         connecting_pair: None,
         new_door_pair_name: String::new(),
-        mouse_pos: three_d::vec2(0., 0.).into(),
+        mouse_pos: three_d::vec2(0., 0.),
     };
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -727,7 +727,8 @@ fn main() {
     window.render_loop(move |mut frame_input| {
         for event in &frame_input.events {
             if let three_d::Event::MouseMotion { position, .. } = event {
-                editor_data.mouse_pos = *position;
+                editor_data.mouse_pos =
+                    three_d::Vec2::from(*position) / frame_input.device_pixel_ratio;
             }
         }
 
@@ -744,7 +745,11 @@ fn main() {
         );
 
         if editor_data.is_in_overview {
-            handle_overview_input(&mut frame_input.events, &mut editor_data);
+            handle_overview_input(
+                &mut frame_input.events,
+                frame_input.device_pixel_ratio,
+                &mut editor_data,
+            );
         } else {
             let area = &editor_data.location_data.areas[editor_data.area_index];
             camera.handle_inputs(&mut frame_input.events);
@@ -756,10 +761,13 @@ fn main() {
 
         let render_viewport = three_d::Viewport {
             x: 0,
-            y: BOTTOM_PANEL_HEIGHT as i32,
-            width: aftiktuna_three_d::WINDOW_WIDTH.into(),
-            height: aftiktuna_three_d::WINDOW_HEIGHT.into(),
+            y: (frame_input.device_pixel_ratio * BOTTOM_PANEL_HEIGHT as f32) as i32,
+            width: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_WIDTH))
+                as u32,
+            height: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_HEIGHT))
+                as u32,
         };
+
         if editor_data.is_in_overview {
             render_overview(
                 &editor_data,
@@ -804,7 +812,7 @@ struct EditorData {
     hovered_door_pair: Option<String>,
     connecting_pair: Option<(String, Vec<AreaSymbolId>)>,
     new_door_pair_name: String,
-    mouse_pos: three_d::PhysicalPoint,
+    mouse_pos: three_d::Vec2,
 }
 
 struct Assets {
@@ -827,7 +835,11 @@ impl AreaSymbolId {
     }
 }
 
-fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut EditorData) {
+fn handle_overview_input(
+    events: &mut [three_d::Event],
+    scale_factor: f32,
+    editor_data: &mut EditorData,
+) {
     for event in events {
         match event {
             three_d::Event::MousePress {
@@ -837,7 +849,7 @@ fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut Editor
                 ..
             } => {
                 if !*handled && *button == three_d::MouseButton::Left {
-                    let (mouse_x, mouse_y) = mouse_to_overview_pos(*position);
+                    let (mouse_x, mouse_y) = mouse_to_overview_pos(*position, scale_factor);
                     let clicked_area = editor_data
                         .location_data
                         .areas
@@ -897,7 +909,7 @@ fn handle_overview_input(events: &mut [three_d::Event], editor_data: &mut Editor
             } => {
                 if !*handled && let Some(dragged_area) = editor_data.dragged_area {
                     let area = &mut editor_data.location_data.areas[dragged_area];
-                    area.pos_in_overview = mouse_to_overview_pos(*position);
+                    area.pos_in_overview = mouse_to_overview_pos(*position, scale_factor);
                     *handled = true;
                 }
             }
@@ -932,10 +944,13 @@ fn connect_paths(
 
 const OVERVIEW_SCALE: f32 = 8.;
 
-fn mouse_to_overview_pos(pos: three_d::PhysicalPoint) -> (i32, i32) {
+fn mouse_to_overview_pos(pos: three_d::PhysicalPoint, scale_factor: f32) -> (i32, i32) {
     (
-        ((pos.x - aftiktuna_three_d::WINDOW_WIDTH_F / 2.) / OVERVIEW_SCALE).round() as i32,
-        ((pos.y - BOTTOM_PANEL_HEIGHT as f32 - aftiktuna_three_d::WINDOW_HEIGHT_F / 2.)
+        ((pos.x / scale_factor - aftiktuna_three_d::WINDOW_WIDTH_F / 2.) / OVERVIEW_SCALE).round()
+            as i32,
+        ((pos.y / scale_factor
+            - BOTTOM_PANEL_HEIGHT as f32
+            - aftiktuna_three_d::WINDOW_HEIGHT_F / 2.)
             / OVERVIEW_SCALE)
             .round() as i32,
     )
@@ -1164,10 +1179,11 @@ fn render_game_view(
 
     if area.darkness > 0. {
         render::render_darkness(
-            editor_data.mouse_pos.into(),
+            editor_data.mouse_pos,
             200.,
             area.darkness,
             render_viewport,
+            frame_input.device_pixel_ratio,
             &screen,
             &frame_input.context,
         );

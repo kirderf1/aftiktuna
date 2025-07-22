@@ -18,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - New layer properties for rotation animation and rotation-anchor
   - Colored texture layers are now defined differently
 
+### Fixed
+
+- Fixed rendering on monitors with changed Windows scale factor
+
 ### Contributors for this release
 
 - kirderf1
