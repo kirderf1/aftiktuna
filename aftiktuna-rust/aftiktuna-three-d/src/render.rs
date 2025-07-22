@@ -182,8 +182,7 @@ fn get_render_object_for_layer(
         });
     let offset = to_vec(layer.positioning.offset, direction_mod);
     let center = pos + offset + three_d::vec2(0., height / 2.);
-    let rotation = layer.positioning.rotation;
-    let rotation_value = rotation.0 + animation_factor * (rotation.1 - rotation.0);
+    let rotation_value = layer.positioning.rotation.interpolate(animation_factor);
     let rotation_angle = three_d::degrees(direction_mod * rotation_value);
     let anchor = pos + offset + to_vec(layer.positioning.anchor, direction_mod);
     let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
