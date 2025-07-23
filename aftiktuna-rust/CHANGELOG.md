@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Idle animation for aftiks, eyesaurs, goblins, scarvies and voracious frogs
+- Idle animation for all creatures
 - Model format changes:
   - "fixed" layer property replaced by "fixed_orientation" model property
   - Flipped the y-axis of "y_offset" and "wield_offset", which now matches the y-axis of group placement and background layer offsets

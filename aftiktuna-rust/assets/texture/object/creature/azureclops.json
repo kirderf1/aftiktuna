@@ -1,8 +1,74 @@
 {
   "layers": [
-    { "texture": "creature/azureclops", "if_alive": true, "if_hurt": false },
-    { "texture": "creature/wounded_azureclops", "if_alive": true, "if_hurt": true },
-    { "texture": "creature/azureclops_corpse", "if_alive": false }
+    {
+      "texture": "creature/azureclops/head",
+      "offset": [
+        { "x": 9.0, "y": 201.0 },
+        { "x": 9.0, "y": 202.0 }
+      ],
+      "animation_length": 2.0,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/azureclops/front_arm",
+      "offset": { "x": -43.0, "y": 71.0 },
+      "anchor": { "x": 10.0, "y": 120.0 },
+      "rotation": [ 0.0, -10.0 ],
+      "animation_length": 3.5,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/azureclops/body",
+      "offset": { "x": 8.0, "y": 0.0 },
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/azureclops/back_arm",
+      "offset": { "x": 51.0, "y": 67.0 },
+      "anchor": { "x": -3.0, "y": 120.0 },
+      "rotation": [ 0.0, 6.0 ],
+      "animation_length": 3.5,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/azureclops/head_angry",
+      "offset": [
+        { "x": 9.0, "y": 201.0 },
+        { "x": 9.0, "y": 202.0 }
+      ],
+      "animation_length": 1.5,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/azureclops/front_arm_wounded",
+      "offset": { "x": -43.0, "y": 71.0 },
+      "anchor": { "x": 10.0, "y": 120.0 },
+      "rotation": [ 0.0, -10.0 ],
+      "animation_length": 2.8,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/azureclops/body_wounded",
+      "offset": { "x": 8.0, "y": 0.0 },
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/azureclops/back_arm_wounded",
+      "offset": { "x": 51.0, "y": 67.0 },
+      "anchor": { "x": -3.0, "y": 120.0 },
+      "rotation": [ 0.0, 6.0 ],
+      "animation_length": 2.8,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    { "texture": "creature/azureclops/corpse", "if_alive": false }
   ],
   "z_displacement": 20
 }
