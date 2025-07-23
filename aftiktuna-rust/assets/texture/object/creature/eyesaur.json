@@ -1,9 +1,61 @@
 {
   "layers": [
-    { "texture": "creature/eyesaur", "if_alive": true, "if_hurt": false },
-    { "texture": "creature/wounded_eyesaur", "if_alive": true, "if_hurt": true },
     {
-      "texture": "creature/eyesaur_corpse",
+      "texture": "creature/eyesaur/head",
+      "offset": { "x": 25.0, "y": 66.0 },
+      "anchor": { "x": -9.0, "y": 4.0 },
+      "rotation": [ -2.0, 4.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/eyesaur/head_wounded",
+      "offset": { "x": 25.0, "y": 66.0 },
+      "anchor": { "x": -9.0, "y": 4.0 },
+      "rotation": [ -4.0, 1.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/eyesaur/body",
+      "offset": [
+        { "x": -6.0, "y": 35.0 },
+        { "x": -6.0, "y": 36.0 }
+      ],
+      "animation_length": 3.5,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/eyesaur/body_wounded",
+      "offset": [
+        { "x": -6.0, "y": 35.0 },
+        { "x": -6.0, "y": 36.0 }
+      ],
+      "animation_length": 3.5,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/eyesaur/tail",
+      "offset": [
+        { "x": -24.0, "y": 48.0 },
+        { "x": -24.0, "y": 49.0 }
+      ],
+      "anchor": { "x": -5.0, "y": 4.0 },
+      "rotation": [ 0.0, 10.0 ],
+      "animation_length": 3.5,
+      "if_alive": true
+    },
+    {
+      "texture": "creature/eyesaur/legs",
+      "offset": { "x": -9.0, "y": 0.0 },
+      "if_alive": true
+    },
+    {
+      "texture": "creature/eyesaur/corpse",
       "offset": { "x": 0.0, "y": -10.0 },
       "if_alive": false
     }
