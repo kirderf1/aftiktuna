@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
-use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
 use crate::action::{self, Action};
@@ -38,7 +37,7 @@ pub struct GameState {
 
 pub fn setup(mut generation_state: GenerationState) -> GameState {
     let mut world = World::new();
-    let mut rng = thread_rng();
+    let mut rng = rand::rng();
 
     let (controlled, ship) = location::spawn_starting_crew_and_ship(
         &mut world,

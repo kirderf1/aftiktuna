@@ -14,9 +14,9 @@ use crate::game_loop::GameState;
 use crate::view::text::{self, Messages};
 use crate::{asset, serialization};
 use hecs::{CommandBuffer, Entity, Satisfies, World};
+use rand::Rng;
 use rand::rngs::ThreadRng;
 use rand::seq::index;
-use rand::{Rng, thread_rng};
 use serde::{Deserialize, Serialize};
 
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
@@ -144,7 +144,7 @@ impl Locations {
         let category = self.categories.get_mut(category_index).unwrap();
         let chosen_location = category
             .location_names
-            .swap_remove(rng.gen_range(0..category.location_names.len()));
+            .swap_remove(rng.random_range(0..category.location_names.len()));
         if category.location_names.is_empty() {
             self.categories.swap_remove(category_index);
         }
@@ -157,7 +157,7 @@ impl Locations {
         }
         let location = self
             .fortuna_locations
-            .remove(rng.gen_range(0..self.fortuna_locations.len()));
+            .remove(rng.random_range(0..self.fortuna_locations.len()));
         PickResult::Location(location)
     }
 }
@@ -348,7 +348,7 @@ impl LocationGenContext {
             world: serialization::world::serialize_clone(&state.world)
                 .expect("Unexpected error when cloning world"),
             character_profiles: state.generation_state.character_profiles.clone(),
-            rng: thread_rng(),
+            rng: rand::rng(),
         }
     }
 

@@ -47,7 +47,7 @@ pub(super) fn attack(
     if targets.is_empty() {
         action::silent_ok()
     } else {
-        let target = targets[state.rng.gen_range(0..targets.len())];
+        let target = targets[state.rng.random_range(0..targets.len())];
         attack_single(state, attacker, target)
     }
 }
@@ -192,7 +192,7 @@ fn roll_hit(world: &mut World, attacker: Entity, target: Entity, rng: &mut impl 
 
     // Yes, this looks slightly odd. This is meant to act as a d20 integer roll,
     // which is converted to a float only to be compared against the float factor.
-    let hit_roll = rng.gen_range::<i16, _>(1..=20);
+    let hit_roll = rng.random_range::<i16, _>(1..=20);
 
     if hit_roll < hit_difficulty - 5 {
         HitType::Dodge
@@ -221,6 +221,6 @@ fn roll_stun(attacker: EntityRef, target: EntityRef, rng: &mut impl Rng) -> bool
         .endurance;
 
     let stun_difficulty = 15 + 2 * (target_endurance - attacker_strength);
-    let stun_roll = rng.gen_range::<i16, _>(1..=20);
+    let stun_roll = rng.random_range::<i16, _>(1..=20);
     stun_roll >= stun_difficulty
 }

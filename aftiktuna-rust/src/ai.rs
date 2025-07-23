@@ -9,7 +9,7 @@ use crate::core::{
 };
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -133,7 +133,7 @@ fn pick_foe_action(
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();
         if let Some(&observation_target) = observation_targets.choose(rng)
-            && rng.gen_range::<u8, _>(1..=10) != 1
+            && rng.random_range::<u8, _>(1..=10) != 1
         {
             return Some(Action::Examine(observation_target));
         } else {

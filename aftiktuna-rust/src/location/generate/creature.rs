@@ -12,7 +12,7 @@ use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, Wandering};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use std::collections::HashSet;
 
 fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<CreatureAttribute> {
@@ -20,7 +20,7 @@ fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<Cre
         AttributeChoice::None => None,
         AttributeChoice::Attribute(attribute) => Some(attribute),
         AttributeChoice::Random => {
-            if rng.gen_bool(0.5) {
+            if rng.random_bool(0.5) {
                 None
             } else {
                 [

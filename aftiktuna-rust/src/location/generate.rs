@@ -14,7 +14,7 @@ use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
 use crate::core::position::{Coord, Pos};
 use hecs::{Entity, World};
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 
 pub fn build_location(
     location_data: LocationData,

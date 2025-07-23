@@ -66,7 +66,7 @@ pub mod color {
 pub mod loot {
     use crate::core::item;
     use rand::Rng;
-    use rand::distributions::WeightedIndex;
+    use rand::distr::weighted::WeightedIndex;
     use serde::{Deserialize, Serialize};
     use std::collections::hash_map::{Entry as HashMapEntry, HashMap};
 
@@ -341,7 +341,7 @@ pub(crate) fn remove_random_profile(
         eprintln!("Tried picking a random profile, but there were none left to choose.");
         return None;
     }
-    let chosen_index = rng.gen_range(0..character_profiles.len());
+    let chosen_index = rng.random_range(0..character_profiles.len());
     Some(character_profiles.swap_remove(chosen_index))
 }
 
