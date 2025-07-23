@@ -208,6 +208,17 @@ fn model_editor_ui(
 
     ui.separator();
 
+    ui.horizontal(|ui| {
+        ui.label("Animation time:");
+        ui.add(
+            egui::DragValue::new(&mut layer.positioning.animation_length)
+                .speed(0.1)
+                .range(0.0..=f32::INFINITY),
+        );
+    });
+
+    ui.separator();
+
     if let Some((width, height)) = &mut layer.positioning.size {
         ui.label("Size:");
         ui.horizontal(|ui| {
@@ -231,10 +242,14 @@ fn model_editor_ui(
         ui.add(egui::DragValue::new(&mut layer.positioning.offset.0.x));
         ui.add(egui::DragValue::new(&mut layer.positioning.offset.0.y));
     });
-    ui.horizontal(|ui| {
-        ui.add(egui::DragValue::new(&mut layer.positioning.offset.1.x));
-        ui.add(egui::DragValue::new(&mut layer.positioning.offset.1.y));
-    });
+    if layer.positioning.animation_length != 0. {
+        ui.horizontal(|ui| {
+            ui.add(egui::DragValue::new(&mut layer.positioning.offset.1.x));
+            ui.add(egui::DragValue::new(&mut layer.positioning.offset.1.y));
+        });
+    } else {
+        layer.positioning.offset.1 = layer.positioning.offset.0;
+    }
 
     ui.separator();
 
@@ -248,20 +263,14 @@ fn model_editor_ui(
         &mut layer.positioning.rotation.0,
         -45.0..=45.0,
     ));
-    ui.add(egui::Slider::new(
-        &mut layer.positioning.rotation.1,
-        -45.0..=45.0,
-    ));
-
-    ui.separator();
-    ui.horizontal(|ui| {
-        ui.label("Animation time:");
-        ui.add(
-            egui::DragValue::new(&mut layer.positioning.animation_length)
-                .speed(0.1)
-                .range(0.0..=f32::INFINITY),
-        );
-    });
+    if layer.positioning.animation_length != 0. {
+        ui.add(egui::Slider::new(
+            &mut layer.positioning.rotation.1,
+            -45.0..=45.0,
+        ));
+    } else {
+        layer.positioning.rotation.1 = layer.positioning.rotation.0;
+    }
 
     ui.separator();
 
