@@ -1,9 +1,29 @@
 {
   "layers": [
-    { "texture": "creature/voracious_frog", "if_alive": true, "if_hurt": false },
-    { "texture": "creature/wounded_voracious_frog", "if_alive": true, "if_hurt": true },
+    { "texture": "creature/voracious_frog/body", "if_alive": true, "if_hurt": false },
+    { "texture": "creature/voracious_frog/body_wounded", "if_alive": true, "if_hurt": true },
     {
-      "texture": "creature/voracious_frog_corpse",
+      "texture": "creature/voracious_frog/back_leg",
+      "offset": [
+        { "x": 88.0, "y": 38.0 },
+        { "x": 88.0, "y": 30.0 }
+      ],
+      "animation_length": 4.0,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/voracious_frog/back_leg_wounded",
+      "offset": [
+        { "x": 88.0, "y": 38.0 },
+        { "x": 88.0, "y": 30.0 }
+      ],
+      "animation_length": 4.0,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/voracious_frog/corpse",
       "offset": { "x": 0.0, "y": 5.0 },
       "if_alive": false
     }
