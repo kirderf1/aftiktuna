@@ -8,6 +8,7 @@ use aftiktuna::core::store::StoreStock;
 use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
 use aftiktuna::view::{self, Frame};
 use aftiktuna_three_d::{render, Camera};
+use rand::{Rng, SeedableRng};
 use three_d::Object;
 
 pub fn render_frame(
@@ -124,12 +125,16 @@ fn draw_area_view(
     let entity_objects = cached_objects
         .iter()
         .flat_map(|(pos, object)| {
+            let time_offset = {
+                let mut rand = rand::rngs::SmallRng::seed_from_u64(object.hash);
+                rand.random_range(0.0..100000.0)
+            };
             let mut render_objects = render::get_render_objects_for_entity(
                 assets.models.lookup_model(&object.model_id),
                 *pos,
                 &object.properties,
                 &mut assets.aftik_colors,
-                frame_input.accumulated_time as f32,
+                frame_input.accumulated_time as f32 + time_offset,
                 &frame_input.context,
             );
             if object.properties.is_alive {

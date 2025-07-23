@@ -117,6 +117,8 @@ pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: OrderWeight,
     pub model_id: ModelId,
+    #[serde(default)] // backwards-compatibility with 4.0
+    pub hash: u64,
     pub name_data: Option<ObjectNameData>,
     pub wielded_item: Option<ModelId>,
     pub interactions: Vec<InteractionType>,
@@ -264,6 +266,12 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             .get::<&ModelId>()
             .map(deref_clone)
             .unwrap_or_default(),
+        hash: {
+            use std::hash::{DefaultHasher, Hash, Hasher};
+            let mut hasher = DefaultHasher::new();
+            entity.hash(&mut hasher);
+            hasher.finish()
+        },
         name_data: ObjectNameData::build(entity_ref, &state.world),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: suggestion::interactions_for(entity, state),
