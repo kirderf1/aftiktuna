@@ -1,7 +1,49 @@
 {
   "layers": [
-    { "texture": "creature/goblin", "if_alive": true, "if_hurt": false },
-    { "texture": "creature/wounded_goblin", "if_alive": true, "if_hurt": true },
-    { "texture": "creature/goblin_corpse", "if_alive": false }
+    {
+      "texture": "creature/goblin/head",
+      "offset": { "x": 1.0, "y": 46.0 },
+      "anchor": { "x": 0.0, "y": 5.0 },
+      "rotation": [ 0.0, 8.0 ],
+      "animation_length": 3.5,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/goblin/head_wounded",
+      "offset": { "x": 1.0, "y": 46.0 },
+      "anchor": { "x": 0.0, "y": 5.0 },
+      "rotation": [ -8.0, 0.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    { "texture": "creature/goblin/body", "if_alive": true, "if_hurt": false },
+    { "texture": "creature/goblin/body_wounded", "if_alive": true, "if_hurt": true },
+    {
+      "texture": "creature/goblin/left_leg",
+      "offset": { "x": -8.0, "y": 12.0 },
+      "anchor": { "x": 0.0, "y": 15.0 },
+      "rotation": [ -10.0, 10.0 ],
+      "animation_length": 2.5,
+      "if_alive": true
+    },
+    {
+      "texture": "creature/goblin/right_leg",
+      "offset": { "x": 1.0, "y": 10.0 },
+      "anchor": { "x": 0.0, "y": 15.0 },
+      "rotation": [ -10.0, 10.0 ],
+      "animation_length": 2.5,
+      "if_alive": true
+    },
+    {
+      "texture": "creature/goblin/tail",
+      "offset": { "x": -9.0, "y": 16.0 },
+      "anchor": { "x": 3.0, "y": 12.0 },
+      "rotation": [ -18.0, 0.0 ],
+      "animation_length": 2.5,
+      "if_alive": true
+    },
+    { "texture": "creature/goblin/corpse", "if_alive": false }
   ]
 }
