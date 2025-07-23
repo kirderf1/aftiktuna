@@ -246,11 +246,11 @@ fn model_editor_ui(
     ui.label("Rotation:");
     ui.add(egui::Slider::new(
         &mut layer.positioning.rotation.0,
-        -180.0..=180.0,
+        -45.0..=45.0,
     ));
     ui.add(egui::Slider::new(
         &mut layer.positioning.rotation.1,
-        -180.0..=180.0,
+        -45.0..=45.0,
     ));
 
     ui.separator();
