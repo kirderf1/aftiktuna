@@ -1,9 +1,77 @@
 {
   "layers": [
-    { "texture": "creature/scarvie", "if_alive": true, "if_hurt": false },
-    { "texture": "creature/wounded_scarvie", "if_alive": true, "if_hurt": true },
     {
-      "texture": "creature/scarvie_corpse",
+      "texture": "creature/scarvie/ear",
+      "offset": [
+        { "x": 6.0, "y": 49.0 },
+        { "x": 4.0, "y": 49.0 }
+      ],
+      "anchor": { "x": 3.0, "y": 27.0 },
+      "rotation": [ 3.0, -2.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/scarvie/head",
+      "offset": { "x": 20.0, "y": 56.0 },
+      "anchor": { "x": -5.0, "y": 4.0 },
+      "rotation": [ 0.0, 5.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/scarvie/ear",
+      "offset": [
+        { "x": 6.0, "y": 49.0 },
+        { "x": 7.0, "y": 50.0 }
+      ],
+      "anchor": { "x": 3.0, "y": 27.0 },
+      "rotation": [ -2.0, 3.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/scarvie/head_wounded",
+      "offset": { "x": 20.0, "y": 56.0 },
+      "anchor": { "x": -5.0, "y": 4.0 },
+      "rotation": [ 0.0, -5.0 ],
+      "animation_length": 3.0,
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/scarvie/arm",
+      "offset": { "x": 7.0, "y": 24.0 },
+      "anchor": { "x": -6.0, "y": 18.0 },
+      "rotation": [ -5.0, 5.0 ],
+      "animation_length": 4.5,
+      "if_alive": true
+    },
+    {
+      "texture": "creature/scarvie/body",
+      "offset": { "x": -13.0, "y": 0.0 },
+      "if_alive": true,
+      "if_hurt": false
+    },
+    {
+      "texture": "creature/scarvie/body_wounded",
+      "offset": { "x": -13.0, "y": 0.0 },
+      "if_alive": true,
+      "if_hurt": true
+    },
+    {
+      "texture": "creature/scarvie/arm",
+      "offset": { "x": 10.0, "y": 29.0 },
+      "anchor": { "x": -6.0, "y": 18.0 },
+      "rotation": [ -5.0, 5.0 ],
+      "animation_length": 4.5,
+      "if_alive": true
+    },
+    {
+      "texture": "creature/scarvie/corpse",
       "offset": { "x": 0.0, "y": -5.0 },
       "if_alive": false
     }
