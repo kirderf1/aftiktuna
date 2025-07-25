@@ -29,15 +29,18 @@ fn main() {
         return;
     };
 
-    let mut selected_model = model::load_raw_model_from_path(&path).unwrap();
+    let selected_model = model::load_raw_model_from_path(&path).unwrap();
     assert!(
         !selected_model.layers.is_empty(),
         "Layers must not be empty"
     );
-    let mut selected_layer = 0;
-    let mut group_size = 3;
+    let mut editor_data = EditorData {
+        model: selected_model,
+        selected_layer: 0,
+        group_size: 3,
+        indoors: false,
+    };
     let mut area_size = 7;
-    let mut indoors = false;
 
     let mut camera = aftiktuna_three_d::Camera::default();
 
@@ -77,14 +80,7 @@ fn main() {
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                save |= side_panel(
-                    egui_context,
-                    &mut selected_model,
-                    &mut selected_layer,
-                    &mut group_size,
-                    &mut indoors,
-                    &mut texture_loader,
-                );
+                save |= side_panel(egui_context, &mut editor_data, &mut texture_loader);
             },
         );
 
@@ -103,11 +99,11 @@ fn main() {
                 as u32,
         };
 
-        let model = selected_model.load(&mut texture_loader).unwrap();
+        let loaded_model = editor_data.model.load(&mut texture_loader).unwrap();
         let render_camera = render::get_render_camera(&camera, render_viewport);
 
         let background_objects = render::render_objects_for_primary_background(
-            if indoors {
+            if editor_data.indoors {
                 &indoor_background
             } else {
                 &forest_background
@@ -120,8 +116,8 @@ fn main() {
         render::draw_in_order(&background_objects, &render_camera, &screen);
 
         area_size = draw_examples(
-            &model,
-            group_size,
+            &loaded_model,
+            editor_data.group_size,
             &aftik_model,
             &render_camera,
             &frame_input,
@@ -131,7 +127,7 @@ fn main() {
 
         if save {
             let file = File::create(&path).unwrap();
-            serde_json_pretty::to_writer(file, &selected_model).unwrap();
+            serde_json_pretty::to_writer(file, &editor_data.model).unwrap();
 
             three_d::FrameOutput {
                 exit: true,
@@ -143,12 +139,16 @@ fn main() {
     });
 }
 
+struct EditorData {
+    model: Model<String>,
+    selected_layer: usize,
+    group_size: u16,
+    indoors: bool,
+}
+
 fn side_panel(
     ctx: &egui::Context,
-    model: &mut Model<String>,
-    selected_layer: &mut usize,
-    group_size: &mut u16,
-    indoors: &mut bool,
+    editor_data: &mut EditorData,
     textures: &mut CachedLoader,
 ) -> bool {
     egui::SidePanel::right("side")
@@ -157,9 +157,7 @@ fn side_panel(
         .exact_width(SIDE_PANEL_WIDTH as f32)
         .show(ctx, |ui| {
             egui::ScrollArea::vertical()
-                .show(ui, |ui| {
-                    model_editor_ui(ui, model, selected_layer, group_size, indoors, textures)
-                })
+                .show(ui, |ui| model_editor_ui(ui, editor_data, textures))
                 .inner
         })
         .inner
@@ -167,18 +165,16 @@ fn side_panel(
 
 fn model_editor_ui(
     ui: &mut egui::Ui,
-    model: &mut Model<String>,
-    selected_layer: &mut usize,
-    group_size: &mut u16,
-    indoors: &mut bool,
+    editor_data: &mut EditorData,
     textures: &mut CachedLoader,
 ) -> bool {
+    let model = &mut editor_data.model;
     if model.has_x_displacement || model.z_displacement != 0 {
         ui.label("Shown count:");
-        ui.add(egui::Slider::new(group_size, 1..=20));
+        ui.add(egui::Slider::new(&mut editor_data.group_size, 1..=20));
     }
 
-    ui.checkbox(indoors, "Indoors");
+    ui.checkbox(&mut editor_data.indoors, "Indoors");
 
     ui.separator();
 
@@ -205,14 +201,14 @@ fn model_editor_ui(
     ui.label("Layers:");
 
     for (layer_index, layer) in model.layers.iter().enumerate() {
-        ui.add_enabled_ui(layer_index != *selected_layer, |ui| {
+        ui.add_enabled_ui(layer_index != editor_data.selected_layer, |ui| {
             if ui.button(layer.primary_texture()).clicked() {
-                *selected_layer = layer_index;
+                editor_data.selected_layer = layer_index;
             }
         });
     }
 
-    let layer = &mut model.layers[*selected_layer];
+    let layer = &mut model.layers[editor_data.selected_layer];
 
     ui.separator();
 
