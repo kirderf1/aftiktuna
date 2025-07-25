@@ -337,7 +337,7 @@ mod ui {
                     old_char: None,
                     new_char: String::new(),
                     symbol_data: SymbolData::Inanimate {
-                        model: ModelId::unknown(),
+                        model: ModelId::new("environment/"),
                         direction: Default::default(),
                     },
                 })
