@@ -44,7 +44,7 @@
       "pos_in_overview": [ -2, 1 ],
       "background": "facility_size6",
       "darkness": 0.35,
-      "objects": [ "<", "E", "", "^", "=", ">" ],
+      "objects": [ "<", "E", "p", "^", "=", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway" },
         "^": { "type": "door", "pair_id": "entrance", "display_type": "door", "adjective": "left" },
@@ -56,7 +56,8 @@
             { "type": "loot", "table": "tool" }
           ],
           "direction": "right"
-        }
+        },
+        "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
       }
     },
     {
@@ -84,12 +85,12 @@
       "pos_in_overview": [ -2, 9 ],
       "background": "facility_size5",
       "darkness": 0.35,
-      "objects": [ "<", "T", "^", "", ">" ],
+      "objects": [ "<", "p", "^", "", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "left" },
         "^": { "type": "door", "pair_id": "corridor2", "display_type": "doorway" },
         ">": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "right" },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
       }
     },
     {
@@ -109,7 +110,7 @@
       "pos_in_overview": [ 6, 5 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "^", "", "I", "" ],
+      "objects": [ "^", "", ":", "I" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
         "I": {
@@ -119,7 +120,8 @@
             { "type": "loot", "table": "tool" }
           ],
           "direction": "right"
-        }
+        },
+        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
       }
     },
     {
@@ -173,21 +175,24 @@
     },
     {
       "name": "Basement",
-      "pos_in_overview": [ 3, -13 ],
+      "pos_in_overview": [ 2, -13 ],
       "background": "facility_size6",
       "darkness": 0.6,
-      "objects": [ "", "<", "^Z", "T", ">", "" ],
+      "objects": [ "<", "^", "CZ", ":T", "c", ">" ],
       "symbols": {
         ">": { "type": "door", "pair_id": "basement_entrance", "display_type": "door", "adjective": "right" },
         "^": { "type": "door", "pair_id": "basement_side", "display_type": "doorway" },
         "<": { "type": "door", "pair_id": "basement1", "display_type": "door", "adjective": "left" },
         "Z": { "type": "creature", "creature": "azureclops", "wandering": true },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/broken_table" },
+        "C": { "type": "inanimate", "model": "environment/chair" },
+        "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
+        ":": { "type": "inanimate", "model": "environment/planet_poster" }
       }
     },
     {
       "name": "Basement",
-      "pos_in_overview": [ 3, -7 ],
+      "pos_in_overview": [ 1, -10 ],
       "background": "facility_size3",
       "darkness": 0.6,
       "objects": [ "^", "#", "I" ],
@@ -214,7 +219,7 @@
     },
     {
       "name": "Basement",
-      "pos_in_overview": [ 0, -16 ],
+      "pos_in_overview": [ -2, -16 ],
       "background": "facility_size4",
       "darkness": 0.6,
       "objects": [ "<", "=E", "E", ">" ],
@@ -233,10 +238,10 @@
     },
     {
       "name": "Basement",
-      "pos_in_overview": [ -2, -19 ],
+      "pos_in_overview": [ -4, -19 ],
       "background": "facility_size4",
       "darkness": 0.6,
-      "objects": [ "#", "", "^", "" ],
+      "objects": [ "B", "", "^", "#" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "basement2", "display_type": "door" },
         "#": {
@@ -246,7 +251,8 @@
             { "type": "loot", "table": "valuable" }
           ],
           "direction": "right"
-        }
+        },
+        "B": { "type": "inanimate", "model": "environment/bed" }
       }
     }
   ],

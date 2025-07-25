@@ -1,0 +1,6 @@
+{
+  "layers": [
+    { "texture": "environment/potted_plant" }
+  ],
+  "fixed_orientation": true
+}

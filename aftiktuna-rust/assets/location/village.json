@@ -62,21 +62,23 @@
       "name": "House",
       "pos_in_overview": [ -4, -2 ],
       "background": "shack",
-      "objects": [ "A", "", "^", "T" ],
+      "objects": [ "B", ":A", "^", "p" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "aftik_house", "display_type": "door" },
         "A": {
           "type": "character",
           "interaction": { "type": "recruitable" }
         },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "p": { "type": "inanimate", "model": "environment/potted_plant" },
+        ":": { "type": "inanimate", "model": "environment/aftik_poster" },
+        "B": { "type": "inanimate", "model": "environment/bed" }
       }
     },
     {
       "name": "Store",
       "pos_in_overview": [ 5, -2 ],
       "background": "shack",
-      "objects": [ "^", "T", "S", "" ],
+      "objects": [ "^", "p", ":T", "S" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "store", "display_type": "door" },
         "S": {
@@ -90,14 +92,16 @@
           ],
           "color": "green"
         },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/table" },
+        ":": { "type": "inanimate", "model": "environment/planet_poster" },
+        "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
     },
     {
       "name": "House",
       "pos_in_overview": [ 5, 7 ],
       "background": "shack",
-      "objects": [ "^", "", "#", "" ],
+      "objects": [ "^", "", "#", "T" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "stuck_house", "display_type": "door" },
         "#": {
@@ -108,25 +112,28 @@
             { "type": "loot", "table": "resource" }
           ],
           "direction": "right"
-        }
+        },
+        "T": { "type": "inanimate", "model": "environment/table" }
       }
     },
     {
       "name": "House",
       "pos_in_overview": [ 11, 7 ],
       "background": "shack",
-      "objects": [ "^", "", "Z", "T" ],
+      "objects": [ "^", ":T", "Z", "B" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "azureclops_house", "display_type": "door" },
         "Z": { "type": "creature", "creature": "azureclops", "attribute": "agile", "tag": "house_azureclops" },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/broken_table" },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        ":": { "type": "inanimate", "model": "environment/planet_poster" }
       }
     },
     {
       "name": "Shack",
       "pos_in_overview": [ -2, 16 ],
       "background": "shack",
-      "objects": [ "^", "", "T", "¤" ],
+      "objects": [ "^", "p", "T", "¤" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "shack", "display_type": "door" },
         "¤": {
@@ -138,7 +145,8 @@
           ],
           "direction": "right"
         },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
       }
     }
   ],

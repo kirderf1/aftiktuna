@@ -1,0 +1,12 @@
+{
+  "layers": [
+    {
+      "texture": "environment/aftik_poster",
+      "offset": { "x": 0.0, "y": 85.0 }
+    }
+  ],
+  "z_offset": -30,
+  "fixed_orientation": true,
+  "has_x_displacement": false,
+  "z_displacement": 0
+}

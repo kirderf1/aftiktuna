@@ -1,0 +1,6 @@
+{
+  "layers": [
+    { "texture": "environment/broken_table" }
+  ],
+  "fixed_orientation": true
+}

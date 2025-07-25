@@ -25,7 +25,7 @@
       "pos_in_overview": [ -3, 2 ],
       "background": "facility_size7",
       "darkness": 0.35,
-      "objects": [ "#", "<", "", "^", "", ">", "" ],
+      "objects": [ "#", "<", ":", "^", "", ">", "p" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "sealed", "display_type": "door", "adjective": "left" },
         "^": { "type": "door", "pair_id": "corridor1", "display_type": "doorway" },
@@ -37,7 +37,9 @@
             { "type": "loot", "table": "resource" }
           ],
           "direction": "left"
-        }
+        },
+        "p": { "type": "inanimate", "model": "environment/dead_potted_plant" },
+        ":": { "type": "inanimate", "model": "environment/planet_poster" }
       }
     },
     {
@@ -69,15 +71,12 @@
       "pos_in_overview": [ 0, 8 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "", "I", "", "^" ],
+      "objects": [ "", ":T", "c", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
-        "I": {
-          "type": "container",
-          "container_type": "cabinet",
-          "content": [],
-          "direction": "left"
-        }
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
+        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
       }
     },
     {
@@ -85,11 +84,18 @@
       "pos_in_overview": [ 6, 8 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "b", "T", "", "^" ],
+      "objects": [ "", "I", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
-        "b": { "type": "item", "item": "blowtorch" },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "I": {
+          "type": "container",
+          "container_type": "cabinet",
+          "content": [
+            { "type": "item", "item": "blowtorch" }
+          ],
+          "direction": "left"
+        },
+        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
       }
     },
     {
@@ -97,7 +103,7 @@
       "pos_in_overview": [ 12, 8 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "^", "", "E", "f=" ],
+      "objects": [ "^", "p", "E", "f=" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room3", "display_type": "door" },
         "=": {
@@ -107,7 +113,8 @@
             { "type": "loot", "table": "tool" }
           ],
           "direction": "right"
-        }
+        },
+        "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
       }
     },
     {
@@ -115,7 +122,7 @@
       "pos_in_overview": [ -7, 6 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "v", "", "^", "#" ],
+      "objects": [ "v", "T", "^", "#" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "sealed", "display_type": "door" },
         "#": {
@@ -126,7 +133,8 @@
           ],
           "direction": "right"
         },
-        "v": { "type": "door", "pair_id": "stairs", "display_type": "downward_stairs" }
+        "v": { "type": "door", "pair_id": "stairs", "display_type": "downward_stairs" },
+        "T": { "type": "inanimate", "model": "environment/broken_table" }
       }
     },
     {
@@ -134,22 +142,22 @@
       "pos_in_overview": [ -9, -10 ],
       "background": "facility_size7",
       "darkness": 0.6,
-      "objects": [ "T", "^", "<", "Z", "*", "F", ">" ],
+      "objects": [ "", "^", "<", "Z", "*", "F", ">" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "stairs", "display_type": "upward_stairs" },
         "<": { "type": "door", "pair_id": "basement_a", "display_type": "door", "adjective": "left" },
         "*": { "type": "door", "pair_id": "basement_b1", "display_type": "door", "adjective": "middle" },
         ">": { "type": "door", "pair_id": "basement_c", "display_type": "door", "adjective": "right" },
         "Z": { "type": "creature", "creature": "azureclops", "wandering": true },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/broken_table" }
       }
     },
     {
       "name": "Basement",
-      "pos_in_overview": [ -13, -14 ],
-      "background": "facility_size4",
+      "pos_in_overview": [ -14, -14 ],
+      "background": "facility_size6",
       "darkness": 0.6,
-      "objects": [ "#", "", "", "^" ],
+      "objects": [ "#", "", ":B", "", "B", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "basement_a", "display_type": "door" },
         "#": {
@@ -160,7 +168,9 @@
             { "type": "item", "item": "food_ration" }
           ],
           "direction": "left"
-        }
+        },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        ":": { "type": "inanimate", "model": "environment/planet_poster" }
       }
     },
     {
@@ -168,11 +178,13 @@
       "pos_in_overview": [ -8, -14 ],
       "background": "facility_size5",
       "darkness": 0.6,
-      "objects": [ "", "<", "Z", "T", ">" ],
+      "objects": [ "", "<", "TZ", ":c", ">" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "basement_b1", "display_type": "door" },
         ">": { "type": "door", "pair_id": "basement_b2", "display_type": "doorway" },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/broken_table" },
+        "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
+        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
       }
     },
     {
