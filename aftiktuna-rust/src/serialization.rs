@@ -145,16 +145,15 @@ macro_rules! world_serialization {
 }
 
 pub mod world {
+    use crate::ai;
+    use crate::core::{self, area, display, inventory, item, name, position, status, store};
     use std::error::Error;
 
-    use crate::ai;
-    use crate::core::area::{Area, Ship, ShipControls};
-    use crate::core::{self, display, inventory, item, name, position, status, store};
-
     world_serialization!(
-        Area, Area;
-        Ship, Ship;
-        ShipControls, ShipControls;
+        area::Area, Area;
+        area::ShipState, Ship;
+        area::ShipRoom, ShipRoom;
+        area::ShipControls, ShipControls;
         position::Pos, Pos;
         position::Direction, Direction;
         position::OccupiesSpace, OccupiesSpace;

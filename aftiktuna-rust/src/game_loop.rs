@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::action::{self, Action};
 use crate::asset::CrewData;
-use crate::core::area::{FuelAmount, Ship, ShipStatus};
+use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::{self, FoodRation, FourLeafClover};
@@ -29,7 +29,8 @@ pub struct GameState {
     #[serde(skip)]
     pub rng: ThreadRng,
     pub generation_state: GenerationState,
-    pub ship: Entity,
+    #[serde(alias = "ship")] // backwards-compatibility with 4.0
+    pub ship_core: Entity,
     pub controlled: Entity,
     pub status_cache: StatusCache,
     pub has_introduced_controlled: bool,
@@ -39,7 +40,7 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
     let mut world = World::new();
     let mut rng = rand::rng();
 
-    let (controlled, ship) = location::spawn_starting_crew_and_ship(
+    let (controlled, ship_core) = location::spawn_starting_crew_and_ship(
         &mut world,
         CrewData::load_starting_crew().expect("Unable to set up game"),
         &mut generation_state,
@@ -50,7 +51,7 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
         world,
         rng,
         generation_state,
-        ship,
+        ship_core,
         controlled,
         status_cache: StatusCache::default(),
         has_introduced_controlled: false,
@@ -407,7 +408,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
 fn is_ship_launching(world: &World, area: Entity) -> bool {
     world
-        .get::<&Ship>(area)
+        .get::<&ShipState>(area)
         .map(|ship| ship.status == ShipStatus::Launching)
         .unwrap_or(false)
 }
@@ -424,7 +425,7 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .query::<(&Pos, NameQuery)>()
         .with::<&CrewMember>()
         .iter()
-        .filter(|(_, (pos, _))| !pos.is_in(state.ship))
+        .filter(|&(_, (pos, _))| !area::is_in_ship(*pos, &state.world))
     {
         let name = NameData::from(query).definite();
         view_buffer.messages.add(format!("{name} was left behind."));
@@ -433,9 +434,12 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
     view_buffer.capture_view(state);
 
-    location::despawn_all_except_ship(&mut state.world, state.ship);
-    state.world.get::<&mut Ship>(state.ship).unwrap().status =
-        ShipStatus::NeedFuel(FuelAmount::TwoCans);
+    location::despawn_all_except_ship(&mut state.world);
+    state
+        .world
+        .get::<&mut ShipState>(state.ship_core)
+        .unwrap()
+        .status = ShipStatus::NeedFuel(FuelAmount::TwoCans);
 }
 
 fn deposit_items_to_ship(state: &mut GameState) {
@@ -444,7 +448,7 @@ fn deposit_items_to_ship(state: &mut GameState) {
         .query::<&Pos>()
         .with::<&CrewMember>()
         .iter()
-        .filter(|&(_, pos)| pos.is_in(state.ship))
+        .filter(|&(_, pos)| area::is_in_ship(*pos, &state.world))
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     let items = state
@@ -455,7 +459,11 @@ fn deposit_items_to_ship(state: &mut GameState) {
         .filter(|&(_, held)| crew_in_ship.iter().any(|&entity| held.held_by(entity)))
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
-    let item_pos = state.world.get::<&Ship>(state.ship).unwrap().item_pos;
+    let item_pos = state
+        .world
+        .get::<&ShipState>(state.ship_core)
+        .unwrap()
+        .item_pos;
     for item in items {
         state.world.exchange_one::<Held, _>(item, item_pos).unwrap();
     }
@@ -485,7 +493,7 @@ fn consume_rations_healing(state: &mut GameState, messages: &mut Messages) {
             .query::<&Pos>()
             .with::<&FoodRation>()
             .iter()
-            .filter(|&(_, pos)| pos.is_in(state.ship))
+            .filter(|&(_, pos)| area::is_in_ship(*pos, &state.world))
             .take(usize::from(rations_to_eat))
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();

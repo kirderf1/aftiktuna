@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
-use crate::core::area::{Ship, ShipStatus};
+use crate::core::area::{ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{FoodRation, FuelCan};
 use crate::core::name::{Name, NameData, NameQuery};
@@ -201,11 +201,11 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let need_fuel = world
-        .get::<&Ship>(area)
+        .get::<&ShipState>(area)
         .map(|ship| matches!(ship.status, ShipStatus::NeedFuel(_)))
         .map_err(|_| {
             format!(
-                "{} needs to be in the ship in order to refuel it.",
+                "{} needs to be in the ship control room in order to refuel it.",
                 NameData::find(world, character).definite()
             )
         })?;
@@ -230,11 +230,11 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let need_fuel = world
-        .get::<&Ship>(area)
+        .get::<&ShipState>(area)
         .map(|ship| matches!(ship.status, ShipStatus::NeedFuel(_)))
         .map_err(|_| {
             format!(
-                "{} needs to be in the ship in order to launch it.",
+                "{} needs to be in the ship control room in order to launch it.",
                 NameData::find(world, character).definite()
             )
         })?;

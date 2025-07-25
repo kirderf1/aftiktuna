@@ -1,5 +1,5 @@
 use crate::action::{self, Error};
-use crate::core::area::{FuelAmount, Ship, ShipStatus};
+use crate::core::area::{FuelAmount, ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{FuelCan, Price};
 use crate::core::name::{self, NameData};
@@ -132,7 +132,7 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
 }
 
 fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
-    let mut query = world.query::<&Ship>();
+    let mut query = world.query::<&ShipState>();
     let Some((_, ship)) = query.iter().next() else {
         return true;
     };

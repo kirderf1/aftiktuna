@@ -1,5 +1,5 @@
 use super::text::{self, Messages};
-use crate::core::area::{FuelAmount, Ship, ShipStatus};
+use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::item::FoodRation;
 use crate::core::name::{self, Name, NameData, Noun};
 use crate::core::position::Pos;
@@ -46,7 +46,11 @@ pub fn get_full_status(state: &GameState) -> FullStatus {
     let mut ship_messages = Messages::default();
     maybe_print_points(&state.world, state.controlled, &mut ship_messages, None);
 
-    match state.world.get::<&Ship>(state.ship).map(|ship| ship.status) {
+    match state
+        .world
+        .get::<&ShipState>(state.ship_core)
+        .map(|ship| ship.status)
+    {
         Ok(ShipStatus::Refueled) => ship_messages.add("The ship is refueled and ready to launch"),
         Ok(ShipStatus::NeedFuel(FuelAmount::OneCan)) => {
             ship_messages.add("The ship needs one more fuel can before it can launch")
@@ -62,7 +66,7 @@ pub fn get_full_status(state: &GameState) -> FullStatus {
         .query::<&Pos>()
         .with::<&FoodRation>()
         .iter()
-        .filter(|&(_, pos)| pos.is_in(state.ship))
+        .filter(|&(_, pos)| area::is_in_ship(*pos, &state.world))
         .count();
     ship_messages.add(format!("Food rations at ship: {ration_count}"));
 

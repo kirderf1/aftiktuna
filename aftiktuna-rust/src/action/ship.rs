@@ -1,5 +1,5 @@
 use crate::action::{self, Error};
-use crate::core::area::{FuelAmount, Ship, ShipControls, ShipStatus};
+use crate::core::area::{self, FuelAmount, ShipControls, ShipState, ShipStatus};
 use crate::core::item::FuelCan;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{self, Pos};
@@ -34,7 +34,7 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
 
     if status != new_status {
         //The ship area should still exist since it existed before
-        state.world.get::<&mut Ship>(area).unwrap().status = new_status;
+        state.world.get::<&mut ShipState>(area).unwrap().status = new_status;
     }
 
     action::ok(message)
@@ -70,7 +70,7 @@ pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
 
     if status != new_status {
         //The ship area should still exist since it existed before
-        state.world.get::<&mut Ship>(area).unwrap().status = new_status;
+        state.world.get::<&mut ShipState>(area).unwrap().status = new_status;
     }
 
     action::ok(message)
@@ -93,7 +93,7 @@ fn refuel_then_launch(
                 .query::<(&Pos, NameQuery)>()
                 .with::<&CrewMember>()
                 .iter()
-                .filter(|(_, (pos, _))| !pos.is_in(state.ship))
+                .filter(|&(_, (pos, _))| !area::is_in_ship(*pos, &state.world))
                 .map(|(_, (_, query))| NameData::from(query).definite())
                 .collect::<Vec<_>>();
             if absent_crew.is_empty() {
@@ -116,8 +116,8 @@ fn refuel_then_launch(
 
 fn lookup_ship_state(world: &World, area: Entity) -> Result<(ShipStatus, Pos), String> {
     let status = world
-        .get::<&Ship>(area)
-        .map_err(|_| "Must be in a ship to do this.".to_string())?
+        .get::<&ShipState>(area)
+        .map_err(|_| "Must be in the ship control room to do this.".to_string())?
         .status;
 
     let controls_pos = world

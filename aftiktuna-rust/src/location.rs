@@ -4,7 +4,9 @@ use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
 use crate::asset::location::{DoorPairData, DoorType, LocationData};
 use crate::asset::{AftikProfile, CrewData};
-use crate::core::area::{Area, BackgroundId, FuelAmount, Ship, ShipControls, ShipStatus};
+use crate::core::area::{
+    self, Area, BackgroundId, FuelAmount, ShipControls, ShipRoom, ShipState, ShipStatus,
+};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
@@ -235,7 +237,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
     world
         .insert_one(
             ship,
-            Ship {
+            ShipState {
                 status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
                 exit_pos: Pos::new(ship, 3, world),
                 item_pos: Pos::new(ship, 4, world),
@@ -299,7 +301,11 @@ pub fn setup_location_into_game(
 
     gen_context.apply_to_game_state(state);
 
-    let ship_exit = state.world.get::<&Ship>(state.ship).unwrap().exit_pos;
+    let ship_exit = state
+        .world
+        .get::<&ShipState>(state.ship_core)
+        .unwrap()
+        .exit_pos;
     let (ship_entity, _) = door::place_pair(
         &mut state.world,
         DoorInfo {
@@ -386,30 +392,45 @@ fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
 
 struct Keep;
 
-pub fn despawn_all_except_ship(world: &mut World, ship: Entity) {
-    world.insert_one(ship, Keep).unwrap();
-    let entities = world
-        .query::<&Pos>()
-        .without::<&Door>()
+pub fn despawn_all_except_ship(world: &mut World) {
+    let mut buffer = CommandBuffer::new();
+    for (entity, _) in world
+        .query::<()>()
+        .with::<hecs::Or<&ShipState, &ShipRoom>>()
         .iter()
-        .filter(|(_, pos)| pos.is_in(ship))
-        .map(|pair| pair.0)
-        .collect::<Vec<_>>();
-    for entity in entities {
-        world.insert_one(entity, Keep).unwrap();
+    {
+        buffer.insert_one(entity, Keep);
+    }
+    for (entity, _) in world
+        .query::<&Pos>()
+        .iter()
+        .filter(|&(_, pos)| area::is_in_ship(*pos, world))
+    {
+        // Do not preserve the ship exit. It will be respawned with the new location.
+        if let Ok(door) = world.get::<&Door>(entity)
+            && !area::is_in_ship(door.destination, world)
+        {
+            continue;
+        }
+
+        buffer.insert_one(entity, Keep);
+        if let Ok(door) = world.get::<&Door>(entity) {
+            buffer.insert_one(door.door_pair, Keep);
+        }
         if let Some(item) = inventory::get_wielded(world, entity) {
-            world.insert_one(item, Keep).unwrap();
+            buffer.insert_one(item, Keep);
         }
         for item in inventory::get_inventory(world, entity) {
-            world.insert_one(item, Keep).unwrap();
+            buffer.insert_one(item, Keep);
         }
         if let Ok(crew) = world
             .get::<&CrewMember>(entity)
             .map(|crew_member| crew_member.0)
         {
-            world.insert_one(crew, Keep).unwrap();
+            buffer.insert_one(crew, Keep);
         }
     }
+    buffer.run_on(world);
 
     let mut buffer = CommandBuffer::new();
     for (entity, keep) in world.query_mut::<Satisfies<&Keep>>() {
