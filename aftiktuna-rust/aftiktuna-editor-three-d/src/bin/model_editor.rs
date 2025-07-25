@@ -37,6 +37,7 @@ fn main() {
     let mut selected_layer = 0;
     let mut group_size = 3;
     let mut area_size = 7;
+    let mut indoors = false;
 
     let mut camera = aftiktuna_three_d::Camera::default();
 
@@ -55,9 +56,14 @@ fn main() {
         .unwrap()
         .load(&mut texture_loader)
         .unwrap();
-    let background = background::load_raw_backgrounds()
-        .unwrap()
+    let backgrounds_map = background::load_raw_backgrounds().unwrap();
+    let forest_background = backgrounds_map
         .get(&BackgroundId::new("forest"))
+        .unwrap()
+        .load(&mut texture_loader)
+        .unwrap();
+    let indoor_background = backgrounds_map
+        .get(&BackgroundId::new("facility_size7"))
         .unwrap()
         .load(&mut texture_loader)
         .unwrap();
@@ -76,6 +82,7 @@ fn main() {
                     &mut selected_model,
                     &mut selected_layer,
                     &mut group_size,
+                    &mut indoors,
                     &mut texture_loader,
                 );
             },
@@ -100,7 +107,11 @@ fn main() {
         let render_camera = render::get_render_camera(&camera, render_viewport);
 
         let background_objects = render::render_objects_for_primary_background(
-            &background,
+            if indoors {
+                &indoor_background
+            } else {
+                &forest_background
+            },
             0,
             camera.camera_x,
             &[],
@@ -137,6 +148,7 @@ fn side_panel(
     model: &mut Model<String>,
     selected_layer: &mut usize,
     group_size: &mut u16,
+    indoors: &mut bool,
     textures: &mut CachedLoader,
 ) -> bool {
     egui::SidePanel::right("side")
@@ -146,7 +158,7 @@ fn side_panel(
         .show(ctx, |ui| {
             egui::ScrollArea::vertical()
                 .show(ui, |ui| {
-                    model_editor_ui(ui, model, selected_layer, group_size, textures)
+                    model_editor_ui(ui, model, selected_layer, group_size, indoors, textures)
                 })
                 .inner
         })
@@ -158,13 +170,17 @@ fn model_editor_ui(
     model: &mut Model<String>,
     selected_layer: &mut usize,
     group_size: &mut u16,
+    indoors: &mut bool,
     textures: &mut CachedLoader,
 ) -> bool {
     if model.has_x_displacement || model.z_displacement != 0 {
         ui.label("Shown count:");
         ui.add(egui::Slider::new(group_size, 1..=20));
-        ui.separator();
     }
+
+    ui.checkbox(indoors, "Indoors");
+
+    ui.separator();
 
     ui.label("Wield offset:");
     ui.horizontal(|ui| {
