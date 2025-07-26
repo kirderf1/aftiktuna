@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - New layer properties for rotation animation and rotation-anchor
   - Colored texture layers are now defined differently
 - Crew ai improvements for moving back to the ship
+- Repeated actions such as "take all" and "rest" are now cancelled if the area becomes unsafe
 
 ### Fixed
 

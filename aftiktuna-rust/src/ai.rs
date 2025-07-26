@@ -33,6 +33,18 @@ pub fn prepare_intentions(world: &mut World) {
         };
     }
 
+    for (crew_member, _) in world
+        .query::<()>()
+        .with::<(&CrewMember, &RepeatingAction)>()
+        .iter()
+    {
+        if let Ok(pos) = world.get::<&Pos>(crew_member)
+            && !core::is_safe(world, pos.get_area())
+        {
+            buffer.remove_one::<RepeatingAction>(crew_member);
+        };
+    }
+
     buffer.run_on(world);
 }
 
