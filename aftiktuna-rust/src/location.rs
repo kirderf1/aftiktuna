@@ -226,24 +226,17 @@ pub(crate) fn spawn_starting_crew_and_ship(
     generation_state: &mut GenerationState,
     rng: &mut impl Rng,
 ) -> (Entity, Entity) {
-    let ship = world.spawn((Area {
-        label: "Ship".to_string(),
-        size: 5,
-        background: BackgroundId::new("ship"),
-        background_offset: 0,
-        extra_background_layers: Vec::default(),
-        darkness: 0.,
-    },));
-    world
-        .insert_one(
-            ship,
-            ShipState {
-                status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
-                exit_pos: Pos::new(ship, 3, world),
-                item_pos: Pos::new(ship, 4, world),
-            },
-        )
-        .unwrap();
+    let ship = world.spawn((
+        Area {
+            label: "Ship".to_string(),
+            size: 5,
+            background: BackgroundId::new("ship"),
+            background_offset: 0,
+            extra_background_layers: Vec::default(),
+            darkness: 0.,
+        },
+        ShipRoom,
+    ));
     item::Type::Medkit.spawn(world, Pos::new(ship, 1, world));
     item::Type::FoodRation.spawn(world, Pos::new(ship, 4, world));
     world.spawn((
@@ -255,6 +248,11 @@ pub(crate) fn spawn_starting_crew_and_ship(
         ShipControls,
     ));
 
+    let ship_core = world.spawn((ShipState {
+        status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
+        exit_pos: Pos::new(ship, 3, world),
+        item_pos: Pos::new(ship, 4, world),
+    },));
     let crew = world.spawn((Points(crew_data.points),));
 
     let mut crew_iter = crew_data
@@ -285,7 +283,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         );
     }
 
-    (controlled, ship)
+    (controlled, ship_core)
 }
 
 pub fn setup_location_into_game(

@@ -133,10 +133,10 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
 
 fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
     let mut query = world.query::<&ShipState>();
-    let Some((_, ship)) = query.iter().next() else {
+    let Some((_, ship_state)) = query.iter().next() else {
         return true;
     };
-    let ShipStatus::NeedFuel(fuel_amount) = ship.status else {
+    let ShipStatus::NeedFuel(fuel_amount) = ship_state.status else {
         return true;
     };
 

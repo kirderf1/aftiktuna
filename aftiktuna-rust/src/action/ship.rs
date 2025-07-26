@@ -11,7 +11,7 @@ use hecs::{Entity, World};
 pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
-    let (status, controls_pos) = lookup_ship_state(&state.world, area)?;
+    let (status, controls_pos) = lookup_ship_state(state, area)?;
 
     position::move_adjacent(&mut state.world, performer, controls_pos)?;
 
@@ -34,7 +34,11 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
 
     if status != new_status {
         //The ship area should still exist since it existed before
-        state.world.get::<&mut ShipState>(area).unwrap().status = new_status;
+        state
+            .world
+            .get::<&mut ShipState>(state.ship_core)
+            .unwrap()
+            .status = new_status;
     }
 
     action::ok(message)
@@ -49,7 +53,7 @@ pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
 
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
-    let (status, controls_pos) = lookup_ship_state(&state.world, area)?;
+    let (status, controls_pos) = lookup_ship_state(state, area)?;
 
     position::move_adjacent(&mut state.world, performer, controls_pos)?;
 
@@ -70,7 +74,11 @@ pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
 
     if status != new_status {
         //The ship area should still exist since it existed before
-        state.world.get::<&mut ShipState>(area).unwrap().status = new_status;
+        state
+            .world
+            .get::<&mut ShipState>(state.ship_core)
+            .unwrap()
+            .status = new_status;
     }
 
     action::ok(message)
@@ -114,19 +122,21 @@ fn refuel_then_launch(
     }
 }
 
-fn lookup_ship_state(world: &World, area: Entity) -> Result<(ShipStatus, Pos), String> {
-    let status = world
-        .get::<&ShipState>(area)
-        .map_err(|_| "Must be in the ship control room to do this.".to_string())?
+fn lookup_ship_state(state: &GameState, area: Entity) -> Result<(ShipStatus, Pos), String> {
+    let status = state
+        .world
+        .get::<&ShipState>(state.ship_core)
+        .map_err(|_| "The crew has no ship.".to_string())?
         .status;
 
-    let controls_pos = world
+    let controls_pos = state
+        .world
         .query::<&Pos>()
         .with::<&ShipControls>()
         .iter()
         .map(|(_, pos)| *pos)
         .find(|pos| pos.is_in(area))
-        .ok_or_else(|| "The ship is missing its controls.".to_string())?;
+        .ok_or_else(|| "Must be in the ship control room to do this.".to_string())?;
 
     Ok((status, controls_pos))
 }

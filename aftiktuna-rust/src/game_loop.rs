@@ -188,15 +188,15 @@ fn tick_and_check(
 
     handle_was_waiting(state, view_buffer);
 
-    let area = state
-        .world
-        .get::<&Pos>(state.controlled)
-        .unwrap()
-        .get_area();
-    if is_ship_launching(&state.world, area) {
+    if is_ship_launching(state) {
         leave_location(state, view_buffer);
         Ok(Step::PrepareNextLocation)
     } else {
+        let area = state
+            .world
+            .get::<&Pos>(state.controlled)
+            .unwrap()
+            .get_area();
         if area != prev_area {
             view_buffer.capture_view(state);
         }
@@ -406,11 +406,11 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
     }
 }
 
-fn is_ship_launching(world: &World, area: Entity) -> bool {
-    world
-        .get::<&ShipState>(area)
-        .map(|ship| ship.status == ShipStatus::Launching)
-        .unwrap_or(false)
+fn is_ship_launching(state: &GameState) -> bool {
+    state
+        .world
+        .get::<&ShipState>(state.ship_core)
+        .is_ok_and(|ship_state| ship_state.status == ShipStatus::Launching)
 }
 
 fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {

@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
-use crate::core::area::{ShipState, ShipStatus};
+use crate::core::area::{ShipControls, ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{FoodRation, FuelCan};
 use crate::core::name::{Name, NameData, NameQuery};
@@ -200,16 +200,27 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
     let character = state.controlled;
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    let need_fuel = world
-        .get::<&ShipState>(area)
-        .map(|ship| matches!(ship.status, ShipStatus::NeedFuel(_)))
-        .map_err(|_| {
+    let ship_controls = state
+        .world
+        .query::<&Pos>()
+        .with::<&ShipControls>()
+        .iter()
+        .find(|(_, pos)| pos.is_in(area))
+        .map(|(entity, _)| entity)
+        .ok_or_else(|| {
             format!(
                 "{} needs to be in the ship control room in order to refuel it.",
                 NameData::find(world, character).definite()
             )
         })?;
-    if !need_fuel {
+    check_adjacent_accessible_with_message(ship_controls, character, world)?;
+
+    let status = world
+        .get::<&ShipState>(state.ship_core)
+        .map_err(|_| "The crew has no ship.".to_string())?
+        .status;
+
+    if !matches!(status, ShipStatus::NeedFuel(_)) {
         return Err("The ship is already refueled.".to_string());
     }
     if !inventory::is_holding::<&FuelCan>(world, character) {
@@ -229,16 +240,28 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     }
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    let need_fuel = world
-        .get::<&ShipState>(area)
-        .map(|ship| matches!(ship.status, ShipStatus::NeedFuel(_)))
-        .map_err(|_| {
+    let ship_controls = state
+        .world
+        .query::<&Pos>()
+        .with::<&ShipControls>()
+        .iter()
+        .find(|(_, pos)| pos.is_in(area))
+        .map(|(entity, _)| entity)
+        .ok_or_else(|| {
             format!(
                 "{} needs to be in the ship control room in order to launch it.",
                 NameData::find(world, character).definite()
             )
         })?;
-    if need_fuel && !inventory::is_holding::<&FuelCan>(world, character) {
+    check_adjacent_accessible_with_message(ship_controls, character, world)?;
+
+    let status = world
+        .get::<&ShipState>(state.ship_core)
+        .map_err(|_| "The crew has no ship.".to_string())?
+        .status;
+    if matches!(status, ShipStatus::NeedFuel(_))
+        && !inventory::is_holding::<&FuelCan>(world, character)
+    {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
             NameData::find(world, character).definite()
