@@ -4,7 +4,7 @@ use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::{Character, Recruitable, area, status};
+use crate::core::{Character, Recruitable, Waiting, area, status};
 use crate::game_loop::GameState;
 use hecs::Entity;
 
@@ -130,6 +130,13 @@ fn tell_to_wait(state: &GameState, target: Entity) -> Result<CommandResult, Stri
         ));
     }
 
+    if state.world.satisfies::<&Waiting>(target).unwrap_or(false) {
+        return Err(format!(
+            "{} is already waiting.",
+            NameData::find(&state.world, target).definite()
+        ));
+    }
+
     command::action_result(Action::TellToWait(target))
 }
 
@@ -140,8 +147,8 @@ fn tell_to_wait_at_ship(state: &GameState, target: Entity) -> Result<CommandResu
             NameData::find(&state.world, state.controlled).definite()
         ));
     }
-    let controlled_pos = state.world.get::<&Pos>(state.controlled).unwrap();
-    let target_pos = state.world.get::<&Pos>(target).unwrap();
+    let controlled_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+    let target_pos = *state.world.get::<&Pos>(target).unwrap();
     if !controlled_pos.is_in(target_pos.get_area()) {
         return Err(format!(
             "{} can't tell {} to do things from here.",
@@ -149,8 +156,23 @@ fn tell_to_wait_at_ship(state: &GameState, target: Entity) -> Result<CommandResu
             NameData::find(&state.world, target).definite()
         ));
     }
-    if area::is_ship(target_pos.get_area(), &state.world) {
-        return Err("They are already at the ship.".to_string());
+    if area::is_in_ship(target_pos, &state.world)
+        && state.world.satisfies::<&Waiting>(target).unwrap_or(false)
+    {
+        return Err(format!(
+            "{} is already waiting at the ship.",
+            NameData::find(&state.world, target).definite()
+        ));
+    }
+    if state
+        .world
+        .get::<&Waiting>(target)
+        .is_ok_and(|waiting| waiting.at_ship)
+    {
+        return Err(format!(
+            "{} is already on their way to the ship.",
+            NameData::find(&state.world, target).definite()
+        ));
     }
 
     command::action_result(Action::TellToWaitAtShip(target))

@@ -216,11 +216,6 @@ pub(super) fn tell_to_wait_at_ship(
         return action::silent_ok();
     }
 
-    let target_pos = *context.state.world.get::<&Pos>(target).unwrap();
-    if area::is_ship(target_pos.get_area(), &context.state.world) {
-        return Err(Error::private("They are already at the ship."));
-    }
-
     full_dialogue_action(
         context,
         performer,
@@ -230,16 +225,28 @@ pub(super) fn tell_to_wait_at_ship(
              state,
              dialogue_context,
          }| {
-            dialogue_context.add_dialogue(
-                &state.world,
-                performer,
-                "Please go back and wait at the ship.",
-            );
-            dialogue_context.add_dialogue(
-                &state.world,
-                target,
-                "Sure thing. I will go and wait at the ship for now.",
-            );
+            let target_pos = *state.world.get::<&Pos>(target).unwrap();
+            if area::is_in_ship(target_pos, &state.world) {
+                dialogue_context.add_dialogue(&state.world, performer, "Please wait at the ship.");
+
+                dialogue_context.add_dialogue(
+                    &state.world,
+                    target,
+                    "Sure thing. I will stay here for now.",
+                );
+            } else {
+                dialogue_context.add_dialogue(
+                    &state.world,
+                    performer,
+                    "Please go back and wait at the ship.",
+                );
+
+                dialogue_context.add_dialogue(
+                    &state.world,
+                    target,
+                    "Sure thing. I will go and wait at the ship for now.",
+                );
+            }
 
             state
                 .world

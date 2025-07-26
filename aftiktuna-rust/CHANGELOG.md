@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Colored texture layers are now defined differently
 - Crew ai improvements for moving back to the ship
 - Repeated actions such as "take all" and "rest" are now cancelled if the area becomes unsafe
+- Fine-tuned conditions for using "tell \<character\> to wait" and "tell \<character\> to wait at ship"
 
 ### Fixed
 
@@ -217,7 +218,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Main Menu
 - Loot symbol for location definitions which spawns an item from a builtin loot table
 - Builtin loot tables "regular" and "valuable"
-- "check <item>" command, which gives information on an item
+- "check \<item\>" command, which gives information on an item
 - "go to ship" command
 - "tell _ to wait at ship" command
 - New alternative for fortuna encounter
@@ -288,7 +289,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Dialogue frames with "recruit" and "give" commands
 - Dialogue (kind of) with "trade" command
-- New commands "talk to <target>", "tell <target> to wait", "tell <target> to follow"
+- New commands "talk to \<target\>", "tell \<target\> to wait", "tell \<target\> to follow"
 - The other crew member may help force open a door if they have the right tool for it
 - Add warning message when ship is refueled without everyone on board
 - Add message when a crew member is left behind after leaving a location
