@@ -219,7 +219,10 @@ impl CreatureAttribute {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Waiting;
+pub struct Waiting {
+    #[serde(default)] // backwards-compatibility with 4.0
+    pub at_ship: bool,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Recruitable;

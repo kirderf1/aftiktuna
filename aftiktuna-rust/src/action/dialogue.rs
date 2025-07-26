@@ -3,8 +3,7 @@ use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{
-    self, CrewMember, GivesHuntReward, Recruitable, RepeatingAction, Tag, Waiting, area, position,
-    status,
+    self, CrewMember, GivesHuntReward, Recruitable, Tag, Waiting, area, position, status,
 };
 use hecs::{Entity, World};
 
@@ -198,7 +197,10 @@ pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) 
                 "Sure thing. Just tell me when I should follow along again.",
             );
 
-            state.world.insert_one(target, Waiting).unwrap();
+            state
+                .world
+                .insert_one(target, Waiting { at_ship: false })
+                .unwrap();
 
             None
         },
@@ -241,7 +243,7 @@ pub(super) fn tell_to_wait_at_ship(
 
             state
                 .world
-                .insert(target, (Waiting, RepeatingAction::GoToShip))
+                .insert_one(target, Waiting { at_ship: true })
                 .unwrap();
 
             None

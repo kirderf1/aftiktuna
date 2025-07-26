@@ -4,8 +4,8 @@ use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{
-    self, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Wandering,
-    area, inventory, status,
+    self, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Waiting,
+    Wandering, area, inventory, status,
 };
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
@@ -183,6 +183,24 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
         {
             return Some(Action::EnterDoor(path));
         }
+    }
+
+    if entity_ref
+        .get::<&Waiting>()
+        .is_some_and(|waiting| waiting.at_ship)
+        && !area::is_in_ship(entity_pos, world)
+        && let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
+            area::is_ship(area, world)
+        })
+        && position::check_is_blocked(
+            world,
+            entity_ref,
+            entity_pos,
+            *world.get::<&Pos>(path).unwrap(),
+        )
+        .is_ok()
+    {
+        return Some(Action::EnterDoor(path));
     }
 
     let foes = world
