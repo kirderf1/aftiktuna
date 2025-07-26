@@ -1,5 +1,5 @@
 use aftiktuna::asset::location::creature::CharacterInteraction;
-use aftiktuna::asset::location::{DoorPairMap, SymbolData};
+use aftiktuna::asset::location::{DoorPairMap, DoorType, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::{ProfileOrRandom, background};
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
@@ -145,8 +145,10 @@ fn background_layer_editor(ui: &mut egui::Ui, layer: &mut background::ParallaxLa
 
 pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
     match symbol_data {
-        SymbolData::LocationEntry => "Landing Spot".to_owned(),
-        SymbolData::FortunaChest => "Fortuna Chest".to_owned(),
+        SymbolData::LocationEntry => "Landing Spot".to_string(),
+        SymbolData::FortunaChest => "Fortuna Chest".to_string(),
+        SymbolData::ShipControls { .. } => "Ship Controls".to_string(),
+        SymbolData::FoodDeposit => "Food Deposit".to_string(),
         SymbolData::Item { item } => format!("Item ({})", item.noun_data().singular()),
         SymbolData::Loot { table } => format!("Loot ({})", table.0),
         SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
@@ -180,12 +182,17 @@ pub fn object_from_symbol(
     coord: Coord,
     area_size: Coord,
     door_pair_map: &DoorPairMap,
+    is_ship: bool,
 ) -> ObjectRenderData {
     match symbol_data {
         SymbolData::LocationEntry => ObjectRenderData {
             coord,
             weight: OrderWeight::Background,
-            model_id: ModelId::ship(),
+            model_id: if is_ship {
+                DoorType::Doorway.into()
+            } else {
+                ModelId::ship()
+            },
             hash: 0,
             name_data: None,
             wielded_item: None,
@@ -196,6 +203,29 @@ pub fn object_from_symbol(
             coord,
             weight: OrderWeight::Background,
             model_id: ModelId::fortuna_chest(),
+            hash: 0,
+            name_data: None,
+            wielded_item: None,
+            interactions: Vec::default(),
+            properties: RenderProperties::default(),
+        },
+        SymbolData::ShipControls { direction } => ObjectRenderData {
+            coord,
+            weight: OrderWeight::Background,
+            model_id: ModelId::ship_controls(),
+            hash: 0,
+            name_data: None,
+            wielded_item: None,
+            interactions: Vec::default(),
+            properties: RenderProperties {
+                direction: *direction,
+                ..Default::default()
+            },
+        },
+        SymbolData::FoodDeposit => ObjectRenderData {
+            coord,
+            weight: OrderWeight::Item,
+            model_id: ModelId::small_unknown(),
             hash: 0,
             name_data: None,
             wielded_item: None,

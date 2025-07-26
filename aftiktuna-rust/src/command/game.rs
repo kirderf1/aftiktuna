@@ -200,12 +200,11 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
     let character = state.controlled;
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    let ship_controls = state
-        .world
+    let ship_controls = world
         .query::<&Pos>()
         .with::<&ShipControls>()
         .iter()
-        .find(|(_, pos)| pos.is_in(area))
+        .find(|(_, pos)| pos.is_in(area) && area::is_ship(area, world))
         .map(|(entity, _)| entity)
         .ok_or_else(|| {
             format!(
@@ -240,12 +239,11 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     }
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    let ship_controls = state
-        .world
+    let ship_controls = world
         .query::<&Pos>()
         .with::<&ShipControls>()
         .iter()
-        .find(|(_, pos)| pos.is_in(area))
+        .find(|(_, pos)| pos.is_in(area) && area::is_ship(area, world))
         .map(|(entity, _)| entity)
         .ok_or_else(|| {
             format!(

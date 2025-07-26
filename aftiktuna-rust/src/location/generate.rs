@@ -8,7 +8,7 @@ use crate::asset::location::{
 };
 use crate::asset::{self, loot};
 use crate::core::FortunaChest;
-use crate::core::area::Area;
+use crate::core::area::{Area, ShipControls};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::Noun;
@@ -16,30 +16,44 @@ use crate::core::position::{Coord, Pos};
 use hecs::{Entity, World};
 use rand::seq::IndexedRandom;
 
+pub struct LocationBuildData {
+    pub spawned_areas: Vec<Entity>,
+    pub entry_pos: Pos,
+    pub food_deposit_pos: Option<Pos>,
+}
+
 pub fn build_location(
     location_data: LocationData,
     gen_context: &mut LocationGenContext,
-) -> Result<Pos, String> {
+) -> Result<LocationBuildData, String> {
     let mut builder = Builder::new(gen_context, location_data.door_pairs);
     let base_symbols = asset::location::load_base_symbols()?;
 
+    let mut spawned_areas = Vec::with_capacity(location_data.areas.len());
     for area in location_data.areas {
-        build_area(area, &mut builder, &base_symbols)?;
+        let area = build_area(area, &mut builder, &base_symbols)?;
+        spawned_areas.push(area);
     }
 
     builder.door_pair_builder.verify_all_doors_placed()?;
 
     creature::align_aggressiveness(&mut builder.gen_context.world);
 
-    builder.get_random_entry_pos()
+    let entry_pos = builder.get_random_entry_pos()?;
+
+    Ok(LocationBuildData {
+        spawned_areas,
+        entry_pos,
+        food_deposit_pos: builder.food_deposit_pos,
+    })
 }
 
 fn build_area(
     area_data: AreaData,
     builder: &mut Builder,
     parent_symbols: &SymbolMap,
-) -> Result<(), String> {
-    let room = builder.gen_context.world.spawn((Area {
+) -> Result<Entity, String> {
+    let area = builder.gen_context.world.spawn((Area {
         size: area_data.objects.len().try_into().unwrap(),
         label: area_data.name,
         background: area_data.background,
@@ -51,7 +65,7 @@ fn build_area(
     let symbols = SymbolLookup::new(parent_symbols, &area_data.symbols);
 
     for (coord, objects) in area_data.objects.iter().enumerate() {
-        let pos = Pos::new(room, coord as Coord, &builder.gen_context.world);
+        let pos = Pos::new(area, coord as Coord, &builder.gen_context.world);
         for symbol in objects.chars() {
             match symbols.lookup(symbol) {
                 Some(symbol_data) => place_symbol(symbol_data, pos, Symbol(symbol), builder)?,
@@ -59,7 +73,7 @@ fn build_area(
             }
         }
     }
-    Ok(())
+    Ok(area)
 }
 
 fn place_symbol(
@@ -72,6 +86,24 @@ fn place_symbol(
         SymbolData::LocationEntry => builder.add_entry_pos(pos),
         SymbolData::FortunaChest => {
             place_fortuna_chest(&mut builder.gen_context.world, symbol, pos)
+        }
+        SymbolData::ShipControls { direction } => {
+            builder.gen_context.world.spawn((
+                symbol,
+                ModelId::ship_controls(),
+                OrderWeight::Background,
+                Noun::new("ship controls", "ship controls"),
+                pos,
+                *direction,
+                ShipControls,
+            ));
+        }
+        SymbolData::FoodDeposit => {
+            if builder.food_deposit_pos.is_some() {
+                return Err("Can only place one food deposit per location".to_string());
+            } else {
+                builder.food_deposit_pos = Some(pos);
+            }
         }
         SymbolData::Item { item } => {
             item.spawn(&mut builder.gen_context.world, pos);
@@ -113,6 +145,7 @@ fn place_symbol(
 struct Builder<'a> {
     gen_context: &'a mut LocationGenContext,
     entry_positions: Vec<Pos>,
+    food_deposit_pos: Option<Pos>,
     door_pair_builder: door::DoorPairsBuilder,
     loot_table_cache: loot::LootTableCache,
 }
@@ -122,6 +155,7 @@ impl<'a> Builder<'a> {
         Self {
             gen_context,
             entry_positions: Vec::new(),
+            food_deposit_pos: None,
             door_pair_builder: door::DoorPairsBuilder::init(door_pair_data),
             loot_table_cache: loot::LootTableCache::default(),
         }

@@ -442,6 +442,14 @@ mod ui {
         match &mut symbol_edit_data.symbol_data {
             SymbolData::LocationEntry => {}
             SymbolData::FortunaChest => {}
+            SymbolData::ShipControls { direction } => {
+                aftiktuna_editor_three_d::direction_editor(
+                    ui,
+                    direction,
+                    "ship_controls_direction",
+                );
+            }
+            SymbolData::FoodDeposit => {}
             SymbolData::Item { item } => {
                 aftiktuna_editor_three_d::item_type_editor(ui, item, "item");
             }
@@ -689,6 +697,7 @@ fn main() {
     let mut editor_data = EditorData {
         location_data: serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap())
             .unwrap(),
+        is_ship: path.ends_with("assets/location/crew_ship.json"),
         area_index: 0,
         selected_extra_background_layer: 0,
         symbol_edit_data: None,
@@ -804,6 +813,7 @@ fn main() {
 
 struct EditorData {
     location_data: LocationData,
+    is_ship: bool,
     area_index: usize,
     selected_extra_background_layer: usize,
     symbol_edit_data: Option<ui::SymbolEditData>,
@@ -1147,6 +1157,7 @@ fn render_game_view(
                         coord as Coord,
                         area.objects.len() as Coord,
                         &editor_data.location_data.door_pairs,
+                        editor_data.is_ship,
                     )
                 })
         })

@@ -42,6 +42,10 @@ pub mod display {
             Self::new("ship")
         }
 
+        pub fn ship_controls() -> Self {
+            Self::new("ship_controls")
+        }
+
         pub fn new(name: &str) -> Self {
             Self(name.to_owned())
         }

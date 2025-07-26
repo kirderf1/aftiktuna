@@ -17,7 +17,7 @@ use crate::core::{
     self, Character, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory, status,
 };
 use crate::game_interface::{Phase, PhaseResult};
-use crate::location::{self, GenerationState, PickResult};
+use crate::location::{self, GenerationState, InitialSpawnData, PickResult};
 use crate::view::text::{self, CombinableMsgType, Messages};
 use crate::view::{self, Frame, StatusCache};
 use crate::{StopType, ai, command, serialization};
@@ -37,22 +37,22 @@ pub struct GameState {
 }
 
 pub fn setup(mut generation_state: GenerationState) -> GameState {
-    let mut world = World::new();
-    let mut rng = rand::rng();
-
-    let (controlled, ship_core) = location::spawn_starting_crew_and_ship(
-        &mut world,
+    let InitialSpawnData {
+        world,
+        controlled_character,
+        ship_core,
+    } = location::spawn_starting_crew_and_ship(
         CrewData::load_starting_crew().expect("Unable to set up game"),
         &mut generation_state,
-        &mut rng,
-    );
+    )
+    .unwrap();
 
     GameState {
         world,
-        rng,
+        rng: rand::rng(),
         generation_state,
         ship_core,
-        controlled,
+        controlled: controlled_character,
         status_cache: StatusCache::default(),
         has_introduced_controlled: false,
     }

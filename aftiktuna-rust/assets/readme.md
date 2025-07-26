@@ -25,6 +25,10 @@ A global set of object symbols shared between all location template files.
 
 Determines the locations used by the game, and defines some location metadata.
 
+## `assets/location/crew_ship.json`
+
+Special location that is loaded in as the crew ship when starting a new game.
+
 ## `assets/loot_table/*.json`
 
 Each file is a loot table used by game systems to randomly select an item.

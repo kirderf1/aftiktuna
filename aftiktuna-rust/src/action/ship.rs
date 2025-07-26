@@ -135,7 +135,7 @@ fn lookup_ship_state(state: &GameState, area: Entity) -> Result<(ShipStatus, Pos
         .with::<&ShipControls>()
         .iter()
         .map(|(_, pos)| *pos)
-        .find(|pos| pos.is_in(area))
+        .find(|pos| pos.is_in(area) && area::is_ship(area, &state.world))
         .ok_or_else(|| "Must be in the ship control room to do this.".to_string())?;
 
     Ok((status, controls_pos))

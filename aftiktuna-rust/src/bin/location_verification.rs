@@ -1,5 +1,6 @@
 use aftiktuna::asset::location::LocationData;
 use aftiktuna::location;
+use aftiktuna::location::generate::LocationBuildData;
 
 fn main() {
     let locations = match location::Locations::load_from_json() {
@@ -12,9 +13,19 @@ fn main() {
 
     let mut failure_count = 0;
     for location_name in locations.all_location_names() {
-        if !try_load(location_name) {
+        if !try_load(location_name, |_| Ok(())) {
             failure_count += 1;
         }
+    }
+
+    if !try_load("crew_ship", |build_data| {
+        if build_data.food_deposit_pos.is_none() {
+            Err("Missing food deposit in ship".to_string())
+        } else {
+            Ok(())
+        }
+    }) {
+        failure_count += 1;
     }
 
     if failure_count == 0 {
@@ -22,13 +33,20 @@ fn main() {
     };
 }
 
-fn try_load(location_name: &str) -> bool {
-    if let Err(message) = LocationData::load_from_json(location_name).and_then(|location_data| {
-        location::generate::build_location(
-            location_data,
-            &mut location::LocationGenContext::default(),
-        )
-    }) {
+fn try_load(
+    location_name: &str,
+    verify_build_data: impl Fn(LocationBuildData) -> Result<(), String>,
+) -> bool {
+    let load_result = LocationData::load_from_json(location_name)
+        .and_then(|location_data| {
+            location::generate::build_location(
+                location_data,
+                &mut location::LocationGenContext::default(),
+            )
+        })
+        .and_then(verify_build_data);
+
+    if let Err(message) = load_result {
         eprintln!("Failed to load location \"{location_name}\":");
         eprintln!("{message}");
         false

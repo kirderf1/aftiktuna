@@ -226,6 +226,10 @@ impl<'a> SymbolLookup<'a> {
 pub enum SymbolData {
     LocationEntry,
     FortunaChest,
+    ShipControls {
+        direction: Direction,
+    },
+    FoodDeposit,
     Item {
         item: item::Type,
     },

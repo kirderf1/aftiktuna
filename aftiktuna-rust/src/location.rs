@@ -4,14 +4,12 @@ use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
 use crate::asset::location::{DoorPairData, DoorType, LocationData};
 use crate::asset::{AftikProfile, CrewData};
-use crate::core::area::{
-    self, Area, BackgroundId, FuelAmount, ShipControls, ShipRoom, ShipState, ShipStatus,
-};
+use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::name::Noun;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
-use crate::core::{CrewMember, Door, DoorKind, ObservationTarget, Waiting, inventory, item};
+use crate::core::{CrewMember, Door, DoorKind, ObservationTarget, Waiting, inventory};
 use crate::game_loop::GameState;
 use crate::view::text::{self, Messages};
 use crate::{asset, serialization};
@@ -220,55 +218,65 @@ pub struct Category {
     pub location_names: Vec<String>,
 }
 
+pub struct InitialSpawnData {
+    pub world: World,
+    pub controlled_character: Entity,
+    pub ship_core: Entity,
+}
+
 pub(crate) fn spawn_starting_crew_and_ship(
-    world: &mut World,
     crew_data: CrewData,
     generation_state: &mut GenerationState,
-    rng: &mut impl Rng,
-) -> (Entity, Entity) {
-    let ship = world.spawn((
-        Area {
-            label: "Ship".to_string(),
-            size: 5,
-            background: BackgroundId::new("ship"),
-            background_offset: 0,
-            extra_background_layers: Vec::default(),
-            darkness: 0.,
-        },
-        ShipRoom,
-    ));
-    item::Type::Medkit.spawn(world, Pos::new(ship, 1, world));
-    item::Type::FoodRation.spawn(world, Pos::new(ship, 4, world));
-    world.spawn((
-        Symbol('#'),
-        ModelId::new("ship_controls"),
-        OrderWeight::Background,
-        Noun::new("ship controls", "ship controls"),
-        Pos::new(ship, 0, world),
-        ShipControls,
-    ));
+) -> Result<InitialSpawnData, String> {
+    let mut gen_context = LocationGenContext {
+        world: World::new(),
+        character_profiles: generation_state.character_profiles.clone(),
+        rng: rand::rng(),
+    };
+    let ship_data = LocationData::load_from_json("crew_ship")?;
+
+    let build_data = generate::build_location(ship_data, &mut gen_context)?;
+    let LocationGenContext {
+        mut world,
+        character_profiles,
+        mut rng,
+    } = gen_context;
+    generation_state.character_profiles = character_profiles;
+
+    let food_deposit_pos = build_data
+        .food_deposit_pos
+        .ok_or_else(|| "Expected ship location to have food deposit".to_string())?;
+    for &room in &build_data.spawned_areas {
+        world
+            .insert_one(room, ShipRoom)
+            .expect("Expected spawned room to exist");
+    }
 
     let ship_core = world.spawn((ShipState {
         status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
-        exit_pos: Pos::new(ship, 3, world),
-        item_pos: Pos::new(ship, 4, world),
+        exit_pos: build_data.entry_pos,
+        item_pos: food_deposit_pos,
     },));
     let crew = world.spawn((Points(crew_data.points),));
 
     let mut crew_iter = crew_data
         .crew
         .into_iter()
-        .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, rng));
+        .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, &mut rng));
+    let mut iter_pos = Pos::new(build_data.spawned_areas[0], 0, &world);
 
-    let mut iter_pos = Pos::new(ship, 0, world);
-    let controlled = world.spawn(
-        creature::aftik_builder_with_stats(crew_iter.next().expect("Crew must not be empty"), true)
+    let controlled_character = crew_iter
+        .next()
+        .ok_or_else(|| "Crew must not be empty".to_string())?;
+    let controlled_character = world.spawn(
+        creature::aftik_builder_with_stats(controlled_character, true)
             .add_bundle((CrewMember(crew), OrderWeight::Controlled, iter_pos))
             .build(),
     );
+
     'add_crew: for profile in crew_iter {
-        while position::check_is_pos_blocked(iter_pos, world).is_err() {
-            let Some(new_pos) = iter_pos.try_offset(1, world) else {
+        while position::check_is_pos_blocked(iter_pos, &world).is_err() {
+            let Some(new_pos) = iter_pos.try_offset(1, &world) else {
                 eprintln!(
                     "Tried initializing a crew that is too large. Not all crew members will be added."
                 );
@@ -283,7 +291,11 @@ pub(crate) fn spawn_starting_crew_and_ship(
         );
     }
 
-    (controlled, ship_core)
+    Ok(InitialSpawnData {
+        world,
+        controlled_character,
+        ship_core,
+    })
 }
 
 pub fn setup_location_into_game(
@@ -293,7 +305,7 @@ pub fn setup_location_into_game(
 ) -> Result<(), String> {
     let mut gen_context = LocationGenContext::clone_from(state);
 
-    let start_pos = LocationData::load_from_json(location_name)
+    let build_data = LocationData::load_from_json(location_name)
         .and_then(|location_data| generate::build_location(location_data, &mut gen_context))
         .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
 
@@ -307,7 +319,7 @@ pub fn setup_location_into_game(
     let (ship_entity, _) = door::place_pair(
         &mut state.world,
         DoorInfo {
-            pos: start_pos,
+            pos: build_data.entry_pos,
             symbol: Symbol('v'),
             model_id: ModelId::ship(),
             kind: DoorKind::Door,
@@ -327,7 +339,7 @@ pub fn setup_location_into_game(
         .insert_one(ship_entity, ObservationTarget)
         .unwrap();
 
-    deploy_crew_at_new_location(start_pos, state);
+    deploy_crew_at_new_location(build_data.entry_pos, state);
 
     if state.generation_state.is_at_fortuna() {
         messages.add(

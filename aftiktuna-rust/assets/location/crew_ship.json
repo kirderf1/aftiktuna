@@ -1,0 +1,17 @@
+{
+  "areas": [
+    {
+      "name": "Ship",
+      "background": "ship",
+      "background_offset": 0,
+      "objects": [ "#", "m", "", "v", "=%" ],
+      "symbols": {
+        "#": { "type": "ship_controls", "direction": "right" },
+        "=": { "type": "food_deposit" },
+        "m": { "type": "item", "item": "medkit" },
+        "%": { "type": "item", "item": "food_ration" }
+      }
+    }
+  ],
+  "door_pairs": {}
+}
