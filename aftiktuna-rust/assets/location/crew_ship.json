@@ -2,16 +2,50 @@
   "areas": [
     {
       "name": "Ship",
+      "pos_in_overview": [ 0, -1 ],
       "background": "ship",
       "background_offset": 0,
-      "objects": [ "#", "m", "", "v", "=%" ],
+      "objects": [ "#", "", "v", "<", ">" ],
       "symbols": {
         "#": { "type": "ship_controls", "direction": "right" },
+        "<": { "type": "door", "pair_id": "storage", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "quarters", "display_type": "door", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Ship Storage",
+      "pos_in_overview": [ 1, 2 ],
+      "background": "facility_size3",
+      "objects": [ "=%", "^", "#" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "storage", "display_type": "door" },
         "=": { "type": "food_deposit" },
-        "m": { "type": "item", "item": "medkit" },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [
+            { "type": "item", "item": "medkit" }
+          ],
+          "direction": "right"
+        },
         "%": { "type": "item", "item": "food_ration" }
+      }
+    },
+    {
+      "name": "Ship Quarters",
+      "pos_in_overview": [ 1, -4 ],
+      "background": "facility_size4",
+      "objects": [ "B", ":", "^", "p" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "quarters", "display_type": "door" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
+        ":": { "type": "inanimate", "model": "environment/aftik_poster" },
+        "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
     }
   ],
-  "door_pairs": {}
+  "door_pairs": {
+    "storage": {},
+    "quarters": {}
+  }
 }
