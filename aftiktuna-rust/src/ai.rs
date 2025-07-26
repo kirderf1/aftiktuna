@@ -2,16 +2,16 @@ use crate::action::Action;
 use crate::action::item::UseAction;
 use crate::core::item::{Medkit, Weapon};
 use crate::core::name::NameData;
-use crate::core::position::Pos;
+use crate::core::position::{self, Pos};
 use crate::core::{
     self, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Wandering,
-    inventory, status,
+    area, inventory, status,
 };
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
 use rand::seq::IndexedRandom;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Serialize, Deserialize)]
 pub enum Intention {
@@ -160,21 +160,38 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
         return Some(UseAction { item }.into());
     }
 
+    let entity_pos = *entity_ref.get::<&Pos>()?;
+
     if !entity_ref.has::<Character>()
         && entity_ref
             .get::<&status::Health>()
             .is_some_and(|health| health.is_badly_hurt())
     {
-        return Some(Action::GoToShip);
+        let is_area_safe =
+            area::is_in_ship(entity_pos, world) && core::is_safe(world, entity_pos.get_area());
+        if !is_area_safe
+            && let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
+                area::is_ship(area, world)
+            })
+            && position::check_is_blocked(
+                world,
+                entity_ref,
+                entity_pos,
+                *world.get::<&Pos>(path).unwrap(),
+            )
+            .is_ok()
+        {
+            return Some(Action::EnterDoor(path));
+        }
     }
-
-    let area = entity_ref.get::<&Pos>()?.get_area();
 
     let foes = world
         .query::<(&Pos, &Hostile)>()
         .iter()
         .filter(|&(foe, (foe_pos, hostile))| {
-            foe_pos.is_in(area) && status::is_alive(foe, world) && hostile.aggressive
+            foe_pos.is_in(entity_pos.get_area())
+                && status::is_alive(foe, world)
+                && hostile.aggressive
         })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
@@ -197,4 +214,60 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
     world.get::<&Intention>(entity).is_ok()
+}
+
+struct PathSearchEntry {
+    path: Entity,
+    area: Entity,
+}
+
+impl PathSearchEntry {
+    fn start(path_entity: Entity, path: &Door) -> Self {
+        Self {
+            path: path_entity,
+            area: path.destination.get_area(),
+        }
+    }
+
+    fn next(&self, path: &Door) -> Self {
+        Self {
+            path: self.path,
+            area: path.destination.get_area(),
+        }
+    }
+}
+
+pub fn find_path_towards(
+    world: &World,
+    area: Entity,
+    predicate: impl Fn(Entity) -> bool,
+) -> Option<Entity> {
+    let mut entries = world
+        .query::<(&Pos, &Door)>()
+        .iter()
+        .filter(|&(_, (pos, _))| pos.is_in(area))
+        .map(|(entity, (_, path))| PathSearchEntry::start(entity, path))
+        .collect::<Vec<_>>();
+    let mut checked_areas = HashSet::from([area]);
+
+    while !entries.is_empty() {
+        let mut new_entries = vec![];
+        for entry in entries {
+            if checked_areas.insert(entry.area) {
+                if predicate(entry.area) {
+                    return Some(entry.path);
+                }
+                new_entries.extend(
+                    world
+                        .query::<(&Pos, &Door)>()
+                        .iter()
+                        .filter(|&(_, (pos, _))| pos.is_in(entry.area))
+                        .map(|(_, (_, path))| entry.next(path)),
+                );
+            }
+        }
+        entries = new_entries;
+    }
+
+    None
 }

@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - "wield_offset" has changed format to match the new offset property
   - New layer properties for rotation animation and rotation-anchor
   - Colored texture layers are now defined differently
+- Crew ai improvements for moving back to the ship
 
 ### Fixed
 

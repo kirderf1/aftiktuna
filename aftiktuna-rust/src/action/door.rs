@@ -1,5 +1,5 @@
 use crate::action::{self, Context, Error};
-use crate::ai::Intention;
+use crate::ai::{self, Intention};
 use crate::core::item::Tool;
 use crate::core::name::NameData;
 use crate::core::position::{self, Direction, Pos};
@@ -10,7 +10,6 @@ use crate::core::{
 use crate::game_loop::GameState;
 use crate::view::text::CombinableMsgType;
 use hecs::{Entity, World};
-use std::collections::HashSet;
 use std::ops::Deref;
 
 fn check_tool_for_forcing(
@@ -194,7 +193,7 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
         return action::silent_ok();
     }
 
-    let path = find_path_towards(world, area, |area| area::is_ship(area, world))
+    let path = ai::find_path_towards(world, area, |area| area::is_ship(area, world))
         .ok_or_else(|| "Could not find a path to the ship.".to_string())?;
 
     let result = enter_door(context.state, performer, path);
@@ -207,60 +206,4 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
             .unwrap();
     }
     result
-}
-
-struct PathSearchEntry {
-    path: Entity,
-    area: Entity,
-}
-
-impl PathSearchEntry {
-    fn start(path_entity: Entity, path: &Door) -> Self {
-        Self {
-            path: path_entity,
-            area: path.destination.get_area(),
-        }
-    }
-
-    fn next(&self, path: &Door) -> Self {
-        Self {
-            path: self.path,
-            area: path.destination.get_area(),
-        }
-    }
-}
-
-fn find_path_towards(
-    world: &World,
-    area: Entity,
-    predicate: impl Fn(Entity) -> bool,
-) -> Option<Entity> {
-    let mut entries = world
-        .query::<(&Pos, &Door)>()
-        .iter()
-        .filter(|&(_, (pos, _))| pos.is_in(area))
-        .map(|(entity, (_, path))| PathSearchEntry::start(entity, path))
-        .collect::<Vec<_>>();
-    let mut checked_areas = HashSet::from([area]);
-
-    while !entries.is_empty() {
-        let mut new_entries = vec![];
-        for entry in entries {
-            if checked_areas.insert(entry.area) {
-                if predicate(entry.area) {
-                    return Some(entry.path);
-                }
-                new_entries.extend(
-                    world
-                        .query::<(&Pos, &Door)>()
-                        .iter()
-                        .filter(|&(_, (pos, _))| pos.is_in(entry.area))
-                        .map(|(_, (_, path))| entry.next(path)),
-                );
-            }
-        }
-        entries = new_entries;
-    }
-
-    None
 }
