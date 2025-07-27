@@ -79,22 +79,29 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 
     let hit_type = roll_hit(world, attacker, target, &mut state.rng);
 
+    let attack_text = format!("{attacker_name} attacks {target_name}");
     match hit_type {
-        HitType::Dodge => action::ok(format!("{target_name} dodged {attacker_name}'s attack.")),
+        HitType::Dodge => action::ok(format!(
+            "{attack_text}, but {target_name} dodges the attack."
+        )),
         HitType::GrazingHit => {
             let effect = perform_attack_hit(false, attacker, target, world, &mut state.rng);
-            let effect = effect.descriptor();
+            let effect_text = effect
+                .map(AttackEffect::verb)
+                .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
             action::ok(format!(
-                "{attacker_name}'s attack grazed {effect}{target_name}."
+                "{attack_text} and narrowly hits them{effect_text}."
             ))
         }
         HitType::DirectHit => {
             let effect = perform_attack_hit(true, attacker, target, world, &mut state.rng);
-            let effect = effect.descriptor();
+            let effect_text = effect
+                .map(AttackEffect::verb)
+                .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
             action::ok(format!(
-                "{attacker_name} got a direct hit on {effect}{target_name}."
+                "{attack_text} and directly hits them{effect_text}."
             ))
         }
     }
@@ -102,17 +109,15 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 
 #[derive(Debug, Clone, Copy)]
 enum AttackEffect {
-    None,
     Stunned,
     Killed,
 }
 
 impl AttackEffect {
-    fn descriptor(self) -> &'static str {
+    fn verb(self) -> &'static str {
         match self {
-            AttackEffect::None => "",
-            AttackEffect::Stunned => "and stunned ",
-            AttackEffect::Killed => "and killed ",
+            Self::Stunned => "stunning",
+            Self::Killed => "killing",
         }
     }
 }
@@ -123,7 +128,7 @@ fn perform_attack_hit(
     target: Entity,
     world: &mut World,
     rng: &mut impl Rng,
-) -> AttackEffect {
+) -> Option<AttackEffect> {
     let damage_factor = if is_direct_hit { 1.0 } else { 0.5 };
 
     let killed = deal_damage(
@@ -134,7 +139,7 @@ fn perform_attack_hit(
     if killed {
         let _ = world.remove_one::<OccupiesSpace>(target);
         let _ = world.remove_one::<Hostile>(target);
-        return AttackEffect::Killed;
+        return Some(AttackEffect::Killed);
     }
     if is_direct_hit
         && !world.satisfies::<&status::IsStunned>(target).unwrap()
@@ -147,10 +152,10 @@ fn perform_attack_hit(
         );
         if successful_stun {
             world.insert_one(target, status::IsStunned).unwrap();
-            return AttackEffect::Stunned;
+            return Some(AttackEffect::Stunned);
         }
     }
-    AttackEffect::None
+    None
 }
 
 fn deal_damage(target_ref: EntityRef, damage: f32) -> bool {
