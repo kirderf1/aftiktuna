@@ -1,5 +1,5 @@
 use crate::action::{self, Error};
-use crate::core::name::NameWithAttribute;
+use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
 use crate::core::{self, Hostile, inventory, item, position, status};
@@ -77,9 +77,16 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 
     position::move_adjacent(world, attacker, target_pos)?;
 
+    let attack_text = if let Some(weapon) = inventory::get_wielded(world, attacker) {
+        let weapon_name = NameData::find(world, weapon);
+        let weapon_name = weapon_name.base();
+        format!("{attacker_name} swings their {weapon_name} at {target_name}")
+    } else {
+        format!("{attacker_name} attacks {target_name}")
+    };
+
     let hit_type = roll_hit(world, attacker, target, &mut state.rng);
 
-    let attack_text = format!("{attacker_name} attacks {target_name}");
     match hit_type {
         HitType::Dodge => action::ok(format!(
             "{attack_text}, but {target_name} dodges the attack."
