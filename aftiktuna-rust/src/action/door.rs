@@ -33,8 +33,8 @@ fn check_tool_for_forcing(
     }
 }
 
-pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity) -> action::Result {
-    let world = &mut state.world;
+pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity) -> action::Result {
+    let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer);
 
     let door_pos = *world.get::<&Pos>(door).ok().ok_or_else(|| {
@@ -61,7 +61,7 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
         .get::<&BlockType>(door_data.door_pair)
         .map(|block_type| *block_type)
     {
-        on_door_failure(state, performer, door, block_type);
+        on_door_failure(context.state, performer, door, block_type);
         return Err(Error::visible(format!(
             "{performer} is unable to enter the door as it is {blocked}.",
             performer = performer_name.definite(),
@@ -82,15 +82,19 @@ pub(super) fn enter_door(state: &mut GameState, performer: Entity, door: Entity)
         stamina.on_move();
     }
 
-    let areas = vec![door_pos.get_area(), door_data.destination.get_area()];
-    action::ok_at(
-        match door_data.kind {
-            DoorKind::Door => CombinableMsgType::EnterDoor,
-            DoorKind::Path => CombinableMsgType::EnterPath,
-        }
-        .message(performer_name),
-        areas,
-    )
+    let message = match door_data.kind {
+        DoorKind::Door => CombinableMsgType::EnterDoor,
+        DoorKind::Path => CombinableMsgType::EnterPath,
+    }
+    .message(performer_name);
+    context
+        .view_context
+        .add_message_at(door_pos.get_area(), &message);
+    context
+        .view_context
+        .add_message_at(door_data.destination.get_area(), message);
+
+    Ok(action::Success)
 }
 
 pub(super) fn force_door(
@@ -101,7 +105,7 @@ pub(super) fn force_door(
 ) -> action::Result {
     let Context {
         state,
-        mut dialogue_context,
+        mut view_context,
     } = context;
     let world = &state.world;
     let performer_name = NameData::find(world, performer).definite();
@@ -122,11 +126,11 @@ pub(super) fn force_door(
 
     let movement = position::prepare_move(world, performer, door_pos)
         .map_err(|blockage| blockage.into_message(world))?;
-    dialogue_context.capture_frame_for_dialogue(state);
+    view_context.capture_frame_for_dialogue(state);
     let world = &mut state.world;
     movement.perform(world).unwrap();
     if assisting {
-        dialogue_context.add_dialogue(world, performer, "I'll help you get that door open.");
+        view_context.add_dialogue(world, performer, "I'll help you get that door open.");
     }
 
     let block_type = *world.get::<&BlockType>(door_pair).map_err(|_| {
@@ -154,7 +158,8 @@ pub(super) fn force_door(
                 }
             }
 
-            action::ok(tool.into_message(&performer_name))
+            view_context.add_message_at(door_pos.get_area(), tool.into_message(&performer_name));
+            Ok(action::Success)
         }
     }
 }
@@ -190,13 +195,13 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
     if area::is_ship(area, world) {
-        return action::silent_ok();
+        return Ok(action::Success);
     }
 
     let path = ai::find_path_towards(world, area, |area| area::is_ship(area, world))
         .ok_or_else(|| "Could not find a path to the ship.".to_string())?;
 
-    let result = enter_door(context.state, performer, path);
+    let result = enter_door(&mut context, performer, path);
 
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();

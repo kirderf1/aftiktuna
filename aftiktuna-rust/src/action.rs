@@ -6,7 +6,7 @@ use crate::core::{
     status,
 };
 use crate::game_loop::GameState;
-use crate::view::text::{IntoMessage, Message};
+use crate::view::text::IntoMessage;
 use crate::view::{self, Frame};
 use hecs::{Entity, World};
 use std::collections::HashMap;
@@ -17,7 +17,7 @@ mod dialogue;
 mod door;
 pub mod item;
 mod ship;
-pub mod trade;
+mod trade;
 
 #[derive(Debug, Clone)]
 pub enum Action {
@@ -92,26 +92,34 @@ fn perform(
     action: Action,
     view_buffer: &mut view::Buffer,
 ) {
-    let context = Context {
+    let player_area = state
+        .world
+        .get::<&Pos>(state.controlled)
+        .unwrap()
+        .get_area();
+    let mut context = Context {
         state,
-        dialogue_context: DialogueContext { view_buffer },
+        view_context: ViewContext {
+            player_area,
+            view_buffer,
+        },
     };
     use Action::*;
     let result = match action {
-        OpenChest(chest) => open_chest(&mut state.world, performer, chest),
-        TakeItem(item, name) => item::take_item(&mut state.world, performer, item, name),
+        OpenChest(chest) => open_chest(&mut context, performer, chest),
+        TakeItem(item, name) => item::take_item(&mut context, performer, item, name),
         Search(search_action) => search_action.run(performer, context),
-        TakeAll => item::take_all(&mut state.world, performer),
+        TakeAll => item::take_all(&mut context, performer),
         GiveItem(item, receiver) => item::give_item(context, performer, item, receiver),
-        Wield(item, name) => item::wield(&mut state.world, performer, item, name),
+        Wield(item, name) => item::wield(&mut context, performer, item, name),
         Use(use_action) => use_action.run(performer, context),
-        EnterDoor(door) => door::enter_door(state, performer, door),
+        EnterDoor(door) => door::enter_door(&mut context, performer, door),
         ForceDoor(door, assisting) => door::force_door(context, performer, door, assisting),
         GoToShip => door::go_to_ship(context, performer),
-        Attack(targets) => combat::attack(state, performer, targets),
+        Attack(targets) => combat::attack(&mut context, performer, targets),
         Wait => {
             state.world.insert_one(performer, WasWaiting).unwrap();
-            silent_ok()
+            Ok(Success)
         }
         Examine(target) => {
             if let Some(target_pos) = state.world.get::<&Pos>(target).ok().map(|pos| *pos) {
@@ -124,45 +132,34 @@ fn perform(
                         .unwrap();
                 }
             }
-            silent_ok()
+            Ok(Success)
         }
-        Rest(first) => rest(&mut state.world, performer, first),
-        Refuel => ship::refuel(state, performer),
-        Launch => ship::launch(state, performer),
+        Rest(first) => rest(&mut context, performer, first),
+        Refuel => ship::refuel(&mut context, performer),
+        Launch => ship::launch(&mut context, performer),
         TalkTo(target) => dialogue::talk_to(context, performer, target),
         Recruit(target) => dialogue::recruit(context, performer, target),
         TellToWait(target) => dialogue::tell_to_wait(context, performer, target),
         TellToWaitAtShip(target) => dialogue::tell_to_wait_at_ship(context, performer, target),
         TellToFollow(target) => dialogue::tell_to_follow(context, performer, target),
-        Trade(shopkeeper) => trade::trade(&mut state.world, performer, shopkeeper),
-        Buy(item_type, amount) => trade::buy(&mut state.world, performer, item_type, amount),
-        Sell(items) => trade::sell(&mut state.world, performer, items),
-        ExitTrade => trade::exit(&mut state.world, performer),
-        Tame(target) => tame(&mut state.world, performer, target),
-        Name(target, name) => give_name(&mut state.world, performer, target, name),
+        Trade(shopkeeper) => trade::trade(&mut context, performer, shopkeeper),
+        Buy(item_type, amount) => trade::buy(&mut context, performer, item_type, amount),
+        Sell(items) => trade::sell(&mut context, performer, items),
+        ExitTrade => trade::exit(&mut context, performer),
+        Tame(target) => tame(&mut context, performer, target),
+        Name(target, name) => give_name(&mut context, performer, target, name),
     };
 
     let world = &state.world;
     let controlled = state.controlled;
     match result {
-        Ok(Success { message: None, .. }) => {}
-        Ok(Success {
-            message: Some(message),
-            areas,
-        }) => {
-            let areas =
-                areas.unwrap_or_else(|| vec![world.get::<&Pos>(performer).unwrap().get_area()]);
-            let player_pos = *world.get::<&Pos>(controlled).unwrap();
-            if areas.contains(&player_pos.get_area()) {
-                view_buffer.messages.add(message);
-            }
-        }
+        Ok(Success) => {}
         Err(error) => {
             if performer == controlled
                 || error.visible
-                    && world.get::<&Pos>(performer).is_ok_and(|pos| {
-                        pos.is_in(world.get::<&Pos>(controlled).unwrap().get_area())
-                    })
+                    && world
+                        .get::<&Pos>(performer)
+                        .is_ok_and(|pos| pos.is_in(player_area))
             {
                 view_buffer.messages.add(error.message);
                 view_buffer.capture_view(state);
@@ -175,7 +172,7 @@ pub struct WasWaiting;
 
 struct Context<'a> {
     state: &'a mut GameState,
-    dialogue_context: DialogueContext<'a>,
+    view_context: ViewContext<'a>,
 }
 
 impl<'a> Context<'a> {
@@ -184,11 +181,18 @@ impl<'a> Context<'a> {
     }
 }
 
-struct DialogueContext<'a> {
+struct ViewContext<'a> {
+    player_area: Entity,
     view_buffer: &'a mut view::Buffer,
 }
 
-impl<'a> DialogueContext<'a> {
+impl<'a> ViewContext<'a> {
+    fn add_message_at(&mut self, area: Entity, message: impl IntoMessage) {
+        if area == self.player_area {
+            self.view_buffer.messages.add(message);
+        }
+    }
+
     fn capture_frame_for_dialogue(&mut self, state: &mut GameState) {
         if !self.view_buffer.messages.is_empty() {
             self.view_buffer.capture_view(state);
@@ -201,7 +205,8 @@ impl<'a> DialogueContext<'a> {
     }
 }
 
-fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Result {
+fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> Result {
+    let world = &mut context.state.world;
     let area = world.get::<&Pos>(performer).unwrap().get_area();
 
     let need_more_rest = world
@@ -215,13 +220,15 @@ fn rest(world: &mut World, performer: Entity, first_turn_resting: bool) -> Resul
     }
 
     if first_turn_resting {
-        ok("The crew takes some time to rest up.".to_string())
-    } else {
-        silent_ok()
+        context
+            .view_context
+            .add_message_at(area, "The crew takes some time to rest up.");
     }
+    Ok(Success)
 }
 
-fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
+fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result {
+    let world = &mut context.state.world;
     let chest_pos = *world.get::<&Pos>(chest).unwrap();
 
     position::move_adjacent(world, performer, chest_pos)?;
@@ -235,13 +242,18 @@ fn open_chest(world: &mut World, performer: Entity, chest: Entity) -> Result {
     }
 
     world.insert_one(performer, OpenedChest).unwrap();
-    ok(format!(
-        "{} opened the fortuna chest and found the item that they desired the most.",
-        NameData::find(world, performer).definite()
-    ))
+    context.view_context.add_message_at(
+        chest_pos.get_area(),
+        format!(
+            "{} opened the fortuna chest and found the item that they desired the most.",
+            NameData::find(world, performer).definite()
+        ),
+    );
+    Ok(Success)
 }
 
-fn tame(world: &mut World, performer: Entity, target: Entity) -> Result {
+fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
+    let world = &mut context.state.world;
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
     if crew_size >= core::CREW_SIZE_LIMIT {
@@ -298,12 +310,17 @@ fn tame(world: &mut World, performer: Entity, target: Entity) -> Result {
     world
         .exchange_one::<Hostile, _>(target, CrewMember(crew))
         .unwrap();
-    ok(format!(
-        "{performer_name} offered a food ration to {target_name} and tamed it."
-    ))
+
+    context.view_context.add_message_at(
+        target_pos.get_area(),
+        format!("{performer_name} offered a food ration to {target_name} and tamed it."),
+    );
+
+    Ok(Success)
 }
 
-fn give_name(world: &mut World, performer: Entity, target: Entity, name: String) -> Result {
+fn give_name(context: &mut Context, performer: Entity, target: Entity, name: String) -> Result {
+    let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer).definite();
     let target_name = NameData::find(world, target).definite();
     let target_pos = *world.get::<&Pos>(target).unwrap();
@@ -324,38 +341,17 @@ fn give_name(world: &mut World, performer: Entity, target: Entity, name: String)
     position::move_adjacent(world, performer, target_pos)?;
 
     world.insert_one(target, Name::known(&name)).unwrap();
-    ok(format!(
-        "{performer_name} dubbed {target_name} to be named {name}."
-    ))
+
+    context.view_context.add_message_at(
+        target_pos.get_area(),
+        format!("{performer_name} dubbed {target_name} to be named {name}."),
+    );
+    Ok(Success)
 }
 
 type Result = result::Result<Success, Error>;
 
-pub struct Success {
-    message: Option<Message>,
-    areas: Option<Vec<Entity>>,
-}
-
-fn ok(message: impl IntoMessage) -> Result {
-    Ok(Success {
-        message: Some(message.into_message()),
-        areas: None,
-    })
-}
-
-fn ok_at(message: impl IntoMessage, areas: Vec<Entity>) -> Result {
-    Ok(Success {
-        message: Some(message.into_message()),
-        areas: Some(areas),
-    })
-}
-
-fn silent_ok() -> Result {
-    Ok(Success {
-        message: None,
-        areas: None,
-    })
-}
+pub struct Success;
 
 pub struct Error {
     message: String,

@@ -7,14 +7,14 @@ use crate::core::position::{self, Pos};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
 use crate::core::{CrewMember, item};
 use crate::view::text;
-use hecs::{Entity, EntityRef, Ref, World};
+use hecs::{Entity, EntityRef, World};
 
-pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
-    let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
-    world.get::<&Shopkeeper>(shopkeeper).ok()
-}
-
-pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action::Result {
+pub fn trade(
+    context: &mut action::Context,
+    performer: Entity,
+    shopkeeper: Entity,
+) -> action::Result {
+    let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer).definite();
 
     let shop_pos = *world
@@ -26,28 +26,34 @@ pub fn trade(world: &mut World, performer: Entity, shopkeeper: Entity) -> action
 
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 
-    action::ok(format!(
+    context.view_context.add_message_at(shop_pos.get_area(), format!(
         "{performer_name} starts trading with the shopkeeper. \"Welcome to the store. What do you want to buy?\"",
-    ))
+    ));
+    Ok(action::Success)
 }
 
 pub fn buy(
-    world: &mut World,
+    context: &mut action::Context,
     performer: Entity,
     item_type: item::Type,
     amount: u16,
 ) -> action::Result {
+    let world = &mut context.state.world;
     let (item, price) = try_buy(world, performer, item_type, amount)?;
 
     for _ in 0..amount {
         item::spawn(world, item, Some(price), Held::in_inventory(performer));
     }
 
-    action::ok(format!(
-        "{the_performer} bought {an_item}.",
-        the_performer = NameData::find(world, performer).definite(),
-        an_item = item.noun_data().with_text_count(amount, name::Article::A),
-    ))
+    context.view_context.add_message_at(
+        world.get::<&Pos>(performer).unwrap().get_area(),
+        format!(
+            "{the_performer} bought {an_item}.",
+            the_performer = NameData::find(world, performer).definite(),
+            an_item = item.noun_data().with_text_count(amount, name::Article::A),
+        ),
+    );
+    Ok(action::Success)
 }
 
 fn try_buy(
@@ -87,7 +93,12 @@ fn find_stock(shopkeeper: &mut Shopkeeper, item_type: item::Type) -> Option<&mut
         .find(|priced| priced.item == item_type)
 }
 
-pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action::Result {
+pub fn sell(
+    context: &mut action::Context,
+    performer: Entity,
+    items: Vec<Entity>,
+) -> action::Result {
+    let world = &mut context.state.world;
     let mut value = 0;
     let mut is_selling_fuel = false;
     for &item in &items {
@@ -125,10 +136,14 @@ pub fn sell(world: &mut World, performer: Entity, items: Vec<Entity>) -> action:
         world.despawn(item).unwrap();
     }
 
-    action::ok(format!(
-        "{performer_name} sold {items} for {value}.",
-        items = text::join_elements(item_list)
-    ))
+    context.view_context.add_message_at(
+        world.get::<&Pos>(performer).unwrap().get_area(),
+        format!(
+            "{performer_name} sold {items} for {value}.",
+            items = text::join_elements(item_list)
+        ),
+    );
+    Ok(action::Success)
 }
 
 fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
@@ -156,15 +171,24 @@ fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
         >= amount_needed
 }
 
-pub fn exit(world: &mut World, performer: Entity) -> action::Result {
-    let performer_name = NameData::find(world, performer).definite();
-    world
+pub fn exit(context: &mut action::Context, performer: Entity) -> action::Result {
+    let performer_name = NameData::find(&context.state.world, performer).definite();
+    context
+        .state
+        .world
         .remove_one::<IsTrading>(performer)
-        .map_err(|_| format!("{} is already not trading.", performer_name,))?;
+        .map_err(|_| format!("{performer_name} is already not trading."))?;
 
-    action::ok(format!(
-        "{performer_name} stops trading with the shopkeeper.",
-    ))
+    context.view_context.add_message_at(
+        context
+            .state
+            .world
+            .get::<&Pos>(performer)
+            .unwrap()
+            .get_area(),
+        format!("{performer_name} stops trading with the shopkeeper.",),
+    );
+    Ok(action::Success)
 }
 
 fn try_spend_points(crew_ref: EntityRef, points: i32) -> Result<(), String> {

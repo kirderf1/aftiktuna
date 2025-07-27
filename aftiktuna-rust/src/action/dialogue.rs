@@ -1,4 +1,4 @@
-use crate::action::{self, Context, Error};
+use crate::action::{self, Context, Error, ViewContext};
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
@@ -7,11 +7,9 @@ use crate::core::{
 };
 use hecs::{Entity, World};
 
-use super::DialogueContext;
-
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
     if !status::is_alive(target, &context.state.world) {
-        return action::silent_ok();
+        return Ok(action::Success);
     }
 
     full_dialogue_action(
@@ -21,20 +19,15 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
         true,
         |Context {
              state,
-             dialogue_context,
+             view_context,
          }| {
-            talk_dialogue(performer, target, &mut state.world, dialogue_context);
+            talk_dialogue(performer, target, &mut state.world, view_context);
             None
         },
     )
 }
 
-fn talk_dialogue(
-    performer: Entity,
-    target: Entity,
-    world: &mut World,
-    context: &mut DialogueContext,
-) {
+fn talk_dialogue(performer: Entity, target: Entity, world: &mut World, context: &mut ViewContext) {
     let target_ref = world.entity(target).unwrap();
     if target_ref
         .get::<&Name>()
@@ -78,12 +71,7 @@ fn talk_dialogue(
     }
 }
 
-fn regular_greeting(
-    performer: Entity,
-    target: Entity,
-    world: &World,
-    context: &mut DialogueContext,
-) {
+fn regular_greeting(performer: Entity, target: Entity, world: &World, context: &mut ViewContext) {
     let target_ref = world.entity(target).unwrap();
 
     context.add_dialogue(world, performer, "\"Hi!\"");
@@ -138,9 +126,9 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
         true,
         |Context {
              state,
-             dialogue_context,
+             view_context,
          }| {
-            dialogue_context.add_dialogue(
+            view_context.add_dialogue(
                 &state.world,
                 performer,
                 "\"Hi! Do you want to join me in the search for Fortuna?\"",
@@ -156,20 +144,24 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
                     name_ref.is_known = true;
                     name_ref.name.clone()
                 };
-                dialogue_context.add_dialogue(
+                view_context.add_dialogue(
                     &state.world,
                     target,
                     format!("\"Sure, I'll join you! My name is {name_string}.\""),
                 );
             } else {
-                dialogue_context.add_dialogue(&state.world, target, "\"Sure, I'll join you!\"");
+                view_context.add_dialogue(&state.world, target, "\"Sure, I'll join you!\"");
             }
 
             state.world.remove_one::<Recruitable>(target).unwrap();
             let name = NameData::find(&state.world, target).definite();
             state.world.insert_one(target, CrewMember(crew)).unwrap();
 
-            Some(action::ok(format!("{name} joined the crew!")))
+            view_context.add_message_at(
+                state.world.get::<&Pos>(performer).unwrap().get_area(),
+                format!("{name} joined the crew!"),
+            );
+            Some(Ok(action::Success))
         },
     )
 }
@@ -178,7 +170,7 @@ pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) 
     if !status::is_alive(target, &context.state.world)
         || context.state.world.satisfies::<&Waiting>(target).unwrap()
     {
-        return action::silent_ok();
+        return Ok(action::Success);
     }
 
     full_dialogue_action(
@@ -188,10 +180,10 @@ pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) 
         false,
         |Context {
              state,
-             dialogue_context,
+             view_context,
          }| {
-            dialogue_context.add_dialogue(&state.world, performer, "Please wait here for now.");
-            dialogue_context.add_dialogue(
+            view_context.add_dialogue(&state.world, performer, "Please wait here for now.");
+            view_context.add_dialogue(
                 &state.world,
                 target,
                 "Sure thing. Just tell me when I should follow along again.",
@@ -213,7 +205,7 @@ pub(super) fn tell_to_wait_at_ship(
     target: Entity,
 ) -> action::Result {
     if !status::is_alive(target, &context.state.world) {
-        return action::silent_ok();
+        return Ok(action::Success);
     }
 
     full_dialogue_action(
@@ -223,25 +215,25 @@ pub(super) fn tell_to_wait_at_ship(
         false,
         |Context {
              state,
-             dialogue_context,
+             view_context,
          }| {
             let target_pos = *state.world.get::<&Pos>(target).unwrap();
             if area::is_in_ship(target_pos, &state.world) {
-                dialogue_context.add_dialogue(&state.world, performer, "Please wait at the ship.");
+                view_context.add_dialogue(&state.world, performer, "Please wait at the ship.");
 
-                dialogue_context.add_dialogue(
+                view_context.add_dialogue(
                     &state.world,
                     target,
                     "Sure thing. I will stay here for now.",
                 );
             } else {
-                dialogue_context.add_dialogue(
+                view_context.add_dialogue(
                     &state.world,
                     performer,
                     "Please go back and wait at the ship.",
                 );
 
-                dialogue_context.add_dialogue(
+                view_context.add_dialogue(
                     &state.world,
                     target,
                     "Sure thing. I will go and wait at the ship for now.",
@@ -266,7 +258,7 @@ pub(super) fn tell_to_follow(
     if !status::is_alive(target, &context.state.world)
         || !context.state.world.satisfies::<&Waiting>(target).unwrap()
     {
-        return action::silent_ok();
+        return Ok(action::Success);
     }
 
     full_dialogue_action(
@@ -276,10 +268,10 @@ pub(super) fn tell_to_follow(
         false,
         |Context {
              state,
-             dialogue_context,
+             view_context,
          }| {
-            dialogue_context.add_dialogue(&state.world, performer, "Time to go, please follow me.");
-            dialogue_context.add_dialogue(&state.world, target, "Alright, let's go!");
+            view_context.add_dialogue(&state.world, performer, "Time to go, please follow me.");
+            view_context.add_dialogue(&state.world, target, "Alright, let's go!");
 
             state.world.remove_one::<Waiting>(target).unwrap();
 
@@ -307,7 +299,7 @@ fn full_dialogue_action(
     };
 
     context
-        .dialogue_context
+        .view_context
         .capture_frame_for_dialogue(context.state);
 
     if performer_pos != target_pos {
@@ -332,8 +324,10 @@ fn full_dialogue_action(
     result.unwrap_or_else(|| {
         let performer_name = NameData::find(&context.state.world, performer).definite();
         let target_name = NameData::find(&context.state.world, target).definite();
-        action::ok(format!(
-            "{performer_name} finishes talking with {target_name}."
-        ))
+        context.view_context.add_message_at(
+            performer_pos.get_area(),
+            format!("{performer_name} finishes talking with {target_name}."),
+        );
+        Ok(action::Success)
     })
 }

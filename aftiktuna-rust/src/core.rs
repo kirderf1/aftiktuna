@@ -105,10 +105,9 @@ pub mod display {
 }
 
 pub mod store {
-    use std::fmt::Display;
-
-    use hecs::Entity;
+    use hecs::{Entity, Ref, World};
     use serde::{Deserialize, Serialize};
+    use std::fmt::Display;
 
     use super::item;
 
@@ -157,6 +156,11 @@ pub mod store {
 
     #[derive(Serialize, Deserialize)]
     pub struct IsTrading(pub Entity);
+
+    pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
+        let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
+        world.get::<&Shopkeeper>(shopkeeper).ok()
+    }
 }
 
 pub const CREW_SIZE_LIMIT: usize = 3;

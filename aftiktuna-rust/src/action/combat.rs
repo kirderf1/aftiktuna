@@ -3,32 +3,26 @@ use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
 use crate::core::{self, Hostile, UnarmedType, inventory, item, position, status};
-use crate::game_loop::GameState;
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
 use std::cmp::Ordering;
 
 pub(super) fn attack(
-    state: &mut GameState,
+    context: &mut action::Context,
     attacker: Entity,
     targets: Vec<Entity>,
 ) -> action::Result {
     if targets.len() == 1 {
-        return attack_single(state, attacker, targets[0]);
+        return attack_single(context, attacker, targets[0]);
     }
-    let pos = *state.world.get::<&Pos>(attacker).unwrap();
+    let world = &context.state.world;
+    let pos = *world.get::<&Pos>(attacker).unwrap();
 
     let targets = targets
         .into_iter()
-        .flat_map(|entity| {
-            state
-                .world
-                .get::<&Pos>(entity)
-                .ok()
-                .map(|pos| (entity, *pos))
-        })
+        .flat_map(|entity| world.get::<&Pos>(entity).ok().map(|pos| (entity, *pos)))
         .filter(|(entity, other_pos)| {
-            other_pos.is_in(pos.get_area()) && status::is_alive(*entity, &state.world)
+            other_pos.is_in(pos.get_area()) && status::is_alive(*entity, world)
         })
         // collects the closest targets and also maps them to just the entity in one
         .fold((u32::MAX, vec![]), |mut partial, (entity, other_pos)| {
@@ -45,15 +39,19 @@ pub(super) fn attack(
         .1;
 
     if targets.is_empty() {
-        action::silent_ok()
+        Ok(action::Success)
     } else {
-        let target = targets[state.rng.random_range(0..targets.len())];
-        attack_single(state, attacker, target)
+        let target = targets[context.state.rng.random_range(0..targets.len())];
+        attack_single(context, attacker, target)
     }
 }
 
-fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> action::Result {
-    let world = &mut state.world;
+fn attack_single(
+    context: &mut action::Context,
+    attacker: Entity,
+    target: Entity,
+) -> action::Result {
+    let world = &mut context.state.world;
     let attacker_name = NameWithAttribute::lookup(attacker, world).definite();
     let target_name = NameWithAttribute::lookup(target, world).definite();
     let attacker_pos = *world
@@ -61,7 +59,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
         .expect("Expected attacker to have a position");
 
     if !status::is_alive(target, world) {
-        return action::silent_ok();
+        return Ok(action::Success);
     }
     let target_pos = *world
         .get::<&Pos>(target)
@@ -94,33 +92,38 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
         (format!("{attacker_name} attacks {target_name}"), "hits")
     };
 
-    let hit_type = roll_hit(world, attacker, target, &mut state.rng);
+    let hit_type = roll_hit(world, attacker, target, &mut context.state.rng);
 
     match hit_type {
-        HitType::Dodge => action::ok(format!(
-            "{attack_text}, but {target_name} dodges the attack."
-        )),
+        HitType::Dodge => context.view_context.add_message_at(
+            attacker_pos.get_area(),
+            format!("{attack_text}, but {target_name} dodges the attack."),
+        ),
         HitType::GrazingHit => {
-            let effect = perform_attack_hit(false, attacker, target, world, &mut state.rng);
+            let effect = perform_attack_hit(false, attacker, target, world, &mut context.state.rng);
             let effect_text = effect
                 .map(AttackEffect::verb)
                 .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
-            action::ok(format!(
-                "{attack_text} and narrowly {hit_verb} them{effect_text}."
-            ))
+            context.view_context.add_message_at(
+                attacker_pos.get_area(),
+                format!("{attack_text} and narrowly {hit_verb} them{effect_text}."),
+            );
         }
         HitType::DirectHit => {
-            let effect = perform_attack_hit(true, attacker, target, world, &mut state.rng);
+            let effect = perform_attack_hit(true, attacker, target, world, &mut context.state.rng);
             let effect_text = effect
                 .map(AttackEffect::verb)
                 .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
-            action::ok(format!(
-                "{attack_text} and directly {hit_verb} them{effect_text}."
-            ))
+            context.view_context.add_message_at(
+                attacker_pos.get_area(),
+                format!("{attack_text} and directly {hit_verb} them{effect_text}."),
+            );
         }
     }
+
+    Ok(action::Success)
 }
 
 #[derive(Debug, Clone, Copy)]

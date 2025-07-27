@@ -6,9 +6,10 @@ use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
 use crate::core::{self, RepeatingAction, inventory, position, status};
 use crate::view::text::{self, CombinableMsgType};
-use hecs::{Entity, World};
+use hecs::Entity;
 
-pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
+pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
+    let world = &mut context.state.world;
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
         .query::<(&Pos, NameQuery)>()
@@ -19,25 +20,33 @@ pub fn take_all(world: &mut World, aftik: Entity) -> action::Result {
         .map(|(item, (_, query))| (item, NameData::from(query)))
         .ok_or("There are no items to take here.")?;
 
-    let result = take_item(world, aftik, item, name)?;
-    if world
+    let result = take_item(context, aftik, item, name)?;
+
+    if context
+        .state
+        .world
         .query::<&Pos>()
         .with::<NameQuery>()
         .with::<&Item>()
         .iter()
         .any(|(_, pos)| pos.is_in(aftik_pos.get_area()))
     {
-        world.insert_one(aftik, RepeatingAction::TakeAll).unwrap();
+        context
+            .state
+            .world
+            .insert_one(aftik, RepeatingAction::TakeAll)
+            .unwrap();
     }
     Ok(result)
 }
 
-pub fn take_item(
-    world: &mut World,
+pub(super) fn take_item(
+    context: &mut action::Context,
     performer: Entity,
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
+    let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer);
     let item_pos = *world.get::<&Pos>(item).map_err(|_| {
         format!(
@@ -56,11 +65,12 @@ pub fn take_item(
     {
         world.despawn(item).unwrap();
 
-        return action::ok(format!(
+        context.view_context.add_message_at(item_pos.get_area(), format!(
             "{the_performer} tries to pick up {the_item}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
             the_performer = performer_name.definite(),
             the_item = item_name.definite(),
         ));
+        return Ok(action::Success);
     }
 
     world
@@ -69,7 +79,11 @@ pub fn take_item(
 
     core::trigger_aggression_in_area(world, item_pos.get_area());
 
-    action::ok(CombinableMsgType::PickUp(performer_name).message(item_name))
+    context.view_context.add_message_at(
+        item_pos.get_area(),
+        CombinableMsgType::PickUp(performer_name).message(item_name),
+    );
+    Ok(action::Success)
 }
 
 #[derive(Debug, Clone)]
@@ -106,9 +120,10 @@ impl SearchAction {
 
         let items = inventory::get_held(world, container);
         if items.is_empty() {
-            return action::ok(format!(
+            context.view_context.add_message_at(container_pos.get_area(), format!(
                 "{performer_name} searched {container_name}, but did not find anything of interest."
             ));
+            return Ok(action::Success);
         }
 
         inventory::drop_all_items(world, container);
@@ -120,10 +135,14 @@ impl SearchAction {
             Article::A,
             CountFormat::Text,
         );
-        action::ok(format!(
-            "{performer_name} searched {container_name} and found {items}.",
-            items = text::join_elements(items)
-        ))
+        context.view_context.add_message_at(
+            container_pos.get_area(),
+            format!(
+                "{performer_name} searched {container_name} and found {items}.",
+                items = text::join_elements(items)
+            ),
+        );
+        Ok(action::Success)
     }
 }
 
@@ -135,7 +154,7 @@ pub(super) fn give_item(
 ) -> action::Result {
     let Context {
         state,
-        mut dialogue_context,
+        mut view_context,
     } = context;
     let world = &state.world;
     let performer_name = NameData::find(world, performer).definite();
@@ -174,40 +193,45 @@ pub(super) fn give_item(
     let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
         .map_err(|blockage| blockage.into_message(world))?;
 
-    dialogue_context.capture_frame_for_dialogue(state);
+    view_context.capture_frame_for_dialogue(state);
     let world = &mut state.world;
 
     movement.perform(world).unwrap();
 
-    dialogue_context.add_dialogue(world, performer, "\"Here, hold on to this.\"");
+    view_context.add_dialogue(world, performer, "\"Here, hold on to this.\"");
 
     world
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
 
-    super::ok(format!(
-        "{performer_name} gave {receiver_name} a {}.",
-        NameData::find(world, item).base()
-    ))
+    view_context.add_message_at(
+        performer_pos.get_area(),
+        format!(
+            "{performer_name} gave {receiver_name} a {}.",
+            NameData::find(world, item).base()
+        ),
+    );
+    Ok(action::Success)
 }
 
-pub fn wield(
-    world: &mut World,
+pub(super) fn wield(
+    context: &mut Context,
     performer: Entity,
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
+    let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer).definite();
 
     if inventory::is_in_inventory(world, item, performer) {
         inventory::unwield_if_needed(world, performer);
         world.insert_one(item, Held::in_hand(performer)).unwrap();
 
-        action::ok(format!(
-            "{} wielded {}.",
-            performer_name,
-            item_name.definite()
-        ))
+        context.view_context.add_message_at(
+            world.get::<&Pos>(performer).unwrap().get_area(),
+            format!("{performer_name} wielded {}.", item_name.definite()),
+        );
+        Ok(action::Success)
     } else {
         let item_pos = *world
             .get::<&Pos>(item)
@@ -221,10 +245,14 @@ pub fn wield(
 
         core::trigger_aggression_in_area(world, item_pos.get_area());
 
-        action::ok(format!(
-            "{performer_name} picked up and wielded {}.",
-            item_name.definite()
-        ))
+        context.view_context.add_message_at(
+            item_pos.get_area(),
+            format!(
+                "{performer_name} picked up and wielded {}.",
+                item_name.definite()
+            ),
+        );
+        Ok(action::Success)
     }
 }
 
@@ -241,10 +269,11 @@ impl From<UseAction> for super::Action {
 
 impl UseAction {
     pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
-        let world = context.mut_world();
+        let world = &mut context.state.world;
 
         let performer_ref = world.entity(performer).unwrap();
         let performer_name = NameData::find_by_ref(performer_ref).definite();
+        let area = performer_ref.get::<&Pos>().unwrap().get_area();
 
         let item_ref = world
             .entity(self.item)
@@ -269,9 +298,11 @@ impl UseAction {
             drop(health);
             world.despawn(self.item).unwrap();
 
-            return action::ok(format!(
-                "{performer_name} used a medkit and recovered some health.",
-            ));
+            context.view_context.add_message_at(
+                area,
+                format!("{performer_name} used a medkit and recovered some health.",),
+            );
+            return Ok(action::Success);
         }
 
         let Some(usable) = item_ref.get::<&Usable>().as_deref().copied() else {
@@ -283,18 +314,23 @@ impl UseAction {
         match usable {
             Usable::BlackOrb => {
                 let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
-                    return action::ok(format!(
+                    context.view_context.add_message_at(area, format!(
                         "{performer_name} holds up and inspects the orb, but can't figure out what it is."
                     ));
+                    return Ok(action::Success);
                 };
 
                 world.despawn(self.item).unwrap();
 
-                action::ok(format!(
-                    "{performer_name} holds up and inspects the orb. \
+                context.view_context.add_message_at(
+                    area,
+                    format!(
+                        "{performer_name} holds up and inspects the orb. \
                      {performer_name} gets a sensation of hardiness when suddenly, \
                      the orb cracks and falls apart into worthless pieces! (Stats have changed)"
-                ))
+                    ),
+                );
+                Ok(action::Success)
             }
         }
     }

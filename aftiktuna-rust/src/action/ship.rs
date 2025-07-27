@@ -8,7 +8,8 @@ use crate::game_loop::GameState;
 use crate::view::text;
 use hecs::{Entity, World};
 
-pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
+pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Result {
+    let state = &mut context.state;
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
     let (status, controls_pos) = lookup_ship_state(state, area)?;
@@ -29,7 +30,7 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
                 "{name} goes to refuel the ship, but sees that it is already refueled."
             )));
         }
-        ShipStatus::Launching => return action::silent_ok(),
+        ShipStatus::Launching => return Ok(action::Success),
     };
 
     if status != new_status {
@@ -41,10 +42,12 @@ pub fn refuel(state: &mut GameState, performer: Entity) -> action::Result {
             .status = new_status;
     }
 
-    action::ok(message)
+    context.view_context.add_message_at(area, message);
+    Ok(action::Success)
 }
 
-pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
+pub fn launch(context: &mut action::Context, performer: Entity) -> action::Result {
+    let state = &mut context.state;
     if state.generation_state.is_at_fortuna() {
         return Err(Error::private(
             "The crew won't leave until they find the treasure here.",
@@ -81,7 +84,8 @@ pub fn launch(state: &mut GameState, performer: Entity) -> action::Result {
             .status = new_status;
     }
 
-    action::ok(message)
+    context.view_context.add_message_at(area, message);
+    Ok(action::Success)
 }
 
 fn refuel_then_launch(

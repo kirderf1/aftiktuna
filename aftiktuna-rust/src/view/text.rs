@@ -1,7 +1,7 @@
 use crate::OneOrTwo;
 use crate::core::name::{self, NameData};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Message {
     Combinable(CombinableMsgType, Vec<NameData>),
     String(String),
@@ -111,6 +111,12 @@ pub trait IntoMessage {
 impl IntoMessage for Message {
     fn into_message(self) -> Message {
         self
+    }
+}
+
+impl IntoMessage for &Message {
+    fn into_message(self) -> Message {
+        self.clone()
     }
 }
 

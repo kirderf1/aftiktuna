@@ -3,9 +3,9 @@ mod parse;
 mod store;
 pub mod suggestion;
 
-use crate::action::{Action, trade};
-use crate::core::CreatureAttribute;
+use crate::action::Action;
 use crate::core::name::NameData;
+use crate::core::{self, CreatureAttribute};
 use crate::game_loop::GameState;
 use crate::view::{self, text};
 use hecs::{Entity, EntityRef};
@@ -52,7 +52,7 @@ fn crew_action(action: impl Into<Action>) -> Result<CommandResult, String> {
 }
 
 pub fn try_parse_input(input: &str, state: &GameState) -> Result<CommandResult, String> {
-    if let Some(shopkeeper) = trade::get_shop_info(&state.world, state.controlled) {
+    if let Some(shopkeeper) = core::store::get_shop_info(&state.world, state.controlled) {
         store::parse(input, shopkeeper.deref(), state)
     } else {
         game::parse(input, state)
