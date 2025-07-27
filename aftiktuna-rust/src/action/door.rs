@@ -86,13 +86,15 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         DoorKind::Door => CombinableMsgType::EnterDoor(door),
         DoorKind::Path => CombinableMsgType::EnterPath(door),
     }
-    .message(performer_name);
+    .message(performer_name.clone());
     context
         .view_context
-        .add_message_at(door_pos.get_area(), &message);
-    context
-        .view_context
-        .add_message_at(door_data.destination.get_area(), message);
+        .add_message_at(door_pos.get_area(), message);
+
+    context.view_context.add_message_at(
+        door_data.destination.get_area(),
+        CombinableMsgType::Arrive(door).message(performer_name),
+    );
 
     Ok(action::Success)
 }

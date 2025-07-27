@@ -11,11 +11,17 @@ pub enum Message {
 impl Message {
     fn try_combine(self, other: Self) -> OneOrTwo<Self> {
         match (self, other) {
-            (Self::Combinable(type_1, mut entities_1), Self::Combinable(type_2, entities_2))
-                if type_1 == type_2 =>
-            {
-                entities_1.extend(entities_2);
-                OneOrTwo::One(Self::Combinable(type_1, entities_1))
+            (Self::Combinable(type_1, entities_1), Self::Combinable(type_2, entities_2)) => {
+                if let Some(type_3) = type_1.try_combine(&type_2) {
+                    let mut entities = entities_1;
+                    entities.extend(entities_2);
+                    OneOrTwo::One(Self::Combinable(type_3, entities))
+                } else {
+                    OneOrTwo::Two(
+                        Self::Combinable(type_1, entities_1),
+                        Self::Combinable(type_2, entities_2),
+                    )
+                }
             }
             (msg1, msg2) => OneOrTwo::Two(msg1, msg2),
         }
@@ -33,6 +39,7 @@ impl Message {
 pub enum CombinableMsgType {
     EnterDoor(Entity),
     EnterPath(Entity),
+    Arrive(Entity),
     PickUp(NameData),
     Threatening,
     Attacking,
@@ -41,6 +48,19 @@ pub enum CombinableMsgType {
 impl CombinableMsgType {
     pub fn message(self, entity_name: NameData) -> Message {
         Message::Combinable(self, vec![entity_name])
+    }
+
+    fn try_combine(&self, other: &Self) -> Option<Self> {
+        if self == other {
+            Some(self.clone())
+        } else if let Self::EnterDoor(path1) | Self::EnterPath(path1) = self
+            && let Self::Arrive(path2) = other
+            && path1 == path2
+        {
+            Some(self.clone())
+        } else {
+            None
+        }
     }
 
     fn into_text(self, entities: Vec<NameData>) -> String {
@@ -57,6 +77,14 @@ impl CombinableMsgType {
                 the_characters = capitalize(join_elements(
                     entities.into_iter().map(|name| name.definite()).collect()
                 ))
+            ),
+            Arrive(_) => format!(
+                "{the_characters} arrived from a nearby area.",
+                the_characters = capitalize(join_elements(name::names_with_counts(
+                    entities,
+                    name::Article::A,
+                    name::CountFormat::Text
+                )))
             ),
             PickUp(performer_name) => format!(
                 "{the_performer} picked up {the_items}.",
