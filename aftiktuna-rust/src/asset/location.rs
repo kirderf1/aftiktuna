@@ -5,7 +5,7 @@ pub mod creature {
     use crate::core::position::Direction;
     use crate::core::status::Stats;
     use crate::core::store::StockQuantity;
-    use crate::core::{CreatureAttribute, GivesHuntReward, Tag, item};
+    use crate::core::{CreatureAttribute, GivesHuntReward, Tag, UnarmedType, item};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -83,6 +83,16 @@ pub mod creature {
                 Self::Azureclops => Noun::new("azureclops", "azureclopses"),
                 Self::Scarvie => Noun::new("scarvie", "scarvies"),
                 Self::VoraciousFrog => Noun::new("voracious frog", "voracious frogs"),
+            }
+        }
+
+        pub fn unarmed_type(self) -> UnarmedType {
+            match self {
+                Self::Goblin => UnarmedType::Scratch,
+                Self::Eyesaur => UnarmedType::Bite,
+                Self::Azureclops => UnarmedType::Punch,
+                Self::Scarvie => UnarmedType::Bite,
+                Self::VoraciousFrog => UnarmedType::Pounce,
             }
         }
     }

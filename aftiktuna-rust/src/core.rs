@@ -178,6 +178,32 @@ pub struct Wandering;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObservationTarget;
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum UnarmedType {
+    Bite,
+    Scratch,
+    Punch,
+    Pounce,
+}
+
+impl UnarmedType {
+    pub fn attack_verb(self) -> &'static str {
+        match self {
+            Self::Bite | Self::Pounce => "jumps at",
+            Self::Scratch => "scratches at",
+            Self::Punch => "launches a punch at",
+        }
+    }
+
+    pub fn hit_verb(self) -> &'static str {
+        match self {
+            Self::Bite => "bites",
+            Self::Scratch | Self::Punch => "hits",
+            Self::Pounce => "pounces",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CreatureAttribute {

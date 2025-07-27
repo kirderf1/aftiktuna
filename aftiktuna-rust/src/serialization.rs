@@ -179,6 +179,7 @@ pub mod world {
         core::Hostile, Hostile;
         core::Wandering, Wandering;
         core::ObservationTarget, ObservationTarget;
+        core::UnarmedType, UnarmedType;
         ai::Intention, Intention;
         core::Waiting, Waiting;
         core::RepeatingAction, RepeatingAction;

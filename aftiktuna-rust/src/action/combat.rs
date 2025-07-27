@@ -2,7 +2,7 @@ use crate::action::{self, Error};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
-use crate::core::{self, Hostile, inventory, item, position, status};
+use crate::core::{self, Hostile, UnarmedType, inventory, item, position, status};
 use crate::game_loop::GameState;
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
@@ -77,12 +77,21 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
 
     position::move_adjacent(world, attacker, target_pos)?;
 
-    let attack_text = if let Some(weapon) = inventory::get_wielded(world, attacker) {
+    let (attack_text, hit_verb) = if let Some(weapon) = inventory::get_wielded(world, attacker) {
         let weapon_name = NameData::find(world, weapon);
         let weapon_name = weapon_name.base();
-        format!("{attacker_name} swings their {weapon_name} at {target_name}")
+        (
+            format!("{attacker_name} swings their {weapon_name} at {target_name}"),
+            "hits",
+        )
+    } else if let Ok(unarmed_type) = world.get::<&UnarmedType>(attacker) {
+        let attack_verb = unarmed_type.attack_verb();
+        (
+            format!("{attacker_name} {attack_verb} {target_name}"),
+            unarmed_type.hit_verb(),
+        )
     } else {
-        format!("{attacker_name} attacks {target_name}")
+        (format!("{attacker_name} attacks {target_name}"), "hits")
     };
 
     let hit_type = roll_hit(world, attacker, target, &mut state.rng);
@@ -98,7 +107,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
                 .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
             action::ok(format!(
-                "{attack_text} and narrowly hits them{effect_text}."
+                "{attack_text} and narrowly {hit_verb} them{effect_text}."
             ))
         }
         HitType::DirectHit => {
@@ -108,7 +117,7 @@ fn attack_single(state: &mut GameState, attacker: Entity, target: Entity) -> act
                 .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
             action::ok(format!(
-                "{attack_text} and directly hits them{effect_text}."
+                "{attack_text} and directly {hit_verb} them{effect_text}."
             ))
         }
     }

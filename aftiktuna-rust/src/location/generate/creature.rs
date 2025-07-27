@@ -9,7 +9,7 @@ use crate::core::name::{Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, Wandering};
+use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, UnarmedType, Wandering};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::IndexedRandom;
@@ -68,6 +68,7 @@ pub(super) fn place_creature(
         health,
         Stamina::with_max(&stats),
         stats,
+        spawn_data.creature.unarmed_type(),
     ));
 
     if let Some(tag) = spawn_data.tag.clone() {
@@ -163,6 +164,7 @@ fn aftik_builder(color: AftikColorId) -> EntityBuilder {
         color,
         OrderWeight::Creature,
         Noun::new("aftik", "aftiks"),
+        UnarmedType::Scratch,
     ));
     builder
 }
