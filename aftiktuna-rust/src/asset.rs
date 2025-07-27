@@ -141,13 +141,23 @@ pub mod placement {
     }
 
     pub fn position_objects<T>(
-        objects: &Vec<ObjectRenderData>,
+        objects: &[ObjectRenderData],
         models: &mut impl ModelAccess<T>,
     ) -> Vec<(Vec2, ObjectRenderData)> {
         let mut positioned_objects = Vec::new();
         let mut positioner = Positioner::default();
         let mut groups_cache: Vec<Vec<ObjectRenderData>> =
             vec![Vec::new(); (objects.iter().map(|obj| obj.coord).max().unwrap_or(0) + 1) as usize];
+
+        let mut objects = objects.to_owned();
+        objects.sort_by(|data1, data2| {
+            let z_offset1 = models.lookup_model(&data1.model_id).z_offset;
+            let z_offset2 = models.lookup_model(&data2.model_id).z_offset;
+            data2
+                .weight
+                .cmp(&data1.weight)
+                .then(z_offset1.cmp(&z_offset2))
+        });
 
         for data in objects {
             let object_group = &mut groups_cache[data.coord as usize];
@@ -159,7 +169,7 @@ pub mod placement {
                     .extend(positioner.position_object_group(mem::take(object_group), models));
             }
 
-            object_group.push(data.clone());
+            object_group.push(data);
         }
 
         for object_group in groups_cache {
