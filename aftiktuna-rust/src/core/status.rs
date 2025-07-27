@@ -168,7 +168,7 @@ impl Health {
         self.value
     }
 
-    pub fn take_damage(&mut self, mut damage: f32, entity_ref: EntityRef) -> bool {
+    pub fn take_damage(&mut self, mut damage: f32, entity_ref: EntityRef) -> Option<Killed> {
         if Trait::Fragile.ref_has_trait(entity_ref) {
             damage *= 1.33;
         }
@@ -176,7 +176,11 @@ impl Health {
             .get::<&Stats>()
             .map_or(1, |stats| stats.endurance);
         self.value -= damage / f32::from(6 + endurance * 3);
-        self.value <= 0.0
+        if self.value <= 0.0 {
+            Some(Killed)
+        } else {
+            None
+        }
     }
 
     pub fn restore_fraction(&mut self, fraction: f32) {
@@ -188,6 +192,8 @@ impl Health {
         self.value = 1.
     }
 }
+
+pub struct Killed;
 
 pub fn is_alive(entity: Entity, world: &World) -> bool {
     match world.entity(entity) {

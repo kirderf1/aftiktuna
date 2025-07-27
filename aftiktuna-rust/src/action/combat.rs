@@ -1,7 +1,7 @@
 use crate::action::{self, Error};
 use crate::core::name::NameWithAttribute;
 use crate::core::position::{OccupiesSpace, Pos};
-use crate::core::status::{Health, Stamina, Stats};
+use crate::core::status::{Health, Killed, Stamina, Stats};
 use crate::core::{self, Hostile, inventory, item, position, status};
 use crate::game_loop::GameState;
 use hecs::{Entity, EntityRef, World};
@@ -131,12 +131,12 @@ fn perform_attack_hit(
 ) -> Option<AttackEffect> {
     let damage_factor = if is_direct_hit { 1.0 } else { 0.5 };
 
-    let killed = deal_damage(
+    let damage_result = deal_damage(
         world.entity(target).unwrap(),
         damage_factor * get_attack_damage(world, attacker),
     );
 
-    if killed {
+    if matches!(damage_result, Some(Killed)) {
         let _ = world.remove_one::<OccupiesSpace>(target);
         let _ = world.remove_one::<Hostile>(target);
         return Some(AttackEffect::Killed);
@@ -158,10 +158,10 @@ fn perform_attack_hit(
     None
 }
 
-fn deal_damage(target_ref: EntityRef, damage: f32) -> bool {
+fn deal_damage(target_ref: EntityRef, damage: f32) -> Option<Killed> {
     target_ref
         .get::<&mut Health>()
-        .map_or(false, |mut health| health.take_damage(damage, target_ref))
+        .and_then(|mut health| health.take_damage(damage, target_ref))
 }
 
 fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
