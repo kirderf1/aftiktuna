@@ -83,8 +83,8 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     }
 
     let message = match door_data.kind {
-        DoorKind::Door => CombinableMsgType::EnterDoor,
-        DoorKind::Path => CombinableMsgType::EnterPath,
+        DoorKind::Door => CombinableMsgType::EnterDoor(door),
+        DoorKind::Path => CombinableMsgType::EnterPath(door),
     }
     .message(performer_name);
     context

@@ -1,5 +1,6 @@
 use crate::OneOrTwo;
 use crate::core::name::{self, NameData};
+use hecs::Entity;
 
 #[derive(Clone, Debug)]
 pub enum Message {
@@ -30,8 +31,8 @@ impl Message {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CombinableMsgType {
-    EnterDoor,
-    EnterPath,
+    EnterDoor(Entity),
+    EnterPath(Entity),
     PickUp(NameData),
     Threatening,
     Attacking,
@@ -45,13 +46,13 @@ impl CombinableMsgType {
     fn into_text(self, entities: Vec<NameData>) -> String {
         use CombinableMsgType::*;
         match self {
-            EnterDoor => format!(
+            EnterDoor(_) => format!(
                 "{the_characters} entered the door into a new area.",
                 the_characters = capitalize(join_elements(
                     entities.into_iter().map(|name| name.definite()).collect()
                 ))
             ),
-            EnterPath => format!(
+            EnterPath(_) => format!(
                 "{the_characters} followed the path to a new area.",
                 the_characters = capitalize(join_elements(
                     entities.into_iter().map(|name| name.definite()).collect()

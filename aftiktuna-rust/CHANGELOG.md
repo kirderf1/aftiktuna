@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Repeated actions such as "take all" and "rest" are now cancelled if the area becomes unsafe
 - Fine-tuned conditions for using "tell \<character\> to wait" and "tell \<character\> to wait at ship"
 - Reworked description for attack actions to be more descriptive
+- Made tweaks to the description for enter actions
 - Model format changes:
   - "fixed" layer property replaced by "fixed_orientation" model property
   - Flipped the y-axis of "y_offset" and "wield_offset", which now matches the y-axis of group placement and background layer offsets
