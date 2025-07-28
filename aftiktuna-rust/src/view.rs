@@ -114,6 +114,7 @@ pub type StatusCache = status::Cache;
 pub struct Buffer {
     pub messages: Messages,
     captured_frames: Vec<Frame>,
+    unseen_view: bool,
 }
 
 impl Buffer {
@@ -135,8 +136,19 @@ impl Buffer {
             area_view_frame(self, state)
         };
 
-        if self.captured_frames.is_empty() || frame.has_messages() {
+        if self.unseen_view || self.captured_frames.is_empty() || frame.has_messages() {
             self.captured_frames.push(frame);
+        }
+        self.unseen_view = false;
+    }
+
+    pub fn mark_unseen_view(&mut self) {
+        self.unseen_view = true;
+    }
+
+    pub fn capture_unseen_view(&mut self, state: &mut GameState) {
+        if self.unseen_view {
+            self.capture_view(state);
         }
     }
 

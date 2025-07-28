@@ -46,9 +46,8 @@ pub(super) fn take_item(
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
-    let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer);
-    let item_pos = *world.get::<&Pos>(item).map_err(|_| {
+    let performer_name = NameData::find(&context.state.world, performer);
+    let item_pos = *context.state.world.get::<&Pos>(item).map_err(|_| {
         format!(
             "{the_performer} lost track of {the_item}.",
             the_performer = performer_name.definite(),
@@ -56,6 +55,11 @@ pub(super) fn take_item(
         )
     })?;
 
+    context
+        .view_context
+        .capture_unseen_view(item_pos.get_area(), context.state);
+
+    let world = &mut context.state.world;
     position::push_and_move(world, performer, item_pos)?;
 
     if world.satisfies::<&FourLeafClover>(item).unwrap()

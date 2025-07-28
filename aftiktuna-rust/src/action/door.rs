@@ -34,7 +34,11 @@ fn check_tool_for_forcing(
 }
 
 pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity) -> action::Result {
-    let world = &mut context.state.world;
+    let action::Context {
+        state,
+        view_context,
+    } = context;
+    let world = &mut state.world;
     let performer_name = NameData::find(world, performer);
 
     let door_pos = *world.get::<&Pos>(door).ok().ok_or_else(|| {
@@ -61,7 +65,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         .get::<&BlockType>(door_data.door_pair)
         .map(|block_type| *block_type)
     {
-        on_door_failure(context.state, performer, door, block_type);
+        on_door_failure(state, performer, door, block_type);
         return Err(Error::visible(format!(
             "{performer} is unable to enter the door as it is {blocked}.",
             performer = performer_name.definite(),
@@ -69,6 +73,9 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         )));
     }
 
+    view_context.capture_unseen_view(door_pos.get_area(), state);
+
+    let world = &mut state.world;
     if let Err(blockage) = position::check_is_pos_blocked(door_data.destination, world) {
         blockage
             .try_push(
@@ -81,17 +88,18 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     if let Ok(mut stamina) = world.get::<&mut Stamina>(performer) {
         stamina.on_move();
     }
+    if performer == state.controlled {
+        view_context.view_buffer.mark_unseen_view();
+    }
 
     let message = match door_data.kind {
         DoorKind::Door => CombinableMsgType::EnterDoor(door),
         DoorKind::Path => CombinableMsgType::EnterPath(door),
     }
     .message(performer_name.clone());
-    context
-        .view_context
-        .add_message_at(door_pos.get_area(), message);
+    view_context.add_message_at(door_pos.get_area(), message);
 
-    context.view_context.add_message_at(
+    view_context.add_message_at(
         door_data.destination.get_area(),
         CombinableMsgType::Arrive(door).message(performer_name),
     );

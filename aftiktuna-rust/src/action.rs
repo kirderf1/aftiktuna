@@ -193,6 +193,12 @@ impl<'a> ViewContext<'a> {
         }
     }
 
+    fn capture_unseen_view(&mut self, area: Entity, state: &mut GameState) {
+        if area == self.player_area {
+            self.view_buffer.capture_unseen_view(state);
+        }
+    }
+
     fn capture_frame_for_dialogue(&mut self, state: &mut GameState) {
         if !self.view_buffer.messages.is_empty() {
             self.view_buffer.capture_view(state);

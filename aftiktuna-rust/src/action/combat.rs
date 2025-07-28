@@ -71,6 +71,11 @@ fn attack_single(
         )));
     }
 
+    context
+        .view_context
+        .capture_unseen_view(attacker_pos.get_area(), context.state);
+
+    let world = &mut context.state.world;
     core::trigger_aggression_in_area(world, attacker_pos.get_area());
 
     position::move_adjacent(world, attacker, target_pos)?;
