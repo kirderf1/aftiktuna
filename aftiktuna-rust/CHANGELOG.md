@@ -21,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Repeated actions such as "take all" and "rest" are now cancelled if the area becomes unsafe
 - Fine-tuned conditions for using "tell \<character\> to wait" and "tell \<character\> to wait at ship"
 - Reworked description for attack actions to be more descriptive
-- Made tweaks to the description for enter actions
+- Made tweaks to the description for enter actions to be more detailed
 - New condition for view capturing to help show the state of a newly entered area before it changes
 - Model format changes:
   - "fixed" layer property replaced by "fixed_orientation" model property

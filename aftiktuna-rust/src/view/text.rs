@@ -37,8 +37,8 @@ impl Message {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CombinableMsgType {
-    EnterDoor(Entity),
-    EnterPath(Entity),
+    EnterDoor(Entity, NameData),
+    EnterPath(Entity, NameData),
     Arrive(Entity),
     PickUp(NameData),
     Threatening,
@@ -53,7 +53,7 @@ impl CombinableMsgType {
     fn try_combine(&self, other: &Self) -> Option<Self> {
         if self == other {
             Some(self.clone())
-        } else if let Self::EnterDoor(path1) | Self::EnterPath(path1) = self
+        } else if let Self::EnterDoor(path1, _) | Self::EnterPath(path1, _) = self
             && let Self::Arrive(path2) = other
             && path1 == path2
         {
@@ -66,17 +66,19 @@ impl CombinableMsgType {
     fn into_text(self, entities: Vec<NameData>) -> String {
         use CombinableMsgType::*;
         match self {
-            EnterDoor(_) => format!(
-                "{the_characters} entered the door into a new area.",
+            EnterDoor(_, door_name) => format!(
+                "{the_characters} entered {the_door} into a new area.",
                 the_characters = capitalize(join_elements(
                     entities.into_iter().map(|name| name.definite()).collect()
-                ))
+                )),
+                the_door = door_name.definite(),
             ),
-            EnterPath(_) => format!(
-                "{the_characters} followed the path to a new area.",
+            EnterPath(_, path_name) => format!(
+                "{the_characters} followed {the_path} to a new area.",
                 the_characters = capitalize(join_elements(
                     entities.into_iter().map(|name| name.definite()).collect()
-                ))
+                )),
+                the_path = path_name.definite(),
             ),
             Arrive(_) => format!(
                 "{the_characters} arrived from a nearby area.",

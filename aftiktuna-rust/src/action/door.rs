@@ -92,9 +92,10 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         view_context.view_buffer.mark_unseen_view();
     }
 
+    let door_name = NameData::find(world, door);
     let message = match door_data.kind {
-        DoorKind::Door => CombinableMsgType::EnterDoor(door),
-        DoorKind::Path => CombinableMsgType::EnterPath(door),
+        DoorKind::Door => CombinableMsgType::EnterDoor(door, door_name),
+        DoorKind::Path => CombinableMsgType::EnterPath(door, door_name),
     }
     .message(performer_name.clone());
     view_context.add_message_at(door_pos.get_area(), message);
