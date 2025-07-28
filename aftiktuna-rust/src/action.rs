@@ -1,12 +1,12 @@
 use crate::core::item::{FoodRation, Type as ItemType};
-use crate::core::name::{Name, NameData};
+use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{
-    self, CrewMember, FortunaChest, Hostile, OpenedChest, Recruitable, RepeatingAction, inventory,
-    status,
+    self, CrewMember, Door, FortunaChest, Hostile, OpenedChest, Recruitable, RepeatingAction,
+    inventory, status,
 };
 use crate::game_loop::GameState;
-use crate::view::text::IntoMessage;
+use crate::view::text::{CombinableMsgType, IntoMessage};
 use crate::view::{self, Frame};
 use hecs::{Entity, World};
 use std::collections::HashMap;
@@ -190,6 +190,21 @@ impl<'a> ViewContext<'a> {
     fn add_message_at(&mut self, area: Entity, message: impl IntoMessage) {
         if area == self.player_area {
             self.view_buffer.messages.add(message);
+        }
+    }
+
+    fn make_noise_at(&mut self, areas: &[Entity], world: &World) {
+        if areas.contains(&self.player_area) {
+            return;
+        }
+
+        for (_, (door, pos, name_query)) in world.query::<(&Door, &Pos, NameQuery)>().iter() {
+            if areas.contains(&door.destination.get_area()) && !areas.contains(&pos.get_area()) {
+                self.add_message_at(
+                    pos.get_area(),
+                    CombinableMsgType::Noise.message(NameData::from(name_query)),
+                );
+            }
         }
     }
 

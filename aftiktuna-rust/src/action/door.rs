@@ -65,6 +65,10 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         .get::<&BlockType>(door_data.door_pair)
         .map(|block_type| *block_type)
     {
+        context
+            .view_context
+            .make_noise_at(&[door_pos.get_area()], world);
+
         on_door_failure(state, performer, door, block_type);
         return Err(Error::visible(format!(
             "{performer} is unable to enter the door as it is {blocked}.",
@@ -103,6 +107,11 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     view_context.add_message_at(
         door_data.destination.get_area(),
         CombinableMsgType::Arrive(door).message(performer_name),
+    );
+
+    view_context.make_noise_at(
+        &[door_pos.get_area(), door_data.destination.get_area()],
+        world,
     );
 
     Ok(action::Success)

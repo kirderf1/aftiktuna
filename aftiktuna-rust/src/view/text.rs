@@ -37,6 +37,7 @@ impl Message {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CombinableMsgType {
+    Noise,
     EnterDoor(Entity, NameData),
     EnterPath(Entity, NameData),
     Arrive(Entity),
@@ -66,6 +67,10 @@ impl CombinableMsgType {
     fn into_text(self, entities: Vec<NameData>) -> String {
         use CombinableMsgType::*;
         match self {
+            Noise => format!(
+                "Something is making noise in the direction of {the_paths}.",
+                the_paths = join_elements(unique(entities.into_iter().map(|name| name.definite())))
+            ),
             EnterDoor(_, door_name) => format!(
                 "{the_characters} entered {the_door} into a new area.",
                 the_characters = capitalize(join_elements(
@@ -220,4 +225,14 @@ pub fn join_elements(mut elements: Vec<String>) -> String {
             first_elements = elements.join(", ")
         )
     }
+}
+
+fn unique(elements: impl IntoIterator<Item = String>) -> Vec<String> {
+    let mut unique_element_list = Vec::new();
+    for element in elements {
+        if !unique_element_list.contains(&element) {
+            unique_element_list.push(element);
+        }
+    }
+    unique_element_list
 }

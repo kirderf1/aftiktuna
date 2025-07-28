@@ -128,6 +128,10 @@ fn attack_single(
         }
     }
 
+    context
+        .view_context
+        .make_noise_at(&[attacker_pos.get_area()], world);
+
     Ok(action::Success)
 }
 
