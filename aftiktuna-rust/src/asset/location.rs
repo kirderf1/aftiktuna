@@ -1,7 +1,7 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
     use crate::core::display::{AftikColorId, ModelId};
-    use crate::core::name::Noun;
+    use crate::core::name::{IndefiniteArticle, Noun};
     use crate::core::position::Direction;
     use crate::core::status::Stats;
     use crate::core::store::StockQuantity;
@@ -78,11 +78,13 @@ pub mod creature {
 
         pub fn noun(self) -> Noun {
             match self {
-                Self::Goblin => Noun::new("goblin", "goblins"),
-                Self::Eyesaur => Noun::new("eyesaur", "eyesaurs"),
-                Self::Azureclops => Noun::new("azureclops", "azureclopses"),
-                Self::Scarvie => Noun::new("scarvie", "scarvies"),
-                Self::VoraciousFrog => Noun::new("voracious frog", "voracious frogs"),
+                Self::Goblin => Noun::new("goblin", "goblins", IndefiniteArticle::A),
+                Self::Eyesaur => Noun::new("eyesaur", "eyesaurs", IndefiniteArticle::An),
+                Self::Azureclops => Noun::new("azureclops", "azureclopses", IndefiniteArticle::An),
+                Self::Scarvie => Noun::new("scarvie", "scarvies", IndefiniteArticle::A),
+                Self::VoraciousFrog => {
+                    Noun::new("voracious frog", "voracious frogs", IndefiniteArticle::A)
+                }
             }
         }
 
@@ -168,7 +170,7 @@ use crate::asset::background::ParallaxLayer;
 use crate::asset::loot::{self, LootTableId};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
-use crate::core::name::Noun;
+use crate::core::name::{IndefiniteArticle, Noun};
 use crate::core::position::Direction;
 use crate::core::{BlockType, DoorKind, item};
 use indexmap::IndexMap;
@@ -336,15 +338,19 @@ impl DoorType {
 
     pub fn noun(self, adjective: Option<DoorAdjective>) -> Noun {
         let noun = match self {
-            Self::Door => Noun::new("door", "doors"),
-            Self::Doorway => Noun::new("doorway", "doorways"),
-            Self::UpwardStairs => Noun::new("upward stairs", "upward stairs"),
-            Self::DownwardStairs => Noun::new("downward stairs", "downward stairs"),
-            Self::Shack => Noun::new("shack", "shacks"),
-            Self::House => Noun::new("house", "houses"),
-            Self::Store => Noun::new("store", "stores"),
+            Self::Door => Noun::new("door", "doors", IndefiniteArticle::A),
+            Self::Doorway => Noun::new("doorway", "doorways", IndefiniteArticle::A),
+            Self::UpwardStairs => {
+                Noun::new("upward stairs", "upward stairs", IndefiniteArticle::An)
+            }
+            Self::DownwardStairs => {
+                Noun::new("downward stairs", "downward stairs", IndefiniteArticle::A)
+            }
+            Self::Shack => Noun::new("shack", "shacks", IndefiniteArticle::A),
+            Self::House => Noun::new("house", "houses", IndefiniteArticle::A),
+            Self::Store => Noun::new("store", "stores", IndefiniteArticle::A),
             Self::Path | Self::LeftPath | Self::RightPath | Self::CrossroadPath => {
-                Noun::new("path", "paths")
+                Noun::new("path", "paths", IndefiniteArticle::A)
             }
         };
         if let Some(adjective) = adjective {
@@ -416,12 +422,12 @@ impl ContainerType {
 
     pub fn noun(self) -> Noun {
         match self {
-            Self::Tent => Noun::new("tent", "tents"),
-            Self::Cabinet => Noun::new("cabinet", "cabinets"),
-            Self::Drawer => Noun::new("drawer", "drawers"),
-            Self::Crate => Noun::new("crate", "crates"),
-            Self::Chest => Noun::new("chest", "chests"),
-            Self::CrashedShip => Noun::new("crashed ship", "crashed ships"),
+            Self::Tent => Noun::new("tent", "tents", IndefiniteArticle::A),
+            Self::Cabinet => Noun::new("cabinet", "cabinets", IndefiniteArticle::A),
+            Self::Drawer => Noun::new("drawer", "drawers", IndefiniteArticle::A),
+            Self::Crate => Noun::new("crate", "crates", IndefiniteArticle::A),
+            Self::Chest => Noun::new("chest", "chests", IndefiniteArticle::A),
+            Self::CrashedShip => Noun::new("crashed ship", "crashed ships", IndefiniteArticle::A),
         }
     }
 }

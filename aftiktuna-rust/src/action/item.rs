@@ -1,7 +1,7 @@
 use crate::action::{self, Context, Error};
 use crate::core::inventory::Held;
 use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
-use crate::core::name::{self, Article, CountFormat, NameData, NameQuery};
+use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
 use crate::core::{self, RepeatingAction, inventory, position, status};
@@ -136,7 +136,7 @@ impl SearchAction {
 
         let items = name::names_with_counts(
             items.into_iter().map(|item| NameData::find(world, item)),
-            Article::A,
+            ArticleKind::A,
             CountFormat::Text,
         );
         context.view_context.add_message_at(

@@ -10,7 +10,7 @@ use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::{self, FoodRation, FourLeafClover};
-use crate::core::name::{Article, NameData, NameQuery};
+use crate::core::name::{ArticleKind, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{
@@ -522,7 +522,7 @@ fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) 
             the_character = NameData::find(world, entity).definite(),
             one_ration = item::Type::FoodRation
                 .noun_data()
-                .with_text_count(amount, Article::One),
+                .with_text_count(amount, ArticleKind::One),
         )
     } else {
         let names = crew_eating_rations

@@ -1,6 +1,7 @@
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::ops::Deref;
 
 use super::CreatureAttribute;
@@ -153,13 +154,16 @@ impl Name {
 pub struct Noun {
     singular: String,
     plural: String,
+    #[serde(default)]
+    article: IndefiniteArticle,
 }
 
 impl Noun {
-    pub fn new(singular: &str, plural: &str) -> Self {
+    pub fn new(singular: &str, plural: &str, article: IndefiniteArticle) -> Self {
         Self {
             singular: singular.to_string(),
             plural: plural.to_string(),
+            article,
         }
     }
 
@@ -171,10 +175,11 @@ impl Noun {
         &self.plural
     }
 
-    pub fn with_adjective(&self, adjective: &str) -> Noun {
-        Noun {
+    pub fn with_adjective(&self, adjective: &str) -> Self {
+        Self {
             singular: format!("{} {}", adjective, self.singular),
             plural: format!("{} {}", adjective, self.plural),
+            article: self.article,
         }
     }
 
@@ -186,12 +191,12 @@ impl Noun {
         }
     }
 
-    pub fn with_text_count(&self, count: u16, article: Article) -> String {
+    pub fn with_text_count(&self, count: u16, article: ArticleKind) -> String {
         self.with_count(count, article, CountFormat::Text)
     }
 
-    pub fn with_count(&self, count: u16, article: Article, format: CountFormat) -> String {
-        if article == Article::The {
+    pub fn with_count(&self, count: u16, article: ArticleKind, format: CountFormat) -> String {
+        if article == ArticleKind::The {
             if count == 1 {
                 format!("the {name}", name = self.singular(),)
             } else {
@@ -201,8 +206,8 @@ impl Noun {
                     name = self.for_count(count),
                 )
             }
-        } else if article == Article::A && count == 1 {
-            format!("a {name}", name = self.singular(),)
+        } else if article == ArticleKind::A && count == 1 {
+            format!("{a} {name}", a = self.article, name = self.singular(),)
         } else {
             format!(
                 "{count} {name}",
@@ -242,15 +247,31 @@ impl CountFormat {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Article {
+pub enum ArticleKind {
     The,
     A,
     One,
 }
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum IndefiniteArticle {
+    #[default]
+    A,
+    An,
+}
+
+impl Display for IndefiniteArticle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            IndefiniteArticle::A => "a",
+            IndefiniteArticle::An => "an",
+        })
+    }
+}
+
 pub fn names_with_counts(
     data: impl IntoIterator<Item = NameData>,
-    article: Article,
+    article: ArticleKind,
     format: CountFormat,
 ) -> Vec<String> {
     let mut names = Vec::new();

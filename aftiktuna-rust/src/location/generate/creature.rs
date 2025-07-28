@@ -5,7 +5,7 @@ use crate::asset::location::creature::{
 };
 use crate::asset::{self, AftikProfile};
 use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
-use crate::core::name::{Name, Noun};
+use crate::core::name::{IndefiniteArticle, Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
@@ -163,7 +163,7 @@ fn aftik_builder(color: AftikColorId) -> EntityBuilder {
         ModelId::aftik(),
         color,
         OrderWeight::Creature,
-        Noun::new("aftik", "aftiks"),
+        Noun::new("aftik", "aftiks", IndefiniteArticle::An),
         UnarmedType::Scratch,
     ));
     builder
@@ -187,7 +187,7 @@ pub(super) fn place_shopkeeper(
         ModelId::aftik(),
         OrderWeight::Creature,
         spawn_data.color.clone(),
-        Noun::new("shopkeeper", "shopkeepers"),
+        Noun::new("shopkeeper", "shopkeepers", IndefiniteArticle::A),
         pos,
         direction,
         Shopkeeper(stock),

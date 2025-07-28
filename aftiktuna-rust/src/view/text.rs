@@ -89,7 +89,7 @@ impl CombinableMsgType {
                 "{the_characters} arrived from a nearby area.",
                 the_characters = capitalize(join_elements(name::names_with_counts(
                     entities,
-                    name::Article::A,
+                    name::ArticleKind::A,
                     name::CountFormat::Text
                 )))
             ),
@@ -98,7 +98,7 @@ impl CombinableMsgType {
                 the_performer = capitalize(performer_name.definite()),
                 the_items = join_elements(name::names_with_counts(
                     entities,
-                    name::Article::The,
+                    name::ArticleKind::The,
                     name::CountFormat::Text
                 ))
             ),
@@ -113,7 +113,7 @@ impl CombinableMsgType {
                         "{the_creatures} make threatening poses.",
                         the_creatures = capitalize(join_elements(name::names_with_counts(
                             entities,
-                            name::Article::The,
+                            name::ArticleKind::The,
                             name::CountFormat::Text,
                         ))),
                     )
@@ -130,7 +130,7 @@ impl CombinableMsgType {
                         "{the_creatures} move in to attack.",
                         the_creatures = capitalize(join_elements(name::names_with_counts(
                             entities,
-                            name::Article::The,
+                            name::ArticleKind::The,
                             name::CountFormat::Text,
                         ))),
                     )

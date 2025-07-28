@@ -11,7 +11,7 @@ use crate::core::FortunaChest;
 use crate::core::area::{Area, ShipControls};
 use crate::core::display::{ModelId, OrderWeight, Symbol};
 use crate::core::inventory::{Container, Held};
-use crate::core::name::Noun;
+use crate::core::name::{IndefiniteArticle, Noun};
 use crate::core::position::{Coord, Pos};
 use hecs::{Entity, World};
 use rand::seq::IndexedRandom;
@@ -92,7 +92,7 @@ fn place_symbol(
                 symbol,
                 ModelId::ship_controls(),
                 OrderWeight::Background,
-                Noun::new("ship controls", "ship controls"),
+                Noun::new("ship controls", "ship controls", IndefiniteArticle::A),
                 pos,
                 *direction,
                 ShipControls,
@@ -178,7 +178,7 @@ fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
         symbol,
         ModelId::fortuna_chest(),
         OrderWeight::Background,
-        Noun::new("fortuna chest", "fortuna chests"),
+        Noun::new("fortuna chest", "fortuna chests", IndefiniteArticle::A),
         pos,
         FortunaChest,
     ));

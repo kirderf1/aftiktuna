@@ -268,7 +268,7 @@ fn print_inventory(
     } else {
         name::names_with_counts(
             inventory.iter().map(|item| NameData::find(world, *item)),
-            name::Article::One,
+            name::ArticleKind::One,
             name::CountFormat::Numeric,
         )
         .join(", ")

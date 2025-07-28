@@ -50,7 +50,9 @@ pub fn buy(
         format!(
             "{the_performer} bought {an_item}.",
             the_performer = NameData::find(world, performer).definite(),
-            an_item = item.noun_data().with_text_count(amount, name::Article::A),
+            an_item = item
+                .noun_data()
+                .with_text_count(amount, name::ArticleKind::A),
         ),
     );
     Ok(action::Success)
@@ -127,7 +129,7 @@ pub fn sell(
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let item_list = name::names_with_counts(
         items.iter().map(|item| NameData::find(world, *item)),
-        name::Article::A,
+        name::ArticleKind::A,
         name::CountFormat::Text,
     );
 

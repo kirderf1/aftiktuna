@@ -1,5 +1,5 @@
 use super::display::{ModelId, OrderWeight, Symbol};
-use super::name::Noun;
+use crate::core::name::{IndefiniteArticle, Noun};
 use crate::view::text::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -109,18 +109,22 @@ impl Type {
 
     pub fn noun_data(self) -> Noun {
         match self {
-            Type::FuelCan => Noun::new("fuel can", "fuel cans"),
-            Type::FoodRation => Noun::new("food ration", "food rations"),
-            Type::Crowbar => Noun::new("crowbar", "crowbars"),
-            Type::Blowtorch => Noun::new("blowtorch", "blowtorches"),
-            Type::Knife => Noun::new("knife", "knives"),
-            Type::Bat => Noun::new("bat", "bats"),
-            Type::Sword => Noun::new("sword", "swords"),
-            Type::Medkit => Noun::new("medkit", "medkits"),
-            Type::MeteorChunk => Noun::new("meteor chunk", "meteor chunks"),
-            Type::AncientCoin => Noun::new("ancient coin", "ancient coins"),
-            Type::BlackOrb => Noun::new("black orb", "black orbs"),
-            Type::FourLeafClover => Noun::new("four-leaf clover", "four-leaf clovers"),
+            Type::FuelCan => Noun::new("fuel can", "fuel cans", IndefiniteArticle::A),
+            Type::FoodRation => Noun::new("food ration", "food rations", IndefiniteArticle::A),
+            Type::Crowbar => Noun::new("crowbar", "crowbars", IndefiniteArticle::A),
+            Type::Blowtorch => Noun::new("blowtorch", "blowtorches", IndefiniteArticle::A),
+            Type::Knife => Noun::new("knife", "knives", IndefiniteArticle::A),
+            Type::Bat => Noun::new("bat", "bats", IndefiniteArticle::A),
+            Type::Sword => Noun::new("sword", "swords", IndefiniteArticle::A),
+            Type::Medkit => Noun::new("medkit", "medkits", IndefiniteArticle::A),
+            Type::MeteorChunk => Noun::new("meteor chunk", "meteor chunks", IndefiniteArticle::A),
+            Type::AncientCoin => Noun::new("ancient coin", "ancient coins", IndefiniteArticle::An),
+            Type::BlackOrb => Noun::new("black orb", "black orbs", IndefiniteArticle::A),
+            Type::FourLeafClover => Noun::new(
+                "four-leaf clover",
+                "four-leaf clovers",
+                IndefiniteArticle::A,
+            ),
         }
     }
 

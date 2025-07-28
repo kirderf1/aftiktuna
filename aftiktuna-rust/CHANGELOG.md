@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Reworked description for attack actions to be more descriptive
 - Made tweaks to the description for enter actions to be more detailed
 - New condition for view capturing to help show the state of a newly entered area before it changes
+- Objects and creatures now use either "a" or "an" indefinite articles
 - Model format changes:
   - "fixed" layer property replaced by "fixed_orientation" model property
   - Flipped the y-axis of "y_offset" and "wield_offset", which now matches the y-axis of group placement and background layer offsets
