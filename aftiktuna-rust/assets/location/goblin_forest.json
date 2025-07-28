@@ -201,7 +201,7 @@
       "pos_in_overview": [ 4, 11 ],
       "background": "forest",
       "background_offset": 1,
-      "objects": [ "GG", "<", "GG", ">", "#" ],
+      "objects": [ "G", "<", "G", ">", "#G" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "alt_path_a8", "display_type": "path", "adjective": "left" },
         ">": { "type": "door", "pair_id": "alt_path_a7", "display_type": "path", "adjective": "right" },

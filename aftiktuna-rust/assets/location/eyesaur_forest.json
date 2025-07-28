@@ -30,11 +30,10 @@
       "pos_in_overview": [ -14, 3 ],
       "background": "forest",
       "background_offset": 1,
-      "objects": [ "", "<", "E", ">", "E" ],
+      "objects": [ "", "<", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left2", "display_type": "path", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "left1", "display_type": "path", "adjective": "right" },
-        "E": { "type": "creature", "creature": "eyesaur", "aggressive": true, "wandering": true }
+        ">": { "type": "door", "pair_id": "left1", "display_type": "path", "adjective": "right" }
       }
     },
     {
@@ -42,12 +41,13 @@
       "pos_in_overview": [ -14, 11 ],
       "background": "forest",
       "background_offset": 3,
-      "objects": [ "", "<", "#", "", ">", "" ],
+      "objects": [ "E", "<", "#E", "E", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left2", "display_type": "path", "adjective": "left" },
         "^": { "type": "door", "pair_id": "", "display_type": "path", "adjective": "middle" },
         ">": { "type": "door", "pair_id": "left3", "display_type": "path", "adjective": "right" },
-        "#": { "type": "inanimate", "model": "environment/tree_stump" }
+        "#": { "type": "inanimate", "model": "environment/tree_stump" },
+        "E": { "type": "creature", "creature": "eyesaur", "aggressive": true, "wandering": true }
       }
     },
     {
@@ -135,12 +135,11 @@
       "pos_in_overview": [ -2, 2 ],
       "background": "forest",
       "background_offset": 4,
-      "objects": [ "", "<", "", "^", "EE", "", ">", "" ],
+      "objects": [ "", "<", "", "^", "", "", ">", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "mid_left1", "display_type": "path", "adjective": "left" },
         "^": { "type": "door", "pair_id": "mid", "display_type": "path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "mid_right1", "display_type": "path", "adjective": "right" },
-        "E": { "type": "creature", "creature": "eyesaur", "aggressive": true, "wandering": true }
+        ">": { "type": "door", "pair_id": "mid_right1", "display_type": "path", "adjective": "right" }
       }
     },
     {
