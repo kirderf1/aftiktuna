@@ -6,10 +6,8 @@
       "objects": [ "<k", "v", "^", ">c" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "mid", "display_type": "door", "adjective": "middle" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
-        "c": { "type": "item", "item": "crowbar" },
-        "k": { "type": "item", "item": "keycard" }
+        "c": { "type": "item", "item": "crowbar" }
       }
     },
     {
@@ -30,19 +28,10 @@
         ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
         "b": { "type": "item", "item": "blowtorch" }
       }
-    },
-    {
-      "name": "Room",
-      "pos_in_overview": [ 0, -4 ],
-      "objects": [ "", "^", "", "", "" ],
-      "symbols": {
-        "^": { "type": "door", "pair_id": "mid", "display_type": "door" }
-      }
     }
   ],
   "door_pairs": {
     "left": { "block_type": "stuck" },
-    "mid": { "block_type": "locked" },
     "right": {},
     "side": { "block_type": "sealed" }
   }
