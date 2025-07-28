@@ -145,10 +145,10 @@ fn pick_foe_action(
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();
         if let Some(&observation_target) = observation_targets.choose(rng)
-            && rng.random_range::<u8, _>(1..=10) != 1
+            && rng.random_bool(8. / 10.)
         {
             return Some(Action::Examine(observation_target));
-        } else {
+        } else if rng.random_bool(1. / 2.) {
             let doors = world
                 .query::<&Pos>()
                 .with::<&Door>()

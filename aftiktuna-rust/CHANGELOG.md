@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Save format version 4.1
 - Expanded ship layout from one room to three rooms
 - Crew ai improvements for moving back to the ship
-- Slightly tweaked placement of wandering creatures
+- Slightly tweaked placement and ai of wandering creatures
 - Repeated actions such as "take all" and "rest" are now cancelled if the area becomes unsafe
 - Fine-tuned conditions for using "tell \<character\> to wait" and "tell \<character\> to wait at ship"
 - Reworked description for attack actions to be more descriptive
