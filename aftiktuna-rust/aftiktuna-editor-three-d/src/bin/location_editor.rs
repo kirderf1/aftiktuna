@@ -193,6 +193,23 @@ mod ui {
             editor_data.location_data.areas.len(),
             |index| editor_data.location_data.areas[index].name.clone(),
         );
+
+        if ui.button("New Area").clicked() {
+            editor_data.location_data.areas.insert(
+                editor_data.area_index + 1,
+                AreaData {
+                    name: String::new(),
+                    pos_in_overview: (0, 0),
+                    background: BackgroundId::blank(),
+                    background_offset: None,
+                    extra_background_layers: Vec::default(),
+                    darkness: 0.,
+                    objects: vec![String::default()],
+                    symbols: SymbolMap::new(),
+                },
+            );
+            editor_data.area_index += 1;
+        }
         ui.separator();
 
         let area = &mut editor_data.location_data.areas[editor_data.area_index];
@@ -219,20 +236,6 @@ mod ui {
                 );
             }
         });
-
-        if ui.button("New Area").clicked() {
-            editor_data.location_data.areas.push(AreaData {
-                name: String::new(),
-                pos_in_overview: (0, 0),
-                background: BackgroundId::blank(),
-                background_offset: None,
-                extra_background_layers: Vec::default(),
-                darkness: 0.,
-                objects: vec![String::default()],
-                symbols: SymbolMap::new(),
-            });
-            editor_data.area_index = editor_data.location_data.areas.len() - 1;
-        }
     }
 
     fn area_editor_ui(
@@ -286,6 +289,12 @@ mod ui {
         ui.horizontal(|ui| {
             if ui.button("Add Left").clicked() {
                 area.objects.insert(0, String::default());
+                if let Some(offset) = &mut area.background_offset {
+                    *offset += 1;
+                }
+                for background_layer in &mut area.extra_background_layers {
+                    background_layer.offset.x += 120;
+                }
             }
             if ui.button("Add Right").clicked() {
                 area.objects.push(String::default());
@@ -294,6 +303,12 @@ mod ui {
         ui.horizontal(|ui| {
             if ui.button("Remove Left").clicked() {
                 area.objects.remove(0);
+                if let Some(offset) = &mut area.background_offset {
+                    *offset -= 1;
+                }
+                for background_layer in &mut area.extra_background_layers {
+                    background_layer.offset.x -= 120;
+                }
             }
             if ui.button("Remove Right").clicked() {
                 area.objects.pop();
