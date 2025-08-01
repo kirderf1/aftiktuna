@@ -1,5 +1,5 @@
 use aftiktuna::asset::location::creature::CharacterInteraction;
-use aftiktuna::asset::location::{DoorPairMap, DoorType, SymbolData};
+use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::{ProfileOrRandom, background};
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
@@ -50,13 +50,40 @@ pub fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut item::Type, id: imp
         });
 }
 
-pub fn loot_table_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
+pub fn loot_table_id_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
     ui.text_edit_singleline(&mut loot_table_id.0);
     let path = ["assets", &loot_table_id.path()]
         .iter()
         .collect::<PathBuf>();
     if !path.exists() {
         ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
+    }
+}
+
+pub fn item_or_loot_editor(ui: &mut egui::Ui, item_or_loot: &mut ItemOrLoot, id: impl Hash + Copy) {
+    let selected_text = match item_or_loot {
+        ItemOrLoot::Item { .. } => "Item",
+        ItemOrLoot::Loot { .. } => "Loot",
+    };
+    egui::ComboBox::new(id, "Item or Loot")
+        .selected_text(selected_text)
+        .show_ui(ui, |ui| {
+            let is_item = matches!(item_or_loot, ItemOrLoot::Item { .. });
+            if ui.selectable_label(is_item, "Item").clicked() && !is_item {
+                *item_or_loot = ItemOrLoot::Item {
+                    item: item::Type::AncientCoin,
+                };
+            }
+            let is_loot = matches!(item_or_loot, ItemOrLoot::Loot { .. });
+            if ui.selectable_label(is_loot, "Loot").clicked() && !is_loot {
+                *item_or_loot = ItemOrLoot::Loot {
+                    table: LootTableId("resource".to_string()),
+                };
+            }
+        });
+    match item_or_loot {
+        ItemOrLoot::Item { item } => item_type_editor(ui, item, ("item_or_loot", id)),
+        ItemOrLoot::Loot { table } => loot_table_id_editor(ui, table),
     }
 }
 

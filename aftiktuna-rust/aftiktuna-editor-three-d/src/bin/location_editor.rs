@@ -5,11 +5,12 @@ mod ui {
         ShopkeeperSpawnData,
     };
     use aftiktuna::asset::location::{
-        AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, SymbolData,
-        SymbolMap,
+        AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
+        SymbolData, SymbolMap,
     };
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::display::{AftikColorId, ModelId};
+    use aftiktuna::core::position::Direction;
     use aftiktuna::core::{BlockType, item};
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
@@ -347,54 +348,68 @@ mod ui {
 
             ui.separator();
 
-            if ui.button("Add Inanimate").clicked() {
-                symbol_edit_data = Some(SymbolEditData {
-                    old_char: None,
-                    new_char: String::new(),
-                    symbol_data: SymbolData::Inanimate {
-                        model: ModelId::new("environment/"),
-                        direction: Default::default(),
-                    },
-                })
-            }
+            ui.horizontal_wrapped(|ui| {
+                if ui.button("Add Inanimate").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Inanimate {
+                            model: ModelId::new("environment/"),
+                            direction: Default::default(),
+                        },
+                    })
+                }
 
-            if ui.button("Add Door").clicked() {
-                symbol_edit_data = Some(SymbolEditData {
-                    old_char: None,
-                    new_char: String::new(),
-                    symbol_data: SymbolData::Door(DoorSpawnData {
-                        pair_id: String::default(),
-                        display_type: DoorType::Door,
-                        adjective: None,
-                    }),
-                })
-            }
+                if ui.button("Add Door").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Door(DoorSpawnData {
+                            pair_id: String::default(),
+                            display_type: DoorType::Door,
+                            adjective: None,
+                        }),
+                    })
+                }
 
-            if ui.button("Add Item").clicked() {
-                symbol_edit_data = Some(SymbolEditData {
-                    old_char: None,
-                    new_char: String::new(),
-                    symbol_data: SymbolData::Item {
-                        item: item::Type::MeteorChunk,
-                    },
-                })
-            }
+                if ui.button("Add Item").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Item {
+                            item: item::Type::MeteorChunk,
+                        },
+                    })
+                }
 
-            if ui.button("Add Creature").clicked() {
-                symbol_edit_data = Some(SymbolEditData {
-                    old_char: None,
-                    new_char: String::new(),
-                    symbol_data: SymbolData::Creature(CreatureSpawnData {
-                        creature: creature::Type::Goblin,
-                        health: 1.,
-                        attribute: AttributeChoice::Random,
-                        aggressive: None,
-                        wandering: false,
-                        tag: None,
-                        direction: None,
-                    }),
-                })
-            }
+                if ui.button("Add Creature").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Creature(CreatureSpawnData {
+                            creature: creature::Type::Goblin,
+                            health: 1.,
+                            attribute: AttributeChoice::Random,
+                            aggressive: None,
+                            wandering: false,
+                            tag: None,
+                            direction: None,
+                        }),
+                    })
+                }
+
+                if ui.button("Add Container").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Container(ContainerData {
+                            container_type: ContainerType::Cabinet,
+                            content: Vec::new(),
+                            direction: Direction::Right,
+                        }),
+                    })
+                }
+            });
 
             if let Some(char_to_delete) = char_to_delete {
                 area.symbols.shift_remove(&char_to_delete);
@@ -469,7 +484,7 @@ mod ui {
                 aftiktuna_editor_three_d::item_type_editor(ui, item, "item");
             }
             SymbolData::Loot { table } => {
-                aftiktuna_editor_three_d::loot_table_editor(ui, table);
+                aftiktuna_editor_three_d::loot_table_id_editor(ui, table);
             }
             SymbolData::Door(DoorSpawnData {
                 pair_id: _,
@@ -529,6 +544,21 @@ mod ui {
                         }
                     });
                 aftiktuna_editor_three_d::direction_editor(ui, direction, "container_direction");
+                ui.separator();
+
+                for (index, item_or_loot) in content.iter_mut().enumerate() {
+                    aftiktuna_editor_three_d::item_or_loot_editor(ui, item_or_loot, index);
+                }
+                ui.horizontal(|ui| {
+                    if ui.button("Add").clicked() {
+                        content.push(ItemOrLoot::Item {
+                            item: item::Type::AncientCoin,
+                        });
+                    }
+                    if ui.button("Remove").clicked() {
+                        content.pop();
+                    }
+                });
             }
             SymbolData::Creature(creature_spawn_data) => {
                 creature_spawn_data_editor(ui, creature_spawn_data);
