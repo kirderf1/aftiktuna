@@ -2,23 +2,48 @@
   "areas": [
     {
       "name": "Village road",
-      "pos_in_overview": [ 0, -6 ],
+      "pos_in_overview": [ -2, -6 ],
       "background": "field",
       "background_offset": 2,
-      "objects": [ "", "<.", "-", "-", "-v", "-4", "|", "-", ">,", "" ],
+      "extra_background_layers": [
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 330, "y": 219 }
+        },
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 940, "y": 219 }
+        }
+      ],
+      "objects": [ "", ".v", "-", "-", "-", "^<", "-", "|", "-", ">,", "" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "aftik_house", "display_type": "house" },
         "|": { "type": "door", "pair_id": "road", "display_type": "crossroad_path" },
         ">": { "type": "door", "pair_id": "store", "display_type": "store" },
-        ".": { "type": "inanimate", "model": "path/left_corner" },
-        ",": { "type": "inanimate", "model": "path/right_corner" }
+        ".": { "type": "inanimate", "model": "path/left_end" },
+        ",": { "type": "inanimate", "model": "path/right_corner" },
+        "^": { "type": "inanimate", "model": "path/crossroad" }
       }
     },
     {
       "name": "Village road",
-      "pos_in_overview": [ 3, 2 ],
+      "pos_in_overview": [ 2, 3 ],
       "background": "field",
       "background_offset": 3,
+      "extra_background_layers": [
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 550, "y": 219 }
+        },
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 1190, "y": 219 }
+        }
+      ],
       "objects": [ "3", "\\", "-7", "-", "|", "-", "-", ".<", "-", "-5", "-A", ",>", "" ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "side", "display_type": "left_path", "adjective": "left" },
@@ -60,27 +85,40 @@
     },
     {
       "name": "House",
-      "pos_in_overview": [ -4, -2 ],
+      "pos_in_overview": [ -3, -3 ],
       "background": "shack",
-      "objects": [ "B", ":A", "^", "p" ],
+      "objects": [ "<", "TA", "c", ">" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "aftik_house", "display_type": "door" },
+        ">": { "type": "door", "pair_id": "aftik_house", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "aftik_house2", "display_type": "door", "adjective": "left" },
         "A": {
           "type": "character",
           "interaction": { "type": "recruitable" }
         },
-        "p": { "type": "inanimate", "model": "environment/potted_plant" },
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" }
+      }
+    },
+    {
+      "name": "House",
+      "pos_in_overview": [ -3, 0 ],
+      "background": "shack",
+      "objects": [ "^", "p", ":", "B" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "aftik_house2", "display_type": "door" },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         ":": { "type": "inanimate", "model": "environment/aftik_poster" },
-        "B": { "type": "inanimate", "model": "environment/bed" }
+        "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
     },
     {
       "name": "Store",
-      "pos_in_overview": [ 5, -2 ],
+      "pos_in_overview": [ 4, -3 ],
       "background": "shack",
-      "objects": [ "^", "p", ":T", "S" ],
+      "objects": [ "^", "p", ":T", ">S" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "store", "display_type": "door" },
+        ">": { "type": "inanimate", "model": "door/door" },
         "S": {
           "type": "shopkeeper",
           "stock": [
@@ -99,9 +137,9 @@
     },
     {
       "name": "House",
-      "pos_in_overview": [ 5, 7 ],
+      "pos_in_overview": [ 3, 7 ],
       "background": "shack",
-      "objects": [ "^", "", "#", "T" ],
+      "objects": [ "#", "p", "^", "T" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "stuck_house", "display_type": "door" },
         "#": {
@@ -111,21 +149,33 @@
             { "type": "item", "item": "ancient_coin" },
             { "type": "loot", "table": "resource" }
           ],
-          "direction": "right"
+          "direction": "left"
         },
-        "T": { "type": "inanimate", "model": "environment/table" }
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
       }
     },
     {
       "name": "House",
-      "pos_in_overview": [ 11, 7 ],
+      "pos_in_overview": [ 9, 7 ],
       "background": "shack",
-      "objects": [ "^", ":T", "Z", "B" ],
+      "objects": [ "<", "T", "Z", ">" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "azureclops_house", "display_type": "door" },
+        "<": { "type": "door", "pair_id": "azureclops_house", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door", "adjective": "right" },
         "Z": { "type": "creature", "creature": "azureclops", "attribute": "agile", "tag": "house_azureclops" },
-        "T": { "type": "inanimate", "model": "environment/broken_table" },
-        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        "T": { "type": "inanimate", "model": "environment/broken_table" }
+      }
+    },
+    {
+      "name": "House",
+      "pos_in_overview": [ 9, 10 ],
+      "background": "shack",
+      "objects": [ "B", ":", "T", "^" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
+        "T": { "type": "inanimate", "model": "environment/table" },
         ":": { "type": "inanimate", "model": "environment/planet_poster" }
       }
     },
@@ -154,9 +204,11 @@
     "road": {},
     "side": {},
     "aftik_house": {},
+    "aftik_house2": {},
     "store": {},
     "stuck_house": { "block_type": "stuck" },
     "azureclops_house": {},
+    "azureclops_house2": {},
     "shack": {}
   }
 }

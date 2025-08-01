@@ -288,11 +288,11 @@ pub enum DoorType {
 impl From<DoorType> for ModelId {
     fn from(value: DoorType) -> Self {
         ModelId::new(match value {
-            DoorType::Door => "door/door",
+            DoorType::Door | DoorType::House | DoorType::Store => "door/door",
             DoorType::Doorway => "door/doorway",
             DoorType::UpwardStairs => "door/upward_stairs",
             DoorType::DownwardStairs => "door/downward_stairs",
-            DoorType::Shack | DoorType::House | DoorType::Store => "door/shack",
+            DoorType::Shack => "door/shack",
             DoorType::Path => "path",
             DoorType::LeftPath => "path/left_corner",
             DoorType::RightPath => "path/right_corner",
