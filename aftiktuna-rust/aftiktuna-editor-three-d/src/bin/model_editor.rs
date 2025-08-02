@@ -403,32 +403,26 @@ fn draw_examples(
 
     if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Left {
         let coord = get_and_move_coord();
-        objects.extend(render::get_render_objects_for_entity_with_color(
+        objects.push((
             aftik_model,
             positioner.position_object(coord, aftik_model).into(),
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
+            RenderProperties {
                 direction: Direction::Right,
                 ..Default::default()
             },
-            time,
-            context,
         ));
     }
 
     let coord = get_and_move_coord();
 
     if editor_data.setting == SettingType::InFrontOfAftik {
-        objects.extend(render::get_render_objects_for_entity_with_color(
+        objects.push((
             aftik_model,
             positioner.position_object(coord, aftik_model).into(),
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
+            RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
             },
-            time,
-            context,
         ));
     }
 
@@ -437,43 +431,30 @@ fn draw_examples(
         coord,
         model,
     ) {
-        objects.extend(render::get_render_objects_for_entity_with_color(
-            model,
-            pos.into(),
-            DEFAULT_AFTIK_COLOR,
-            &properties,
-            time,
-            context,
-        ));
+        objects.push((model, pos.into(), properties.clone()));
     }
 
     if editor_data.setting == SettingType::BehindAftik {
-        objects.extend(render::get_render_objects_for_entity_with_color(
+        objects.push((
             aftik_model,
             positioner.position_object(coord, aftik_model).into(),
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
+            RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
             },
-            time,
-            context,
         ));
     }
 
     if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Right
     {
         let coord = get_and_move_coord();
-        objects.extend(render::get_render_objects_for_entity_with_color(
+        objects.push((
             aftik_model,
             positioner.position_object(coord, aftik_model).into(),
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
+            RenderProperties {
                 direction: Direction::Left,
                 ..Default::default()
             },
-            time,
-            context,
         ));
     }
 
@@ -481,27 +462,31 @@ fn draw_examples(
         let pos = positioner
             .position_object(get_and_move_coord(), aftik_model)
             .into();
-        objects.extend(render::get_render_objects_for_entity_with_color(
+        objects.push((
             aftik_model,
             pos,
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
+            RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
             },
-            time,
-            context,
         ));
         let offset = aftiktuna_three_d::to_vec(model.wield_offset, editor_data.direction.into());
-        objects.extend(render::get_render_objects_for_entity_with_color(
-            model,
-            pos + offset,
-            DEFAULT_AFTIK_COLOR,
-            &properties,
-            time,
-            context,
-        ));
+        objects.push((model, pos + offset, properties.clone()));
     }
+
+    let objects = objects
+        .into_iter()
+        .flat_map(|(model, pos, properties)| {
+            render::get_render_objects_for_entity_with_color(
+                model,
+                pos,
+                DEFAULT_AFTIK_COLOR,
+                &properties,
+                time,
+                context,
+            )
+        })
+        .collect::<Vec<_>>();
 
     render::draw_in_order(&objects, camera, &frame_input.screen());
 
