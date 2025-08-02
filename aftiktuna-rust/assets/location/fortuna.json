@@ -15,10 +15,17 @@
       "pos_in_overview": [ 6, 3 ],
       "background": "field",
       "background_offset": 0,
-      "objects": [ "\\", "-", "-G", "-", "-", "-Z", ".¤", "8" ],
+      "extra_background_layers": [
+        {
+          "texture": "crashed_ship",
+          "move_factor": 0.9,
+          "offset": { "x": 800, "y": 284 }
+        }
+      ],
+      "objects": [ "\\", "-", "-", "-8G", "-G", "-Z", "-¤", "." ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
-        ".": { "type": "inanimate", "model": "path/right_end" }
+        ".": { "type": "inanimate", "model": "path/right_corner" }
       }
     }
   ],
