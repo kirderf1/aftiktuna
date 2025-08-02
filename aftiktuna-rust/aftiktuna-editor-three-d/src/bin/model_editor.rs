@@ -43,6 +43,7 @@ fn main() {
         show_alive: true,
         show_hurt: false,
         show_cut: false,
+        setting: SettingType::None,
     };
     let mut area_size = 7;
 
@@ -70,7 +71,7 @@ fn main() {
         .load(&mut texture_loader)
         .unwrap();
     let indoor_background = backgrounds_map
-        .get(&BackgroundId::new("facility_size7"))
+        .get(&BackgroundId::new("facility_size3"))
         .unwrap()
         .load(&mut texture_loader)
         .unwrap();
@@ -152,6 +153,22 @@ struct EditorData {
     show_alive: bool,
     show_hurt: bool,
     show_cut: bool,
+    setting: SettingType,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SettingType {
+    None,
+    BehindAftik,
+    InFrontOfAftik,
+    FacingAftik,
+}
+
+impl SettingType {
+    fn variants() -> &'static [Self] {
+        use SettingType::*;
+        &[None, BehindAftik, InFrontOfAftik, FacingAftik]
+    }
 }
 
 fn side_panel(
@@ -206,6 +223,17 @@ fn model_editor_ui(
     {
         ui.checkbox(&mut editor_data.show_cut, "Show Cut");
     }
+    egui::ComboBox::from_label("Setting")
+        .selected_text(format!("{:?}", editor_data.setting))
+        .show_ui(ui, |ui| {
+            for &selectable_type in SettingType::variants() {
+                ui.selectable_value(
+                    &mut editor_data.setting,
+                    selectable_type,
+                    format!("{selectable_type:?}"),
+                );
+            }
+        });
 
     ui.separator();
 
@@ -360,7 +388,7 @@ fn draw_examples(
     let mut next_coord = 0;
     let mut get_and_move_coord = || {
         let coord = next_coord;
-        next_coord += 2;
+        next_coord += 1;
         coord
     };
     let mut objects = Vec::new();
@@ -373,7 +401,36 @@ fn draw_examples(
         ..Default::default()
     };
 
+    if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Left {
+        let coord = get_and_move_coord();
+        objects.extend(render::get_render_objects_for_entity_with_color(
+            aftik_model,
+            positioner.position_object(coord, aftik_model).into(),
+            DEFAULT_AFTIK_COLOR,
+            &RenderProperties {
+                direction: Direction::Right,
+                ..Default::default()
+            },
+            time,
+            context,
+        ));
+    }
+
     let coord = get_and_move_coord();
+
+    if editor_data.setting == SettingType::InFrontOfAftik {
+        objects.extend(render::get_render_objects_for_entity_with_color(
+            aftik_model,
+            positioner.position_object(coord, aftik_model).into(),
+            DEFAULT_AFTIK_COLOR,
+            &RenderProperties {
+                direction: editor_data.direction,
+                ..Default::default()
+            },
+            time,
+            context,
+        ));
+    }
 
     for (pos, _) in positioner.position_groups_from_offsets(
         model.group_placement.position(editor_data.group_size),
@@ -390,29 +447,7 @@ fn draw_examples(
         ));
     }
 
-    let coord = get_and_move_coord();
-    objects.extend(render::get_render_objects_for_entity_with_color(
-        model,
-        positioner.position_object(coord, model).into(),
-        DEFAULT_AFTIK_COLOR,
-        &properties,
-        time,
-        context,
-    ));
-    objects.extend(render::get_render_objects_for_entity_with_color(
-        aftik_model,
-        positioner.position_object(coord, aftik_model).into(),
-        DEFAULT_AFTIK_COLOR,
-        &RenderProperties {
-            direction: editor_data.direction,
-            ..Default::default()
-        },
-        time,
-        context,
-    ));
-
-    if model.has_x_displacement || model.z_displacement != 0 {
-        let coord = get_and_move_coord();
+    if editor_data.setting == SettingType::BehindAftik {
         objects.extend(render::get_render_objects_for_entity_with_color(
             aftik_model,
             positioner.position_object(coord, aftik_model).into(),
@@ -424,11 +459,19 @@ fn draw_examples(
             time,
             context,
         ));
+    }
+
+    if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Right
+    {
+        let coord = get_and_move_coord();
         objects.extend(render::get_render_objects_for_entity_with_color(
-            model,
-            positioner.position_object(coord, model).into(),
+            aftik_model,
+            positioner.position_object(coord, aftik_model).into(),
             DEFAULT_AFTIK_COLOR,
-            &properties,
+            &RenderProperties {
+                direction: Direction::Left,
+                ..Default::default()
+            },
             time,
             context,
         ));
@@ -462,5 +505,5 @@ fn draw_examples(
 
     render::draw_in_order(&objects, camera, &frame_input.screen());
 
-    next_coord - 1
+    next_coord
 }
