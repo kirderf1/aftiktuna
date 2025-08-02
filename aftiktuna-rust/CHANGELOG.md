@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Fixed rendering on monitors with changed Windows scale factor
+- Fixed item matching for the "sell \<number\> \<items\>" and "sell all \<items\>" commands
 
 ### Contributors for this release
 

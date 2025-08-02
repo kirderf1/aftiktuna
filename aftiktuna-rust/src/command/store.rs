@@ -132,9 +132,9 @@ fn held_item_lists_by_plurality(
         .for_each(|(entity, (name_query, _))| {
             let name_data = NameData::from(name_query);
             let name = if plural {
-                name_data.base()
-            } else {
                 name_data.plural()
+            } else {
+                name_data.base()
             };
             map.entry(name.to_owned()).or_default().push(entity);
         });
