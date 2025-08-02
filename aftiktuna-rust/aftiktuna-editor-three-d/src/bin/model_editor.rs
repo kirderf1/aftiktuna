@@ -37,8 +37,12 @@ fn main() {
     let mut editor_data = EditorData {
         model: selected_model,
         selected_layer: 0,
-        group_size: 3,
+        group_size: 1,
         indoors: false,
+        direction: Direction::default(),
+        show_alive: true,
+        show_hurt: false,
+        show_cut: false,
     };
     let mut area_size = 7;
 
@@ -117,7 +121,7 @@ fn main() {
 
         area_size = draw_examples(
             &loaded_model,
-            editor_data.group_size,
+            &editor_data,
             &aftik_model,
             &render_camera,
             &frame_input,
@@ -144,6 +148,10 @@ struct EditorData {
     selected_layer: usize,
     group_size: u16,
     indoors: bool,
+    direction: Direction,
+    show_alive: bool,
+    show_hurt: bool,
+    show_cut: bool,
 }
 
 fn side_panel(
@@ -175,6 +183,29 @@ fn model_editor_ui(
     }
 
     ui.checkbox(&mut editor_data.indoors, "Indoors");
+    aftiktuna_editor_three_d::direction_editor(ui, &mut editor_data.direction, "view direction");
+
+    if model
+        .layers
+        .iter()
+        .any(|layer| layer.conditions.if_alive.is_some())
+    {
+        ui.checkbox(&mut editor_data.show_alive, "Show Alive");
+    }
+    if model
+        .layers
+        .iter()
+        .any(|layer| layer.conditions.if_hurt.is_some())
+    {
+        ui.checkbox(&mut editor_data.show_hurt, "Show Hurt");
+    }
+    if model
+        .layers
+        .iter()
+        .any(|layer| layer.conditions.if_cut.is_some())
+    {
+        ui.checkbox(&mut editor_data.show_cut, "Show Cut");
+    }
 
     ui.separator();
 
@@ -318,7 +349,7 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
 
 fn draw_examples(
     model: &Model<Texture2DRef>,
-    group_size: u16,
+    editor_data: &EditorData,
     aftik_model: &Model<Texture2DRef>,
     camera: &three_d::Camera,
     frame_input: &three_d::FrameInput,
@@ -334,51 +365,60 @@ fn draw_examples(
     };
     let mut objects = Vec::new();
 
-    bidirectional(|direction| {
+    let properties = RenderProperties {
+        direction: editor_data.direction,
+        is_cut: editor_data.show_cut,
+        is_alive: editor_data.show_alive,
+        is_badly_hurt: editor_data.show_hurt,
+        ..Default::default()
+    };
+
+    let coord = get_and_move_coord();
+
+    for (pos, _) in positioner.position_groups_from_offsets(
+        model.group_placement.position(editor_data.group_size),
+        coord,
+        model,
+    ) {
         objects.extend(render::get_render_objects_for_entity_with_color(
             model,
-            positioner
-                .position_object(get_and_move_coord(), model)
-                .into(),
+            pos.into(),
             DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
-                direction,
-                ..Default::default()
-            },
+            &properties,
             time,
             context,
         ));
-    });
+    }
+
+    let coord = get_and_move_coord();
+    objects.extend(render::get_render_objects_for_entity_with_color(
+        model,
+        positioner.position_object(coord, model).into(),
+        DEFAULT_AFTIK_COLOR,
+        &properties,
+        time,
+        context,
+    ));
+    objects.extend(render::get_render_objects_for_entity_with_color(
+        aftik_model,
+        positioner.position_object(coord, aftik_model).into(),
+        DEFAULT_AFTIK_COLOR,
+        &RenderProperties {
+            direction: editor_data.direction,
+            ..Default::default()
+        },
+        time,
+        context,
+    ));
 
     if model.has_x_displacement || model.z_displacement != 0 {
         let coord = get_and_move_coord();
         objects.extend(render::get_render_objects_for_entity_with_color(
-            model,
-            positioner.position_object(coord, model).into(),
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
-                ..Default::default()
-            },
-            time,
-            context,
-        ));
-        objects.extend(render::get_render_objects_for_entity_with_color(
             aftik_model,
             positioner.position_object(coord, aftik_model).into(),
             DEFAULT_AFTIK_COLOR,
             &RenderProperties {
-                ..Default::default()
-            },
-            time,
-            context,
-        ));
-
-        let coord = get_and_move_coord();
-        objects.extend(render::get_render_objects_for_entity_with_color(
-            aftik_model,
-            positioner.position_object(coord, aftik_model).into(),
-            DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
+                direction: editor_data.direction,
                 ..Default::default()
             },
             time,
@@ -388,164 +428,39 @@ fn draw_examples(
             model,
             positioner.position_object(coord, model).into(),
             DEFAULT_AFTIK_COLOR,
-            &RenderProperties {
-                ..Default::default()
-            },
+            &properties,
             time,
             context,
         ));
-
-        let coord = get_and_move_coord();
-        for (pos, _) in positioner.position_groups_from_offsets(
-            model.group_placement.position(group_size),
-            coord,
-            model,
-        ) {
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                model,
-                pos.into(),
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-        }
-    } else {
-        bidirectional(|direction| {
-            let coord = get_and_move_coord();
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                model,
-                positioner.position_object(coord, model).into(),
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                aftik_model,
-                positioner.position_object(coord, aftik_model).into(),
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-        })
-    }
-
-    if model
-        .layers
-        .iter()
-        .any(|layer| layer.conditions.if_cut.is_some())
-    {
-        bidirectional(|direction| {
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                model,
-                positioner
-                    .position_object(get_and_move_coord(), model)
-                    .into(),
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    is_cut: true,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-        });
-    }
-
-    if model
-        .layers
-        .iter()
-        .any(|layer| layer.conditions.if_hurt.is_some())
-    {
-        bidirectional(|direction| {
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                model,
-                positioner
-                    .position_object(get_and_move_coord(), model)
-                    .into(),
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    is_badly_hurt: true,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-        });
-    }
-
-    if model
-        .layers
-        .iter()
-        .any(|layer| layer.conditions.if_alive.is_some())
-    {
-        bidirectional(|direction| {
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                model,
-                positioner
-                    .position_object(get_and_move_coord(), model)
-                    .into(),
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    is_alive: false,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-        });
     }
 
     if model.wield_offset != Default::default() {
-        bidirectional(|direction| {
-            let pos = positioner
-                .position_object(get_and_move_coord(), aftik_model)
-                .into();
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                aftik_model,
-                pos,
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-            let offset = aftiktuna_three_d::to_vec(model.wield_offset, direction.into());
-            objects.extend(render::get_render_objects_for_entity_with_color(
-                model,
-                pos + offset,
-                DEFAULT_AFTIK_COLOR,
-                &RenderProperties {
-                    direction,
-                    ..Default::default()
-                },
-                time,
-                context,
-            ));
-        });
+        let pos = positioner
+            .position_object(get_and_move_coord(), aftik_model)
+            .into();
+        objects.extend(render::get_render_objects_for_entity_with_color(
+            aftik_model,
+            pos,
+            DEFAULT_AFTIK_COLOR,
+            &RenderProperties {
+                direction: editor_data.direction,
+                ..Default::default()
+            },
+            time,
+            context,
+        ));
+        let offset = aftiktuna_three_d::to_vec(model.wield_offset, editor_data.direction.into());
+        objects.extend(render::get_render_objects_for_entity_with_color(
+            model,
+            pos + offset,
+            DEFAULT_AFTIK_COLOR,
+            &properties,
+            time,
+            context,
+        ));
     }
 
     render::draw_in_order(&objects, camera, &frame_input.screen());
 
     next_coord - 1
-}
-
-fn bidirectional(mut closure: impl FnMut(Direction)) {
-    closure(Direction::Right);
-    closure(Direction::Left);
 }
