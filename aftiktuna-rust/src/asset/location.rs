@@ -37,18 +37,26 @@ pub mod creature {
         Azureclops,
         Scarvie,
         VoraciousFrog,
+        BloodMantis,
     }
 
     impl Type {
         pub fn variants() -> &'static [Self] {
             use Type::*;
-            &[Goblin, Eyesaur, Azureclops, Scarvie, VoraciousFrog]
+            &[
+                Goblin,
+                Eyesaur,
+                Azureclops,
+                Scarvie,
+                VoraciousFrog,
+                BloodMantis,
+            ]
         }
 
         pub fn is_aggressive_by_default(self) -> bool {
             match self {
                 Self::Goblin | Self::Eyesaur | Self::Scarvie => false,
-                Self::Azureclops | Self::VoraciousFrog => true,
+                Self::Azureclops | Self::VoraciousFrog | Self::BloodMantis => true,
             }
         }
 
@@ -63,6 +71,7 @@ pub mod creature {
                 Self::Azureclops => Stats::new(15, 10, 4, 2),
                 Self::Scarvie => Stats::new(3, 2, 8, 1),
                 Self::VoraciousFrog => Stats::new(8, 8, 3, 3),
+                Self::BloodMantis => Stats::new(15, 5, 10, 5),
             }
         }
 
@@ -73,18 +82,19 @@ pub mod creature {
                 Self::Azureclops => "azureclops",
                 Self::Scarvie => "scarvie",
                 Self::VoraciousFrog => "voracious_frog",
+                Self::BloodMantis => "blood_mantis",
             })
         }
 
         pub fn noun(self) -> Noun {
+            use IndefiniteArticle::*;
             match self {
-                Self::Goblin => Noun::new("goblin", "goblins", IndefiniteArticle::A),
-                Self::Eyesaur => Noun::new("eyesaur", "eyesaurs", IndefiniteArticle::An),
-                Self::Azureclops => Noun::new("azureclops", "azureclopses", IndefiniteArticle::An),
-                Self::Scarvie => Noun::new("scarvie", "scarvies", IndefiniteArticle::A),
-                Self::VoraciousFrog => {
-                    Noun::new("voracious frog", "voracious frogs", IndefiniteArticle::A)
-                }
+                Self::Goblin => Noun::new("goblin", "goblins", A),
+                Self::Eyesaur => Noun::new("eyesaur", "eyesaurs", An),
+                Self::Azureclops => Noun::new("azureclops", "azureclopses", An),
+                Self::Scarvie => Noun::new("scarvie", "scarvies", A),
+                Self::VoraciousFrog => Noun::new("voracious frog", "voracious frogs", A),
+                Self::BloodMantis => Noun::new("blood mantis", "blood mantes", A),
             }
         }
 
@@ -95,6 +105,7 @@ pub mod creature {
                 Self::Azureclops => UnarmedType::Punch,
                 Self::Scarvie => UnarmedType::Bite,
                 Self::VoraciousFrog => UnarmedType::Pounce,
+                Self::BloodMantis => UnarmedType::Slash,
             }
         }
     }

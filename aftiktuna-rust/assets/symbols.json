@@ -11,6 +11,7 @@
   "Z": { "type": "creature", "creature": "azureclops" },
   "S": { "type": "creature", "creature": "scarvie" },
   "F": { "type": "creature", "creature": "voracious_frog" },
+  "M": { "type": "creature", "creature": "blood_mantis" },
   "1": { "type": "inanimate", "model": "environment/tree1"},
   "2": { "type": "inanimate", "model": "environment/tree2"},
   "3": { "type": "inanimate", "model": "environment/tree3"},

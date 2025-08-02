@@ -188,6 +188,7 @@ pub enum UnarmedType {
     Scratch,
     Punch,
     Pounce,
+    Slash,
 }
 
 impl UnarmedType {
@@ -196,13 +197,14 @@ impl UnarmedType {
             Self::Bite | Self::Pounce => "jumps at",
             Self::Scratch => "scratches at",
             Self::Punch => "launches a punch at",
+            Self::Slash => "slashes at",
         }
     }
 
     pub fn hit_verb(self) -> &'static str {
         match self {
             Self::Bite => "bites",
-            Self::Scratch | Self::Punch => "hits",
+            Self::Scratch | Self::Punch | Self::Slash => "hits",
             Self::Pounce => "pounces",
         }
     }
