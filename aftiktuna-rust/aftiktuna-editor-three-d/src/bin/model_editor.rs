@@ -1,11 +1,10 @@
 use aftiktuna::asset::color::{AftikColorData, RGBColor};
-use aftiktuna::asset::model::{self, Model, TextureLayer};
-use aftiktuna::asset::placement::Positioner;
-use aftiktuna::asset::{TextureLoader, background};
+use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
+use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::ModelId;
+use aftiktuna::core::display::{ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
-use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::CachedLoader;
 use aftiktuna_three_d::render;
 use std::fs::{self, File};
@@ -121,9 +120,11 @@ fn main() {
         render::draw_in_order(&background_objects, &render_camera, &screen);
 
         area_size = draw_examples(
-            &loaded_model,
             &editor_data,
-            &aftik_model,
+            EditorModels {
+                editor_model: &loaded_model,
+                aftik_model: &aftik_model,
+            },
             &render_camera,
             &frame_input,
         );
@@ -375,16 +376,33 @@ const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
     secondary_color: RGBColor::new(255, 238, 153),
 };
 
+fn editor_model_id() -> ModelId {
+    ModelId::new("editor_model")
+}
+
+struct EditorModels<'a> {
+    editor_model: &'a Model<Texture2DRef>,
+    aftik_model: &'a Model<Texture2DRef>,
+}
+
+impl ModelAccess<Texture2DRef> for EditorModels<'_> {
+    fn lookup_model(&mut self, model_id: &ModelId) -> &Model<Texture2DRef> {
+        if model_id == &editor_model_id() {
+            self.editor_model
+        } else {
+            self.aftik_model
+        }
+    }
+}
+
 fn draw_examples(
-    model: &Model<Texture2DRef>,
     editor_data: &EditorData,
-    aftik_model: &Model<Texture2DRef>,
+    mut model_access: EditorModels,
     camera: &three_d::Camera,
     frame_input: &three_d::FrameInput,
 ) -> Coord {
     let time = frame_input.accumulated_time as f32;
     let context = &frame_input.context;
-    let mut positioner = Positioner::default();
     let mut next_coord = 0;
     let mut get_and_move_coord = || {
         let coord = next_coord;
@@ -392,6 +410,19 @@ fn draw_examples(
         coord
     };
     let mut objects = Vec::new();
+
+    fn obj(coord: Coord, model_id: ModelId, properties: RenderProperties) -> ObjectRenderData {
+        ObjectRenderData {
+            coord,
+            weight: OrderWeight::Background,
+            model_id,
+            hash: 0,
+            name_data: None,
+            wielded_item: None,
+            interactions: Vec::default(),
+            properties,
+        }
+    }
 
     let properties = RenderProperties {
         direction: editor_data.direction,
@@ -403,9 +434,9 @@ fn draw_examples(
 
     if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Left {
         let coord = get_and_move_coord();
-        objects.push((
-            aftik_model,
-            positioner.position_object(coord, aftik_model).into(),
+        objects.push(obj(
+            coord,
+            ModelId::aftik(),
             RenderProperties {
                 direction: Direction::Right,
                 ..Default::default()
@@ -416,9 +447,9 @@ fn draw_examples(
     let coord = get_and_move_coord();
 
     if editor_data.setting == SettingType::InFrontOfAftik {
-        objects.push((
-            aftik_model,
-            positioner.position_object(coord, aftik_model).into(),
+        objects.push(obj(
+            coord,
+            ModelId::aftik(),
             RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
@@ -426,18 +457,14 @@ fn draw_examples(
         ));
     }
 
-    for (pos, _) in positioner.position_groups_from_offsets(
-        model.group_placement.position(editor_data.group_size),
-        coord,
-        model,
-    ) {
-        objects.push((model, pos.into(), properties.clone()));
+    for _ in 1..=editor_data.group_size {
+        objects.push(obj(coord, editor_model_id(), properties.clone()));
     }
 
     if editor_data.setting == SettingType::BehindAftik {
-        objects.push((
-            aftik_model,
-            positioner.position_object(coord, aftik_model).into(),
+        objects.push(obj(
+            coord,
+            ModelId::aftik(),
             RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
@@ -448,9 +475,9 @@ fn draw_examples(
     if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Right
     {
         let coord = get_and_move_coord();
-        objects.push((
-            aftik_model,
-            positioner.position_object(coord, aftik_model).into(),
+        objects.push(obj(
+            coord,
+            ModelId::aftik(),
             RenderProperties {
                 direction: Direction::Left,
                 ..Default::default()
@@ -458,33 +485,51 @@ fn draw_examples(
         ));
     }
 
-    if model.wield_offset != Default::default() {
-        let pos = positioner
-            .position_object(get_and_move_coord(), aftik_model)
-            .into();
-        objects.push((
-            aftik_model,
-            pos,
-            RenderProperties {
-                direction: editor_data.direction,
-                ..Default::default()
-            },
-        ));
-        let offset = aftiktuna_three_d::to_vec(model.wield_offset, editor_data.direction.into());
-        objects.push((model, pos + offset, properties.clone()));
+    if model_access.editor_model.wield_offset != Default::default() {
+        objects.push(ObjectRenderData {
+            wielded_item: Some(editor_model_id()),
+            ..obj(
+                coord,
+                ModelId::aftik(),
+                RenderProperties {
+                    direction: editor_data.direction,
+                    ..Default::default()
+                },
+            )
+        });
     }
+
+    let objects = placement::position_objects(&objects, &mut model_access);
 
     let objects = objects
         .into_iter()
-        .flat_map(|(model, pos, properties)| {
-            render::get_render_objects_for_entity_with_color(
-                model,
+        .flat_map(|(pos, data)| {
+            let pos = pos.into();
+            let mut objects = render::get_render_objects_for_entity_with_color(
+                model_access.lookup_model(&data.model_id),
                 pos,
                 DEFAULT_AFTIK_COLOR,
-                &properties,
+                &data.properties,
                 time,
                 context,
-            )
+            );
+            if let Some(wielded) = data.wielded_item {
+                let model = model_access.lookup_model(&wielded);
+                let offset =
+                    aftiktuna_three_d::to_vec(model.wield_offset, data.properties.direction.into());
+                objects.extend(render::get_render_objects_for_entity_with_color(
+                    model,
+                    pos + offset,
+                    DEFAULT_AFTIK_COLOR,
+                    &RenderProperties {
+                        direction: data.properties.direction,
+                        ..Default::default()
+                    },
+                    time,
+                    context,
+                ))
+            }
+            objects
         })
         .collect::<Vec<_>>();
 
