@@ -5,7 +5,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
-use aftiktuna_three_d::asset::CachedLoader;
+use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::render;
 use std::fs::{self, File};
 use three_d::{Texture2DRef, egui};
@@ -43,6 +43,7 @@ fn main() {
         show_hurt: false,
         show_cut: false,
         setting: SettingType::None,
+        example_model: ModelId::aftik(),
     };
     let mut area_size = 7;
 
@@ -59,10 +60,7 @@ fn main() {
     let mut gui = three_d::GUI::new(&window.gl());
     let mut texture_loader = CachedLoader::new(window.gl());
 
-    let aftik_model = model::load_raw_model_from_path(ModelId::aftik().file_path())
-        .unwrap()
-        .load(&mut texture_loader)
-        .unwrap();
+    let mut example_models = LazilyLoadedModels::new(window.gl()).unwrap();
     let backgrounds_map = background::load_raw_backgrounds().unwrap();
     let forest_background = backgrounds_map
         .get(&BackgroundId::new("forest"))
@@ -123,7 +121,7 @@ fn main() {
             &editor_data,
             EditorModels {
                 editor_model: &loaded_model,
-                aftik_model: &aftik_model,
+                example_models: &mut example_models,
             },
             &render_camera,
             &frame_input,
@@ -155,20 +153,21 @@ struct EditorData {
     show_hurt: bool,
     show_cut: bool,
     setting: SettingType,
+    example_model: ModelId,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SettingType {
     None,
-    BehindAftik,
-    InFrontOfAftik,
-    FacingAftik,
+    Behind,
+    InFront,
+    Facing,
 }
 
 impl SettingType {
     fn variants() -> &'static [Self] {
         use SettingType::*;
-        &[None, BehindAftik, InFrontOfAftik, FacingAftik]
+        &[None, Behind, InFront, Facing]
     }
 }
 
@@ -224,6 +223,7 @@ fn model_editor_ui(
     {
         ui.checkbox(&mut editor_data.show_cut, "Show Cut");
     }
+
     egui::ComboBox::from_label("Setting")
         .selected_text(format!("{:?}", editor_data.setting))
         .show_ui(ui, |ui| {
@@ -235,6 +235,7 @@ fn model_editor_ui(
                 );
             }
         });
+    ui.text_edit_singleline(&mut editor_data.example_model.0);
 
     ui.separator();
 
@@ -382,7 +383,7 @@ fn editor_model_id() -> ModelId {
 
 struct EditorModels<'a> {
     editor_model: &'a Model<Texture2DRef>,
-    aftik_model: &'a Model<Texture2DRef>,
+    example_models: &'a mut LazilyLoadedModels,
 }
 
 impl ModelAccess<Texture2DRef> for EditorModels<'_> {
@@ -390,7 +391,7 @@ impl ModelAccess<Texture2DRef> for EditorModels<'_> {
         if model_id == &editor_model_id() {
             self.editor_model
         } else {
-            self.aftik_model
+            self.example_models.lookup_model(model_id)
         }
     }
 }
@@ -432,11 +433,11 @@ fn draw_examples(
         ..Default::default()
     };
 
-    if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Left {
+    if editor_data.setting == SettingType::Facing && editor_data.direction == Direction::Left {
         let coord = get_and_move_coord();
         objects.push(obj(
             coord,
-            ModelId::aftik(),
+            editor_data.example_model.clone(),
             RenderProperties {
                 direction: Direction::Right,
                 ..Default::default()
@@ -446,10 +447,10 @@ fn draw_examples(
 
     let coord = get_and_move_coord();
 
-    if editor_data.setting == SettingType::InFrontOfAftik {
+    if editor_data.setting == SettingType::InFront {
         objects.push(obj(
             coord,
-            ModelId::aftik(),
+            editor_data.example_model.clone(),
             RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
@@ -461,10 +462,10 @@ fn draw_examples(
         objects.push(obj(coord, editor_model_id(), properties.clone()));
     }
 
-    if editor_data.setting == SettingType::BehindAftik {
+    if editor_data.setting == SettingType::Behind {
         objects.push(obj(
             coord,
-            ModelId::aftik(),
+            editor_data.example_model.clone(),
             RenderProperties {
                 direction: editor_data.direction,
                 ..Default::default()
@@ -472,12 +473,11 @@ fn draw_examples(
         ));
     }
 
-    if editor_data.setting == SettingType::FacingAftik && editor_data.direction == Direction::Right
-    {
+    if editor_data.setting == SettingType::Facing && editor_data.direction == Direction::Right {
         let coord = get_and_move_coord();
         objects.push(obj(
             coord,
-            ModelId::aftik(),
+            editor_data.example_model.clone(),
             RenderProperties {
                 direction: Direction::Left,
                 ..Default::default()
