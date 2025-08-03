@@ -6,8 +6,8 @@ use crate::core::{
     inventory, status,
 };
 use crate::game_loop::GameState;
+use crate::view;
 use crate::view::text::{CombinableMsgType, IntoMessage};
-use crate::view::{self, Frame};
 use hecs::{Entity, World};
 use std::collections::HashMap;
 use std::result;
@@ -221,8 +221,7 @@ impl<'a> ViewContext<'a> {
     }
 
     fn add_dialogue(&mut self, world: &World, target: Entity, message: impl Into<String>) {
-        self.view_buffer
-            .push_frame(Frame::new_dialogue(world, target, vec![message.into()]));
+        self.view_buffer.push_dialogue(world, target, message);
     }
 }
 

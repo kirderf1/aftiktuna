@@ -179,6 +179,10 @@ impl Buffer {
         self.push_frame(Frame::Ending { stop_type })
     }
 
+    pub fn push_dialogue(&mut self, world: &World, target: Entity, message: impl Into<String>) {
+        self.push_frame(Frame::new_dialogue(world, target, vec![message.into()]))
+    }
+
     pub fn into_frames(self) -> Vec<Frame> {
         self.captured_frames
     }

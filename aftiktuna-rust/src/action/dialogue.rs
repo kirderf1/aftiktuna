@@ -1,11 +1,8 @@
-use crate::action::{self, Context, Error, ViewContext};
+use crate::action::{self, Context, Error};
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Direction, Pos};
-use crate::core::status::Health;
-use crate::core::{
-    self, CrewMember, GivesHuntReward, Recruitable, Tag, Waiting, area, position, status,
-};
-use hecs::{Entity, World};
+use crate::core::{self, CrewMember, Recruitable, Waiting, area, position, status};
+use hecs::Entity;
 
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
     if !status::is_alive(target, &context.state.world) {
@@ -21,93 +18,15 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
              state,
              view_context,
          }| {
-            talk_dialogue(performer, target, &mut state.world, view_context);
+            crate::dialogue::talk_dialogue(
+                performer,
+                target,
+                &mut state.world,
+                view_context.view_buffer,
+            );
             None
         },
     )
-}
-
-fn talk_dialogue(performer: Entity, target: Entity, world: &mut World, context: &mut ViewContext) {
-    let target_ref = world.entity(target).unwrap();
-    if target_ref
-        .get::<&Name>()
-        .map_or(false, |name| !name.is_known)
-    {
-        let name_string = {
-            let mut name_ref = target_ref.get::<&mut Name>().unwrap();
-            name_ref.is_known = true;
-            name_ref.name.clone()
-        };
-        context.add_dialogue(world, performer, "\"Hi! What is your name?\"");
-        context.add_dialogue(world, target, format!("\"My name is {name_string}.\""));
-    } else {
-        regular_greeting(performer, target, world, context);
-    }
-
-    let gives_hunt_reward = target_ref.get::<&GivesHuntReward>();
-    if gives_hunt_reward.is_some() {
-        let gives_hunt_reward = gives_hunt_reward.unwrap();
-        if any_alive_with_tag(&gives_hunt_reward.target_tag, world) {
-            let message = format!("\"{}\"", &gives_hunt_reward.task_message);
-            context.add_dialogue(world, target, message);
-        } else {
-            drop(gives_hunt_reward);
-            let GivesHuntReward {
-                reward_message,
-                reward,
-                ..
-            } = world.remove_one::<GivesHuntReward>(target).unwrap();
-
-            context.add_dialogue(world, target, format!("\"{reward_message}\""));
-
-            reward.give_reward_to(performer, world);
-        }
-    } else if target_ref.has::<Recruitable>() {
-        context.add_dialogue(
-            world,
-            target,
-            "\"I wish I could leave this place and go on an adventure.\"",
-        );
-    }
-}
-
-fn regular_greeting(performer: Entity, target: Entity, world: &World, context: &mut ViewContext) {
-    let target_ref = world.entity(target).unwrap();
-
-    context.add_dialogue(world, performer, "\"Hi!\"");
-
-    if target_ref
-        .get::<&GivesHuntReward>()
-        .map_or(false, |gives_hunt_reward| {
-            any_alive_with_tag(&gives_hunt_reward.target_tag, world)
-        })
-    {
-        context.add_dialogue(
-            world,
-            target,
-            "\"Hello! I have a bit of a problem at the moment.\"",
-        );
-    } else if target_ref.has::<Waiting>() {
-        context.add_dialogue(
-            world,
-            target,
-            "\"Hello! I'll continue to wait here until you tell me otherwise.\"",
-        );
-    } else if target_ref
-        .get::<&Health>()
-        .map_or(false, |health| health.is_badly_hurt())
-    {
-        context.add_dialogue(world, target, "\"Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.\"");
-    } else {
-        context.add_dialogue(world, target, "\"Hello!\"");
-    }
-}
-
-fn any_alive_with_tag(target_tag: &Tag, world: &World) -> bool {
-    world
-        .query::<(&Health, &Tag)>()
-        .iter()
-        .any(|(_, (health, tag))| health.is_alive() && target_tag == tag)
 }
 
 pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> action::Result {

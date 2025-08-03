@@ -3,6 +3,7 @@ mod ai;
 pub mod asset;
 mod command;
 pub mod core;
+mod dialogue;
 pub mod game_interface;
 mod game_loop;
 pub mod location;
