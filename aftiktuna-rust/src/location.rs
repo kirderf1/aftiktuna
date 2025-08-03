@@ -86,6 +86,15 @@ impl GenerationState {
     pub fn is_at_fortuna(&self) -> bool {
         self.state == TrackedState::AtFortuna
     }
+
+    pub fn locations_before_fortuna(&self) -> i32 {
+        match self.state {
+            TrackedState::BeforeFortuna {
+                remaining_locations_count,
+            } => remaining_locations_count,
+            TrackedState::AtFortuna => 0,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize)]

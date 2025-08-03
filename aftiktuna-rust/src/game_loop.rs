@@ -1,9 +1,3 @@
-use std::collections::HashMap;
-
-use hecs::{CommandBuffer, Entity, Satisfies, World};
-use rand::rngs::ThreadRng;
-use serde::{Deserialize, Serialize};
-
 use crate::action::{self, Action};
 use crate::asset::CrewData;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
@@ -21,6 +15,11 @@ use crate::location::{self, GenerationState, InitialSpawnData, PickResult};
 use crate::view::text::{self, CombinableMsgType, Messages};
 use crate::view::{self, Frame, StatusCache};
 use crate::{StopType, ai, command, serialization};
+use hecs::{CommandBuffer, Entity, Satisfies, World};
+use rand::rngs::ThreadRng;
+use rand::seq::{IteratorRandom, SliceRandom};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 pub struct GameState {
@@ -190,6 +189,7 @@ fn tick_and_check(
 
     if is_ship_launching(state) {
         leave_location(state, view_buffer);
+        trigger_ship_dialogue(state, view_buffer);
         Ok(Step::PrepareNextLocation)
     } else {
         let area = state
@@ -537,6 +537,84 @@ fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) 
             "{names} ate {amount} food rations to recover some health.",
             names = text::join_elements(names)
         )
+    }
+}
+
+fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    let mut crew_characters = state
+        .world
+        .query::<&Health>()
+        .with::<(&CrewMember, &Character)>()
+        .iter()
+        .map(|(entity, health)| (entity, health.is_badly_hurt()))
+        .choose_multiple(&mut state.rng, 2);
+    crew_characters.shuffle(&mut state.rng);
+    if let [(character1, badly_hurt1), (character2, badly_hurt2)] = crew_characters[..] {
+        state
+            .world
+            .insert_one(character1, Direction::Right)
+            .unwrap();
+        state.world.insert_one(character2, Direction::Left).unwrap();
+        if state.generation_state.locations_before_fortuna() == 0 {
+            if badly_hurt1 {
+                view_buffer.push_frame(Frame::new_dialogue(
+                    &state.world,
+                    character1,
+                    vec!["Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?".to_string()],
+                ));
+                view_buffer.push_frame(Frame::new_dialogue(
+                    &state.world,
+                    character2,
+                    vec!["I hope so.".to_string()],
+                ));
+            } else {
+                view_buffer.push_frame(Frame::new_dialogue(
+                    &state.world,
+                    character1,
+                     vec!["Looks like we are arriving at the Fortuna crash site next. Are you excited?".to_string()],
+                ));
+                if badly_hurt2 {
+                    view_buffer.push_frame(Frame::new_dialogue(
+                        &state.world,
+                        character2,
+                        vec!["Yeah, but I am also worried.".to_string()],
+                    ));
+                } else {
+                    view_buffer.push_frame(Frame::new_dialogue(
+                        &state.world,
+                        character2,
+                        vec!["Yeah, I think so!".to_string()],
+                    ));
+                }
+            }
+        } else if badly_hurt1 {
+            view_buffer.push_frame(Frame::new_dialogue(
+                &state.world,
+                character1,
+                vec!["Will we be able to go somewhere safer next?".to_string()],
+            ));
+            view_buffer.push_frame(Frame::new_dialogue(
+                &state.world,
+                character2,
+                vec!["I don't know. Let's see what our options are.".to_string()],
+            ));
+        } else if !badly_hurt1 && badly_hurt2 {
+            view_buffer.push_frame(Frame::new_dialogue(
+                &state.world,
+                character1,
+                vec!["That worked out in the end, right?".to_string()],
+            ));
+            view_buffer.push_frame(Frame::new_dialogue(
+                &state.world,
+                character2,
+                vec!["I guess so. But can we go somewhere safer next?".to_string()],
+            ));
+            view_buffer.push_frame(Frame::new_dialogue(
+                &state.world,
+                character1,
+                vec!["I don't know. Let's see what our options are.".to_string()],
+            ));
+        }
     }
 }
 
