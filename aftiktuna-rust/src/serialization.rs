@@ -176,6 +176,7 @@ pub mod world {
 
         core::CrewMember, CrewMember;
         core::Character, Character;
+        core::CrewLossMemory, CrewLossMemory;
         core::Hostile, Hostile;
         core::Wandering, Wandering;
         core::ObservationTarget, ObservationTarget;

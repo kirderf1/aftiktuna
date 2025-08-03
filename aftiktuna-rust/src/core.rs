@@ -172,6 +172,12 @@ pub struct CrewMember(pub Entity);
 pub struct Character;
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct CrewLossMemory {
+    pub name: String,
+    pub recent: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Hostile {
     pub aggressive: bool,
 }

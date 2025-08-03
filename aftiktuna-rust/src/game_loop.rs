@@ -4,11 +4,12 @@ use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::{self, FoodRation, FourLeafClover};
-use crate::core::name::{ArticleKind, NameData, NameQuery};
+use crate::core::name::{ArticleKind, Name, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{
-    self, Character, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory, status,
+    self, Character, CrewLossMemory, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory,
+    status,
 };
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, GenerationState, InitialSpawnData, PickResult};
@@ -190,6 +191,9 @@ fn tick_and_check(
     if is_ship_launching(state) {
         leave_location(state, view_buffer);
         trigger_ship_dialogue(state, view_buffer);
+        for (_, memory) in state.world.query::<&mut CrewLossMemory>().iter() {
+            memory.recent = false;
+        }
         Ok(Step::PrepareNextLocation)
     } else {
         let area = state
@@ -329,10 +333,23 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
         view_buffer.capture_view(state);
     }
 
+    let mut buffer = CommandBuffer::new();
     for character in dead_crew {
         inventory::drop_all_items(&mut state.world, character);
         state.world.remove_one::<CrewMember>(character).unwrap();
+        if let Ok(Name { name, .. }) = state.world.get::<&Name>(character).as_deref() {
+            for (crew_member, ()) in state.world.query::<()>().with::<&CrewMember>().iter() {
+                buffer.insert_one(
+                    crew_member,
+                    CrewLossMemory {
+                        name: name.clone(),
+                        recent: true,
+                    },
+                );
+            }
+        }
     }
+    buffer.run_on(&mut state.world);
 }
 
 fn check_player_state(
@@ -573,7 +590,16 @@ fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) 
                     character1,
                      vec!["Looks like we are arriving at the Fortuna crash site next. Are you excited?".to_string()],
                 ));
-                if badly_hurt2 {
+                if let Ok(memory) = state.world.get::<&CrewLossMemory>(character2) {
+                    view_buffer.push_frame(Frame::new_dialogue(
+                        &state.world,
+                        character2,
+                        vec![format!(
+                            "Yeah. I just wish {name} was with us too.",
+                            name = memory.name
+                        )],
+                    ));
+                } else if badly_hurt2 {
                     view_buffer.push_frame(Frame::new_dialogue(
                         &state.world,
                         character2,
@@ -586,6 +612,30 @@ fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) 
                         vec!["Yeah, I think so!".to_string()],
                     ));
                 }
+            }
+        } else if let Ok(memory) = state.world.get::<&CrewLossMemory>(character1)
+            && memory.recent
+        {
+            view_buffer.push_frame(Frame::new_dialogue(
+                &state.world,
+                character1,
+                vec![format!(
+                    "I am sad to have lost {name}. Do you think that we will make it?",
+                    name = memory.name
+                )],
+            ));
+            if badly_hurt2 {
+                view_buffer.push_frame(Frame::new_dialogue(
+                    &state.world,
+                    character2,
+                    vec![("I am not sure, but I hope so.".to_string())],
+                ));
+            } else {
+                view_buffer.push_frame(Frame::new_dialogue(
+                    &state.world,
+                    character2,
+                    vec![("Don't worry. I'm sure we will.".to_string())],
+                ));
             }
         } else if badly_hurt1 {
             view_buffer.push_frame(Frame::new_dialogue(

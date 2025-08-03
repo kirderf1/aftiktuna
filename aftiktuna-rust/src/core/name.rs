@@ -129,7 +129,7 @@ impl<'a> From<NameQuery<'a>> for NameData {
 
 pub type NameQuery<'a> = (Option<&'a Name>, Option<&'a Noun>);
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Name {
     pub name: String,
     pub is_known: bool,
