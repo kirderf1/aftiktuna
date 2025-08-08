@@ -2,7 +2,7 @@ use crate::core::name::Name;
 use crate::core::status::Health;
 use crate::core::{CrewLossMemory, GivesHuntReward, Recruitable, Tag, Waiting};
 use crate::game_loop::GameState;
-use crate::view;
+use crate::view::{self, DialogueExpression};
 use hecs::{Entity, World};
 
 pub fn talk_dialogue(
@@ -18,8 +18,18 @@ pub fn talk_dialogue(
             name_ref.is_known = true;
             name_ref.name.clone()
         };
-        view_buffer.push_dialogue(world, performer, "\"Hi! What is your name?\"");
-        view_buffer.push_dialogue(world, target, format!("\"My name is {name_string}.\""));
+        view_buffer.push_dialogue(
+            world,
+            performer,
+            DialogueExpression::Neutral,
+            "\"Hi! What is your name?\"",
+        );
+        view_buffer.push_dialogue(
+            world,
+            target,
+            DialogueExpression::Neutral,
+            format!("\"My name is {name_string}.\""),
+        );
     } else {
         regular_greeting(performer, target, world, view_buffer);
     }
@@ -28,8 +38,12 @@ pub fn talk_dialogue(
     if gives_hunt_reward.is_some() {
         let gives_hunt_reward = gives_hunt_reward.unwrap();
         if any_alive_with_tag(&gives_hunt_reward.target_tag, world) {
-            let message = format!("\"{}\"", &gives_hunt_reward.task_message);
-            view_buffer.push_dialogue(world, target, message);
+            view_buffer.push_dialogue(
+                world,
+                target,
+                DialogueExpression::Neutral,
+                format!("\"{message}\"", message = gives_hunt_reward.task_message),
+            );
         } else {
             drop(gives_hunt_reward);
             let GivesHuntReward {
@@ -38,7 +52,12 @@ pub fn talk_dialogue(
                 ..
             } = world.remove_one::<GivesHuntReward>(target).unwrap();
 
-            view_buffer.push_dialogue(world, target, format!("\"{reward_message}\""));
+            view_buffer.push_dialogue(
+                world,
+                target,
+                DialogueExpression::Excited,
+                format!("\"{reward_message}\""),
+            );
 
             reward.give_reward_to(performer, world);
         }
@@ -46,6 +65,7 @@ pub fn talk_dialogue(
         view_buffer.push_dialogue(
             world,
             target,
+            DialogueExpression::Neutral,
             "\"I wish I could leave this place and go on an adventure.\"",
         );
     }
@@ -59,7 +79,7 @@ fn regular_greeting(
 ) {
     let target_ref = world.entity(target).unwrap();
 
-    view_buffer.push_dialogue(world, performer, "\"Hi!\"");
+    view_buffer.push_dialogue(world, performer, DialogueExpression::Excited, "\"Hi!\"");
 
     if target_ref
         .get::<&GivesHuntReward>()
@@ -68,21 +88,23 @@ fn regular_greeting(
         view_buffer.push_dialogue(
             world,
             target,
+            DialogueExpression::Neutral,
             "\"Hello! I have a bit of a problem at the moment.\"",
         );
     } else if target_ref.has::<Waiting>() {
         view_buffer.push_dialogue(
             world,
             target,
+            DialogueExpression::Neutral,
             "\"Hello! I'll continue to wait here until you tell me otherwise.\"",
         );
     } else if target_ref
         .get::<&Health>()
         .is_some_and(|health| health.is_badly_hurt())
     {
-        view_buffer.push_dialogue(world, target, "\"Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.\"");
+        view_buffer.push_dialogue(world, target, DialogueExpression::Neutral, "\"Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.\"");
     } else {
-        view_buffer.push_dialogue(world, target, "\"Hello!\"");
+        view_buffer.push_dialogue(world, target, DialogueExpression::Excited, "\"Hello!\"");
     }
 }
 
@@ -112,19 +134,27 @@ pub fn ship_dialogue(
             view_buffer.push_dialogue(
             &state.world,
             character1,
+            DialogueExpression::Neutral,
             "\"Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?\"",
         );
-            view_buffer.push_dialogue(&state.world, character2, "\"I hope so.\"");
+            view_buffer.push_dialogue(
+                &state.world,
+                character2,
+                DialogueExpression::Neutral,
+                "\"I hope so.\"",
+            );
         } else {
             view_buffer.push_dialogue(
                 &state.world,
                 character1,
+                DialogueExpression::Excited,
                 "\"Looks like we are arriving at the Fortuna crash site next. Are you excited?\"",
             );
             if let Ok(memory) = state.world.get::<&CrewLossMemory>(character2) {
                 view_buffer.push_dialogue(
                     &state.world,
                     character2,
+                    DialogueExpression::Sad,
                     format!(
                         "\"Yeah. I just wish {name} was with us too.\"",
                         name = memory.name,
@@ -134,10 +164,16 @@ pub fn ship_dialogue(
                 view_buffer.push_dialogue(
                     &state.world,
                     character2,
+                    DialogueExpression::Neutral,
                     "\"Yeah, but I am also worried.\"",
                 );
             } else {
-                view_buffer.push_dialogue(&state.world, character2, "\"Yeah, I think so!\"");
+                view_buffer.push_dialogue(
+                    &state.world,
+                    character2,
+                    DialogueExpression::Excited,
+                    "\"Yeah, I think so!\"",
+                );
             }
         }
     } else if let Ok(memory) = state.world.get::<&CrewLossMemory>(character1)
@@ -146,8 +182,9 @@ pub fn ship_dialogue(
         view_buffer.push_dialogue(
             &state.world,
             character1,
+            DialogueExpression::Sad,
             format!(
-                "\"I am sad to have lost {name}. Do you think that we will make it?\"",
+                "\"I am sad that we lost {name}. Do you think that we will make it?\"",
                 name = memory.name
             ),
         );
@@ -155,12 +192,14 @@ pub fn ship_dialogue(
             view_buffer.push_dialogue(
                 &state.world,
                 character2,
+                DialogueExpression::Neutral,
                 "\"I am not sure, but I hope so.\"",
             );
         } else {
             view_buffer.push_dialogue(
                 &state.world,
                 character2,
+                DialogueExpression::Neutral,
                 "\"Don't worry. I'm sure we will.\"",
             );
         }
@@ -168,27 +207,32 @@ pub fn ship_dialogue(
         view_buffer.push_dialogue(
             &state.world,
             character1,
+            DialogueExpression::Neutral,
             "\"Will we be able to go somewhere safer next?\"",
         );
         view_buffer.push_dialogue(
             &state.world,
             character2,
+            DialogueExpression::Neutral,
             "\"I don't know. Let's see what our options are.\"",
         );
     } else if !badly_hurt1 && badly_hurt2 {
         view_buffer.push_dialogue(
             &state.world,
             character1,
+            DialogueExpression::Neutral,
             "\"That worked out in the end, right?\"",
         );
         view_buffer.push_dialogue(
             &state.world,
             character2,
+            DialogueExpression::Neutral,
             "\"I guess so. But can we go somewhere safer next?\"",
         );
         view_buffer.push_dialogue(
             &state.world,
             character1,
+            DialogueExpression::Neutral,
             "\"I don't know. Let's see what our options are.\"",
         );
     }

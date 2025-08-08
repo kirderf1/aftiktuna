@@ -179,8 +179,17 @@ impl Buffer {
         self.push_frame(Frame::Ending { stop_type })
     }
 
-    pub fn push_dialogue(&mut self, world: &World, target: Entity, message: impl Into<String>) {
-        self.push_frame(Frame::new_dialogue(world, target, vec![message.into()]))
+    pub fn push_dialogue(
+        &mut self,
+        world: &World,
+        target: Entity,
+        expression: DialogueExpression,
+        message: impl Into<String>,
+    ) {
+        self.push_frame(Frame::Dialogue {
+            messages: vec![message.into()],
+            data: DialogueFrameData::build(target, expression, world),
+        })
     }
 
     pub fn into_frames(self) -> Vec<Frame> {
@@ -283,13 +292,6 @@ impl Frame {
             Frame::Ending { stop_type, .. } => stop_type_messages(*stop_type).into_text(),
         }
     }
-
-    pub fn new_dialogue(world: &World, character: Entity, messages: Vec<String>) -> Self {
-        Self::Dialogue {
-            messages,
-            data: DialogueFrameData::build(character, world),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -300,10 +302,12 @@ pub struct DialogueFrameData {
     pub direction: Direction,
     pub is_badly_hurt: bool,
     pub darkness: f32,
+    #[serde(default)] // backwards-compatibility with 4.0
+    pub expression: DialogueExpression,
 }
 
 impl DialogueFrameData {
-    fn build(character: Entity, world: &World) -> Self {
+    fn build(character: Entity, expression: DialogueExpression, world: &World) -> Self {
         let character_ref = world.entity(character).unwrap();
         let area = character_ref.get::<&Pos>().unwrap().get_area();
         let area = world.get::<&Area>(area).unwrap();
@@ -320,7 +324,24 @@ impl DialogueFrameData {
                 .get::<&Health>()
                 .is_some_and(|health| health.is_badly_hurt()),
             darkness: area.darkness,
+            expression,
         }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DialogueExpression {
+    #[default]
+    Neutral,
+    Excited,
+    Sad,
+}
+
+impl DialogueExpression {
+    pub fn variants() -> &'static [Self] {
+        use DialogueExpression::*;
+        &[Neutral, Excited, Sad]
     }
 }
 

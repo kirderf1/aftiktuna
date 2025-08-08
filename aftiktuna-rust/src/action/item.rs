@@ -5,6 +5,7 @@ use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameQuery};
 use crate::core::position::Pos;
 use crate::core::status::{Health, StatChanges};
 use crate::core::{self, RepeatingAction, inventory, position, status};
+use crate::view::DialogueExpression;
 use crate::view::text::{self, CombinableMsgType};
 use hecs::Entity;
 
@@ -202,7 +203,12 @@ pub(super) fn give_item(
 
     movement.perform(world).unwrap();
 
-    view_context.add_dialogue(world, performer, "\"Here, hold on to this.\"");
+    view_context.view_buffer.push_dialogue(
+        world,
+        performer,
+        DialogueExpression::Neutral,
+        "\"Here, hold on to this.\"",
+    );
 
     world
         .insert_one(item, Held::in_inventory(receiver))

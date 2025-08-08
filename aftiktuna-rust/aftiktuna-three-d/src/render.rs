@@ -3,6 +3,7 @@ use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::DialogueExpression;
 use std::collections::HashMap;
 
 pub fn render_objects_for_primary_background(
@@ -96,6 +97,7 @@ pub fn get_render_objects_for_entity(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     properties: &RenderProperties,
+    expression: DialogueExpression,
     aftik_colors: &mut HashMap<AftikColorId, AftikColorData>,
     time: f32,
     context: &three_d::Context,
@@ -106,7 +108,15 @@ pub fn get_render_objects_for_entity(
         .map_or(color::DEFAULT_COLOR, |aftik_color| {
             lookup_or_log_aftik_color(aftik_color, aftik_colors)
         });
-    get_render_objects_for_entity_with_color(model, pos, aftik_color, properties, time, context)
+    get_render_objects_for_entity_with_color(
+        model,
+        pos,
+        aftik_color,
+        properties,
+        expression,
+        time,
+        context,
+    )
 }
 
 fn lookup_or_log_aftik_color(
@@ -125,6 +135,7 @@ pub fn get_render_objects_for_entity_with_color(
     pos: three_d::Vec2,
     aftik_color: AftikColorData,
     properties: &RenderProperties,
+    expression: DialogueExpression,
     time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
@@ -142,6 +153,7 @@ pub fn get_render_objects_for_entity_with_color(
                 pos,
                 direction_mod,
                 properties,
+                expression,
                 aftik_color,
                 time,
                 context,
@@ -155,11 +167,12 @@ fn get_render_object_for_layer(
     pos: three_d::Vec2,
     direction_mod: f32,
     properties: &RenderProperties,
+    expression: DialogueExpression,
     aftik_color: AftikColorData,
     time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
-    if !layer.conditions.meets_conditions(properties) {
+    if !layer.conditions.meets_conditions(properties, expression) {
         return vec![];
     }
 

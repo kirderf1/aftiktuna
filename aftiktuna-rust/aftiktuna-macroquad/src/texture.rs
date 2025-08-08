@@ -6,6 +6,7 @@ use aftiktuna::asset::{self, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::DialogueExpression;
 use macroquad::math::Vec2;
 use macroquad::prelude::ImageFormat;
 use macroquad::texture::Texture2D;
@@ -52,6 +53,7 @@ fn lookup_or_log_aftik_color(
 pub fn draw_object(
     model_id: &ModelId,
     properties: &RenderProperties,
+    expression: DialogueExpression,
     use_wield_offset: bool,
     pos: Vec2,
     assets: &mut RenderAssets,
@@ -64,7 +66,14 @@ pub fn draw_object(
             lookup_or_log_aftik_color(aftik_color, &mut assets.aftik_colors)
         });
 
-    model::draw_model(model, pos, use_wield_offset, properties, &aftik_color_data);
+    model::draw_model(
+        model,
+        pos,
+        use_wield_offset,
+        properties,
+        expression,
+        &aftik_color_data,
+    );
 }
 
 pub fn load_texture(name: impl AsRef<str>) -> Result<Texture2D, io::Error> {

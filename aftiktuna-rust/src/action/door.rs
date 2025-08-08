@@ -8,6 +8,7 @@ use crate::core::{
     self, BlockType, Character, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
 };
 use crate::game_loop::GameState;
+use crate::view::DialogueExpression;
 use crate::view::text::CombinableMsgType;
 use hecs::{Entity, World};
 use std::ops::Deref;
@@ -150,7 +151,12 @@ pub(super) fn force_door(
     let world = &mut state.world;
     movement.perform(world).unwrap();
     if assisting {
-        view_context.add_dialogue(world, performer, "I'll help you get that door open.");
+        view_context.view_buffer.push_dialogue(
+            world,
+            performer,
+            DialogueExpression::Neutral,
+            "\"I'll help you get that door open.\"",
+        );
     }
 
     let block_type = *world.get::<&BlockType>(door_pair).map_err(|_| {

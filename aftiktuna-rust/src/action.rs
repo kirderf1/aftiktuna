@@ -219,10 +219,6 @@ impl<'a> ViewContext<'a> {
             self.view_buffer.capture_view(state);
         }
     }
-
-    fn add_dialogue(&mut self, world: &World, target: Entity, message: impl Into<String>) {
-        self.view_buffer.push_dialogue(world, target, message);
-    }
 }
 
 fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> Result {

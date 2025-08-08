@@ -1,6 +1,7 @@
 use super::TextureLoader;
 use super::color::ColorSource;
 use crate::core::display::ModelId;
+use crate::view::DialogueExpression;
 use crate::view::area::RenderProperties;
 use crate::{Range, Vec2};
 use indexmap::IndexMap;
@@ -179,13 +180,20 @@ pub struct LayerCondition {
     pub if_alive: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub if_hurt: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub if_expression: Option<DialogueExpression>,
 }
 
 impl LayerCondition {
-    pub fn meets_conditions(&self, properties: &RenderProperties) -> bool {
+    pub fn meets_conditions(
+        &self,
+        properties: &RenderProperties,
+        expression: DialogueExpression,
+    ) -> bool {
         (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
             && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
             && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
+            && (self.if_expression.is_none() || self.if_expression == Some(expression))
     }
 }
 

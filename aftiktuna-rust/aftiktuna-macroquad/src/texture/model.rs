@@ -4,6 +4,7 @@ use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use aftiktuna::view::DialogueExpression;
 use macroquad::color::Color;
 use macroquad::math::{Rect, Vec2};
 use macroquad::texture::{self, DrawTextureParams, Texture2D};
@@ -34,6 +35,7 @@ pub fn draw_model(
     pos: Vec2,
     use_wield_offset: bool,
     properties: &RenderProperties,
+    expression: DialogueExpression,
     aftik_color_data: &AftikColorData,
 ) {
     let mut pos = pos;
@@ -43,7 +45,7 @@ pub fn draw_model(
     }
     let flip_x = model.fixed_orientation && properties.direction == Direction::Left;
     for layer in &model.layers {
-        draw_layer(layer, pos, flip_x, properties, aftik_color_data);
+        draw_layer(layer, pos, flip_x, properties, expression, aftik_color_data);
     }
 }
 
@@ -52,9 +54,10 @@ fn draw_layer(
     pos: Vec2,
     flip_x: bool,
     properties: &RenderProperties,
+    expression: DialogueExpression,
     aftik_color_data: &AftikColorData,
 ) {
-    if !layer.conditions.meets_conditions(properties) {
+    if !layer.conditions.meets_conditions(properties, expression) {
         return;
     }
 
@@ -89,7 +92,11 @@ pub fn model_render_rect(
     model
         .layers
         .iter()
-        .filter(|&layer| layer.conditions.meets_conditions(properties))
+        .filter(|&layer| {
+            layer
+                .conditions
+                .meets_conditions(properties, DialogueExpression::default())
+        })
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
             rect.combine_with(layer_render_rect(layer, pos, direction_mod))
         })

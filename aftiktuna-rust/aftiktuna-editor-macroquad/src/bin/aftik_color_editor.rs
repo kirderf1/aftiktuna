@@ -2,6 +2,7 @@ use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
 use aftiktuna::asset::model::Model;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::DialogueExpression;
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::model;
 use indexmap::IndexMap;
@@ -86,6 +87,7 @@ fn draw_examples(
             is_badly_hurt: false,
             ..Default::default()
         },
+        DialogueExpression::default(),
         aftik_color_data,
     );
     model::draw_model(
@@ -97,6 +99,7 @@ fn draw_examples(
             is_badly_hurt: true,
             ..Default::default()
         },
+        DialogueExpression::default(),
         aftik_color_data,
     );
     model::draw_model(
@@ -107,6 +110,7 @@ fn draw_examples(
             is_alive: false,
             ..Default::default()
         },
+        DialogueExpression::default(),
         aftik_color_data,
     );
     model::draw_model(
@@ -117,6 +121,7 @@ fn draw_examples(
             is_badly_hurt: false,
             ..Default::default()
         },
+        DialogueExpression::default(),
         aftik_color_data,
     );
     model::draw_model(
@@ -127,6 +132,7 @@ fn draw_examples(
             is_badly_hurt: true,
             ..Default::default()
         },
+        DialogueExpression::default(),
         aftik_color_data,
     );
 }

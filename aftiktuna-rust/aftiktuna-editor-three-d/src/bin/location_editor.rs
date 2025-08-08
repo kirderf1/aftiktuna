@@ -714,6 +714,7 @@ use aftiktuna::asset::{background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::Coord;
+use aftiktuna::view::DialogueExpression;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::render;
 use indexmap::IndexMap;
@@ -1222,6 +1223,7 @@ fn render_game_view(
                     .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
                     .unwrap_or(color::DEFAULT_COLOR),
                 &object.properties,
+                DialogueExpression::default(),
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
             )

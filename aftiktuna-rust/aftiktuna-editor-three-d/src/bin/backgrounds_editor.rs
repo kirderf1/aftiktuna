@@ -6,6 +6,7 @@ use aftiktuna::asset::placement::Positioner;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Coord;
+use aftiktuna::view::DialogueExpression;
 use aftiktuna::view::area::RenderProperties;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::render;
@@ -216,6 +217,7 @@ fn draw_example_content(
             pos.into(),
             color::DEFAULT_COLOR,
             &RenderProperties::default(),
+            DialogueExpression::default(),
             frame_input.accumulated_time as f32,
             &frame_input.context,
         );

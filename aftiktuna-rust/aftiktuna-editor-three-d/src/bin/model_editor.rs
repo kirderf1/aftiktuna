@@ -4,6 +4,7 @@ use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
+use aftiktuna::view::DialogueExpression;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::render;
@@ -42,6 +43,7 @@ fn main() {
         show_alive: true,
         show_hurt: false,
         show_cut: false,
+        shown_expression: DialogueExpression::Neutral,
         setting: SettingType::None,
         example_model: ModelId::aftik(),
     };
@@ -152,6 +154,7 @@ struct EditorData {
     show_alive: bool,
     show_hurt: bool,
     show_cut: bool,
+    shown_expression: DialogueExpression,
     setting: SettingType,
     example_model: ModelId,
 }
@@ -223,6 +226,18 @@ fn model_editor_ui(
     {
         ui.checkbox(&mut editor_data.show_cut, "Show Cut");
     }
+
+    egui::ComboBox::from_label("Expression")
+        .selected_text(format!("{:?}", editor_data.shown_expression))
+        .show_ui(ui, |ui| {
+            for &selectable_type in DialogueExpression::variants() {
+                ui.selectable_value(
+                    &mut editor_data.shown_expression,
+                    selectable_type,
+                    format!("{selectable_type:?}"),
+                );
+            }
+        });
 
     egui::ComboBox::from_label("Setting")
         .selected_text(format!("{:?}", editor_data.setting))
@@ -510,6 +525,7 @@ fn draw_examples(
                 pos,
                 DEFAULT_AFTIK_COLOR,
                 &data.properties,
+                editor_data.shown_expression,
                 time,
                 context,
             );
@@ -525,6 +541,7 @@ fn draw_examples(
                         direction: data.properties.direction,
                         ..Default::default()
                     },
+                    DialogueExpression::default(),
                     time,
                     context,
                 ))

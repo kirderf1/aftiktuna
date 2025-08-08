@@ -27,6 +27,7 @@ fn draw_shopkeeper_portrait(assets: &mut RenderAssets, aftik_color: Option<Aftik
             aftik_color,
             ..RenderProperties::default()
         },
+        view::DialogueExpression::Neutral,
         false,
         Vec2::new(super::WINDOW_WIDTH_F - 200., super::WINDOW_HEIGHT_F),
         assets,

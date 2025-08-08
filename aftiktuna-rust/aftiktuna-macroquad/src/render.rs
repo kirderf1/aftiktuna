@@ -7,7 +7,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
-use aftiktuna::view::{DialogueFrameData, Frame};
+use aftiktuna::view::{DialogueExpression, DialogueFrameData, Frame};
 use aftiktuna::StopType;
 use macroquad::color::{BLACK, LIGHTGRAY};
 use macroquad::math::Vec2;
@@ -158,7 +158,14 @@ fn draw_frame(
 
 fn draw_objects(objects: &Vec<(Vec2, ObjectRenderData)>, assets: &mut RenderAssets) {
     for (pos, data) in objects {
-        texture::draw_object(&data.model_id, &data.properties, false, *pos, assets);
+        texture::draw_object(
+            &data.model_id,
+            &data.properties,
+            DialogueExpression::default(),
+            false,
+            *pos,
+            assets,
+        );
         if data.properties.is_alive {
             if let Some(item_texture) = &data.wielded_item {
                 texture::draw_object(
@@ -167,6 +174,7 @@ fn draw_objects(objects: &Vec<(Vec2, ObjectRenderData)>, assets: &mut RenderAsse
                         direction: data.properties.direction,
                         ..RenderProperties::default()
                     },
+                    DialogueExpression::default(),
                     true,
                     *pos,
                     assets,
@@ -192,6 +200,7 @@ fn draw_dialogue_frame(data: &DialogueFrameData, assets: &mut RenderAssets) {
             is_badly_hurt: data.is_badly_hurt,
             ..RenderProperties::default()
         },
+        data.expression,
         false,
         pos,
         assets,
