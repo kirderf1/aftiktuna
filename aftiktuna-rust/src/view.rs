@@ -184,10 +184,10 @@ impl Buffer {
         world: &World,
         target: Entity,
         expression: DialogueExpression,
-        message: impl Into<String>,
+        message: impl AsRef<str>,
     ) {
         self.push_frame(Frame::Dialogue {
-            messages: vec![message.into()],
+            messages: vec![format!("\"{}\"", message.as_ref())],
             data: DialogueFrameData::build(target, expression, world),
         })
     }

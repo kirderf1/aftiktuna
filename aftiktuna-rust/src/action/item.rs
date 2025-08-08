@@ -207,7 +207,7 @@ pub(super) fn give_item(
         world,
         performer,
         DialogueExpression::Neutral,
-        "\"Here, hold on to this.\"",
+        "Here, hold on to this.",
     );
 
     world

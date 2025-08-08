@@ -155,7 +155,7 @@ pub(super) fn force_door(
             world,
             performer,
             DialogueExpression::Neutral,
-            "\"I'll help you get that door open.\"",
+            "I'll help you get that door open.",
         );
     }
 

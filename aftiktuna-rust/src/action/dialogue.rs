@@ -52,7 +52,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
                 &state.world,
                 performer,
                 DialogueExpression::Neutral,
-                "\"Hi! Do you want to join me in the search for Fortuna?\"",
+                "Hi! Do you want to join me in the search for Fortuna?",
             );
             if state
                 .world
@@ -69,14 +69,14 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
                     &state.world,
                     target,
                     DialogueExpression::Excited,
-                    format!("\"Sure, I'll join you! My name is {name_string}.\""),
+                    format!("Sure, I'll join you! My name is {name_string}."),
                 );
             } else {
                 view_context.view_buffer.push_dialogue(
                     &state.world,
                     target,
                     DialogueExpression::Excited,
-                    "\"Sure, I'll join you!\"",
+                    "Sure, I'll join you!",
                 );
             }
 
@@ -113,13 +113,13 @@ pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) 
                 &state.world,
                 performer,
                 DialogueExpression::Neutral,
-                "\"Please wait here for now.\"",
+                "Please wait here for now.",
             );
             view_context.view_buffer.push_dialogue(
                 &state.world,
                 target,
                 DialogueExpression::Neutral,
-                "\"Sure thing. Just tell me when I should follow along again.\"",
+                "Sure thing. Just tell me when I should follow along again.",
             );
 
             state
@@ -156,28 +156,28 @@ pub(super) fn tell_to_wait_at_ship(
                     &state.world,
                     performer,
                     DialogueExpression::Neutral,
-                    "\"Please wait at the ship.\"",
+                    "Please wait at the ship.",
                 );
 
                 view_context.view_buffer.push_dialogue(
                     &state.world,
                     target,
                     DialogueExpression::Neutral,
-                    "\"Sure thing. I will stay here for now.\"",
+                    "Sure thing. I will stay here for now.",
                 );
             } else {
                 view_context.view_buffer.push_dialogue(
                     &state.world,
                     performer,
                     DialogueExpression::Neutral,
-                    "\"Please go back and wait at the ship.\"",
+                    "Please go back and wait at the ship.",
                 );
 
                 view_context.view_buffer.push_dialogue(
                     &state.world,
                     target,
                     DialogueExpression::Neutral,
-                    "\"Sure thing. I will go and wait at the ship for now.\"",
+                    "Sure thing. I will go and wait at the ship for now.",
                 );
             }
 
@@ -215,13 +215,13 @@ pub(super) fn tell_to_follow(
                 &state.world,
                 performer,
                 DialogueExpression::Neutral,
-                "\"Time to go, please follow me.\"",
+                "Time to go, please follow me.",
             );
             view_context.view_buffer.push_dialogue(
                 &state.world,
                 target,
                 DialogueExpression::Neutral,
-                "\"Alright, let's go!\"",
+                "Alright, let's go!",
             );
 
             state.world.remove_one::<Waiting>(target).unwrap();
