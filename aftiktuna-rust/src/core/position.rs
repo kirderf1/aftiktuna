@@ -283,19 +283,19 @@ impl Blockage {
         }
     }
 
-    pub fn try_push(self, direction: Direction, world: &mut World) -> Result<(), ()> {
+    pub fn try_push(self, direction: Direction, world: &mut World) -> Result<(), PushError> {
         let Blockage::TakesSpace(entities) = self else {
-            return Err(());
+            return Err(PushError);
         };
         let entity = entities
             .into_iter()
             .find(|&entity| world.satisfies::<&CrewMember>(entity).unwrap_or(false))
-            .ok_or(())?;
+            .ok_or(PushError)?;
         let pos = world
             .get::<&Pos>(entity)
             .as_deref()
             .copied()
-            .map_err(|_| ())?;
+            .map_err(|_| PushError)?;
         for direction in [direction, direction.opposite()] {
             let Some(offset_pos) = pos.try_offset_direction(direction, world) else {
                 continue;
@@ -305,9 +305,11 @@ impl Blockage {
                 return Ok(());
             }
         }
-        Err(())
+        Err(PushError)
     }
 }
+
+pub struct PushError;
 
 pub fn check_is_blocked(
     world: &World,

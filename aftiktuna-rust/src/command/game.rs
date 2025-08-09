@@ -436,7 +436,11 @@ fn check_accessible(
         character_pos,
         target_pos,
     ) {
-        if !can_push || !matches!(blockage, Blockage::TakesSpace(_)) {
+        let is_inaccessible = match blockage {
+            Blockage::Hostile(_) => true,
+            Blockage::TakesSpace(_) => !can_push,
+        };
+        if is_inaccessible {
             return Err(Inaccessible::Blocked(blockage));
         }
     }

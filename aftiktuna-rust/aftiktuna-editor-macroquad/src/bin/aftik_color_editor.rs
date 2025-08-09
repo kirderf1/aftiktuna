@@ -158,7 +158,7 @@ fn side_panel(
                 );
             }
 
-            egui::ComboBox::from_id_source("color_id").show_index(
+            egui::ComboBox::from_id_salt("color_id").show_index(
                 ui,
                 selected_index,
                 aftik_colors.len(),

@@ -158,11 +158,7 @@ impl IntoMessage for &Message {
 
 impl IntoMessage for String {
     fn into_message(self) -> Message {
-        if self
-            .chars()
-            .next()
-            .map_or(false, |c| c.is_ascii_lowercase())
-        {
+        if self.chars().next().is_some_and(|c| c.is_ascii_lowercase()) {
             Message::String(capitalize(self))
         } else {
             Message::String(self)

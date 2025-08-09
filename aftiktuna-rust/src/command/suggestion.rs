@@ -242,10 +242,10 @@ pub fn for_store(
             "sell all {}"
         ),
     ];
-    if let Some(clicked_stock) = clicked_stock {
-        if !clicked_stock.quantity.is_zero() {
-            suggestions.push(simple!("buy {}", clicked_stock.item.noun_data().singular()));
-        }
+    if let Some(clicked_stock) = clicked_stock
+        && !clicked_stock.quantity.is_zero()
+    {
+        suggestions.push(simple!("buy {}", clicked_stock.item.noun_data().singular()));
     }
     suggestions
 }

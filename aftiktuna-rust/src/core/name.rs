@@ -33,14 +33,15 @@ impl NameData {
     }
 
     pub fn find_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
-        if let Some(name) = entity_ref.get::<&Name>() {
-            if name.is_known {
-                return Some(Self::Name(name.name.clone()));
-            }
+        if let Some(name) = entity_ref.get::<&Name>()
+            && name.is_known
+        {
+            Some(Self::Name(name.name.clone()))
+        } else {
+            entity_ref
+                .get::<&Noun>()
+                .map(|noun| Self::Noun(noun.deref().clone()))
         }
-        entity_ref
-            .get::<&Noun>()
-            .map(|noun| NameData::Noun(noun.deref().clone()))
     }
 
     pub fn find_by_ref(entity_ref: EntityRef) -> Self {
@@ -117,13 +118,14 @@ impl Default for NameData {
 impl<'a> From<NameQuery<'a>> for NameData {
     fn from(query: NameQuery<'a>) -> Self {
         let (name, noun) = query;
-        if let Some(name) = name {
-            if name.is_known {
-                return Self::Name(name.name.clone());
-            }
+        if let Some(name) = name
+            && name.is_known
+        {
+            Self::Name(name.name.clone())
+        } else {
+            noun.map(|noun| Self::Noun(noun.clone()))
+                .unwrap_or_default()
         }
-        noun.map(|noun| NameData::Noun(noun.clone()))
-            .unwrap_or_default()
     }
 }
 

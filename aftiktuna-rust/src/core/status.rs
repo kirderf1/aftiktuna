@@ -126,13 +126,13 @@ impl Trait {
     pub fn has_trait(self, entity: Entity, world: &World) -> bool {
         world
             .entity(entity)
-            .map_or(false, |entity_ref| self.ref_has_trait(entity_ref))
+            .is_ok_and(|entity_ref| self.ref_has_trait(entity_ref))
     }
 
     pub fn ref_has_trait(self, entity: EntityRef) -> bool {
         entity
             .get::<&Traits>()
-            .map_or(false, |traits| traits.0.contains(&self))
+            .is_some_and(|traits| traits.0.contains(&self))
     }
 }
 

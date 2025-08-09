@@ -148,10 +148,10 @@ impl ObjectNameData {
 }
 
 fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String {
-    if let Some(door) = entity_ref.get::<&Door>() {
-        if let Ok(blocking) = world.get::<&BlockType>(door.door_pair) {
-            return format!("{name} ({})", blocking.description());
-        }
+    if let Some(door) = entity_ref.get::<&Door>()
+        && let Ok(blocking) = world.get::<&BlockType>(door.door_pair)
+    {
+        return format!("{name} ({})", blocking.description());
     }
 
     if !status::is_alive_ref(entity_ref) {
@@ -200,7 +200,7 @@ impl ItemProfile {
         Self {
             name: NameData::find_by_ref(item).base().to_string(),
             is_wieldable: item.satisfies::<&CanWield>(),
-            is_wielded: item.get::<&Held>().map_or(false, |held| held.is_in_hand()),
+            is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
             is_usable: item.satisfies::<Or<&Usable, &Medkit>>(),
         }
     }
@@ -251,10 +251,10 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
         is_cut: entity_ref.satisfies::<&IsCut>(),
         is_alive: entity_ref
             .get::<&Health>()
-            .map_or(true, |health| health.is_alive()),
+            .is_none_or(|health| health.is_alive()),
         is_badly_hurt: entity_ref
             .get::<&Health>()
-            .map_or(false, |health| health.is_badly_hurt()),
+            .is_some_and(|health| health.is_badly_hurt()),
     };
     ObjectRenderData {
         coord: pos.get_coord(),

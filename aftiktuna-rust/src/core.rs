@@ -157,7 +157,7 @@ pub mod store {
     #[derive(Serialize, Deserialize)]
     pub struct IsTrading(pub Entity);
 
-    pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<Shopkeeper>> {
+    pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<'_, Shopkeeper>> {
         let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
         world.get::<&Shopkeeper>(shopkeeper).ok()
     }

@@ -90,7 +90,7 @@ impl From<Phase> for PhaseResult {
 }
 
 impl Game {
-    pub fn next_result(&mut self) -> GameResult {
+    pub fn next_result(&mut self) -> GameResult<'_> {
         if self.frame_cache.has_more_frames() {
             GameResult::Frame(FrameGetter(&mut self.frame_cache))
         } else if self.is_in_error_state {

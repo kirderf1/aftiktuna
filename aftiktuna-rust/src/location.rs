@@ -400,7 +400,8 @@ fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
     let direction = Direction::towards_center(start_pos, world);
     for character in crew_members {
         if let Err(blockage) = position::check_is_pos_blocked(start_pos, world) {
-            if blockage.try_push(direction, world).is_err() {
+            let push_result = blockage.try_push(direction, world);
+            if push_result.is_err() {
                 break;
             }
         }

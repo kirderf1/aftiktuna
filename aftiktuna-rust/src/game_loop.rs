@@ -391,7 +391,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
             if state
                 .world
                 .get::<&core::Hostile>(entity)
-                .map_or(false, |hostile| !hostile.aggressive)
+                .is_ok_and(|hostile| !hostile.aggressive)
             {
                 state
                     .world
@@ -405,7 +405,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
             if state
                 .world
                 .get::<&core::Hostile>(entity)
-                .map_or(false, |hostile| hostile.aggressive)
+                .is_ok_and(|hostile| hostile.aggressive)
             {
                 state
                     .world

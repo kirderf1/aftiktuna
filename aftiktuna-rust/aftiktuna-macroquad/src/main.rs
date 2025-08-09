@@ -75,7 +75,7 @@ enum MenuAction {
 }
 
 async fn run_menu() -> MenuAction {
-    fn button(y: f32, text: &str) -> Button {
+    fn button(y: f32, text: &str) -> Button<'_> {
         let size = Vec2::new(200., 60.);
         Button::new(text)
             .size(size)

@@ -259,7 +259,7 @@ impl App<'_> {
         } else {
             self.show_next_frame |= self
                 .last_frame_time
-                .map_or(true, |instant| instant.elapsed() >= DELAY);
+                .is_none_or(|instant| instant.elapsed() >= DELAY);
         }
 
         if self.show_next_frame {

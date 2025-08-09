@@ -56,7 +56,7 @@ pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
     world
         .get::<&Held>(item)
         .ok()
-        .map_or(false, |held| held.is_in_inventory(holder))
+        .is_some_and(|held| held.is_in_inventory(holder))
 }
 
 pub fn get_held(world: &World, holder: Entity) -> Vec<Entity> {

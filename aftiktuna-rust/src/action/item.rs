@@ -291,7 +291,7 @@ impl UseAction {
             .filter(|item_ref| {
                 item_ref
                     .get::<&Held>()
-                    .map_or(false, |held| held.held_by(performer))
+                    .is_some_and(|held| held.held_by(performer))
             })
             .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
         let item_name = NameData::find_by_ref(item_ref).definite();

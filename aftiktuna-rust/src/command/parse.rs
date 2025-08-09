@@ -7,8 +7,8 @@ pub struct Parse<'a> {
 }
 
 impl<'a> Parse<'a> {
-    pub fn new(input: &str) -> Parse {
-        Parse { input, start: 0 }
+    pub fn new(input: &'a str) -> Self {
+        Self { input, start: 0 }
     }
 
     pub fn empty<R, F: FnOnce() -> R>(&self, closure: F) -> Option<R> {
@@ -96,7 +96,7 @@ impl<'a> Parse<'a> {
         }
     }
 
-    fn next_word(&self) -> (&str, Parse) {
+    fn next_word(&self) -> (&'a str, Self) {
         let input = self.active_input();
         for (i, char) in input.char_indices() {
             if char == ' ' {

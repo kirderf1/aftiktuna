@@ -51,7 +51,7 @@ pub fn prepare_intentions(world: &mut World) {
 fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
     if world
         .get::<&status::Health>(crew_member)
-        .map_or(false, |health| health.is_badly_hurt())
+        .is_ok_and(|health| health.is_badly_hurt())
     {
         for item in inventory::get_inventory(world, crew_member) {
             if world.satisfies::<&Medkit>(item).unwrap_or(false) {
@@ -63,10 +63,10 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
     let weapon_damage = core::get_wielded_weapon_modifier(world, crew_member);
 
     for item in inventory::get_inventory(world, crew_member) {
-        if let Ok(weapon) = world.get::<&Weapon>(item) {
-            if weapon.0 > weapon_damage {
-                return Some(Intention::Wield(item));
-            }
+        if let Ok(weapon) = world.get::<&Weapon>(item)
+            && weapon.0 > weapon_damage
+        {
+            return Some(Intention::Wield(item));
         }
     }
 
