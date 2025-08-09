@@ -1,11 +1,11 @@
 use crate::action::{self, Context, Error};
+use crate::core::display::DialogueExpression;
 use crate::core::inventory::Held;
 use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameQuery};
-use crate::core::position::Pos;
-use crate::core::status::{Health, StatChanges};
-use crate::core::{self, RepeatingAction, inventory, position, status};
-use crate::view::DialogueExpression;
+use crate::core::position::{self, Pos};
+use crate::core::status::{self, Health, StatChanges};
+use crate::core::{self, RepeatingAction, inventory};
 use crate::view::text::{self, CombinableMsgType};
 use hecs::Entity;
 

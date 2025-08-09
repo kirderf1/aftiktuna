@@ -1,10 +1,9 @@
 use super::Error;
 use aftiktuna::asset::color::AftikColorData;
 use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
-use aftiktuna::core::display::ModelId;
+use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
-use aftiktuna::view::DialogueExpression;
 use macroquad::color::Color;
 use macroquad::math::{Rect, Vec2};
 use macroquad::texture::{self, DrawTextureParams, Texture2D};

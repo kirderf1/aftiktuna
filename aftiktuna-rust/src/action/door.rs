@@ -1,5 +1,6 @@
 use crate::action::{self, Context, Error};
 use crate::ai::{self, Intention};
+use crate::core::display::DialogueExpression;
 use crate::core::item::Tool;
 use crate::core::name::NameData;
 use crate::core::position::{self, Direction, Pos};
@@ -8,7 +9,6 @@ use crate::core::{
     self, BlockType, Character, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
 };
 use crate::game_loop::GameState;
-use crate::view::DialogueExpression;
 use crate::view::text::CombinableMsgType;
 use hecs::{Entity, World};
 use std::ops::Deref;

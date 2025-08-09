@@ -1,8 +1,9 @@
+use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
 use crate::core::status::Health;
 use crate::core::{CrewLossMemory, GivesHuntReward, Recruitable, Tag, Waiting};
 use crate::game_loop::GameState;
-use crate::view::{self, DialogueExpression};
+use crate::view;
 use hecs::{Entity, World};
 
 pub fn talk_dialogue(
@@ -41,18 +42,19 @@ pub fn talk_dialogue(
             view_buffer.push_dialogue(
                 world,
                 target,
-                DialogueExpression::Neutral,
+                gives_hunt_reward.task_expression,
                 &gives_hunt_reward.task_message,
             );
         } else {
             drop(gives_hunt_reward);
             let GivesHuntReward {
                 reward_message,
+                reward_expression,
                 reward,
                 ..
             } = world.remove_one::<GivesHuntReward>(target).unwrap();
 
-            view_buffer.push_dialogue(world, target, DialogueExpression::Excited, reward_message);
+            view_buffer.push_dialogue(world, target, reward_expression, reward_message);
 
             reward.give_reward_to(performer, world);
         }

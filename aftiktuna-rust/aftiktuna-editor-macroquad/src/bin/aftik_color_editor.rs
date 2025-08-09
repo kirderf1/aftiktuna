@@ -1,8 +1,7 @@
 use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
 use aftiktuna::asset::model::Model;
-use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::display::{AftikColorId, DialogueExpression, ModelId};
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna::view::DialogueExpression;
 use aftiktuna_macroquad::egui::EguiWrapper;
 use aftiktuna_macroquad::texture::model;
 use indexmap::IndexMap;

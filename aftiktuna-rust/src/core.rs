@@ -1,8 +1,3 @@
-use hecs::{Entity, World};
-use serde::{Deserialize, Serialize};
-
-use crate::action::Action;
-
 pub mod area;
 pub mod inventory;
 pub mod item;
@@ -102,6 +97,22 @@ pub mod display {
             AftikColorId(name.to_owned())
         }
     }
+
+    #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum DialogueExpression {
+        #[default]
+        Neutral,
+        Excited,
+        Sad,
+    }
+
+    impl DialogueExpression {
+        pub fn variants() -> &'static [Self] {
+            use DialogueExpression::*;
+            &[Neutral, Excited, Sad]
+        }
+    }
 }
 
 pub mod store {
@@ -162,6 +173,11 @@ pub mod store {
         world.get::<&Shopkeeper>(shopkeeper).ok()
     }
 }
+
+use self::display::DialogueExpression;
+use crate::action::Action;
+use hecs::{Entity, World};
+use serde::{Deserialize, Serialize};
 
 pub const CREW_SIZE_LIMIT: usize = 3;
 
@@ -268,9 +284,21 @@ pub struct Recruitable;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
     pub target_tag: Tag,
+    #[serde(default = "neutral")] // backwards-compatibility with 4.0
+    pub task_expression: DialogueExpression,
     pub task_message: String,
+    #[serde(default = "excited")] // backwards-compatibility with 4.0
+    pub reward_expression: DialogueExpression,
     pub reward_message: String,
     pub reward: Reward,
+}
+
+fn neutral() -> DialogueExpression {
+    DialogueExpression::Neutral
+}
+
+fn excited() -> DialogueExpression {
+    DialogueExpression::Excited
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,7 +1,6 @@
 use super::TextureLoader;
 use super::color::ColorSource;
-use crate::core::display::ModelId;
-use crate::view::DialogueExpression;
+use crate::core::display::{DialogueExpression, ModelId};
 use crate::view::area::RenderProperties;
 use crate::{Range, Vec2};
 use indexmap::IndexMap;

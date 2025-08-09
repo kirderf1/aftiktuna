@@ -1,5 +1,5 @@
 use super::texture::{self, background, RenderAssets};
-use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::display::{AftikColorId, DialogueExpression, ModelId};
 use aftiktuna::core::position::Direction;
 use aftiktuna::core::store::StoreStock;
 use aftiktuna::view;
@@ -27,7 +27,7 @@ fn draw_shopkeeper_portrait(assets: &mut RenderAssets, aftik_color: Option<Aftik
             aftik_color,
             ..RenderProperties::default()
         },
-        view::DialogueExpression::Neutral,
+        DialogueExpression::Neutral,
         false,
         Vec2::new(super::WINDOW_WIDTH_F - 200., super::WINDOW_HEIGHT_F),
         assets,

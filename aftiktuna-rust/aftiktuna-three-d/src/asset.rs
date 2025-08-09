@@ -3,9 +3,8 @@ use aftiktuna::asset::background::{self, BGData, ParallaxLayer};
 use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::ModelId;
+use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
-use aftiktuna::view::DialogueExpression;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 

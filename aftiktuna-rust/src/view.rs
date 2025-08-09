@@ -4,7 +4,7 @@ pub(crate) use self::status::get_full_status;
 use self::text::Messages;
 use crate::StopType;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::AftikColorId;
+use crate::core::display::{AftikColorId, DialogueExpression};
 use crate::core::name::NameData;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
@@ -326,22 +326,6 @@ impl DialogueFrameData {
             darkness: area.darkness,
             expression,
         }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum DialogueExpression {
-    #[default]
-    Neutral,
-    Excited,
-    Sad,
-}
-
-impl DialogueExpression {
-    pub fn variants() -> &'static [Self] {
-        use DialogueExpression::*;
-        &[Neutral, Excited, Sad]
     }
 }
 

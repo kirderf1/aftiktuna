@@ -1,9 +1,8 @@
 use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
-use aftiktuna::core::display::AftikColorId;
+use aftiktuna::core::display::{AftikColorId, DialogueExpression};
 use aftiktuna::view::area::RenderProperties;
-use aftiktuna::view::DialogueExpression;
 use std::collections::HashMap;
 
 pub fn render_objects_for_primary_background(
