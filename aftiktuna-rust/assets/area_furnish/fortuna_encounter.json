@@ -1,0 +1,18 @@
+[
+  {
+    "objects": [ "G", "G", "Z" ],
+    "symbols": {}
+  },
+  {
+    "objects": [ "E", "E", "E" ],
+    "symbols": {}
+  },
+  {
+    "objects": [ "M", "", "M" ],
+    "symbols": {}
+  },
+  {
+    "objects": [ "M", "", "Z" ],
+    "symbols": {}
+  }
+]

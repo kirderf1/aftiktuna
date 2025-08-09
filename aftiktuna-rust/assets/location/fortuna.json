@@ -22,10 +22,11 @@
           "offset": { "x": 800, "y": 284 }
         }
       ],
-      "objects": [ "\\", "-", "-", "-8G", "-G", "-Z", "-¤", "." ],
+      "objects": [ "\\", "-", "-", "-8!", "-", "-", "-¤", "." ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
-        ".": { "type": "inanimate", "model": "path/right_corner" }
+        ".": { "type": "inanimate", "model": "path/right_corner" },
+        "!": { "type": "furnish", "template": "fortuna_encounter" }
       }
     }
   ],
