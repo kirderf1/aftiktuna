@@ -1,0 +1,14 @@
+[
+  {
+    "objects": [ ":" ],
+    "symbols": {
+      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+    }
+  },
+  {
+    "objects": [ ":" ],
+    "symbols": {
+      ":": { "type": "inanimate", "model": "environment/planet_poster" }
+    }
+  }
+]

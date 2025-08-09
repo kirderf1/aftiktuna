@@ -39,7 +39,7 @@
       "symbols": {
         "^": { "type": "door", "pair_id": "quarters", "display_type": "door" },
         "B": { "type": "inanimate", "model": "environment/bed" },
-        ":": { "type": "inanimate", "model": "environment/aftik_poster" },
+        ":": { "type": "furnish", "template": "poster" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
     }

@@ -39,7 +39,7 @@
           "direction": "left"
         },
         "p": { "type": "inanimate", "model": "environment/dead_potted_plant" },
-        ":": { "type": "inanimate", "model": "environment/planet_poster" }
+        ":": { "type": "furnish", "template": "poster" }
       }
     },
     {

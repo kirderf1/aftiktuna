@@ -4,7 +4,7 @@
     "symbols": {
       "T": { "type": "inanimate", "model": "environment/table" },
       "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
-      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+      ":": { "type": "furnish", "template": "poster" }
     }
   },
   {
@@ -13,7 +13,7 @@
       "T": { "type": "inanimate", "model": "environment/table" },
       "C": { "type": "inanimate", "model": "environment/chair", "direction": "right" },
       "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
-      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+      ":": { "type": "furnish", "template": "poster" }
     }
   },
   {
@@ -41,7 +41,7 @@
         ],
         "direction": "right"
       },
-      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+      ":": { "type": "furnish", "template": "poster" }
     }
   }
 ]
