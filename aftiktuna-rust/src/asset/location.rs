@@ -270,6 +270,9 @@ pub enum SymbolData {
     Shopkeeper(creature::ShopkeeperSpawnData),
     Character(creature::NpcSpawnData),
     AftikCorpse(creature::AftikCorpseData),
+    Furnish {
+        template: String,
+    },
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -456,4 +459,16 @@ pub struct ContainerData {
     pub content: Vec<ItemOrLoot>,
     #[serde(default)]
     pub direction: Direction,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct FurnishTemplate {
+    pub objects: Vec<String>,
+    pub symbols: SymbolMap,
+}
+
+impl FurnishTemplate {
+    pub fn load_list(template: &str) -> Result<Vec<Self>, String> {
+        super::load_json_simple(format!("area_furnish/{template}.json"))
+    }
 }

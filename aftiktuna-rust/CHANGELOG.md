@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New indoor decorations
 - Ship dialogue
 - Dialogue expressions
+- Random room furnishing from new data files in `assets/area_furnish/`
 - Json location definition `crew_ship.json` for the ship and new symbol types "ship_controls" and "food_deposit"
 - Noise message when something happens in a nearby area
 

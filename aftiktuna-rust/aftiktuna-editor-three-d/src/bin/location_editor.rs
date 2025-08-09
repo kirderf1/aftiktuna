@@ -611,6 +611,7 @@ mod ui {
                     "aftik_corpse_direction",
                 );
             }
+            SymbolData::Furnish { template } => {}
         }
 
         ui.separator();

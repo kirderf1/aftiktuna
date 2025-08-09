@@ -71,12 +71,10 @@
       "pos_in_overview": [ 0, 8 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "", ":T", "c", "^" ],
+      "objects": [ ">", "", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
-        "T": { "type": "inanimate", "model": "environment/table" },
-        "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
-        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+        ">": { "type": "furnish", "template": "utility_room_x3" }
       }
     },
     {
@@ -84,18 +82,10 @@
       "pos_in_overview": [ 6, 8 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "", "I", "", "^" ],
+      "objects": [ ">", "", "", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
-        "I": {
-          "type": "container",
-          "container_type": "cabinet",
-          "content": [
-            { "type": "item", "item": "blowtorch" }
-          ],
-          "direction": "left"
-        },
-        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+        ">": { "type": "furnish", "template": "utility_room_x3" }
       }
     },
     {
@@ -110,7 +100,7 @@
           "type": "container",
           "container_type": "drawer",
           "content": [
-            { "type": "loot", "table": "tool" }
+            { "type": "item", "item": "blowtorch" }
           ],
           "direction": "right"
         },

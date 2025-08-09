@@ -110,18 +110,10 @@
       "pos_in_overview": [ 6, 5 ],
       "background": "facility_size4",
       "darkness": 0.35,
-      "objects": [ "^", "", ":", "I" ],
+      "objects": [ "^", ">", "", "" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
-        "I": {
-          "type": "container",
-          "container_type": "cabinet",
-          "content": [
-            { "type": "loot", "table": "tool" }
-          ],
-          "direction": "right"
-        },
-        ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+        ">": { "type": "furnish", "template": "utility_room_x3" }
       }
     },
     {

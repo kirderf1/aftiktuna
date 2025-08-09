@@ -192,7 +192,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
                 creature_spawn_data.creature.noun().singular()
             )
         }
-        SymbolData::Shopkeeper(_) => "Shopkeeper".to_owned(),
+        SymbolData::Shopkeeper(_) => "Shopkeeper".to_string(),
         SymbolData::Character(npc_spawn_data) => {
             let interaction = match &npc_spawn_data.interaction {
                 CharacterInteraction::Recruitable => "recruitable",
@@ -200,7 +200,8 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
             };
             format!("NCP ({interaction})")
         }
-        SymbolData::AftikCorpse(_) => "Aftik Corpse".to_owned(),
+        SymbolData::AftikCorpse(_) => "Aftik Corpse".to_string(),
+        SymbolData::Furnish { .. } => "Furnish".to_string(),
     }
 }
 
@@ -389,6 +390,16 @@ pub fn object_from_symbol(
                 is_badly_hurt: true,
                 ..Default::default()
             },
+        },
+        SymbolData::Furnish { .. } => ObjectRenderData {
+            coord,
+            weight: OrderWeight::Background,
+            model_id: ModelId::unknown(),
+            hash: 0,
+            name_data: None,
+            wielded_item: None,
+            interactions: Vec::default(),
+            properties: RenderProperties::default(),
         },
     }
 }

@@ -3,8 +3,8 @@ pub(super) mod door;
 
 use super::LocationGenContext;
 use crate::asset::location::{
-    AreaData, ContainerData, DoorPairMap, ItemOrLoot, LocationData, SymbolData, SymbolLookup,
-    SymbolMap,
+    AreaData, ContainerData, DoorPairMap, FurnishTemplate, ItemOrLoot, LocationData, SymbolData,
+    SymbolLookup, SymbolMap,
 };
 use crate::asset::{self, loot};
 use crate::core::FortunaChest;
@@ -51,7 +51,7 @@ pub fn build_location(
 fn build_area(
     area_data: AreaData,
     builder: &mut Builder,
-    parent_symbols: &SymbolMap,
+    base_symbols: &SymbolMap,
 ) -> Result<Entity, String> {
     let area = builder.gen_context.world.spawn((Area {
         size: area_data.objects.len().try_into().unwrap(),
@@ -62,13 +62,15 @@ fn build_area(
         darkness: area_data.darkness,
     },));
 
-    let symbols = SymbolLookup::new(parent_symbols, &area_data.symbols);
+    let symbols = SymbolLookup::new(base_symbols, &area_data.symbols);
 
     for (coord, objects) in area_data.objects.iter().enumerate() {
         let pos = Pos::new(area, coord as Coord, &builder.gen_context.world);
         for symbol in objects.chars() {
             match symbols.lookup(symbol) {
-                Some(symbol_data) => place_symbol(symbol_data, pos, Symbol(symbol), builder)?,
+                Some(symbol_data) => {
+                    place_symbol(symbol_data, pos, Symbol(symbol), builder, base_symbols)?
+                }
                 None => Err(format!("Unknown symbol \"{symbol}\""))?,
             }
         }
@@ -81,6 +83,7 @@ fn place_symbol(
     pos: Pos,
     symbol: Symbol,
     builder: &mut Builder,
+    base_symbols: &SymbolMap,
 ) -> Result<(), String> {
     match symbol_data {
         SymbolData::LocationEntry => builder.add_entry_pos(pos),
@@ -137,6 +140,14 @@ fn place_symbol(
         SymbolData::Character(npc_data) => creature::place_npc(npc_data, pos, builder.gen_context),
         SymbolData::AftikCorpse(aftik_corpse_data) => {
             creature::place_corpse(aftik_corpse_data, pos, builder.gen_context)
+        }
+        SymbolData::Furnish { template } => {
+            let template_list = FurnishTemplate::load_list(template)?;
+            let template = template_list
+                .choose(&mut builder.gen_context.rng)
+                .ok_or_else(|| format!("Furnish template \"{template}\" is without entries."))?;
+            furnish(template, pos, builder, base_symbols)
+                .map_err(|error| format!("Error from furnish template: {error}"))?;
         }
     }
     Ok(())
@@ -221,5 +232,29 @@ fn generate_item_or_loot(
         &mut builder.gen_context.world,
         Held::in_inventory(container),
     );
+    Ok(())
+}
+
+fn furnish(
+    furnish_template: &FurnishTemplate,
+    pos: Pos,
+    builder: &mut Builder,
+    base_symbols: &SymbolMap,
+) -> Result<(), String> {
+    let symbols = SymbolLookup::new(base_symbols, &furnish_template.symbols);
+
+    for (coord, objects) in furnish_template.objects.iter().enumerate() {
+        let pos = pos
+            .try_offset(coord as i32, &builder.gen_context.world)
+            .ok_or_else(|| "Too large template".to_string())?;
+        for symbol in objects.chars() {
+            match symbols.lookup(symbol) {
+                Some(symbol_data) => {
+                    place_symbol(symbol_data, pos, Symbol(symbol), builder, base_symbols)?
+                }
+                None => Err(format!("Unknown symbol \"{symbol}\""))?,
+            }
+        }
+    }
     Ok(())
 }

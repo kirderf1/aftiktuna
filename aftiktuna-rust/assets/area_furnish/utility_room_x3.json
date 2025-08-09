@@ -1,0 +1,47 @@
+[
+  {
+    "objects": [ "", ":T", "c" ],
+    "symbols": {
+      "T": { "type": "inanimate", "model": "environment/table" },
+      "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
+      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+    }
+  },
+  {
+    "objects": [ "C", ":T", "c" ],
+    "symbols": {
+      "T": { "type": "inanimate", "model": "environment/table" },
+      "C": { "type": "inanimate", "model": "environment/chair", "direction": "right" },
+      "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
+      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+    }
+  },
+  {
+    "objects": [ "", "I", "p" ],
+    "symbols": {
+      "I": {
+        "type": "container",
+        "container_type": "cabinet",
+        "content": [
+          { "type": "loot", "table": "tool" }
+        ],
+        "direction": "left"
+      },
+      ":": { "type": "inanimate", "model": "environment/dead_potted_plant" }
+    }
+  },
+  {
+    "objects": [ ":", "I", "" ],
+    "symbols": {
+      "I": {
+        "type": "container",
+        "container_type": "cabinet",
+        "content": [
+          { "type": "loot", "table": "tool" }
+        ],
+        "direction": "right"
+      },
+      ":": { "type": "inanimate", "model": "environment/aftik_poster" }
+    }
+  }
+]
