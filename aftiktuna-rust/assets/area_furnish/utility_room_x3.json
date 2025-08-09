@@ -27,7 +27,7 @@
         ],
         "direction": "left"
       },
-      ":": { "type": "inanimate", "model": "environment/dead_potted_plant" }
+      "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
     }
   },
   {

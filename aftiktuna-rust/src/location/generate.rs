@@ -143,11 +143,11 @@ fn place_symbol(
         }
         SymbolData::Furnish { template } => {
             let template_list = FurnishTemplate::load_list(template)?;
-            let template = template_list
+            let template_data = template_list
                 .choose(&mut builder.gen_context.rng)
                 .ok_or_else(|| format!("Furnish template \"{template}\" is without entries."))?;
-            furnish(template, pos, builder, base_symbols)
-                .map_err(|error| format!("Error from furnish template: {error}"))?;
+            furnish(template_data, pos, builder, base_symbols)
+                .map_err(|error| format!("Error from furnish template \"{template}\": {error}"))?;
         }
     }
     Ok(())
