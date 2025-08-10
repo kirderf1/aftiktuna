@@ -1,5 +1,5 @@
 [workspace]
-members = ["aftiktuna-editor-macroquad", "aftiktuna-editor-three-d", "aftiktuna-macroquad", "aftiktuna-three-d"]
+members = ["aftiktuna-editor-three-d", "aftiktuna-macroquad", "aftiktuna-three-d"]
 
 [workspace.package]
 version = "0.11.0"
