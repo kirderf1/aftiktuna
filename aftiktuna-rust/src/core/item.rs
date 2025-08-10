@@ -1,4 +1,5 @@
 use super::display::{ModelId, OrderWeight, Symbol};
+use crate::core::AttackSet;
 use crate::core::name::{IndefiniteArticle, Noun};
 use crate::view::text::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
@@ -210,19 +211,19 @@ pub fn spawn(
             builder.add(FoodRation);
         }
         Type::Crowbar => {
-            builder.add_bundle((Tool::Crowbar, CanWield, Weapon(3.0)));
+            builder.add_bundle((Tool::Crowbar, CanWield, Weapon(3.0), AttackSet::Light));
         }
         Type::Blowtorch => {
             builder.add(Tool::Blowtorch);
         }
         Type::Knife => {
-            builder.add_bundle((CanWield, Weapon(3.0)));
+            builder.add_bundle((CanWield, Weapon(3.0), AttackSet::Quick));
         }
         Type::Bat => {
-            builder.add_bundle((CanWield, StunAttack, Weapon(3.0)));
+            builder.add_bundle((CanWield, StunAttack, Weapon(3.0), AttackSet::Intense));
         }
         Type::Sword => {
-            builder.add_bundle((CanWield, Weapon(5.0)));
+            builder.add_bundle((CanWield, Weapon(5.0), AttackSet::Quick));
         }
         Type::Medkit => {
             builder.add(Medkit);

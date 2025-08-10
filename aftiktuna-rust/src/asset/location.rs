@@ -5,7 +5,7 @@ pub mod creature {
     use crate::core::position::Direction;
     use crate::core::status::Stats;
     use crate::core::store::StockQuantity;
-    use crate::core::{CreatureAttribute, GivesHuntReward, Tag, UnarmedType, item};
+    use crate::core::{AttackSet, CreatureAttribute, GivesHuntReward, Tag, UnarmedType, item};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -106,6 +106,17 @@ pub mod creature {
                 Self::Scarvie => UnarmedType::Bite,
                 Self::VoraciousFrog => UnarmedType::Pounce,
                 Self::BloodMantis => UnarmedType::Slash,
+            }
+        }
+
+        pub fn attack_set(self) -> AttackSet {
+            match self {
+                Self::Goblin => AttackSet::Light,
+                Self::Eyesaur => AttackSet::Quick,
+                Self::Azureclops => AttackSet::Varied,
+                Self::Scarvie => AttackSet::Light,
+                Self::VoraciousFrog => AttackSet::Slow,
+                Self::BloodMantis => AttackSet::Quick,
             }
         }
     }

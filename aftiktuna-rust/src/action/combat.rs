@@ -2,9 +2,13 @@ use crate::action::{self, Error};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
-use crate::core::{self, Hostile, UnarmedType, inventory, item, position, status};
+use crate::core::{
+    self, AttackKind, AttackSet, Hostile, RepeatingAction, UnarmedType, inventory, item, position,
+    status,
+};
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
+use rand::seq::IndexedRandom;
 use std::cmp::Ordering;
 
 pub(super) fn attack(
@@ -52,8 +56,6 @@ fn attack_single(
     target: Entity,
 ) -> action::Result {
     let world = &mut context.state.world;
-    let attacker_name = NameWithAttribute::lookup(attacker, world).definite();
-    let target_name = NameWithAttribute::lookup(target, world).definite();
     let attacker_pos = *world
         .get::<&Pos>(attacker)
         .expect("Expected attacker to have a position");
@@ -61,13 +63,19 @@ fn attack_single(
     if !status::is_alive(target, world) {
         return Ok(action::Success);
     }
-    let target_pos = *world
-        .get::<&Pos>(target)
-        .map_err(|_| format!("{target_name} disappeared before {attacker_name} could attack.",))?;
+    let target_pos = *world.get::<&Pos>(target).map_err(|_| {
+        format!(
+            "{target_name} disappeared before {attacker_name} could attack.",
+            attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
+            target_name = NameWithAttribute::lookup(target, world).definite()
+        )
+    })?;
 
     if attacker_pos.get_area() != target_pos.get_area() {
         return Err(Error::private(format!(
-            "{target_name} left before {attacker_name} could attack."
+            "{target_name} left before {attacker_name} could attack.",
+            attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
+            target_name = NameWithAttribute::lookup(target, world).definite(),
         )));
     }
 
@@ -80,57 +88,168 @@ fn attack_single(
 
     position::move_adjacent(world, attacker, target_pos)?;
 
+    let attack_kind = pick_attack_kind(
+        if let Some(weapon) = inventory::get_wielded(world, attacker) {
+            world.entity(weapon).unwrap()
+        } else {
+            world.entity(attacker).unwrap()
+        },
+        &mut context.state.rng,
+    );
+
+    if attack_kind == AttackKind::Charged {
+        world
+            .insert_one(attacker, RepeatingAction::ChargedAttack(target))
+            .unwrap();
+        context.view_context.add_message_at(
+            attacker_pos.get_area(),
+            format!(
+                "{attacker_name} readies a powerful attack.",
+                attacker_name = NameWithAttribute::lookup(attacker, world).definite()
+            ),
+        );
+        Ok(action::Success)
+    } else {
+        perform_attack(context, attacker, target, attack_kind)
+    }
+}
+
+fn pick_attack_kind(entity_ref: EntityRef, rng: &mut impl Rng) -> AttackKind {
+    entity_ref
+        .get::<&AttackSet>()
+        .and_then(|set| set.available_kinds().choose(rng).copied())
+        .unwrap_or(AttackKind::Light)
+}
+
+pub(super) fn charged_attack(
+    context: &mut action::Context,
+    attacker: Entity,
+    target: Entity,
+) -> action::Result {
+    let world = &mut context.state.world;
+    let attacker_pos = *world
+        .get::<&Pos>(attacker)
+        .expect("Expected attacker to have a position");
+
+    if !status::is_alive(target, world) {
+        return Ok(action::Success);
+    }
+    let target_pos = *world.get::<&Pos>(target).map_err(|_| {
+        format!(
+            "{target_name} disappeared before {attacker_name} could attack.",
+            attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
+            target_name = NameWithAttribute::lookup(target, world).definite()
+        )
+    })?;
+
+    if attacker_pos.get_area() != target_pos.get_area() {
+        return Err(Error::private(format!(
+            "{target_name} left before {attacker_name} could attack.",
+            attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
+            target_name = NameWithAttribute::lookup(target, world).definite(),
+        )));
+    }
+
+    context
+        .view_context
+        .capture_unseen_view(attacker_pos.get_area(), context.state);
+
+    let world = &mut context.state.world;
+    core::trigger_aggression_in_area(world, attacker_pos.get_area());
+
+    position::move_adjacent(world, attacker, target_pos)?;
+
+    perform_attack(context, attacker, target, AttackKind::Charged)
+}
+
+fn perform_attack(
+    context: &mut action::Context<'_>,
+    attacker: Entity,
+    target: Entity,
+    attack_kind: AttackKind,
+) -> Result<action::Success, Error> {
+    let world = &mut context.state.world;
+    let attacker_area = world.get::<&Pos>(attacker).unwrap().get_area();
+    let attacker_name = NameWithAttribute::lookup(attacker, world).definite();
+    let target_name = NameWithAttribute::lookup(target, world).definite();
+
+    let attack_kind_text = match attack_kind {
+        AttackKind::Light => "",
+        AttackKind::Rash => "With uncontrolled force, ",
+        AttackKind::Charged => "With power, ",
+    };
     let (attack_text, hit_verb) = if let Some(weapon) = inventory::get_wielded(world, attacker) {
         let weapon_name = NameData::find(world, weapon);
         let weapon_name = weapon_name.base();
         (
-            format!("{attacker_name} swings their {weapon_name} at {target_name}"),
+            format!(
+                "{attack_kind_text}{attacker_name} swings their {weapon_name} at {target_name}"
+            ),
             "hits",
         )
     } else if let Ok(unarmed_type) = world.get::<&UnarmedType>(attacker) {
         let attack_verb = unarmed_type.attack_verb();
         (
-            format!("{attacker_name} {attack_verb} {target_name}"),
+            format!("{attack_kind_text}{attacker_name} {attack_verb} {target_name}"),
             unarmed_type.hit_verb(),
         )
     } else {
-        (format!("{attacker_name} attacks {target_name}"), "hits")
+        (
+            format!("{attack_kind_text}{attacker_name} attacks {target_name}"),
+            "hits",
+        )
     };
 
-    let hit_type = roll_hit(world, attacker, target, &mut context.state.rng);
+    let hit_type = roll_hit(world, attacker, target, attack_kind, &mut context.state.rng);
+
+    if attack_kind == AttackKind::Rash {
+        world.insert_one(attacker, status::IsStunned).unwrap();
+    }
 
     match hit_type {
         HitType::Dodge => context.view_context.add_message_at(
-            attacker_pos.get_area(),
+            attacker_area,
             format!("{attack_text}, but {target_name} dodges the attack."),
         ),
         HitType::GrazingHit => {
-            let effect = perform_attack_hit(false, attacker, target, world, &mut context.state.rng);
+            let effect = perform_attack_hit(
+                false,
+                attacker,
+                target,
+                attack_kind,
+                world,
+                &mut context.state.rng,
+            );
             let effect_text = effect
                 .map(AttackEffect::verb)
                 .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
             context.view_context.add_message_at(
-                attacker_pos.get_area(),
+                attacker_area,
                 format!("{attack_text} and narrowly {hit_verb} them{effect_text}."),
             );
         }
         HitType::DirectHit => {
-            let effect = perform_attack_hit(true, attacker, target, world, &mut context.state.rng);
+            let effect = perform_attack_hit(
+                true,
+                attacker,
+                target,
+                attack_kind,
+                world,
+                &mut context.state.rng,
+            );
             let effect_text = effect
                 .map(AttackEffect::verb)
                 .map_or("".to_string(), |effect| format!(", {effect} {target_name}"));
 
             context.view_context.add_message_at(
-                attacker_pos.get_area(),
+                attacker_area,
                 format!("{attack_text} and directly {hit_verb} them{effect_text}."),
             );
         }
     }
 
-    context
-        .view_context
-        .make_noise_at(&[attacker_pos.get_area()], world);
+    context.view_context.make_noise_at(&[attacker_area], world);
 
     Ok(action::Success)
 }
@@ -154,10 +273,11 @@ fn perform_attack_hit(
     is_direct_hit: bool,
     attacker: Entity,
     target: Entity,
+    attack_kind: AttackKind,
     world: &mut World,
     rng: &mut impl Rng,
 ) -> Option<AttackEffect> {
-    let damage_factor = if is_direct_hit { 1.0 } else { 0.5 };
+    let damage_factor = if is_direct_hit { 1.0 } else { 0.5 } * attack_kind.damage_modifier();
 
     let damage_result = deal_damage(
         world.entity(target).unwrap(),
@@ -176,6 +296,7 @@ fn perform_attack_hit(
         let successful_stun = roll_stun(
             world.entity(attacker).unwrap(),
             world.entity(target).unwrap(),
+            attack_kind,
             rng,
         );
         if successful_stun {
@@ -207,7 +328,13 @@ fn has_stun_attack_weapon(attacker: Entity, world: &World) -> bool {
         .unwrap_or(false)
 }
 
-fn roll_hit(world: &mut World, attacker: Entity, target: Entity, rng: &mut impl Rng) -> HitType {
+fn roll_hit(
+    world: &mut World,
+    attacker: Entity,
+    target: Entity,
+    attack_kind: AttackKind,
+    rng: &mut impl Rng,
+) -> HitType {
     let attacker_stats = world.get::<&Stats>(attacker).unwrap();
     let target_ref = world.entity(target).unwrap();
     let target_stats = target_ref.get::<&Stats>().unwrap();
@@ -221,7 +348,7 @@ fn roll_hit(world: &mut World, attacker: Entity, target: Entity, rng: &mut impl 
             2. * stamina_factor * f32::from(target_stats.agility_for_dodging(target_ref));
     }
     hit_difficulty -= f32::from(attacker_stats.agility) + 0.5 * f32::from(attacker_stats.luck);
-    let hit_difficulty = hit_difficulty.ceil() as i16;
+    let hit_difficulty = hit_difficulty.ceil() as i16 - attack_kind.hit_modifier();
 
     // Yes, this looks slightly odd. This is meant to act as a d20 integer roll,
     // which is converted to a float only to be compared against the float factor.
@@ -243,7 +370,12 @@ enum HitType {
     Dodge,
 }
 
-fn roll_stun(attacker: EntityRef, target: EntityRef, rng: &mut impl Rng) -> bool {
+fn roll_stun(
+    attacker: EntityRef,
+    target: EntityRef,
+    attack_kind: AttackKind,
+    rng: &mut impl Rng,
+) -> bool {
     let attacker_strength = attacker
         .get::<&Stats>()
         .expect("Expected attacker to have stats attached")
@@ -253,7 +385,8 @@ fn roll_stun(attacker: EntityRef, target: EntityRef, rng: &mut impl Rng) -> bool
         .expect("Expected target to have stats attached")
         .endurance;
 
-    let stun_difficulty = 15 + 2 * (target_endurance - attacker_strength);
+    let stun_difficulty =
+        15 + 2 * (target_endurance - attacker_strength) - attack_kind.stun_modifier();
     let stun_roll = rng.random_range::<i16, _>(1..=20);
     stun_roll >= stun_difficulty
 }

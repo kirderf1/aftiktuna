@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Save format version 5.0, making it incompatible with previous save files
+- Attacks now come in a few different flavors with slightly different properties
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.12.0] - 2025-08-10
 

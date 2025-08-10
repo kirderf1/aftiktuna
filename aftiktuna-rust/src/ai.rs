@@ -33,12 +33,13 @@ pub fn prepare_intentions(world: &mut World) {
         };
     }
 
-    for (crew_member, _) in world
-        .query::<()>()
-        .with::<(&CrewMember, &RepeatingAction)>()
+    for (crew_member, action) in world
+        .query::<&RepeatingAction>()
+        .with::<&CrewMember>()
         .iter()
     {
-        if let Ok(pos) = world.get::<&Pos>(crew_member)
+        if action.cancel_if_unsafe()
+            && let Ok(pos) = world.get::<&Pos>(crew_member)
             && !core::is_safe(world, pos.get_area())
         {
             buffer.remove_one::<RepeatingAction>(crew_member);
@@ -243,7 +244,9 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
 }
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
-    world.get::<&Intention>(entity).is_ok()
+    world
+        .satisfies::<hecs::Or<&Intention, &status::IsStunned>>(entity)
+        .unwrap_or(false)
 }
 
 struct PathSearchEntry {

@@ -232,6 +232,62 @@ impl UnarmedType {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AttackKind {
+    Light,
+    Rash,
+    Charged,
+}
+
+impl AttackKind {
+    pub fn hit_modifier(self) -> i16 {
+        match self {
+            Self::Light => 0,
+            Self::Rash => -2,
+            Self::Charged => 2,
+        }
+    }
+
+    pub fn stun_modifier(self) -> i16 {
+        match self {
+            Self::Light => -3,
+            Self::Rash => 3,
+            Self::Charged => 6,
+        }
+    }
+
+    pub fn damage_modifier(self) -> f32 {
+        match self {
+            Self::Light => 1.,
+            Self::Rash => 1.75,
+            Self::Charged => 2.5,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AttackSet {
+    Light,
+    Quick,
+    Slow,
+    Intense,
+    Varied,
+}
+
+impl AttackSet {
+    pub fn available_kinds(self) -> &'static [AttackKind] {
+        use AttackKind::*;
+        match self {
+            AttackSet::Light => &[Light],
+            AttackSet::Quick => &[Light, Rash],
+            AttackSet::Slow => &[Light, Charged],
+            AttackSet::Intense => &[Rash, Charged],
+            AttackSet::Varied => &[Light, Rash, Charged],
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CreatureAttribute {
@@ -383,6 +439,13 @@ pub enum RepeatingAction {
     TakeAll,
     Rest,
     GoToShip,
+    ChargedAttack(Entity),
+}
+
+impl RepeatingAction {
+    pub fn cancel_if_unsafe(self) -> bool {
+        !matches!(self, Self::ChargedAttack(_))
+    }
 }
 
 impl From<RepeatingAction> for Action {
@@ -391,6 +454,7 @@ impl From<RepeatingAction> for Action {
             RepeatingAction::TakeAll => Action::TakeAll,
             RepeatingAction::Rest => Action::Rest(false),
             RepeatingAction::GoToShip => Action::GoToShip,
+            RepeatingAction::ChargedAttack(target) => Action::ChargedAttack(target),
         }
     }
 }

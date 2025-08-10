@@ -211,7 +211,7 @@ fn tick_and_check(
 fn should_take_user_input(state: &GameState) -> bool {
     !state
         .world
-        .satisfies::<&RepeatingAction>(state.controlled)
+        .satisfies::<hecs::Or<&RepeatingAction, &status::IsStunned>>(state.controlled)
         .unwrap()
 }
 
