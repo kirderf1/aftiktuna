@@ -35,10 +35,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Model format changes:
   - "fixed" layer property replaced by "fixed_orientation" model property
   - Flipped the y-axis of "y_offset" and "wield_offset", which now matches the y-axis of group placement and background layer offsets
-  - "y_offset" layer property replaced by "offset" layer property with both x- and y-offsets
-  - "wield_offset" has changed format to match the new offset property
+  - "y_offset" layer property replaced by "offset" layer property with labeled values and optional animation between two values
+  - "wield_offset" has changed format to use labeled values
   - New layer properties for rotation animation and rotation-anchor
   - Colored texture layers are now defined differently
+  - Bone-like layers with child layers can now be defined, applying its offset to all child layers
 
 ### Fixed
 

@@ -1,5 +1,5 @@
 use aftiktuna::asset::color::{AftikColorData, RGBColor};
-use aftiktuna::asset::model::{self, Model, ModelAccess, TextureLayer};
+use aftiktuna::asset::model::{self, Model, ModelAccess, TexturesOrChildren};
 use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId, OrderWeight};
@@ -277,7 +277,11 @@ fn model_editor_ui(
 
     for (layer_index, layer) in model.layers.iter().enumerate() {
         ui.add_enabled_ui(layer_index != editor_data.selected_layer, |ui| {
-            if ui.button(layer.primary_texture()).clicked() {
+            let name = match &layer.textures_or_children {
+                TexturesOrChildren::Texture(colored_textures) => colored_textures.primary_texture(),
+                TexturesOrChildren::Children(_) => "Bone",
+            };
+            if ui.button(name).clicked() {
                 editor_data.selected_layer = layer_index;
             }
         });
@@ -315,13 +319,13 @@ fn model_editor_ui(
         if ui.button("Use Texture Size").clicked() {
             layer.positioning.size = None;
         }
-    } else if ui.button("Use Custom Size").clicked() {
-        let texture = textures
-            .load_texture(TextureLayer::<String>::texture_path(
-                layer.primary_texture(),
-            ))
-            .unwrap();
-        layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
+    } else if let TexturesOrChildren::Texture(colored_textures) = &layer.textures_or_children {
+        if ui.button("Use Custom Size").clicked() {
+            let texture = textures
+                .load_texture(model::texture_path(colored_textures.primary_texture()))
+                .unwrap();
+            layer.positioning.size = Some((texture.width() as i16, texture.height() as i16));
+        }
     }
 
     ui.label("Offset:");

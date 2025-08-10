@@ -63,13 +63,83 @@ impl Model<String> {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct TextureLayer<T> {
+    #[serde(flatten)]
+    pub conditions: LayerCondition,
+    #[serde(flatten)]
+    pub positioning: LayerPositioning,
+    #[serde(flatten)]
+    pub textures_or_children: TexturesOrChildren<T>,
+}
+
+impl TextureLayer<String> {
+    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<TextureLayer<T>, E> {
+        let textures_or_children = self.textures_or_children.load(loader)?;
+        Ok(TextureLayer {
+            textures_or_children,
+            positioning: self.positioning.clone(),
+            conditions: self.conditions.clone(),
+        })
+    }
+}
+
+pub fn texture_path(texture: &str) -> String {
+    format!("object/{texture}")
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TexturesOrChildren<T> {
+    Texture(ColoredTextures<T>),
+    Children(Vec<TextureLayer<T>>),
+}
+
+impl TexturesOrChildren<String> {
+    fn load<T, E>(
+        &self,
+        loader: &mut impl TextureLoader<T, E>,
+    ) -> Result<TexturesOrChildren<T>, E> {
+        Ok(match self {
+            TexturesOrChildren::Texture(colored_textures) => {
+                let mut colored_textures = colored_textures.load(loader)?;
+                colored_textures.0.reverse();
+                TexturesOrChildren::Texture(colored_textures)
+            }
+            TexturesOrChildren::Children(texture_layers) => {
+                let mut layer_list: Vec<TextureLayer<T>> = texture_layers
+                    .iter()
+                    .map(|layer| layer.load(loader))
+                    .collect::<Result<_, E>>()?;
+                layer_list.reverse();
+                TexturesOrChildren::Children(layer_list)
+            }
+        })
+    }
+}
+
 #[derive(Clone, Deserialize)]
 #[serde(try_from = "TextureOrMap<T>")]
 pub struct ColoredTextures<T>(Vec<(ColorSource, T)>);
 
 impl<T> ColoredTextures<T> {
+    pub fn primary_texture(&self) -> &T {
+        &self.0.first().unwrap().1
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = (ColorSource, &T)> {
         self.0.iter().map(|(color, texture)| (*color, texture))
+    }
+}
+
+impl ColoredTextures<String> {
+    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<ColoredTextures<T>, E> {
+        Ok(ColoredTextures(
+            self.0
+                .iter()
+                .map(|(color, texture)| Ok((*color, loader.load_texture(texture_path(texture))?)))
+                .collect::<Result<_, E>>()?,
+        ))
     }
 }
 
@@ -115,45 +185,6 @@ impl<T: Serialize> Serialize for ColoredTextures<T> {
         } else {
             self.0.serialize(serializer)
         }
-    }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct TextureLayer<T> {
-    pub texture: ColoredTextures<T>,
-    #[serde(flatten)]
-    pub positioning: LayerPositioning,
-    #[serde(flatten)]
-    pub conditions: LayerCondition,
-}
-
-impl<T> TextureLayer<T> {
-    pub fn primary_texture(&self) -> &T {
-        &self.texture.0.first().unwrap().1
-    }
-}
-
-impl TextureLayer<String> {
-    pub fn texture_path(texture: &str) -> String {
-        format!("object/{texture}")
-    }
-
-    fn load<T, E>(&self, loader: &mut impl TextureLoader<T, E>) -> Result<TextureLayer<T>, E> {
-        let mut texture = ColoredTextures(
-            self.texture
-                .0
-                .iter()
-                .map(|(color, texture)| {
-                    Ok((*color, loader.load_texture(Self::texture_path(texture))?))
-                })
-                .collect::<Result<_, E>>()?,
-        );
-        texture.0.reverse();
-        Ok(TextureLayer {
-            texture,
-            positioning: self.positioning.clone(),
-            conditions: self.conditions.clone(),
-        })
     }
 }
 

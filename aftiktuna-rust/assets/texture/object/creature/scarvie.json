@@ -1,79 +1,83 @@
 {
   "layers": [
     {
-      "texture": "creature/scarvie/ear",
-      "offset": [
-        { "x": 6.0, "y": 49.0 },
-        { "x": 4.0, "y": 49.0 }
-      ],
-      "anchor": { "x": 3.0, "y": 27.0 },
-      "rotation": [ 3.0, -2.0 ],
-      "animation_length": 3.0,
       "if_alive": true,
-      "if_hurt": false
-    },
-    {
-      "texture": "creature/scarvie/head",
-      "offset": { "x": 20.0, "y": 56.0 },
-      "anchor": { "x": -5.0, "y": 4.0 },
-      "rotation": [ 0.0, 5.0 ],
-      "animation_length": 3.0,
-      "if_alive": true,
-      "if_hurt": false
-    },
-    {
-      "texture": "creature/scarvie/ear",
-      "offset": [
-        { "x": 6.0, "y": 49.0 },
-        { "x": 7.0, "y": 50.0 }
-      ],
-      "anchor": { "x": 3.0, "y": 27.0 },
-      "rotation": [ -2.0, 3.0 ],
-      "animation_length": 3.0,
-      "if_alive": true,
-      "if_hurt": true
-    },
-    {
-      "texture": "creature/scarvie/head_wounded",
-      "offset": { "x": 20.0, "y": 56.0 },
-      "anchor": { "x": -5.0, "y": 4.0 },
-      "rotation": [ 0.0, -5.0 ],
-      "animation_length": 3.0,
-      "if_alive": true,
-      "if_hurt": true
-    },
-    {
-      "texture": "creature/scarvie/arm",
       "offset": { "x": 7.0, "y": 24.0 },
       "anchor": { "x": -6.0, "y": 18.0 },
       "rotation": [ -5.0, 5.0 ],
       "animation_length": 4.5,
-      "if_alive": true
+      "texture": "creature/scarvie/arm"
     },
     {
-      "texture": "creature/scarvie/body",
-      "offset": { "x": -13.0, "y": 0.0 },
       "if_alive": true,
-      "if_hurt": false
-    },
-    {
-      "texture": "creature/scarvie/body_wounded",
+      "if_hurt": false,
       "offset": { "x": -13.0, "y": 0.0 },
-      "if_alive": true,
-      "if_hurt": true
+      "children": [
+        {
+          "offset": { "x": 33.0, "y": 56.0 },
+          "children": [
+            {
+              "offset": [
+                { "x": -14.0, "y": -7.0 },
+                { "x": -16.0, "y": -7.0 }
+              ],
+              "anchor": { "x": 3.0, "y": 27.0 },
+              "rotation": [ 3.0, -2.0 ],
+              "animation_length": 3.0,
+              "texture": "creature/scarvie/ear"
+            },
+            {
+              "anchor": { "x": -5.0, "y": 4.0 },
+              "rotation": [ 0.0, 5.0 ],
+              "animation_length": 3.0,
+              "texture": "creature/scarvie/head"
+            }
+          ]
+        },
+        { "texture": "creature/scarvie/body" }
+      ]
     },
     {
-      "texture": "creature/scarvie/arm",
+      "if_alive": true,
+      "if_hurt": true,
+      "offset": { "x": -13.0, "y": 0.0 },
+      "children": [
+        {
+          "offset": { "x": 33.0, "y": 56.0 },
+          "children": [
+            {
+              "offset": [
+                { "x": -14.0, "y": -7.0 },
+                { "x": -13.0, "y": -6.0 }
+              ],
+              "anchor": { "x": 3.0, "y": 27.0 },
+              "rotation": [ -2.0, 3.0 ],
+              "animation_length": 3.0,
+              "texture": "creature/scarvie/ear"
+            },
+            {
+              "anchor": { "x": -5.0, "y": 4.0 },
+              "rotation": [ 0.0, -5.0 ],
+              "animation_length": 3.0,
+              "texture": "creature/scarvie/head_wounded"
+            }
+          ]
+        },
+        { "texture": "creature/scarvie/body_wounded" }
+      ]
+    },
+    {
+      "if_alive": true,
       "offset": { "x": 10.0, "y": 29.0 },
       "anchor": { "x": -6.0, "y": 18.0 },
       "rotation": [ -5.0, 5.0 ],
       "animation_length": 4.5,
-      "if_alive": true
+      "texture": "creature/scarvie/arm"
     },
     {
-      "texture": "creature/scarvie/corpse",
+      "if_alive": false,
       "offset": { "x": 0.0, "y": -5.0 },
-      "if_alive": false
+      "texture": "creature/scarvie/corpse"
     }
   ]
 }

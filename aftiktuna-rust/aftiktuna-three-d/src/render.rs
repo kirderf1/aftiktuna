@@ -147,7 +147,7 @@ pub fn get_render_objects_for_entity_with_color(
         .layers
         .iter()
         .flat_map(|layer| {
-            get_render_object_for_layer(
+            get_render_objects_for_layer(
                 layer,
                 pos,
                 direction_mod,
@@ -161,7 +161,9 @@ pub fn get_render_objects_for_entity_with_color(
         .collect()
 }
 
-fn get_render_object_for_layer(
+type RenderObject = three_d::Gm<three_d::Rectangle, UnalteredColorMaterial>;
+
+fn get_render_objects_for_layer(
     layer: &TextureLayer<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     direction_mod: f32,
@@ -170,7 +172,7 @@ fn get_render_object_for_layer(
     aftik_color: AftikColorData,
     time: f32,
     context: &three_d::Context,
-) -> Vec<impl three_d::Object> {
+) -> Vec<RenderObject> {
     if !layer.conditions.meets_conditions(properties, expression) {
         return vec![];
     }
@@ -181,51 +183,72 @@ fn get_render_object_for_layer(
         ((time / 1000. / layer.positioning.animation_length * std::f32::consts::TAU).sin() + 1.)
             / 2.
     };
-    let (width, height) = layer
-        .positioning
-        .size
-        .map(|(width, height)| (f32::from(width), f32::from(height)))
-        .unwrap_or_else(|| {
-            (
-                layer.primary_texture().width() as f32,
-                layer.primary_texture().height() as f32,
-            )
-        });
     let offset = crate::to_vec(
         layer.positioning.offset.interpolate(animation_factor),
         direction_mod,
     );
-    let center = pos + offset + three_d::vec2(0., height / 2.);
     let rotation_value = layer.positioning.rotation.interpolate(animation_factor);
     let rotation_angle = three_d::degrees(direction_mod * rotation_value);
     let anchor = pos + offset + crate::to_vec(layer.positioning.anchor, direction_mod);
-    let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
 
-    layer
-        .texture
-        .iter()
-        .map(|(color_source, texture)| {
-            let rectangle = three_d::Rectangle::new(
-                context,
-                center,
-                rotation_angle,
-                width * direction_mod,
-                height,
-            );
+    match &layer.textures_or_children {
+        aftiktuna::asset::model::TexturesOrChildren::Texture(colored_textures) => {
+            let (width, height) = layer
+                .positioning
+                .size
+                .map(|(width, height)| (f32::from(width), f32::from(height)))
+                .unwrap_or_else(|| {
+                    (
+                        colored_textures.primary_texture().width() as f32,
+                        colored_textures.primary_texture().height() as f32,
+                    )
+                });
+            let center = pos + offset + three_d::vec2(0., height / 2.);
+            let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
+            colored_textures
+                .iter()
+                .map(|(color_source, texture)| {
+                    let rectangle = three_d::Rectangle::new(
+                        context,
+                        center,
+                        rotation_angle,
+                        width * direction_mod,
+                        height,
+                    );
 
-            let color = color_source.get_color(&aftik_color);
-            let material = texture_color_material(
-                texture,
-                three_d::vec4(
-                    f32::from(color.r) / 255.,
-                    f32::from(color.g) / 255.,
-                    f32::from(color.b) / 255.,
-                    1.,
-                ),
-            );
-            three_d::Gm::new(rectangle, material)
-        })
-        .collect()
+                    let color = color_source.get_color(&aftik_color);
+                    let material = texture_color_material(
+                        texture,
+                        three_d::vec4(
+                            f32::from(color.r) / 255.,
+                            f32::from(color.g) / 255.,
+                            f32::from(color.b) / 255.,
+                            1.,
+                        ),
+                    );
+                    three_d::Gm::new(rectangle, material)
+                })
+                .collect()
+        }
+        aftiktuna::asset::model::TexturesOrChildren::Children(texture_layers) => {
+            let pos = pos + offset;
+            texture_layers
+                .iter()
+                .flat_map(|layer| {
+                    get_render_objects_for_layer(
+                        layer,
+                        pos,
+                        direction_mod,
+                        properties,
+                        expression,
+                        aftik_color,
+                        time,
+                        context,
+                    )
+                })
+                .collect()
+        }
+    }
 }
 
 pub fn rect(
@@ -299,7 +322,7 @@ fn texture_material(texture: &three_d::Texture2DRef) -> impl three_d::Material +
 fn texture_color_material(
     texture: &three_d::Texture2DRef,
     color: three_d::Vec4,
-) -> impl three_d::Material {
+) -> UnalteredColorMaterial {
     UnalteredColorMaterial(
         three_d::ColorMaterial {
             texture: Some(texture.clone()),
