@@ -4,7 +4,7 @@ use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::{self, FoodRation, FourLeafClover};
-use crate::core::name::{ArticleKind, Name, NameData, NameQuery};
+use crate::core::name::{self, ArticleKind, Name, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{
@@ -252,9 +252,26 @@ fn tick(
     handle_crew_deaths(state, view_buffer);
 
     let mut buffer = CommandBuffer::new();
-    for stun_recovering_entity in stun_recovering_entities {
+
+    for &stun_recovering_entity in &stun_recovering_entities {
         buffer.remove_one::<status::IsStunned>(stun_recovering_entity);
     }
+    let alive_recovering_entities = stun_recovering_entities
+        .into_iter()
+        .filter(|&entity| status::is_alive(entity, &state.world))
+        .map(|entity| NameData::find(&state.world, entity))
+        .collect::<Vec<_>>();
+    if !alive_recovering_entities.is_empty() {
+        view_buffer.messages.add(format!(
+            "{entities} regained their balance.",
+            entities = text::join_elements(name::names_with_counts(
+                alive_recovering_entities,
+                name::ArticleKind::The,
+                name::CountFormat::Text,
+            ))
+        ))
+    }
+
     for (item, held) in state
         .world
         .query::<&Held>()
