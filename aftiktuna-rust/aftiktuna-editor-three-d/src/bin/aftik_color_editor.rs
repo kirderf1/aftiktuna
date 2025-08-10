@@ -1,9 +1,9 @@
 use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
 use aftiktuna::asset::model::{self, Model};
 use aftiktuna::core::display::{AftikColorId, DialogueExpression, ModelId};
-use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
-use aftiktuna_three_d::render;
+use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
 use std::fs::File;
 use std::mem::take;
@@ -106,7 +106,7 @@ fn draw_examples(
         (
             aftik_model,
             three_d::vec2(100., 440.),
-            RenderProperties {
+            ObjectProperties {
                 is_alive: true,
                 is_badly_hurt: false,
                 ..Default::default()
@@ -115,7 +115,7 @@ fn draw_examples(
         (
             aftik_model,
             three_d::vec2(250., 440.),
-            RenderProperties {
+            ObjectProperties {
                 is_alive: true,
                 is_badly_hurt: true,
                 ..Default::default()
@@ -124,7 +124,7 @@ fn draw_examples(
         (
             aftik_model,
             three_d::vec2(400., 450.),
-            RenderProperties {
+            ObjectProperties {
                 is_alive: false,
                 ..Default::default()
             },
@@ -132,7 +132,7 @@ fn draw_examples(
         (
             portrait_model,
             three_d::vec2(150., 0.),
-            RenderProperties {
+            ObjectProperties {
                 is_badly_hurt: false,
                 ..Default::default()
             },
@@ -140,7 +140,7 @@ fn draw_examples(
         (
             portrait_model,
             three_d::vec2(450., 0.),
-            RenderProperties {
+            ObjectProperties {
                 is_badly_hurt: true,
                 ..Default::default()
             },
@@ -152,9 +152,11 @@ fn draw_examples(
             render::get_render_objects_for_entity_with_color(
                 model,
                 pos,
-                aftik_color_data,
-                &properties,
-                DialogueExpression::default(),
+                RenderProperties {
+                    object: &properties,
+                    aftik_color: aftik_color_data,
+                    expression: DialogueExpression::default(),
+                },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
             )

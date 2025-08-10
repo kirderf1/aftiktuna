@@ -6,7 +6,7 @@ use aftiktuna::asset::model::{
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
-use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 
@@ -172,7 +172,7 @@ impl ModelAccess<three_d::Texture2DRef> for LazilyLoadedModels {
 fn model_render_rect(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
-    properties: &RenderProperties,
+    properties: &ObjectProperties,
 ) -> Rect {
     let direction_mod = if model.fixed_orientation {
         1.
@@ -186,7 +186,7 @@ fn layer_list_render_rect(
     layer_list: &[TextureLayer<three_d::Texture2DRef>],
     pos: three_d::Vector2<f32>,
     direction_mod: f32,
-    properties: &RenderProperties,
+    properties: &ObjectProperties,
 ) -> Rect {
     layer_list
         .iter()
@@ -204,7 +204,7 @@ fn layer_render_rect(
     layer: &TextureLayer<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     direction_mod: f32,
-    properties: &RenderProperties,
+    properties: &ObjectProperties,
 ) -> Rect {
     match &layer.textures_or_children {
         model::TexturesOrChildren::Texture(textures) => {

@@ -123,7 +123,7 @@ pub struct ObjectRenderData {
     pub wielded_item: Option<ModelId>,
     pub interactions: Vec<InteractionType>,
     #[serde(flatten)]
-    pub properties: RenderProperties,
+    pub properties: ObjectProperties,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -166,7 +166,7 @@ fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RenderProperties {
+pub struct ObjectProperties {
     pub direction: Direction,
     pub aftik_color: Option<AftikColorId>,
     pub is_cut: bool,
@@ -174,7 +174,7 @@ pub struct RenderProperties {
     pub is_badly_hurt: bool,
 }
 
-impl Default for RenderProperties {
+impl Default for ObjectProperties {
     fn default() -> Self {
         Self {
             direction: Direction::Right,
@@ -242,7 +242,7 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
 
 fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
-    let properties = RenderProperties {
+    let properties = ObjectProperties {
         direction: entity_ref
             .get::<&Direction>()
             .map(deref_clone)

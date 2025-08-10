@@ -6,9 +6,9 @@ use aftiktuna::asset::placement::Positioner;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::Coord;
-use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
-use aftiktuna_three_d::render;
+use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
 use std::fs::File;
 use three_d::egui;
@@ -214,9 +214,11 @@ fn draw_example_content(
         let objects = render::get_render_objects_for_entity_with_color(
             model,
             pos.into(),
-            color::DEFAULT_COLOR,
-            &RenderProperties::default(),
-            DialogueExpression::default(),
+            RenderProperties {
+                object: &ObjectProperties::default(),
+                aftik_color: color::DEFAULT_COLOR,
+                expression: DialogueExpression::default(),
+            },
             frame_input.accumulated_time as f32,
             &frame_input.context,
         );

@@ -5,7 +5,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::Direction;
 use aftiktuna::core::store::StoreStock;
-use aftiktuna::view::area::{ObjectRenderData, RenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
 use aftiktuna::view::{self, Frame};
 use aftiktuna_three_d::{render, Camera};
 use rand::{Rng, SeedableRng};
@@ -58,11 +58,11 @@ pub fn render_frame(
             let objects = render::get_render_objects_for_entity(
                 assets.models.lookup_model(&ModelId::portrait()),
                 three_d::vec2(x, 0.),
-                &RenderProperties {
+                &ObjectProperties {
                     direction: data.direction,
                     aftik_color: data.color.clone(),
                     is_badly_hurt: data.is_badly_hurt,
-                    ..RenderProperties::default()
+                    ..ObjectProperties::default()
                 },
                 data.expression,
                 &mut assets.aftik_colors,
@@ -149,9 +149,9 @@ fn draw_area_view(
                     render_objects.extend(render::get_render_objects_for_entity(
                         item_model,
                         pos + offset,
-                        &RenderProperties {
+                        &ObjectProperties {
                             direction: object.properties.direction,
-                            ..RenderProperties::default()
+                            ..ObjectProperties::default()
                         },
                         DialogueExpression::default(),
                         &mut assets.aftik_colors,
@@ -279,10 +279,10 @@ fn draw_store_view(
     let objects = render::get_render_objects_for_entity(
         assets.models.lookup_model(&ModelId::portrait()),
         three_d::vec2(aftiktuna_three_d::WINDOW_WIDTH_F - 200., 0.),
-        &RenderProperties {
+        &ObjectProperties {
             direction: Direction::Left,
             aftik_color: view.shopkeeper_color.clone(),
-            ..RenderProperties::default()
+            ..ObjectProperties::default()
         },
         DialogueExpression::Neutral,
         &mut assets.aftik_colors,

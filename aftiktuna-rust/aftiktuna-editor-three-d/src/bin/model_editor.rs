@@ -4,9 +4,9 @@ use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
-use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
-use aftiktuna_three_d::render;
+use aftiktuna_three_d::render::{self, RenderProperties};
 use std::fs::{self, File};
 use three_d::{Texture2DRef, egui};
 
@@ -430,7 +430,7 @@ fn draw_examples(
     };
     let mut objects = Vec::new();
 
-    fn obj(coord: Coord, model_id: ModelId, properties: RenderProperties) -> ObjectRenderData {
+    fn obj(coord: Coord, model_id: ModelId, properties: ObjectProperties) -> ObjectRenderData {
         ObjectRenderData {
             coord,
             weight: OrderWeight::Background,
@@ -443,7 +443,7 @@ fn draw_examples(
         }
     }
 
-    let properties = RenderProperties {
+    let properties = ObjectProperties {
         direction: editor_data.direction,
         is_cut: editor_data.show_cut,
         is_alive: editor_data.show_alive,
@@ -456,7 +456,7 @@ fn draw_examples(
         objects.push(obj(
             coord,
             editor_data.example_model.clone(),
-            RenderProperties {
+            ObjectProperties {
                 direction: Direction::Right,
                 ..Default::default()
             },
@@ -469,7 +469,7 @@ fn draw_examples(
         objects.push(obj(
             coord,
             editor_data.example_model.clone(),
-            RenderProperties {
+            ObjectProperties {
                 direction: editor_data.direction,
                 ..Default::default()
             },
@@ -484,7 +484,7 @@ fn draw_examples(
         objects.push(obj(
             coord,
             editor_data.example_model.clone(),
-            RenderProperties {
+            ObjectProperties {
                 direction: editor_data.direction,
                 ..Default::default()
             },
@@ -496,7 +496,7 @@ fn draw_examples(
         objects.push(obj(
             coord,
             editor_data.example_model.clone(),
-            RenderProperties {
+            ObjectProperties {
                 direction: Direction::Left,
                 ..Default::default()
             },
@@ -509,7 +509,7 @@ fn draw_examples(
             ..obj(
                 coord,
                 ModelId::aftik(),
-                RenderProperties {
+                ObjectProperties {
                     direction: editor_data.direction,
                     ..Default::default()
                 },
@@ -526,9 +526,11 @@ fn draw_examples(
             let mut objects = render::get_render_objects_for_entity_with_color(
                 model_access.lookup_model(&data.model_id),
                 pos,
-                DEFAULT_AFTIK_COLOR,
-                &data.properties,
-                editor_data.shown_expression,
+                RenderProperties {
+                    object: &data.properties,
+                    aftik_color: DEFAULT_AFTIK_COLOR,
+                    expression: editor_data.shown_expression,
+                },
                 time,
                 context,
             );
@@ -539,12 +541,14 @@ fn draw_examples(
                 objects.extend(render::get_render_objects_for_entity_with_color(
                     model,
                     pos + offset,
-                    DEFAULT_AFTIK_COLOR,
-                    &RenderProperties {
-                        direction: data.properties.direction,
-                        ..Default::default()
+                    RenderProperties {
+                        object: &ObjectProperties {
+                            direction: data.properties.direction,
+                            ..Default::default()
+                        },
+                        aftik_color: DEFAULT_AFTIK_COLOR,
+                        expression: DialogueExpression::default(),
                     },
-                    DialogueExpression::default(),
                     time,
                     context,
                 ))

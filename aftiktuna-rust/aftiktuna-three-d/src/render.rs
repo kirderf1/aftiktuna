@@ -2,7 +2,7 @@ use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
 use aftiktuna::core::display::{AftikColorId, DialogueExpression};
-use aftiktuna::view::area::RenderProperties;
+use aftiktuna::view::area::ObjectProperties;
 use std::collections::HashMap;
 
 pub fn render_objects_for_primary_background(
@@ -95,7 +95,7 @@ pub fn draw_secondary_background(
 pub fn get_render_objects_for_entity(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
-    properties: &RenderProperties,
+    properties: &ObjectProperties,
     expression: DialogueExpression,
     aftik_colors: &mut HashMap<AftikColorId, AftikColorData>,
     time: f32,
@@ -110,9 +110,11 @@ pub fn get_render_objects_for_entity(
     get_render_objects_for_entity_with_color(
         model,
         pos,
-        aftik_color,
-        properties,
-        expression,
+        RenderProperties {
+            object: properties,
+            aftik_color,
+            expression,
+        },
         time,
         context,
     )
@@ -129,19 +131,24 @@ fn lookup_or_log_aftik_color(
     })
 }
 
+#[derive(Clone, Copy)]
+pub struct RenderProperties<'a> {
+    pub object: &'a ObjectProperties,
+    pub aftik_color: AftikColorData,
+    pub expression: DialogueExpression,
+}
+
 pub fn get_render_objects_for_entity_with_color(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
-    aftik_color: AftikColorData,
-    properties: &RenderProperties,
-    expression: DialogueExpression,
+    properties: RenderProperties,
     time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
     let direction_mod = if model.fixed_orientation {
         1.
     } else {
-        properties.direction.into()
+        properties.object.direction.into()
     };
     model
         .layers
@@ -153,8 +160,6 @@ pub fn get_render_objects_for_entity_with_color(
                 three_d::degrees(0.),
                 direction_mod,
                 properties,
-                expression,
-                aftik_color,
                 time,
                 context,
             )
@@ -169,13 +174,14 @@ fn get_render_objects_for_layer(
     pos: three_d::Vec2,
     parent_angle: three_d::Degrees,
     direction_mod: f32,
-    properties: &RenderProperties,
-    expression: DialogueExpression,
-    aftik_color: AftikColorData,
+    properties: RenderProperties,
     time: f32,
     context: &three_d::Context,
 ) -> Vec<RenderObject> {
-    if !layer.conditions.meets_conditions(properties, expression) {
+    if !layer
+        .conditions
+        .meets_conditions(properties.object, properties.expression)
+    {
         return vec![];
     }
 
@@ -221,7 +227,7 @@ fn get_render_objects_for_layer(
                         height,
                     );
 
-                    let color = color_source.get_color(&aftik_color);
+                    let color = color_source.get_color(&properties.aftik_color);
                     let material = texture_color_material(
                         texture,
                         three_d::vec4(
@@ -246,8 +252,6 @@ fn get_render_objects_for_layer(
                         parent_angle + rotation_angle,
                         direction_mod,
                         properties,
-                        expression,
-                        aftik_color,
                         time,
                         context,
                     )

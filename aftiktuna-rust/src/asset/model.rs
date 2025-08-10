@@ -1,7 +1,7 @@
 use super::TextureLoader;
 use super::color::ColorSource;
 use crate::core::display::{DialogueExpression, ModelId};
-use crate::view::area::RenderProperties;
+use crate::view::area::ObjectProperties;
 use crate::{Range, Vec2};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
@@ -217,7 +217,7 @@ pub struct LayerCondition {
 impl LayerCondition {
     pub fn meets_conditions(
         &self,
-        properties: &RenderProperties,
+        properties: &ObjectProperties,
         expression: DialogueExpression,
     ) -> bool {
         (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))

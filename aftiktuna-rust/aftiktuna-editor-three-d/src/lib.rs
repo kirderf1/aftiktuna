@@ -6,7 +6,7 @@ use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::item;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
-use aftiktuna::view::area::{ObjectRenderData, RenderProperties};
+use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use std::fs;
 use std::hash::Hash;
 use std::path::PathBuf;
@@ -225,7 +225,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: ObjectProperties::default(),
         },
         SymbolData::FortunaChest => ObjectRenderData {
             coord,
@@ -235,7 +235,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: ObjectProperties::default(),
         },
         SymbolData::ShipControls { direction } => ObjectRenderData {
             coord,
@@ -245,7 +245,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 direction: *direction,
                 ..Default::default()
             },
@@ -258,7 +258,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: ObjectProperties::default(),
         },
         SymbolData::Item { item } => ObjectRenderData {
             coord,
@@ -268,7 +268,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: ObjectProperties::default(),
         },
         SymbolData::Loot { .. } => ObjectRenderData {
             coord,
@@ -278,7 +278,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: ObjectProperties::default(),
         },
         SymbolData::Door(door_spawn_data) => ObjectRenderData {
             coord,
@@ -288,7 +288,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 is_cut: door_pair_map
                     .get(&door_spawn_data.pair_id)
                     .is_some_and(|pair_data| pair_data.is_cut),
@@ -303,7 +303,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 direction: *direction,
                 ..Default::default()
             },
@@ -316,7 +316,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 direction: container_data.direction,
                 ..Default::default()
             },
@@ -331,7 +331,7 @@ pub fn object_from_symbol(
                 name_data: None,
                 wielded_item: None,
                 interactions: Vec::default(),
-                properties: RenderProperties {
+                properties: ObjectProperties {
                     direction: creature_spawn_data
                         .direction
                         .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
@@ -349,7 +349,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 direction: shopkeeper_spawn_data
                     .direction
                     .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
@@ -365,7 +365,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 direction: npc_spawn_data
                     .direction
                     .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
@@ -381,7 +381,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties {
+            properties: ObjectProperties {
                 direction: aftik_corpse_data
                     .direction
                     .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
@@ -399,7 +399,7 @@ pub fn object_from_symbol(
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
-            properties: RenderProperties::default(),
+            properties: ObjectProperties::default(),
         },
     }
 }

@@ -716,7 +716,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{AftikColorId, DialogueExpression};
 use aftiktuna::core::position::Coord;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
-use aftiktuna_three_d::render;
+use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -1213,17 +1213,20 @@ fn render_game_view(
     let objects = objects
         .into_iter()
         .flat_map(|(pos, object)| {
+            let aftik_color = object
+                .properties
+                .aftik_color
+                .as_ref()
+                .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
+                .unwrap_or(color::DEFAULT_COLOR);
             render::get_render_objects_for_entity_with_color(
                 assets.models.lookup_model(&object.model_id),
                 pos.into(),
-                object
-                    .properties
-                    .aftik_color
-                    .as_ref()
-                    .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
-                    .unwrap_or(color::DEFAULT_COLOR),
-                &object.properties,
-                DialogueExpression::default(),
+                RenderProperties {
+                    object: &object.properties,
+                    aftik_color,
+                    expression: DialogueExpression::default(),
+                },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
             )
