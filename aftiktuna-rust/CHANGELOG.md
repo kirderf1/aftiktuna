@@ -39,7 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - "wield_offset" has changed format to use labeled values
   - New layer properties for rotation animation and rotation-anchor
   - Colored texture layers are now defined differently
-  - Bone-like layers with child layers can now be defined, applying its offset to all child layers
+  - Bone-like layers with child layers can now be defined, applying its offset and rotation to all child layers
 
 ### Fixed
 

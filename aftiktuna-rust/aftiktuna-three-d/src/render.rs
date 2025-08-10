@@ -150,6 +150,7 @@ pub fn get_render_objects_for_entity_with_color(
             get_render_objects_for_layer(
                 layer,
                 pos,
+                three_d::degrees(0.),
                 direction_mod,
                 properties,
                 expression,
@@ -166,6 +167,7 @@ type RenderObject = three_d::Gm<three_d::Rectangle, UnalteredColorMaterial>;
 fn get_render_objects_for_layer(
     layer: &TextureLayer<three_d::Texture2DRef>,
     pos: three_d::Vec2,
+    parent_angle: three_d::Degrees,
     direction_mod: f32,
     properties: &RenderProperties,
     expression: DialogueExpression,
@@ -183,13 +185,16 @@ fn get_render_objects_for_layer(
         ((time / 1000. / layer.positioning.animation_length * std::f32::consts::TAU).sin() + 1.)
             / 2.
     };
+    let parent_rotation = three_d::Mat2::from_angle(parent_angle);
     let offset = crate::to_vec(
         layer.positioning.offset.interpolate(animation_factor),
         direction_mod,
     );
+    let offset = parent_rotation * offset;
+    let anchor =
+        pos + offset + parent_rotation * crate::to_vec(layer.positioning.anchor, direction_mod);
     let rotation_value = layer.positioning.rotation.interpolate(animation_factor);
     let rotation_angle = three_d::degrees(direction_mod * rotation_value);
-    let anchor = pos + offset + crate::to_vec(layer.positioning.anchor, direction_mod);
 
     match &layer.textures_or_children {
         aftiktuna::asset::model::TexturesOrChildren::Texture(colored_textures) => {
@@ -203,7 +208,7 @@ fn get_render_objects_for_layer(
                         colored_textures.primary_texture().height() as f32,
                     )
                 });
-            let center = pos + offset + three_d::vec2(0., height / 2.);
+            let center = pos + offset + parent_rotation * three_d::vec2(0., height / 2.);
             let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
             colored_textures
                 .iter()
@@ -211,7 +216,7 @@ fn get_render_objects_for_layer(
                     let rectangle = three_d::Rectangle::new(
                         context,
                         center,
-                        rotation_angle,
+                        parent_angle + rotation_angle,
                         width * direction_mod,
                         height,
                     );
@@ -238,6 +243,7 @@ fn get_render_objects_for_layer(
                     get_render_objects_for_layer(
                         layer,
                         pos,
+                        parent_angle + rotation_angle,
                         direction_mod,
                         properties,
                         expression,

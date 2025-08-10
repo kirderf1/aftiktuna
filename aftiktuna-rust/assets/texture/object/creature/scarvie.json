@@ -15,23 +15,18 @@
       "children": [
         {
           "offset": { "x": 33.0, "y": 56.0 },
+          "anchor": { "x": -5.0, "y": 4.0 },
+          "rotation": [ 0.0, 5.0 ],
+          "animation_length": 3.0,
           "children": [
             {
-              "offset": [
-                { "x": -14.0, "y": -7.0 },
-                { "x": -16.0, "y": -7.0 }
-              ],
+              "offset": { "x": -14.0, "y": -7.0 },
               "anchor": { "x": 3.0, "y": 27.0 },
-              "rotation": [ 3.0, -2.0 ],
+              "rotation": [ 3.0, -7.0 ],
               "animation_length": 3.0,
               "texture": "creature/scarvie/ear"
             },
-            {
-              "anchor": { "x": -5.0, "y": 4.0 },
-              "rotation": [ 0.0, 5.0 ],
-              "animation_length": 3.0,
-              "texture": "creature/scarvie/head"
-            }
+            { "texture": "creature/scarvie/head" }
           ]
         },
         { "texture": "creature/scarvie/body" }
@@ -44,23 +39,18 @@
       "children": [
         {
           "offset": { "x": 33.0, "y": 56.0 },
+          "anchor": { "x": -5.0, "y": 4.0 },
+          "rotation": [ 0.0, -5.0 ],
+          "animation_length": 3.0,
           "children": [
             {
-              "offset": [
-                { "x": -14.0, "y": -7.0 },
-                { "x": -13.0, "y": -6.0 }
-              ],
+              "offset": { "x": -14.0, "y": -7.0 },
               "anchor": { "x": 3.0, "y": 27.0 },
-              "rotation": [ -2.0, 3.0 ],
+              "rotation": [ -2.0, 8.0 ],
               "animation_length": 3.0,
               "texture": "creature/scarvie/ear"
             },
-            {
-              "anchor": { "x": -5.0, "y": 4.0 },
-              "rotation": [ 0.0, -5.0 ],
-              "animation_length": 3.0,
-              "texture": "creature/scarvie/head_wounded"
-            }
+            { "texture": "creature/scarvie/head_wounded" }
           ]
         },
         { "texture": "creature/scarvie/body_wounded" }
