@@ -1,7 +1,7 @@
 use self::area::RenderData;
 pub use self::status::FullStatus;
 pub(crate) use self::status::get_full_status;
-use self::text::Messages;
+use self::text::{IntoMessage, Messages};
 use crate::StopType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression};
@@ -148,6 +148,17 @@ impl Buffer {
 
     pub fn capture_unseen_view(&mut self, state: &mut GameState) {
         if self.unseen_view {
+            self.capture_view(state);
+        }
+    }
+
+    pub fn add_change_message(&mut self, message: impl IntoMessage, state: &mut GameState) {
+        self.messages.add(message);
+        self.flush_hint(state);
+    }
+
+    pub fn flush_hint(&mut self, state: &mut GameState) {
+        if self.messages.len() >= 4 {
             self.capture_view(state);
         }
     }

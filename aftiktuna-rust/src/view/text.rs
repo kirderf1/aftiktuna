@@ -180,6 +180,10 @@ impl Messages {
         self.0.is_empty()
     }
 
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     pub fn add(&mut self, message: impl IntoMessage) {
         self.0.push(message.into_message());
     }

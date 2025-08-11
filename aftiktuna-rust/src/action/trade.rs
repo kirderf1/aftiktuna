@@ -28,7 +28,7 @@ pub fn trade(
 
     context.view_context.add_message_at(shop_pos.get_area(), format!(
         "{performer_name} starts trading with the shopkeeper. \"Welcome to the store. What do you want to buy?\"",
-    ));
+    ), context.state);
     Ok(action::Success)
 }
 
@@ -45,8 +45,7 @@ pub fn buy(
         item::spawn(world, item, Some(price), Held::in_inventory(performer));
     }
 
-    context.view_context.add_message_at(
-        world.get::<&Pos>(performer).unwrap().get_area(),
+    context.view_context.view_buffer.add_change_message(
         format!(
             "{the_performer} bought {an_item}.",
             the_performer = NameData::find(world, performer).definite(),
@@ -54,6 +53,7 @@ pub fn buy(
                 .noun_data()
                 .with_text_count(amount, name::ArticleKind::A),
         ),
+        context.state,
     );
     Ok(action::Success)
 }
@@ -138,12 +138,12 @@ pub fn sell(
         world.despawn(item).unwrap();
     }
 
-    context.view_context.add_message_at(
-        world.get::<&Pos>(performer).unwrap().get_area(),
+    context.view_context.view_buffer.add_change_message(
         format!(
             "{performer_name} sold {items} for {value}.",
             items = text::join_elements(item_list)
         ),
+        context.state,
     );
     Ok(action::Success)
 }
@@ -181,14 +181,9 @@ pub fn exit(context: &mut action::Context, performer: Entity) -> action::Result 
         .remove_one::<IsTrading>(performer)
         .map_err(|_| format!("{performer_name} is already not trading."))?;
 
-    context.view_context.add_message_at(
-        context
-            .state
-            .world
-            .get::<&Pos>(performer)
-            .unwrap()
-            .get_area(),
-        format!("{performer_name} stops trading with the shopkeeper.",),
+    context.view_context.view_buffer.add_change_message(
+        format!("{performer_name} stops trading with the shopkeeper."),
+        context.state,
     );
     Ok(action::Success)
 }

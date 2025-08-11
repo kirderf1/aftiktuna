@@ -68,7 +68,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     {
         context
             .view_context
-            .make_noise_at(&[door_pos.get_area()], world);
+            .make_noise_at(&[door_pos.get_area()], state);
 
         on_door_failure(state, performer, door, block_type);
         return Err(Error::visible(format!(
@@ -103,16 +103,17 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         DoorKind::Path => CombinableMsgType::EnterPath(door, door_name),
     }
     .message(performer_name.clone());
-    view_context.add_message_at(door_pos.get_area(), message);
+    view_context.add_message_at(door_pos.get_area(), message, state);
 
     view_context.add_message_at(
         door_data.destination.get_area(),
         CombinableMsgType::Arrive(door).message(performer_name),
+        state,
     );
 
     view_context.make_noise_at(
         &[door_pos.get_area(), door_data.destination.get_area()],
-        world,
+        state,
     );
 
     Ok(action::Success)
@@ -184,7 +185,11 @@ pub(super) fn force_door(
                 }
             }
 
-            view_context.add_message_at(door_pos.get_area(), tool.into_message(&performer_name));
+            view_context.add_message_at(
+                door_pos.get_area(),
+                tool.into_message(&performer_name),
+                state,
+            );
             Ok(action::Success)
         }
     }

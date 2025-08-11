@@ -74,7 +74,7 @@ pub(super) fn take_item(
             "{the_performer} tries to pick up {the_item}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
             the_performer = performer_name.definite(),
             the_item = item_name.definite(),
-        ));
+        ), context.state);
         return Ok(action::Success);
     }
 
@@ -87,6 +87,7 @@ pub(super) fn take_item(
     context.view_context.add_message_at(
         item_pos.get_area(),
         CombinableMsgType::PickUp(performer_name).message(item_name),
+        context.state,
     );
     Ok(action::Success)
 }
@@ -127,7 +128,7 @@ impl SearchAction {
         if items.is_empty() {
             context.view_context.add_message_at(container_pos.get_area(), format!(
                 "{performer_name} searched {container_name}, but did not find anything of interest."
-            ));
+            ), context.state);
             return Ok(action::Success);
         }
 
@@ -146,6 +147,7 @@ impl SearchAction {
                 "{performer_name} searched {container_name} and found {items}.",
                 items = text::join_elements(items)
             ),
+            context.state,
         );
         Ok(action::Success)
     }
@@ -220,6 +222,7 @@ pub(super) fn give_item(
             "{performer_name} gave {receiver_name} a {}.",
             NameData::find(world, item).base()
         ),
+        state,
     );
     Ok(action::Success)
 }
@@ -237,9 +240,11 @@ pub(super) fn wield(
         inventory::unwield_if_needed(world, performer);
         world.insert_one(item, Held::in_hand(performer)).unwrap();
 
+        let performer_area = world.get::<&Pos>(performer).unwrap().get_area();
         context.view_context.add_message_at(
-            world.get::<&Pos>(performer).unwrap().get_area(),
+            performer_area,
             format!("{performer_name} wielded {}.", item_name.definite()),
+            context.state,
         );
         Ok(action::Success)
     } else {
@@ -261,6 +266,7 @@ pub(super) fn wield(
                 "{performer_name} picked up and wielded {}.",
                 item_name.definite()
             ),
+            context.state,
         );
         Ok(action::Success)
     }
@@ -310,7 +316,8 @@ impl UseAction {
 
             context.view_context.add_message_at(
                 area,
-                format!("{performer_name} used a medkit and recovered some health.",),
+                format!("{performer_name} used a medkit and recovered some health."),
+                context.state,
             );
             return Ok(action::Success);
         }
@@ -326,7 +333,7 @@ impl UseAction {
                 let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
                     context.view_context.add_message_at(area, format!(
                         "{performer_name} holds up and inspects the orb, but can't figure out what it is."
-                    ));
+                    ), context.state);
                     return Ok(action::Success);
                 };
 
@@ -339,6 +346,7 @@ impl UseAction {
                      {performer_name} gets a sensation of hardiness when suddenly, \
                      the orb cracks and falls apart into worthless pieces! (Stats have changed)"
                     ),
+                    context.state,
                 );
                 Ok(action::Success)
             }

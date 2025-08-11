@@ -42,7 +42,7 @@ pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Resul
             .status = new_status;
     }
 
-    context.view_context.add_message_at(area, message);
+    context.view_context.add_message_at(area, message, state);
     Ok(action::Success)
 }
 
@@ -84,7 +84,7 @@ pub fn launch(context: &mut action::Context, performer: Entity) -> action::Resul
             .status = new_status;
     }
 
-    context.view_context.add_message_at(area, message);
+    context.view_context.add_message_at(area, message, state);
     Ok(action::Success)
 }
 

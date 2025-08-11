@@ -107,6 +107,7 @@ fn attack_single(
                 "{attacker_name} readies a powerful attack.",
                 attacker_name = NameWithAttribute::lookup(attacker, world).definite()
             ),
+            context.state,
         );
         Ok(action::Success)
     } else {
@@ -210,6 +211,7 @@ fn perform_attack(
         HitType::Dodge => context.view_context.add_message_at(
             attacker_area,
             format!("{attack_text}, but {target_name} dodges the attack."),
+            context.state,
         ),
         HitType::GrazingHit => {
             let effect = perform_attack_hit(
@@ -227,6 +229,7 @@ fn perform_attack(
             context.view_context.add_message_at(
                 attacker_area,
                 format!("{attack_text} and narrowly {hit_verb} them{effect_text}."),
+                context.state,
             );
         }
         HitType::DirectHit => {
@@ -245,11 +248,14 @@ fn perform_attack(
             context.view_context.add_message_at(
                 attacker_area,
                 format!("{attack_text} and directly {hit_verb} them{effect_text}."),
+                context.state,
             );
         }
     }
 
-    context.view_context.make_noise_at(&[attacker_area], world);
+    context
+        .view_context
+        .make_noise_at(&[attacker_area], context.state);
 
     Ok(action::Success)
 }

@@ -163,7 +163,7 @@ fn perform(
                         .get::<&Pos>(performer)
                         .is_ok_and(|pos| pos.is_in(player_area))
             {
-                view_buffer.messages.add(error.message);
+                view_buffer.add_change_message(error.message, state);
                 view_buffer.capture_view(state);
             }
         }
@@ -189,24 +189,33 @@ struct ViewContext<'a> {
 }
 
 impl<'a> ViewContext<'a> {
-    fn add_message_at(&mut self, area: Entity, message: impl IntoMessage) {
+    fn add_message_at(&mut self, area: Entity, message: impl IntoMessage, state: &mut GameState) {
         if area == self.player_area {
-            self.view_buffer.messages.add(message);
+            self.view_buffer.add_change_message(message, state);
         }
     }
 
-    fn make_noise_at(&mut self, areas: &[Entity], world: &World) {
-        if areas.contains(&self.player_area) {
+    fn make_noise_at(&mut self, noise_source_areas: &[Entity], state: &mut GameState) {
+        if noise_source_areas.contains(&self.player_area) {
             return;
         }
 
-        for (_, (door, pos, name_query)) in world.query::<(&Door, &Pos, NameQuery)>().iter() {
-            if areas.contains(&door.destination.get_area()) && !areas.contains(&pos.get_area()) {
-                self.add_message_at(
-                    pos.get_area(),
-                    CombinableMsgType::Noise.message(NameData::from(name_query)),
-                );
-            }
+        let noise_targets = state
+            .world
+            .query::<(&Door, &Pos, NameQuery)>()
+            .iter()
+            .filter(|(_, (door, pos, _))| {
+                noise_source_areas.contains(&door.destination.get_area())
+                    && !noise_source_areas.contains(&pos.get_area())
+            })
+            .map(|(_, (_, pos, name_query))| (pos.get_area(), NameData::from(name_query)))
+            .collect::<Vec<_>>();
+        for (door_area, door_name) in noise_targets {
+            self.add_message_at(
+                door_area,
+                CombinableMsgType::Noise.message(door_name),
+                state,
+            );
         }
     }
 
@@ -238,9 +247,11 @@ fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> R
     }
 
     if first_turn_resting {
-        context
-            .view_context
-            .add_message_at(area, "The crew takes some time to rest up.");
+        context.view_context.add_message_at(
+            area,
+            "The crew takes some time to rest up.",
+            context.state,
+        );
     }
     Ok(Success)
 }
@@ -266,6 +277,7 @@ fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result
             "{} opened the fortuna chest and found the item that they desired the most.",
             NameData::find(world, performer).definite()
         ),
+        context.state,
     );
     Ok(Success)
 }
@@ -332,6 +344,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
     context.view_context.add_message_at(
         target_pos.get_area(),
         format!("{performer_name} offered a food ration to {target_name} and tamed it."),
+        context.state,
     );
 
     Ok(Success)
@@ -363,6 +376,7 @@ fn give_name(context: &mut Context, performer: Entity, target: Entity, name: Str
     context.view_context.add_message_at(
         target_pos.get_area(),
         format!("{performer_name} dubbed {target_name} to be named {name}."),
+        context.state,
     );
     Ok(Success)
 }

@@ -84,10 +84,9 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
             let name = NameData::find(&state.world, target).definite();
             state.world.insert_one(target, CrewMember(crew)).unwrap();
 
-            view_context.add_message_at(
-                state.world.get::<&Pos>(performer).unwrap().get_area(),
-                format!("{name} joined the crew!"),
-            );
+            view_context
+                .view_buffer
+                .add_change_message(format!("{name} joined the crew!"), state);
             Some(Ok(action::Success))
         },
     )
@@ -278,6 +277,7 @@ fn full_dialogue_action(
         context.view_context.add_message_at(
             performer_pos.get_area(),
             format!("{performer_name} finishes talking with {target_name}."),
+            context.state,
         );
         Ok(action::Success)
     })

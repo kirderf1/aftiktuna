@@ -105,6 +105,7 @@ fn run_step(
             Ok(Step::PrepareTick)
         }
         Step::PrepareTick => {
+            view_buffer.flush_hint(state);
             ai::prepare_intentions(&mut state.world);
             Ok(Step::Tick(if should_controlled_character_wait(state) {
                 Some((Action::Wait, command::Target::Controlled))
