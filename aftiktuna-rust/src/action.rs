@@ -1,4 +1,4 @@
-use crate::core::item::{FoodRation, Type as ItemType};
+use crate::core::item::{FoodRation, ItemType};
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{

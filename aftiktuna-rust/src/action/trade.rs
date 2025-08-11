@@ -1,11 +1,11 @@
 use crate::action::{self, Error};
 use crate::core::area::{FuelAmount, ShipState, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::{FuelCan, Price};
+use crate::core::item::{self, FuelCan, ItemType, Price};
 use crate::core::name::{self, NameData};
 use crate::core::position::{self, Pos};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
-use crate::core::{CrewMember, item};
+use crate::core::CrewMember;
 use crate::view::text;
 use hecs::{Entity, EntityRef, World};
 
@@ -35,7 +35,7 @@ pub fn trade(
 pub fn buy(
     context: &mut action::Context,
     performer: Entity,
-    item_type: item::Type,
+    item_type: ItemType,
     amount: u16,
 ) -> action::Result {
     let world = &mut context.state.world;
@@ -61,9 +61,9 @@ pub fn buy(
 fn try_buy(
     world: &mut World,
     performer: Entity,
-    item_type: item::Type,
+    item_type: ItemType,
     amount: u16,
-) -> Result<(item::Type, Price), String> {
+) -> Result<(ItemType, Price), String> {
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
         .get::<&IsTrading>(performer)
@@ -88,7 +88,7 @@ fn try_buy(
     Ok((stock.item, stock.price))
 }
 
-fn find_stock(shopkeeper: &mut Shopkeeper, item_type: item::Type) -> Option<&mut StoreStock> {
+fn find_stock(shopkeeper: &mut Shopkeeper, item_type: ItemType) -> Option<&mut StoreStock> {
     shopkeeper
         .0
         .iter_mut()

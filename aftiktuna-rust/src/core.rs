@@ -160,7 +160,7 @@ pub mod store {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct StoreStock {
-        pub item: item::Type,
+        pub item: item::ItemType,
         pub price: item::Price,
         pub quantity: StockQuantity,
     }
@@ -362,7 +362,7 @@ pub struct Reward {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     points: i32,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    items: Vec<item::Type>,
+    items: Vec<item::ItemType>,
 }
 
 impl Reward {

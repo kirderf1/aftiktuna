@@ -8,10 +8,11 @@ mod ui {
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
         SymbolData, SymbolMap,
     };
+    use aftiktuna::core::BlockType;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::display::{AftikColorId, ModelId};
+    use aftiktuna::core::item::ItemType;
     use aftiktuna::core::position::Direction;
-    use aftiktuna::core::{BlockType, item};
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
     use std::mem;
@@ -377,7 +378,7 @@ mod ui {
                         old_char: None,
                         new_char: String::new(),
                         symbol_data: SymbolData::Item {
-                            item: item::Type::MeteorChunk,
+                            item: ItemType::MeteorChunk,
                         },
                     })
                 }
@@ -552,7 +553,7 @@ mod ui {
                 ui.horizontal(|ui| {
                     if ui.button("Add").clicked() {
                         content.push(ItemOrLoot::Item {
-                            item: item::Type::AncientCoin,
+                            item: ItemType::AncientCoin,
                         });
                     }
                     if ui.button("Remove").clicked() {

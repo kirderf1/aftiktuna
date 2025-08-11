@@ -3,7 +3,7 @@ use crate::asset::CrewData;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
-use crate::core::item::{self, FoodRation, FourLeafClover};
+use crate::core::item::{FoodRation, FourLeafClover, ItemType};
 use crate::core::name::{self, ArticleKind, Name, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
@@ -555,7 +555,7 @@ fn build_eating_message(crew_eating_rations: Vec<(Entity, u16)>, world: &World) 
         format!(
             "{the_character} ate {one_ration} to recover some health.",
             the_character = NameData::find(world, entity).definite(),
-            one_ration = item::Type::FoodRation
+            one_ration = ItemType::FoodRation
                 .noun_data()
                 .with_text_count(amount, ArticleKind::One),
         )

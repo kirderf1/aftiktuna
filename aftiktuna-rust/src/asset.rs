@@ -64,7 +64,7 @@ pub mod color {
 }
 
 pub mod loot {
-    use crate::core::item;
+    use crate::core::item::ItemType;
     use rand::Rng;
     use rand::distr::weighted::WeightedIndex;
     use serde::{Deserialize, Serialize};
@@ -81,7 +81,7 @@ pub mod loot {
 
     #[derive(Debug, Deserialize)]
     struct LootEntry {
-        item: item::Type,
+        item: ItemType,
         weight: u16,
     }
 
@@ -101,7 +101,7 @@ pub mod loot {
             })
         }
 
-        pub(crate) fn pick_loot_item(&self, rng: &mut impl Rng) -> item::Type {
+        pub(crate) fn pick_loot_item(&self, rng: &mut impl Rng) -> ItemType {
             self.entries[rng.sample(&self.index_distribution)].item
         }
     }

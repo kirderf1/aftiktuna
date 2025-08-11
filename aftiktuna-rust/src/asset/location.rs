@@ -1,11 +1,12 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
     use crate::core::display::{AftikColorId, ModelId};
+    use crate::core::item::{self, ItemType};
     use crate::core::name::{IndefiniteArticle, Noun};
     use crate::core::position::Direction;
     use crate::core::status::Stats;
     use crate::core::store::StockQuantity;
-    use crate::core::{AttackSet, CreatureAttribute, GivesHuntReward, Tag, UnarmedType, item};
+    use crate::core::{AttackSet, CreatureAttribute, GivesHuntReward, Tag, UnarmedType};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -180,7 +181,7 @@ pub mod creature {
 
     #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
     pub struct StockDefinition {
-        pub item: item::Type,
+        pub item: ItemType,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub price: Option<item::Price>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -192,9 +193,10 @@ use crate::asset::background::ParallaxLayer;
 use crate::asset::loot::{self, LootTableId};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
+use crate::core::item::ItemType;
 use crate::core::name::{IndefiniteArticle, Noun};
 use crate::core::position::Direction;
-use crate::core::{BlockType, DoorKind, item};
+use crate::core::{BlockType, DoorKind};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -265,7 +267,7 @@ pub enum SymbolData {
     },
     FoodDeposit,
     Item {
-        item: item::Type,
+        item: ItemType,
     },
     Loot {
         table: loot::LootTableId,
@@ -460,7 +462,7 @@ impl ContainerType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ItemOrLoot {
-    Item { item: item::Type },
+    Item { item: ItemType },
     Loot { table: LootTableId },
 }
 

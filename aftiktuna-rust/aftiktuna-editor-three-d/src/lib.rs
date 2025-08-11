@@ -3,7 +3,7 @@ use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::{ProfileOrRandom, background};
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
-use aftiktuna::core::item;
+use aftiktuna::core::item::ItemType;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
@@ -36,11 +36,11 @@ pub fn option_direction_editor(
         });
 }
 
-pub fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut item::Type, id: impl Hash) {
+pub fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut ItemType, id: impl Hash) {
     egui::ComboBox::new(id, "Item Type")
         .selected_text(edited_type.noun_data().singular())
         .show_ui(ui, |ui| {
-            for selectable_type in item::Type::variants() {
+            for selectable_type in ItemType::variants() {
                 ui.selectable_value(
                     edited_type,
                     *selectable_type,
@@ -71,7 +71,7 @@ pub fn item_or_loot_editor(ui: &mut egui::Ui, item_or_loot: &mut ItemOrLoot, id:
             let is_item = matches!(item_or_loot, ItemOrLoot::Item { .. });
             if ui.selectable_label(is_item, "Item").clicked() && !is_item {
                 *item_or_loot = ItemOrLoot::Item {
-                    item: item::Type::AncientCoin,
+                    item: ItemType::AncientCoin,
                 };
             }
             let is_loot = matches!(item_or_loot, ItemOrLoot::Loot { .. });

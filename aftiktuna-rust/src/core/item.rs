@@ -71,7 +71,7 @@ impl Price {
 // A type handy for spawning a variable type of item
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum Type {
+pub enum ItemType {
     FuelCan,
     FoodRation,
     Crowbar,
@@ -86,9 +86,9 @@ pub enum Type {
     FourLeafClover,
 }
 
-impl Type {
+impl ItemType {
     pub fn variants() -> &'static [Self] {
-        use Type::*;
+        use ItemType::*;
         &[
             FuelCan,
             FoodRation,
@@ -109,19 +109,20 @@ impl Type {
     }
 
     pub fn noun_data(self) -> Noun {
+        use ItemType::*;
         match self {
-            Type::FuelCan => Noun::new("fuel can", "fuel cans", IndefiniteArticle::A),
-            Type::FoodRation => Noun::new("food ration", "food rations", IndefiniteArticle::A),
-            Type::Crowbar => Noun::new("crowbar", "crowbars", IndefiniteArticle::A),
-            Type::Blowtorch => Noun::new("blowtorch", "blowtorches", IndefiniteArticle::A),
-            Type::Knife => Noun::new("knife", "knives", IndefiniteArticle::A),
-            Type::Bat => Noun::new("bat", "bats", IndefiniteArticle::A),
-            Type::Sword => Noun::new("sword", "swords", IndefiniteArticle::A),
-            Type::Medkit => Noun::new("medkit", "medkits", IndefiniteArticle::A),
-            Type::MeteorChunk => Noun::new("meteor chunk", "meteor chunks", IndefiniteArticle::A),
-            Type::AncientCoin => Noun::new("ancient coin", "ancient coins", IndefiniteArticle::An),
-            Type::BlackOrb => Noun::new("black orb", "black orbs", IndefiniteArticle::A),
-            Type::FourLeafClover => Noun::new(
+            FuelCan => Noun::new("fuel can", "fuel cans", IndefiniteArticle::A),
+            FoodRation => Noun::new("food ration", "food rations", IndefiniteArticle::A),
+            Crowbar => Noun::new("crowbar", "crowbars", IndefiniteArticle::A),
+            Blowtorch => Noun::new("blowtorch", "blowtorches", IndefiniteArticle::A),
+            Knife => Noun::new("knife", "knives", IndefiniteArticle::A),
+            Bat => Noun::new("bat", "bats", IndefiniteArticle::A),
+            Sword => Noun::new("sword", "swords", IndefiniteArticle::A),
+            Medkit => Noun::new("medkit", "medkits", IndefiniteArticle::A),
+            MeteorChunk => Noun::new("meteor chunk", "meteor chunks", IndefiniteArticle::A),
+            AncientCoin => Noun::new("ancient coin", "ancient coins", IndefiniteArticle::An),
+            BlackOrb => Noun::new("black orb", "black orbs", IndefiniteArticle::A),
+            FourLeafClover => Noun::new(
                 "four-leaf clover",
                 "four-leaf clovers",
                 IndefiniteArticle::A,
@@ -130,63 +131,66 @@ impl Type {
     }
 
     pub fn symbol(self) -> Symbol {
+        use ItemType::*;
         Symbol(match self {
-            Type::FuelCan => 'f',
-            Type::FoodRation => '%',
-            Type::Crowbar => 'c',
-            Type::Blowtorch => 'b',
-            Type::Knife => 'K',
-            Type::Bat => 'B',
-            Type::Sword => 's',
-            Type::Medkit => '+',
-            Type::MeteorChunk => 'm',
-            Type::AncientCoin => 'a',
-            Type::BlackOrb => 'o',
-            Type::FourLeafClover => '*',
+            FuelCan => 'f',
+            FoodRation => '%',
+            Crowbar => 'c',
+            Blowtorch => 'b',
+            Knife => 'K',
+            Bat => 'B',
+            Sword => 's',
+            Medkit => '+',
+            MeteorChunk => 'm',
+            AncientCoin => 'a',
+            BlackOrb => 'o',
+            FourLeafClover => '*',
         })
     }
 
     pub fn price(self) -> Option<Price> {
+        use ItemType::*;
         match self {
-            Type::FuelCan => Some(3500),
-            Type::FoodRation => Some(500),
-            Type::Crowbar => Some(2000),
-            Type::Blowtorch => Some(6000),
-            Type::Knife => Some(300),
-            Type::Bat => Some(1000),
-            Type::Sword => Some(5000),
-            Type::Medkit => Some(4000),
-            Type::MeteorChunk => Some(2500),
-            Type::AncientCoin => Some(500),
-            Type::BlackOrb => Some(8000),
+            FuelCan => Some(3500),
+            FoodRation => Some(500),
+            Crowbar => Some(2000),
+            Blowtorch => Some(6000),
+            Knife => Some(300),
+            Bat => Some(1000),
+            Sword => Some(5000),
+            Medkit => Some(4000),
+            MeteorChunk => Some(2500),
+            AncientCoin => Some(500),
+            BlackOrb => Some(8000),
             _ => None,
         }
         .map(Price)
     }
 }
 
-impl From<Type> for ModelId {
-    fn from(item: Type) -> Self {
+impl From<ItemType> for ModelId {
+    fn from(item: ItemType) -> Self {
+        use ItemType::*;
         ModelId::item(match item {
-            Type::FuelCan => "fuel_can",
-            Type::FoodRation => "food_ration",
-            Type::Crowbar => "crowbar",
-            Type::Blowtorch => "blowtorch",
-            Type::Knife => "knife",
-            Type::Bat => "bat",
-            Type::Sword => "sword",
-            Type::Medkit => "medkit",
-            Type::MeteorChunk => "meteor_chunk",
-            Type::AncientCoin => "ancient_coin",
-            Type::BlackOrb => "black_orb",
-            Type::FourLeafClover => "four_leaf_clover",
+            FuelCan => "fuel_can",
+            FoodRation => "food_ration",
+            Crowbar => "crowbar",
+            Blowtorch => "blowtorch",
+            Knife => "knife",
+            Bat => "bat",
+            Sword => "sword",
+            Medkit => "medkit",
+            MeteorChunk => "meteor_chunk",
+            AncientCoin => "ancient_coin",
+            BlackOrb => "black_orb",
+            FourLeafClover => "four_leaf_clover",
         })
     }
 }
 
 pub fn spawn(
     world: &mut World,
-    item_type: Type,
+    item_type: ItemType,
     price: Option<Price>,
     location: impl Component,
 ) -> Entity {
@@ -204,34 +208,34 @@ pub fn spawn(
     }
 
     match item_type {
-        Type::FuelCan => {
+        ItemType::FuelCan => {
             builder.add(FuelCan);
         }
-        Type::FoodRation => {
+        ItemType::FoodRation => {
             builder.add(FoodRation);
         }
-        Type::Crowbar => {
+        ItemType::Crowbar => {
             builder.add_bundle((Tool::Crowbar, CanWield, Weapon(3.0), AttackSet::Light));
         }
-        Type::Blowtorch => {
+        ItemType::Blowtorch => {
             builder.add(Tool::Blowtorch);
         }
-        Type::Knife => {
+        ItemType::Knife => {
             builder.add_bundle((CanWield, Weapon(3.0), AttackSet::Quick));
         }
-        Type::Bat => {
+        ItemType::Bat => {
             builder.add_bundle((CanWield, StunAttack, Weapon(3.0), AttackSet::Intense));
         }
-        Type::Sword => {
+        ItemType::Sword => {
             builder.add_bundle((CanWield, Weapon(5.0), AttackSet::Quick));
         }
-        Type::Medkit => {
+        ItemType::Medkit => {
             builder.add(Medkit);
         }
-        Type::BlackOrb => {
+        ItemType::BlackOrb => {
             builder.add(Usable::BlackOrb);
         }
-        Type::FourLeafClover => {
+        ItemType::FourLeafClover => {
             builder.add(FourLeafClover);
         }
         _ => {}
