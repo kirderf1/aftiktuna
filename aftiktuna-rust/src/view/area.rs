@@ -117,7 +117,6 @@ pub struct ObjectRenderData {
     pub coord: Coord,
     pub weight: OrderWeight,
     pub model_id: ModelId,
-    #[serde(default)] // backwards-compatibility with 4.0
     pub hash: u64,
     pub name_data: Option<ObjectNameData>,
     pub wielded_item: Option<ModelId>,

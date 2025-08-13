@@ -313,7 +313,6 @@ pub struct DialogueFrameData {
     pub direction: Direction,
     pub is_badly_hurt: bool,
     pub darkness: f32,
-    #[serde(default)] // backwards-compatibility with 4.0
     pub expression: DialogueExpression,
 }
 

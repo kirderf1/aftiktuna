@@ -151,7 +151,7 @@ pub mod world {
 
     world_serialization!(
         area::Area, Area;
-        area::ShipState, Ship;
+        area::ShipState, ShipState;
         area::ShipRoom, ShipRoom;
         area::ShipControls, ShipControls;
         position::Pos, Pos;

@@ -29,7 +29,6 @@ pub struct GameState {
     #[serde(skip)]
     pub rng: ThreadRng,
     pub generation_state: GenerationState,
-    #[serde(alias = "ship")] // backwards-compatibility with 4.0
     pub ship_core: Entity,
     pub controlled: Entity,
     pub status_cache: StatusCache,

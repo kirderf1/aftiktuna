@@ -330,7 +330,6 @@ impl CreatureAttribute {
 
 #[derive(Serialize, Deserialize)]
 pub struct Waiting {
-    #[serde(default)] // backwards-compatibility with 4.0
     pub at_ship: bool,
 }
 
@@ -340,21 +339,11 @@ pub struct Recruitable;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
     pub target_tag: Tag,
-    #[serde(default = "neutral")] // backwards-compatibility with 4.0
     pub task_expression: DialogueExpression,
     pub task_message: String,
-    #[serde(default = "excited")] // backwards-compatibility with 4.0
     pub reward_expression: DialogueExpression,
     pub reward_message: String,
     pub reward: Reward,
-}
-
-fn neutral() -> DialogueExpression {
-    DialogueExpression::Neutral
-}
-
-fn excited() -> DialogueExpression {
-    DialogueExpression::Excited
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
