@@ -5,7 +5,6 @@ use self::text::{IntoMessage, Messages};
 use crate::StopType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression};
-use crate::core::name::NameData;
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::store::IsTrading;
@@ -20,7 +19,7 @@ mod status;
 pub mod text;
 
 mod store {
-    use super::{Buffer, Frame, StatusCache, status, text};
+    use super::{Buffer, Frame, StatusCache, status};
     use crate::core::area::{Area, BackgroundId};
     use crate::core::display::AftikColorId;
     use crate::core::inventory::Held;
@@ -39,40 +38,6 @@ mod store {
         pub background: BackgroundId,
         pub points: i32,
         pub sellable_items: Vec<NameData>,
-    }
-
-    impl StoreView {
-        pub fn push_store_view_lines(&self, text_lines: &mut Vec<String>) {
-            let items = self
-                .items
-                .iter()
-                .map(|stock| {
-                    (
-                        text::capitalize(stock.item.noun_data().singular()),
-                        format!("{price}p", price = stock.price.buy_price()),
-                        stock.quantity,
-                    )
-                })
-                .collect::<Vec<_>>();
-
-            let names_length = items
-                .iter()
-                .map(|(name, _, _)| name.len())
-                .max()
-                .unwrap_or(0);
-            let prices_length = items
-                .iter()
-                .map(|(_, price, _)| price.len())
-                .max()
-                .unwrap_or(0);
-
-            for (name, price, quantity) in items {
-                text_lines.push(format!(
-                    "{name:names_length$} | {price:prices_length$} | {quantity}"
-                ));
-            }
-            text_lines.push(format!("Crew points: {}p", self.points));
-        }
     }
 
     pub fn store_frame(
@@ -231,55 +196,6 @@ pub enum Frame {
 }
 
 impl Frame {
-    pub fn as_text(&self) -> Vec<String> {
-        let mut text_lines = Vec::new();
-        match self {
-            Frame::Introduction => {
-                return intro_messages();
-            }
-            Frame::AreaView {
-                messages,
-                render_data,
-            } => {
-                text_lines.push("--------------------".into());
-                area::push_area_view_lines(&mut text_lines, render_data);
-
-                if !messages.is_empty() {
-                    text_lines.push(String::default());
-
-                    text_lines.extend(messages.clone());
-                }
-            }
-            Frame::Dialogue { messages, data } => {
-                text_lines.push(format!("{}:", text::capitalize(data.speaker.definite())));
-                text_lines.extend(messages.clone());
-            }
-            Frame::StoreView { view, messages, .. } => {
-                text_lines.push("--------------------".into());
-                view.push_store_view_lines(&mut text_lines);
-
-                if !messages.is_empty() {
-                    text_lines.push(String::default());
-
-                    text_lines.extend(messages.clone());
-                }
-            }
-            Frame::LocationChoice(choice) => {
-                text_lines.push("--------------------".into());
-                text_lines.extend(choice.presentation_text_lines());
-            }
-            Frame::Error(message) => {
-                text_lines.push("--------------------".into());
-                text_lines.push(message.to_owned());
-            }
-            Frame::Ending { stop_type, .. } => {
-                text_lines.push(String::default());
-                text_lines.extend(stop_type_messages(*stop_type).into_text());
-            }
-        }
-        text_lines
-    }
-
     fn has_messages(&self) -> bool {
         match self {
             Frame::AreaView { messages, .. }
@@ -308,7 +224,6 @@ impl Frame {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DialogueFrameData {
     pub background: BackgroundId,
-    pub speaker: NameData,
     pub color: Option<AftikColorId>,
     pub direction: Direction,
     pub is_badly_hurt: bool,
@@ -323,7 +238,6 @@ impl DialogueFrameData {
         let area = world.get::<&Area>(area).unwrap();
         Self {
             background: area.background.clone(),
-            speaker: NameData::find_by_ref(character_ref),
             color: character_ref.get::<&AftikColorId>().as_deref().cloned(),
             direction: character_ref
                 .get::<&Direction>()

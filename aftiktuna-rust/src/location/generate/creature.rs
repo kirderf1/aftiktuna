@@ -4,7 +4,7 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
-use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
+use crate::core::display::{AftikColorId, ModelId, OrderWeight};
 use crate::core::name::{IndefiniteArticle, Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
@@ -40,7 +40,6 @@ fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<Cre
 pub(super) fn place_creature(
     spawn_data: &CreatureSpawnData,
     pos: Pos,
-    symbol: Symbol,
     gen_context: &mut LocationGenContext,
 ) {
     let health = Health::from_fraction(spawn_data.health);
@@ -63,7 +62,6 @@ pub(super) fn place_creature(
     builder.add_bundle((
         spawn_data.creature.model_id(),
         spawn_data.creature.noun(),
-        symbol,
         OrderWeight::Creature,
         pos,
         direction,

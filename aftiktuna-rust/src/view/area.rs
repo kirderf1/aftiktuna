@@ -2,7 +2,7 @@ use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, ModelId, OrderWeight, Symbol};
+use crate::core::display::{AftikColorId, ModelId, OrderWeight};
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, Medkit, Usable};
 use crate::core::name::{NameData, NameWithAttribute};
@@ -14,94 +14,10 @@ use crate::game_loop::GameState;
 use crate::view::text;
 use hecs::{Entity, EntityRef, Or, World};
 use serde::{Deserialize, Serialize};
-use std::cmp::max;
-use std::collections::HashMap;
 use std::ops::Deref;
-
-pub(super) fn push_area_view_lines(text_lines: &mut Vec<String>, render_data: &RenderData) {
-    text_lines.push(format!("{name}:", name = render_data.area_label));
-
-    let area_size = render_data.area_size;
-    let mut symbols_by_pos: Vec<Vec<(Symbol, OrderWeight)>> =
-        init_symbol_vectors(area_size as usize);
-    let mut labels: HashMap<Symbol, String> = HashMap::new();
-
-    for object in &render_data.objects {
-        if let Some(name_data) = &object.name_data {
-            let symbol = insert_label_at_available_symbol(name_data, &mut labels);
-
-            symbols_by_pos[object.coord as usize].push((symbol, object.weight));
-        }
-    }
-
-    for symbol_column in &mut symbols_by_pos {
-        symbol_column.sort_by(|a, b| b.1.cmp(&a.1));
-    }
-
-    let rows: usize = max(1, symbols_by_pos.iter().map(Vec::len).max().unwrap());
-    for row in (0..rows).rev() {
-        let base_symbol = if row == 0 { '_' } else { ' ' };
-        let mut symbols = vec![base_symbol; area_size as usize];
-        for pos in 0..symbols.len() {
-            if let Some(&(symbol, _)) = symbols_by_pos[pos].get(row) {
-                symbols[pos] = symbol.0;
-            }
-        }
-        text_lines.push(symbols.iter().collect::<String>());
-    }
-
-    let mut labels = labels
-        .into_iter()
-        .map(|(Symbol(c), label)| format!("{c}: {label}"))
-        .collect::<Vec<_>>();
-    labels.sort();
-    for labels in labels.chunks(3) {
-        text_lines.push(labels.join("   "));
-    }
-}
-
-fn init_symbol_vectors<T>(size: usize) -> Vec<Vec<T>> {
-    let mut symbols = Vec::with_capacity(size);
-    for _ in 0..size {
-        symbols.push(Vec::new());
-    }
-    symbols
-}
-
-const BACKUP_CHARS: [char; 56] = [
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i',
-    'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'A', 'B', 'C', 'D', 'E',
-    'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
-];
-
-fn insert_label_at_available_symbol(
-    name_data: &ObjectNameData,
-    labels: &mut HashMap<Symbol, String>,
-) -> Symbol {
-    let label = &name_data.modified_name;
-    for symbol in [name_data.symbol]
-        .into_iter()
-        .chain(BACKUP_CHARS.into_iter().map::<Symbol, _>(Symbol))
-    {
-        let existing_label = labels.get(&symbol);
-
-        if existing_label.is_none() {
-            labels.insert(symbol, label.to_owned());
-            return symbol;
-        }
-        let existing_label = existing_label.unwrap();
-        if existing_label.eq(label) {
-            return symbol;
-        }
-    }
-
-    eprintln!("Too many unique symbols. Some symbols will overlap.");
-    name_data.symbol
-}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RenderData {
-    pub area_label: String,
     pub area_size: Coord,
     pub background: BackgroundId,
     pub background_offset: i32,
@@ -129,7 +45,6 @@ pub struct ObjectRenderData {
 pub struct ObjectNameData {
     pub modified_name: String,
     pub name: String,
-    pub symbol: Symbol,
 }
 
 impl ObjectNameData {
@@ -138,10 +53,6 @@ impl ObjectNameData {
         Some(Self {
             modified_name: text::capitalize(get_extended_name(&name, entity_ref, world)),
             name: text::capitalize(&name),
-            symbol: entity_ref
-                .get::<&Symbol>()
-                .map(deref_clone)
-                .unwrap_or_else(|| Symbol::from_name(&name)),
         })
     }
 }
@@ -227,7 +138,6 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
         .map(|item| ItemProfile::create(state.world.entity(item).unwrap()))
         .collect();
     RenderData {
-        area_label: area.label.clone(),
         area_size: area.size,
         background: area.background.clone(),
         background_offset: area.background_offset,

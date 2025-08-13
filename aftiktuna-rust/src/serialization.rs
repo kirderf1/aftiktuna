@@ -161,7 +161,6 @@ pub mod world {
         name::Name, Name;
         name::Noun, Noun;
         core::CreatureAttribute, CreatureAttribute;
-        display::Symbol, Symbol;
         display::ModelId, TextureType;
         display::OrderWeight, OrderWeight;
         display::AftikColorId, AftikColor;

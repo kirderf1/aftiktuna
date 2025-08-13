@@ -1,4 +1,4 @@
-use super::display::{ModelId, OrderWeight, Symbol};
+use super::display::{ModelId, OrderWeight};
 use crate::core::AttackSet;
 use crate::core::name::{IndefiniteArticle, Noun};
 use crate::view::text::Messages;
@@ -130,24 +130,6 @@ impl ItemType {
         }
     }
 
-    pub fn symbol(self) -> Symbol {
-        use ItemType::*;
-        Symbol(match self {
-            FuelCan => 'f',
-            FoodRation => '%',
-            Crowbar => 'c',
-            Blowtorch => 'b',
-            Knife => 'K',
-            Bat => 'B',
-            Sword => 's',
-            Medkit => '+',
-            MeteorChunk => 'm',
-            AncientCoin => 'a',
-            BlackOrb => 'o',
-            FourLeafClover => '*',
-        })
-    }
-
     pub fn price(self) -> Option<Price> {
         use ItemType::*;
         match self {
@@ -198,7 +180,6 @@ pub fn spawn(
     builder.add_bundle((
         location,
         Item,
-        item_type.symbol(),
         ModelId::from(item_type),
         OrderWeight::Item,
         item_type.noun_data(),

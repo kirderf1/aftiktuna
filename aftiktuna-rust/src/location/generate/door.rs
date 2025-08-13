@@ -1,6 +1,6 @@
 use super::Builder;
 use crate::asset::location::{DoorPairData, DoorSpawnData};
-use crate::core::display::{ModelId, OrderWeight, Symbol};
+use crate::core::display::{ModelId, OrderWeight};
 use crate::core::name::Noun;
 use crate::core::position::Pos;
 use crate::core::{Door, DoorKind, IsCut};
@@ -10,7 +10,6 @@ use std::collections::HashMap;
 #[derive(Clone)]
 pub(crate) struct DoorInfo {
     pub pos: Pos,
-    pub symbol: Symbol,
     pub model_id: ModelId,
     pub kind: DoorKind,
     pub name: Noun,
@@ -42,7 +41,6 @@ fn spawn(
     is_cut: bool,
 ) -> Entity {
     let door = world.spawn((
-        info.symbol,
         info.model_id,
         OrderWeight::Background,
         info.name,
@@ -115,7 +113,6 @@ impl DoorPairsBuilder {
 pub(super) fn place(
     spawn_data: &DoorSpawnData,
     pos: Pos,
-    symbol: Symbol,
     builder: &mut Builder,
 ) -> Result<(), String> {
     {
@@ -127,7 +124,6 @@ pub(super) fn place(
 
         let door_info = DoorInfo {
             pos,
-            symbol,
             model_id: ModelId::from(*display_type),
             kind: DoorKind::from(*display_type),
             name: display_type.noun(*adjective),

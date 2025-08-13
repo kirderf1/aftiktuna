@@ -69,15 +69,6 @@ pub mod display {
         }
     }
 
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub struct Symbol(pub char);
-
-    impl Symbol {
-        pub fn from_name(name: &str) -> Self {
-            Self(name.chars().next().unwrap().to_ascii_uppercase())
-        }
-    }
-
     #[derive(
         Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize,
     )]

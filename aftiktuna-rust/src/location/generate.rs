@@ -9,7 +9,7 @@ use crate::asset::location::{
 use crate::asset::{self, loot};
 use crate::core::FortunaChest;
 use crate::core::area::{Area, ShipControls};
-use crate::core::display::{ModelId, OrderWeight, Symbol};
+use crate::core::display::{ModelId, OrderWeight};
 use crate::core::inventory::{Container, Held};
 use crate::core::name::{IndefiniteArticle, Noun};
 use crate::core::position::{Coord, Pos};
@@ -68,9 +68,7 @@ fn build_area(
         let pos = Pos::new(area, coord as Coord, &builder.gen_context.world);
         for symbol in objects.chars() {
             match symbols.lookup(symbol) {
-                Some(symbol_data) => {
-                    place_symbol(symbol_data, pos, Symbol(symbol), builder, base_symbols)?
-                }
+                Some(symbol_data) => place_symbol(symbol_data, pos, builder, base_symbols)?,
                 None => Err(format!("Unknown symbol \"{symbol}\""))?,
             }
         }
@@ -81,18 +79,14 @@ fn build_area(
 fn place_symbol(
     symbol_data: &SymbolData,
     pos: Pos,
-    symbol: Symbol,
     builder: &mut Builder,
     base_symbols: &SymbolMap,
 ) -> Result<(), String> {
     match symbol_data {
         SymbolData::LocationEntry => builder.add_entry_pos(pos),
-        SymbolData::FortunaChest => {
-            place_fortuna_chest(&mut builder.gen_context.world, symbol, pos)
-        }
+        SymbolData::FortunaChest => place_fortuna_chest(&mut builder.gen_context.world, pos),
         SymbolData::ShipControls { direction } => {
             builder.gen_context.world.spawn((
-                symbol,
                 ModelId::ship_controls(),
                 OrderWeight::Background,
                 Noun::new("ship controls", "ship controls", IndefiniteArticle::A),
@@ -118,21 +112,18 @@ fn place_symbol(
                 .pick_loot_item(&mut builder.gen_context.rng);
             item.spawn(&mut builder.gen_context.world, pos);
         }
-        SymbolData::Door(door_data) => door::place(door_data, pos, symbol, builder)?,
+        SymbolData::Door(door_data) => door::place(door_data, pos, builder)?,
         SymbolData::Inanimate { model, direction } => {
             builder.gen_context.world.spawn((
-                symbol,
                 model.clone(),
                 OrderWeight::Background,
                 pos,
                 *direction,
             ));
         }
-        SymbolData::Container(container_data) => {
-            place_container(container_data, pos, symbol, builder)?
-        }
+        SymbolData::Container(container_data) => place_container(container_data, pos, builder)?,
         SymbolData::Creature(creature_data) => {
-            creature::place_creature(creature_data, pos, symbol, builder.gen_context)
+            creature::place_creature(creature_data, pos, builder.gen_context)
         }
         SymbolData::Shopkeeper(shopkeeper_data) => {
             creature::place_shopkeeper(shopkeeper_data, pos, &mut builder.gen_context.world)?
@@ -184,9 +175,8 @@ impl<'a> Builder<'a> {
     }
 }
 
-fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
+fn place_fortuna_chest(world: &mut World, pos: Pos) {
     world.spawn((
-        symbol,
         ModelId::fortuna_chest(),
         OrderWeight::Background,
         Noun::new("fortuna chest", "fortuna chests", IndefiniteArticle::A),
@@ -195,14 +185,8 @@ fn place_fortuna_chest(world: &mut World, symbol: Symbol, pos: Pos) {
     ));
 }
 
-fn place_container(
-    data: &ContainerData,
-    pos: Pos,
-    symbol: Symbol,
-    builder: &mut Builder,
-) -> Result<(), String> {
+fn place_container(data: &ContainerData, pos: Pos, builder: &mut Builder) -> Result<(), String> {
     let container = builder.gen_context.world.spawn((
-        symbol,
         data.container_type.model_id(),
         OrderWeight::Background,
         data.container_type.noun(),
@@ -249,9 +233,7 @@ fn furnish(
             .ok_or_else(|| "Too large template".to_string())?;
         for symbol in objects.chars() {
             match symbols.lookup(symbol) {
-                Some(symbol_data) => {
-                    place_symbol(symbol_data, pos, Symbol(symbol), builder, base_symbols)?
-                }
+                Some(symbol_data) => place_symbol(symbol_data, pos, builder, base_symbols)?,
                 None => Err(format!("Unknown symbol \"{symbol}\""))?,
             }
         }

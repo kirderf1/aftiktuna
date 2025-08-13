@@ -8,7 +8,6 @@ pub mod game_interface;
 mod game_loop;
 pub mod location;
 pub mod serialization;
-pub mod standard_io_interface;
 pub mod view;
 
 use serde::{Deserialize, Serialize};
