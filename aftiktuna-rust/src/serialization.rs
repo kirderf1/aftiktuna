@@ -170,8 +170,8 @@ pub mod world {
         status::Traits, Traits;
         status::Health, Health;
         status::Stamina, Stamina;
-        status::LowHealth, LowHealth;
-        status::LowStamina, LowStamina;
+        status::SeenWithLowHealth, LowHealth;
+        status::SeenWithLowStamina, LowStamina;
         status::IsStunned, IsStunned;
 
         core::CrewMember, CrewMember;

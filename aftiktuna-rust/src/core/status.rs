@@ -250,20 +250,20 @@ impl Stamina {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LowHealth;
+pub struct SeenWithLowHealth;
 
 pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: Entity) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, health)) in world.query::<(&Pos, &Health)>().iter() {
         let entity_ref = world.entity(entity).unwrap();
-        let has_tag = entity_ref.has::<LowHealth>();
+        let has_tag = entity_ref.has::<SeenWithLowHealth>();
         let visible_low_health = pos.is_in(area) && health.is_badly_hurt();
         if has_tag && !visible_low_health {
-            command_buffer.remove_one::<LowHealth>(entity);
+            command_buffer.remove_one::<SeenWithLowHealth>(entity);
         }
         if !has_tag && visible_low_health && health.is_alive() {
-            command_buffer.insert_one(entity, LowHealth);
+            command_buffer.insert_one(entity, SeenWithLowHealth);
             if entity != character {
                 if entity_ref.has::<CrewMember>() && !entity_ref.has::<Character>() {
                     messages.add(format!(
@@ -283,20 +283,20 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct LowStamina;
+pub struct SeenWithLowStamina;
 
 pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character: Entity) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, stamina, health)) in world.query::<(&Pos, &Stamina, &Health)>().iter() {
         let entity_ref = world.entity(entity).unwrap();
-        let has_tag = entity_ref.has::<LowStamina>();
+        let has_tag = entity_ref.has::<SeenWithLowStamina>();
         let visible_low_stamina = pos.is_in(area) && stamina.as_fraction() < 0.6;
         if has_tag && !visible_low_stamina {
-            command_buffer.remove_one::<LowStamina>(entity);
+            command_buffer.remove_one::<SeenWithLowStamina>(entity);
         }
         if !has_tag && visible_low_stamina && health.is_alive() {
-            command_buffer.insert_one(entity, LowStamina);
+            command_buffer.insert_one(entity, SeenWithLowStamina);
             messages.add(format!(
                 "{the_entity} is growing exhausted from dodging attacks.",
                 the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()

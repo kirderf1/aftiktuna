@@ -1,11 +1,11 @@
 use crate::action::{self, Error};
+use crate::core::CrewMember;
 use crate::core::area::{FuelAmount, ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{self, FuelCan, ItemType, Price};
 use crate::core::name::{self, NameData};
 use crate::core::position::{self, Pos};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
-use crate::core::CrewMember;
 use crate::view::text;
 use hecs::{Entity, EntityRef, World};
 
