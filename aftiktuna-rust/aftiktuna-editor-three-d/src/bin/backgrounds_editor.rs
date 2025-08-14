@@ -1,8 +1,9 @@
 use aftiktuna::asset::background::{self, BGData};
 use aftiktuna::asset::color;
-use aftiktuna::asset::location::{DoorType, creature};
+use aftiktuna::asset::location::DoorType;
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement::Positioner;
+use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::Coord;
@@ -241,13 +242,13 @@ fn draw_example_content(
             }
         }
         ExampleContentType::BigObjectsOnEdges => {
-            let frog = creature::Type::VoraciousFrog.model_id();
+            let frog = Species::VoraciousFrog.model_id();
             draw_model(0, &frog);
             if area_size > 1 {
                 draw_model(area_size - 1, &frog);
             }
             if area_size > 2 {
-                let azureclops = creature::Type::Azureclops.model_id();
+                let azureclops = Species::Azureclops.model_id();
                 draw_model(area_size / 2, &azureclops);
             }
         }

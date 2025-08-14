@@ -1,12 +1,11 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
-    use crate::core::display::{AftikColorId, ModelId};
+    use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemType};
-    use crate::core::name::{IndefiniteArticle, Noun};
     use crate::core::position::Direction;
     use crate::core::status::Stats;
     use crate::core::store::StockQuantity;
-    use crate::core::{AttackSet, CreatureAttribute, GivesHuntReward, Tag, UnarmedType};
+    use crate::core::{CreatureAttribute, GivesHuntReward, Species, Tag};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +53,17 @@ pub mod creature {
             ]
         }
 
+        pub fn species(self) -> Species {
+            match self {
+                Self::Goblin => Species::Goblin,
+                Self::Eyesaur => Species::Eyesaur,
+                Self::Azureclops => Species::Azureclops,
+                Self::Scarvie => Species::Scarvie,
+                Self::VoraciousFrog => Species::VoraciousFrog,
+                Self::BloodMantis => Species::BloodMantis,
+            }
+        }
+
         pub fn is_aggressive_by_default(self) -> bool {
             match self {
                 Self::Goblin | Self::Eyesaur | Self::Scarvie => false,
@@ -73,51 +83,6 @@ pub mod creature {
                 Self::Scarvie => Stats::new(3, 2, 8, 1),
                 Self::VoraciousFrog => Stats::new(8, 8, 3, 3),
                 Self::BloodMantis => Stats::new(15, 5, 10, 5),
-            }
-        }
-
-        pub fn model_id(self) -> ModelId {
-            ModelId::creature(match self {
-                Self::Goblin => "goblin",
-                Self::Eyesaur => "eyesaur",
-                Self::Azureclops => "azureclops",
-                Self::Scarvie => "scarvie",
-                Self::VoraciousFrog => "voracious_frog",
-                Self::BloodMantis => "blood_mantis",
-            })
-        }
-
-        pub fn noun(self) -> Noun {
-            use IndefiniteArticle::*;
-            match self {
-                Self::Goblin => Noun::new("goblin", "goblins", A),
-                Self::Eyesaur => Noun::new("eyesaur", "eyesaurs", An),
-                Self::Azureclops => Noun::new("azureclops", "azureclopses", An),
-                Self::Scarvie => Noun::new("scarvie", "scarvies", A),
-                Self::VoraciousFrog => Noun::new("voracious frog", "voracious frogs", A),
-                Self::BloodMantis => Noun::new("blood mantis", "blood mantes", A),
-            }
-        }
-
-        pub fn unarmed_type(self) -> UnarmedType {
-            match self {
-                Self::Goblin => UnarmedType::Scratch,
-                Self::Eyesaur => UnarmedType::Bite,
-                Self::Azureclops => UnarmedType::Punch,
-                Self::Scarvie => UnarmedType::Bite,
-                Self::VoraciousFrog => UnarmedType::Pounce,
-                Self::BloodMantis => UnarmedType::Slash,
-            }
-        }
-
-        pub fn attack_set(self) -> AttackSet {
-            match self {
-                Self::Goblin => AttackSet::Light,
-                Self::Eyesaur => AttackSet::Quick,
-                Self::Azureclops => AttackSet::Varied,
-                Self::Scarvie => AttackSet::Light,
-                Self::VoraciousFrog => AttackSet::Slow,
-                Self::BloodMantis => AttackSet::Quick,
             }
         }
     }

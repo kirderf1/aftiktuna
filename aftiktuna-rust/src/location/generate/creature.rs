@@ -4,14 +4,12 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
-use crate::core::display::{AftikColorId, ModelId, OrderWeight};
+use crate::core::display::OrderWeight;
 use crate::core::name::{IndefiniteArticle, Name, Noun};
 use crate::core::position::{Direction, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{
-    AttackSet, Character, CreatureAttribute, Hostile, Recruitable, UnarmedType, Wandering,
-};
+use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, Species, Wandering};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::IndexedRandom;
@@ -53,24 +51,13 @@ pub(super) fn place_creature(
         .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
     let mut stats = spawn_data.creature.default_stats();
 
-    let mut builder = EntityBuilder::new();
+    let mut builder = species_builder_base(spawn_data.creature.species());
     if let Some(attribute) = attribute {
         attribute.adjust_stats(&mut stats);
         builder.add(attribute);
     }
 
-    builder.add_bundle((
-        spawn_data.creature.model_id(),
-        spawn_data.creature.noun(),
-        OrderWeight::Creature,
-        pos,
-        direction,
-        health,
-        Stamina::with_max(&stats),
-        stats,
-        spawn_data.creature.unarmed_type(),
-        spawn_data.creature.attack_set(),
-    ));
+    builder.add_bundle((pos, direction, health, Stamina::with_max(&stats), stats));
 
     if let Some(tag) = spawn_data.tag.clone() {
         builder.add(tag);
@@ -132,8 +119,8 @@ pub(super) fn place_corpse(
         .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
     gen_context.world.spawn(
-        aftik_builder(color)
-            .add_bundle((Health::from_fraction(0.), pos, direction))
+        species_builder_base(Species::Aftik)
+            .add_bundle((color, Health::from_fraction(0.), pos, direction))
             .build(),
     );
 }
@@ -142,8 +129,9 @@ pub(crate) fn aftik_builder_with_stats(
     profile: AftikProfile,
     is_name_known: bool,
 ) -> EntityBuilder {
-    let mut builder = aftik_builder(profile.color);
+    let mut builder = species_builder_base(Species::Aftik);
     builder.add_bundle((
+        profile.color,
         Name {
             name: profile.name,
             is_known: is_name_known,
@@ -158,15 +146,14 @@ pub(crate) fn aftik_builder_with_stats(
     builder
 }
 
-fn aftik_builder(color: AftikColorId) -> EntityBuilder {
+fn species_builder_base(species: Species) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
-        ModelId::aftik(),
-        color,
+        species,
+        species.model_id(),
+        species.noun(),
         OrderWeight::Creature,
-        Noun::new("aftik", "aftiks", IndefiniteArticle::An),
-        UnarmedType::Scratch,
-        AttackSet::Quick,
+        species.attack_set(),
     ));
     builder
 }
@@ -186,7 +173,7 @@ pub(super) fn place_shopkeeper(
         .collect::<Result<Vec<_>, String>>()?;
 
     world.spawn((
-        ModelId::aftik(),
+        Species::Aftik.model_id(),
         OrderWeight::Creature,
         spawn_data.color.clone(),
         Noun::new("shopkeeper", "shopkeepers", IndefiniteArticle::A),

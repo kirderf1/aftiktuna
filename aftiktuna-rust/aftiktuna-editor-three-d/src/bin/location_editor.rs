@@ -650,13 +650,13 @@ mod ui {
         }: &mut CreatureSpawnData,
     ) {
         egui::ComboBox::from_label("Creature Type")
-            .selected_text(creature.noun().singular())
+            .selected_text(creature.species().noun().singular())
             .show_ui(ui, |ui| {
                 for selectable_type in creature::Type::variants() {
                     ui.selectable_value(
                         creature,
                         *selectable_type,
-                        selectable_type.noun().singular(),
+                        selectable_type.species().noun().singular(),
                     );
                 }
             });

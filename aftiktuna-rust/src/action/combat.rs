@@ -3,7 +3,7 @@ use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
 use crate::core::{
-    self, AttackKind, AttackSet, Hostile, RepeatingAction, UnarmedType, inventory, item, position,
+    self, AttackKind, AttackSet, Hostile, RepeatingAction, Species, inventory, item, position,
     status,
 };
 use hecs::{Entity, EntityRef, World};
@@ -188,7 +188,10 @@ fn perform_attack(
             ),
             "hits",
         )
-    } else if let Ok(unarmed_type) = world.get::<&UnarmedType>(attacker) {
+    } else if let Ok(unarmed_type) = world
+        .get::<&Species>(attacker)
+        .map(|species| species.unarmed_type())
+    {
         let attack_verb = unarmed_type.attack_verb();
         (
             format!("{attack_kind_text}{attacker_name} {attack_verb} {target_name}"),

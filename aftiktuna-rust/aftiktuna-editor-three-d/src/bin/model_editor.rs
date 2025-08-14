@@ -1,6 +1,7 @@
 use aftiktuna::asset::color::{AftikColorData, RGBColor};
 use aftiktuna::asset::model::{self, Model, ModelAccess, TexturesOrChildren};
 use aftiktuna::asset::{TextureLoader, background, placement};
+use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId, OrderWeight};
 use aftiktuna::core::position::{Coord, Direction};
@@ -44,7 +45,7 @@ fn main() {
         show_cut: false,
         shown_expression: DialogueExpression::Neutral,
         setting: SettingType::None,
-        example_model: ModelId::aftik(),
+        example_model: Species::Aftik.model_id(),
     };
     let mut area_size = 7;
 
@@ -508,7 +509,7 @@ fn draw_examples(
             wielded_item: Some(editor_model_id()),
             ..obj(
                 coord,
-                ModelId::aftik(),
+                Species::Aftik.model_id(),
                 ObjectProperties {
                     direction: editor_data.direction,
                     ..Default::default()

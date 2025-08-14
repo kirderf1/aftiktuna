@@ -160,6 +160,7 @@ pub mod world {
 
         name::Name, Name;
         name::Noun, Noun;
+        core::Species, Species;
         core::CreatureAttribute, CreatureAttribute;
         display::ModelId, TextureType;
         display::OrderWeight, OrderWeight;
@@ -179,7 +180,6 @@ pub mod world {
         core::Hostile, Hostile;
         core::Wandering, Wandering;
         core::ObservationTarget, ObservationTarget;
-        core::UnarmedType, UnarmedType;
         core::AttackSet, AttackSet;
         ai::Intention, Intention;
         core::Waiting, Waiting;

@@ -1,5 +1,6 @@
 use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
 use aftiktuna::asset::model::{self, Model};
+use aftiktuna::core::Species;
 use aftiktuna::core::display::{AftikColorId, DialogueExpression, ModelId};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
@@ -26,7 +27,7 @@ fn main() {
 
     let mut gui = three_d::GUI::new(&window.gl());
     let mut texture_loader = CachedLoader::new(window.gl());
-    let aftik_model = model::load_raw_model_from_path(ModelId::aftik().file_path())
+    let aftik_model = model::load_raw_model_from_path(Species::Aftik.model_id().file_path())
         .expect("Unable to load aftik model")
         .load(&mut texture_loader)
         .unwrap();

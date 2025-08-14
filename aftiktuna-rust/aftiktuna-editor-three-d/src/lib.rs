@@ -2,6 +2,7 @@ use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::{ProfileOrRandom, background};
+use aftiktuna::core::Species;
 use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
 use aftiktuna::core::item::ItemType;
 use aftiktuna::core::position::{Coord, Direction};
@@ -189,7 +190,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
         SymbolData::Creature(creature_spawn_data) => {
             format!(
                 "Creature ({})",
-                creature_spawn_data.creature.noun().singular()
+                creature_spawn_data.creature.species().noun().singular()
             )
         }
         SymbolData::Shopkeeper(_) => "Shopkeeper".to_string(),
@@ -326,7 +327,7 @@ pub fn object_from_symbol(
             ObjectRenderData {
                 coord,
                 weight: OrderWeight::Creature,
-                model_id: creature_spawn_data.creature.model_id(),
+                model_id: creature_spawn_data.creature.species().model_id(),
                 hash: 0,
                 name_data: None,
                 wielded_item: None,
@@ -344,7 +345,7 @@ pub fn object_from_symbol(
         SymbolData::Shopkeeper(shopkeeper_spawn_data) => ObjectRenderData {
             coord,
             weight: OrderWeight::Creature,
-            model_id: ModelId::aftik(),
+            model_id: Species::Aftik.model_id(),
             hash: 0,
             name_data: None,
             wielded_item: None,
@@ -360,7 +361,7 @@ pub fn object_from_symbol(
         SymbolData::Character(npc_spawn_data) => ObjectRenderData {
             coord,
             weight: OrderWeight::Creature,
-            model_id: ModelId::aftik(),
+            model_id: Species::Aftik.model_id(),
             hash: 0,
             name_data: None,
             wielded_item: None,
@@ -376,7 +377,7 @@ pub fn object_from_symbol(
         SymbolData::AftikCorpse(aftik_corpse_data) => ObjectRenderData {
             coord,
             weight: OrderWeight::Creature,
-            model_id: ModelId::aftik(),
+            model_id: Species::Aftik.model_id(),
             hash: 0,
             name_data: None,
             wielded_item: None,

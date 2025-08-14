@@ -25,10 +25,6 @@ pub mod display {
             Self::new("portrait")
         }
 
-        pub fn aftik() -> Self {
-            Self::creature("aftik")
-        }
-
         pub fn fortuna_chest() -> Self {
             Self::new("container/fortuna_chest")
         }
@@ -47,10 +43,6 @@ pub mod display {
 
         pub fn item(name: &str) -> Self {
             Self(format!("item/{name}"))
-        }
-
-        pub fn creature(name: &str) -> Self {
-            Self(format!("creature/{name}"))
         }
 
         pub fn path(&self) -> &str {
@@ -167,6 +159,7 @@ pub mod store {
 
 use self::display::DialogueExpression;
 use crate::action::Action;
+use crate::core::name::Noun;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
@@ -195,7 +188,7 @@ pub struct Wandering;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObservationTarget;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug)]
 pub enum UnarmedType {
     Bite,
     Scratch,
@@ -275,6 +268,69 @@ impl AttackSet {
             AttackSet::Slow => &[Light, Charged],
             AttackSet::Intense => &[Rash, Charged],
             AttackSet::Varied => &[Light, Rash, Charged],
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Species {
+    Aftik,
+    Goblin,
+    Eyesaur,
+    Azureclops,
+    Scarvie,
+    VoraciousFrog,
+    BloodMantis,
+}
+
+impl Species {
+    pub fn model_id(self) -> display::ModelId {
+        let name = match self {
+            Self::Aftik => "aftik",
+            Self::Goblin => "goblin",
+            Self::Eyesaur => "eyesaur",
+            Self::Azureclops => "azureclops",
+            Self::Scarvie => "scarvie",
+            Self::VoraciousFrog => "voracious_frog",
+            Self::BloodMantis => "blood_mantis",
+        };
+        display::ModelId(format!("creature/{name}"))
+    }
+
+    pub fn noun(self) -> Noun {
+        use name::IndefiniteArticle::*;
+        match self {
+            Self::Aftik => Noun::new("aftik", "aftiks", An),
+            Self::Goblin => Noun::new("goblin", "goblins", A),
+            Self::Eyesaur => Noun::new("eyesaur", "eyesaurs", An),
+            Self::Azureclops => Noun::new("azureclops", "azureclopses", An),
+            Self::Scarvie => Noun::new("scarvie", "scarvies", A),
+            Self::VoraciousFrog => Noun::new("voracious frog", "voracious frogs", A),
+            Self::BloodMantis => Noun::new("blood mantis", "blood mantes", A),
+        }
+    }
+
+    pub fn unarmed_type(self) -> UnarmedType {
+        match self {
+            Self::Aftik => UnarmedType::Scratch,
+            Self::Goblin => UnarmedType::Scratch,
+            Self::Eyesaur => UnarmedType::Bite,
+            Self::Azureclops => UnarmedType::Punch,
+            Self::Scarvie => UnarmedType::Bite,
+            Self::VoraciousFrog => UnarmedType::Pounce,
+            Self::BloodMantis => UnarmedType::Slash,
+        }
+    }
+
+    pub fn attack_set(self) -> AttackSet {
+        match self {
+            Self::Aftik => AttackSet::Quick,
+            Self::Goblin => AttackSet::Light,
+            Self::Eyesaur => AttackSet::Quick,
+            Self::Azureclops => AttackSet::Varied,
+            Self::Scarvie => AttackSet::Light,
+            Self::VoraciousFrog => AttackSet::Slow,
+            Self::BloodMantis => AttackSet::Quick,
         }
     }
 }
