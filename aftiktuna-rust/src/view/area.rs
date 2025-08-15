@@ -4,7 +4,7 @@ use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, ModelId, OrderWeight};
 use crate::core::inventory::Held;
-use crate::core::item::{CanWield, Medkit, Usable};
+use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health};
@@ -12,7 +12,7 @@ use crate::core::{BlockType, Door, IsCut, inventory};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::text;
-use hecs::{Entity, EntityRef, Or, World};
+use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
@@ -111,7 +111,9 @@ impl ItemProfile {
             name: NameData::find_by_ref(item).base().to_string(),
             is_wieldable: item.satisfies::<&CanWield>(),
             is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
-            is_usable: item.satisfies::<Or<&Usable, &Medkit>>(),
+            is_usable: item
+                .get::<&ItemType>()
+                .is_some_and(|item_type| item_type.is_usable()),
         }
     }
 

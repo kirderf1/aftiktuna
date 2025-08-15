@@ -3,7 +3,7 @@ use crate::asset::CrewData;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
-use crate::core::item::{FoodRation, FourLeafClover, ItemType};
+use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameQuery};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
@@ -272,11 +272,11 @@ fn tick(
         ))
     }
 
-    for (item, held) in state
+    for (item, (_, held)) in state
         .world
-        .query::<&Held>()
-        .with::<&FourLeafClover>()
+        .query::<(&ItemType, &Held)>()
         .into_iter()
+        .filter(|&(_, (item_type, _))| *item_type == ItemType::FourLeafClover)
     {
         let Ok(holder_ref) = state.world.entity(held.holder) else {
             continue;
@@ -487,10 +487,12 @@ fn deposit_items_to_ship(state: &mut GameState) {
         .collect::<Vec<_>>();
     let items = state
         .world
-        .query::<&Held>()
-        .with::<&FoodRation>()
+        .query::<(&ItemType, &Held)>()
         .iter()
-        .filter(|&(_, held)| crew_in_ship.iter().any(|&entity| held.held_by(entity)))
+        .filter(|&(_, (item_type, held))| {
+            *item_type == ItemType::FoodRation
+                && crew_in_ship.iter().any(|&entity| held.held_by(entity))
+        })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     let item_pos = state
@@ -524,10 +526,11 @@ fn consume_rations_healing(state: &mut GameState, messages: &mut Messages) {
         };
         let rations = state
             .world
-            .query::<&Pos>()
-            .with::<&FoodRation>()
+            .query::<(&ItemType, &Pos)>()
             .iter()
-            .filter(|&(_, pos)| area::is_in_ship(*pos, &state.world))
+            .filter(|&(_, (item_type, pos))| {
+                *item_type == ItemType::FoodRation && area::is_in_ship(*pos, &state.world)
+            })
             .take(usize::from(rations_to_eat))
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();

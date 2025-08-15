@@ -3,7 +3,7 @@ use crate::action::item::{SearchAction, UseAction};
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::inventory::{Container, Held};
-use crate::core::item::{CanWield, FuelCan, Item, Medkit, Usable};
+use crate::core::item::{CanWield, ItemType};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::status::Health;
@@ -20,7 +20,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                     parse.done_or_err(|| take_all(state))
                 });
                 parse.match_against(
-                    super::targets_by_proximity::<&Item>(character_pos, &state.world),
+                    super::targets_by_proximity::<&ItemType>(character_pos, &state.world),
                     |parse, item| parse.done_or_err(|| take(item, state)),
                     |input| Err(format!("There is no {input} here to pick up.")),
                 )
@@ -64,7 +64,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
                             .map(|(name, item)| (name, WieldItemTarget::InInventory(item))),
                     )
                     .chain(
-                        super::targets_by_proximity::<(&CanWield, &Item)>(
+                        super::targets_by_proximity::<(&CanWield, &ItemType)>(
                             character_pos,
                             &state.world,
                         )
@@ -95,7 +95,7 @@ pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult
 fn inventory_items(character: Entity, world: &World) -> Vec<(String, Entity)> {
     world
         .query::<&Held>()
-        .with::<&Item>()
+        .with::<&ItemType>()
         .iter()
         .filter(|&(_, held)| held.is_in_inventory(character))
         .flat_map(|(entity, _)| {
@@ -109,7 +109,7 @@ fn inventory_items(character: Entity, world: &World) -> Vec<(String, Entity)> {
 fn items_in_hand(character: Entity, world: &World) -> Vec<(String, Entity)> {
     world
         .query::<&Held>()
-        .with::<&Item>()
+        .with::<&ItemType>()
         .iter()
         .filter(|&(_, held)| held.held_by(character) && held.is_in_hand())
         .flat_map(|(entity, _)| {
@@ -125,7 +125,7 @@ fn take_all(state: &GameState) -> Result<CommandResult, String> {
     if !state
         .world
         .query::<&Pos>()
-        .with::<&Item>()
+        .with::<&ItemType>()
         .iter()
         .any(|(_, pos)| pos.is_in(character_pos.get_area()))
     {
@@ -192,10 +192,11 @@ fn use_item(item: Entity, state: &GameState) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
     let item_ref = world.entity(item).unwrap();
+    let item_type = *item_ref.get::<&ItemType>().unwrap();
 
-    if item_ref.satisfies::<&FuelCan>() {
+    if item_type == ItemType::FuelCan {
         super::refuel_ship(state)
-    } else if item_ref.satisfies::<&Medkit>() {
+    } else if item_type == ItemType::Medkit {
         if !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
                 "{} is not hurt, and does not need to use the medkit.",
@@ -203,7 +204,7 @@ fn use_item(item: Entity, state: &GameState) -> Result<CommandResult, String> {
             ));
         }
         command::action_result(UseAction { item })
-    } else if item_ref.satisfies::<&Usable>() {
+    } else if item_type.is_usable() {
         command::action_result(UseAction { item })
     } else if item_ref.satisfies::<&CanWield>() {
         if item_ref

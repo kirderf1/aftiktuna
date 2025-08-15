@@ -1,6 +1,6 @@
 use crate::action::Action;
 use crate::action::item::UseAction;
-use crate::core::item::{Medkit, Weapon};
+use crate::core::item::{ItemType, Weapon};
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{
@@ -55,7 +55,10 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
         .is_ok_and(|health| health.is_badly_hurt())
     {
         for item in inventory::get_inventory(world, crew_member) {
-            if world.satisfies::<&Medkit>(item).unwrap_or(false) {
+            if world
+                .get::<&ItemType>(item)
+                .is_ok_and(|item_type| *item_type == ItemType::Medkit)
+            {
                 return Some(Intention::UseMedkit(item));
             }
         }

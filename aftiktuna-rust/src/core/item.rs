@@ -5,16 +5,7 @@ use crate::view::text::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct Item;
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct FuelCan;
-
-#[derive(Serialize, Deserialize)]
-pub struct FoodRation;
-
-#[derive(Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Tool {
     Crowbar,
     Blowtorch,
@@ -33,18 +24,15 @@ impl Tool {
             ),
         }
     }
+
+    pub fn matches(self, item_type: ItemType) -> bool {
+        item_type
+            == match self {
+                Tool::Crowbar => ItemType::Crowbar,
+                Tool::Blowtorch => ItemType::Blowtorch,
+            }
+    }
 }
-
-#[derive(Serialize, Deserialize)]
-pub struct Medkit;
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum Usable {
-    BlackOrb,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct FourLeafClover;
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct CanWield;
@@ -68,7 +56,6 @@ impl Price {
     }
 }
 
-// A type handy for spawning a variable type of item
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ItemType {
@@ -104,6 +91,7 @@ impl ItemType {
             FourLeafClover,
         ]
     }
+
     pub fn spawn(self, world: &mut World, location: impl Component) -> Entity {
         spawn(world, self, self.price(), location)
     }
@@ -148,6 +136,10 @@ impl ItemType {
         }
         .map(Price)
     }
+
+    pub fn is_usable(self) -> bool {
+        matches!(self, Self::Medkit | Self::BlackOrb)
+    }
 }
 
 impl From<ItemType> for ModelId {
@@ -179,7 +171,7 @@ pub fn spawn(
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         location,
-        Item,
+        item_type,
         ModelId::from(item_type),
         OrderWeight::Item,
         item_type.noun_data(),
@@ -189,17 +181,8 @@ pub fn spawn(
     }
 
     match item_type {
-        ItemType::FuelCan => {
-            builder.add(FuelCan);
-        }
-        ItemType::FoodRation => {
-            builder.add(FoodRation);
-        }
         ItemType::Crowbar => {
-            builder.add_bundle((Tool::Crowbar, CanWield, Weapon(3.0), AttackSet::Light));
-        }
-        ItemType::Blowtorch => {
-            builder.add(Tool::Blowtorch);
+            builder.add_bundle((CanWield, Weapon(3.0), AttackSet::Light));
         }
         ItemType::Knife => {
             builder.add_bundle((CanWield, Weapon(3.0), AttackSet::Quick));
@@ -210,15 +193,6 @@ pub fn spawn(
         ItemType::Sword => {
             builder.add_bundle((CanWield, Weapon(5.0), AttackSet::Quick));
         }
-        ItemType::Medkit => {
-            builder.add(Medkit);
-        }
-        ItemType::BlackOrb => {
-            builder.add(Usable::BlackOrb);
-        }
-        ItemType::FourLeafClover => {
-            builder.add(FourLeafClover);
-        }
         _ => {}
     };
     world.spawn(builder.build())
@@ -228,33 +202,20 @@ pub fn description(item_ref: EntityRef) -> Vec<String> {
     let mut messages = Messages::default();
     messages.add(format!("{}:", item_ref.get::<&Noun>().unwrap().singular()));
 
+    let item_type = *item_ref.get::<&ItemType>().unwrap();
+
     if let Some(weapon) = item_ref.get::<&Weapon>() {
         messages.add(format!("Weapon value: {}", weapon.0));
     }
-    if item_ref.satisfies::<&FuelCan>() {
-        messages.add("Used to refuel the ship.");
-    }
-    if item_ref.satisfies::<&FoodRation>() {
-        messages.add("May be eaten by crew members while travelling to their next location to recover health.");
-    }
-    if let Some(tool) = item_ref.get::<&Tool>() {
-        messages.add(match *tool {
-            Tool::Crowbar => "Used to force open doors that are stuck.",
-            Tool::Blowtorch => "Used to cut apart any door that won't open.",
-        });
-    }
-    if item_ref.satisfies::<&Medkit>() {
-        messages.add("Used to recover some health of the user.");
-    }
-    if let Some(usage) = item_ref.get::<&Usable>() {
-        messages.add(match *usage {
-            Usable::BlackOrb => {
-                "A mysterious object that when used, might change the user in some way."
-            }
-        });
-    }
-    if item_ref.satisfies::<&FourLeafClover>() {
-        messages.add("A mysterious object said to bring luck to whoever finds it.");
+    match item_type {
+        ItemType::FuelCan => messages.add("Used to refuel the ship."),
+        ItemType::FoodRation => messages.add("May be eaten by crew members while travelling to their next location to recover health."),
+        ItemType::Crowbar => messages.add("Used to force open doors that are stuck."),
+        ItemType::Blowtorch => messages.add("Used to cut apart any door that won't open."),
+        ItemType::Medkit => messages.add("Used to recover some health of the user."),
+        ItemType::BlackOrb => messages.add("A mysterious object that when used, might change the user in some way."),
+        ItemType::FourLeafClover => messages.add("A mysterious object said to bring luck to whoever finds it."),
+        _ => {}
     }
     if item_ref.satisfies::<&Price>() {
         messages.add("Can be sold at a store.");

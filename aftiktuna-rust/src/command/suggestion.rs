@@ -1,6 +1,6 @@
 use crate::core::area::ShipControls;
 use crate::core::inventory::Container;
-use crate::core::item::{CanWield, Item};
+use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{Name, NameData};
 use crate::core::store::{Shopkeeper, StoreStock};
 use crate::core::{
@@ -167,7 +167,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     let world = &state.world;
     let entity_ref = world.entity(entity).unwrap();
 
-    if entity_ref.satisfies::<&Item>() {
+    if entity_ref.satisfies::<&ItemType>() {
         interactions.push(InteractionType::Item);
     }
     if entity_ref.satisfies::<&CanWield>() {

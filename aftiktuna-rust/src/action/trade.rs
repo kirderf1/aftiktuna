@@ -2,7 +2,7 @@ use crate::action::{self, Error};
 use crate::core::CrewMember;
 use crate::core::area::{FuelAmount, ShipState, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::{self, FuelCan, ItemType, Price};
+use crate::core::item::{self, ItemType, Price};
 use crate::core::name::{self, NameData};
 use crate::core::position::{self, Pos};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
@@ -115,7 +115,9 @@ pub fn sell(
             .get::<&Price>()
             .ok_or("That item can not be sold.")?
             .sell_price();
-        is_selling_fuel |= item_ref.satisfies::<&FuelCan>();
+        is_selling_fuel |= item_ref
+            .get::<&ItemType>()
+            .is_some_and(|item_type| *item_type == ItemType::FuelCan);
     }
 
     let performer_name = NameData::find(world, performer).definite();
@@ -162,11 +164,11 @@ fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
         FuelAmount::TwoCans => 2,
     };
     world
-        .query::<&Held>()
-        .with::<&FuelCan>()
+        .query::<(&ItemType, &Held)>()
         .iter()
-        .filter(|(item, held)| {
-            !excluding_items.contains(item)
+        .filter(|&(item, (item_type, held))| {
+            *item_type == ItemType::FuelCan
+                && !excluding_items.contains(&item)
                 && world.satisfies::<&CrewMember>(held.holder).unwrap_or(false)
         })
         .count()

@@ -200,13 +200,7 @@ pub mod world {
         inventory::Held, Held;
         inventory::Container, Container;
 
-        item::Item, Item;
-        item::FuelCan, FuelCan;
-        item::FoodRation, FoodRation;
-        item::Medkit, Medkit;
-        item::Usable, Usable;
-        item::FourLeafClover, FourLeafClover;
-        item::Tool, ForceTool;
+        item::ItemType, ItemType;
         item::CanWield, CanWield;
         item::Weapon, Weapon;
         item::StunAttack, StunAttack;

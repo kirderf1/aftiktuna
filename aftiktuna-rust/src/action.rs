@@ -1,4 +1,4 @@
-use crate::core::item::{FoodRation, ItemType};
+use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{
@@ -333,7 +333,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
 
     position::move_adjacent(world, performer, target_pos)?;
 
-    inventory::consume_one::<&FoodRation>(world, performer).ok_or_else(|| {
+    inventory::consume_one(ItemType::FoodRation, world, performer).ok_or_else(|| {
         Error::private(format!("{performer_name} needs a food ration for taming."))
     })?;
 

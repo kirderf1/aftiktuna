@@ -1,6 +1,6 @@
-use crate::core::item::Tool;
+use crate::core::item::{ItemType, Tool};
 use crate::core::position::Pos;
-use hecs::{Entity, Query, World};
+use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -37,19 +37,18 @@ impl Held {
     }
 }
 
-pub fn is_holding<Q: Query>(world: &World, holder: Entity) -> bool {
+pub fn is_holding(searched_type: ItemType, world: &World, holder: Entity) -> bool {
     world
-        .query::<&Held>()
-        .with::<Q>()
+        .query::<(&ItemType, &Held)>()
         .iter()
-        .any(|(_, held)| held.held_by(holder))
+        .any(|(_, (item_type, held))| held.held_by(holder) && *item_type == searched_type)
 }
 
 pub fn is_holding_tool(world: &World, holder: Entity, requested_tool: Tool) -> bool {
     world
-        .query::<(&Held, &Tool)>()
+        .query::<(&ItemType, &Held)>()
         .iter()
-        .any(|(_, (held, &tool))| held.held_by(holder) && tool == requested_tool)
+        .any(|(_, (item_type, held))| held.held_by(holder) && requested_tool.matches(*item_type))
 }
 
 pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
@@ -85,12 +84,11 @@ pub fn get_wielded(world: &World, holder: Entity) -> Option<Entity> {
         .map(|(item, _)| item)
 }
 
-pub fn consume_one<Q: Query>(world: &mut World, holder: Entity) -> Option<()> {
+pub fn consume_one(consumed_type: ItemType, world: &mut World, holder: Entity) -> Option<()> {
     let (item, _) = world
-        .query::<&Held>()
-        .with::<Q>()
+        .query::<(&ItemType, &Held)>()
         .iter()
-        .find(|(_, held)| held.held_by(holder))?;
+        .find(|&(_, (item_type, held))| held.held_by(holder) && *item_type == consumed_type)?;
     world.despawn(item).ok()
 }
 

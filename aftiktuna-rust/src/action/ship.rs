@@ -1,6 +1,6 @@
 use crate::action::{self, Error};
 use crate::core::area::{self, FuelAmount, ShipControls, ShipState, ShipStatus};
-use crate::core::item::FuelCan;
+use crate::core::item::ItemType;
 use crate::core::name::{NameData, NameQuery};
 use crate::core::position::{self, Pos};
 use crate::core::{CrewMember, inventory};
@@ -159,12 +159,12 @@ fn incomplete_refuel_message(amount: FuelAmount, name: &str) -> String {
 
 fn try_refuel(amount: FuelAmount, world: &mut World, performer: Entity) -> RefuelResult {
     if amount == FuelAmount::TwoCans
-        && inventory::consume_one::<&FuelCan>(world, performer).is_none()
+        && inventory::consume_one(ItemType::FuelCan, world, performer).is_none()
     {
         return RefuelResult::Incomplete(FuelAmount::TwoCans);
     }
 
-    if inventory::consume_one::<&FuelCan>(world, performer).is_none() {
+    if inventory::consume_one(ItemType::FuelCan, world, performer).is_none() {
         return RefuelResult::Incomplete(FuelAmount::OneCan);
     }
 

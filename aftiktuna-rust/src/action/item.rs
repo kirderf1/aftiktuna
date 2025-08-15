@@ -1,7 +1,7 @@
 use crate::action::{self, Context, Error};
 use crate::core::display::DialogueExpression;
 use crate::core::inventory::Held;
-use crate::core::item::{FourLeafClover, Item, Medkit, Usable};
+use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameQuery};
 use crate::core::position::{self, Pos};
 use crate::core::status::{self, Health, StatChanges};
@@ -14,7 +14,7 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
         .query::<(&Pos, NameQuery)>()
-        .with::<&Item>()
+        .with::<&ItemType>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
@@ -28,7 +28,7 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
         .world
         .query::<&Pos>()
         .with::<NameQuery>()
-        .with::<&Item>()
+        .with::<&ItemType>()
         .iter()
         .any(|(_, pos)| pos.is_in(aftik_pos.get_area()))
     {
@@ -63,7 +63,9 @@ pub(super) fn take_item(
     let world = &mut context.state.world;
     position::push_and_move(world, performer, item_pos)?;
 
-    if world.satisfies::<&FourLeafClover>(item).unwrap()
+    if world
+        .get::<&ItemType>(item)
+        .is_ok_and(|item_type| *item_type == ItemType::FourLeafClover)
         && FOUR_LEAF_CLOVER_EFFECT
             .try_apply(world.entity(performer).unwrap())
             .is_some()
@@ -302,34 +304,29 @@ impl UseAction {
             .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
         let item_name = NameData::find_by_ref(item_ref).definite();
 
-        if item_ref.satisfies::<&Medkit>() {
-            let mut health = performer_ref.get::<&mut Health>().unwrap();
-            if !health.is_hurt() {
-                return Err(Error::private(format!(
-                    "{performer_name} no longer needs to use a medkit.",
-                )));
+        let item_type = item_ref.get::<&ItemType>().as_deref().copied();
+
+        match item_type {
+            Some(ItemType::Medkit) => {
+                let mut health = performer_ref.get::<&mut Health>().unwrap();
+                if !health.is_hurt() {
+                    return Err(Error::private(format!(
+                        "{performer_name} no longer needs to use a medkit.",
+                    )));
+                }
+
+                health.restore_fraction(0.5);
+                drop(health);
+                world.despawn(self.item).unwrap();
+
+                context.view_context.add_message_at(
+                    area,
+                    format!("{performer_name} used a medkit and recovered some health."),
+                    context.state,
+                );
+                Ok(action::Success)
             }
-
-            health.restore_fraction(0.5);
-            drop(health);
-            world.despawn(self.item).unwrap();
-
-            context.view_context.add_message_at(
-                area,
-                format!("{performer_name} used a medkit and recovered some health."),
-                context.state,
-            );
-            return Ok(action::Success);
-        }
-
-        let Some(usable) = item_ref.get::<&Usable>().as_deref().copied() else {
-            return Err(Error::private(format!(
-                "{performer_name} tried to use {item_name}, but it is not usable."
-            )));
-        };
-
-        match usable {
-            Usable::BlackOrb => {
+            Some(ItemType::BlackOrb) => {
                 let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
                     context.view_context.add_message_at(area, format!(
                         "{performer_name} holds up and inspects the orb, but can't figure out what it is."
@@ -350,6 +347,9 @@ impl UseAction {
                 );
                 Ok(action::Success)
             }
+            _ => Err(Error::private(format!(
+                "{performer_name} tried to use {item_name}, but it is not usable."
+            ))),
         }
     }
 }

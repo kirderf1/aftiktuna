@@ -3,7 +3,7 @@ use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
 use crate::core::area::{ShipControls, ShipState, ShipStatus};
 use crate::core::inventory::Held;
-use crate::core::item::{FoodRation, FuelCan};
+use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{Blockage, Pos};
 use crate::core::store::Shopkeeper;
@@ -222,7 +222,7 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
     if !matches!(status, ShipStatus::NeedFuel(_)) {
         return Err("The ship is already refueled.".to_string());
     }
-    if !inventory::is_holding::<&FuelCan>(world, character) {
+    if !inventory::is_holding(ItemType::FuelCan, world, character) {
         return Err(format!(
             "{} needs a fuel can to refuel the ship.",
             NameData::find(world, character).definite()
@@ -258,7 +258,7 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
         .map_err(|_| "The crew has no ship.".to_string())?
         .status;
     if matches!(status, ShipStatus::NeedFuel(_))
-        && !inventory::is_holding::<&FuelCan>(world, character)
+        && !inventory::is_holding(ItemType::FuelCan, world, character)
     {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
@@ -343,7 +343,7 @@ fn check(world: &World, item: Entity) -> Result<CommandResult, String> {
 fn tame(world: &World, character: Entity, target: Entity) -> Result<CommandResult, String> {
     check_adjacent_accessible_with_message(target, character, world)?;
 
-    if !inventory::is_holding::<&FoodRation>(world, character) {
+    if !inventory::is_holding(ItemType::FoodRation, world, character) {
         return Err(format!(
             "{} needs a food ration to tame.",
             NameData::find(world, character).definite()
