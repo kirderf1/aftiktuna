@@ -1,6 +1,6 @@
 use crate::action::Action;
 use crate::action::item::UseAction;
-use crate::core::item::{ItemType, Weapon};
+use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{
@@ -64,11 +64,14 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
         }
     }
 
-    let weapon_damage = core::get_wielded_weapon_modifier(world, crew_member);
+    let current_properties = core::get_active_weapon_properties(world, crew_member);
 
     for item in inventory::get_inventory(world, crew_member) {
-        if let Ok(weapon) = world.get::<&Weapon>(item)
-            && weapon.0 > weapon_damage
+        if let Some(properties) = world
+            .get::<&ItemType>(item)
+            .ok()
+            .and_then(|item_type| item_type.weapon_properties())
+            && properties.damage_mod > current_properties.damage_mod
         {
             return Some(Intention::Wield(item));
         }

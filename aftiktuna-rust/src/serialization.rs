@@ -180,7 +180,6 @@ pub mod world {
         core::Hostile, Hostile;
         core::Wandering, Wandering;
         core::ObservationTarget, ObservationTarget;
-        core::AttackSet, AttackSet;
         ai::Intention, Intention;
         core::Waiting, Waiting;
         core::RepeatingAction, RepeatingAction;
@@ -202,8 +201,6 @@ pub mod world {
 
         item::ItemType, ItemType;
         item::CanWield, CanWield;
-        item::Weapon, Weapon;
-        item::StunAttack, StunAttack;
         item::Price, Price;
 
         core::FortunaChest, FortunaChest;

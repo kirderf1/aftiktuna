@@ -153,7 +153,6 @@ fn species_builder_base(species: Species) -> EntityBuilder {
         species.model_id(),
         species.noun(),
         OrderWeight::Creature,
-        species.attack_set(),
     ));
     builder
 }

@@ -3,8 +3,7 @@ use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{OccupiesSpace, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
 use crate::core::{
-    self, AttackKind, AttackSet, Hostile, RepeatingAction, Species, inventory, item, position,
-    status,
+    self, AttackKind, Hostile, RepeatingAction, Species, inventory, position, status,
 };
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
@@ -88,14 +87,12 @@ fn attack_single(
 
     position::move_adjacent(world, attacker, target_pos)?;
 
-    let attack_kind = pick_attack_kind(
-        if let Some(weapon) = inventory::get_wielded(world, attacker) {
-            world.entity(weapon).unwrap()
-        } else {
-            world.entity(attacker).unwrap()
-        },
-        &mut context.state.rng,
-    );
+    let attack_kind = core::get_active_weapon_properties(world, attacker)
+        .attack_set
+        .available_kinds()
+        .choose(&mut context.state.rng)
+        .copied()
+        .unwrap_or(AttackKind::Light);
 
     if attack_kind == AttackKind::Charged {
         world
@@ -113,13 +110,6 @@ fn attack_single(
     } else {
         perform_attack(context, attacker, target, attack_kind)
     }
-}
-
-fn pick_attack_kind(entity_ref: EntityRef, rng: &mut impl Rng) -> AttackKind {
-    entity_ref
-        .get::<&AttackSet>()
-        .and_then(|set| set.available_kinds().choose(rng).copied())
-        .unwrap_or(AttackKind::Light)
 }
 
 pub(super) fn charged_attack(
@@ -300,7 +290,7 @@ fn perform_attack_hit(
     }
     if is_direct_hit
         && !world.satisfies::<&status::IsStunned>(target).unwrap()
-        && has_stun_attack_weapon(attacker, world)
+        && core::get_active_weapon_properties(world, attacker).stun_attack
     {
         let successful_stun = roll_stun(
             world.entity(attacker).unwrap(),
@@ -328,13 +318,7 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .expect("Expected attacker to have stats attached")
         .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
-    core::get_wielded_weapon_modifier(world, attacker) * strength_mod
-}
-
-fn has_stun_attack_weapon(attacker: Entity, world: &World) -> bool {
-    inventory::get_wielded(world, attacker)
-        .and_then(|wielded| world.satisfies::<&item::StunAttack>(wielded).ok())
-        .unwrap_or(false)
+    core::get_active_weapon_properties(world, attacker).damage_mod * strength_mod
 }
 
 fn roll_hit(

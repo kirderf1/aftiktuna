@@ -249,8 +249,7 @@ impl AttackKind {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AttackSet {
     Light,
     Quick,
@@ -331,6 +330,14 @@ impl Species {
             Self::Scarvie => AttackSet::Light,
             Self::VoraciousFrog => AttackSet::Slow,
             Self::BloodMantis => AttackSet::Quick,
+        }
+    }
+
+    pub fn unarmed_properties(self) -> WeaponProperties {
+        WeaponProperties {
+            damage_mod: 2.0,
+            attack_set: self.attack_set(),
+            stun_attack: false,
         }
     }
 }
@@ -503,10 +510,27 @@ pub fn is_safe(world: &World, area: Entity) -> bool {
         .all(|(entity, pos)| !pos.is_in(area) || !status::is_alive(entity, world))
 }
 
-pub fn get_wielded_weapon_modifier(world: &World, attacker: Entity) -> f32 {
+#[derive(Clone, Copy)]
+pub struct WeaponProperties {
+    pub damage_mod: f32,
+    pub attack_set: AttackSet,
+    pub stun_attack: bool,
+}
+
+pub fn get_active_weapon_properties(world: &World, attacker: Entity) -> WeaponProperties {
     inventory::get_wielded(world, attacker)
-        .and_then(|item| world.get::<&item::Weapon>(item).map(|weapon| weapon.0).ok())
-        .unwrap_or(2.0)
+        .and_then(|item| {
+            world
+                .get::<&item::ItemType>(item)
+                .ok()
+                .and_then(|item_type| item_type.weapon_properties())
+        })
+        .unwrap_or_else(|| {
+            world
+                .get::<&Species>(attacker)
+                .unwrap()
+                .unarmed_properties()
+        })
 }
 
 pub fn trigger_aggression_in_area(world: &mut World, area: Entity) {

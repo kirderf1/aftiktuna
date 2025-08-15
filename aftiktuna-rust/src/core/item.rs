@@ -1,6 +1,6 @@
 use super::display::{ModelId, OrderWeight};
-use crate::core::AttackSet;
 use crate::core::name::{IndefiniteArticle, Noun};
+use crate::core::{AttackSet, WeaponProperties};
 use crate::view::text::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -36,12 +36,6 @@ impl Tool {
 
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct CanWield;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Weapon(pub f32);
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct StunAttack;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Price(i32);
@@ -137,6 +131,32 @@ impl ItemType {
         .map(Price)
     }
 
+    pub fn weapon_properties(self) -> Option<WeaponProperties> {
+        match self {
+            Self::Crowbar => Some(WeaponProperties {
+                damage_mod: 3.0,
+                attack_set: AttackSet::Light,
+                stun_attack: false,
+            }),
+            Self::Knife => Some(WeaponProperties {
+                damage_mod: 3.0,
+                attack_set: AttackSet::Quick,
+                stun_attack: false,
+            }),
+            Self::Bat => Some(WeaponProperties {
+                damage_mod: 3.0,
+                attack_set: AttackSet::Intense,
+                stun_attack: true,
+            }),
+            Self::Sword => Some(WeaponProperties {
+                damage_mod: 5.0,
+                attack_set: AttackSet::Quick,
+                stun_attack: false,
+            }),
+            _ => None,
+        }
+    }
+
     pub fn is_usable(self) -> bool {
         matches!(self, Self::Medkit | Self::BlackOrb)
     }
@@ -180,21 +200,10 @@ pub fn spawn(
         builder.add(price);
     }
 
-    match item_type {
-        ItemType::Crowbar => {
-            builder.add_bundle((CanWield, Weapon(3.0), AttackSet::Light));
-        }
-        ItemType::Knife => {
-            builder.add_bundle((CanWield, Weapon(3.0), AttackSet::Quick));
-        }
-        ItemType::Bat => {
-            builder.add_bundle((CanWield, StunAttack, Weapon(3.0), AttackSet::Intense));
-        }
-        ItemType::Sword => {
-            builder.add_bundle((CanWield, Weapon(5.0), AttackSet::Quick));
-        }
-        _ => {}
-    };
+    if item_type.weapon_properties().is_some() {
+        builder.add(CanWield);
+    }
+
     world.spawn(builder.build())
 }
 
@@ -204,8 +213,8 @@ pub fn description(item_ref: EntityRef) -> Vec<String> {
 
     let item_type = *item_ref.get::<&ItemType>().unwrap();
 
-    if let Some(weapon) = item_ref.get::<&Weapon>() {
-        messages.add(format!("Weapon value: {}", weapon.0));
+    if let Some(weapon_properties) = item_type.weapon_properties() {
+        messages.add(format!("Weapon value: {}", weapon_properties.damage_mod));
     }
     match item_type {
         ItemType::FuelCan => messages.add("Used to refuel the ship."),
