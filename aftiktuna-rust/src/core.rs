@@ -359,15 +359,15 @@ impl CreatureAttribute {
     pub fn adjust_stats(self, stats: &mut status::Stats) {
         match self {
             CreatureAttribute::Muscular => {
-                stats.strength += 2;
+                stats.strength += 3;
                 stats.luck -= 1;
             }
             CreatureAttribute::Bulky => {
-                stats.endurance += 2;
+                stats.endurance += 3;
                 stats.agility -= 1;
             }
             CreatureAttribute::Agile => {
-                stats.agility += 2;
+                stats.agility += 3;
                 stats.endurance -= 1;
             }
         }

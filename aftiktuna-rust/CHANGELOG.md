@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Attacks now come in a few different flavors with slightly different properties
 - Stun recovery now comes with a message
 - New condition for view capturing to limit buildup of messages
+- Creature attributes increase stats slightly more
 
 ### Contributors for this release
 
