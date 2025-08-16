@@ -4,35 +4,33 @@ use crate::command::parse::{Parse, first_match_or};
 use crate::command::{self, CommandResult};
 use crate::core::position::Pos;
 use crate::core::{Hostile, status};
-use crate::game_loop::GameState;
-use hecs::{Entity, World};
+use hecs::{Entity, EntityRef, World};
 use std::collections::HashMap;
 
-pub fn commands(parse: &Parse, state: &GameState) -> Option<Result<CommandResult, String>> {
+pub fn commands(
+    parse: &Parse,
+    performer_ref: EntityRef,
+    world: &World,
+) -> Option<Result<CommandResult, String>> {
     parse.literal("attack", |parse| {
         first_match_or!(
-            parse.empty(|| attack_any(state));
+            parse.empty(|| attack_any(performer_ref, world));
             parse.match_against(
-                hostile_targets(&state.world, state.controlled),
-                |parse, targets| parse.done_or_err(|| attack(targets, state)),
+                hostile_targets(world, performer_ref.entity()),
+                |parse, targets| parse.done_or_err(|| attack(performer_ref, targets, world)),
                 |_| Err("There is no such target here.".to_string())
             )
         )
     })
 }
 
-fn attack_any(state: &GameState) -> Result<CommandResult, String> {
-    let area = state
-        .world
-        .get::<&Pos>(state.controlled)
-        .unwrap()
-        .get_area();
-    let foes = state
-        .world
+fn attack_any(performer_ref: EntityRef, world: &World) -> Result<CommandResult, String> {
+    let area = performer_ref.get::<&Pos>().unwrap().get_area();
+    let foes = world
         .query::<&Pos>()
         .with::<&Hostile>()
         .iter()
-        .filter(|&(entity, pos)| pos.is_in(area) && status::is_alive(entity, &state.world))
+        .filter(|&(entity, pos)| pos.is_in(area) && status::is_alive(entity, world))
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
 
@@ -41,7 +39,7 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
     } else {
         command::action_result(Action::Attack(
             foes,
-            ai::pick_attack_kind(state.controlled, &state.world, &mut rand::rng()),
+            ai::pick_attack_kind(performer_ref, world, &mut rand::rng()),
         ))
     }
 }
@@ -64,8 +62,12 @@ pub fn hostile_targets(world: &World, character: Entity) -> HashMap<String, Vec<
     map
 }
 
-fn attack(targets: Vec<Entity>, state: &GameState) -> Result<CommandResult, String> {
-    let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+fn attack(
+    performer_ref: EntityRef,
+    targets: Vec<Entity>,
+    world: &World,
+) -> Result<CommandResult, String> {
+    let character_pos = *performer_ref.get::<&Pos>().unwrap();
 
     let target_access = targets
         .iter()
@@ -73,10 +75,10 @@ fn attack(targets: Vec<Entity>, state: &GameState) -> Result<CommandResult, Stri
             (
                 super::check_adjacent_accessible_with_message(
                     entity,
-                    state.controlled,
-                    &state.world,
+                    performer_ref.entity(),
+                    world,
                 ),
-                *state.world.get::<&Pos>(entity).unwrap(),
+                *world.get::<&Pos>(entity).unwrap(),
             )
         })
         .collect::<Vec<_>>();
@@ -91,6 +93,6 @@ fn attack(targets: Vec<Entity>, state: &GameState) -> Result<CommandResult, Stri
 
     command::action_result(Action::Attack(
         targets,
-        ai::pick_attack_kind(state.controlled, &state.world, &mut rand::rng()),
+        ai::pick_attack_kind(performer_ref, world, &mut rand::rng()),
     ))
 }

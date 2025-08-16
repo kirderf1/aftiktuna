@@ -4,12 +4,12 @@ use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{
-    self, AttackKind, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction,
-    Waiting, Wandering, area, inventory, status,
+    self, AttackKind, BadlyHurtBehavior, Character, CrewMember, Door, Hostile, ObservationTarget,
+    RepeatingAction, Species, Waiting, Wandering, area, inventory, status,
 };
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
-use rand::seq::IndexedRandom;
+use rand::seq::{IndexedRandom, IteratorRandom};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -126,6 +126,12 @@ fn pick_foe_action(
     world: &World,
     rng: &mut impl Rng,
 ) -> Option<Action> {
+    if has_behavior(entity_ref, BadlyHurtBehavior::Fearful)
+        && let Some(path) = find_random_unblocked_path(entity_ref, world, rng)
+    {
+        return Some(Action::EnterDoor(path));
+    }
+
     if hostile.aggressive {
         let area = entity_ref.get::<&Pos>()?.get_area();
 
@@ -139,7 +145,7 @@ fn pick_foe_action(
         if !targets.is_empty() {
             return Some(Action::Attack(
                 targets,
-                pick_attack_kind(entity_ref.entity(), world, rng),
+                pick_attack_kind(entity_ref, world, rng),
             ));
         }
     }
@@ -158,18 +164,10 @@ fn pick_foe_action(
             && rng.random_bool(8. / 10.)
         {
             return Some(Action::Examine(observation_target));
-        } else if rng.random_bool(1. / 2.) {
-            let doors = world
-                .query::<&Pos>()
-                .with::<&Door>()
-                .iter()
-                .filter(|&(_, door_pos)| door_pos.is_in(area))
-                .map(|(entity, _)| entity)
-                .collect::<Vec<_>>();
-            let door = doors.choose(rng);
-            if let Some(&door) = door {
-                return Some(Action::EnterDoor(door));
-            }
+        } else if rng.random_bool(1. / 2.)
+            && let Some(door) = find_random_unblocked_path(entity_ref, world, rng)
+        {
+            return Some(Action::EnterDoor(door));
         }
     }
 
@@ -177,34 +175,32 @@ fn pick_foe_action(
 }
 
 fn pick_crew_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) -> Option<Action> {
-    let intention = entity_ref.get::<&Intention>();
-    if let Some(&Intention::UseMedkit(item)) = intention.as_deref() {
-        return Some(UseAction { item }.into());
-    }
-
     let entity_pos = *entity_ref.get::<&Pos>()?;
 
-    if !entity_ref.has::<Character>()
-        && entity_ref
-            .get::<&status::Health>()
-            .is_some_and(|health| health.is_badly_hurt())
-    {
+    if has_behavior(entity_ref, BadlyHurtBehavior::Fearful) {
         let is_area_safe =
             area::is_in_ship(entity_pos, world) && core::is_safe(world, entity_pos.get_area());
-        if !is_area_safe
-            && let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
+        if !is_area_safe {
+            if let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
                 area::is_ship(area, world)
-            })
-            && position::check_is_blocked(
+            }) && position::check_is_blocked(
                 world,
                 entity_ref,
                 entity_pos,
                 *world.get::<&Pos>(path).unwrap(),
             )
             .is_ok()
-        {
-            return Some(Action::EnterDoor(path));
+            {
+                return Some(Action::EnterDoor(path));
+            } else if let Some(path) = find_random_unblocked_path(entity_ref, world, rng) {
+                return Some(Action::EnterDoor(path));
+            }
         }
+    }
+
+    let intention = entity_ref.get::<&Intention>();
+    if let Some(&Intention::UseMedkit(item)) = intention.as_deref() {
+        return Some(UseAction { item }.into());
     }
 
     if entity_ref
@@ -238,7 +234,7 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) ->
     if !foes.is_empty() {
         return Some(Action::Attack(
             foes,
-            pick_attack_kind(entity_ref.entity(), world, rng),
+            pick_attack_kind(entity_ref, world, rng),
         ));
     }
 
@@ -255,19 +251,55 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) ->
     None
 }
 
-pub fn pick_attack_kind(attacker: Entity, world: &World, rng: &mut impl Rng) -> AttackKind {
-    core::get_active_weapon_properties(world, attacker)
+pub fn pick_attack_kind(attacker_ref: EntityRef, world: &World, rng: &mut impl Rng) -> AttackKind {
+    let available_kinds = core::get_active_weapon_properties(world, attacker_ref.entity())
         .attack_set
-        .available_kinds()
-        .choose(rng)
-        .copied()
-        .unwrap_or(AttackKind::Light)
+        .available_kinds();
+
+    if has_behavior(attacker_ref, BadlyHurtBehavior::Determined)
+        && available_kinds.contains(&AttackKind::Rash)
+    {
+        AttackKind::Rash
+    } else {
+        available_kinds
+            .choose(rng)
+            .copied()
+            .unwrap_or(AttackKind::Light)
+    }
 }
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
     world
         .satisfies::<hecs::Or<&Intention, &status::IsStunned>>(entity)
         .unwrap_or(false)
+}
+
+fn find_random_unblocked_path(
+    entity_ref: EntityRef,
+    world: &World,
+    rng: &mut impl Rng,
+) -> Option<Entity> {
+    let entity_pos = *entity_ref.get::<&Pos>()?;
+    world
+        .query::<&Pos>()
+        .with::<&Door>()
+        .iter()
+        .filter(|&(_, path_pos)| {
+            path_pos.is_in(entity_pos.get_area())
+                && position::check_is_blocked(world, entity_ref, entity_pos, *path_pos).is_ok()
+        })
+        .choose(rng)
+        .map(|(path, _)| path)
+}
+
+fn has_behavior(entity_ref: EntityRef, behavior: BadlyHurtBehavior) -> bool {
+    entity_ref
+        .get::<&status::Health>()
+        .is_some_and(|health| health.is_badly_hurt())
+        && entity_ref
+            .get::<&Species>()
+            .and_then(|species| species.badly_hurt_behavior())
+            == Some(behavior)
 }
 
 struct PathSearchEntry {

@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 5.0, making it incompatible with previous save files
 - Attacks now come in a few different flavors with slightly different properties
+- Changes in behavior for some types of fauna when they are badly hurt
 - Stun recovery now comes with a message
 - New condition for view capturing to limit buildup of messages
 - Creature attributes increase stats slightly more

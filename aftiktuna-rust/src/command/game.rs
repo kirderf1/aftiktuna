@@ -46,7 +46,7 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
                 parse.default_err()
             )
         ),
-        combat::commands(&parse, state),
+        combat::commands(&parse, state.world.entity(state.controlled).unwrap(), &state.world),
         dialogue::commands(&parse, state),
         parse.literal("wait", |parse| {
             parse.done_or_err(|| command::action_result(Action::Wait))

@@ -271,6 +271,12 @@ impl AttackSet {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BadlyHurtBehavior {
+    Fearful,
+    Determined,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Species {
     Aftik,
@@ -330,6 +336,18 @@ impl Species {
             Self::Scarvie => AttackSet::Light,
             Self::VoraciousFrog => AttackSet::Slow,
             Self::BloodMantis => AttackSet::Quick,
+        }
+    }
+
+    pub fn badly_hurt_behavior(self) -> Option<BadlyHurtBehavior> {
+        match self {
+            Self::Aftik => None,
+            Self::Goblin => Some(BadlyHurtBehavior::Fearful),
+            Self::Eyesaur => None,
+            Self::Azureclops => Some(BadlyHurtBehavior::Determined),
+            Self::Scarvie => Some(BadlyHurtBehavior::Fearful),
+            Self::VoraciousFrog => None,
+            Self::BloodMantis => Some(BadlyHurtBehavior::Determined),
         }
     }
 

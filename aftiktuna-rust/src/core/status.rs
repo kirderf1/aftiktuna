@@ -1,6 +1,6 @@
 use super::name::NameWithAttribute;
 use super::position::Pos;
-use crate::core::{Character, CrewMember};
+use crate::core::{BadlyHurtBehavior, Species};
 use crate::view::text::Messages;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -265,17 +265,23 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
         if !has_tag && visible_low_health && health.is_alive() {
             command_buffer.insert_one(entity, SeenWithLowHealth);
             if entity != character {
-                if entity_ref.has::<CrewMember>() && !entity_ref.has::<Character>() {
-                    messages.add(format!(
-                        "{the_entity} is badly hurt, and turns to flee back to the ship.",
-                        the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
-                    ));
-                } else {
-                    messages.add(format!(
-                        "{the_entity} is badly hurt.",
-                        the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
-                    ));
-                }
+                let the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite();
+                messages.add(
+                    match entity_ref
+                        .get::<&Species>()
+                        .and_then(|species| species.badly_hurt_behavior())
+                    {
+                        Some(BadlyHurtBehavior::Fearful) => {
+                            format!("{the_entity} is badly hurt, and turns to flee.")
+                        }
+                        Some(BadlyHurtBehavior::Determined) => {
+                            format!(
+                                "{the_entity} is badly hurt, and readies themselves to go all-out."
+                            )
+                        }
+                        None => format!("{the_entity} is badly hurt."),
+                    },
+                );
             }
         }
     }
