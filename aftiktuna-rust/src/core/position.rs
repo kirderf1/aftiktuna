@@ -320,15 +320,21 @@ pub fn check_is_blocked(
     if entity_pos.get_coord() == target_pos.get_coord() {
         return Ok(());
     }
-    if entity_ref.satisfies::<&CrewMember>() {
-        let adjacent_pos = entity_pos.get_adjacent_towards(target_pos);
-        let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
-        let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
-        if let Some(entity) =
-            find_blocking_hostile_in_range(world, entity_pos.get_area(), min..=max)
-        {
-            return Err(Blockage::Hostile(entity));
-        }
+
+    let adjacent_pos = entity_pos.get_adjacent_towards(target_pos);
+    let min = min(adjacent_pos.get_coord(), target_pos.get_coord());
+    let max = max(adjacent_pos.get_coord(), target_pos.get_coord());
+    if entity_ref.has::<CrewMember>()
+        && let Some(entity) =
+            find_blocking_in_range::<&Hostile>(world, entity_pos.get_area(), min..=max)
+    {
+        return Err(Blockage::Hostile(entity));
+    }
+    if entity_ref.has::<Hostile>()
+        && let Some(entity) =
+            find_blocking_in_range::<&CrewMember>(world, entity_pos.get_area(), min..=max)
+    {
+        return Err(Blockage::Hostile(entity));
     }
 
     check_is_pos_blocked(target_pos, world)
@@ -352,14 +358,14 @@ pub fn check_is_pos_blocked(target_pos: Pos, world: &World) -> Result<(), Blocka
     Ok(())
 }
 
-fn find_blocking_hostile_in_range(
+fn find_blocking_in_range<Q: hecs::Query>(
     world: &World,
     area: Entity,
     range: impl RangeBounds<Coord>,
 ) -> Option<Entity> {
     world
         .query::<&Pos>()
-        .with::<(&Hostile, &OccupiesSpace)>()
+        .with::<(Q, &OccupiesSpace)>()
         .iter()
         .find(|(_, pos)| pos.is_in(area) && range.contains(&pos.get_coord()))
         .map(|(entity, _)| entity)
