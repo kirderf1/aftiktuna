@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Stun recovery now comes with a message
 - New condition for view capturing to limit buildup of messages
 - Creature attributes increase stats slightly more
+- Large creatures (blood mantis and voracious frog) now occupy two coordinate positions
 
 ### Contributors for this release
 

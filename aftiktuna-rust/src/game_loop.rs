@@ -5,7 +5,7 @@ use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameQuery};
-use crate::core::position::{Direction, Pos};
+use crate::core::position::{self, Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{
     self, Character, CrewLossMemory, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory,
@@ -410,10 +410,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 .get::<&core::Hostile>(entity)
                 .is_ok_and(|hostile| !hostile.aggressive)
             {
-                state
-                    .world
-                    .insert_one(entity, Direction::between(pos, player_pos))
-                    .unwrap();
+                position::turn_towards(&mut state.world, entity, player_pos);
                 view_buffer.messages.add(
                     CombinableMsgType::Threatening.message(NameData::find(&state.world, entity)),
                 );
@@ -424,10 +421,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 .get::<&core::Hostile>(entity)
                 .is_ok_and(|hostile| hostile.aggressive)
             {
-                state
-                    .world
-                    .insert_one(entity, Direction::between(pos, player_pos))
-                    .unwrap();
+                position::turn_towards(&mut state.world, entity, player_pos);
                 view_buffer.messages.add(
                     CombinableMsgType::Attacking.message(NameData::find(&state.world, entity)),
                 );

@@ -5,7 +5,7 @@ use crate::core::area::{ShipControls, ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
-use crate::core::position::{Blockage, Pos};
+use crate::core::position::{Blockage, Placement, PlacementQuery, Pos};
 use crate::core::store::Shopkeeper;
 use crate::core::{Character, CrewMember, FortunaChest, area, inventory, position, status};
 use crate::game_loop::GameState;
@@ -456,13 +456,17 @@ fn check_adjacent_accessible(
     let character_pos = *world
         .get::<&Pos>(character)
         .map_err(|_| Inaccessible::NotHere)?;
-    let target_pos = *world
-        .get::<&Pos>(target)
-        .map_err(|_| Inaccessible::NotHere)?;
-    if !character_pos.is_in(target_pos.get_area()) {
+    let target_placement = Placement::from(
+        world
+            .query_one::<PlacementQuery>(target)
+            .unwrap()
+            .get()
+            .ok_or(Inaccessible::NotHere)?,
+    );
+    if !character_pos.is_in(target_placement.area()) {
         return Err(Inaccessible::NotHere);
     }
-    let target_pos = target_pos.get_adjacent_towards(character_pos);
+    let target_pos = target_placement.get_adjacent_towards(character_pos);
     position::check_is_blocked(
         world,
         world.entity(character).unwrap(),

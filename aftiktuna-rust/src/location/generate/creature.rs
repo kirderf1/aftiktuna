@@ -6,7 +6,7 @@ use crate::asset::location::creature::{
 use crate::asset::{self, AftikProfile};
 use crate::core::display::OrderWeight;
 use crate::core::name::{IndefiniteArticle, Name, Noun};
-use crate::core::position::{Direction, OccupiesSpace, Pos};
+use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, Species, Wandering};
@@ -154,6 +154,9 @@ fn species_builder_base(species: Species) -> EntityBuilder {
         species.noun(),
         OrderWeight::Creature,
     ));
+    if species.is_large() {
+        builder.add(Large);
+    }
     builder
 }
 

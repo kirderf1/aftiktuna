@@ -2,7 +2,7 @@ use crate::action::{self, Error};
 use crate::core::area::{self, FuelAmount, ShipControls, ShipState, ShipStatus};
 use crate::core::item::ItemType;
 use crate::core::name::{NameData, NameQuery};
-use crate::core::position::{self, Pos};
+use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::{CrewMember, inventory};
 use crate::game_loop::GameState;
 use crate::view::text;
@@ -12,9 +12,9 @@ pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Resul
     let state = &mut context.state;
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
-    let (status, controls_pos) = lookup_ship_state(state, area)?;
+    let (status, controls_placement) = lookup_ship_state(state, area)?;
 
-    position::move_adjacent(&mut state.world, performer, controls_pos)?;
+    position::move_adjacent_placement(&mut state.world, performer, controls_placement)?;
 
     let name = NameData::find(&state.world, performer).definite();
     let (new_status, message) = match status {
@@ -56,9 +56,9 @@ pub fn launch(context: &mut action::Context, performer: Entity) -> action::Resul
 
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
-    let (status, controls_pos) = lookup_ship_state(state, area)?;
+    let (status, controls_placement) = lookup_ship_state(state, area)?;
 
-    position::move_adjacent(&mut state.world, performer, controls_pos)?;
+    position::move_adjacent_placement(&mut state.world, performer, controls_placement)?;
 
     let (new_status, message) = match status {
         ShipStatus::NeedFuel(amount) => refuel_then_launch(state, performer, amount),
@@ -126,7 +126,7 @@ fn refuel_then_launch(
     }
 }
 
-fn lookup_ship_state(state: &GameState, area: Entity) -> Result<(ShipStatus, Pos), String> {
+fn lookup_ship_state(state: &GameState, area: Entity) -> Result<(ShipStatus, Placement), String> {
     let status = state
         .world
         .get::<&ShipState>(state.ship_core)
@@ -135,11 +135,11 @@ fn lookup_ship_state(state: &GameState, area: Entity) -> Result<(ShipStatus, Pos
 
     let controls_pos = state
         .world
-        .query::<&Pos>()
+        .query::<PlacementQuery>()
         .with::<&ShipControls>()
         .iter()
-        .map(|(_, pos)| *pos)
-        .find(|pos| pos.is_in(area) && area::is_ship(area, &state.world))
+        .map(|(_, query)| Placement::from(query))
+        .find(|placement| placement.pos.is_in(area) && area::is_ship(area, &state.world))
         .ok_or_else(|| "Must be in the ship control room to do this.".to_string())?;
 
     Ok((status, controls_pos))

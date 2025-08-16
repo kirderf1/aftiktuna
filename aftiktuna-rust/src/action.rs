@@ -1,6 +1,6 @@
 use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
-use crate::core::position::{self, Direction, Pos};
+use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::{
     self, AttackKind, CrewMember, Door, FortunaChest, Hostile, OpenedChest, Recruitable,
     RepeatingAction, inventory, status,
@@ -126,15 +126,16 @@ fn perform(
             Ok(Success)
         }
         Examine(target) => {
-            if let Some(target_pos) = state.world.get::<&Pos>(target).ok().map(|pos| *pos) {
-                let _ = position::move_adjacent(&mut state.world, performer, target_pos);
-                let performer_pos = *state.world.get::<&Pos>(performer).unwrap();
-                if performer_pos != target_pos {
-                    state
-                        .world
-                        .insert_one(performer, Direction::between(performer_pos, target_pos))
-                        .unwrap();
-                }
+            if let Ok(target_placement) = state
+                .world
+                .query_one_mut::<PlacementQuery>(target)
+                .map(Placement::from)
+            {
+                let _ = position::move_adjacent_placement(
+                    &mut state.world,
+                    performer,
+                    target_placement,
+                );
             }
             Ok(Success)
         }
@@ -260,9 +261,9 @@ fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> R
 
 fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result {
     let world = &mut context.state.world;
-    let chest_pos = *world.get::<&Pos>(chest).unwrap();
+    let chest_placement = Placement::from(world.query_one_mut::<PlacementQuery>(chest).unwrap());
 
-    position::move_adjacent(world, performer, chest_pos)?;
+    position::move_adjacent_placement(world, performer, chest_placement)?;
 
     if world.get::<&FortunaChest>(chest).is_err() {
         return Err(Error::visible(format!(
@@ -274,7 +275,7 @@ fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result
 
     world.insert_one(performer, OpenedChest).unwrap();
     context.view_context.add_message_at(
-        chest_pos.get_area(),
+        chest_placement.area(),
         format!(
             "{} opened the fortuna chest and found the item that they desired the most.",
             NameData::find(world, performer).definite()
@@ -296,7 +297,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
 
     let performer_name = NameData::find(world, performer).definite();
     let target_name = NameData::find(world, target).definite();
-    let target_pos = *world.get::<&Pos>(target).unwrap();
+    let target_placement = Placement::from(world.query_one_mut::<PlacementQuery>(target).unwrap());
 
     if !status::is_alive(target, world) {
         return Err(Error::private(format!(
@@ -325,7 +326,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         .query::<&Pos>()
         .with::<&Hostile>()
         .iter()
-        .filter(|(_, pos)| pos.is_in(target_pos.get_area()))
+        .filter(|(_, pos)| pos.is_in(target_placement.area()))
         .count();
     if creature_count > 1 {
         return Err(Error::private(format!(
@@ -333,7 +334,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         )));
     }
 
-    position::move_adjacent(world, performer, target_pos)?;
+    position::move_adjacent_placement(world, performer, target_placement)?;
 
     inventory::consume_one(ItemType::FoodRation, world, performer).ok_or_else(|| {
         Error::private(format!("{performer_name} needs a food ration for taming."))
@@ -344,7 +345,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         .unwrap();
 
     context.view_context.add_message_at(
-        target_pos.get_area(),
+        target_placement.area(),
         format!("{performer_name} offered a food ration to {target_name} and tamed it."),
         context.state,
     );
@@ -356,7 +357,7 @@ fn give_name(context: &mut Context, performer: Entity, target: Entity, name: Str
     let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer).definite();
     let target_name = NameData::find(world, target).definite();
-    let target_pos = *world.get::<&Pos>(target).unwrap();
+    let target_placement = Placement::from(world.query_one_mut::<PlacementQuery>(target).unwrap());
 
     {
         let target = world.entity(target).unwrap();
@@ -371,12 +372,12 @@ fn give_name(context: &mut Context, performer: Entity, target: Entity, name: Str
         }
     }
 
-    position::move_adjacent(world, performer, target_pos)?;
+    position::move_adjacent_placement(world, performer, target_placement)?;
 
     world.insert_one(target, Name::known(&name)).unwrap();
 
     context.view_context.add_message_at(
-        target_pos.get_area(),
+        target_placement.area(),
         format!("{performer_name} dubbed {target_name} to be named {name}."),
         context.state,
     );

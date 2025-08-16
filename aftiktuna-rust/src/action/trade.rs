@@ -4,7 +4,7 @@ use crate::core::area::{FuelAmount, ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{self, ItemType, Price};
 use crate::core::name::{self, NameData};
-use crate::core::position::{self, Pos};
+use crate::core::position::{self, Placement, PlacementQuery};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
 use crate::view::text;
 use hecs::{Entity, EntityRef, World};
@@ -17,16 +17,17 @@ pub fn trade(
     let world = &mut context.state.world;
     let performer_name = NameData::find(world, performer).definite();
 
-    let shop_pos = *world
-        .get::<&Pos>(shopkeeper)
+    let shop_placement = world
+        .query_one_mut::<PlacementQuery>(shopkeeper)
+        .map(Placement::from)
         .map_err(|_| format!("{performer_name} lost track of the shopkeeper."))?;
     world.get::<&Shopkeeper>(shopkeeper).unwrap();
 
-    position::move_adjacent(world, performer, shop_pos)?;
+    position::move_adjacent_placement(world, performer, shop_placement)?;
 
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 
-    context.view_context.add_message_at(shop_pos.get_area(), format!(
+    context.view_context.add_message_at(shop_placement.area(), format!(
         "{performer_name} starts trading with the shopkeeper. \"Welcome to the store. What do you want to buy?\"",
     ), context.state);
     Ok(action::Success)

@@ -1,6 +1,6 @@
 use crate::action::{self, Error};
 use crate::core::name::{NameData, NameWithAttribute};
-use crate::core::position::{OccupiesSpace, Pos};
+use crate::core::position::{OccupiesSpace, Placement, PlacementQuery, Pos};
 use crate::core::status::{Health, Killed, Stamina, Stats};
 use crate::core::{
     self, AttackKind, Hostile, RepeatingAction, Species, inventory, position, status,
@@ -23,22 +23,30 @@ pub(super) fn attack(
 
     let targets = targets
         .into_iter()
-        .flat_map(|entity| world.get::<&Pos>(entity).ok().map(|pos| (entity, *pos)))
-        .filter(|(entity, other_pos)| {
-            other_pos.is_in(pos.get_area()) && status::is_alive(*entity, world)
+        .flat_map(|entity| {
+            world
+                .query_one::<PlacementQuery>(entity)
+                .ok()
+                .and_then(|mut query| query.get().map(|query| (entity, Placement::from(query))))
+        })
+        .filter(|(entity, other_placement)| {
+            pos.is_in(other_placement.area()) && status::is_alive(*entity, world)
         })
         // collects the closest targets and also maps them to just the entity in one
-        .fold((u32::MAX, vec![]), |mut partial, (entity, other_pos)| {
-            let distance = other_pos.distance_to(pos);
-            match distance.cmp(&partial.0) {
-                Ordering::Less => (distance, vec![entity]),
-                Ordering::Equal => {
-                    partial.1.push(entity);
-                    partial
+        .fold(
+            (u32::MAX, vec![]),
+            |mut partial, (entity, other_placement)| {
+                let distance = other_placement.distance_to(pos);
+                match distance.cmp(&partial.0) {
+                    Ordering::Less => (distance, vec![entity]),
+                    Ordering::Equal => {
+                        partial.1.push(entity);
+                        partial
+                    }
+                    Ordering::Greater => partial,
                 }
-                Ordering::Greater => partial,
-            }
-        })
+            },
+        )
         .1;
 
     if targets.is_empty() {
@@ -63,15 +71,18 @@ fn attack_single(
     if !status::is_alive(target, world) {
         return Ok(action::Success);
     }
-    let target_pos = *world.get::<&Pos>(target).map_err(|_| {
-        format!(
-            "{target_name} disappeared before {attacker_name} could attack.",
-            attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
-            target_name = NameWithAttribute::lookup(target, world).definite()
-        )
-    })?;
+    let target_placement = world
+        .query_one_mut::<PlacementQuery>(target)
+        .map(Placement::from)
+        .map_err(|_| {
+            format!(
+                "{target_name} disappeared before {attacker_name} could attack.",
+                attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
+                target_name = NameWithAttribute::lookup(target, world).definite()
+            )
+        })?;
 
-    if attacker_pos.get_area() != target_pos.get_area() {
+    if !attacker_pos.is_in(target_placement.area()) {
         return Err(Error::private(format!(
             "{target_name} left before {attacker_name} could attack.",
             attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
@@ -86,7 +97,7 @@ fn attack_single(
     let world = &mut context.state.world;
     core::trigger_aggression_in_area(world, attacker_pos.get_area());
 
-    position::move_adjacent(world, attacker, target_pos)?;
+    position::move_adjacent_placement(world, attacker, target_placement)?;
 
     if attack_kind == AttackKind::Charged {
         world
@@ -119,15 +130,18 @@ pub(super) fn charged_attack(
     if !status::is_alive(target, world) {
         return Ok(action::Success);
     }
-    let target_pos = *world.get::<&Pos>(target).map_err(|_| {
-        format!(
-            "{target_name} disappeared before {attacker_name} could attack.",
-            attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
-            target_name = NameWithAttribute::lookup(target, world).definite()
-        )
-    })?;
+    let target_placement = world
+        .query_one_mut::<PlacementQuery>(target)
+        .map(Placement::from)
+        .map_err(|_| {
+            format!(
+                "{target_name} disappeared before {attacker_name} could attack.",
+                attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
+                target_name = NameWithAttribute::lookup(target, world).definite()
+            )
+        })?;
 
-    if attacker_pos.get_area() != target_pos.get_area() {
+    if !attacker_pos.is_in(target_placement.area()) {
         return Err(Error::private(format!(
             "{target_name} left before {attacker_name} could attack.",
             attacker_name = NameWithAttribute::lookup(attacker, world).definite(),
@@ -142,7 +156,7 @@ pub(super) fn charged_attack(
     let world = &mut context.state.world;
     core::trigger_aggression_in_area(world, attacker_pos.get_area());
 
-    position::move_adjacent(world, attacker, target_pos)?;
+    position::move_adjacent_placement(world, attacker, target_placement)?;
 
     perform_attack(context, attacker, target, AttackKind::Charged)
 }

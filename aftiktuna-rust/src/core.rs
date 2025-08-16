@@ -315,6 +315,10 @@ impl Species {
         }
     }
 
+    pub fn is_large(self) -> bool {
+        matches!(self, Self::VoraciousFrog | Self::BloodMantis)
+    }
+
     pub fn unarmed_type(self) -> UnarmedType {
         match self {
             Self::Aftik => UnarmedType::Scratch,

@@ -3,7 +3,7 @@ use crate::ai::{self, Intention};
 use crate::core::display::DialogueExpression;
 use crate::core::item::Tool;
 use crate::core::name::NameData;
-use crate::core::position::{self, Direction, Pos};
+use crate::core::position::{self, Direction, Placement, PlacementQuery, Pos};
 use crate::core::status::Stamina;
 use crate::core::{
     self, BlockType, Character, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
@@ -81,7 +81,17 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     view_context.capture_unseen_view(door_pos.get_area(), state);
 
     let world = &mut state.world;
-    if let Err(blockage) = position::check_is_pos_blocked(door_data.destination, world) {
+    let performer_placement =
+        Placement::from(world.query_one_mut::<PlacementQuery>(performer).unwrap());
+    let destination_pos = if performer_placement.is_large {
+        door_data
+            .destination
+            .try_offset_direction(performer_placement.direction, world)
+            .unwrap_or(door_data.destination)
+    } else {
+        door_data.destination
+    };
+    if let Err(blockage) = position::check_is_pos_blocked(Some(performer), destination_pos, world) {
         blockage
             .try_push(
                 Direction::towards_center(door_data.destination, world),
@@ -89,7 +99,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
             )
             .map_err(|_| blockage.into_message(world))?;
     }
-    world.insert_one(performer, door_data.destination).unwrap();
+    world.insert_one(performer, destination_pos).unwrap();
     if let Ok(mut stamina) = world.get::<&mut Stamina>(performer) {
         stamina.on_move();
     }

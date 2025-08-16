@@ -3,7 +3,7 @@ use crate::core::display::DialogueExpression;
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameQuery};
-use crate::core::position::{self, Pos};
+use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, StatChanges};
 use crate::core::{self, RepeatingAction, inventory};
 use crate::view::text::{self, CombinableMsgType};
@@ -165,7 +165,7 @@ pub(super) fn give_item(
         state,
         mut view_context,
     } = context;
-    let world = &state.world;
+    let world = &mut state.world;
     let performer_name = NameData::find(world, performer).definite();
     let receiver_name = NameData::find(world, receiver).definite();
 
@@ -183,11 +183,17 @@ pub(super) fn give_item(
     let performer_pos = *world
         .get::<&Pos>(performer)
         .expect("Expected performer to have a position");
-    let receiver_pos = *world.get::<&Pos>(receiver).map_err(|_| {
-        format!("{receiver_name} disappeared before {performer_name} could interact with them.",)
-    })?;
+    let receiver_placement =
+        world
+            .query_one_mut::<PlacementQuery>(receiver)
+            .map(Placement::from)
+            .map_err(|_| {
+                format!(
+                    "{receiver_name} disappeared before {performer_name} could interact with them.",
+                )
+            })?;
 
-    if !performer_pos.is_in(receiver_pos.get_area()) {
+    if !performer_pos.is_in(receiver_placement.area()) {
         return Err(Error::private(format!(
             "{receiver_name} left before {performer_name} could interact with them.",
         )));
@@ -199,7 +205,7 @@ pub(super) fn give_item(
         )));
     }
 
-    let movement = position::prepare_move_adjacent(world, performer, receiver_pos)
+    let movement = position::prepare_move_adjacent_placement(world, performer, receiver_placement)
         .map_err(|blockage| blockage.into_message(world))?;
 
     view_context.capture_frame_for_dialogue(state);

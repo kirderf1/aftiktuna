@@ -1,55 +1,67 @@
 {
   "layers": [
     {
-      "texture": "creature/blood_mantis/head",
-      "offset": { "x": 80.0, "y": 118.0 },
-      "anchor": { "x": -6.0, "y": 48.0 },
-      "rotation": [ 0.0, 8.0 ],
-      "animation_length": 5.0,
-      "if_alive": true
-    },
-    {
-      "texture": "creature/blood_mantis/arm",
-      "offset": { "x": 100.0, "y": 38.0 },
-      "anchor": { "x": -35.0, "y": 56.0 },
-      "rotation": [ -5.0, 10.0 ],
-      "animation_length": 4.0,
       "if_alive": true,
-      "if_hurt": false
+      "if_hurt": false,
+      "offset": { "x": -68.0, "y": 0.0 },
+      "children": [
+        {
+          "offset": { "x": 88.0, "y": 118.0 },
+          "anchor": { "x": -6.0, "y": 48.0 },
+          "rotation": [ 0.0, 8.0 ],
+          "animation_length": 5.0,
+          "texture": "creature/blood_mantis/head"
+        },
+        {
+          "offset": { "x": 108.0, "y": 38.0 },
+          "anchor": { "x": -35.0, "y": 56.0 },
+          "rotation": [ -5.0, 10.0 ],
+          "animation_length": 4.0,
+          "texture": "creature/blood_mantis/arm"
+        },
+        { "texture": "creature/blood_mantis/body" },
+        {
+          "offset": { "x": 100.0, "y": 35.0 },
+          "anchor": { "x": -35.0, "y": 56.0 },
+          "rotation": [ 10.0, -5.0 ],
+          "animation_length": 4.0,
+          "texture": "creature/blood_mantis/arm"
+        }
+      ]
     },
     {
-      "texture": "creature/blood_mantis/arm_wounded",
-      "offset": { "x": 100.0, "y": 38.0 },
-      "anchor": { "x": -35.0, "y": 56.0 },
-      "rotation": [ -5.0, 10.0 ],
-      "animation_length": 4.0,
       "if_alive": true,
-      "if_hurt": true
+      "if_hurt": true,
+      "offset": { "x": -68.0, "y": 0.0 },
+      "children": [
+        {
+          "offset": { "x": 88.0, "y": 118.0 },
+          "anchor": { "x": -6.0, "y": 48.0 },
+          "rotation": [ 0.0, 8.0 ],
+          "animation_length": 5.0,
+          "texture": "creature/blood_mantis/head"
+        },
+        {
+          "offset": { "x": 108.0, "y": 38.0 },
+          "anchor": { "x": -35.0, "y": 56.0 },
+          "rotation": [ -5.0, 10.0 ],
+          "animation_length": 4.0,
+          "texture": "creature/blood_mantis/arm_wounded"
+        },
+        { "texture": "creature/blood_mantis/body_wounded" },
+        {
+          "offset": { "x": 100.0, "y": 35.0 },
+          "anchor": { "x": -35.0, "y": 56.0 },
+          "rotation": [ 10.0, -5.0 ],
+          "animation_length": 4.0,
+          "texture": "creature/blood_mantis/arm"
+        }
+      ]
     },
     {
-      "texture": "creature/blood_mantis/body",
-      "offset": { "x": -8.0, "y": 0.0 },
-      "if_alive": true,
-      "if_hurt": false
-    },
-    {
-      "texture": "creature/blood_mantis/body_wounded",
-      "offset": { "x": -8.0, "y": 0.0 },
-      "if_alive": true,
-      "if_hurt": true
-    },
-    {
-      "texture": "creature/blood_mantis/arm",
-      "offset": { "x": 92.0, "y": 35.0 },
-      "anchor": { "x": -35.0, "y": 56.0 },
-      "rotation": [ 10.0, -5.0 ],
-      "animation_length": 4.0,
-      "if_alive": true
-    },
-    {
-      "texture": "creature/blood_mantis/corpse",
-      "offset": { "x": 32.0, "y": 0.0 },
-      "if_alive": false
+      "if_alive": false,
+      "offset": { "x": -22.0, "y": 0.0 },
+      "texture": "creature/blood_mantis/corpse"
     }
   ],
   "z_displacement": 20

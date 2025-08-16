@@ -157,6 +157,97 @@ impl From<Direction> for f32 {
     }
 }
 
+/// A creature with this component is treated as if they also occupy the space directly behind them.
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub struct Large;
+
+pub type PlacementQuery<'a> = (&'a Pos, Option<&'a Direction>, hecs::Satisfies<&'a Large>);
+
+#[derive(Clone, Copy, Debug)]
+pub struct Placement {
+    pub pos: Pos,
+    pub direction: Direction,
+    pub is_large: bool,
+}
+
+impl From<(&Pos, Option<&Direction>, bool)> for Placement {
+    fn from((pos, direction, is_large): (&Pos, Option<&Direction>, bool)) -> Self {
+        Self {
+            pos: *pos,
+            direction: direction.copied().unwrap_or_default(),
+            is_large,
+        }
+    }
+}
+
+impl Placement {
+    pub fn area(&self) -> Entity {
+        self.pos.get_area()
+    }
+
+    fn min_coord(&self) -> Coord {
+        let coord = self.pos.get_coord();
+        if self.is_large && self.direction == Direction::Right {
+            self.pos.get_coord().checked_add_signed(-1).unwrap_or(coord)
+        } else {
+            self.pos.get_coord()
+        }
+    }
+
+    fn max_coord(&self) -> Coord {
+        let coord = self.pos.get_coord();
+        if self.is_large && self.direction == Direction::Left {
+            self.pos.get_coord().checked_add_signed(1).unwrap_or(coord)
+        } else {
+            self.pos.get_coord()
+        }
+    }
+
+    pub fn closest_pos(&self, pos: Pos) -> Pos {
+        pos.assert_is_in_same_area(self.pos);
+        if self.is_large {
+            let area = self.pos.get_area();
+            let min_coord = self.min_coord();
+            if pos.get_coord() <= min_coord {
+                Pos {
+                    coord: min_coord,
+                    area,
+                }
+            } else {
+                Pos {
+                    coord: self.max_coord(),
+                    area,
+                }
+            }
+        } else {
+            self.pos
+        }
+    }
+
+    pub fn distance_to(&self, pos: Pos) -> u32 {
+        self.closest_pos(pos).distance_to(pos)
+    }
+
+    pub fn get_adjacent_towards(&self, pos: Pos) -> Pos {
+        self.closest_pos(pos).get_adjacent_towards(pos)
+    }
+
+    fn overlaps_with_pos(&self, pos: Pos) -> bool {
+        self.overlaps_with_range(pos.area, &(pos.coord..=pos.coord))
+    }
+
+    fn overlaps_with_range(&self, area: Entity, range: &impl RangeBounds<Coord>) -> bool {
+        let coord = self.pos.get_coord();
+
+        self.pos.is_in(area)
+            && (range.contains(&coord)
+                || (self.is_large
+                    && coord
+                        .checked_add_signed(self.direction.opposite().into())
+                        .is_some_and(|coord| range.contains(&coord))))
+    }
+}
+
 pub struct Movement {
     entity: Entity,
     components: Option<(Pos, Direction)>,
@@ -201,8 +292,12 @@ pub fn move_to(world: &mut World, entity: Entity, destination: Pos) -> Result<()
     Ok(())
 }
 
-pub fn move_adjacent(world: &mut World, entity: Entity, target: Pos) -> Result<(), String> {
-    let movement = prepare_move_adjacent(world, entity, target)
+pub fn move_adjacent_placement(
+    world: &mut World,
+    entity: Entity,
+    target_placement: Placement,
+) -> Result<(), String> {
+    let movement = prepare_move_adjacent_placement(world, entity, target_placement)
         .map_err(|blockage| blockage.into_message(world))?;
     movement.perform(world).unwrap();
     Ok(())
@@ -218,20 +313,21 @@ pub fn prepare_move(world: &World, entity: Entity, destination: Pos) -> Result<M
     Ok(Movement::init(entity, position, destination))
 }
 
-pub fn prepare_move_adjacent(
+pub fn prepare_move_adjacent_placement(
     world: &World,
     entity: Entity,
-    target: Pos,
+    target_placement: Placement,
 ) -> Result<Movement, Blockage> {
     let entity_ref = world.entity(entity).unwrap();
     let position = *entity_ref.get::<&Pos>().unwrap();
-    position.assert_is_in_same_area(target);
-    let move_target = target.get_adjacent_towards(position);
+    position.assert_is_in_same_area(target_placement.pos);
+    let target_pos = target_placement.closest_pos(position);
+    let move_target = target_pos.get_adjacent_towards(position);
 
     check_is_blocked(world, entity_ref, position, move_target)?;
 
-    Ok(if position != target {
-        let direction = Direction::between(position, target);
+    Ok(if position != target_pos {
+        let direction = Direction::between(position, target_pos);
         Movement::some(entity, move_target, direction)
     } else {
         Movement::none(entity)
@@ -253,6 +349,22 @@ pub fn push_and_move(world: &mut World, entity: Entity, destination: Pos) -> Res
         .perform(world)
         .unwrap();
     Ok(())
+}
+
+pub fn turn_towards(world: &mut World, entity: Entity, target_pos: Pos) {
+    let placement = Placement::from(world.query_one_mut::<PlacementQuery>(entity).unwrap());
+    let new_direction = Direction::between(placement.pos, target_pos);
+    if placement.direction != new_direction {
+        if placement.is_large {
+            let new_pos = placement
+                .pos
+                .try_offset_direction(new_direction, world)
+                .unwrap();
+            world.insert(entity, (new_pos, new_direction)).unwrap();
+        } else {
+            world.insert_one(entity, new_direction).unwrap();
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
@@ -337,15 +449,21 @@ pub fn check_is_blocked(
         return Err(Blockage::Hostile(entity));
     }
 
-    check_is_pos_blocked(target_pos, world)
+    check_is_pos_blocked(Some(entity_ref.entity()), target_pos, world)
 }
 
-pub fn check_is_pos_blocked(target_pos: Pos, world: &World) -> Result<(), Blockage> {
+pub fn check_is_pos_blocked(
+    ignored: Option<Entity>,
+    target_pos: Pos,
+    world: &World,
+) -> Result<(), Blockage> {
     let entities_at_target = world
-        .query::<&Pos>()
+        .query::<PlacementQuery>()
         .with::<&OccupiesSpace>()
         .iter()
-        .filter(|&(_, pos)| target_pos.eq(pos))
+        .filter(|&(entity, query)| {
+            Some(entity) != ignored && Placement::from(query).overlaps_with_pos(target_pos)
+        })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     if entities_at_target.len() >= 2 {
@@ -364,9 +482,9 @@ fn find_blocking_in_range<Q: hecs::Query>(
     range: impl RangeBounds<Coord>,
 ) -> Option<Entity> {
     world
-        .query::<&Pos>()
+        .query::<PlacementQuery>()
         .with::<(Q, &OccupiesSpace)>()
         .iter()
-        .find(|(_, pos)| pos.is_in(area) && range.contains(&pos.get_coord()))
+        .find(|&(_, query)| Placement::from(query).overlaps_with_range(area, &range))
         .map(|(entity, _)| entity)
 }

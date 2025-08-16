@@ -1,7 +1,7 @@
 use crate::action::{self, Context, Error};
 use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
-use crate::core::position::{Direction, Pos};
+use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::{self, CrewMember, Recruitable, Waiting, area, position, status};
 use hecs::Entity;
 
@@ -238,11 +238,21 @@ fn full_dialogue_action(
     dialogue: impl FnOnce(&mut Context) -> Option<action::Result>,
 ) -> action::Result {
     let performer_pos = *context.state.world.get::<&Pos>(performer).unwrap();
-    let target_pos = *context.state.world.get::<&Pos>(target).unwrap();
+    let target_placement = Placement::from(
+        context
+            .state
+            .world
+            .query_one_mut::<PlacementQuery>(target)
+            .unwrap(),
+    );
 
     let movement = if move_adjacent {
-        let movement = position::prepare_move_adjacent(&context.state.world, performer, target_pos)
-            .map_err(|blockage| blockage.into_message(&context.state.world))?;
+        let movement = position::prepare_move_adjacent_placement(
+            &context.state.world,
+            performer,
+            target_placement,
+        )
+        .map_err(|blockage| blockage.into_message(&context.state.world))?;
         Some(movement)
     } else {
         None
@@ -252,21 +262,13 @@ fn full_dialogue_action(
         .view_context
         .capture_frame_for_dialogue(context.state);
 
-    if performer_pos != target_pos {
+    if performer_pos != target_placement.pos {
         if let Some(movement) = movement {
             movement.perform(&mut context.state.world).unwrap();
         } else {
-            context
-                .state
-                .world
-                .insert_one(performer, Direction::between(performer_pos, target_pos))
-                .unwrap();
+            position::turn_towards(&mut context.state.world, performer, target_placement.pos);
         }
-        context
-            .state
-            .world
-            .insert_one(target, Direction::between(target_pos, performer_pos))
-            .unwrap();
+        position::turn_towards(&mut context.state.world, target, performer_pos);
     }
 
     let result = dialogue(&mut context);

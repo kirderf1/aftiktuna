@@ -156,6 +156,7 @@ pub mod world {
         area::ShipControls, ShipControls;
         position::Pos, Pos;
         position::Direction, Direction;
+        position::Large, Large;
         position::OccupiesSpace, OccupiesSpace;
 
         name::Name, Name;
