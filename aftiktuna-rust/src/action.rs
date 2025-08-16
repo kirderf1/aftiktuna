@@ -2,8 +2,8 @@ use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
 use crate::core::{
-    self, CrewMember, Door, FortunaChest, Hostile, OpenedChest, Recruitable, RepeatingAction,
-    inventory, status,
+    self, AttackKind, CrewMember, Door, FortunaChest, Hostile, OpenedChest, Recruitable,
+    RepeatingAction, inventory, status,
 };
 use crate::game_loop::GameState;
 use crate::view;
@@ -30,7 +30,7 @@ pub enum Action {
     EnterDoor(Entity),
     ForceDoor(Entity, bool),
     GoToShip,
-    Attack(Vec<Entity>),
+    Attack(Vec<Entity>, AttackKind),
     ChargedAttack(Entity),
     Wait,
     Examine(Entity),
@@ -117,7 +117,9 @@ fn perform(
         EnterDoor(door) => door::enter_door(&mut context, performer, door),
         ForceDoor(door, assisting) => door::force_door(context, performer, door, assisting),
         GoToShip => door::go_to_ship(context, performer),
-        Attack(targets) => combat::attack(&mut context, performer, targets),
+        Attack(targets, attack_kind) => {
+            combat::attack(&mut context, performer, targets, attack_kind)
+        }
         ChargedAttack(target) => combat::charged_attack(&mut context, performer, target),
         Wait => {
             state.world.insert_one(performer, WasWaiting).unwrap();

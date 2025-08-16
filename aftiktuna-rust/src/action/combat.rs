@@ -7,16 +7,16 @@ use crate::core::{
 };
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
-use rand::seq::IndexedRandom;
 use std::cmp::Ordering;
 
 pub(super) fn attack(
     context: &mut action::Context,
     attacker: Entity,
     targets: Vec<Entity>,
+    attack_kind: AttackKind,
 ) -> action::Result {
     if targets.len() == 1 {
-        return attack_single(context, attacker, targets[0]);
+        return attack_single(context, attacker, targets[0], attack_kind);
     }
     let world = &context.state.world;
     let pos = *world.get::<&Pos>(attacker).unwrap();
@@ -45,7 +45,7 @@ pub(super) fn attack(
         Ok(action::Success)
     } else {
         let target = targets[context.state.rng.random_range(0..targets.len())];
-        attack_single(context, attacker, target)
+        attack_single(context, attacker, target, attack_kind)
     }
 }
 
@@ -53,6 +53,7 @@ fn attack_single(
     context: &mut action::Context,
     attacker: Entity,
     target: Entity,
+    attack_kind: AttackKind,
 ) -> action::Result {
     let world = &mut context.state.world;
     let attacker_pos = *world
@@ -86,13 +87,6 @@ fn attack_single(
     core::trigger_aggression_in_area(world, attacker_pos.get_area());
 
     position::move_adjacent(world, attacker, target_pos)?;
-
-    let attack_kind = core::get_active_weapon_properties(world, attacker)
-        .attack_set
-        .available_kinds()
-        .choose(&mut context.state.rng)
-        .copied()
-        .unwrap_or(AttackKind::Light);
 
     if attack_kind == AttackKind::Charged {
         world

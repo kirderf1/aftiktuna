@@ -1,4 +1,5 @@
 use crate::action::Action;
+use crate::ai;
 use crate::command::parse::{Parse, first_match_or};
 use crate::command::{self, CommandResult};
 use crate::core::position::Pos;
@@ -38,7 +39,10 @@ fn attack_any(state: &GameState) -> Result<CommandResult, String> {
     if foes.is_empty() {
         Err("There is no appropriate target to attack here.".to_string())
     } else {
-        command::action_result(Action::Attack(foes))
+        command::action_result(Action::Attack(
+            foes,
+            ai::pick_attack_kind(state.controlled, &state.world, &mut rand::rng()),
+        ))
     }
 }
 
@@ -85,5 +89,8 @@ fn attack(targets: Vec<Entity>, state: &GameState) -> Result<CommandResult, Stri
             .unwrap_err());
     }
 
-    command::action_result(Action::Attack(targets))
+    command::action_result(Action::Attack(
+        targets,
+        ai::pick_attack_kind(state.controlled, &state.world, &mut rand::rng()),
+    ))
 }

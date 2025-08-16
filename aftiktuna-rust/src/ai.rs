@@ -4,8 +4,8 @@ use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{
-    self, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction, Waiting,
-    Wandering, area, inventory, status,
+    self, AttackKind, Character, CrewMember, Door, Hostile, ObservationTarget, RepeatingAction,
+    Waiting, Wandering, area, inventory, status,
 };
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
@@ -114,7 +114,7 @@ fn pick_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) -> Opti
     if let Some(hostile) = entity_ref.get::<&Hostile>() {
         pick_foe_action(entity_ref, &hostile, world, rng)
     } else if entity_ref.satisfies::<&CrewMember>() {
-        pick_crew_action(entity_ref, world)
+        pick_crew_action(entity_ref, world, rng)
     } else {
         None
     }
@@ -137,7 +137,10 @@ fn pick_foe_action(
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();
         if !targets.is_empty() {
-            return Some(Action::Attack(targets));
+            return Some(Action::Attack(
+                targets,
+                pick_attack_kind(entity_ref.entity(), world, rng),
+            ));
         }
     }
 
@@ -173,7 +176,7 @@ fn pick_foe_action(
     None
 }
 
-fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
+fn pick_crew_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) -> Option<Action> {
     let intention = entity_ref.get::<&Intention>();
     if let Some(&Intention::UseMedkit(item)) = intention.as_deref() {
         return Some(UseAction { item }.into());
@@ -233,7 +236,10 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     if !foes.is_empty() {
-        return Some(Action::Attack(foes));
+        return Some(Action::Attack(
+            foes,
+            pick_attack_kind(entity_ref.entity(), world, rng),
+        ));
     }
 
     if let Some(intention) = intention {
@@ -247,6 +253,15 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World) -> Option<Action> {
     }
 
     None
+}
+
+pub fn pick_attack_kind(attacker: Entity, world: &World, rng: &mut impl Rng) -> AttackKind {
+    core::get_active_weapon_properties(world, attacker)
+        .attack_set
+        .available_kinds()
+        .choose(rng)
+        .copied()
+        .unwrap_or(AttackKind::Light)
 }
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
