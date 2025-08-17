@@ -8,16 +8,13 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fs::File;
 use std::mem;
 
-pub fn new_or_load() -> Result<Game, LoadError> {
-    match File::open(serialization::SAVE_FILE_NAME) {
-        Ok(file) => serialization::load_game(file),
-        Err(_) => Ok(setup_new()),
-    }
-}
-
 pub fn load() -> Result<Game, LoadError> {
     let file = File::open(serialization::SAVE_FILE_NAME)?;
-    serialization::load_game(file)
+    let serialized_state = serialization::load_game(file)?;
+    Ok(Game {
+        serialized_state,
+        is_in_error_state: false,
+    })
 }
 
 pub fn setup_new() -> Game {
@@ -26,9 +23,11 @@ pub fn setup_new() -> Game {
 
 pub fn setup_new_with(locations: GenerationState) -> Game {
     let mut game = Game {
-        phase: Phase::Invalid,
-        state: game_loop::setup(locations),
-        frame_cache: FrameCache::new(vec![Frame::Introduction]),
+        serialized_state: SerializedState {
+            phase: Phase::Invalid,
+            state: game_loop::setup(locations),
+            frame_cache: FrameCache::new(vec![Frame::Introduction]),
+        },
         is_in_error_state: false,
     };
     game.run_from_step(Step::PrepareNextLocation);
@@ -47,13 +46,16 @@ impl<'a> GameResult<'a> {
     }
 }
 
-#[derive(Serialize, Deserialize)]
 pub struct Game {
+    pub(crate) serialized_state: SerializedState,
+    is_in_error_state: bool,
+}
+
+#[derive(Serialize, Deserialize)]
+pub(crate) struct SerializedState {
     phase: Phase,
     state: GameState,
     frame_cache: FrameCache,
-    #[serde(skip)]
-    is_in_error_state: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -91,12 +93,12 @@ impl From<Phase> for PhaseResult {
 
 impl Game {
     pub fn next_result(&mut self) -> GameResult<'_> {
-        if self.frame_cache.has_more_frames() {
-            GameResult::Frame(FrameGetter(&mut self.frame_cache))
+        if self.serialized_state.frame_cache.has_more_frames() {
+            GameResult::Frame(FrameGetter(&mut self.serialized_state.frame_cache))
         } else if self.is_in_error_state {
             GameResult::Stop
         } else {
-            match &self.phase {
+            match &self.serialized_state.phase {
                 Phase::ChooseLocation(_) | Phase::CommandInput => GameResult::Input,
                 Phase::Stopped(_) => GameResult::Stop,
                 Phase::LoadLocation(location) => {
@@ -109,10 +111,10 @@ impl Game {
     }
 
     pub fn ready_to_take_input(&self) -> bool {
-        if self.frame_cache.has_more_frames() {
+        if self.serialized_state.frame_cache.has_more_frames() {
             false
         } else {
-            match &self.phase {
+            match &self.serialized_state.phase {
                 Phase::ChooseLocation(_) | Phase::CommandInput => true,
                 Phase::Stopped(_) | Phase::LoadLocation(_) => false,
                 Phase::Invalid => panic!("Invalid state!"),
@@ -121,17 +123,20 @@ impl Game {
     }
 
     pub fn handle_input(&mut self, input: &str) -> Result<(), CommandInfo> {
-        match &self.phase {
+        match &self.serialized_state.phase {
             Phase::ChooseLocation(choice) => {
                 let location = self
+                    .serialized_state
                     .state
                     .generation_state
-                    .try_make_choice(choice, input, &mut self.state.rng)
+                    .try_make_choice(choice, input, &mut self.serialized_state.state.rng)
                     .map_err(|error| vec![error])?;
                 self.run_from_step(Step::LoadLocation(location));
             }
             Phase::CommandInput => {
-                match command::try_parse_input(input, &self.state).map_err(|error| vec![error])? {
+                match command::try_parse_input(input, &self.serialized_state.state)
+                    .map_err(|error| vec![error])?
+                {
                     CommandResult::Action(action, target) => {
                         self.run_from_step(Step::Tick(Some((action, target))));
                     }
@@ -147,12 +152,12 @@ impl Game {
     }
 
     fn run_from_step(&mut self, step: Step) {
-        let (phase_result, frames) = game_loop::run(step, &mut self.state);
-        self.phase = phase_result.next_phase;
-        self.frame_cache.add_new_frames(frames);
+        let (phase_result, frames) = game_loop::run(step, &mut self.serialized_state.state);
+        self.serialized_state.phase = phase_result.next_phase;
+        self.serialized_state.frame_cache.add_new_frames(frames);
         if let Some(message) = phase_result.load_error {
             self.is_in_error_state = true;
-            self.frame_cache.error_frame = Some(Frame::Error(message));
+            self.serialized_state.frame_cache.error_frame = Some(Frame::Error(message));
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::game_interface::Game;
+use crate::game_interface::{Game, SerializedState};
 use hecs::World;
 use rmp_serde::{decode, encode};
 use serde::{Deserialize, Serialize};
@@ -288,21 +288,21 @@ impl Display for LoadError {
 }
 
 pub fn write_game_to_save_file(game: &Game) -> Result<(), SaveError> {
-    serialize_game(game, File::create(SAVE_FILE_NAME)?)
+    serialize_game(&game.serialized_state, File::create(SAVE_FILE_NAME)?)
 }
 
-pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), SaveError> {
+fn serialize_game(state: &SerializedState, writer: impl Write) -> Result<(), SaveError> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
     (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
-    game.serialize(&mut serializer)?;
+    state.serialize(&mut serializer)?;
     Ok(())
 }
 
-pub fn load_game(reader: impl Read) -> Result<Game, LoadError> {
+pub(crate) fn load_game(reader: impl Read) -> Result<SerializedState, LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
-    Ok(Game::deserialize(&mut deserializer)?)
+    Ok(SerializedState::deserialize(&mut deserializer)?)
 }
 
 pub fn check_world_components(world: &World) {
