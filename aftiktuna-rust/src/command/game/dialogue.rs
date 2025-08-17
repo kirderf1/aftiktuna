@@ -72,7 +72,7 @@ fn talk_targets(state: &GameState) -> Vec<(String, Entity)> {
         .with::<(&Name, &Character)>()
         .iter()
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
+        .map(|(entity, (query, _))| (NameData::from(query).base(), entity))
         .collect::<Vec<_>>()
 }
 
@@ -103,7 +103,7 @@ fn recruit_targets(state: &GameState) -> Vec<(String, Entity)> {
         .with::<(&Recruitable, &Character)>()
         .iter()
         .filter(|(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
+        .map(|(entity, (query, _))| (NameData::from(query).base(), entity))
         .collect::<Vec<_>>()
 }
 

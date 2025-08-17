@@ -103,13 +103,7 @@ fn held_items(world: &World, character: Entity) -> Vec<(String, Entity)> {
         .query::<(NameQuery, &Held)>()
         .iter()
         .filter(|(_, (_, held))| held.held_by(character))
-        .map(|(entity, (query, held))| {
-            (
-                NameData::from(query).base().to_string(),
-                entity,
-                held.is_in_hand(),
-            )
-        })
+        .map(|(entity, (query, held))| (NameData::from(query).base(), entity, held.is_in_hand()))
         .collect::<Vec<_>>();
     // Put item in hand at the end of the vec
     items.sort_by_key(|(_, _, in_hand)| *in_hand);
@@ -136,7 +130,7 @@ fn held_item_lists_by_plurality(
             } else {
                 name_data.base()
             };
-            map.entry(name.to_owned()).or_default().push(entity);
+            map.entry(name).or_default().push(entity);
         });
 
     map

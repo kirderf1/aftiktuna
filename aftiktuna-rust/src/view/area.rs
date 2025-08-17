@@ -108,7 +108,7 @@ pub struct ItemProfile {
 impl ItemProfile {
     fn create(item: EntityRef) -> Self {
         Self {
-            name: NameData::find_by_ref(item).base().to_string(),
+            name: NameData::find_by_ref(item).base(),
             is_wieldable: item.satisfies::<&CanWield>(),
             is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
             is_usable: item

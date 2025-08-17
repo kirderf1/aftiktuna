@@ -328,8 +328,8 @@ impl DoorType {
         ]
     }
 
-    pub fn noun(self, adjective: Option<DoorAdjective>) -> Noun {
-        let noun = match self {
+    pub fn noun(self) -> Noun {
+        match self {
             Self::Door => Noun::new("door", "doors", IndefiniteArticle::A),
             Self::Doorway => Noun::new("doorway", "doorways", IndefiniteArticle::A),
             Self::UpwardStairs => {
@@ -344,11 +344,6 @@ impl DoorType {
             Self::Path | Self::LeftPath | Self::RightPath | Self::CrossroadPath => {
                 Noun::new("path", "paths", IndefiniteArticle::A)
             }
-        };
-        if let Some(adjective) = adjective {
-            noun.with_adjective(adjective.word())
-        } else {
-            noun
         }
     }
 }

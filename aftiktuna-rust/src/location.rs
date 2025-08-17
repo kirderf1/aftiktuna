@@ -331,12 +331,14 @@ pub fn setup_location_into_game(
             model_id: ModelId::ship(),
             kind: DoorKind::Door,
             name: Noun::new("ship", "ships", IndefiniteArticle::A),
+            adjective: None,
         },
         DoorInfo {
             pos: ship_exit,
             model_id: DoorType::Doorway.into(),
             kind: DoorKind::Door,
             name: Noun::new("ship exit", "ship exits", IndefiniteArticle::A),
+            adjective: None,
         },
         &DoorPairData::default(),
     );

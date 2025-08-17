@@ -67,16 +67,21 @@ fn status(state: &GameState) -> Result<CommandResult, String> {
 }
 
 fn entity_names(entity_ref: EntityRef<'_>) -> Vec<String> {
-    let name_data = NameData::find_by_ref(entity_ref);
-    let name = name_data.base().to_lowercase();
-    if let NameData::Noun(noun) = name_data
-        && let Some(attribute) = entity_ref.get::<&CreatureAttribute>()
-    {
-        vec![
-            name,
-            format!("{} {}", attribute.as_adjective(), noun.singular()),
-        ]
-    } else {
-        vec![name]
+    match NameData::find_by_ref(entity_ref) {
+        NameData::Name(name) => vec![name],
+        NameData::Noun(adjective, noun) => {
+            let name = noun.singular();
+            match (adjective, entity_ref.get::<&CreatureAttribute>().as_deref()) {
+                (None, None) => vec![name.to_owned()],
+                (None, Some(attribute)) => vec![name.to_owned(), format!("{attribute} {name}")],
+                (Some(adjective), None) => vec![name.to_owned(), format!("{adjective} {name}")],
+                (Some(adjective), Some(attribute)) => vec![
+                    name.to_owned(),
+                    format!("{attribute} {name}"),
+                    format!("{adjective} {name}"),
+                    format!("{adjective} {attribute} {name}"),
+                ],
+            }
+        }
     }
 }

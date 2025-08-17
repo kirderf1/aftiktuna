@@ -1,7 +1,7 @@
 use super::Builder;
 use crate::asset::location::{DoorPairData, DoorSpawnData};
 use crate::core::display::{ModelId, OrderWeight};
-use crate::core::name::Noun;
+use crate::core::name::{Adjective, Noun};
 use crate::core::position::Pos;
 use crate::core::{Door, DoorKind, IsCut};
 use hecs::{Entity, World};
@@ -13,6 +13,7 @@ pub(crate) struct DoorInfo {
     pub model_id: ModelId,
     pub kind: DoorKind,
     pub name: Noun,
+    pub adjective: Option<Adjective>,
 }
 
 pub(crate) fn place_pair(
@@ -40,7 +41,8 @@ fn spawn(
     door_pair: Entity,
     is_cut: bool,
 ) -> Entity {
-    let door = world.spawn((
+    let mut builder = hecs::EntityBuilder::new();
+    builder.add_bundle((
         info.model_id,
         OrderWeight::Background,
         info.name,
@@ -51,10 +53,13 @@ fn spawn(
             door_pair,
         },
     ));
-    if is_cut {
-        world.insert_one(door, IsCut).unwrap();
+    if let Some(adjective) = info.adjective {
+        builder.add(adjective);
     }
-    door
+    if is_cut {
+        builder.add(IsCut);
+    }
+    world.spawn(builder.build())
 }
 
 enum DoorPairStatus {
@@ -126,7 +131,8 @@ pub(super) fn place(
             pos,
             model_id: ModelId::from(*display_type),
             kind: DoorKind::from(*display_type),
-            name: display_type.noun(*adjective),
+            name: display_type.noun(),
+            adjective: adjective.map(|adjective| Adjective(adjective.word().to_owned())),
         };
 
         builder

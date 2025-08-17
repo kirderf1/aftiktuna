@@ -114,7 +114,7 @@ fn crew_character_targets(world: &World) -> Vec<(String, Entity)> {
         .query::<NameQuery>()
         .with::<(&CrewMember, &Character)>()
         .iter()
-        .map(|(entity, query)| (NameData::from(query).base().to_lowercase(), entity))
+        .map(|(entity, query)| (NameData::from(query).base(), entity))
         .collect()
 }
 
@@ -299,7 +299,7 @@ fn fortuna_chest_targets(world: &World, character: Entity) -> Vec<(String, Entit
         .with::<&FortunaChest>()
         .iter()
         .filter(|&(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from(query).base().to_lowercase(), entity))
+        .map(|(entity, (query, _))| (NameData::from(query).base(), entity))
         .collect()
 }
 
@@ -321,7 +321,7 @@ fn placed_item_targets(world: &World, character: Entity) -> Vec<(String, Entity)
         .query::<(&Pos, NameQuery)>()
         .iter()
         .filter(|&(_, (pos, _))| pos.is_in(area))
-        .map(|(entity, (_, query))| (NameData::from(query).base().to_lowercase(), entity))
+        .map(|(entity, (_, query))| (NameData::from(query).base(), entity))
         .collect()
 }
 
@@ -330,7 +330,7 @@ fn held_item_targets(world: &World, holder: Entity) -> Vec<(String, Entity)> {
         .query::<(&Held, NameQuery)>()
         .iter()
         .filter(|&(_, (held, _))| held.held_by(holder))
-        .map(|(entity, (_, query))| (NameData::from(query).base().to_lowercase(), entity))
+        .map(|(entity, (_, query))| (NameData::from(query).base(), entity))
         .collect()
 }
 

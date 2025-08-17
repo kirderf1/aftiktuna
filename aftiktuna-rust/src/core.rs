@@ -1,7 +1,7 @@
 pub mod area;
 pub mod inventory;
 pub mod item;
-pub mod name;
+pub(crate) mod name;
 pub mod position;
 pub mod status;
 
@@ -162,6 +162,7 @@ use crate::action::Action;
 use crate::core::name::Noun;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 pub const CREW_SIZE_LIMIT: usize = 3;
 
@@ -401,6 +402,12 @@ impl CreatureAttribute {
             CreatureAttribute::Bulky => "bulky",
             CreatureAttribute::Agile => "agile",
         }
+    }
+}
+
+impl Display for CreatureAttribute {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self.as_adjective(), f)
     }
 }
 

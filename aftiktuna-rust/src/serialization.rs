@@ -161,6 +161,7 @@ pub mod world {
 
         name::Name, Name;
         name::Noun, Noun;
+        name::Adjective, Adjective;
         core::Species, Species;
         core::CreatureAttribute, CreatureAttribute;
         display::ModelId, TextureType;
