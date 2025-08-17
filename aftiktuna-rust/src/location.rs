@@ -33,7 +33,7 @@ pub struct GenerationState {
 }
 
 impl GenerationState {
-    pub fn load_new(locations_before_fortuna: i32) -> Result<Self, String> {
+    pub fn load_new(locations_before_fortuna: i32) -> Result<Self, asset::Error> {
         Ok(Self {
             locations: Locations::load_from_json()?,
             state: TrackedState::BeforeFortuna {
@@ -43,7 +43,7 @@ impl GenerationState {
         })
     }
 
-    pub fn single(location: String) -> Result<Self, String> {
+    pub fn single(location: String) -> Result<Self, asset::Error> {
         Ok(Self {
             locations: Locations::single(location),
             state: TrackedState::BeforeFortuna {
@@ -105,9 +105,8 @@ pub struct Locations {
 }
 
 impl Locations {
-    pub fn load_from_json() -> Result<Self, String> {
-        asset::load_json_simple("locations.json")
-            .map_err(|message| format!("Error loading \"locations.json\": {message}"))
+    pub fn load_from_json() -> Result<Self, asset::Error> {
+        asset::load_json_asset("locations.json")
     }
 
     pub fn all_location_names(&self) -> impl Iterator<Item = &String> {

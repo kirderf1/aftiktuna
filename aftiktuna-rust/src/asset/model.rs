@@ -5,7 +5,6 @@ use crate::view::area::ObjectProperties;
 use crate::{Range, Vec2};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
-use std::fs::File;
 use std::path::Path;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -288,8 +287,7 @@ impl TryFrom<IndexMap<u16, Offsets>> for GroupPlacement {
 pub fn load_raw_model_from_path(
     file_path: impl AsRef<Path>,
 ) -> Result<Model<String>, super::Error> {
-    let file = File::open(file_path)?;
-    Ok(serde_json::from_reader::<_, Model<String>>(file)?)
+    super::load_from_json(file_path)
 }
 
 pub trait ModelAccess<T> {

@@ -7,7 +7,6 @@ pub mod color {
     use crate::core::display::AftikColorId;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use std::fs::File;
 
     pub const DEFAULT_COLOR: AftikColorData = AftikColorData {
         primary_color: RGBColor::new(255, 255, 255),
@@ -36,11 +35,7 @@ pub mod color {
     pub const AFTIK_COLORS_PATH: &str = "assets/aftik_colors.json";
 
     pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorData>, Error> {
-        let file = File::open(AFTIK_COLORS_PATH)?;
-        Ok(serde_json::from_reader::<
-            _,
-            HashMap<AftikColorId, AftikColorData>,
-        >(file)?)
+        super::load_from_json(AFTIK_COLORS_PATH)
     }
 
     #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -92,7 +87,8 @@ pub mod loot {
 
     impl LootTable {
         fn load(id: &LootTableId) -> Result<Self, String> {
-            let entries: Vec<LootEntry> = super::load_json_simple(id.path())?;
+            let entries: Vec<LootEntry> =
+                super::load_json_asset(id.path()).map_err(|error| error.to_string())?;
             let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
                 .map_err(|error| error.to_string())?;
             Ok(Self {
@@ -270,30 +266,29 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::fs::File;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub enum Error {
-    IO(std::io::Error),
-    Json(serde_json::Error),
-}
-
-impl From<std::io::Error> for Error {
-    fn from(value: std::io::Error) -> Self {
-        Self::IO(value)
-    }
-}
-
-impl From<serde_json::Error> for Error {
-    fn from(value: serde_json::Error) -> Self {
-        Self::Json(value)
-    }
+    IO(PathBuf, std::io::Error),
+    Json(PathBuf, serde_json::Error),
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::IO(error) => Display::fmt(error, f),
-            Error::Json(error) => Display::fmt(error, f),
+            Error::IO(file, error) => write!(
+                f,
+                "Problem accessing \"{file}\": {error}",
+                file = file.display()
+            ),
+            Error::Json(file, error) => {
+                write!(
+                    f,
+                    "Problem parsing \"{file}\": {error}",
+                    file = file.display()
+                )
+            }
         }
     }
 }
@@ -302,10 +297,16 @@ pub trait TextureLoader<T, E> {
     fn load_texture(&mut self, name: String) -> Result<T, E>;
 }
 
-pub(crate) fn load_json_simple<T: DeserializeOwned>(path: impl Display) -> Result<T, String> {
-    let file = File::open(format!("assets/{path}"))
-        .map_err(|error| format!("Failed to open file: {error}"))?;
-    serde_json::from_reader(file).map_err(|error| format!("Failed to parse file: {error}"))
+pub(crate) fn load_json_asset<T: DeserializeOwned>(path: impl Display) -> Result<T, Error> {
+    load_from_json(format!("assets/{path}"))
+}
+
+pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, Error> {
+    let path = path.as_ref();
+    let file = File::open(path).map_err(|error| Error::IO(path.to_owned(), error))?;
+    let object =
+        serde_json::from_reader(file).map_err(|error| Error::Json(path.to_owned(), error))?;
+    Ok(object)
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -355,9 +356,8 @@ pub(crate) fn remove_random_profile(
     Some(character_profiles.swap_remove(chosen_index))
 }
 
-pub(crate) fn load_character_profiles() -> Result<Vec<AftikProfile>, String> {
-    load_json_simple("character_profiles.json")
-        .map_err(|message| format!("Problem loading \"character_profiles.json\": {message}"))
+pub(crate) fn load_character_profiles() -> Result<Vec<AftikProfile>, Error> {
+    load_json_asset("character_profiles.json")
 }
 
 #[derive(Debug, Deserialize)]
@@ -367,8 +367,7 @@ pub(crate) struct CrewData {
 }
 
 impl CrewData {
-    pub(crate) fn load_starting_crew() -> Result<CrewData, String> {
-        load_json_simple("starting_crew.json")
-            .map_err(|message| format!("Problem loading \"starting_crew.json\": {message}"))
+    pub(crate) fn load_starting_crew() -> Result<CrewData, Error> {
+        load_json_asset("starting_crew.json")
     }
 }

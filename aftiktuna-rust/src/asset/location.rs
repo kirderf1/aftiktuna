@@ -177,7 +177,7 @@ pub struct LocationData {
 
 impl LocationData {
     pub fn load_from_json(name: &str) -> Result<Self, String> {
-        super::load_json_simple(format!("location/{name}.json"))
+        super::load_json_asset(format!("location/{name}.json")).map_err(|error| error.to_string())
     }
 }
 
@@ -447,6 +447,7 @@ pub struct FurnishTemplate {
 
 impl FurnishTemplate {
     pub fn load_list(template: &str) -> Result<Vec<Self>, String> {
-        super::load_json_simple(format!("area_furnish/{template}.json"))
+        super::load_json_asset(format!("area_furnish/{template}.json"))
+            .map_err(|error| error.to_string())
     }
 }

@@ -3,7 +3,6 @@ use crate::core::area::BackgroundId;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs::File;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct BGData<T> {
@@ -149,20 +148,12 @@ pub struct Offset {
 pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
 
 pub fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, BGData<String>>, super::Error> {
-    let file = File::open(DATA_FILE_PATH)?;
-    Ok(serde_json::from_reader::<
-        _,
-        HashMap<BackgroundId, BGData<String>>,
-    >(file)?)
+    super::load_from_json(DATA_FILE_PATH)
 }
 
 pub fn load_index_map_backgrounds() -> Result<IndexMap<BackgroundId, BGData<String>>, super::Error>
 {
-    let file = File::open(DATA_FILE_PATH)?;
-    Ok(serde_json::from_reader::<
-        _,
-        IndexMap<BackgroundId, BGData<String>>,
-    >(file)?)
+    super::load_from_json(DATA_FILE_PATH)
 }
 
 fn load_texture<T, E>(texture: &str, loader: &mut impl TextureLoader<T, E>) -> Result<T, E> {
