@@ -2,7 +2,7 @@ use super::display::{ModelId, OrderWeight};
 use crate::asset::NounDataMap;
 use crate::core::name::NounId;
 use crate::core::{AttackSet, WeaponProperties};
-use crate::view::text::Messages;
+use crate::view::text;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
 
@@ -206,31 +206,33 @@ pub fn spawn(
 }
 
 pub(crate) fn description(item_ref: EntityRef, noun_map: &NounDataMap) -> Vec<String> {
-    let mut messages = Messages::default();
-    messages.add(format!(
+    let mut messages = Vec::new();
+    messages.push(format!(
         "{}:",
-        noun_map
-            .lookup(&item_ref.get::<&NounId>().unwrap())
-            .singular()
+        text::capitalize(
+            noun_map
+                .lookup(&item_ref.get::<&NounId>().unwrap())
+                .singular()
+        )
     ));
 
     let item_type = *item_ref.get::<&ItemType>().unwrap();
 
     if let Some(weapon_properties) = item_type.weapon_properties() {
-        messages.add(format!("Weapon value: {}", weapon_properties.damage_mod));
+        messages.push(format!("Weapon value: {}", weapon_properties.damage_mod));
     }
     match item_type {
-        ItemType::FuelCan => messages.add("Used to refuel the ship."),
-        ItemType::FoodRation => messages.add("May be eaten by crew members while travelling to their next location to recover health."),
-        ItemType::Crowbar => messages.add("Used to force open doors that are stuck."),
-        ItemType::Blowtorch => messages.add("Used to cut apart any door that won't open."),
-        ItemType::Medkit => messages.add("Used to recover some health of the user."),
-        ItemType::BlackOrb => messages.add("A mysterious object that when used, might change the user in some way."),
-        ItemType::FourLeafClover => messages.add("A mysterious object said to bring luck to whoever finds it."),
+        ItemType::FuelCan => messages.push("Used to refuel the ship.".into()),
+        ItemType::FoodRation => messages.push("May be eaten by crew members while travelling to their next location to recover health.".into()),
+        ItemType::Crowbar => messages.push("Used to force open doors that are stuck.".into()),
+        ItemType::Blowtorch => messages.push("Used to cut apart any door that won't open.".into()),
+        ItemType::Medkit => messages.push("Used to recover some health of the user.".into()),
+        ItemType::BlackOrb => messages.push("A mysterious object that when used, might change the user in some way.".into()),
+        ItemType::FourLeafClover => messages.push("A mysterious object said to bring luck to whoever finds it.".into()),
         _ => {}
     }
     if item_ref.satisfies::<&Price>() {
-        messages.add("Can be sold at a store.");
+        messages.push("Can be sold at a store.".into());
     }
-    messages.into_text()
+    messages
 }

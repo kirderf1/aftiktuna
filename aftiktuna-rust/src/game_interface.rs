@@ -171,7 +171,7 @@ impl Game {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 struct FrameCache {
     last_frame: Option<Frame>,
     remaining_frames: Vec<Frame>,

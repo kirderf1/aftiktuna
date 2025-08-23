@@ -2,7 +2,7 @@ use crate::action::{self, Context, Error};
 use crate::ai::{self, Intention};
 use crate::core::display::DialogueExpression;
 use crate::core::item::Tool;
-use crate::core::name::NameData;
+use crate::core::name::{NameData, NameIdData};
 use crate::core::position::{self, Direction, Placement, PlacementQuery, Pos};
 use crate::core::status::Stamina;
 use crate::core::{
@@ -41,18 +41,18 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     } = context;
     let noun_map = view_context.view_buffer.noun_map;
     let world = &mut state.world;
-    let performer_name = NameData::find(world, performer, noun_map);
+    let performer_name = NameIdData::find(world, performer);
 
     let door_pos = *world.get::<&Pos>(door).ok().ok_or_else(|| {
         format!(
             "{the_performer} lost track of the door.",
-            the_performer = performer_name.definite()
+            the_performer = performer_name.clone().lookup(noun_map).definite()
         )
     })?;
     if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
         return Err(Error::private(format!(
             "{the_performer} cannot reach the door from here.",
-            the_performer = performer_name.definite()
+            the_performer = performer_name.lookup(noun_map).definite()
         )));
     }
 
@@ -74,7 +74,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         on_door_failure(state, performer, door, block_type);
         return Err(Error::visible(format!(
             "{performer} is unable to enter the door as it is {blocked}.",
-            performer = performer_name.definite(),
+            performer = performer_name.lookup(noun_map).definite(),
             blocked = block_type.description(),
         )));
     }
@@ -108,7 +108,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         view_context.view_buffer.mark_unseen_view();
     }
 
-    let door_name = NameData::find(world, door, noun_map);
+    let door_name = NameIdData::find(world, door);
     let message = match door_data.kind {
         DoorKind::Door => CombinableMsgType::EnterDoor(door, door_name),
         DoorKind::Path => CombinableMsgType::EnterPath(door, door_name),

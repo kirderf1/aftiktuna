@@ -225,21 +225,20 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
 
 pub fn for_store(
     clicked_stock: Option<&StoreStockView>,
-    sellable_items: &[NameData],
+    sellable_items: &[(NameData, u16)],
 ) -> Vec<Suggestion> {
     let mut suggestions = vec![
         simple!("status"),
         simple!("exit"),
-        recursive!(sellable_items.iter().map(NameData::base), "sell {}"),
+        recursive!(
+            sellable_items.iter().map(|(name, _)| name.base()),
+            "sell {}"
+        ),
         recursive!(
             sellable_items
                 .iter()
-                .filter(|name| sellable_items
-                    .iter()
-                    .filter(|other_name| other_name == name)
-                    .count()
-                    > 1)
-                .map(NameData::plural),
+                .filter(|(_, count)| *count > 1)
+                .map(|(name, _)| name.plural()),
             "sell all {}"
         ),
     ];

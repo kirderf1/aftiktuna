@@ -4,7 +4,7 @@ use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
-use crate::core::name::{self, ArticleKind, Name, NameData, NameQuery};
+use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
 use crate::core::status::{Health, Stamina, Trait};
 use crate::core::{
@@ -57,7 +57,6 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
     }
 }
 
-#[derive(Debug)]
 pub enum Step {
     PrepareNextLocation,
     LoadLocation(String),
@@ -260,7 +259,7 @@ fn tick(
     let alive_recovering_entities = stun_recovering_entities
         .into_iter()
         .filter(|&entity| status::is_alive(entity, &state.world))
-        .map(|entity| NameData::find(&state.world, entity, view_buffer.noun_map))
+        .map(|entity| NameIdData::find(&state.world, entity))
         .collect::<Vec<_>>();
     if !alive_recovering_entities.is_empty() {
         view_buffer.messages.add(format!(
@@ -269,6 +268,7 @@ fn tick(
                 alive_recovering_entities,
                 name::ArticleKind::The,
                 name::CountFormat::Text,
+                view_buffer.noun_map,
             ))
         ))
     }
@@ -412,13 +412,9 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 .is_ok_and(|hostile| !hostile.aggressive)
             {
                 position::turn_towards(&mut state.world, entity, player_pos);
-                view_buffer
-                    .messages
-                    .add(CombinableMsgType::Threatening.message(NameData::find(
-                        &state.world,
-                        entity,
-                        view_buffer.noun_map,
-                    )));
+                view_buffer.messages.add(
+                    CombinableMsgType::Threatening.message(NameIdData::find(&state.world, entity)),
+                );
             }
 
             if state
@@ -427,13 +423,9 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 .is_ok_and(|hostile| hostile.aggressive)
             {
                 position::turn_towards(&mut state.world, entity, player_pos);
-                view_buffer
-                    .messages
-                    .add(CombinableMsgType::Attacking.message(NameData::find(
-                        &state.world,
-                        entity,
-                        view_buffer.noun_map,
-                    )));
+                view_buffer.messages.add(
+                    CombinableMsgType::Attacking.message(NameIdData::find(&state.world, entity)),
+                );
             }
         }
         state

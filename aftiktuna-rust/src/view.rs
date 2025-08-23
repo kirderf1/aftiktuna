@@ -26,20 +26,21 @@ mod store {
     use crate::core::display::AftikColorId;
     use crate::core::inventory::Held;
     use crate::core::item::{self, Price};
-    use crate::core::name::{NameData, NameQuery, NounData};
+    use crate::core::name::{NameData, NameIdData, NameQuery, NounData};
     use crate::core::position::Pos;
     use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
     use crate::deref_clone;
     use hecs::{Entity, World};
+    use indexmap::IndexMap;
     use serde::{Deserialize, Serialize};
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[derive(Clone, Serialize, Deserialize)]
     pub struct StoreView {
         pub items: Vec<StoreStockView>,
         pub shopkeeper_color: Option<AftikColorId>,
         pub background: BackgroundId,
         pub points: i32,
-        pub sellable_items: Vec<NameData>,
+        pub sellable_items: Vec<(NameData, u16)>,
     }
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -76,13 +77,19 @@ mod store {
             .iter()
             .map(|stock| StoreStockView::create(stock, buffer.noun_map))
             .collect();
-        let sellable_items = world
+        let mut sellable_items_count = IndexMap::new();
+        world
             .query::<(&Held, NameQuery)>()
             .with::<&Price>()
             .iter()
             .filter(|(_, (held, _))| held.held_by(character))
-            .map(|(_, (_, query))| NameData::from_query(query, buffer.noun_map))
+            .map(|(_, (_, query))| NameIdData::from(query))
+            .for_each(|name_data| *sellable_items_count.entry(name_data).or_default() += 1);
+        let sellable_items = sellable_items_count
+            .into_iter()
+            .map(|(name_data, count)| (name_data.lookup(buffer.noun_map), count))
             .collect();
+
         Frame::StoreView {
             view: StoreView {
                 items,
@@ -91,7 +98,9 @@ mod store {
                 points,
                 sellable_items,
             },
-            messages: buffer.pop_messages(world, character, cache).into_text(),
+            messages: buffer
+                .pop_messages(world, character, cache)
+                .into_text(buffer.noun_map),
         }
     }
 }
@@ -175,7 +184,7 @@ impl<'a> Buffer<'a> {
     }
 
     fn pop_message_cache(&mut self, messages: &mut Messages) {
-        let messages_text = take(&mut self.messages).into_text().join(" ");
+        let messages_text = take(&mut self.messages).into_text(self.noun_map).join(" ");
         if !messages_text.is_empty() {
             messages.add(messages_text);
         }
@@ -207,7 +216,7 @@ impl<'a> Buffer<'a> {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Frame {
     Introduction,
     AreaView {
@@ -303,7 +312,7 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
     Frame::AreaView {
         messages: buffer
             .pop_messages(&state.world, state.controlled, &mut state.status_cache)
-            .into_text(),
+            .into_text(buffer.noun_map),
         render_data: area::prepare_render_data(state, buffer.noun_map),
     }
 }

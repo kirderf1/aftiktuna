@@ -3,7 +3,7 @@ use crate::core::CrewMember;
 use crate::core::area::{FuelAmount, ShipState, ShipStatus};
 use crate::core::inventory::Held;
 use crate::core::item::{self, ItemType, Price};
-use crate::core::name::{self, NameData};
+use crate::core::name::{self, NameData, NameIdData};
 use crate::core::position::{self, Placement, PlacementQuery};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
 use crate::view::text;
@@ -134,11 +134,10 @@ pub fn sell(
 
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let item_list = name::names_with_counts(
-        items
-            .iter()
-            .map(|item| NameData::find(world, *item, noun_map)),
+        items.iter().map(|item| NameIdData::find(world, *item)),
         name::ArticleKind::A,
         name::CountFormat::Text,
+        noun_map,
     );
 
     world.get::<&mut Points>(crew).unwrap().0 += value;

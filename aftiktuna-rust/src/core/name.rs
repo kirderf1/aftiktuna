@@ -4,8 +4,70 @@ use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
+use std::ops::Deref;
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub(crate) enum NameIdData {
+    Name(String),
+    Noun(Option<Adjective>, NounId),
+}
+
+impl NameIdData {
+    pub fn lookup(self, noun_map: &NounDataMap) -> NameData {
+        match self {
+            Self::Name(name) => NameData::Name(name),
+            Self::Noun(adjective, noun_id) => {
+                NameData::Noun(adjective, noun_map.lookup(&noun_id).clone())
+            }
+        }
+    }
+
+    pub fn find_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
+        if let Some(name) = entity_ref.get::<&Name>()
+            && name.is_known
+        {
+            Some(Self::Name(name.name.clone()))
+        } else {
+            entity_ref.get::<&NounId>().map(|noun_id| {
+                Self::Noun(
+                    entity_ref.get::<&Adjective>().as_deref().cloned(),
+                    noun_id.deref().clone(),
+                )
+            })
+        }
+    }
+
+    pub fn find(world: &World, entity: Entity) -> Self {
+        world
+            .entity(entity)
+            .ok()
+            .and_then(Self::find_option_by_ref)
+            .unwrap_or_default()
+    }
+}
+
+impl Default for NameIdData {
+    fn default() -> Self {
+        Self::Name("???".into())
+    }
+}
+
+impl<'a> From<NameQuery<'a>> for NameIdData {
+    fn from(query: NameQuery<'a>) -> Self {
+        let (name, noun_id, adjective) = query;
+        if let Some(name) = name
+            && name.is_known
+        {
+            Self::Name(name.name.clone())
+        } else {
+            noun_id
+                .map(|noun_id| Self::Noun(adjective.cloned(), noun_id.clone()))
+                .unwrap_or_default()
+        }
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub enum NameData {
     Name(String),
     Noun(Option<Adjective>, NounData),
@@ -93,7 +155,7 @@ impl Default for NameData {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct NameWithAttribute(NameData, Option<CreatureAttribute>);
 
 impl NameWithAttribute {
@@ -175,7 +237,7 @@ impl From<&str> for NounId {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct NounData {
     singular: String,
     plural: String,
@@ -324,24 +386,29 @@ impl Display for IndefiniteArticle {
 }
 
 pub fn names_with_counts(
-    data: impl IntoIterator<Item = NameData>,
+    data: impl IntoIterator<Item = NameIdData>,
     article: ArticleKind,
     format: CountFormat,
+    noun_map: &NounDataMap,
 ) -> Vec<String> {
     let mut names = Vec::new();
     let mut nouns = HashMap::new();
 
     for name_data in data {
         match name_data {
-            NameData::Name(name) => names.push(name),
-            NameData::Noun(adjective, noun) => *nouns.entry((adjective, noun)).or_insert(0) += 1,
+            NameIdData::Name(name) => names.push(name),
+            NameIdData::Noun(adjective, noun_id) => {
+                *nouns.entry((adjective, noun_id)).or_insert(0) += 1
+            }
         }
     }
 
     names
         .into_iter()
-        .chain(nouns.into_iter().map(|((adjective, noun), count)| {
-            noun.with_count(adjective.as_ref(), count, article, format)
+        .chain(nouns.into_iter().map(|((adjective, noun_id), count)| {
+            noun_map
+                .lookup(&noun_id)
+                .with_count(adjective.as_ref(), count, article, format)
         }))
         .collect::<Vec<String>>()
 }

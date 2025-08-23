@@ -2,7 +2,7 @@ use super::text::{self, Messages};
 use crate::asset::NounDataMap;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::item::ItemType;
-use crate::core::name::{self, Name, NameData, NounId};
+use crate::core::name::{self, Name, NameData, NameIdData, NounId};
 use crate::core::position::Pos;
 use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::store::Points;
@@ -114,12 +114,12 @@ pub fn get_full_status(state: &GameState, noun_map: &NounDataMap) -> FullStatus 
                 &mut character_messages,
                 noun_map,
             );
-            character_messages.into_text()
+            character_messages.into_text(noun_map)
         })
         .collect::<Vec<_>>();
 
     FullStatus {
-        ship: ship_messages.into_text(),
+        ship: ship_messages.into_text(noun_map),
         crew,
     }
 }
@@ -289,11 +289,10 @@ fn print_inventory(
         "Empty".to_string()
     } else {
         name::names_with_counts(
-            inventory
-                .iter()
-                .map(|item| NameData::find(world, *item, noun_map)),
+            inventory.iter().map(|item| NameIdData::find(world, *item)),
             name::ArticleKind::One,
             name::CountFormat::Numeric,
+            noun_map,
         )
         .join(", ")
     };

@@ -306,7 +306,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
     })
 }
 
-pub fn setup_location_into_game(
+pub(crate) fn setup_location_into_game(
     location_name: &str,
     messages: &mut Messages,
     state: &mut GameState,

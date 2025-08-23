@@ -2,7 +2,7 @@ use crate::action::{self, Context, Error};
 use crate::core::display::DialogueExpression;
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
-use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameQuery};
+use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, StatChanges};
 use crate::core::{self, RepeatingAction, inventory};
@@ -53,14 +53,15 @@ pub(super) fn take_item(
     item_name: NameData,
 ) -> action::Result {
     let noun_map = context.view_context.view_buffer.noun_map;
-    let performer_name = NameData::find(&context.state.world, performer, noun_map);
+    let performer_name = NameIdData::find(&context.state.world, performer);
     let item_pos = *context.state.world.get::<&Pos>(item).map_err(|_| {
         format!(
             "{the_performer} lost track of {the_item}.",
-            the_performer = performer_name.definite(),
+            the_performer = performer_name.clone().lookup(noun_map).definite(),
             the_item = item_name.definite()
         )
     })?;
+    let item_name = NameIdData::find(&context.state.world, item);
 
     context
         .view_context
@@ -80,8 +81,8 @@ pub(super) fn take_item(
 
         context.view_context.add_message_at(item_pos.get_area(), format!(
             "{the_performer} tries to pick up {the_item}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
-            the_performer = performer_name.definite(),
-            the_item = item_name.definite(),
+            the_performer = performer_name.clone().lookup(noun_map).definite(),
+            the_item = item_name.lookup(noun_map).definite(),
         ), context.state);
         return Ok(action::Success);
     }
@@ -146,11 +147,10 @@ impl SearchAction {
         core::trigger_aggression_in_area(world, container_pos.get_area());
 
         let items = name::names_with_counts(
-            items
-                .into_iter()
-                .map(|item| NameData::find(world, item, noun_map)),
+            items.into_iter().map(|item| NameIdData::find(world, item)),
             ArticleKind::A,
             CountFormat::Text,
+            noun_map,
         );
         context.view_context.add_message_at(
             container_pos.get_area(),

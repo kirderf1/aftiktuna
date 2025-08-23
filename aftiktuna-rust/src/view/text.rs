@@ -1,10 +1,11 @@
 use crate::OneOrTwo;
-use crate::core::name::{self, NameData};
+use crate::asset::NounDataMap;
+use crate::core::name::{self, NameIdData};
 use hecs::Entity;
 
-#[derive(Clone, Debug)]
-pub enum Message {
-    Combinable(CombinableMsgType, Vec<NameData>),
+#[derive(Clone)]
+pub(crate) enum Message {
+    Combinable(CombinableMsgType, Vec<NameIdData>),
     String(String),
 }
 
@@ -27,27 +28,27 @@ impl Message {
         }
     }
 
-    fn into_text(self) -> String {
+    fn into_text(self, noun_map: &NounDataMap) -> String {
         match self {
-            Message::Combinable(msg_type, entities) => msg_type.into_text(entities),
+            Message::Combinable(msg_type, entities) => msg_type.into_text(entities, noun_map),
             Message::String(text) => text,
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CombinableMsgType {
+#[derive(Clone, PartialEq, Eq)]
+pub(crate) enum CombinableMsgType {
     Noise,
-    EnterDoor(Entity, NameData),
-    EnterPath(Entity, NameData),
+    EnterDoor(Entity, NameIdData),
+    EnterPath(Entity, NameIdData),
     Arrive(Entity),
-    PickUp(NameData),
+    PickUp(NameIdData),
     Threatening,
     Attacking,
 }
 
 impl CombinableMsgType {
-    pub fn message(self, entity_name: NameData) -> Message {
+    pub fn message(self, entity_name: NameIdData) -> Message {
         Message::Combinable(self, vec![entity_name])
     }
 
@@ -64,49 +65,61 @@ impl CombinableMsgType {
         }
     }
 
-    fn into_text(self, entities: Vec<NameData>) -> String {
+    fn into_text(self, entities: Vec<NameIdData>, noun_map: &NounDataMap) -> String {
         use CombinableMsgType::*;
         match self {
             Noise => format!(
                 "Something is making noise in the direction of {the_paths}.",
-                the_paths = join_elements(unique(entities.into_iter().map(|name| name.definite())))
+                the_paths = join_elements(unique(
+                    entities
+                        .into_iter()
+                        .map(|name| name.lookup(noun_map).definite())
+                ))
             ),
             EnterDoor(_, door_name) => format!(
                 "{the_characters} entered {the_door} into a new area.",
                 the_characters = capitalize(join_elements(
-                    entities.into_iter().map(|name| name.definite()).collect()
+                    entities
+                        .into_iter()
+                        .map(|name| name.lookup(noun_map).definite())
+                        .collect()
                 )),
-                the_door = door_name.definite(),
+                the_door = door_name.lookup(noun_map).definite(),
             ),
             EnterPath(_, path_name) => format!(
                 "{the_characters} followed {the_path} to a new area.",
                 the_characters = capitalize(join_elements(
-                    entities.into_iter().map(|name| name.definite()).collect()
+                    entities
+                        .into_iter()
+                        .map(|name| name.lookup(noun_map).definite())
+                        .collect()
                 )),
-                the_path = path_name.definite(),
+                the_path = path_name.lookup(noun_map).definite(),
             ),
             Arrive(_) => format!(
                 "{the_characters} arrived from a nearby area.",
                 the_characters = capitalize(join_elements(name::names_with_counts(
                     entities,
                     name::ArticleKind::A,
-                    name::CountFormat::Text
+                    name::CountFormat::Text,
+                    noun_map,
                 )))
             ),
             PickUp(performer_name) => format!(
                 "{the_performer} picked up {the_items}.",
-                the_performer = capitalize(performer_name.definite()),
+                the_performer = capitalize(performer_name.lookup(noun_map).definite()),
                 the_items = join_elements(name::names_with_counts(
                     entities,
                     name::ArticleKind::The,
-                    name::CountFormat::Text
+                    name::CountFormat::Text,
+                    noun_map,
                 ))
             ),
             Threatening => {
                 if let [entity] = &entities[..] {
                     format!(
                         "{the_creature} makes a threatening pose.",
-                        the_creature = capitalize(entity.definite()),
+                        the_creature = capitalize(entity.clone().lookup(noun_map).definite()),
                     )
                 } else {
                     format!(
@@ -115,6 +128,7 @@ impl CombinableMsgType {
                             entities,
                             name::ArticleKind::The,
                             name::CountFormat::Text,
+                            noun_map,
                         ))),
                     )
                 }
@@ -123,7 +137,7 @@ impl CombinableMsgType {
                 if let [entity] = &entities[..] {
                     format!(
                         "{the_creature} moves in to attack.",
-                        the_creature = capitalize(entity.definite()),
+                        the_creature = capitalize(entity.clone().lookup(noun_map).definite()),
                     )
                 } else {
                     format!(
@@ -132,6 +146,7 @@ impl CombinableMsgType {
                             entities,
                             name::ArticleKind::The,
                             name::CountFormat::Text,
+                            noun_map,
                         ))),
                     )
                 }
@@ -140,7 +155,7 @@ impl CombinableMsgType {
     }
 }
 
-pub trait IntoMessage {
+pub(crate) trait IntoMessage {
     fn into_message(self) -> Message;
 }
 
@@ -173,7 +188,7 @@ impl IntoMessage for &str {
 }
 
 #[derive(Default)]
-pub struct Messages(Vec<Message>);
+pub(crate) struct Messages(Vec<Message>);
 
 impl Messages {
     pub fn is_empty(&self) -> bool {
@@ -188,11 +203,11 @@ impl Messages {
         self.0.push(message.into_message());
     }
 
-    pub fn into_text(self) -> Vec<String> {
+    pub fn into_text(self, noun_map: &NounDataMap) -> Vec<String> {
         let combined_messages = crate::try_combine_adjacent(self.0, Message::try_combine);
         combined_messages
             .into_iter()
-            .map(Message::into_text)
+            .map(|message| message.into_text(noun_map))
             .collect()
     }
 }

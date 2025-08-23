@@ -1,5 +1,5 @@
 use crate::core::item::ItemType;
-use crate::core::name::{Name, NameData, NameQuery};
+use crate::core::name::{Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::{
     self, AttackKind, CrewMember, Door, FortunaChest, Hostile, OpenedChest, Recruitable,
@@ -19,7 +19,7 @@ pub mod item;
 mod ship;
 mod trade;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Action {
     TakeItem(Entity, NameData),
     TakeAll,
@@ -212,12 +212,7 @@ impl<'a, 'b> ViewContext<'a, 'b> {
                 noise_source_areas.contains(&door.destination.get_area())
                     && !noise_source_areas.contains(&pos.get_area())
             })
-            .map(|(_, (_, pos, name_query))| {
-                (
-                    pos.get_area(),
-                    NameData::from_query(name_query, self.view_buffer.noun_map),
-                )
-            })
+            .map(|(_, (_, pos, name_query))| (pos.get_area(), NameIdData::from(name_query)))
             .collect::<Vec<_>>();
         for (door_area, door_name) in noise_targets {
             self.add_message_at(
