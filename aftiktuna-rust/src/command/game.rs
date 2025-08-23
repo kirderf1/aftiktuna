@@ -1,4 +1,5 @@
 use crate::action::Action;
+use crate::asset::NounDataMap;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
 use crate::core::area::{ShipControls, ShipState, ShipStatus};
@@ -16,25 +17,29 @@ mod combat;
 mod dialogue;
 mod item;
 
-pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
+pub fn parse(
+    input: &str,
+    state: &GameState,
+    noun_map: &NounDataMap,
+) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
     let area = world.get::<&Pos>(character).unwrap().get_area();
 
     let parse = Parse::new(input);
     first_match_or!(
-        item::commands(&parse, state),
+        item::commands(&parse, state, noun_map),
         parse.literal("enter", |parse| {
             parse.match_against(
-                targets_in_room::<&core::Door>(area, world),
-                |parse, door| parse.done_or_err(|| enter(door, character, world)),
+                targets_in_room::<&core::Door>(area, world, noun_map),
+                |parse, door| parse.done_or_err(|| enter(door, character, world, noun_map)),
                 |_| Err("There is no such door or path here to go through.".to_owned()),
             )
         }),
         parse.literal("force", |parse| {
             parse.match_against(
-                targets_in_room::<&core::Door>(area, world),
-                |parse, door| parse.done_or_err(|| force(door, character, world)),
+                targets_in_room::<&core::Door>(area, world, noun_map),
+                |parse, door| parse.done_or_err(|| force(door, character, world, noun_map)),
                 |_| Err("There is no such door here.".to_owned()),
             )
         }),
@@ -46,62 +51,62 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
                 parse.default_err()
             )
         ),
-        combat::commands(&parse, state.world.entity(state.controlled).unwrap(), &state.world),
-        dialogue::commands(&parse, state),
+        combat::commands(&parse, state.world.entity(state.controlled).unwrap(), &state.world, noun_map),
+        dialogue::commands(&parse, state, noun_map),
         parse.literal("wait", |parse| {
             parse.done_or_err(|| command::action_result(Action::Wait))
         }),
         parse.literal("rest", |parse| parse.done_or_err(|| rest(world, character))),
         parse.literal("refuel", |parse| {
             first_match_or!(
-                parse.literal("ship", |parse| parse.done_or_err(|| refuel_ship(state)));
+                parse.literal("ship", |parse| parse.done_or_err(|| refuel_ship(state, noun_map)));
                 parse.default_err()
             )
         }),
         parse.literal("launch", |parse| {
             first_match_or!(
-                parse.literal("ship", |parse| parse.done_or_err(|| launch_ship(state)));
+                parse.literal("ship", |parse| parse.done_or_err(|| launch_ship(state, noun_map)));
                 parse.default_err()
             )
         }),
         parse.literal("status", |parse| {
-            parse.done_or_err(|| command::status(state))
+            parse.done_or_err(|| command::status(state, noun_map))
         }),
         parse.literal("check", |parse| {
             parse.match_against(
-                check_item_targets(world, character),
-                |parse, item| parse.done_or_err(|| check(world, item)),
+                check_item_targets(world, character, noun_map),
+                |parse, item| parse.done_or_err(|| check(world, item, noun_map)),
                 |input| Err(format!("There is no item by the name \"{input}\" here.")),
             )
         }),
         parse.literal("control", |parse| {
             parse.match_against(
-                crew_character_targets(world),
+                crew_character_targets(world, noun_map),
                 |parse, target| parse.done_or_err(|| control(character, target)),
                 |input| Err(format!("There is no crew member by the name \"{input}\".")),
             )
         }),
         parse.literal("trade", |parse| {
-            parse.done_or_err(|| trade(world, character))
+            parse.done_or_err(|| trade(world, character, noun_map))
         }),
         parse.literal("open", |parse| {
             parse.match_against(
-                fortuna_chest_targets(world, character),
-                |parse, target| parse.done_or_err(|| open(world, character, target)),
+                fortuna_chest_targets(world, character, noun_map),
+                |parse, target| parse.done_or_err(|| open(world, character, target, noun_map)),
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         }),
         parse.literal("tame", |parse| {
             parse.match_against(
-                combat::hostile_targets(world, character).into_iter().flat_map(|(name, targets)| targets.into_iter().map(move |target| (name.clone(), target))),
-                |parse, target| parse.done_or_err(|| tame(world, character, target)),
+                combat::hostile_targets(world, character, noun_map).into_iter().flat_map(|(name, targets)| targets.into_iter().map(move |target| (name.clone(), target))),
+                |parse, target| parse.done_or_err(|| tame(world, character, target, noun_map)),
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         }),
         parse.literal("name", |parse| {
             parse.match_against(
-                crew_targets_in_room(area, world),
-                |parse, target| parse.take_remaining(|name| give_name(world, character, target, name.to_owned())),
+                crew_targets_in_room(area, world, noun_map),
+                |parse, target| parse.take_remaining(|name| give_name(world, character, target, name.to_owned(), noun_map)),
                 |input| Err(format!("\"{input}\" is not a valid target.")),
             )
         });
@@ -109,41 +114,53 @@ pub fn parse(input: &str, state: &GameState) -> Result<CommandResult, String> {
     )
 }
 
-fn crew_character_targets(world: &World) -> Vec<(String, Entity)> {
+fn crew_character_targets(world: &World, noun_map: &NounDataMap) -> Vec<(String, Entity)> {
     world
         .query::<NameQuery>()
         .with::<(&CrewMember, &Character)>()
         .iter()
-        .map(|(entity, query)| (NameData::from(query).base(), entity))
+        .map(|(entity, query)| (NameData::from_query(query, noun_map).base(), entity))
         .collect()
 }
 
-fn crew_targets_in_room(area: Entity, world: &World) -> Vec<(String, Entity)> {
-    targets_in_room::<&CrewMember>(area, world)
+fn crew_targets_in_room(
+    area: Entity,
+    world: &World,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
+    targets_in_room::<&CrewMember>(area, world, noun_map)
 }
 
-fn targets_in_room<Q: Query>(area: Entity, world: &World) -> Vec<(String, Entity)> {
+fn targets_in_room<Q: Query>(
+    area: Entity,
+    world: &World,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
     world
         .query::<&Pos>()
         .with::<Q>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(area))
         .flat_map(|(entity, _)| {
-            super::entity_names(world.entity(entity).unwrap())
+            super::entity_names(world.entity(entity).unwrap(), noun_map)
                 .into_iter()
                 .map(move |name| (name, entity))
         })
         .collect()
 }
 
-fn targets_by_proximity<Q: Query>(compare_pos: Pos, world: &World) -> Vec<(String, Entity)> {
+fn targets_by_proximity<Q: Query>(
+    compare_pos: Pos,
+    world: &World,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
     let mut targets_with_pos = world
         .query::<&Pos>()
         .with::<Q>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(compare_pos.get_area()))
         .flat_map(|(entity, &pos)| {
-            super::entity_names(world.entity(entity).unwrap())
+            super::entity_names(world.entity(entity).unwrap(), noun_map)
                 .into_iter()
                 .map(move |name| (name, entity, pos))
         })
@@ -156,14 +173,24 @@ fn targets_by_proximity<Q: Query>(compare_pos: Pos, world: &World) -> Vec<(Strin
         .collect()
 }
 
-fn enter(door: Entity, character: Entity, world: &World) -> Result<CommandResult, String> {
-    check_accessible_with_message(door, character, true, world)?;
+fn enter(
+    door: Entity,
+    character: Entity,
+    world: &World,
+    noun_map: &NounDataMap,
+) -> Result<CommandResult, String> {
+    check_accessible_with_message(door, character, true, world, noun_map)?;
 
     command::crew_action(Action::EnterDoor(door))
 }
 
-fn force(door: Entity, character: Entity, world: &World) -> Result<CommandResult, String> {
-    check_accessible_with_message(door, character, false, world)?;
+fn force(
+    door: Entity,
+    character: Entity,
+    world: &World,
+    noun_map: &NounDataMap,
+) -> Result<CommandResult, String> {
+    check_accessible_with_message(door, character, false, world, noun_map)?;
 
     command::action_result(Action::ForceDoor(door, false))
 }
@@ -195,7 +222,7 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     command::action_result(Action::Rest(true))
 }
 
-fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
+fn refuel_ship(state: &GameState, noun_map: &NounDataMap) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
 
@@ -209,10 +236,10 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
         .ok_or_else(|| {
             format!(
                 "{} needs to be in the ship control room in order to refuel it.",
-                NameData::find(world, character).definite()
+                NameData::find(world, character, noun_map).definite()
             )
         })?;
-    check_adjacent_accessible_with_message(ship_controls, character, world)?;
+    check_adjacent_accessible_with_message(ship_controls, character, world, noun_map)?;
 
     let status = world
         .get::<&ShipState>(state.ship_core)
@@ -225,13 +252,13 @@ fn refuel_ship(state: &GameState) -> Result<CommandResult, String> {
     if !inventory::is_holding(ItemType::FuelCan, world, character) {
         return Err(format!(
             "{} needs a fuel can to refuel the ship.",
-            NameData::find(world, character).definite()
+            NameData::find(world, character, noun_map).definite()
         ));
     }
     command::action_result(Action::Refuel)
 }
 
-fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
+fn launch_ship(state: &GameState, noun_map: &NounDataMap) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
     if state.generation_state.is_at_fortuna() {
@@ -248,10 +275,10 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
         .ok_or_else(|| {
             format!(
                 "{} needs to be in the ship control room in order to launch it.",
-                NameData::find(world, character).definite()
+                NameData::find(world, character, noun_map).definite()
             )
         })?;
-    check_adjacent_accessible_with_message(ship_controls, character, world)?;
+    check_adjacent_accessible_with_message(ship_controls, character, world, noun_map)?;
 
     let status = world
         .get::<&ShipState>(state.ship_core)
@@ -262,7 +289,7 @@ fn launch_ship(state: &GameState) -> Result<CommandResult, String> {
     {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
-            NameData::find(world, character).definite()
+            NameData::find(world, character, noun_map).definite()
         ));
     }
     command::action_result(Action::Launch)
@@ -276,7 +303,11 @@ fn control(character: Entity, target: Entity) -> Result<CommandResult, String> {
     }
 }
 
-fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
+fn trade(
+    world: &World,
+    character: Entity,
+    noun_map: &NounDataMap,
+) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let shopkeeper = world
         .query::<&Pos>()
@@ -287,66 +318,92 @@ fn trade(world: &World, character: Entity) -> Result<CommandResult, String> {
         .next()
         .ok_or_else(|| "There is no shopkeeper to trade with here.".to_string())?;
 
-    check_adjacent_accessible_with_message(shopkeeper, character, world)?;
+    check_adjacent_accessible_with_message(shopkeeper, character, world, noun_map)?;
 
     command::action_result(Action::Trade(shopkeeper))
 }
 
-fn fortuna_chest_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
+fn fortuna_chest_targets(
+    world: &World,
+    character: Entity,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
     let character_pos = *world.get::<&Pos>(character).unwrap();
     world
         .query::<(NameQuery, &Pos)>()
         .with::<&FortunaChest>()
         .iter()
         .filter(|&(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from(query).base(), entity))
+        .map(|(entity, (query, _))| (NameData::from_query(query, noun_map).base(), entity))
         .collect()
 }
 
-fn open(world: &World, character: Entity, chest: Entity) -> Result<CommandResult, String> {
-    check_adjacent_accessible_with_message(chest, character, world)?;
+fn open(
+    world: &World,
+    character: Entity,
+    chest: Entity,
+    noun_map: &NounDataMap,
+) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(chest, character, world, noun_map)?;
 
     command::action_result(Action::OpenChest(chest))
 }
 
-fn check_item_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
-    let mut targets = held_item_targets(world, character);
-    targets.extend(placed_item_targets(world, character));
+fn check_item_targets(
+    world: &World,
+    character: Entity,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
+    let mut targets = held_item_targets(world, character, noun_map);
+    targets.extend(placed_item_targets(world, character, noun_map));
     targets
 }
 
-fn placed_item_targets(world: &World, character: Entity) -> Vec<(String, Entity)> {
+fn placed_item_targets(
+    world: &World,
+    character: Entity,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     world
         .query::<(&Pos, NameQuery)>()
         .iter()
         .filter(|&(_, (pos, _))| pos.is_in(area))
-        .map(|(entity, (_, query))| (NameData::from(query).base(), entity))
+        .map(|(entity, (_, query))| (NameData::from_query(query, noun_map).base(), entity))
         .collect()
 }
 
-fn held_item_targets(world: &World, holder: Entity) -> Vec<(String, Entity)> {
+fn held_item_targets(
+    world: &World,
+    holder: Entity,
+    noun_map: &NounDataMap,
+) -> Vec<(String, Entity)> {
     world
         .query::<(&Held, NameQuery)>()
         .iter()
         .filter(|&(_, (held, _))| held.held_by(holder))
-        .map(|(entity, (_, query))| (NameData::from(query).base(), entity))
+        .map(|(entity, (_, query))| (NameData::from_query(query, noun_map).base(), entity))
         .collect()
 }
 
-fn check(world: &World, item: Entity) -> Result<CommandResult, String> {
+fn check(world: &World, item: Entity, noun_map: &NounDataMap) -> Result<CommandResult, String> {
     Ok(CommandResult::Info(crate::CommandInfo::Message(
-        core::item::description(world.entity(item).unwrap()),
+        core::item::description(world.entity(item).unwrap(), noun_map),
     )))
 }
 
-fn tame(world: &World, character: Entity, target: Entity) -> Result<CommandResult, String> {
-    check_adjacent_accessible_with_message(target, character, world)?;
+fn tame(
+    world: &World,
+    character: Entity,
+    target: Entity,
+    noun_map: &NounDataMap,
+) -> Result<CommandResult, String> {
+    check_adjacent_accessible_with_message(target, character, world, noun_map)?;
 
     if !inventory::is_holding(ItemType::FoodRation, world, character) {
         return Err(format!(
             "{} needs a food ration to tame.",
-            NameData::find(world, character).definite()
+            NameData::find(world, character, noun_map).definite()
         ));
     }
 
@@ -358,13 +415,14 @@ fn give_name(
     character: Entity,
     target: Entity,
     name: String,
+    noun_map: &NounDataMap,
 ) -> Result<CommandResult, String> {
-    check_adjacent_accessible_with_message(target, character, world)?;
+    check_adjacent_accessible_with_message(target, character, world, noun_map)?;
 
     if world.entity(target).unwrap().has::<Name>() {
         return Err(format!(
             "{} already has a name.",
-            NameData::find(world, target).definite()
+            NameData::find(world, target, noun_map).definite()
         ));
     }
 
@@ -377,14 +435,20 @@ enum Inaccessible {
 }
 
 impl Inaccessible {
-    fn into_message(self, world: &World, character: Entity, target: Entity) -> String {
+    fn into_message(
+        self,
+        world: &World,
+        character: Entity,
+        target: Entity,
+        noun_map: &NounDataMap,
+    ) -> String {
         match self {
             Inaccessible::NotHere => format!(
                 "{} can not reach {} from here.",
-                NameData::find(world, character).definite(),
-                NameData::find(world, target).definite()
+                NameData::find(world, character, noun_map).definite(),
+                NameData::find(world, target, noun_map).definite()
             ),
-            Inaccessible::Blocked(blockage) => blockage.into_message(world),
+            Inaccessible::Blocked(blockage) => blockage.into_message(world, noun_map),
         }
     }
 }
@@ -400,18 +464,20 @@ fn check_accessible_with_message(
     character: Entity,
     can_push: bool,
     world: &World,
+    noun_map: &NounDataMap,
 ) -> Result<(), String> {
     check_accessible(target, character, can_push, world)
-        .map_err(|inaccessible| inaccessible.into_message(world, character, target))
+        .map_err(|inaccessible| inaccessible.into_message(world, character, target, noun_map))
 }
 
 fn check_adjacent_accessible_with_message(
     target: Entity,
     character: Entity,
     world: &World,
+    noun_map: &NounDataMap,
 ) -> Result<(), String> {
     check_adjacent_accessible(target, character, world)
-        .map_err(|inaccessible| inaccessible.into_message(world, character, target))
+        .map_err(|inaccessible| inaccessible.into_message(world, character, target, noun_map))
 }
 
 fn check_accessible(

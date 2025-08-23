@@ -4,9 +4,8 @@ use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::Direction;
-use aftiktuna::core::store::StoreStock;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
-use aftiktuna::view::{self, Frame};
+use aftiktuna::view::{self, Frame, StoreStockView};
 use aftiktuna_three_d::{render, Camera};
 use rand::{Rng, SeedableRng};
 use three_d::Object;
@@ -310,7 +309,7 @@ fn draw_store_view(
             let y = 550. - (index as f32 * 24.);
             [
                 crate::make_text_obj(
-                    &view::text::capitalize(stock.item.noun_data().singular()),
+                    &view::text::capitalize(stock.item_noun.singular()),
                     three_d::vec2(40., y),
                     three_d::vec4(1., 1., 1., 1.),
                     &assets.builtin_fonts.text_gen_size_16,
@@ -356,7 +355,7 @@ fn draw_store_view(
     );
 }
 
-pub fn find_stock_at(pos: three_d::Vec2, store_view: &view::StoreView) -> Option<&StoreStock> {
+pub fn find_stock_at(pos: three_d::Vec2, store_view: &view::StoreView) -> Option<&StoreStockView> {
     for (index, stock) in store_view.items.iter().enumerate() {
         if aftiktuna_three_d::Rect::new(30., 546. - (index as f32 * 24.), 400., 24.).contains(pos) {
             return Some(stock);

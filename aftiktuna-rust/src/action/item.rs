@@ -18,7 +18,12 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, query))| (item, NameData::from(query)))
+        .map(|(item, (_, query))| {
+            (
+                item,
+                NameData::from_query(query, context.view_context.view_buffer.noun_map),
+            )
+        })
         .ok_or("There are no items to take here.")?;
 
     let result = take_item(context, aftik, item, name)?;
@@ -47,7 +52,8 @@ pub(super) fn take_item(
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
-    let performer_name = NameData::find(&context.state.world, performer);
+    let noun_map = context.view_context.view_buffer.noun_map;
+    let performer_name = NameData::find(&context.state.world, performer, noun_map);
     let item_pos = *context.state.world.get::<&Pos>(item).map_err(|_| {
         format!(
             "{the_performer} lost track of {the_item}.",
@@ -61,7 +67,7 @@ pub(super) fn take_item(
         .capture_unseen_view(item_pos.get_area(), context.state);
 
     let world = &mut context.state.world;
-    position::push_and_move(world, performer, item_pos)?;
+    position::push_and_move(world, performer, item_pos, noun_map)?;
 
     if world
         .get::<&ItemType>(item)
@@ -107,10 +113,11 @@ impl From<SearchAction> for super::Action {
 
 impl SearchAction {
     pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
+        let noun_map = context.view_context.view_buffer.noun_map;
         let Self { container } = self;
         let world = context.mut_world();
-        let performer_name = NameData::find(world, performer).definite();
-        let container_name = NameData::find(world, container).definite();
+        let performer_name = NameData::find(world, performer, noun_map).definite();
+        let container_name = NameData::find(world, container, noun_map).definite();
         let container_pos = *world
             .get::<&Pos>(container)
             .map_err(|_| format!("{performer_name} lost track of {container_name}."))?;
@@ -124,7 +131,7 @@ impl SearchAction {
             )));
         }
 
-        position::push_and_move(world, performer, container_pos)?;
+        position::push_and_move(world, performer, container_pos, noun_map)?;
 
         let items = inventory::get_held(world, container);
         if items.is_empty() {
@@ -139,7 +146,9 @@ impl SearchAction {
         core::trigger_aggression_in_area(world, container_pos.get_area());
 
         let items = name::names_with_counts(
-            items.into_iter().map(|item| NameData::find(world, item)),
+            items
+                .into_iter()
+                .map(|item| NameData::find(world, item, noun_map)),
             ArticleKind::A,
             CountFormat::Text,
         );
@@ -165,9 +174,10 @@ pub(super) fn give_item(
         state,
         mut view_context,
     } = context;
+    let noun_map = view_context.view_buffer.noun_map;
     let world = &mut state.world;
-    let performer_name = NameData::find(world, performer).definite();
-    let receiver_name = NameData::find(world, receiver).definite();
+    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let receiver_name = NameData::find(world, receiver, noun_map).definite();
 
     if world
         .get::<&Held>(item)
@@ -206,7 +216,7 @@ pub(super) fn give_item(
     }
 
     let movement = position::prepare_move_adjacent_placement(world, performer, receiver_placement)
-        .map_err(|blockage| blockage.into_message(world))?;
+        .map_err(|blockage| blockage.into_message(world, noun_map))?;
 
     view_context.capture_frame_for_dialogue(state);
     let world = &mut state.world;
@@ -228,7 +238,7 @@ pub(super) fn give_item(
         performer_pos.get_area(),
         format!(
             "{performer_name} gave {receiver_name} a {}.",
-            NameData::find(world, item).base()
+            NameData::find(world, item, noun_map).base(),
         ),
         state,
     );
@@ -241,8 +251,9 @@ pub(super) fn wield(
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
+    let noun_map = context.view_context.view_buffer.noun_map;
     let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer).definite();
+    let performer_name = NameData::find(world, performer, noun_map).definite();
 
     if inventory::is_in_inventory(world, item, performer) {
         inventory::unwield_if_needed(world, performer);
@@ -259,7 +270,7 @@ pub(super) fn wield(
         let item_pos = *world
             .get::<&Pos>(item)
             .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
-        position::push_and_move(world, performer, item_pos)?;
+        position::push_and_move(world, performer, item_pos, noun_map)?;
 
         inventory::unwield_if_needed(world, performer);
         world
@@ -293,10 +304,11 @@ impl From<UseAction> for super::Action {
 
 impl UseAction {
     pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
+        let noun_map = context.view_context.view_buffer.noun_map;
         let world = &mut context.state.world;
 
         let performer_ref = world.entity(performer).unwrap();
-        let performer_name = NameData::find_by_ref(performer_ref).definite();
+        let performer_name = NameData::find_by_ref(performer_ref, noun_map).definite();
         let area = performer_ref.get::<&Pos>().unwrap().get_area();
 
         let item_ref = world
@@ -308,7 +320,7 @@ impl UseAction {
                     .is_some_and(|held| held.held_by(performer))
             })
             .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
-        let item_name = NameData::find_by_ref(item_ref).definite();
+        let item_name = NameData::find_by_ref(item_ref, noun_map).definite();
 
         let item_type = item_ref.get::<&ItemType>().as_deref().copied();
 

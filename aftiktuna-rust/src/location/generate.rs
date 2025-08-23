@@ -11,7 +11,7 @@ use crate::core::FortunaChest;
 use crate::core::area::{Area, ShipControls};
 use crate::core::display::{ModelId, OrderWeight};
 use crate::core::inventory::{Container, Held};
-use crate::core::name::{IndefiniteArticle, Noun};
+use crate::core::name::NounId;
 use crate::core::position::{Coord, Pos};
 use hecs::{Entity, World};
 use rand::seq::IndexedRandom;
@@ -89,7 +89,7 @@ fn place_symbol(
             builder.gen_context.world.spawn((
                 ModelId::ship_controls(),
                 OrderWeight::Background,
-                Noun::new("ship controls", "ship controls", IndefiniteArticle::A),
+                NounId::from("ship_controls"),
                 pos,
                 *direction,
                 ShipControls,
@@ -179,7 +179,7 @@ fn place_fortuna_chest(world: &mut World, pos: Pos) {
     world.spawn((
         ModelId::fortuna_chest(),
         OrderWeight::Background,
-        Noun::new("fortuna chest", "fortuna chests", IndefiniteArticle::A),
+        NounId::from("fortuna_chest"),
         pos,
         FortunaChest,
     ));
@@ -189,7 +189,7 @@ fn place_container(data: &ContainerData, pos: Pos, builder: &mut Builder) -> Res
     let container = builder.gen_context.world.spawn((
         data.container_type.model_id(),
         OrderWeight::Background,
-        data.container_type.noun(),
+        data.container_type.noun_id(),
         pos,
         data.direction,
         Container,

@@ -39,13 +39,13 @@ pub fn option_direction_editor(
 
 pub fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut ItemType, id: impl Hash) {
     egui::ComboBox::new(id, "Item Type")
-        .selected_text(edited_type.noun_data().singular())
+        .selected_text(format!("{edited_type:?}"))
         .show_ui(ui, |ui| {
             for selectable_type in ItemType::variants() {
                 ui.selectable_value(
                     edited_type,
                     *selectable_type,
-                    selectable_type.noun_data().singular(),
+                    format!("{selectable_type:?}"),
                 );
             }
         });
@@ -177,21 +177,15 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
         SymbolData::FortunaChest => "Fortuna Chest".to_string(),
         SymbolData::ShipControls { .. } => "Ship Controls".to_string(),
         SymbolData::FoodDeposit => "Food Deposit".to_string(),
-        SymbolData::Item { item } => format!("Item ({})", item.noun_data().singular()),
+        SymbolData::Item { item } => format!("Item ({item:?})"),
         SymbolData::Loot { table } => format!("Loot ({})", table.0),
         SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
         SymbolData::Inanimate { model, .. } => format!("Object ({})", model.0),
         SymbolData::Container(container_data) => {
-            format!(
-                "Container ({})",
-                container_data.container_type.noun().singular()
-            )
+            format!("Container ({:?})", container_data.container_type)
         }
         SymbolData::Creature(creature_spawn_data) => {
-            format!(
-                "Creature ({})",
-                creature_spawn_data.creature.species().noun().singular()
-            )
+            format!("Creature ({:?})", creature_spawn_data.creature.species())
         }
         SymbolData::Shopkeeper(_) => "Shopkeeper".to_string(),
         SymbolData::Character(npc_spawn_data) => {

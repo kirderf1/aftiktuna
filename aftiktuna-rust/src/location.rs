@@ -6,7 +6,7 @@ use crate::asset::location::{DoorPairData, DoorType, LocationData};
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::display::{ModelId, OrderWeight};
-use crate::core::name::{IndefiniteArticle, Noun};
+use crate::core::name::NounId;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
 use crate::core::{CrewMember, Door, DoorKind, ObservationTarget, Waiting, inventory};
@@ -330,14 +330,14 @@ pub fn setup_location_into_game(
             pos: build_data.entry_pos,
             model_id: ModelId::ship(),
             kind: DoorKind::Door,
-            name: Noun::new("ship", "ships", IndefiniteArticle::A),
+            noun: NounId::from("ship"),
             adjective: None,
         },
         DoorInfo {
             pos: ship_exit,
             model_id: DoorType::Doorway.into(),
             kind: DoorKind::Door,
-            name: Noun::new("ship exit", "ship exits", IndefiniteArticle::A),
+            noun: NounId::from("ship_exit"),
             adjective: None,
         },
         &DoorPairData::default(),

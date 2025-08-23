@@ -109,7 +109,7 @@ pub mod store {
     pub struct Points(pub i32);
 
     #[derive(Serialize, Deserialize)]
-    pub struct Shopkeeper(pub Vec<StoreStock>);
+    pub(crate) struct Shopkeeper(pub Vec<StoreStock>);
 
     #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
     #[serde(untagged)]
@@ -142,7 +142,7 @@ pub mod store {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct StoreStock {
+    pub(crate) struct StoreStock {
         pub item: item::ItemType,
         pub price: item::Price,
         pub quantity: StockQuantity,
@@ -151,7 +151,7 @@ pub mod store {
     #[derive(Serialize, Deserialize)]
     pub struct IsTrading(pub Entity);
 
-    pub fn get_shop_info(world: &World, character: Entity) -> Option<Ref<'_, Shopkeeper>> {
+    pub(crate) fn get_shop_info(world: &World, character: Entity) -> Option<Ref<'_, Shopkeeper>> {
         let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
         world.get::<&Shopkeeper>(shopkeeper).ok()
     }
@@ -159,7 +159,6 @@ pub mod store {
 
 use self::display::DialogueExpression;
 use crate::action::Action;
-use crate::core::name::Noun;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::fmt::Display;
@@ -303,17 +302,17 @@ impl Species {
         display::ModelId(format!("creature/{name}"))
     }
 
-    pub fn noun(self) -> Noun {
-        use name::IndefiniteArticle::*;
+    pub fn noun_id(self) -> name::NounId {
         match self {
-            Self::Aftik => Noun::new("aftik", "aftiks", An),
-            Self::Goblin => Noun::new("goblin", "goblins", A),
-            Self::Eyesaur => Noun::new("eyesaur", "eyesaurs", An),
-            Self::Azureclops => Noun::new("azureclops", "azureclopses", An),
-            Self::Scarvie => Noun::new("scarvie", "scarvies", A),
-            Self::VoraciousFrog => Noun::new("voracious frog", "voracious frogs", A),
-            Self::BloodMantis => Noun::new("blood mantis", "blood mantes", A),
+            Self::Aftik => "aftik",
+            Self::Goblin => "goblin",
+            Self::Eyesaur => "eyesaur",
+            Self::Azureclops => "azureclops",
+            Self::Scarvie => "scarvie",
+            Self::VoraciousFrog => "voracious_frog",
+            Self::BloodMantis => "blood_mantis",
         }
+        .into()
     }
 
     pub fn is_large(self) -> bool {

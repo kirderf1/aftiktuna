@@ -3,6 +3,7 @@ pub use self::status::FullStatus;
 pub(crate) use self::status::get_full_status;
 use self::text::{IntoMessage, Messages};
 use crate::StopType;
+use crate::asset::NounDataMap;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression};
 use crate::core::position::{Direction, Pos};
@@ -20,24 +21,42 @@ pub mod text;
 
 mod store {
     use super::{Buffer, Frame, StatusCache, status};
+    use crate::asset::NounDataMap;
     use crate::core::area::{Area, BackgroundId};
     use crate::core::display::AftikColorId;
     use crate::core::inventory::Held;
-    use crate::core::item::Price;
-    use crate::core::name::{NameData, NameQuery};
+    use crate::core::item::{self, Price};
+    use crate::core::name::{NameData, NameQuery, NounData};
     use crate::core::position::Pos;
-    use crate::core::store::{Shopkeeper, StoreStock};
+    use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
     use crate::deref_clone;
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct StoreView {
-        pub items: Vec<StoreStock>,
+        pub items: Vec<StoreStockView>,
         pub shopkeeper_color: Option<AftikColorId>,
         pub background: BackgroundId,
         pub points: i32,
         pub sellable_items: Vec<NameData>,
+    }
+
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct StoreStockView {
+        pub item_noun: NounData,
+        pub price: item::Price,
+        pub quantity: StockQuantity,
+    }
+
+    impl StoreStockView {
+        fn create(store_stock: &StoreStock, noun_map: &NounDataMap) -> Self {
+            Self {
+                item_noun: noun_map.lookup(&store_stock.item.noun_id()).clone(),
+                price: store_stock.price,
+                quantity: store_stock.quantity,
+            }
+        }
     }
 
     pub fn store_frame(
@@ -50,13 +69,19 @@ mod store {
         let area = world.get::<&Pos>(shopkeeper).unwrap().get_area();
         // Use the cache in shop view before status messages so that points aren't shown in status messages too
         let points = status::fetch_points(world, character, cache);
-        let items = world.get::<&Shopkeeper>(shopkeeper).unwrap().0.clone();
+        let items = world
+            .get::<&Shopkeeper>(shopkeeper)
+            .unwrap()
+            .0
+            .iter()
+            .map(|stock| StoreStockView::create(stock, buffer.noun_map))
+            .collect();
         let sellable_items = world
             .query::<(&Held, NameQuery)>()
             .with::<&Price>()
             .iter()
             .filter(|(_, (held, _))| held.held_by(character))
-            .map(|(_, (_, query))| NameData::from(query))
+            .map(|(_, (_, query))| NameData::from_query(query, buffer.noun_map))
             .collect();
         Frame::StoreView {
             view: StoreView {
@@ -71,18 +96,27 @@ mod store {
     }
 }
 
-pub use store::StoreView;
+pub use store::{StoreStockView, StoreView};
 
 pub type StatusCache = status::Cache;
 
-#[derive(Default)]
-pub struct Buffer {
+pub(crate) struct Buffer<'a> {
     pub messages: Messages,
     captured_frames: Vec<Frame>,
     unseen_view: bool,
+    pub noun_map: &'a NounDataMap,
 }
 
-impl Buffer {
+impl<'a> Buffer<'a> {
+    pub fn new(noun_map: &'a NounDataMap) -> Self {
+        Self {
+            messages: Messages::default(),
+            captured_frames: Vec::new(),
+            unseen_view: false,
+            noun_map,
+        }
+    }
+
     pub fn capture_view(&mut self, state: &mut GameState) {
         let frame = if let Some(shopkeeper) = state
             .world
@@ -136,7 +170,7 @@ impl Buffer {
     ) -> Messages {
         let mut messages = Messages::default();
         self.pop_message_cache(&mut messages);
-        status::changes_messages(world, character, &mut messages, cache);
+        status::changes_messages(world, character, &mut messages, cache, self.noun_map);
         messages
     }
 
@@ -216,7 +250,7 @@ impl Frame {
             Frame::StoreView { messages, .. } => messages.clone(),
             Frame::LocationChoice(choice) => choice.presentation_text_lines(),
             Frame::Error(message) => vec![message.to_owned()],
-            Frame::Ending { stop_type, .. } => stop_type_messages(*stop_type).into_text(),
+            Frame::Ending { stop_type, .. } => vec![stop_type_message(*stop_type)],
         }
     }
 }
@@ -253,11 +287,12 @@ impl DialogueFrameData {
     }
 }
 
-pub fn stop_type_messages(stop_type: StopType) -> Messages {
+fn stop_type_message(stop_type: StopType) -> String {
     match stop_type {
-        StopType::Win => Messages::from("Congratulations, you won!"),
-        StopType::Lose => Messages::from("You lost."),
+        StopType::Win => "Congratulations, you won!",
+        StopType::Lose => "You lost.",
     }
+    .into()
 }
 
 fn intro_messages() -> Vec<String> {
@@ -269,6 +304,6 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
         messages: buffer
             .pop_messages(&state.world, state.controlled, &mut state.status_cache)
             .into_text(),
-        render_data: area::prepare_render_data(state),
+        render_data: area::prepare_render_data(state, buffer.noun_map),
     }
 }

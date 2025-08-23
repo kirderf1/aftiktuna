@@ -1,5 +1,6 @@
 use super::name::NameData;
 use super::{Hostile, area::Area};
+use crate::asset::NounDataMap;
 use hecs::{Entity, EntityRef, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::{Ordering, max, min};
@@ -285,25 +286,23 @@ impl Movement {
     }
 }
 
-pub fn move_to(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
-    let movement = prepare_move(world, entity, destination)
-        .map_err(|blockage| blockage.into_message(world))?;
-    movement.perform(world).unwrap();
-    Ok(())
-}
-
-pub fn move_adjacent_placement(
+pub(crate) fn move_adjacent_placement(
     world: &mut World,
     entity: Entity,
     target_placement: Placement,
+    noun_map: &NounDataMap,
 ) -> Result<(), String> {
     let movement = prepare_move_adjacent_placement(world, entity, target_placement)
-        .map_err(|blockage| blockage.into_message(world))?;
+        .map_err(|blockage| blockage.into_message(world, noun_map))?;
     movement.perform(world).unwrap();
     Ok(())
 }
 
-pub fn prepare_move(world: &World, entity: Entity, destination: Pos) -> Result<Movement, Blockage> {
+pub(crate) fn prepare_move(
+    world: &World,
+    entity: Entity,
+    destination: Pos,
+) -> Result<Movement, Blockage> {
     let entity_ref = world.entity(entity).unwrap();
     let position = *entity_ref.get::<&Pos>().unwrap();
     position.assert_is_in_same_area(destination);
@@ -313,7 +312,7 @@ pub fn prepare_move(world: &World, entity: Entity, destination: Pos) -> Result<M
     Ok(Movement::init(entity, position, destination))
 }
 
-pub fn prepare_move_adjacent_placement(
+pub(crate) fn prepare_move_adjacent_placement(
     world: &World,
     entity: Entity,
     target_placement: Placement,
@@ -334,7 +333,12 @@ pub fn prepare_move_adjacent_placement(
     })
 }
 
-pub fn push_and_move(world: &mut World, entity: Entity, destination: Pos) -> Result<(), String> {
+pub(crate) fn push_and_move(
+    world: &mut World,
+    entity: Entity,
+    destination: Pos,
+    noun_map: &NounDataMap,
+) -> Result<(), String> {
     let entity_ref = world.entity(entity).unwrap();
     let position = *entity_ref.get::<&Pos>().unwrap();
     position.assert_is_in_same_area(destination);
@@ -342,7 +346,7 @@ pub fn push_and_move(world: &mut World, entity: Entity, destination: Pos) -> Res
     if let Err(blockage) = check_is_blocked(world, entity_ref, position, destination) {
         blockage
             .try_push(Direction::between(position, destination), world)
-            .map_err(|_| blockage.into_message(world))?;
+            .map_err(|_| blockage.into_message(world, noun_map))?;
     }
 
     Movement::init(entity, position, destination)
@@ -351,7 +355,7 @@ pub fn push_and_move(world: &mut World, entity: Entity, destination: Pos) -> Res
     Ok(())
 }
 
-pub fn turn_towards(world: &mut World, entity: Entity, target_pos: Pos) {
+pub(crate) fn turn_towards(world: &mut World, entity: Entity, target_pos: Pos) {
     let placement = Placement::from(world.query_one_mut::<PlacementQuery>(entity).unwrap());
     let new_direction = Direction::between(placement.pos, target_pos);
     if placement.direction != new_direction {
@@ -371,25 +375,25 @@ pub fn turn_towards(world: &mut World, entity: Entity, target_pos: Pos) {
 pub struct OccupiesSpace;
 
 #[derive(Debug, Clone, Copy)]
-pub enum Blockage {
+pub(crate) enum Blockage {
     Hostile(Entity),
     TakesSpace([Entity; 2]),
 }
 
 impl Blockage {
-    pub fn into_message(self, world: &World) -> String {
+    pub fn into_message(self, world: &World, noun_map: &NounDataMap) -> String {
         match self {
             Blockage::Hostile(entity) => {
                 format!(
                     "{} is in the way.",
-                    NameData::find(world, entity).definite(),
+                    NameData::find(world, entity, noun_map).definite(),
                 )
             }
             Blockage::TakesSpace([entity1, entity2]) => {
                 format!(
                     "{} and {} are in the way.",
-                    NameData::find(world, entity1).definite(),
-                    NameData::find(world, entity2).definite(),
+                    NameData::find(world, entity1, noun_map).definite(),
+                    NameData::find(world, entity2, noun_map).definite(),
                 )
             }
         }
@@ -423,7 +427,7 @@ impl Blockage {
 
 pub struct PushError;
 
-pub fn check_is_blocked(
+pub(crate) fn check_is_blocked(
     world: &World,
     entity_ref: EntityRef,
     entity_pos: Pos,
@@ -452,7 +456,7 @@ pub fn check_is_blocked(
     check_is_pos_blocked(Some(entity_ref.entity()), target_pos, world)
 }
 
-pub fn check_is_pos_blocked(
+pub(crate) fn check_is_pos_blocked(
     ignored: Option<Entity>,
     target_pos: Pos,
     world: &World,

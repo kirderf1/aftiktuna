@@ -160,7 +160,7 @@ pub mod world {
         position::OccupiesSpace, OccupiesSpace;
 
         name::Name, Name;
-        name::Noun, Noun;
+        name::NounId, NounId;
         name::Adjective, Adjective;
         core::Species, Species;
         core::CreatureAttribute, CreatureAttribute;

@@ -1,7 +1,7 @@
 use super::name::NameWithAttribute;
 use super::position::Pos;
 use crate::core::{BadlyHurtBehavior, Species};
-use crate::view::text::Messages;
+use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
@@ -252,7 +252,11 @@ impl Stamina {
 #[derive(Serialize, Deserialize)]
 pub struct SeenWithLowHealth;
 
-pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: Entity) {
+pub(crate) fn detect_low_health(
+    world: &mut World,
+    view_buffer: &mut view::Buffer,
+    character: Entity,
+) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, health)) in world.query::<(&Pos, &Health)>().iter() {
@@ -265,8 +269,9 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
         if !has_tag && visible_low_health && health.is_alive() {
             command_buffer.insert_one(entity, SeenWithLowHealth);
             if entity != character {
-                let the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite();
-                messages.add(
+                let the_entity =
+                    NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.noun_map).definite();
+                view_buffer.messages.add(
                     match entity_ref
                         .get::<&Species>()
                         .and_then(|species| species.badly_hurt_behavior())
@@ -291,7 +296,11 @@ pub fn detect_low_health(world: &mut World, messages: &mut Messages, character: 
 #[derive(Serialize, Deserialize)]
 pub struct SeenWithLowStamina;
 
-pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character: Entity) {
+pub(crate) fn detect_low_stamina(
+    world: &mut World,
+    view_buffer: &mut view::Buffer,
+    character: Entity,
+) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
     for (entity, (pos, stamina, health)) in world.query::<(&Pos, &Stamina, &Health)>().iter() {
@@ -303,9 +312,10 @@ pub fn detect_low_stamina(world: &mut World, messages: &mut Messages, character:
         }
         if !has_tag && visible_low_stamina && health.is_alive() {
             command_buffer.insert_one(entity, SeenWithLowStamina);
-            messages.add(format!(
+            view_buffer.messages.add(format!(
                 "{the_entity} is growing exhausted from dodging attacks.",
-                the_entity = NameWithAttribute::lookup_by_ref(entity_ref).definite()
+                the_entity =
+                    NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.noun_map).definite()
             ));
         }
     }

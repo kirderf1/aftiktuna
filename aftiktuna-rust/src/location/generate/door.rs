@@ -1,7 +1,7 @@
 use super::Builder;
 use crate::asset::location::{DoorPairData, DoorSpawnData};
 use crate::core::display::{ModelId, OrderWeight};
-use crate::core::name::{Adjective, Noun};
+use crate::core::name::{Adjective, NounId};
 use crate::core::position::Pos;
 use crate::core::{Door, DoorKind, IsCut};
 use hecs::{Entity, World};
@@ -12,7 +12,7 @@ pub(crate) struct DoorInfo {
     pub pos: Pos,
     pub model_id: ModelId,
     pub kind: DoorKind,
-    pub name: Noun,
+    pub noun: NounId,
     pub adjective: Option<Adjective>,
 }
 
@@ -45,7 +45,7 @@ fn spawn(
     builder.add_bundle((
         info.model_id,
         OrderWeight::Background,
-        info.name,
+        info.noun,
         info.pos,
         Door {
             kind: info.kind,
@@ -131,7 +131,7 @@ pub(super) fn place(
             pos,
             model_id: ModelId::from(*display_type),
             kind: DoorKind::from(*display_type),
-            name: display_type.noun(),
+            noun: display_type.noun_id(),
             adjective: adjective.map(|adjective| Adjective(adjective.word().to_owned())),
         };
 

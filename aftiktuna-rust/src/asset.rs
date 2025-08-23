@@ -260,10 +260,12 @@ pub mod placement {
 }
 
 use crate::core::display::AftikColorId;
+use crate::core::name::{NounData, NounId};
 use crate::core::status::{Stats, Traits};
 use rand::Rng;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::path::{Path, PathBuf};
@@ -369,5 +371,23 @@ pub(crate) struct CrewData {
 impl CrewData {
     pub(crate) fn load_starting_crew() -> Result<CrewData, Error> {
         load_json_asset("starting_crew.json")
+    }
+}
+
+pub(crate) struct NounDataMap {
+    map: HashMap<NounId, NounData>,
+    fallback: NounData,
+}
+
+impl NounDataMap {
+    pub(crate) fn load() -> Result<Self, Error> {
+        load_json_asset::<HashMap<NounId, NounData>>("noun_data.json").map(|map| NounDataMap {
+            map,
+            fallback: NounData::default(),
+        })
+    }
+
+    pub(crate) fn lookup(&self, noun_id: &NounId) -> &NounData {
+        self.map.get(noun_id).unwrap_or(&self.fallback)
     }
 }

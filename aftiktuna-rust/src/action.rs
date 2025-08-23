@@ -135,6 +135,7 @@ fn perform(
                     &mut state.world,
                     performer,
                     target_placement,
+                    view_buffer.noun_map,
                 );
             }
             Ok(Success)
@@ -175,23 +176,23 @@ fn perform(
 
 pub struct WasWaiting;
 
-struct Context<'a> {
+struct Context<'a, 'b> {
     state: &'a mut GameState,
-    view_context: ViewContext<'a>,
+    view_context: ViewContext<'a, 'b>,
 }
 
-impl<'a> Context<'a> {
+impl<'a, 'b> Context<'a, 'b> {
     fn mut_world(&mut self) -> &mut World {
         &mut self.state.world
     }
 }
 
-struct ViewContext<'a> {
+struct ViewContext<'a, 'b> {
     player_area: Entity,
-    view_buffer: &'a mut view::Buffer,
+    view_buffer: &'a mut view::Buffer<'b>,
 }
 
-impl<'a> ViewContext<'a> {
+impl<'a, 'b> ViewContext<'a, 'b> {
     fn add_message_at(&mut self, area: Entity, message: impl IntoMessage, state: &mut GameState) {
         if area == self.player_area {
             self.view_buffer.add_change_message(message, state);
@@ -211,7 +212,12 @@ impl<'a> ViewContext<'a> {
                 noise_source_areas.contains(&door.destination.get_area())
                     && !noise_source_areas.contains(&pos.get_area())
             })
-            .map(|(_, (_, pos, name_query))| (pos.get_area(), NameData::from(name_query)))
+            .map(|(_, (_, pos, name_query))| {
+                (
+                    pos.get_area(),
+                    NameData::from_query(name_query, self.view_buffer.noun_map),
+                )
+            })
             .collect::<Vec<_>>();
         for (door_area, door_name) in noise_targets {
             self.add_message_at(
@@ -260,16 +266,17 @@ fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> R
 }
 
 fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result {
+    let noun_map = context.view_context.view_buffer.noun_map;
     let world = &mut context.state.world;
     let chest_placement = Placement::from(world.query_one_mut::<PlacementQuery>(chest).unwrap());
 
-    position::move_adjacent_placement(world, performer, chest_placement)?;
+    position::move_adjacent_placement(world, performer, chest_placement, noun_map)?;
 
     if world.get::<&FortunaChest>(chest).is_err() {
         return Err(Error::visible(format!(
             "{} tried to open {}, but that is not the fortuna chest!",
-            NameData::find(world, performer).definite(),
-            NameData::find(world, chest).definite()
+            NameData::find(world, performer, noun_map).definite(),
+            NameData::find(world, chest, noun_map).definite(),
         )));
     }
 
@@ -278,7 +285,7 @@ fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result
         chest_placement.area(),
         format!(
             "{} opened the fortuna chest and found the item that they desired the most.",
-            NameData::find(world, performer).definite()
+            NameData::find(world, performer, noun_map).definite(),
         ),
         context.state,
     );
@@ -286,6 +293,7 @@ fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result
 }
 
 fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
+    let noun_map = context.view_context.view_buffer.noun_map;
     let world = &mut context.state.world;
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
@@ -295,8 +303,8 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         ));
     }
 
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
+    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let target_name = NameData::find(world, target, noun_map).definite();
     let target_placement = Placement::from(world.query_one_mut::<PlacementQuery>(target).unwrap());
 
     if !status::is_alive(target, world) {
@@ -334,7 +342,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         )));
     }
 
-    position::move_adjacent_placement(world, performer, target_placement)?;
+    position::move_adjacent_placement(world, performer, target_placement, noun_map)?;
 
     inventory::consume_one(ItemType::FoodRation, world, performer).ok_or_else(|| {
         Error::private(format!("{performer_name} needs a food ration for taming."))
@@ -354,9 +362,10 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
 }
 
 fn give_name(context: &mut Context, performer: Entity, target: Entity, name: String) -> Result {
+    let noun_map = context.view_context.view_buffer.noun_map;
     let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer).definite();
-    let target_name = NameData::find(world, target).definite();
+    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let target_name = NameData::find(world, target, noun_map).definite();
     let target_placement = Placement::from(world.query_one_mut::<PlacementQuery>(target).unwrap());
 
     {
@@ -372,7 +381,7 @@ fn give_name(context: &mut Context, performer: Entity, target: Entity, name: Str
         }
     }
 
-    position::move_adjacent_placement(world, performer, target_placement)?;
+    position::move_adjacent_placement(world, performer, target_placement, noun_map)?;
 
     world.insert_one(target, Name::known(&name)).unwrap();
 

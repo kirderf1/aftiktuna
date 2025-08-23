@@ -1,7 +1,8 @@
 use super::text::{self, Messages};
+use crate::asset::NounDataMap;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::item::ItemType;
-use crate::core::name::{self, Name, NameData, Noun};
+use crate::core::name::{self, Name, NameData, NounId};
 use crate::core::position::Pos;
 use crate::core::status::{Health, Stats, Trait, Traits};
 use crate::core::store::Points;
@@ -42,7 +43,7 @@ impl FullStatus {
     }
 }
 
-pub fn get_full_status(state: &GameState) -> FullStatus {
+pub fn get_full_status(state: &GameState, noun_map: &NounDataMap) -> FullStatus {
     let mut ship_messages = Messages::default();
     maybe_print_points(&state.world, state.controlled, &mut ship_messages, None);
 
@@ -80,12 +81,19 @@ pub fn get_full_status(state: &GameState) -> FullStatus {
             let mut character_messages = Messages::default();
 
             character_messages.add(
-                if let Ok(mut query) = state.world.query_one::<(&Name, &Noun)>(character)
-                    && let Some((name, noun)) = query.get()
+                if let Ok(mut query) = state.world.query_one::<(&Name, &NounId)>(character)
+                    && let Some((name, noun_id)) = query.get()
                 {
-                    format!("{} ({}):", name.name, text::capitalize(noun.singular()))
+                    format!(
+                        "{} ({}):",
+                        name.name,
+                        text::capitalize(noun_map.lookup(noun_id).singular())
+                    )
                 } else {
-                    format!("{}:", NameData::find(&state.world, character).definite())
+                    format!(
+                        "{}:",
+                        NameData::find(&state.world, character, noun_map).definite()
+                    )
                 },
             );
 
@@ -100,7 +108,12 @@ pub fn get_full_status(state: &GameState) -> FullStatus {
             {
                 character_messages.add(traits_message(&traits));
             }
-            print_character_without_cache(&state.world, character, &mut character_messages);
+            print_character_without_cache(
+                &state.world,
+                character,
+                &mut character_messages,
+                noun_map,
+            );
             character_messages.into_text()
         })
         .collect::<Vec<_>>();
@@ -116,12 +129,15 @@ pub fn changes_messages(
     character: Entity,
     messages: &mut Messages,
     cache: &mut Cache,
+    noun_map: &NounDataMap,
 ) {
     cache.points = Some(maybe_print_points(world, character, messages, cache.points));
     if let Some(character_cache) = &mut cache.character_cache {
-        print_character_with_cache(world, character, messages, character_cache);
+        print_character_with_cache(world, character, messages, character_cache, noun_map);
     } else {
-        cache.character_cache = Some(print_character_without_cache(world, character, messages));
+        cache.character_cache = Some(print_character_without_cache(
+            world, character, messages, noun_map,
+        ));
     }
 }
 
@@ -157,13 +173,15 @@ fn print_character_with_cache(
     character: Entity,
     messages: &mut Messages,
     cache: &mut CharacterCache,
+    noun_map: &NounDataMap,
 ) {
     if cache.character_id == character {
         cache.health = print_health(world, character, messages, Some(cache.health));
-        cache.wielded = print_wielded(world, character, messages, Some(cache.wielded));
-        cache.inventory = print_inventory(world, character, messages, Some(&cache.inventory));
+        cache.wielded = print_wielded(world, character, messages, Some(cache.wielded), noun_map);
+        cache.inventory =
+            print_inventory(world, character, messages, Some(&cache.inventory), noun_map);
     } else {
-        *cache = print_character_without_cache(world, character, messages);
+        *cache = print_character_without_cache(world, character, messages, noun_map);
     }
 }
 
@@ -171,10 +189,11 @@ fn print_character_without_cache(
     world: &World,
     character: Entity,
     messages: &mut Messages,
+    noun_map: &NounDataMap,
 ) -> CharacterCache {
     let health = print_health(world, character, messages, None);
-    let wielded = print_wielded(world, character, messages, None);
-    let inventory = print_inventory(world, character, messages, None);
+    let wielded = print_wielded(world, character, messages, None, noun_map);
+    let inventory = print_inventory(world, character, messages, None, noun_map);
     CharacterCache {
         character_id: character,
         health,
@@ -236,6 +255,7 @@ fn print_wielded(
     character: Entity,
     messages: &mut Messages,
     prev_wielded: Option<Option<Entity>>,
+    noun_map: &NounDataMap,
 ) -> Option<Entity> {
     let wielded = inventory::get_wielded(world, character);
 
@@ -245,7 +265,7 @@ fn print_wielded(
 
     let wield_text = wielded.map_or_else(
         || "Nothing".to_string(),
-        |item| text::capitalize(NameData::find(world, item).base()),
+        |item| text::capitalize(NameData::find(world, item, noun_map).base()),
     );
     messages.add(format!("Wielding {wield_text}"));
     wielded
@@ -256,6 +276,7 @@ fn print_inventory(
     character: Entity,
     messages: &mut Messages,
     prev_inv: Option<&Vec<Entity>>,
+    noun_map: &NounDataMap,
 ) -> Vec<Entity> {
     let mut inventory = inventory::get_inventory(world, character);
     inventory.sort();
@@ -268,7 +289,9 @@ fn print_inventory(
         "Empty".to_string()
     } else {
         name::names_with_counts(
-            inventory.iter().map(|item| NameData::find(world, *item)),
+            inventory
+                .iter()
+                .map(|item| NameData::find(world, *item, noun_map)),
             name::ArticleKind::One,
             name::CountFormat::Numeric,
         )

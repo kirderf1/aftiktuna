@@ -1,22 +1,21 @@
+use super::CreatureAttribute;
+use crate::asset::NounDataMap;
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::Display;
-use std::ops::Deref;
-
-use super::CreatureAttribute;
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum NameData {
     Name(String),
-    Noun(Option<Adjective>, Noun),
+    Noun(Option<Adjective>, NounData),
 }
 
 impl NameData {
     pub fn base(&self) -> String {
         match self {
-            NameData::Name(name) => name.to_owned(),
-            NameData::Noun(adjective, noun) => format!(
+            Self::Name(name) => name.to_owned(),
+            Self::Noun(adjective, noun) => format!(
                 "{adjective}{entity}",
                 adjective = format_option_with_space(adjective.as_ref()),
                 entity = noun.singular
@@ -25,8 +24,8 @@ impl NameData {
     }
     pub fn plural(&self) -> String {
         match self {
-            NameData::Name(name) => name.to_owned(),
-            NameData::Noun(adjective, noun) => format!(
+            Self::Name(name) => name.to_owned(),
+            Self::Noun(adjective, noun) => format!(
                 "{adjective}{entity}",
                 adjective = format_option_with_space(adjective.as_ref()),
                 entity = noun.plural
@@ -35,8 +34,8 @@ impl NameData {
     }
     pub fn definite(&self) -> String {
         match self {
-            NameData::Name(name) => name.to_string(),
-            NameData::Noun(adjective, noun) => format!(
+            Self::Name(name) => name.to_string(),
+            Self::Noun(adjective, noun) => format!(
                 "the {adjective}{entity}",
                 adjective = format_option_with_space(adjective.as_ref()),
                 entity = noun.singular
@@ -44,31 +43,53 @@ impl NameData {
         }
     }
 
-    pub fn find_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
+    pub(crate) fn find_option_by_ref(
+        entity_ref: EntityRef,
+        noun_map: &NounDataMap,
+    ) -> Option<Self> {
         if let Some(name) = entity_ref.get::<&Name>()
             && name.is_known
         {
             Some(Self::Name(name.name.clone()))
         } else {
-            entity_ref.get::<&Noun>().map(|noun| {
+            entity_ref.get::<&NounId>().map(|noun_id| {
                 Self::Noun(
                     entity_ref.get::<&Adjective>().as_deref().cloned(),
-                    noun.deref().clone(),
+                    noun_map.lookup(&noun_id).clone(),
                 )
             })
         }
     }
 
-    pub fn find_by_ref(entity_ref: EntityRef) -> Self {
-        Self::find_option_by_ref(entity_ref).unwrap_or_default()
+    pub(crate) fn find_by_ref(entity_ref: EntityRef, noun_map: &NounDataMap) -> Self {
+        Self::find_option_by_ref(entity_ref, noun_map).unwrap_or_default()
     }
 
-    pub fn find(world: &World, entity: Entity) -> Self {
+    pub(crate) fn find(world: &World, entity: Entity, noun_map: &NounDataMap) -> Self {
         world
             .entity(entity)
             .ok()
-            .and_then(Self::find_option_by_ref)
+            .and_then(|entity_ref| Self::find_option_by_ref(entity_ref, noun_map))
             .unwrap_or_default()
+    }
+
+    pub(crate) fn from_query(query: NameQuery, noun_map: &NounDataMap) -> Self {
+        let (name, noun_id, adjective) = query;
+        if let Some(name) = name
+            && name.is_known
+        {
+            Self::Name(name.name.clone())
+        } else {
+            noun_id
+                .map(|noun_id| Self::Noun(adjective.cloned(), noun_map.lookup(noun_id).clone()))
+                .unwrap_or_default()
+        }
+    }
+}
+
+impl Default for NameData {
+    fn default() -> Self {
+        Self::Name("???".into())
     }
 }
 
@@ -76,22 +97,22 @@ impl NameData {
 pub struct NameWithAttribute(NameData, Option<CreatureAttribute>);
 
 impl NameWithAttribute {
-    pub fn lookup_by_ref(entity_ref: EntityRef) -> Self {
-        Self::lookup_option_by_ref(entity_ref).unwrap_or_default()
+    pub fn lookup_by_ref(entity_ref: EntityRef, noun_map: &NounDataMap) -> Self {
+        Self::lookup_option_by_ref(entity_ref, noun_map).unwrap_or_default()
     }
 
-    pub fn lookup_option_by_ref(entity_ref: EntityRef) -> Option<Self> {
+    pub fn lookup_option_by_ref(entity_ref: EntityRef, noun_map: &NounDataMap) -> Option<Self> {
         Some(Self(
-            NameData::find_option_by_ref(entity_ref)?,
+            NameData::find_option_by_ref(entity_ref, noun_map)?,
             entity_ref.get::<&CreatureAttribute>().as_deref().copied(),
         ))
     }
 
-    pub fn lookup(entity: Entity, world: &World) -> Self {
+    pub fn lookup(entity: Entity, world: &World, noun_map: &NounDataMap) -> Self {
         world
             .entity(entity)
             .ok()
-            .map(Self::lookup_by_ref)
+            .map(|entity_ref| Self::lookup_by_ref(entity_ref, noun_map))
             .unwrap_or_default()
     }
 
@@ -110,13 +131,13 @@ impl NameWithAttribute {
     }
 
     pub fn definite(&self) -> String {
-        match (&self.0, self.1) {
-            (NameData::Name(name), _) => name.to_owned(),
-            (NameData::Noun(adjective, noun), attribute) => {
+        match &self.0 {
+            NameData::Name(name) => name.to_owned(),
+            NameData::Noun(adjective, noun) => {
                 format!(
                     "the {adjective}{attribute}{entity}",
                     adjective = format_option_with_space(adjective.as_ref()),
-                    attribute = format_option_with_space(attribute),
+                    attribute = format_option_with_space(self.1),
                     entity = noun.singular
                 )
             }
@@ -128,27 +149,7 @@ fn format_option_with_space(option: Option<impl Display>) -> String {
     option.map_or(String::default(), |value| format!("{value} "))
 }
 
-impl Default for NameData {
-    fn default() -> Self {
-        Self::Name("???".to_owned())
-    }
-}
-
-impl<'a> From<NameQuery<'a>> for NameData {
-    fn from(query: NameQuery<'a>) -> Self {
-        let (name, noun, adjective) = query;
-        if let Some(name) = name
-            && name.is_known
-        {
-            Self::Name(name.name.clone())
-        } else {
-            noun.map(|noun| Self::Noun(adjective.cloned(), noun.clone()))
-                .unwrap_or_default()
-        }
-    }
-}
-
-pub type NameQuery<'a> = (Option<&'a Name>, Option<&'a Noun>, Option<&'a Adjective>);
+pub type NameQuery<'a> = (Option<&'a Name>, Option<&'a NounId>, Option<&'a Adjective>);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Name {
@@ -163,23 +164,36 @@ impl Name {
             is_known: true,
         }
     }
-    pub fn not_known(name: &str) -> Self {
-        Self {
-            name: name.to_owned(),
-            is_known: false,
-        }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct NounId(pub String);
+
+impl From<&str> for NounId {
+    fn from(value: &str) -> Self {
+        Self(value.into())
     }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct Noun {
+pub struct NounData {
     singular: String,
     plural: String,
     #[serde(default)]
     article: IndefiniteArticle,
 }
 
-impl Noun {
+impl Default for NounData {
+    fn default() -> Self {
+        Self {
+            singular: "???".to_string(),
+            plural: "???".to_string(),
+            article: Default::default(),
+        }
+    }
+}
+
+impl NounData {
     pub fn new(singular: &str, plural: &str, article: IndefiniteArticle) -> Self {
         Self {
             singular: singular.to_string(),
@@ -293,6 +307,7 @@ pub enum ArticleKind {
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum IndefiniteArticle {
     #[default]
     A,

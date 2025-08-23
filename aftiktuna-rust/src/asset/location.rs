@@ -29,7 +29,7 @@ pub mod creature {
         }
     }
 
-    #[derive(Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
     #[serde(rename_all = "snake_case")]
     pub enum Type {
         Goblin,
@@ -159,7 +159,7 @@ use crate::asset::loot::{self, LootTableId};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
 use crate::core::item::ItemType;
-use crate::core::name::{IndefiniteArticle, Noun};
+use crate::core::name::NounId;
 use crate::core::position::Direction;
 use crate::core::{BlockType, DoorKind};
 use indexmap::IndexMap;
@@ -328,23 +328,18 @@ impl DoorType {
         ]
     }
 
-    pub fn noun(self) -> Noun {
+    pub fn noun_id(self) -> NounId {
         match self {
-            Self::Door => Noun::new("door", "doors", IndefiniteArticle::A),
-            Self::Doorway => Noun::new("doorway", "doorways", IndefiniteArticle::A),
-            Self::UpwardStairs => {
-                Noun::new("upward stairs", "upward stairs", IndefiniteArticle::An)
-            }
-            Self::DownwardStairs => {
-                Noun::new("downward stairs", "downward stairs", IndefiniteArticle::A)
-            }
-            Self::Shack => Noun::new("shack", "shacks", IndefiniteArticle::A),
-            Self::House => Noun::new("house", "houses", IndefiniteArticle::A),
-            Self::Store => Noun::new("store", "stores", IndefiniteArticle::A),
-            Self::Path | Self::LeftPath | Self::RightPath | Self::CrossroadPath => {
-                Noun::new("path", "paths", IndefiniteArticle::A)
-            }
+            Self::Door => "door",
+            Self::Doorway => "doorway",
+            Self::UpwardStairs => "upward_stairs",
+            Self::DownwardStairs => "downward_stairs",
+            Self::Shack => "shack",
+            Self::House => "house",
+            Self::Store => "store",
+            Self::Path | Self::LeftPath | Self::RightPath | Self::CrossroadPath => "path",
         }
+        .into()
     }
 }
 
@@ -407,15 +402,16 @@ impl ContainerType {
         })
     }
 
-    pub fn noun(self) -> Noun {
+    pub fn noun_id(self) -> NounId {
         match self {
-            Self::Tent => Noun::new("tent", "tents", IndefiniteArticle::A),
-            Self::Cabinet => Noun::new("cabinet", "cabinets", IndefiniteArticle::A),
-            Self::Drawer => Noun::new("drawer", "drawers", IndefiniteArticle::A),
-            Self::Crate => Noun::new("crate", "crates", IndefiniteArticle::A),
-            Self::Chest => Noun::new("chest", "chests", IndefiniteArticle::A),
-            Self::CrashedShip => Noun::new("crashed ship", "crashed ships", IndefiniteArticle::A),
+            Self::Tent => "tent",
+            Self::Cabinet => "cabinet",
+            Self::Drawer => "drawer",
+            Self::Crate => "crate",
+            Self::Chest => "chest",
+            Self::CrashedShip => "crashed_ship",
         }
+        .into()
     }
 }
 

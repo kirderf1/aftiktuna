@@ -534,13 +534,13 @@ mod ui {
                 direction,
             }) => {
                 egui::ComboBox::from_label("Container Type")
-                    .selected_text(container_type.noun().singular())
+                    .selected_text(format!("{container_type:?}"))
                     .show_ui(ui, |ui| {
                         for selectable_type in ContainerType::variants() {
                             ui.selectable_value(
                                 container_type,
                                 *selectable_type,
-                                selectable_type.noun().singular(),
+                                format!("{selectable_type:?}"),
                             );
                         }
                     });
@@ -650,14 +650,10 @@ mod ui {
         }: &mut CreatureSpawnData,
     ) {
         egui::ComboBox::from_label("Creature Type")
-            .selected_text(creature.species().noun().singular())
+            .selected_text(format!("{creature:?}"))
             .show_ui(ui, |ui| {
                 for selectable_type in creature::Type::variants() {
-                    ui.selectable_value(
-                        creature,
-                        *selectable_type,
-                        selectable_type.species().noun().singular(),
-                    );
+                    ui.selectable_value(creature, *selectable_type, format!("{selectable_type:?}"));
                 }
             });
         ui.label("Health:");

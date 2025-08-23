@@ -1,3 +1,4 @@
+use crate::asset::NounDataMap;
 use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
@@ -48,8 +49,8 @@ pub struct ObjectNameData {
 }
 
 impl ObjectNameData {
-    fn build(entity_ref: EntityRef, world: &World) -> Option<Self> {
-        let name = NameWithAttribute::lookup_option_by_ref(entity_ref)?.base();
+    fn build(entity_ref: EntityRef, world: &World, noun_map: &NounDataMap) -> Option<Self> {
+        let name = NameWithAttribute::lookup_option_by_ref(entity_ref, noun_map)?.base();
         Some(Self {
             modified_name: text::capitalize(get_extended_name(&name, entity_ref, world)),
             name: text::capitalize(&name),
@@ -106,9 +107,9 @@ pub struct ItemProfile {
 }
 
 impl ItemProfile {
-    fn create(item: EntityRef) -> Self {
+    fn create(item: EntityRef, noun_map: &NounDataMap) -> Self {
         Self {
-            name: NameData::find_by_ref(item).base(),
+            name: NameData::find_by_ref(item, noun_map).base(),
             is_wieldable: item.satisfies::<&CanWield>(),
             is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
             is_usable: item
@@ -122,7 +123,7 @@ impl ItemProfile {
     }
 }
 
-pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
+pub(super) fn prepare_render_data(state: &GameState, noun_map: &NounDataMap) -> RenderData {
     let character_pos = state.world.get::<&Pos>(state.controlled).unwrap();
     let area = state.world.get::<&Area>(character_pos.get_area()).unwrap();
 
@@ -131,13 +132,13 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
         .query::<&Pos>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(character_pos.get_area()))
-        .map(|(entity, pos)| build_object_data(state, entity, pos))
+        .map(|(entity, pos)| build_object_data(state, entity, pos, noun_map))
         .collect();
     objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
     let inventory = inventory::get_held(&state.world, state.controlled)
         .into_iter()
-        .map(|item| ItemProfile::create(state.world.entity(item).unwrap()))
+        .map(|item| ItemProfile::create(state.world.entity(item).unwrap(), noun_map))
         .collect();
     RenderData {
         area_size: area.size,
@@ -151,7 +152,12 @@ pub(super) fn prepare_render_data(state: &GameState) -> RenderData {
     }
 }
 
-fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRenderData {
+fn build_object_data(
+    state: &GameState,
+    entity: Entity,
+    pos: &Pos,
+    noun_map: &NounDataMap,
+) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
     let properties = ObjectProperties {
         direction: entity_ref
@@ -183,7 +189,7 @@ fn build_object_data(state: &GameState, entity: Entity, pos: &Pos) -> ObjectRend
             entity.hash(&mut hasher);
             hasher.finish()
         },
-        name_data: ObjectNameData::build(entity_ref, &state.world),
+        name_data: ObjectNameData::build(entity_ref, &state.world, noun_map),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: suggestion::interactions_for(entity, state),
         properties,

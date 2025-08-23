@@ -1,5 +1,6 @@
 use super::display::{ModelId, OrderWeight};
-use crate::core::name::{IndefiniteArticle, Noun};
+use crate::asset::NounDataMap;
+use crate::core::name::NounId;
 use crate::core::{AttackSet, WeaponProperties};
 use crate::view::text::Messages;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
@@ -90,26 +91,23 @@ impl ItemType {
         spawn(world, self, self.price(), location)
     }
 
-    pub fn noun_data(self) -> Noun {
+    pub fn noun_id(self) -> NounId {
         use ItemType::*;
         match self {
-            FuelCan => Noun::new("fuel can", "fuel cans", IndefiniteArticle::A),
-            FoodRation => Noun::new("food ration", "food rations", IndefiniteArticle::A),
-            Crowbar => Noun::new("crowbar", "crowbars", IndefiniteArticle::A),
-            Blowtorch => Noun::new("blowtorch", "blowtorches", IndefiniteArticle::A),
-            Knife => Noun::new("knife", "knives", IndefiniteArticle::A),
-            Bat => Noun::new("bat", "bats", IndefiniteArticle::A),
-            Sword => Noun::new("sword", "swords", IndefiniteArticle::A),
-            Medkit => Noun::new("medkit", "medkits", IndefiniteArticle::A),
-            MeteorChunk => Noun::new("meteor chunk", "meteor chunks", IndefiniteArticle::A),
-            AncientCoin => Noun::new("ancient coin", "ancient coins", IndefiniteArticle::An),
-            BlackOrb => Noun::new("black orb", "black orbs", IndefiniteArticle::A),
-            FourLeafClover => Noun::new(
-                "four-leaf clover",
-                "four-leaf clovers",
-                IndefiniteArticle::A,
-            ),
+            FuelCan => "fuel_can",
+            FoodRation => "food_ration",
+            Crowbar => "crowbar",
+            Blowtorch => "blowtorch",
+            Knife => "knife",
+            Bat => "bat",
+            Sword => "sword",
+            Medkit => "medkit",
+            MeteorChunk => "meteor_chunk",
+            AncientCoin => "ancient_coin",
+            BlackOrb => "black_orb",
+            FourLeafClover => "four_leaf_clover",
         }
+        .into()
     }
 
     pub fn price(self) -> Option<Price> {
@@ -194,7 +192,7 @@ pub fn spawn(
         item_type,
         ModelId::from(item_type),
         OrderWeight::Item,
-        item_type.noun_data(),
+        item_type.noun_id(),
     ));
     if let Some(price) = price {
         builder.add(price);
@@ -207,9 +205,14 @@ pub fn spawn(
     world.spawn(builder.build())
 }
 
-pub fn description(item_ref: EntityRef) -> Vec<String> {
+pub(crate) fn description(item_ref: EntityRef, noun_map: &NounDataMap) -> Vec<String> {
     let mut messages = Messages::default();
-    messages.add(format!("{}:", item_ref.get::<&Noun>().unwrap().singular()));
+    messages.add(format!(
+        "{}:",
+        noun_map
+            .lookup(&item_ref.get::<&NounId>().unwrap())
+            .singular()
+    ));
 
     let item_type = *item_ref.get::<&ItemType>().unwrap();
 

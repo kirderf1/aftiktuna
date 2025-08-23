@@ -39,8 +39,9 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         state,
         view_context,
     } = context;
+    let noun_map = view_context.view_buffer.noun_map;
     let world = &mut state.world;
-    let performer_name = NameData::find(world, performer);
+    let performer_name = NameData::find(world, performer, noun_map);
 
     let door_pos = *world.get::<&Pos>(door).ok().ok_or_else(|| {
         format!(
@@ -55,7 +56,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         )));
     }
 
-    position::push_and_move(world, performer, door_pos)?;
+    position::push_and_move(world, performer, door_pos, noun_map)?;
 
     let door_data = world
         .get::<&Door>(door)
@@ -97,7 +98,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
                 Direction::towards_center(door_data.destination, world),
                 world,
             )
-            .map_err(|_| blockage.into_message(world))?;
+            .map_err(|_| blockage.into_message(world, noun_map))?;
     }
     world.insert_one(performer, destination_pos).unwrap();
     if let Ok(mut stamina) = world.get::<&mut Stamina>(performer) {
@@ -107,7 +108,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         view_context.view_buffer.mark_unseen_view();
     }
 
-    let door_name = NameData::find(world, door);
+    let door_name = NameData::find(world, door, noun_map);
     let message = match door_data.kind {
         DoorKind::Door => CombinableMsgType::EnterDoor(door, door_name),
         DoorKind::Path => CombinableMsgType::EnterPath(door, door_name),
@@ -139,8 +140,9 @@ pub(super) fn force_door(
         state,
         mut view_context,
     } = context;
+    let noun_map = view_context.view_buffer.noun_map;
     let world = &state.world;
-    let performer_name = NameData::find(world, performer).definite();
+    let performer_name = NameData::find(world, performer, noun_map).definite();
     let door_pos = *world
         .get::<&Pos>(door)
         .ok()
@@ -157,7 +159,7 @@ pub(super) fn force_door(
         .door_pair;
 
     let movement = position::prepare_move(world, performer, door_pos)
-        .map_err(|blockage| blockage.into_message(world))?;
+        .map_err(|blockage| blockage.into_message(world, noun_map))?;
     view_context.capture_frame_for_dialogue(state);
     let world = &mut state.world;
     movement.perform(world).unwrap();

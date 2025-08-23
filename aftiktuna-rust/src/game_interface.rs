@@ -1,3 +1,4 @@
+use crate::asset::NounDataMap;
 use crate::command::CommandResult;
 use crate::game_loop::{self, GameState, Step};
 use crate::location::GenerationState;
@@ -14,6 +15,7 @@ pub fn load() -> Result<Game, LoadError> {
     Ok(Game {
         serialized_state,
         is_in_error_state: false,
+        noun_data_map: NounDataMap::load().unwrap(),
     })
 }
 
@@ -29,6 +31,7 @@ pub fn setup_new_with(locations: GenerationState) -> Game {
             frame_cache: FrameCache::new(vec![Frame::Introduction]),
         },
         is_in_error_state: false,
+        noun_data_map: NounDataMap::load().unwrap(),
     };
     game.run_from_step(Step::PrepareNextLocation);
     game
@@ -49,6 +52,7 @@ impl<'a> GameResult<'a> {
 pub struct Game {
     pub(crate) serialized_state: SerializedState,
     is_in_error_state: bool,
+    noun_data_map: NounDataMap,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -134,8 +138,12 @@ impl Game {
                 self.run_from_step(Step::LoadLocation(location));
             }
             Phase::CommandInput => {
-                match command::try_parse_input(input, &self.serialized_state.state)
-                    .map_err(|error| vec![error])?
+                match command::try_parse_input(
+                    input,
+                    &self.serialized_state.state,
+                    &self.noun_data_map,
+                )
+                .map_err(|error| vec![error])?
                 {
                     CommandResult::Action(action, target) => {
                         self.run_from_step(Step::Tick(Some((action, target))));
@@ -152,7 +160,8 @@ impl Game {
     }
 
     fn run_from_step(&mut self, step: Step) {
-        let (phase_result, frames) = game_loop::run(step, &mut self.serialized_state.state);
+        let (phase_result, frames) =
+            game_loop::run(step, &mut self.serialized_state.state, &self.noun_data_map);
         self.serialized_state.phase = phase_result.next_phase;
         self.serialized_state.frame_cache.add_new_frames(frames);
         if let Some(message) = phase_result.load_error {

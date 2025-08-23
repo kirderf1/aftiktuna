@@ -2,12 +2,13 @@ use crate::core::area::ShipControls;
 use crate::core::inventory::Container;
 use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{Name, NameData};
-use crate::core::store::{Shopkeeper, StoreStock};
+use crate::core::store::Shopkeeper;
 use crate::core::{
     BlockType, Character, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting, status,
 };
 use crate::game_loop::GameState;
 use crate::location::Choice;
+use crate::view::StoreStockView;
 use crate::view::area::ItemProfile;
 use hecs::Entity;
 use serde::{Deserialize, Serialize};
@@ -223,7 +224,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
 }
 
 pub fn for_store(
-    clicked_stock: Option<&StoreStock>,
+    clicked_stock: Option<&StoreStockView>,
     sellable_items: &[NameData],
 ) -> Vec<Suggestion> {
     let mut suggestions = vec![
@@ -245,7 +246,7 @@ pub fn for_store(
     if let Some(clicked_stock) = clicked_stock
         && !clicked_stock.quantity.is_zero()
     {
-        suggestions.push(simple!("buy {}", clicked_stock.item.noun_data().singular()));
+        suggestions.push(simple!("buy {}", clicked_stock.item_noun.singular()));
     }
     suggestions
 }

@@ -1,5 +1,6 @@
 use crate::action::Action;
 use crate::action::item::UseAction;
+use crate::asset::NounDataMap;
 use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
@@ -80,7 +81,12 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
     None
 }
 
-pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World, rng: &mut impl Rng) {
+pub fn tick(
+    action_map: &mut HashMap<Entity, Action>,
+    world: &mut World,
+    rng: &mut impl Rng,
+    noun_map: &NounDataMap,
+) {
     let mut buffer = CommandBuffer::new();
 
     for (entity, _) in world
@@ -94,7 +100,7 @@ pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World, rng: &m
                 buffer.remove_one::<RepeatingAction>(entity);
                 Action::from(*action)
             } else {
-                pick_action(entity_ref, world, rng).unwrap_or(Action::Wait)
+                pick_action(entity_ref, world, rng, noun_map).unwrap_or(Action::Wait)
             };
 
             action_map.insert(entity, action);
@@ -110,11 +116,16 @@ pub fn tick(action_map: &mut HashMap<Entity, Action>, world: &mut World, rng: &m
     buffer.run_on(world);
 }
 
-fn pick_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) -> Option<Action> {
+fn pick_action(
+    entity_ref: EntityRef,
+    world: &World,
+    rng: &mut impl Rng,
+    noun_map: &NounDataMap,
+) -> Option<Action> {
     if let Some(hostile) = entity_ref.get::<&Hostile>() {
         pick_foe_action(entity_ref, &hostile, world, rng)
     } else if entity_ref.satisfies::<&CrewMember>() {
-        pick_crew_action(entity_ref, world, rng)
+        pick_crew_action(entity_ref, world, rng, noun_map)
     } else {
         None
     }
@@ -174,7 +185,12 @@ fn pick_foe_action(
     None
 }
 
-fn pick_crew_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) -> Option<Action> {
+fn pick_crew_action(
+    entity_ref: EntityRef,
+    world: &World,
+    rng: &mut impl Rng,
+    noun_map: &NounDataMap,
+) -> Option<Action> {
     let entity_pos = *entity_ref.get::<&Pos>()?;
 
     if has_behavior(entity_ref, BadlyHurtBehavior::Fearful) {
@@ -241,7 +257,7 @@ fn pick_crew_action(entity_ref: EntityRef, world: &World, rng: &mut impl Rng) ->
     if let Some(intention) = intention {
         match *intention {
             Intention::Wield(item) => {
-                return Some(Action::Wield(item, NameData::find(world, item)));
+                return Some(Action::Wield(item, NameData::find(world, item, noun_map)));
             }
             Intention::Force(door) => return Some(Action::ForceDoor(door, true)),
             _ => {}

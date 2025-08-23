@@ -5,7 +5,7 @@ use crate::asset::location::creature::{
 };
 use crate::asset::{self, AftikProfile};
 use crate::core::display::OrderWeight;
-use crate::core::name::{IndefiniteArticle, Name, Noun};
+use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
@@ -151,7 +151,7 @@ fn species_builder_base(species: Species) -> EntityBuilder {
     builder.add_bundle((
         species,
         species.model_id(),
-        species.noun(),
+        species.noun_id(),
         OrderWeight::Creature,
     ));
     if species.is_large() {
@@ -178,7 +178,7 @@ pub(super) fn place_shopkeeper(
         Species::Aftik.model_id(),
         OrderWeight::Creature,
         spawn_data.color.clone(),
-        Noun::new("shopkeeper", "shopkeepers", IndefiniteArticle::A),
+        NounId::from("shopkeeper"),
         pos,
         direction,
         Shopkeeper(stock),
@@ -196,7 +196,7 @@ fn build_stock(
     let price = price.or_else(|| item.price()).ok_or_else(|| {
         format!(
             "Cannot get a price from item \"{}\" to put in store",
-            item.noun_data().singular()
+            item.noun_id().0
         )
     })?;
     let quantity = quantity.unwrap_or(StockQuantity::Unlimited);
