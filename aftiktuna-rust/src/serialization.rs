@@ -190,6 +190,7 @@ pub mod world {
 
         behavior::Recruitable, Recruitable;
         behavior::GivesHuntReward, GivesHuntReward;
+        behavior::EncounterDialogue, EncounterDialogue;
         core::Tag, Tag;
 
         store::Shopkeeper, Shopkeeper;

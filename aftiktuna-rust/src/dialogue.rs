@@ -54,7 +54,12 @@ pub fn talk_dialogue(
                 ..
             } = world.remove_one::<GivesHuntReward>(target).unwrap();
 
-            view_buffer.push_dialogue(world, target, reward_dialogue.expression, reward_dialogue.message);
+            view_buffer.push_dialogue(
+                world,
+                target,
+                reward_dialogue.expression,
+                reward_dialogue.message,
+            );
 
             reward.give_reward_to(performer, world);
         }

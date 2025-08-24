@@ -150,6 +150,12 @@ impl<'a> Buffer<'a> {
         self.unseen_view = false;
     }
 
+    pub fn capture_view_before_dialogue(&mut self, state: &mut GameState) {
+        if !self.messages.is_empty() {
+            self.capture_view(state);
+        }
+    }
+
     pub fn mark_unseen_view(&mut self) {
         self.unseen_view = true;
     }

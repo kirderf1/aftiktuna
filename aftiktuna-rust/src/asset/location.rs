@@ -1,6 +1,6 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
-    use crate::core::behavior::GivesHuntReward;
+    use crate::core::behavior::{DialogueNode, GivesHuntReward};
     use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemType};
     use crate::core::position::Direction;
@@ -118,6 +118,10 @@ pub mod creature {
     pub enum CharacterInteraction {
         Recruitable,
         GivesHuntReward(GivesHuntReward),
+        Hostile {
+            #[serde(default, skip_serializing_if = "Option::is_none")]
+            encounter_dialogue: Option<DialogueNode>,
+        },
     }
 
     #[derive(Clone, Serialize, Deserialize)]
@@ -125,6 +129,8 @@ pub mod creature {
         #[serde(default, skip_serializing_if = "ProfileOrRandom::is_default")]
         pub profile: ProfileOrRandom,
         pub interaction: CharacterInteraction,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub wielded_item: Option<ItemType>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub direction: Option<Direction>,
     }

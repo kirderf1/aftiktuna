@@ -75,6 +75,9 @@ pub struct DialogueNode {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncounterDialogue(pub DialogueNode);
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reward {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     points: i32,

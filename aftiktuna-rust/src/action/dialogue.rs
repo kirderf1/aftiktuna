@@ -1,5 +1,5 @@
 use crate::action::{self, Context, Error};
-use crate::core::behavior::{Recruitable, Waiting};
+use crate::core::behavior::{Hostile, Recruitable, Waiting};
 use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
@@ -9,6 +9,17 @@ use hecs::Entity;
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
     if !status::is_alive(target, &context.state.world) {
         return Ok(action::Success);
+    }
+    if context.state.world.satisfies::<&Hostile>(target).unwrap() {
+        return Err(Error::private(format!(
+            "{the_target} is not interested in talking.",
+            the_target = NameData::find(
+                &context.state.world,
+                target,
+                context.view_context.view_buffer.noun_map,
+            )
+            .definite(),
+        )));
     }
 
     full_dialogue_action(

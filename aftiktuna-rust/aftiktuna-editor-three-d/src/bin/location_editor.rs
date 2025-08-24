@@ -584,6 +584,7 @@ mod ui {
             SymbolData::Character(NpcSpawnData {
                 profile,
                 interaction,
+                wielded_item,
                 direction,
             }) => {
                 aftiktuna_editor_three_d::option_direction_editor(

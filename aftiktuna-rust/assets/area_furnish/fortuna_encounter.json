@@ -14,5 +14,27 @@
   {
     "objects": [ "M", "", "Z" ],
     "symbols": {}
+  },
+  {
+    "objects": [ "", "A", "a" ],
+    "symbols": {
+      "A": {
+        "type": "character",
+        "interaction": {
+          "type": "hostile",
+          "encounter_dialogue": { "expression": "excited", "message": "Hey! We found this place first. The chest is ours. We're going to bat you down now!" }
+        },
+        "wielded_item": "bat",
+        "direction": "right"
+      },
+      "a": {
+        "type": "character",
+        "interaction": {
+          "type": "hostile"
+        },
+        "wielded_item": "bat",
+        "direction": "right"
+      }
+    }
   }
 ]

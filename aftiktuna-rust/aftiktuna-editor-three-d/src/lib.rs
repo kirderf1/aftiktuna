@@ -192,6 +192,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
             let interaction = match &npc_spawn_data.interaction {
                 CharacterInteraction::Recruitable => "recruitable",
                 CharacterInteraction::GivesHuntReward(_) => "hunt quest",
+                CharacterInteraction::Hostile { .. } => "hostile",
             };
             format!("NCP ({interaction})")
         }

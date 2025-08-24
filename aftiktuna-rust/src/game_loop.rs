@@ -1,9 +1,11 @@
 use crate::action::{self, Action};
 use crate::asset::{CrewData, NounDataMap};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
-use crate::core::behavior::{self, Character, CrewLossMemory, Hostile, RepeatingAction, Waiting};
+use crate::core::behavior::{
+    self, Character, CrewLossMemory, EncounterDialogue, Hostile, RepeatingAction, Waiting,
+};
 use crate::core::display::OrderWeight;
-use crate::core::inventory::{self, Held};
+use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
@@ -187,6 +189,8 @@ fn tick_and_check(
         return Err(Phase::Stopped(stop_type));
     }
 
+    trigger_encounter_dialogue(state, view_buffer);
+
     handle_was_waiting(state, view_buffer);
 
     if is_ship_launching(state) {
@@ -248,6 +252,7 @@ fn tick(
     status::detect_low_stamina(&mut state.world, view_buffer, state.controlled);
 
     handle_crew_deaths(state, view_buffer);
+    drop_objects_held_by_the_dead(&mut state.world);
 
     let mut buffer = CommandBuffer::new();
 
@@ -351,7 +356,6 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
     let mut buffer = CommandBuffer::new();
     for character in dead_crew {
-        inventory::drop_all_items(&mut state.world, character);
         state.world.remove_one::<CrewMember>(character).unwrap();
         if let Ok(Name { name, .. }) = state.world.get::<&Name>(character).as_deref() {
             for (crew_member, ()) in state.world.query::<()>().with::<&CrewMember>().iter() {
@@ -366,6 +370,29 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
         }
     }
     buffer.run_on(&mut state.world);
+}
+
+fn drop_objects_held_by_the_dead(world: &mut World) {
+    let mut buffer = CommandBuffer::new();
+    for (entity, held) in world.query::<&Held>().iter() {
+        let Ok(holder_ref) = world.entity(held.holder) else {
+            buffer.despawn(entity);
+            continue;
+        };
+        if holder_ref
+            .get::<&Health>()
+            .is_some_and(|health| health.is_dead())
+        {
+            let Some(pos) = holder_ref.get::<&Pos>() else {
+                buffer.despawn(entity);
+                continue;
+            };
+
+            buffer.remove_one::<Held>(entity);
+            buffer.insert_one(entity, *pos);
+        }
+    }
+    buffer.run_on(world);
 }
 
 fn check_player_state(
@@ -389,6 +416,40 @@ fn check_player_state(
     }
 
     Ok(())
+}
+
+fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    let Ok(player_pos) = state
+        .world
+        .get::<&Pos>(state.controlled)
+        .map(crate::deref_clone)
+    else {
+        return;
+    };
+    let entities_with_encounter_dialogue = state
+        .world
+        .query::<&Pos>()
+        .with::<&EncounterDialogue>()
+        .into_iter()
+        .map(|(entity, pos)| (entity, *pos))
+        .collect::<Vec<_>>();
+    for (speaker, speaker_pos) in entities_with_encounter_dialogue {
+        if player_pos.is_in(speaker_pos.get_area()) {
+            view_buffer.capture_view_before_dialogue(state);
+
+            position::turn_towards(&mut state.world, speaker, player_pos);
+            let EncounterDialogue(dialogue_node) = state
+                .world
+                .remove_one::<EncounterDialogue>(speaker)
+                .unwrap();
+            view_buffer.push_dialogue(
+                &state.world,
+                speaker,
+                dialogue_node.expression,
+                dialogue_node.message,
+            );
+        }
+    }
 }
 
 fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {

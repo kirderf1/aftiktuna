@@ -4,13 +4,13 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
-use crate::core::Species;
-use crate::core::behavior::{Character, Hostile, Recruitable, Wandering};
+use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable, Wandering};
 use crate::core::display::OrderWeight;
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{CreatureAttribute, Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
+use crate::core::{Species, inventory};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::IndexedRandom;
@@ -100,8 +100,17 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
         CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
             builder.add(gives_hunt_reward.clone());
         }
+        CharacterInteraction::Hostile { encounter_dialogue } => {
+            builder.add(Hostile { aggressive: true });
+            if let Some(dialogue_node) = encounter_dialogue {
+                builder.add(EncounterDialogue(dialogue_node.clone()));
+            }
+        }
     }
-    gen_context.world.spawn(builder.build());
+    let npc = gen_context.world.spawn(builder.build());
+    if let Some(item_type) = spawn_data.wielded_item {
+        item_type.spawn(&mut gen_context.world, inventory::Held::in_hand(npc));
+    }
 }
 
 pub(super) fn place_corpse(

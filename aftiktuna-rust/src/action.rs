@@ -240,9 +240,7 @@ impl<'a, 'b> ViewContext<'a, 'b> {
     }
 
     fn capture_frame_for_dialogue(&mut self, state: &mut GameState) {
-        if !self.view_buffer.messages.is_empty() {
-            self.view_buffer.capture_view(state);
-        }
+        self.view_buffer.capture_view_before_dialogue(state);
     }
 }
 
