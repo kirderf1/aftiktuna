@@ -63,11 +63,15 @@ pub struct Recruitable;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
     pub target_tag: Tag,
-    pub task_expression: DialogueExpression,
-    pub task_message: String,
-    pub reward_expression: DialogueExpression,
-    pub reward_message: String,
+    pub task_dialogue: DialogueNode,
+    pub reward_dialogue: DialogueNode,
     pub reward: Reward,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DialogueNode {
+    pub expression: DialogueExpression,
+    pub message: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

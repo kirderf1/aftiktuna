@@ -43,19 +43,18 @@ pub fn talk_dialogue(
             view_buffer.push_dialogue(
                 world,
                 target,
-                gives_hunt_reward.task_expression,
-                &gives_hunt_reward.task_message,
+                gives_hunt_reward.task_dialogue.expression,
+                &gives_hunt_reward.task_dialogue.message,
             );
         } else {
             drop(gives_hunt_reward);
             let GivesHuntReward {
-                reward_message,
-                reward_expression,
+                reward_dialogue,
                 reward,
                 ..
             } = world.remove_one::<GivesHuntReward>(target).unwrap();
 
-            view_buffer.push_dialogue(world, target, reward_expression, reward_message);
+            view_buffer.push_dialogue(world, target, reward_dialogue.expression, reward_dialogue.message);
 
             reward.give_reward_to(performer, world);
         }
