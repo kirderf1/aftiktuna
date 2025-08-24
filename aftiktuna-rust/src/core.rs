@@ -1,5 +1,7 @@
 pub mod area;
-pub mod inventory;
+pub(crate) mod behavior;
+pub(crate) mod combat;
+pub(crate) mod inventory;
 pub mod item;
 pub(crate) mod name;
 pub mod position;
@@ -157,125 +159,15 @@ pub mod store {
     }
 }
 
-use self::display::DialogueExpression;
-use crate::action::Action;
-use hecs::{Entity, World};
+use self::behavior::BadlyHurtBehavior;
+use self::combat::{AttackSet, UnarmedType, WeaponProperties};
+use hecs::Entity;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 
 pub const CREW_SIZE_LIMIT: usize = 3;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Character;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct CrewLossMemory {
-    pub name: String,
-    pub recent: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Hostile {
-    pub aggressive: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Wandering;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ObservationTarget;
-
-#[derive(Clone, Copy, Debug)]
-pub enum UnarmedType {
-    Bite,
-    Scratch,
-    Punch,
-    Pounce,
-    Slash,
-}
-
-impl UnarmedType {
-    pub fn attack_verb(self) -> &'static str {
-        match self {
-            Self::Bite | Self::Pounce => "jumps at",
-            Self::Scratch => "scratches at",
-            Self::Punch => "launches a punch at",
-            Self::Slash => "slashes at",
-        }
-    }
-
-    pub fn hit_verb(self) -> &'static str {
-        match self {
-            Self::Bite => "bites",
-            Self::Scratch | Self::Punch | Self::Slash => "hits",
-            Self::Pounce => "pounces",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AttackKind {
-    Light,
-    Rash,
-    Charged,
-}
-
-impl AttackKind {
-    pub fn hit_modifier(self) -> i16 {
-        match self {
-            Self::Light => 0,
-            Self::Rash => -2,
-            Self::Charged => 2,
-        }
-    }
-
-    pub fn stun_modifier(self) -> i16 {
-        match self {
-            Self::Light => -3,
-            Self::Rash => 3,
-            Self::Charged => 6,
-        }
-    }
-
-    pub fn damage_modifier(self) -> f32 {
-        match self {
-            Self::Light => 1.,
-            Self::Rash => 1.75,
-            Self::Charged => 2.5,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AttackSet {
-    Light,
-    Quick,
-    Slow,
-    Intense,
-    Varied,
-}
-
-impl AttackSet {
-    pub fn available_kinds(self) -> &'static [AttackKind] {
-        use AttackKind::*;
-        match self {
-            AttackSet::Light => &[Light],
-            AttackSet::Quick => &[Light, Rash],
-            AttackSet::Slow => &[Light, Charged],
-            AttackSet::Intense => &[Rash, Charged],
-            AttackSet::Varied => &[Light, Rash, Charged],
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BadlyHurtBehavior {
-    Fearful,
-    Determined,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Species {
@@ -364,94 +256,6 @@ impl Species {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum CreatureAttribute {
-    Muscular,
-    Bulky,
-    Agile,
-}
-
-impl CreatureAttribute {
-    pub fn variants() -> &'static [Self] {
-        use CreatureAttribute::*;
-        &[Muscular, Bulky, Agile]
-    }
-
-    pub fn adjust_stats(self, stats: &mut status::Stats) {
-        match self {
-            CreatureAttribute::Muscular => {
-                stats.strength += 3;
-                stats.luck -= 1;
-            }
-            CreatureAttribute::Bulky => {
-                stats.endurance += 3;
-                stats.agility -= 1;
-            }
-            CreatureAttribute::Agile => {
-                stats.agility += 3;
-                stats.endurance -= 1;
-            }
-        }
-    }
-
-    pub fn as_adjective(self) -> &'static str {
-        match self {
-            CreatureAttribute::Muscular => "muscular",
-            CreatureAttribute::Bulky => "bulky",
-            CreatureAttribute::Agile => "agile",
-        }
-    }
-}
-
-impl Display for CreatureAttribute {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Display::fmt(self.as_adjective(), f)
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Waiting {
-    pub at_ship: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Recruitable;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GivesHuntReward {
-    pub target_tag: Tag,
-    pub task_expression: DialogueExpression,
-    pub task_message: String,
-    pub reward_expression: DialogueExpression,
-    pub reward_message: String,
-    pub reward: Reward,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Reward {
-    #[serde(default, skip_serializing_if = "crate::is_default")]
-    points: i32,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    items: Vec<item::ItemType>,
-}
-
-impl Reward {
-    pub fn give_reward_to(&self, target: Entity, world: &mut World) {
-        if self.points != 0 {
-            let mut crew_points = world
-                .get::<&CrewMember>(target)
-                .and_then(|crew_member| world.get::<&mut store::Points>(crew_member.0))
-                .unwrap();
-            crew_points.0 += self.points;
-        }
-
-        for item_type in &self.items {
-            item_type.spawn(world, inventory::Held::in_inventory(target));
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tag(String);
 
@@ -501,70 +305,6 @@ impl BlockType {
         match self {
             BlockType::Stuck => vec![item::Tool::Crowbar, item::Tool::Blowtorch],
             BlockType::Sealed => vec![item::Tool::Blowtorch],
-        }
-    }
-}
-
-#[derive(Clone, Copy, Serialize, Deserialize)]
-pub enum RepeatingAction {
-    TakeAll,
-    Rest,
-    GoToShip,
-    ChargedAttack(Entity),
-}
-
-impl RepeatingAction {
-    pub fn cancel_if_unsafe(self) -> bool {
-        !matches!(self, Self::ChargedAttack(_))
-    }
-}
-
-impl From<RepeatingAction> for Action {
-    fn from(value: RepeatingAction) -> Self {
-        match value {
-            RepeatingAction::TakeAll => Action::TakeAll,
-            RepeatingAction::Rest => Action::Rest(false),
-            RepeatingAction::GoToShip => Action::GoToShip,
-            RepeatingAction::ChargedAttack(target) => Action::ChargedAttack(target),
-        }
-    }
-}
-
-pub fn is_safe(world: &World, area: Entity) -> bool {
-    world
-        .query::<&position::Pos>()
-        .with::<&Hostile>()
-        .iter()
-        .all(|(entity, pos)| !pos.is_in(area) || !status::is_alive(entity, world))
-}
-
-#[derive(Clone, Copy)]
-pub struct WeaponProperties {
-    pub damage_mod: f32,
-    pub attack_set: AttackSet,
-    pub stun_attack: bool,
-}
-
-pub fn get_active_weapon_properties(world: &World, attacker: Entity) -> WeaponProperties {
-    inventory::get_wielded(world, attacker)
-        .and_then(|item| {
-            world
-                .get::<&item::ItemType>(item)
-                .ok()
-                .and_then(|item_type| item_type.weapon_properties())
-        })
-        .unwrap_or_else(|| {
-            world
-                .get::<&Species>(attacker)
-                .unwrap()
-                .unarmed_properties()
-        })
-}
-
-pub fn trigger_aggression_in_area(world: &mut World, area: Entity) {
-    for (_, (pos, hostile)) in world.query_mut::<(&position::Pos, &mut Hostile)>() {
-        if pos.is_in(area) {
-            hostile.aggressive = true;
         }
     }
 }

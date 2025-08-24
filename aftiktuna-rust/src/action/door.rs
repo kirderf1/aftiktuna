@@ -1,13 +1,12 @@
 use crate::action::{self, Context, Error};
-use crate::ai::{self, Intention};
+use crate::ai;
+use crate::core::behavior::{self, Character, Intention, RepeatingAction};
 use crate::core::display::DialogueExpression;
 use crate::core::item::Tool;
 use crate::core::name::{NameData, NameIdData};
 use crate::core::position::{self, Direction, Placement, PlacementQuery, Pos};
 use crate::core::status::Stamina;
-use crate::core::{
-    self, BlockType, Character, CrewMember, Door, DoorKind, IsCut, RepeatingAction, area, inventory,
-};
+use crate::core::{BlockType, CrewMember, Door, DoorKind, IsCut, area, inventory};
 use crate::game_loop::GameState;
 use crate::view::text::CombinableMsgType;
 use hecs::{Entity, World};
@@ -210,7 +209,7 @@ pub(super) fn force_door(
 fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block_type: BlockType) {
     let world = &mut state.world;
     let area = world.get::<&Pos>(performer).unwrap().get_area();
-    if !core::is_safe(world, area) {
+    if !behavior::is_safe(world, area) {
         return;
     }
 
@@ -248,7 +247,7 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
 
     let world = context.mut_world();
     let area = world.get::<&Pos>(performer).unwrap().get_area();
-    if result.is_ok() && core::is_safe(world, area) && !area::is_ship(area, world) {
+    if result.is_ok() && behavior::is_safe(world, area) && !area::is_ship(area, world) {
         world
             .insert_one(performer, RepeatingAction::GoToShip)
             .unwrap();

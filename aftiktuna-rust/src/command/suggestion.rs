@@ -1,11 +1,10 @@
 use crate::core::area::ShipControls;
+use crate::core::behavior::{Character, Hostile, Recruitable, Waiting};
 use crate::core::inventory::Container;
 use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{Name, NameData};
 use crate::core::store::Shopkeeper;
-use crate::core::{
-    BlockType, Character, CrewMember, Door, FortunaChest, Hostile, Recruitable, Waiting, status,
-};
+use crate::core::{BlockType, CrewMember, Door, FortunaChest, status};
 use crate::game_loop::GameState;
 use crate::location::Choice;
 use crate::view::StoreStockView;

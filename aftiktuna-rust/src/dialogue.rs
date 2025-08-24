@@ -1,7 +1,8 @@
+use crate::core::Tag;
+use crate::core::behavior::{CrewLossMemory, GivesHuntReward, Recruitable, Waiting};
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
 use crate::core::status::Health;
-use crate::core::{CrewLossMemory, GivesHuntReward, Recruitable, Tag, Waiting};
 use crate::game_loop::GameState;
 use crate::view;
 use hecs::{Entity, World};

@@ -1,10 +1,9 @@
+use crate::core::behavior::{Hostile, Recruitable, RepeatingAction};
+use crate::core::combat::AttackKind;
 use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
-use crate::core::{
-    self, AttackKind, CrewMember, Door, FortunaChest, Hostile, OpenedChest, Recruitable,
-    RepeatingAction, inventory, status,
-};
+use crate::core::{self, CrewMember, Door, FortunaChest, OpenedChest, inventory, status};
 use crate::game_loop::GameState;
 use crate::view;
 use crate::view::text::{CombinableMsgType, IntoMessage};
@@ -49,6 +48,17 @@ pub enum Action {
     OpenChest(Entity),
     Tame(Entity),
     Name(Entity, String),
+}
+
+impl From<RepeatingAction> for Action {
+    fn from(value: RepeatingAction) -> Self {
+        match value {
+            RepeatingAction::TakeAll => Action::TakeAll,
+            RepeatingAction::Rest => Action::Rest(false),
+            RepeatingAction::GoToShip => Action::GoToShip,
+            RepeatingAction::ChargedAttack(target) => Action::ChargedAttack(target),
+        }
+    }
 }
 
 pub fn tick(

@@ -1,10 +1,10 @@
 use crate::action::{self, Error};
+use crate::core::behavior::{self, Hostile, RepeatingAction};
+use crate::core::combat::{self, AttackKind};
 use crate::core::name::{NameData, NameWithAttribute};
-use crate::core::position::{OccupiesSpace, Placement, PlacementQuery, Pos};
-use crate::core::status::{Health, Killed, Stamina, Stats};
-use crate::core::{
-    self, AttackKind, Hostile, RepeatingAction, Species, inventory, position, status,
-};
+use crate::core::position::{self, OccupiesSpace, Placement, PlacementQuery, Pos};
+use crate::core::status::{self, Health, Killed, Stamina, Stats};
+use crate::core::{Species, inventory};
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
 use std::cmp::Ordering;
@@ -96,7 +96,7 @@ fn attack_single(
         .capture_unseen_view(attacker_pos.get_area(), context.state);
 
     let world = &mut context.state.world;
-    core::trigger_aggression_in_area(world, attacker_pos.get_area());
+    behavior::trigger_aggression_in_area(world, attacker_pos.get_area());
 
     position::move_adjacent_placement(world, attacker, target_placement, noun_map)?;
 
@@ -156,7 +156,7 @@ pub(super) fn charged_attack(
         .capture_unseen_view(attacker_pos.get_area(), context.state);
 
     let world = &mut context.state.world;
-    core::trigger_aggression_in_area(world, attacker_pos.get_area());
+    behavior::trigger_aggression_in_area(world, attacker_pos.get_area());
 
     position::move_adjacent_placement(world, attacker, target_placement, noun_map)?;
 
@@ -300,7 +300,7 @@ fn perform_attack_hit(
     }
     if is_direct_hit
         && !world.satisfies::<&status::IsStunned>(target).unwrap()
-        && core::get_active_weapon_properties(world, attacker).stun_attack
+        && combat::get_active_weapon_properties(world, attacker).stun_attack
     {
         let successful_stun = roll_stun(
             world.entity(attacker).unwrap(),
@@ -328,7 +328,7 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .expect("Expected attacker to have stats attached")
         .strength;
     let strength_mod = f32::from(strength + 2) / 6.0;
-    core::get_active_weapon_properties(world, attacker).damage_mod * strength_mod
+    combat::get_active_weapon_properties(world, attacker).damage_mod * strength_mod
 }
 
 fn roll_hit(

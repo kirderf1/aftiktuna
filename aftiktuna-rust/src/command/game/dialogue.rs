@@ -3,9 +3,10 @@ use crate::asset::NounDataMap;
 use crate::command;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
+use crate::core::behavior::{Character, Recruitable, Waiting};
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::Pos;
-use crate::core::{Character, Recruitable, Waiting, area, status};
+use crate::core::{area, status};
 use crate::game_loop::GameState;
 use hecs::Entity;
 

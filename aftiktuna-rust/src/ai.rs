@@ -1,25 +1,19 @@
 use crate::action::Action;
 use crate::action::item::UseAction;
 use crate::asset::NounDataMap;
+use crate::core::behavior::{
+    self, BadlyHurtBehavior, Character, Hostile, Intention, ObservationTarget, RepeatingAction,
+    Waiting, Wandering,
+};
+use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
-use crate::core::{
-    self, AttackKind, BadlyHurtBehavior, Character, CrewMember, Door, Hostile, ObservationTarget,
-    RepeatingAction, Species, Waiting, Wandering, area, inventory, status,
-};
+use crate::core::{CrewMember, Door, Species, area, inventory, status};
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
 use rand::seq::{IndexedRandom, IteratorRandom};
-use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-
-#[derive(Serialize, Deserialize)]
-pub enum Intention {
-    Wield(Entity),
-    Force(Entity),
-    UseMedkit(Entity),
-}
 
 pub fn prepare_intentions(world: &mut World) {
     let mut buffer = CommandBuffer::new();
@@ -41,7 +35,7 @@ pub fn prepare_intentions(world: &mut World) {
     {
         if action.cancel_if_unsafe()
             && let Ok(pos) = world.get::<&Pos>(crew_member)
-            && !core::is_safe(world, pos.get_area())
+            && !behavior::is_safe(world, pos.get_area())
         {
             buffer.remove_one::<RepeatingAction>(crew_member);
         };
@@ -65,7 +59,7 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
         }
     }
 
-    let current_properties = core::get_active_weapon_properties(world, crew_member);
+    let current_properties = combat::get_active_weapon_properties(world, crew_member);
 
     for item in inventory::get_inventory(world, crew_member) {
         if let Some(properties) = world
@@ -195,7 +189,7 @@ fn pick_crew_action(
 
     if has_behavior(entity_ref, BadlyHurtBehavior::Fearful) {
         let is_area_safe =
-            area::is_in_ship(entity_pos, world) && core::is_safe(world, entity_pos.get_area());
+            area::is_in_ship(entity_pos, world) && behavior::is_safe(world, entity_pos.get_area());
         if !is_area_safe {
             if let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
                 area::is_ship(area, world)
@@ -268,7 +262,7 @@ fn pick_crew_action(
 }
 
 pub fn pick_attack_kind(attacker_ref: EntityRef, world: &World, rng: &mut impl Rng) -> AttackKind {
-    let available_kinds = core::get_active_weapon_properties(world, attacker_ref.entity())
+    let available_kinds = combat::get_active_weapon_properties(world, attacker_ref.entity())
         .attack_set
         .available_kinds();
 

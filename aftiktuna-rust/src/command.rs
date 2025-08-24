@@ -5,8 +5,9 @@ pub mod suggestion;
 
 use crate::action::Action;
 use crate::asset::NounDataMap;
+use crate::core;
 use crate::core::name::NameData;
-use crate::core::{self, CreatureAttribute};
+use crate::core::status::CreatureAttribute;
 use crate::game_loop::GameState;
 use crate::view::{self, text};
 use hecs::{Entity, EntityRef};

@@ -3,8 +3,9 @@ use crate::ai;
 use crate::asset::NounDataMap;
 use crate::command::parse::{Parse, first_match_or};
 use crate::command::{self, CommandResult};
+use crate::core::behavior::Hostile;
 use crate::core::position::Pos;
-use crate::core::{Hostile, status};
+use crate::core::status;
 use hecs::{Entity, EntityRef, World};
 use std::collections::HashMap;
 

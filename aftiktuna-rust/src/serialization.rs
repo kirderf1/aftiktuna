@@ -145,8 +145,9 @@ macro_rules! world_serialization {
 }
 
 pub mod world {
-    use crate::ai;
-    use crate::core::{self, area, display, inventory, item, name, position, status, store};
+    use crate::core::{
+        self, area, behavior, display, inventory, item, name, position, status, store,
+    };
     use std::error::Error;
 
     world_serialization!(
@@ -159,16 +160,17 @@ pub mod world {
         position::Large, Large;
         position::OccupiesSpace, OccupiesSpace;
 
+        core::Species, Species;
+
         name::Name, Name;
         name::NounId, NounId;
         name::Adjective, Adjective;
-        core::Species, Species;
-        core::CreatureAttribute, CreatureAttribute;
         display::ModelId, TextureType;
         display::OrderWeight, OrderWeight;
         display::AftikColorId, AftikColor;
 
         status::Stats, Stats;
+        status::CreatureAttribute, CreatureAttribute;
         status::Traits, Traits;
         status::Health, Health;
         status::Stamina, Stamina;
@@ -177,17 +179,17 @@ pub mod world {
         status::IsStunned, IsStunned;
 
         core::CrewMember, CrewMember;
-        core::Character, Character;
-        core::CrewLossMemory, CrewLossMemory;
-        core::Hostile, Hostile;
-        core::Wandering, Wandering;
-        core::ObservationTarget, ObservationTarget;
-        ai::Intention, Intention;
-        core::Waiting, Waiting;
-        core::RepeatingAction, RepeatingAction;
+        behavior::Character, Character;
+        behavior::Hostile, Hostile;
+        behavior::Wandering, Wandering;
+        behavior::ObservationTarget, ObservationTarget;
+        behavior::Intention, Intention;
+        behavior::RepeatingAction, RepeatingAction;
+        behavior::Waiting, Waiting;
+        behavior::CrewLossMemory, CrewLossMemory;
 
-        core::Recruitable, Recruitable;
-        core::GivesHuntReward, GivesHuntReward;
+        behavior::Recruitable, Recruitable;
+        behavior::GivesHuntReward, GivesHuntReward;
         core::Tag, Tag;
 
         store::Shopkeeper, Shopkeeper;

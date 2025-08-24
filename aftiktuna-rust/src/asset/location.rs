@@ -1,11 +1,12 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
+    use crate::core::behavior::GivesHuntReward;
     use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemType};
     use crate::core::position::Direction;
-    use crate::core::status::Stats;
+    use crate::core::status::{CreatureAttribute, Stats};
     use crate::core::store::StockQuantity;
-    use crate::core::{CreatureAttribute, GivesHuntReward, Species, Tag};
+    use crate::core::{Species, Tag};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]

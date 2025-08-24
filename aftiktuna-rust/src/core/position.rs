@@ -1,5 +1,6 @@
+use super::area::Area;
+use super::behavior::Hostile;
 use super::name::NameData;
-use super::{Hostile, area::Area};
 use crate::asset::NounDataMap;
 use hecs::{Entity, EntityRef, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};

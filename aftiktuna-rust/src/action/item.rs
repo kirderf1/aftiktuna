@@ -1,11 +1,11 @@
 use crate::action::{self, Context, Error};
+use crate::core::behavior::{self, RepeatingAction};
 use crate::core::display::DialogueExpression;
-use crate::core::inventory::Held;
+use crate::core::inventory::{self, Held};
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, StatChanges};
-use crate::core::{self, RepeatingAction, inventory};
 use crate::view::text::{self, CombinableMsgType};
 use hecs::Entity;
 
@@ -91,7 +91,7 @@ pub(super) fn take_item(
         .exchange_one::<Pos, _>(item, Held::in_inventory(performer))
         .expect("Tried moving item to inventory");
 
-    core::trigger_aggression_in_area(world, item_pos.get_area());
+    behavior::trigger_aggression_in_area(world, item_pos.get_area());
 
     context.view_context.add_message_at(
         item_pos.get_area(),
@@ -144,7 +144,7 @@ impl SearchAction {
 
         inventory::drop_all_items(world, container);
 
-        core::trigger_aggression_in_area(world, container_pos.get_area());
+        behavior::trigger_aggression_in_area(world, container_pos.get_area());
 
         let items = name::names_with_counts(
             items.into_iter().map(|item| NameIdData::find(world, item)),
@@ -277,7 +277,7 @@ pub(super) fn wield(
             .exchange_one::<Pos, _>(item, Held::in_hand(performer))
             .expect("Tried moving item");
 
-        core::trigger_aggression_in_area(world, item_pos.get_area());
+        behavior::trigger_aggression_in_area(world, item_pos.get_area());
 
         context.view_context.add_message_at(
             item_pos.get_area(),

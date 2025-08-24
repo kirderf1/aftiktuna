@@ -1,16 +1,14 @@
 use crate::action::{self, Action};
 use crate::asset::{CrewData, NounDataMap};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
+use crate::core::behavior::{self, Character, CrewLossMemory, Hostile, RepeatingAction, Waiting};
 use crate::core::display::OrderWeight;
-use crate::core::inventory::Held;
+use crate::core::inventory::{self, Held};
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Direction, Pos};
-use crate::core::status::{Health, Stamina, Trait};
-use crate::core::{
-    self, Character, CrewLossMemory, CrewMember, OpenedChest, RepeatingAction, Waiting, inventory,
-    status,
-};
+use crate::core::status::{self, Health, Stamina, Trait};
+use crate::core::{CrewMember, OpenedChest};
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, GenerationState, InitialSpawnData, PickResult};
 use crate::view::text::{self, CombinableMsgType};
@@ -147,7 +145,7 @@ fn should_controlled_character_wait(state: &GameState) -> bool {
         .satisfies::<&RepeatingAction>(state.controlled)
         .unwrap()
         && is_wait_requested(&state.world, state.controlled)
-        && core::is_safe(
+        && behavior::is_safe(
             &state.world,
             state
                 .world
@@ -408,7 +406,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
         if pos.is_in(player_pos.get_area()) && status::is_alive(entity, &state.world) {
             if state
                 .world
-                .get::<&core::Hostile>(entity)
+                .get::<&Hostile>(entity)
                 .is_ok_and(|hostile| !hostile.aggressive)
             {
                 position::turn_towards(&mut state.world, entity, player_pos);
@@ -419,7 +417,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
             if state
                 .world
-                .get::<&core::Hostile>(entity)
+                .get::<&Hostile>(entity)
                 .is_ok_and(|hostile| hostile.aggressive)
             {
                 position::turn_towards(&mut state.world, entity, player_pos);

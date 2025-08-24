@@ -1,15 +1,15 @@
 use crate::action::Action;
 use crate::action::item::{SearchAction, UseAction};
 use crate::asset::NounDataMap;
-use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
+use crate::command::{self, CommandResult};
+use crate::core::behavior;
 use crate::core::inventory::{Container, Held};
 use crate::core::item::{CanWield, ItemType};
 use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::status::Health;
 use crate::game_loop::GameState;
-use crate::{command, core};
 use hecs::{Entity, World};
 
 pub fn commands(
@@ -150,7 +150,7 @@ fn take_all(state: &GameState) -> Result<CommandResult, String> {
         return Err("There are no items to take here.".to_string());
     }
 
-    if !core::is_safe(&state.world, character_pos.get_area()) {
+    if !behavior::is_safe(&state.world, character_pos.get_area()) {
         return Err("You should take care of all foes here before taking all items.".to_string());
     }
 

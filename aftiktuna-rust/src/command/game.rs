@@ -3,12 +3,13 @@ use crate::asset::NounDataMap;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
 use crate::core::area::{ShipControls, ShipState, ShipStatus};
+use crate::core::behavior::{self, Character};
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{Blockage, Placement, PlacementQuery, Pos};
 use crate::core::store::Shopkeeper;
-use crate::core::{Character, CrewMember, FortunaChest, area, inventory, position, status};
+use crate::core::{CrewMember, FortunaChest, area, inventory, position, status};
 use crate::game_loop::GameState;
 use crate::{command, core};
 use hecs::{Entity, Query, World};
@@ -205,7 +206,7 @@ fn go_to_ship(world: &World, character: Entity) -> Result<CommandResult, String>
 
 fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
-    if !core::is_safe(world, area) {
+    if !behavior::is_safe(world, area) {
         return Err("This area is not safe to rest in.".to_string());
     }
 

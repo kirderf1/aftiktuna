@@ -1,4 +1,4 @@
-use super::CreatureAttribute;
+use super::status::CreatureAttribute;
 use crate::asset::NounDataMap;
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};

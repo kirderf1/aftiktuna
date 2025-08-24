@@ -1,11 +1,13 @@
+use super::Species;
+use super::behavior::BadlyHurtBehavior;
 use super::name::NameWithAttribute;
 use super::position::Pos;
-use crate::core::{BadlyHurtBehavior, Species};
 use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::min;
 use std::collections::HashSet;
+use std::fmt::Display;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Stats {
@@ -76,6 +78,52 @@ impl StatChanges {
         entity_ref
             .get::<&mut Stats>()
             .and_then(|mut stats| stats.try_change_in_bounds(self).ok())
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CreatureAttribute {
+    Muscular,
+    Bulky,
+    Agile,
+}
+
+impl CreatureAttribute {
+    pub fn variants() -> &'static [Self] {
+        use CreatureAttribute::*;
+        &[Muscular, Bulky, Agile]
+    }
+
+    pub fn adjust_stats(self, stats: &mut Stats) {
+        match self {
+            CreatureAttribute::Muscular => {
+                stats.strength += 3;
+                stats.luck -= 1;
+            }
+            CreatureAttribute::Bulky => {
+                stats.endurance += 3;
+                stats.agility -= 1;
+            }
+            CreatureAttribute::Agile => {
+                stats.agility += 3;
+                stats.endurance -= 1;
+            }
+        }
+    }
+
+    pub fn as_adjective(self) -> &'static str {
+        match self {
+            CreatureAttribute::Muscular => "muscular",
+            CreatureAttribute::Bulky => "bulky",
+            CreatureAttribute::Agile => "agile",
+        }
+    }
+}
+
+impl Display for CreatureAttribute {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(self.as_adjective(), f)
     }
 }
 

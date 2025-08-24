@@ -1,8 +1,9 @@
 use crate::action::{self, Context, Error};
+use crate::core::behavior::{Recruitable, Waiting};
 use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
-use crate::core::{self, CrewMember, Recruitable, Waiting, area, position, status};
+use crate::core::{self, CrewMember, area, position, status};
 use hecs::Entity;
 
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {

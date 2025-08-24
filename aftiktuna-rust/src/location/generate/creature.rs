@@ -4,12 +4,13 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
+use crate::core::Species;
+use crate::core::behavior::{Character, Hostile, Recruitable, Wandering};
 use crate::core::display::OrderWeight;
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
-use crate::core::status::{Health, Stamina};
+use crate::core::status::{CreatureAttribute, Health, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{Character, CreatureAttribute, Hostile, Recruitable, Species, Wandering};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::IndexedRandom;
