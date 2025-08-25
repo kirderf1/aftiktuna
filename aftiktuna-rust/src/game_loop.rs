@@ -1,24 +1,21 @@
 use crate::action::{self, Action};
 use crate::asset::{CrewData, NounDataMap};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
-use crate::core::behavior::{
-    self, Character, CrewLossMemory, EncounterDialogue, Hostile, RepeatingAction, Waiting,
-};
+use crate::core::behavior::{self, Character, CrewLossMemory, Hostile, RepeatingAction, Waiting};
 use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
-use crate::core::position::{self, Direction, Pos};
+use crate::core::position::{self, Pos};
 use crate::core::status::{self, Health, Stamina, Trait};
 use crate::core::{CrewMember, OpenedChest};
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, GenerationState, InitialSpawnData, PickResult};
 use crate::view::text::{self, CombinableMsgType};
 use crate::view::{self, Frame, StatusCache};
-use crate::{StopType, ai, command, serialization};
+use crate::{StopType, ai, command, dialogue, serialization};
 use hecs::{CommandBuffer, Entity, Satisfies, World};
 use rand::rngs::ThreadRng;
-use rand::seq::{IteratorRandom, SliceRandom};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -189,13 +186,13 @@ fn tick_and_check(
         return Err(Phase::Stopped(stop_type));
     }
 
-    trigger_encounter_dialogue(state, view_buffer);
+    dialogue::trigger_encounter_dialogue(state, view_buffer);
 
     handle_was_waiting(state, view_buffer);
 
     if is_ship_launching(state) {
         leave_location(state, view_buffer);
-        trigger_ship_dialogue(state, view_buffer);
+        dialogue::trigger_ship_dialogue(state, view_buffer);
         for (_, memory) in state.world.query::<&mut CrewLossMemory>().iter() {
             memory.recent = false;
         }
@@ -418,40 +415,6 @@ fn check_player_state(
     Ok(())
 }
 
-fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
-    let Ok(player_pos) = state
-        .world
-        .get::<&Pos>(state.controlled)
-        .map(crate::deref_clone)
-    else {
-        return;
-    };
-    let entities_with_encounter_dialogue = state
-        .world
-        .query::<&Pos>()
-        .with::<&EncounterDialogue>()
-        .into_iter()
-        .map(|(entity, pos)| (entity, *pos))
-        .collect::<Vec<_>>();
-    for (speaker, speaker_pos) in entities_with_encounter_dialogue {
-        if player_pos.is_in(speaker_pos.get_area()) {
-            view_buffer.capture_view_before_dialogue(state);
-
-            position::turn_towards(&mut state.world, speaker, player_pos);
-            let EncounterDialogue(dialogue_node) = state
-                .world
-                .remove_one::<EncounterDialogue>(speaker)
-                .unwrap();
-            view_buffer.push_dialogue(
-                &state.world,
-                speaker,
-                dialogue_node.expression,
-                dialogue_node.message,
-            );
-        }
-    }
-}
-
 fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let player_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
 
@@ -636,24 +599,6 @@ fn build_eating_message(
             "{names} ate {amount} food rations to recover some health.",
             names = text::join_elements(names)
         )
-    }
-}
-
-fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
-    let mut crew_characters = state
-        .world
-        .query::<()>()
-        .with::<(&CrewMember, &Character)>()
-        .iter()
-        .choose_multiple(&mut state.rng, 2);
-    crew_characters.shuffle(&mut state.rng);
-    if let [(character1, ()), (character2, ())] = crew_characters[..] {
-        state
-            .world
-            .insert_one(character1, Direction::Right)
-            .unwrap();
-        state.world.insert_one(character2, Direction::Left).unwrap();
-        crate::dialogue::ship_dialogue(character1, character2, state, view_buffer);
     }
 }
 
