@@ -13,8 +13,11 @@ pub struct Hostile {
     pub aggressive: bool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Wandering;
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Wandering {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub area_tag: Option<Tag>,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObservationTarget;

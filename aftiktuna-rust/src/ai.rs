@@ -9,11 +9,12 @@ use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
-use crate::core::{CrewMember, Door, Species, area, inventory, status};
+use crate::core::{CrewMember, Door, Species, Tag, area, inventory, status};
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
 use rand::seq::{IndexedRandom, IteratorRandom};
 use std::collections::{HashMap, HashSet};
+use std::ops::Deref;
 
 pub fn prepare_intentions(world: &mut World) {
     let mut buffer = CommandBuffer::new();
@@ -132,7 +133,7 @@ fn pick_foe_action(
     rng: &mut impl Rng,
 ) -> Option<Action> {
     if has_behavior(entity_ref, BadlyHurtBehavior::Fearful)
-        && let Some(path) = find_random_unblocked_path(entity_ref, world, rng)
+        && let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
     {
         return Some(Action::EnterDoor(path));
     }
@@ -155,7 +156,7 @@ fn pick_foe_action(
         }
     }
 
-    if entity_ref.has::<Wandering>() {
+    if let Some(wandering) = entity_ref.get::<&Wandering>() {
         let area = entity_ref.get::<&Pos>()?.get_area();
 
         let observation_targets = world
@@ -170,7 +171,14 @@ fn pick_foe_action(
         {
             return Some(Action::Examine(observation_target));
         } else if rng.random_bool(1. / 2.)
-            && let Some(door) = find_random_unblocked_path(entity_ref, world, rng)
+            && let Some(door) =
+                find_random_unblocked_path(entity_ref, world, rng, |destination_area| {
+                    wandering.area_tag.as_ref().is_none_or(|area_tag| {
+                        world
+                            .get::<&Tag>(destination_area)
+                            .is_ok_and(|destination_tag| destination_tag.deref() == area_tag)
+                    })
+                })
         {
             return Some(Action::EnterDoor(door));
         }
@@ -202,7 +210,8 @@ fn pick_crew_action(
             .is_ok()
             {
                 return Some(Action::EnterDoor(path));
-            } else if let Some(path) = find_random_unblocked_path(entity_ref, world, rng) {
+            } else if let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
+            {
                 return Some(Action::EnterDoor(path));
             }
         }
@@ -288,15 +297,16 @@ fn find_random_unblocked_path(
     entity_ref: EntityRef,
     world: &World,
     rng: &mut impl Rng,
+    destination_area_filter: impl Fn(Entity) -> bool,
 ) -> Option<Entity> {
     let entity_pos = *entity_ref.get::<&Pos>()?;
     world
-        .query::<&Pos>()
-        .with::<&Door>()
+        .query::<(&Pos, &Door)>()
         .iter()
-        .filter(|&(_, path_pos)| {
+        .filter(|&(_, (path_pos, door))| {
             path_pos.is_in(entity_pos.get_area())
                 && position::check_is_blocked(world, entity_ref, entity_pos, *path_pos).is_ok()
+                && destination_area_filter(door.destination.get_area())
         })
         .choose(rng)
         .map(|(path, _)| path)

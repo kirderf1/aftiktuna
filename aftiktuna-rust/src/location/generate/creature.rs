@@ -4,7 +4,7 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
-use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable, Wandering};
+use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable};
 use crate::core::display::OrderWeight;
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
@@ -68,8 +68,8 @@ pub(super) fn place_creature(
         builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
     }
 
-    if spawn_data.wandering {
-        builder.add(Wandering);
+    if let Some(wandering) = spawn_data.wandering.clone() {
+        builder.add(wandering);
     }
 
     if spawn_data.creature.is_tameable() {

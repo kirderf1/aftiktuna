@@ -61,6 +61,9 @@ fn build_area(
         extra_background_layers: area_data.extra_background_layers,
         darkness: area_data.darkness,
     },));
+    if let Some(tag) = area_data.tag {
+        builder.gen_context.world.insert_one(area, tag).unwrap();
+    }
 
     let symbols = SymbolLookup::new(base_symbols, &area_data.symbols);
 

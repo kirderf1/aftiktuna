@@ -2,7 +2,7 @@ mod ui {
     use aftiktuna::asset::color::AftikColorData;
     use aftiktuna::asset::location::creature::{
         self, AftikCorpseData, AttributeChoice, CreatureSpawnData, NpcSpawnData,
-        ShopkeeperSpawnData,
+        ShopkeeperSpawnData, Wandering,
     };
     use aftiktuna::asset::location::{
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
@@ -202,6 +202,7 @@ mod ui {
                 AreaData {
                     name: String::new(),
                     pos_in_overview: (0, 0),
+                    tag: None,
                     background: BackgroundId::blank(),
                     background_offset: None,
                     extra_background_layers: Vec::default(),
@@ -392,7 +393,7 @@ mod ui {
                             health: 1.,
                             attribute: AttributeChoice::Random,
                             aggressive: None,
-                            wandering: false,
+                            wandering: None,
                             tag: None,
                             direction: None,
                         }),
@@ -698,7 +699,14 @@ mod ui {
                 }
             });
 
-        ui.checkbox(wandering, "Wandering");
+        let mut is_wandering = wandering.is_some();
+        ui.checkbox(&mut is_wandering, "Wandering");
+        if is_wandering && wandering.is_none() {
+            *wandering = Some(Wandering { area_tag: None });
+        }
+        if !is_wandering && wandering.is_some() {
+            *wandering = None;
+        }
 
         aftiktuna_editor_three_d::option_direction_editor(ui, direction, "creature_direction");
     }

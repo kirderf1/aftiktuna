@@ -88,6 +88,8 @@ pub mod creature {
         }
     }
 
+    pub use crate::core::behavior::Wandering;
+
     #[derive(Clone, Serialize, Deserialize)]
     pub struct CreatureSpawnData {
         pub creature: Type,
@@ -97,8 +99,8 @@ pub mod creature {
         pub attribute: AttributeChoice,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub aggressive: Option<bool>,
-        #[serde(default, skip_serializing_if = "crate::is_default")]
-        pub wandering: bool,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub wandering: Option<Wandering>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub tag: Option<Tag>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -168,7 +170,7 @@ use crate::core::display::ModelId;
 use crate::core::item::ItemType;
 use crate::core::name::NounId;
 use crate::core::position::Direction;
-use crate::core::{BlockType, DoorKind};
+use crate::core::{BlockType, DoorKind, Tag};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -193,6 +195,8 @@ pub struct AreaData {
     pub name: String,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub pos_in_overview: (i32, i32),
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tag: Option<Tag>,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub background: BackgroundId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
