@@ -311,7 +311,11 @@ fn stop_type_message(stop_type: StopType) -> String {
 }
 
 fn intro_messages() -> Vec<String> {
-    vec!["Welcome to Aftiktuna!".to_string(),"Your goal is to lead a group of aftiks on their journey through space to find the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".to_string()]
+    vec![
+        "Welcome to Aftiktuna!".into(),
+        "Your goal is to lead a group of aftiks on their journey through space, following the distress signal of the rumored Fortuna ship.".into(),
+        "The crashed ship is said to have carried the fabled Fortuna chest, which is said to contain the item that the finder desires the most.".into(),
+    ]
 }
 
 fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
