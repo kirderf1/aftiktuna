@@ -3,6 +3,7 @@
     { "texture": "container/crashed_ship" }
   ],
   "z_offset": -10,
+  "order_weight": 80,
   "has_x_displacement": false,
   "z_displacement": 0
 }

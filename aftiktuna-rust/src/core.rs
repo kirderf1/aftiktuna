@@ -63,17 +63,6 @@ pub mod display {
         }
     }
 
-    #[derive(
-        Copy, Clone, Debug, Default, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize,
-    )]
-    pub enum OrderWeight {
-        Item,
-        Controlled,
-        #[default]
-        Creature,
-        Background,
-    }
-
     #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
     pub struct AftikColorId(pub String);
 

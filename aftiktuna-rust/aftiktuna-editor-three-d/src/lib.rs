@@ -3,7 +3,7 @@ use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::{ProfileOrRandom, background};
 use aftiktuna::core::Species;
-use aftiktuna::core::display::{AftikColorId, ModelId, OrderWeight};
+use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::item::ItemType;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
@@ -211,13 +211,13 @@ pub fn object_from_symbol(
     match symbol_data {
         SymbolData::LocationEntry => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: if is_ship {
                 DoorType::Doorway.into()
             } else {
                 ModelId::ship()
             },
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -225,9 +225,9 @@ pub fn object_from_symbol(
         },
         SymbolData::FortunaChest => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: ModelId::fortuna_chest(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -235,9 +235,9 @@ pub fn object_from_symbol(
         },
         SymbolData::ShipControls { direction } => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: ModelId::ship_controls(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -248,9 +248,9 @@ pub fn object_from_symbol(
         },
         SymbolData::FoodDeposit => ObjectRenderData {
             coord,
-            weight: OrderWeight::Item,
             model_id: ModelId::small_unknown(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -258,9 +258,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Item { item } => ObjectRenderData {
             coord,
-            weight: OrderWeight::Item,
             model_id: (*item).into(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -268,9 +268,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Loot { .. } => ObjectRenderData {
             coord,
-            weight: OrderWeight::Item,
             model_id: ModelId::small_unknown(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -278,9 +278,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Door(door_spawn_data) => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: door_spawn_data.display_type.into(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -293,9 +293,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Inanimate { model, direction } => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: model.clone(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -306,9 +306,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Container(container_data) => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: container_data.container_type.model_id(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -321,9 +321,9 @@ pub fn object_from_symbol(
             let health = Health::from_fraction(creature_spawn_data.health);
             ObjectRenderData {
                 coord,
-                weight: OrderWeight::Creature,
                 model_id: creature_spawn_data.creature.species().model_id(),
                 hash: 0,
+                is_controlled: false,
                 name_data: None,
                 wielded_item: None,
                 interactions: Vec::default(),
@@ -339,9 +339,9 @@ pub fn object_from_symbol(
         }
         SymbolData::Shopkeeper(shopkeeper_spawn_data) => ObjectRenderData {
             coord,
-            weight: OrderWeight::Creature,
             model_id: Species::Aftik.model_id(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -355,9 +355,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Character(npc_spawn_data) => ObjectRenderData {
             coord,
-            weight: OrderWeight::Creature,
             model_id: Species::Aftik.model_id(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -371,9 +371,9 @@ pub fn object_from_symbol(
         },
         SymbolData::AftikCorpse(aftik_corpse_data) => ObjectRenderData {
             coord,
-            weight: OrderWeight::Creature,
             model_id: Species::Aftik.model_id(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
@@ -389,9 +389,9 @@ pub fn object_from_symbol(
         },
         SymbolData::Furnish { .. } => ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id: ModelId::unknown(),
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),

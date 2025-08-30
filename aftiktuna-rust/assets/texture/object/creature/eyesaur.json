@@ -66,5 +66,6 @@
       "offset": { "x": 0.0, "y": -10.0 },
       "texture": "creature/eyesaur/corpse"
     }
-  ]
+  ],
+  "order_weight": 4
 }

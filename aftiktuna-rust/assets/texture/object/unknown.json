@@ -2,5 +2,6 @@
   "layers": [
     { "texture": "unknown" }
   ],
+  "order_weight": 5,
   "fixed_orientation": true
 }

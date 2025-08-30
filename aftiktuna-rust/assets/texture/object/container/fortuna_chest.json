@@ -2,5 +2,6 @@
   "layers": [
     { "texture": "container/fortuna_chest" }
   ],
+  "order_weight": 50,
   "fixed_orientation": true
 }

@@ -3,6 +3,7 @@
     { "texture": "door/upward_stairs" }
   ],
   "z_offset": -30,
+  "order_weight": 80,
   "has_x_displacement": false,
   "z_displacement": 0
 }

@@ -1,5 +1,6 @@
 {
   "layers": [
     { "texture": "environment/mossy_rock" }
-  ]
+  ],
+  "order_weight": 50
 }

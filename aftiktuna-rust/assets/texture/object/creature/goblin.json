@@ -1,49 +1,50 @@
 {
   "layers": [
     {
-      "texture": "creature/goblin/head",
+      "if_alive": true,
+      "if_hurt": false,
       "offset": { "x": 1.0, "y": 46.0 },
       "anchor": { "x": 0.0, "y": 5.0 },
       "rotation": [ 0.0, 8.0 ],
       "animation_length": 3.5,
-      "if_alive": true,
-      "if_hurt": false
+      "texture": "creature/goblin/head"
     },
     {
-      "texture": "creature/goblin/head_wounded",
+      "if_alive": true,
+      "if_hurt": true,
       "offset": { "x": 1.0, "y": 46.0 },
       "anchor": { "x": 0.0, "y": 5.0 },
       "rotation": [ -8.0, 0.0 ],
       "animation_length": 3.0,
-      "if_alive": true,
-      "if_hurt": true
+      "texture": "creature/goblin/head_wounded"
     },
-    { "texture": "creature/goblin/body", "if_alive": true, "if_hurt": false },
-    { "texture": "creature/goblin/body_wounded", "if_alive": true, "if_hurt": true },
+    { "if_alive": true, "if_hurt": false, "texture": "creature/goblin/body" },
+    { "if_alive": true, "if_hurt": true, "texture": "creature/goblin/body_wounded" },
     {
-      "texture": "creature/goblin/left_leg",
+      "if_alive": true,
       "offset": { "x": -8.0, "y": 12.0 },
       "anchor": { "x": 0.0, "y": 15.0 },
       "rotation": [ -10.0, 10.0 ],
       "animation_length": 2.5,
-      "if_alive": true
+      "texture": "creature/goblin/left_leg"
     },
     {
-      "texture": "creature/goblin/right_leg",
+      "if_alive": true,
       "offset": { "x": 1.0, "y": 10.0 },
       "anchor": { "x": 0.0, "y": 15.0 },
       "rotation": [ -10.0, 10.0 ],
       "animation_length": 2.5,
-      "if_alive": true
+      "texture": "creature/goblin/right_leg"
     },
     {
-      "texture": "creature/goblin/tail",
+      "if_alive": true,
       "offset": { "x": -9.0, "y": 16.0 },
       "anchor": { "x": 3.0, "y": 12.0 },
       "rotation": [ -18.0, 0.0 ],
       "animation_length": 2.5,
-      "if_alive": true
+      "texture": "creature/goblin/tail"
     },
-    { "texture": "creature/goblin/corpse", "if_alive": false }
-  ]
+    { "if_alive": false, "texture": "creature/goblin/corpse" }
+  ],
+  "order_weight": 2
 }

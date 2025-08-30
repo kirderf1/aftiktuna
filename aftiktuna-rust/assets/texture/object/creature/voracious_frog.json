@@ -39,5 +39,6 @@
     }
   ],
   "z_offset": 15,
+  "order_weight": 10,
   "z_displacement": 30
 }

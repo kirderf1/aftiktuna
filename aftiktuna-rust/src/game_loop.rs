@@ -2,7 +2,6 @@ use crate::action::{self, Action};
 use crate::asset::{CrewData, NounDataMap};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::behavior::{self, Character, CrewLossMemory, Hostile, RepeatingAction, Waiting};
-use crate::core::display::OrderWeight;
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
@@ -603,13 +602,6 @@ fn build_eating_message(
 }
 
 fn change_character(state: &mut GameState, character: Entity, view_buffer: &mut view::Buffer) {
-    let _ = state
-        .world
-        .insert_one(state.controlled, OrderWeight::Creature);
-    state
-        .world
-        .insert_one(character, OrderWeight::Controlled)
-        .unwrap();
     state.controlled = character;
 
     view_buffer.messages.add(format!(

@@ -1195,7 +1195,7 @@ fn render_game_view(
     );
     let symbol_lookup = SymbolLookup::new(&assets.base_symbols, &area.symbols);
 
-    let mut objects = area
+    let objects = area
         .objects
         .iter()
         .enumerate()
@@ -1214,7 +1214,6 @@ fn render_game_view(
                 })
         })
         .collect::<Vec<_>>();
-    objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
     let objects = placement::position_objects(&objects, &mut assets.models);
     let objects = objects
         .into_iter()

@@ -1,9 +1,10 @@
 {
   "layers": [
     {
-      "texture": "environment/bed",
-      "offset": { "x": 35.0, "y": 0.0 }
+      "offset": { "x": 35.0, "y": 0.0 },
+      "texture": "environment/bed"
     }
   ],
-  "z_offset": -1
+  "z_offset": -1,
+  "order_weight": 50
 }

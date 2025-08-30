@@ -2,5 +2,6 @@
   "layers": [
     { "texture": "ship" }
   ],
+  "order_weight": 80,
   "fixed_orientation": true
 }

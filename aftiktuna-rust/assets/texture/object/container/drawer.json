@@ -1,5 +1,6 @@
 {
   "layers": [
     { "texture": "container/drawer" }
-  ]
+  ],
+  "order_weight": 50
 }

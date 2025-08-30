@@ -147,12 +147,11 @@ pub mod placement {
 
         let mut objects = objects.to_owned();
         objects.sort_by(|data1, data2| {
-            let z_offset1 = models.lookup_model(&data1.model_id).z_offset;
-            let z_offset2 = models.lookup_model(&data2.model_id).z_offset;
-            data2
-                .weight
-                .cmp(&data1.weight)
-                .then(z_offset1.cmp(&z_offset2))
+            let weight1 = models.lookup_model(&data1.model_id).order_weight;
+            let weight2 = models.lookup_model(&data2.model_id).order_weight;
+            weight2
+                .cmp(&weight1)
+                .then(data1.is_controlled.cmp(&data2.is_controlled))
         });
 
         for data in objects {
@@ -173,10 +172,11 @@ pub mod placement {
         }
 
         positioned_objects.sort_by(|((_, z1), data1), ((_, z2), data2)| {
-            data2
-                .weight
-                .cmp(&data1.weight)
-                .then(z1.cmp(z2))
+            let weight1 = models.lookup_model(&data1.model_id).order_weight;
+            let weight2 = models.lookup_model(&data2.model_id).order_weight;
+            z1.cmp(z2)
+                .then(weight2.cmp(&weight1))
+                .then(data1.is_controlled.cmp(&data2.is_controlled))
                 .then(data1.coord.cmp(&data2.coord))
         });
         positioned_objects

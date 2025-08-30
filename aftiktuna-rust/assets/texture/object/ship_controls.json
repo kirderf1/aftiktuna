@@ -1,8 +1,9 @@
 {
   "layers": [
     {
-      "texture": "ship_controls",
-      "offset": { "x": 0.0, "y": -45.0 }
+      "offset": { "x": 0.0, "y": -45.0 },
+      "texture": "ship_controls"
     }
-  ]
+  ],
+  "order_weight": 50
 }

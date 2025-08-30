@@ -1,6 +1,6 @@
 use super::Builder;
 use crate::asset::location::{DoorPairData, DoorSpawnData};
-use crate::core::display::{ModelId, OrderWeight};
+use crate::core::display::ModelId;
 use crate::core::name::{Adjective, NounId};
 use crate::core::position::Pos;
 use crate::core::{Door, DoorKind, IsCut};
@@ -44,7 +44,6 @@ fn spawn(
     let mut builder = hecs::EntityBuilder::new();
     builder.add_bundle((
         info.model_id,
-        OrderWeight::Background,
         info.noun,
         info.pos,
         Door {

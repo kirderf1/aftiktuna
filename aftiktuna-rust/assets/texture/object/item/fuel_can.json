@@ -1,3 +1,6 @@
 {
-  "layers": [{ "texture": "item/fuel_can" }]
+  "layers": [
+    { "texture": "item/fuel_can" }
+  ],
+  "order_weight": 1
 }

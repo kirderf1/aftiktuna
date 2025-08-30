@@ -1,8 +1,9 @@
 {
   "layers": [
     {
-      "texture": "container/tent",
-      "offset": { "x": 0.0, "y": -5.0 }
+      "offset": { "x": 0.0, "y": -5.0 },
+      "texture": "container/tent"
     }
-  ]
+  ],
+  "order_weight": 50
 }

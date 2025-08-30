@@ -1,4 +1,4 @@
-use super::display::{ModelId, OrderWeight};
+use super::display::ModelId;
 use crate::asset::NounDataMap;
 use crate::core::name::NounId;
 use crate::core::{AttackSet, WeaponProperties};
@@ -191,7 +191,6 @@ pub fn spawn(
         location,
         item_type,
         ModelId::from(item_type),
-        OrderWeight::Item,
         item_type.noun_id(),
     ));
     if let Some(price) = price {

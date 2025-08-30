@@ -64,5 +64,6 @@
       "texture": "creature/blood_mantis/corpse"
     }
   ],
+  "order_weight": 10,
   "z_displacement": 20
 }

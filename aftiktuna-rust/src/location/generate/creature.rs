@@ -5,7 +5,6 @@ use crate::asset::location::creature::{
 };
 use crate::asset::{self, AftikProfile};
 use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable};
-use crate::core::display::OrderWeight;
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{CreatureAttribute, Health, Stamina};
@@ -158,12 +157,7 @@ pub(crate) fn aftik_builder_with_stats(
 
 fn species_builder_base(species: Species) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
-    builder.add_bundle((
-        species,
-        species.model_id(),
-        species.noun_id(),
-        OrderWeight::Creature,
-    ));
+    builder.add_bundle((species, species.model_id(), species.noun_id()));
     if species.is_large() {
         builder.add(Large);
     }
@@ -186,7 +180,6 @@ pub(super) fn place_shopkeeper(
 
     world.spawn((
         Species::Aftik.model_id(),
-        OrderWeight::Creature,
         spawn_data.color.clone(),
         NounId::from("shopkeeper"),
         pos,

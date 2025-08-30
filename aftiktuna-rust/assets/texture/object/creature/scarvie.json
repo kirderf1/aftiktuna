@@ -69,5 +69,6 @@
       "offset": { "x": 0.0, "y": -5.0 },
       "texture": "creature/scarvie/corpse"
     }
-  ]
+  ],
+  "order_weight": 2
 }

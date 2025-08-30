@@ -1,72 +1,73 @@
 {
   "layers": [
     {
+      "if_alive": true,
+      "if_hurt": false,
+      "offset": { "x": 4.0, "y": 82.0 },
+      "anchor": { "x": -5.0, "y": 5.0 },
+      "rotation": [ 0.0, -2.0 ],
+      "animation_length": 4.0,
       "texture": [
         [ "uncolored", "creature/aftik/head_details" ],
         [ "secondary", "creature/aftik/head_secondary" ],
         [ "primary", "creature/aftik/head_primary" ]
-      ],
+      ]
+    },
+    {
+      "if_alive": true,
+      "if_hurt": true,
       "offset": { "x": 4.0, "y": 82.0 },
       "anchor": { "x": -5.0, "y": 5.0 },
       "rotation": [ 0.0, -2.0 ],
       "animation_length": 4.0,
-      "if_alive": true,
-      "if_hurt": false
-    },
-    {
       "texture": [
         [ "uncolored", "creature/aftik/head_details_wounded" ],
         [ "secondary", "creature/aftik/head_secondary" ],
         [ "primary", "creature/aftik/head_primary" ]
-      ],
-      "offset": { "x": 4.0, "y": 82.0 },
-      "anchor": { "x": -5.0, "y": 5.0 },
-      "rotation": [ 0.0, -2.0 ],
-      "animation_length": 4.0,
-      "if_alive": true,
-      "if_hurt": true
+      ]
     },
     {
+      "if_alive": true,
+      "offset": { "x": -3.0, "y": 0.0 },
       "texture": [
         [ "uncolored", "creature/aftik/body_details" ],
         [ "primary", "creature/aftik/body_primary" ]
-      ],
-      "offset": { "x": -3.0, "y": 0.0 },
-      "if_alive": true
+      ]
     },
     {
-      "texture": [
-        [ "uncolored", "creature/aftik/tail_details" ],
-        [ "secondary", "creature/aftik/tail_secondary" ],
-        [ "primary", "creature/aftik/tail_primary" ]
-      ],
+      "if_alive": true,
+      "if_hurt": false,
       "offset": { "x": -23.0, "y": 15.0 },
       "anchor": { "x": 20.0, "y": 25.0 },
       "rotation": [ 0.0, -15.0 ],
       "animation_length": 2.5,
-      "if_alive": true,
-      "if_hurt": false
-    },
-    {
       "texture": [
-        [ "uncolored", "creature/aftik/tail_details_wounded" ],
+        [ "uncolored", "creature/aftik/tail_details" ],
         [ "secondary", "creature/aftik/tail_secondary" ],
         [ "primary", "creature/aftik/tail_primary" ]
-      ],
+      ]
+    },
+    {
+      "if_alive": true,
+      "if_hurt": true,
       "offset": { "x": -23.0, "y": 15.0 },
       "anchor": { "x": 20.0, "y": 25.0 },
       "rotation": [ 5.0, 15.0 ],
       "animation_length": 3.0,
-      "if_alive": true,
-      "if_hurt": true
+      "texture": [
+        [ "uncolored", "creature/aftik/tail_details_wounded" ],
+        [ "secondary", "creature/aftik/tail_secondary" ],
+        [ "primary", "creature/aftik/tail_primary" ]
+      ]
     },
     {
+      "if_alive": false,
       "texture": [
         [ "uncolored", "creature/aftik/corpse_details" ],
         [ "secondary", "creature/aftik/corpse_secondary" ],
         [ "primary", "creature/aftik/corpse_primary" ]
-      ],
-      "if_alive": false
+      ]
     }
-  ]
+  ],
+  "order_weight": 5
 }

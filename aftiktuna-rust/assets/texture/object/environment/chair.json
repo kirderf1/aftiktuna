@@ -1,5 +1,6 @@
 {
   "layers": [
     { "texture": "environment/chair" }
-  ]
+  ],
+  "order_weight": 50
 }

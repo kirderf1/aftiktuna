@@ -1,3 +1,6 @@
 {
-  "layers": [{ "texture": "item/blowtorch" }]
+  "layers": [
+    { "texture": "item/blowtorch" }
+  ],
+  "order_weight": 1
 }

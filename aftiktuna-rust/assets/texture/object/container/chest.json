@@ -1,5 +1,6 @@
 {
   "layers": [
     { "texture": "container/chest" }
-  ]
+  ],
+  "order_weight": 50
 }

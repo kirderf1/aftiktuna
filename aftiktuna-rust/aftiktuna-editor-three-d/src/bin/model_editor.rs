@@ -3,7 +3,7 @@ use aftiktuna::asset::model::{self, Model, ModelAccess, TexturesOrChildren};
 use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{DialogueExpression, ModelId, OrderWeight};
+use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
@@ -434,9 +434,9 @@ fn draw_examples(
     fn obj(coord: Coord, model_id: ModelId, properties: ObjectProperties) -> ObjectRenderData {
         ObjectRenderData {
             coord,
-            weight: OrderWeight::Background,
             model_id,
             hash: 0,
+            is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),

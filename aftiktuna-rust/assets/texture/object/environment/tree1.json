@@ -1,11 +1,12 @@
 {
   "layers": [
     {
-      "texture": "environment/tree1",
-      "offset": { "x": 0.0, "y": -5.0 }
+      "offset": { "x": 0.0, "y": -5.0 },
+      "texture": "environment/tree1"
     }
   ],
   "z_offset": -40,
+  "order_weight": 60,
   "fixed_orientation": true,
   "has_x_displacement": false,
   "z_displacement": 0

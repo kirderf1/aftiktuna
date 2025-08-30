@@ -9,7 +9,7 @@ use crate::asset::location::{
 use crate::asset::{self, loot};
 use crate::core::FortunaChest;
 use crate::core::area::{Area, ShipControls};
-use crate::core::display::{ModelId, OrderWeight};
+use crate::core::display::ModelId;
 use crate::core::inventory::{Container, Held};
 use crate::core::name::NounId;
 use crate::core::position::{Coord, Pos};
@@ -91,7 +91,6 @@ fn place_symbol(
         SymbolData::ShipControls { direction } => {
             builder.gen_context.world.spawn((
                 ModelId::ship_controls(),
-                OrderWeight::Background,
                 NounId::from("ship_controls"),
                 pos,
                 *direction,
@@ -117,12 +116,10 @@ fn place_symbol(
         }
         SymbolData::Door(door_data) => door::place(door_data, pos, builder)?,
         SymbolData::Inanimate { model, direction } => {
-            builder.gen_context.world.spawn((
-                model.clone(),
-                OrderWeight::Background,
-                pos,
-                *direction,
-            ));
+            builder
+                .gen_context
+                .world
+                .spawn((model.clone(), pos, *direction));
         }
         SymbolData::Container(container_data) => place_container(container_data, pos, builder)?,
         SymbolData::Creature(creature_data) => {
@@ -181,7 +178,6 @@ impl<'a> Builder<'a> {
 fn place_fortuna_chest(world: &mut World, pos: Pos) {
     world.spawn((
         ModelId::fortuna_chest(),
-        OrderWeight::Background,
         NounId::from("fortuna_chest"),
         pos,
         FortunaChest,
@@ -191,7 +187,6 @@ fn place_fortuna_chest(world: &mut World, pos: Pos) {
 fn place_container(data: &ContainerData, pos: Pos, builder: &mut Builder) -> Result<(), String> {
     let container = builder.gen_context.world.spawn((
         data.container_type.model_id(),
-        OrderWeight::Background,
         data.container_type.noun_id(),
         pos,
         data.direction,

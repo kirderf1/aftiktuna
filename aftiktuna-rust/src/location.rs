@@ -6,7 +6,7 @@ use crate::asset::location::{DoorPairData, DoorType, LocationData};
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::behavior::{ObservationTarget, Waiting};
-use crate::core::display::{ModelId, OrderWeight};
+use crate::core::display::ModelId;
 use crate::core::name::NounId;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::store::Points;
@@ -279,7 +279,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         .ok_or_else(|| "Crew must not be empty".to_string())?;
     let controlled_character = world.spawn(
         creature::aftik_builder_with_stats(controlled_character, true)
-            .add_bundle((CrewMember(crew), OrderWeight::Controlled, iter_pos))
+            .add_bundle((CrewMember(crew), iter_pos))
             .build(),
     );
 

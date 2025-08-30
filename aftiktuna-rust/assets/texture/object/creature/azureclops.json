@@ -62,5 +62,6 @@
     },
     { "if_alive": false, "texture": "creature/azureclops/corpse" }
   ],
+  "order_weight": 8,
   "z_displacement": 20
 }

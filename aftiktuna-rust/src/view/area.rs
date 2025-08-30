@@ -3,7 +3,7 @@ use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, ModelId, OrderWeight};
+use crate::core::display::{AftikColorId, ModelId};
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{NameData, NameWithAttribute};
@@ -32,9 +32,9 @@ pub struct RenderData {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ObjectRenderData {
     pub coord: Coord,
-    pub weight: OrderWeight,
     pub model_id: ModelId,
     pub hash: u64,
+    pub is_controlled: bool,
     pub name_data: Option<ObjectNameData>,
     pub wielded_item: Option<ModelId>,
     pub interactions: Vec<InteractionType>,
@@ -127,14 +127,13 @@ pub(super) fn prepare_render_data(state: &GameState, noun_map: &NounDataMap) -> 
     let character_pos = state.world.get::<&Pos>(state.controlled).unwrap();
     let area = state.world.get::<&Area>(character_pos.get_area()).unwrap();
 
-    let mut objects: Vec<ObjectRenderData> = state
+    let objects: Vec<ObjectRenderData> = state
         .world
         .query::<&Pos>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(character_pos.get_area()))
         .map(|(entity, pos)| build_object_data(state, entity, pos, noun_map))
         .collect();
-    objects.sort_by(|data1, data2| data2.weight.cmp(&data1.weight));
 
     let inventory = inventory::get_held(&state.world, state.controlled)
         .into_iter()
@@ -175,10 +174,6 @@ fn build_object_data(
     };
     ObjectRenderData {
         coord: pos.get_coord(),
-        weight: entity_ref
-            .get::<&OrderWeight>()
-            .map(deref_clone)
-            .unwrap_or_default(),
         model_id: entity_ref
             .get::<&ModelId>()
             .map(deref_clone)
@@ -189,6 +184,7 @@ fn build_object_data(
             entity.hash(&mut hasher);
             hasher.finish()
         },
+        is_controlled: entity == state.controlled,
         name_data: ObjectNameData::build(entity_ref, &state.world, noun_map),
         wielded_item: find_wielded_item_texture(&state.world, entity),
         interactions: suggestion::interactions_for(entity, state),

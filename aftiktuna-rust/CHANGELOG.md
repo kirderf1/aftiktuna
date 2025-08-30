@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Creature attributes increase stats slightly more
 - Large creatures (blood mantis and voracious frog) now occupy two coordinate positions
 - Wandering creatures can now be set to wander within a restricted area
+- New model property "order_weight"
 
 ### Contributors for this release
 

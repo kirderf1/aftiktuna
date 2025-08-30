@@ -1,13 +1,14 @@
 {
   "layers": [
-    { "texture": "door/door", "if_cut": false },
+    { "if_cut": false, "texture": "door/door" },
     {
-      "texture": "door/cut_door",
+      "if_cut": true,
       "offset": { "x": 0.0, "y": -15.0 },
-      "if_cut": true
+      "texture": "door/cut_door"
     }
   ],
   "z_offset": -30,
+  "order_weight": 80,
   "fixed_orientation": true,
   "has_x_displacement": false,
   "z_displacement": 0

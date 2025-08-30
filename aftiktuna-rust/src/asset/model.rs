@@ -15,6 +15,8 @@ pub struct Model<T> {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub z_offset: i16,
     #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub order_weight: i16,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub fixed_orientation: bool,
     #[serde(default = "value_true", skip_serializing_if = "is_true")]
     pub has_x_displacement: bool,
@@ -54,6 +56,7 @@ impl Model<String> {
             layers,
             wield_offset: self.wield_offset,
             z_offset: self.z_offset,
+            order_weight: self.order_weight,
             fixed_orientation: self.fixed_orientation,
             has_x_displacement: self.has_x_displacement,
             z_displacement: self.z_displacement,
