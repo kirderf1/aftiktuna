@@ -47,7 +47,12 @@
         "^": { "type": "door", "pair_id": "", "display_type": "path", "adjective": "middle" },
         ">": { "type": "door", "pair_id": "left3", "display_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" },
-        "E": { "type": "creature", "creature": "eyesaur", "aggressive": true, "wandering": true }
+        "E": {
+          "type": "creature",
+          "creature": "eyesaur",
+          "aggressive": true,
+          "wandering": {}
+        }
       }
     },
     {
@@ -199,7 +204,12 @@
       "symbols": {
         "<": { "type": "door", "pair_id": "mid_left2", "display_type": "path", "adjective": "left" },
         ">": { "type": "door", "pair_id": "mid_left3", "display_type": "path", "adjective": "right" },
-        "S": { "type": "creature", "creature": "scarvie", "aggressive": false, "wandering": true }
+        "S": {
+          "type": "creature",
+          "creature": "scarvie",
+          "aggressive": false,
+          "wandering": {}
+        }
       }
     },
     {

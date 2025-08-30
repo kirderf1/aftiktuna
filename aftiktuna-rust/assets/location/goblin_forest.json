@@ -206,7 +206,11 @@
         "<": { "type": "door", "pair_id": "alt_path_a8", "display_type": "path", "adjective": "left" },
         ">": { "type": "door", "pair_id": "alt_path_a7", "display_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/mossy_rock" },
-        "G": { "type": "creature", "creature": "goblin", "wandering": true }
+        "G": {
+          "type": "creature",
+          "creature": "goblin",
+          "wandering": {}
+        }
       }
     },
     {

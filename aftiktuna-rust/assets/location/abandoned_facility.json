@@ -138,7 +138,11 @@
         "<": { "type": "door", "pair_id": "basement_a", "display_type": "door", "adjective": "left" },
         "*": { "type": "door", "pair_id": "basement_b1", "display_type": "door", "adjective": "middle" },
         ">": { "type": "door", "pair_id": "basement_c", "display_type": "door", "adjective": "right" },
-        "Z": { "type": "creature", "creature": "azureclops", "wandering": true },
+        "Z": {
+          "type": "creature",
+          "creature": "azureclops",
+          "wandering": {}
+        },
         "T": { "type": "inanimate", "model": "environment/broken_table" }
       }
     },
