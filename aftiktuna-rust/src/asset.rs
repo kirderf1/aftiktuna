@@ -123,7 +123,7 @@ pub mod loot {
 
 pub mod placement {
     use crate::asset::model::{Model, ModelAccess, Offsets};
-    use crate::core::position::Coord;
+    use crate::core::position::{Coord, Direction};
     use crate::view::area::ObjectRenderData;
     use std::collections::HashMap;
     use std::mem;
@@ -156,15 +156,28 @@ pub mod placement {
 
         for data in objects {
             let object_group = &mut groups_cache[data.coord as usize];
-            if object_group
-                .first()
-                .is_some_and(|cached_object| cached_object.model_id != data.model_id)
-            {
+            if models.lookup_model(&data.model_id).large_displacement {
                 positioned_objects
                     .extend(positioner.position_object_group(mem::take(object_group), models));
-            }
+                positioned_objects.push((
+                    positioner.position_object(
+                        data.coord,
+                        data.properties.direction,
+                        models.lookup_model(&data.model_id),
+                    ),
+                    data,
+                ));
+            } else {
+                if object_group
+                    .first()
+                    .is_some_and(|cached_object| cached_object.model_id != data.model_id)
+                {
+                    positioned_objects
+                        .extend(positioner.position_object_group(mem::take(object_group), models));
+                }
 
-            object_group.push(data);
+                object_group.push(data);
+            }
         }
 
         for object_group in groups_cache {
@@ -196,13 +209,17 @@ pub mod placement {
             object_group: Vec<ObjectRenderData>,
             models: &mut impl ModelAccess<T>,
         ) -> Vec<((Vec2, i16), ObjectRenderData)> {
-            if let Some((coord, model)) = object_group
-                .first()
-                .map(|object| (object.coord, models.lookup_model(&object.model_id)))
-            {
+            if let Some((coord, direction, model)) = object_group.first().map(|object| {
+                (
+                    object.coord,
+                    object.properties.direction,
+                    models.lookup_model(&object.model_id),
+                )
+            }) {
                 self.position_groups_from_offsets(
                     model.group_placement.position(object_group.len() as u16),
                     coord,
+                    direction,
                     model,
                 )
                 .into_iter()
@@ -217,32 +234,58 @@ pub mod placement {
             &mut self,
             offset_groups: Vec<Offsets>,
             coord: Coord,
+            direction: Direction,
             model: &Model<T>,
         ) -> Vec<(Vec2, i16)> {
             offset_groups
                 .into_iter()
                 .flat_map(|offsets| {
-                    let (x, z) = self.position_object(coord, model);
-                    offsets.into_iter().map(move |offset| {
-                        (
-                            (x + f32::from(offset.0), z + f32::from(offset.1)),
-                            -z as i16,
-                        )
-                    })
+                    let ((x, y), z) = self.position_object(coord, direction, model);
+                    offsets
+                        .into_iter()
+                        .map(move |offset| ((x + f32::from(offset.0), y + f32::from(offset.1)), z))
                 })
                 .collect()
         }
 
-        pub fn position_object<T>(&mut self, coord: Coord, model: &Model<T>) -> Vec2 {
-            let (x_count, z_displacement) = self.coord_counts.entry(coord).or_insert((0, 0));
+        pub fn position_object<T>(
+            &mut self,
+            coord: Coord,
+            direction: Direction,
+            model: &Model<T>,
+        ) -> (Vec2, i16) {
+            let (x_count, z_displacement) = if model.large_displacement
+                && let Some(coord2) = coord.checked_add_signed(direction.opposite().into())
+            {
+                self.calculate_displacement(&[coord, coord2], model)
+            } else {
+                self.calculate_displacement(&[coord], model)
+            };
 
-            let pos = position_from_coord(coord, *x_count, *z_displacement, model.z_offset);
+            let pos = position_from_coord(coord, x_count, z_displacement, model.z_offset);
+            (pos, -pos.1 as i16)
+        }
 
-            if model.has_x_displacement {
-                *x_count += 1;
+        fn calculate_displacement<T>(&mut self, range: &[Coord], model: &Model<T>) -> (u16, i16) {
+            let (x_count, z_displacement) = range
+                .iter()
+                .map(|coord| self.coord_counts.get(coord).copied().unwrap_or_default())
+                .fold(
+                    (0, 0),
+                    |(x_count1, z_displacement1), (x_count2, z_displacement2)| {
+                        (x_count1.max(x_count2), z_displacement1.max(z_displacement2))
+                    },
+                );
+
+            let updated_x_count = x_count + if model.has_x_displacement { 1 } else { 0 };
+            let updated_z_displacement = z_displacement + model.z_displacement;
+
+            for &coord in range {
+                self.coord_counts
+                    .insert(coord, (updated_x_count, updated_z_displacement));
             }
-            *z_displacement += model.z_displacement;
-            pos
+
+            (x_count, z_displacement)
         }
     }
 

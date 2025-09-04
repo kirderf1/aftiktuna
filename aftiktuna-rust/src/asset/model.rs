@@ -26,6 +26,8 @@ pub struct Model<T> {
     )]
     pub z_displacement: i16,
     #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub large_displacement: bool,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub group_placement: GroupPlacement,
 }
 
@@ -60,6 +62,7 @@ impl Model<String> {
             fixed_orientation: self.fixed_orientation,
             has_x_displacement: self.has_x_displacement,
             z_displacement: self.z_displacement,
+            large_displacement: self.large_displacement,
             group_placement: self.group_placement.clone(),
         })
     }

@@ -6,7 +6,7 @@ use aftiktuna::asset::placement::Positioner;
 use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
-use aftiktuna::core::position::Coord;
+use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -211,7 +211,9 @@ fn draw_example_content(
     let mut positioner = Positioner::default();
     let mut draw_model = move |coord: Coord, model_id: &ModelId| {
         let model = models.lookup_model(model_id);
-        let pos = positioner.position_object(coord, model);
+        let pos = positioner
+            .position_object(coord, Direction::default(), model)
+            .0;
         let objects = render::get_render_objects_for_entity_with_color(
             model,
             pos.into(),
