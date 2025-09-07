@@ -4,7 +4,7 @@ use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::item::ItemType;
 use crate::core::name::{self, Name, NameData, NameIdData, NounId};
 use crate::core::position::Pos;
-use crate::core::status::{Health, Stats, Trait, Traits};
+use crate::core::status::{Health, Morale, Stats, Trait, Traits};
 use crate::core::store::Points;
 use crate::core::{CrewMember, inventory};
 use crate::game_loop::GameState;
@@ -108,12 +108,31 @@ pub fn get_full_status(state: &GameState, noun_map: &NounDataMap) -> FullStatus 
             {
                 character_messages.add(traits_message(&traits));
             }
-            print_character_without_cache(
+
+            print_health(&state.world, character, &mut character_messages, None);
+            let morale = state
+                .world
+                .get::<&Morale>(character)
+                .as_deref()
+                .copied()
+                .unwrap_or_default();
+            character_messages.add(format!("Morale: {}", morale.label()));
+
+            print_wielded(
                 &state.world,
                 character,
                 &mut character_messages,
+                None,
                 noun_map,
             );
+            print_inventory(
+                &state.world,
+                character,
+                &mut character_messages,
+                None,
+                noun_map,
+            );
+
             character_messages.into_text(noun_map)
         })
         .collect::<Vec<_>>();

@@ -46,11 +46,18 @@ impl Stats {
     }
 
     pub fn agility_for_dodging(&self, entity_ref: EntityRef) -> i16 {
-        if Trait::GoodDodger.ref_has_trait(entity_ref) {
-            self.agility + 5
-        } else {
-            self.agility
-        }
+        let morale = entity_ref
+            .get::<&Morale>()
+            .as_deref()
+            .copied()
+            .unwrap_or_default();
+        self.agility
+            + if Trait::GoodDodger.ref_has_trait(entity_ref) {
+                5
+            } else {
+                0
+            }
+            + morale.dodge_mod()
     }
 }
 
@@ -216,23 +223,39 @@ impl Health {
         self.value
     }
 
-    pub fn take_damage(&mut self, mut damage: f32, entity_ref: EntityRef) -> Option<Killed> {
+    pub fn take_damage(&mut self, mut damage: f32, entity_ref: EntityRef) {
         if Trait::Fragile.ref_has_trait(entity_ref) {
             damage *= 1.33;
         }
         let endurance = entity_ref
             .get::<&Stats>()
             .map_or(1, |stats| stats.endurance);
+        let was_badly_hurt = self.is_badly_hurt();
+
         self.value -= damage / f32::from(6 + endurance * 3);
-        if self.value <= 0.0 {
-            Some(Killed)
-        } else {
-            None
+
+        if self.is_badly_hurt()
+            && let Some(mut morale) = entity_ref.get::<&mut Morale>()
+        {
+            if was_badly_hurt {
+                morale.apply_negative_effect(Morale::SMALL_INTENSITY, Morale::MEDIUM_DEPTH);
+            } else {
+                morale.apply_negative_effect(Morale::MEDIUM_INTENSITY, Morale::MEDIUM_DEPTH);
+            }
         }
     }
 
-    pub fn restore_fraction(&mut self, fraction: f32) {
-        self.value = f32::min(1., self.value + fraction)
+    pub fn restore_fraction(&mut self, fraction: f32, entity_ref: EntityRef) {
+        let was_badly_hurt = self.is_badly_hurt();
+
+        self.value = f32::min(1., self.value + fraction);
+
+        if was_badly_hurt
+            && !self.is_badly_hurt()
+            && let Some(mut morale) = entity_ref.get::<&mut Morale>()
+        {
+            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::MEDIUM_DEPTH);
+        }
     }
 
     #[allow(dead_code)]
@@ -240,8 +263,6 @@ impl Health {
         self.value = 1.
     }
 }
-
-pub struct Killed;
 
 pub fn is_alive(entity: Entity, world: &World) -> bool {
     match world.entity(entity) {
@@ -294,6 +315,94 @@ impl Stamina {
 
     pub fn on_move(&mut self) {
         self.dodge_stamina -= 1;
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
+pub(crate) struct Morale {
+    positive_value: f32,
+    negative_value: f32,
+}
+
+impl Morale {
+    pub const SMALL_INTENSITY: f32 = 1.;
+    pub const MEDIUM_INTENSITY: f32 = 3.;
+    pub const HIGH_INTENSITY: f32 = 8.;
+
+    pub const SHALLOW_DEPTH: f32 = 2.;
+    pub const MEDIUM_DEPTH: f32 = 5.;
+    pub const DEEP_DEPTH: f32 = 10.;
+
+    pub fn value(&self) -> f32 {
+        self.positive_value - self.negative_value
+    }
+
+    fn dodge_mod(&self) -> i16 {
+        match self.value() {
+            ..-12.0 => -3,
+            -12.0..-7.0 => -2,
+            -7.0..-3.0 => -1,
+            5.0..10.0 => 1,
+            10.0.. => 2,
+            _ => 0,
+        }
+    }
+
+    pub fn damage_factor(&self) -> f32 {
+        match self.value() {
+            ..-10.0 => 0.8,
+            -10.0..-5.0 => 0.9,
+            _ => 1.,
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self.value() {
+            ..-10.0 => "Devestating",
+            -10.0..-5.0 => "Poor",
+            5.0..10.0 => "Good",
+            10.0.. => "Excellent",
+            _ => "Neutral",
+        }
+    }
+
+    pub fn dampen(&mut self, factor: f32) {
+        assert!((0.0..=1.0).contains(&factor));
+        self.positive_value *= factor;
+        self.negative_value *= factor;
+        println!(
+            "Bumped values down to PV: {}, NV: {}",
+            self.positive_value, self.negative_value
+        );
+    }
+
+    pub fn apply_positive_effect(&mut self, intensity: f32, depth: f32) {
+        assert!(depth >= 1.);
+        let prev_value = self.positive_value;
+        if self.positive_value < (intensity * depth) {
+            let diminishing_factor = 1. - self.positive_value / (intensity * depth);
+            self.positive_value += intensity * diminishing_factor;
+        }
+        println!("Bumped up PV: {} -> {}", prev_value, self.positive_value);
+    }
+    pub fn apply_negative_effect(&mut self, intensity: f32, depth: f32) {
+        assert!(depth >= 1.);
+        let prev_value = self.negative_value;
+        if self.negative_value < (intensity * depth) {
+            let diminishing_factor = 1. - self.negative_value / (intensity * depth);
+            self.negative_value += intensity * diminishing_factor;
+        }
+        println!("Bumped up NV: {} -> {}", prev_value, self.negative_value);
+    }
+
+    pub fn journey_start_effect(&mut self) {
+        self.apply_positive_effect(Morale::HIGH_INTENSITY, Morale::SHALLOW_DEPTH)
+    }
+    pub fn new_crew_member_effect(&mut self) {
+        self.apply_positive_effect(Morale::MEDIUM_INTENSITY, Morale::SHALLOW_DEPTH)
+    }
+    pub fn crew_death_effect(&mut self) {
+        self.apply_negative_effect(Morale::HIGH_INTENSITY, Morale::DEEP_DEPTH)
     }
 }
 

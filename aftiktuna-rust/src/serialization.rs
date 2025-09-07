@@ -173,6 +173,7 @@ pub mod world {
         status::Traits, Traits;
         status::Health, Health;
         status::Stamina, Stamina;
+        status::Morale, Morale;
         status::SeenWithLowHealth, LowHealth;
         status::SeenWithLowStamina, LowStamina;
         status::IsStunned, IsStunned;

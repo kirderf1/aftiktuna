@@ -3,7 +3,7 @@ use crate::core::behavior::{self, Hostile, RepeatingAction};
 use crate::core::combat::{self, AttackKind};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{self, OccupiesSpace, Placement, PlacementQuery, Pos};
-use crate::core::status::{self, Health, Killed, Stamina, Stats};
+use crate::core::status::{self, Health, Morale, Stamina, Stats};
 use crate::core::{Species, inventory};
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
@@ -316,10 +316,14 @@ fn perform_attack_hit(
     None
 }
 
+pub struct Killed;
+
 fn deal_damage(target_ref: EntityRef, damage: f32) -> Option<Killed> {
-    target_ref
-        .get::<&mut Health>()
-        .and_then(|mut health| health.take_damage(damage, target_ref))
+    let mut health = target_ref.get::<&mut Health>()?;
+
+    health.take_damage(damage, target_ref);
+
+    if health.is_dead() { Some(Killed) } else { None }
 }
 
 fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
@@ -327,8 +331,15 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .get::<&Stats>(attacker)
         .expect("Expected attacker to have stats attached")
         .strength;
+    let morale = world
+        .get::<&Morale>(attacker)
+        .as_deref()
+        .copied()
+        .unwrap_or_default();
     let strength_mod = f32::from(strength + 2) / 6.0;
-    combat::get_active_weapon_properties(world, attacker).damage_mod * strength_mod
+    combat::get_active_weapon_properties(world, attacker).damage_mod
+        * strength_mod
+        * morale.damage_factor()
 }
 
 fn roll_hit(

@@ -6,7 +6,7 @@ use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Pos};
-use crate::core::status::{self, Health, Stamina, Trait};
+use crate::core::status::{self, Health, Morale, Stamina, Trait};
 use crate::core::{CrewMember, OpenedChest};
 use crate::game_interface::{Phase, PhaseResult};
 use crate::location::{self, GenerationState, InitialSpawnData, PickResult};
@@ -353,6 +353,9 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let mut buffer = CommandBuffer::new();
     for character in dead_crew {
         state.world.remove_one::<CrewMember>(character).unwrap();
+        for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+            morale.crew_death_effect();
+        }
         if let Ok(Name { name, .. }) = state.world.get::<&Name>(character).as_deref() {
             for (crew_member, ()) in state.world.query::<()>().with::<&CrewMember>().iter() {
                 buffer.insert_one(
@@ -480,6 +483,10 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         let name = NameData::from_query(query, view_buffer.noun_map).definite();
         view_buffer.messages.add(format!("{name} was left behind."));
     }
+    for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+        morale.dampen(0.6);
+    }
+
     consume_rations_healing(state, view_buffer);
 
     view_buffer.capture_view(state);
@@ -552,10 +559,11 @@ fn consume_rations_healing(state: &mut GameState, view_buffer: &mut view::Buffer
             .collect::<Vec<_>>();
         if !rations.is_empty() {
             let rations_factor = f32::from(rations.len() as u16) / f32::from(rations_to_eat);
+            let heal_fraction = rations_factor * status::get_food_heal_fraction(entity_ref);
             entity_ref
                 .get::<&mut Health>()
                 .unwrap()
-                .restore_fraction(rations_factor * status::get_food_heal_fraction(entity_ref));
+                .restore_fraction(heal_fraction, entity_ref);
             crew_eating_rations.push((crew_candidate, rations.len() as u16));
 
             for ration in rations {

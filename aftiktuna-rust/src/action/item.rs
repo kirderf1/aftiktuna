@@ -333,7 +333,7 @@ impl UseAction {
                     )));
                 }
 
-                health.restore_fraction(0.5);
+                health.restore_fraction(0.5, performer_ref);
                 drop(health);
                 world.despawn(self.item).unwrap();
 

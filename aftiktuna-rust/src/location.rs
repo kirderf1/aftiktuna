@@ -9,6 +9,7 @@ use crate::core::behavior::{ObservationTarget, Waiting};
 use crate::core::display::ModelId;
 use crate::core::name::NounId;
 use crate::core::position::{self, Direction, Pos};
+use crate::core::status::Morale;
 use crate::core::store::Points;
 use crate::core::{CrewMember, Door, DoorKind, inventory};
 use crate::game_loop::GameState;
@@ -298,6 +299,10 @@ pub(crate) fn spawn_starting_crew_and_ship(
                 .add_bundle((CrewMember(crew), iter_pos))
                 .build(),
         );
+    }
+
+    for (_, morale) in world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+        morale.journey_start_effect();
     }
 
     Ok(InitialSpawnData {

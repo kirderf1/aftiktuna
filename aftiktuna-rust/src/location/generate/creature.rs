@@ -7,7 +7,7 @@ use crate::asset::{self, AftikProfile};
 use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable};
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
-use crate::core::status::{CreatureAttribute, Health, Stamina};
+use crate::core::status::{CreatureAttribute, Health, Morale, Stamina};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{Species, inventory};
 use hecs::{EntityBuilder, World};
@@ -147,6 +147,7 @@ pub(crate) fn aftik_builder_with_stats(
         },
         Health::from_fraction(1.),
         Stamina::with_max(&profile.stats),
+        Morale::default(),
         OccupiesSpace,
         profile.stats,
         profile.traits,

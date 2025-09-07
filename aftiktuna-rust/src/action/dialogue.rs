@@ -3,6 +3,7 @@ use crate::core::behavior::{Hostile, Recruitable, Waiting};
 use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
+use crate::core::status::Morale;
 use crate::core::{self, CrewMember, area, position, status};
 use hecs::Entity;
 
@@ -92,6 +93,12 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
                 );
             }
 
+            if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
+                morale.journey_start_effect();
+            }
+            for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+                morale.new_crew_member_effect();
+            }
             state.world.remove_one::<Recruitable>(target).unwrap();
             let name =
                 NameData::find(&state.world, target, view_context.view_buffer.noun_map).definite();
