@@ -449,6 +449,7 @@ fn draw_examples(
         is_cut: editor_data.show_cut,
         is_alive: editor_data.show_alive,
         is_badly_hurt: editor_data.show_hurt,
+        expression: editor_data.shown_expression,
         ..Default::default()
     };
 
@@ -530,7 +531,6 @@ fn draw_examples(
                 RenderProperties {
                     object: &data.properties,
                     aftik_color: DEFAULT_AFTIK_COLOR,
-                    expression: editor_data.shown_expression,
                 },
                 time,
                 context,
@@ -548,7 +548,6 @@ fn draw_examples(
                             ..Default::default()
                         },
                         aftik_color: DEFAULT_AFTIK_COLOR,
-                        expression: DialogueExpression::default(),
                     },
                     time,
                     context,

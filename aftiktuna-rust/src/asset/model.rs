@@ -220,15 +220,11 @@ pub struct LayerCondition {
 }
 
 impl LayerCondition {
-    pub fn meets_conditions(
-        &self,
-        properties: &ObjectProperties,
-        expression: DialogueExpression,
-    ) -> bool {
+    pub fn meets_conditions(&self, properties: &ObjectProperties) -> bool {
         (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
             && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
             && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
-            && (self.if_expression.is_none() || self.if_expression == Some(expression))
+            && (self.if_expression.is_none() || self.if_expression == Some(properties.expression))
     }
 }
 

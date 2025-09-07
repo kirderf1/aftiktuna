@@ -5,7 +5,7 @@ use aftiktuna::asset::model::{
 };
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{DialogueExpression, ModelId};
+use aftiktuna::core::display::ModelId;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -190,11 +190,7 @@ fn layer_list_render_rect(
 ) -> Rect {
     layer_list
         .iter()
-        .filter(|&layer| {
-            layer
-                .conditions
-                .meets_conditions(properties, DialogueExpression::default())
-        })
+        .filter(|&layer| layer.conditions.meets_conditions(properties))
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
             rect.combine(layer_render_rect(layer, pos, direction_mod, properties))
         })

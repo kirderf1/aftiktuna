@@ -5,7 +5,7 @@ use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement::Positioner;
 use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{DialogueExpression, ModelId};
+use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
@@ -220,7 +220,6 @@ fn draw_example_content(
             RenderProperties {
                 object: &ObjectProperties::default(),
                 aftik_color: color::DEFAULT_COLOR,
-                expression: DialogueExpression::default(),
             },
             frame_input.accumulated_time as f32,
             &frame_input.context,

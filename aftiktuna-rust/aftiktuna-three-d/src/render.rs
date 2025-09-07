@@ -1,7 +1,7 @@
 use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
-use aftiktuna::core::display::{AftikColorId, DialogueExpression};
+use aftiktuna::core::display::AftikColorId;
 use aftiktuna::view::area::ObjectProperties;
 use std::collections::HashMap;
 
@@ -96,7 +96,6 @@ pub fn get_render_objects_for_entity(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     properties: &ObjectProperties,
-    expression: DialogueExpression,
     aftik_colors: &mut HashMap<AftikColorId, AftikColorData>,
     time: f32,
     context: &three_d::Context,
@@ -113,7 +112,6 @@ pub fn get_render_objects_for_entity(
         RenderProperties {
             object: properties,
             aftik_color,
-            expression,
         },
         time,
         context,
@@ -135,7 +133,6 @@ fn lookup_or_log_aftik_color(
 pub struct RenderProperties<'a> {
     pub object: &'a ObjectProperties,
     pub aftik_color: AftikColorData,
-    pub expression: DialogueExpression,
 }
 
 pub fn get_render_objects_for_entity_with_color(
@@ -178,10 +175,7 @@ fn get_render_objects_for_layer(
     time: f32,
     context: &three_d::Context,
 ) -> Vec<RenderObject> {
-    if !layer
-        .conditions
-        .meets_conditions(properties.object, properties.expression)
-    {
+    if !layer.conditions.meets_conditions(properties.object) {
         return vec![];
     }
 

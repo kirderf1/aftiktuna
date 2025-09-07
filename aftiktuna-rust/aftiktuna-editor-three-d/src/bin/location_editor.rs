@@ -719,7 +719,7 @@ use aftiktuna::asset::location::{
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, placement};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{AftikColorId, DialogueExpression};
+use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::Coord;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -1230,7 +1230,6 @@ fn render_game_view(
                 RenderProperties {
                     object: &object.properties,
                     aftik_color,
-                    expression: DialogueExpression::default(),
                 },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,

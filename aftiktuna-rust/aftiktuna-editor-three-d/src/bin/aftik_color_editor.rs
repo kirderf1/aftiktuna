@@ -1,7 +1,7 @@
 use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
 use aftiktuna::asset::model::{self, Model};
 use aftiktuna::core::Species;
-use aftiktuna::core::display::{AftikColorId, DialogueExpression, ModelId};
+use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -156,7 +156,6 @@ fn draw_examples(
                 RenderProperties {
                     object: &properties,
                     aftik_color: aftik_color_data,
-                    expression: DialogueExpression::default(),
                 },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,

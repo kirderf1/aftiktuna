@@ -7,10 +7,15 @@
       "anchor": { "x": -5.0, "y": 5.0 },
       "rotation": [ 0.0, -2.0 ],
       "animation_length": 4.0,
-      "texture": [
-        [ "uncolored", "creature/aftik/head_details" ],
-        [ "secondary", "creature/aftik/head_secondary" ],
-        [ "primary", "creature/aftik/head_primary" ]
+      "children": [
+        { "if_expression": "neutral", "texture": "creature/aftik/head_details" },
+        { "if_expression": "sad", "texture": "creature/aftik/head_details_sad" },
+        {
+          "texture": [
+            [ "secondary", "creature/aftik/head_secondary" ],
+            [ "primary", "creature/aftik/head_primary" ]
+          ]
+        }
       ]
     },
     {

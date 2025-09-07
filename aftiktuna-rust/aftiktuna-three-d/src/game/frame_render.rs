@@ -2,7 +2,7 @@ use crate::Assets;
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{DialogueExpression, ModelId};
+use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
 use aftiktuna::view::{self, Frame, StoreStockView};
@@ -61,9 +61,9 @@ pub fn render_frame(
                     direction: data.direction,
                     aftik_color: data.color.clone(),
                     is_badly_hurt: data.is_badly_hurt,
+                    expression: data.expression,
                     ..ObjectProperties::default()
                 },
-                data.expression,
                 &mut assets.aftik_colors,
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
@@ -133,7 +133,6 @@ fn draw_area_view(
                 assets.models.lookup_model(&object.model_id),
                 *pos,
                 &object.properties,
-                DialogueExpression::default(),
                 &mut assets.aftik_colors,
                 frame_input.accumulated_time as f32 + time_offset,
                 &frame_input.context,
@@ -152,7 +151,6 @@ fn draw_area_view(
                             direction: object.properties.direction,
                             ..ObjectProperties::default()
                         },
-                        DialogueExpression::default(),
                         &mut assets.aftik_colors,
                         frame_input.accumulated_time as f32,
                         &frame_input.context,
@@ -283,7 +281,6 @@ fn draw_store_view(
             aftik_color: view.shopkeeper_color.clone(),
             ..ObjectProperties::default()
         },
-        DialogueExpression::Neutral,
         &mut assets.aftik_colors,
         frame_input.accumulated_time as f32,
         &frame_input.context,

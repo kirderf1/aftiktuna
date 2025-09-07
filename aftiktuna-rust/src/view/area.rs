@@ -3,12 +3,12 @@ use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, ModelId};
+use crate::core::display::{AftikColorId, DialogueExpression, ModelId};
 use crate::core::inventory::Held;
 use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
-use crate::core::status::{self, Health};
+use crate::core::status::{self, Health, Morale};
 use crate::core::{BlockType, Door, IsCut, inventory};
 use crate::deref_clone;
 use crate::game_loop::GameState;
@@ -83,6 +83,7 @@ pub struct ObjectProperties {
     pub is_cut: bool,
     pub is_alive: bool,
     pub is_badly_hurt: bool,
+    pub expression: DialogueExpression,
 }
 
 impl Default for ObjectProperties {
@@ -93,6 +94,7 @@ impl Default for ObjectProperties {
             is_cut: false,
             is_alive: true,
             is_badly_hurt: false,
+            expression: DialogueExpression::Neutral,
         }
     }
 }
@@ -158,6 +160,12 @@ fn build_object_data(
     noun_map: &NounDataMap,
 ) -> ObjectRenderData {
     let entity_ref = state.world.entity(entity).unwrap();
+    let morale = entity_ref
+        .get::<&Morale>()
+        .as_deref()
+        .copied()
+        .unwrap_or_default()
+        .value();
     let properties = ObjectProperties {
         direction: entity_ref
             .get::<&Direction>()
@@ -171,6 +179,11 @@ fn build_object_data(
         is_badly_hurt: entity_ref
             .get::<&Health>()
             .is_some_and(|health| health.is_badly_hurt()),
+        expression: if morale < -5. {
+            DialogueExpression::Sad
+        } else {
+            DialogueExpression::Neutral
+        },
     };
     ObjectRenderData {
         coord: pos.get_coord(),
