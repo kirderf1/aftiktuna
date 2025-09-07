@@ -26,7 +26,8 @@
       "rotation": [ 0.0, -2.0 ],
       "animation_length": 4.0,
       "texture": [
-        [ "uncolored", "creature/aftik/head_details_wounded" ],
+        [ "uncolored", "creature/aftik/head_wound" ],
+        [ "uncolored", "creature/aftik/head_details_sad" ],
         [ "secondary", "creature/aftik/head_secondary" ],
         [ "primary", "creature/aftik/head_primary" ]
       ]
