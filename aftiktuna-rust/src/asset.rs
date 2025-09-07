@@ -159,6 +159,14 @@ pub mod placement {
             if models.lookup_model(&data.model_id).large_displacement {
                 positioned_objects
                     .extend(positioner.position_object_group(mem::take(object_group), models));
+                if let Some(object_group) = data
+                    .coord
+                    .checked_add_signed(data.properties.direction.opposite().into())
+                    .and_then(|coord| groups_cache.get_mut(coord as usize))
+                {
+                    positioned_objects
+                        .extend(positioner.position_object_group(mem::take(object_group), models));
+                }
                 positioned_objects.push((
                     positioner.position_object(
                         data.coord,
