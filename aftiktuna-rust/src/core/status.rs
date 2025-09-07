@@ -2,6 +2,9 @@ use super::Species;
 use super::behavior::BadlyHurtBehavior;
 use super::name::NameWithAttribute;
 use super::position::Pos;
+use crate::core::CrewMember;
+use crate::core::behavior::{Character, CrewLossMemory};
+use crate::core::item::ItemType;
 use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -403,6 +406,104 @@ impl Morale {
     }
     pub fn crew_death_effect(&mut self) {
         self.apply_negative_effect(Morale::HIGH_INTENSITY, Morale::DEEP_DEPTH)
+    }
+}
+
+/// Assumes that any non-ship entities have been despawned.
+pub(crate) fn apply_morale_effects_from_crew_state(
+    world: &mut World,
+    rations_before_eating: usize,
+) {
+    let mut crew_positive_effect = 0.;
+    let mut crew_negative_effect = 0.;
+
+    let crew_count = world
+        .query_mut::<()>()
+        .with::<&CrewMember>()
+        .into_iter()
+        .count();
+    let crew_character_count = world
+        .query_mut::<()>()
+        .with::<(&CrewMember, &Character)>()
+        .into_iter()
+        .count();
+    if crew_count == 1 {
+        crew_negative_effect += Morale::SMALL_INTENSITY;
+    } else if crew_count >= 3 {
+        crew_positive_effect += Morale::MEDIUM_INTENSITY;
+    }
+
+    let rations_after_eating = world
+        .query::<&ItemType>()
+        .iter()
+        .filter(|&(_, item_type)| *item_type == ItemType::FoodRation)
+        .count();
+    if rations_before_eating == 0 {
+        crew_negative_effect += Morale::SMALL_INTENSITY;
+    }
+    if rations_after_eating > crew_count {
+        crew_positive_effect += Morale::SMALL_INTENSITY;
+    }
+
+    let mut weapon_values = world
+        .query::<&ItemType>()
+        .iter()
+        .filter_map(|(_, item_type)| item_type.weapon_properties())
+        .map(|weapon_properties| {
+            (weapon_properties.damage_mod - 1.
+                + if weapon_properties.stun_attack {
+                    1.
+                } else {
+                    0.
+                })
+            .max(0.)
+        })
+        .collect::<Vec<_>>();
+    weapon_values.sort_by(|a, b| b.total_cmp(a));
+    let average_usable_weapon_value =
+        weapon_values.iter().take(crew_character_count).sum::<f32>() / crew_character_count as f32;
+    match average_usable_weapon_value {
+        2.0..3.0 => crew_positive_effect += Morale::SMALL_INTENSITY,
+        3.0.. => crew_positive_effect += Morale::MEDIUM_INTENSITY,
+        _ => {}
+    }
+
+    let fuel_can_count = world
+        .query::<&ItemType>()
+        .iter()
+        .filter(|&(_, item_type)| *item_type == ItemType::FuelCan)
+        .count();
+    if fuel_can_count >= 1 {
+        crew_positive_effect += Morale::SMALL_INTENSITY;
+    }
+
+    let medkit_count = world
+        .query::<&ItemType>()
+        .iter()
+        .filter(|&(_, item_type)| *item_type == ItemType::Medkit)
+        .count();
+    if medkit_count >= 1 {
+        crew_positive_effect += Morale::SMALL_INTENSITY;
+    }
+
+    for (_, (morale, health, memory)) in world
+        .query_mut::<(&mut Morale, Option<&Health>, Option<&CrewLossMemory>)>()
+        .with::<&CrewMember>()
+    {
+        let mut character_negative_effect = crew_negative_effect;
+        if let Some(memory) = memory {
+            character_negative_effect += if memory.recent {
+                Morale::MEDIUM_INTENSITY
+            } else {
+                Morale::SMALL_INTENSITY
+            };
+        }
+        if health.is_some_and(|health| health.is_badly_hurt()) {
+            character_negative_effect += Morale::MEDIUM_INTENSITY;
+        }
+
+        morale.apply_positive_effect(crew_positive_effect, Morale::MEDIUM_DEPTH);
+        morale.apply_negative_effect(character_negative_effect, Morale::MEDIUM_DEPTH);
     }
 }
 

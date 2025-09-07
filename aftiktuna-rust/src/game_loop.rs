@@ -487,6 +487,14 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         morale.dampen(0.6);
     }
 
+    let rations_before_eating = state
+        .world
+        .query::<(&ItemType, &Pos)>()
+        .iter()
+        .filter(|&(_, (item_type, pos))| {
+            *item_type == ItemType::FoodRation && area::is_in_ship(*pos, &state.world)
+        })
+        .count();
     consume_rations_healing(state, view_buffer);
 
     view_buffer.capture_view(state);
@@ -497,6 +505,8 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .get::<&mut ShipState>(state.ship_core)
         .unwrap()
         .status = ShipStatus::NeedFuel(FuelAmount::TwoCans);
+
+    status::apply_morale_effects_from_crew_state(&mut state.world, rations_before_eating);
 }
 
 fn deposit_items_to_ship(state: &mut GameState) {
