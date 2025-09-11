@@ -1,15 +1,14 @@
 mod frame_render;
 mod ui;
 
-use crate::Assets;
+use crate::asset::{Assets, LazilyLoadedModels};
+use crate::Camera;
 use aftiktuna::asset::placement;
 use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
 use aftiktuna::serialization;
 use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::{Frame, FullStatus};
-use aftiktuna_three_d::asset::LazilyLoadedModels;
-use aftiktuna_three_d::Camera;
 use std::fs;
 
 pub enum GameAction {

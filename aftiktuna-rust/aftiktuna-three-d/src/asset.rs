@@ -1,14 +1,40 @@
 use crate::Rect;
 use aftiktuna::asset::background::{self, BGData, ParallaxLayer};
+use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{
     self, ColoredTextures, LayerPositioning, Model, ModelAccess, TextureLayer,
 };
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::ModelId;
+use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::rc::Rc;
+
+pub struct BuiltinFonts {
+    pub text_gen_size_16: three_d::TextGenerator<'static>,
+    pub text_gen_size_20: three_d::TextGenerator<'static>,
+}
+
+impl BuiltinFonts {
+    pub fn init() -> Self {
+        Self {
+            text_gen_size_16: three_d::TextGenerator::new(
+                epaint_default_fonts::HACK_REGULAR,
+                0,
+                16.,
+            )
+            .expect("Unexpected error for builtin font"),
+            text_gen_size_20: three_d::TextGenerator::new(
+                epaint_default_fonts::HACK_REGULAR,
+                0,
+                20.,
+            )
+            .expect("Unexpected error for builtin font"),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {
@@ -166,6 +192,30 @@ impl ModelAccess<three_d::Texture2DRef> for LazilyLoadedModels {
             }
         }
         self.loaded_models.get(model_id).unwrap()
+    }
+}
+
+pub struct Assets {
+    pub backgrounds: BackgroundMap,
+    pub models: LazilyLoadedModels,
+    pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
+    pub left_mouse_icon: three_d::Texture2DRef,
+    pub side_arrow_texture: three_d::Texture2DRef,
+    pub builtin_fonts: Rc<BuiltinFonts>,
+}
+
+impl Assets {
+    pub fn load(context: three_d::Context, builtin_fonts: Rc<BuiltinFonts>) -> Result<Self, Error> {
+        let left_mouse_icon = load_texture("left_mouse", &context)?;
+        let side_arrow_texture = load_texture("side_arrow", &context)?;
+        Ok(Self {
+            backgrounds: BackgroundMap::load(context.clone())?,
+            models: LazilyLoadedModels::new(context)?,
+            aftik_colors: color::load_aftik_color_data()?,
+            left_mouse_icon,
+            side_arrow_texture,
+            builtin_fonts,
+        })
     }
 }
 

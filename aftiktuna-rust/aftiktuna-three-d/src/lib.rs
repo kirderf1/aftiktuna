@@ -1,4 +1,5 @@
 pub mod asset;
+pub mod game;
 pub mod render;
 
 mod camera {
@@ -112,4 +113,71 @@ impl Rect {
 
 pub fn to_vec(pos: aftiktuna::Vec2, direction_mod: f32) -> three_d::Vec2 {
     three_d::vec2(direction_mod * pos.x, pos.y)
+}
+
+pub fn make_centered_text_obj(
+    text: &str,
+    pos: three_d::Vec2,
+    color: three_d::Vec4,
+    text_gen: &three_d::TextGenerator<'static>,
+    context: &three_d::Context,
+) -> impl three_d::Object {
+    let mut mesh = text_gen.generate(text, three_d::TextLayoutOptions::default());
+    mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
+        pos.x - (mesh.compute_aabb().size().x) / 2.,
+        pos.y,
+        0.,
+    )))
+    .unwrap();
+    three_d::Gm::new(
+        three_d::Mesh::new(context, &mesh),
+        render::color_material(color),
+    )
+}
+
+pub fn make_text_obj(
+    text: &str,
+    pos: three_d::Vec2,
+    color: three_d::Vec4,
+    text_gen: &three_d::TextGenerator<'static>,
+    context: &three_d::Context,
+) -> impl three_d::Object {
+    let mut mesh = text_gen.generate(text, three_d::TextLayoutOptions::default());
+    mesh.transform(three_d::Matrix4::from_translation(three_d::vec3(
+        pos.x, pos.y, 0.,
+    )))
+    .unwrap();
+    three_d::Gm::new(
+        three_d::Mesh::new(context, &mesh),
+        render::color_material(color),
+    )
+}
+
+pub fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {
+    let mut pressed = false;
+    for event in events {
+        if let three_d::Event::KeyPress { kind, handled, .. } = event {
+            if !*handled && *kind == three_d::Key::Enter {
+                *handled = true;
+                pressed = true;
+            }
+        }
+    }
+    pressed
+}
+
+pub fn check_clicked_anywhere(events: &mut [three_d::Event]) -> bool {
+    let mut clicked = false;
+    for event in events {
+        if let three_d::Event::MousePress {
+            button, handled, ..
+        } = event
+        {
+            if !*handled && *button == three_d::MouseButton::Left {
+                *handled = true;
+                clicked = true;
+            }
+        }
+    }
+    clicked
 }

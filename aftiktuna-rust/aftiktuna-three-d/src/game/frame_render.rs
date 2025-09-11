@@ -1,4 +1,5 @@
-use crate::Assets;
+use crate::asset::Assets;
+use crate::{render, Camera};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
@@ -6,7 +7,6 @@ use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
 use aftiktuna::view::{self, Frame, StoreStockView};
-use aftiktuna_three_d::{render, Camera};
 use rand::{Rng, SeedableRng};
 use three_d::Object;
 
@@ -51,7 +51,7 @@ pub fn render_frame(
             );
 
             let x = match data.direction {
-                Direction::Left => aftiktuna_three_d::WINDOW_WIDTH_F - 300.,
+                Direction::Left => crate::WINDOW_WIDTH_F - 300.,
                 Direction::Right => 300.,
             };
             let objects = render::get_render_objects_for_entity(
@@ -140,10 +140,8 @@ fn draw_area_view(
             if object.properties.is_alive {
                 if let Some(item_model_id) = &object.wielded_item {
                     let item_model = assets.models.lookup_model(item_model_id);
-                    let offset = aftiktuna_three_d::to_vec(
-                        item_model.wield_offset,
-                        object.properties.direction.into(),
-                    );
+                    let offset =
+                        crate::to_vec(item_model.wield_offset, object.properties.direction.into());
                     render_objects.extend(render::get_render_objects_for_entity(
                         item_model,
                         pos + offset,
@@ -238,10 +236,7 @@ fn draw_camera_arrows(
         arrow_objects.push(three_d::Gm::new(
             three_d::Rectangle::new(
                 &frame_input.context,
-                three_d::vec2(
-                    aftiktuna_three_d::WINDOW_WIDTH_F - 10. - texture_width / 2.,
-                    250.,
-                ),
+                three_d::vec2(crate::WINDOW_WIDTH_F - 10. - texture_width / 2., 250.),
                 three_d::degrees(0.),
                 texture_width,
                 texture_height,
@@ -275,7 +270,7 @@ fn draw_store_view(
 
     let objects = render::get_render_objects_for_entity(
         assets.models.lookup_model(&ModelId::portrait()),
-        three_d::vec2(aftiktuna_three_d::WINDOW_WIDTH_F - 200., 0.),
+        three_d::vec2(crate::WINDOW_WIDTH_F - 200., 0.),
         &ObjectProperties {
             direction: Direction::Left,
             aftik_color: view.shopkeeper_color.clone(),
@@ -354,7 +349,7 @@ fn draw_store_view(
 
 pub fn find_stock_at(pos: three_d::Vec2, store_view: &view::StoreView) -> Option<&StoreStockView> {
     for (index, stock) in store_view.items.iter().enumerate() {
-        if aftiktuna_three_d::Rect::new(30., 546. - (index as f32 * 24.), 400., 24.).contains(pos) {
+        if crate::Rect::new(30., 546. - (index as f32 * 24.), 400., 24.).contains(pos) {
             return Some(stock);
         }
     }
