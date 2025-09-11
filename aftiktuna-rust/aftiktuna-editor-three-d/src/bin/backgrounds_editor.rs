@@ -9,6 +9,7 @@ use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
+use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
 use std::fs::File;
@@ -17,8 +18,8 @@ use three_d::egui;
 const SIDE_PANEL_WIDTH: u32 = 200;
 
 const SIZE: (u32, u32) = (
-    aftiktuna_three_d::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
-    aftiktuna_three_d::WINDOW_HEIGHT as u32,
+    dimensions::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
+    dimensions::WINDOW_HEIGHT as u32,
 );
 
 fn main() {
@@ -81,10 +82,8 @@ fn main() {
         let render_viewport = three_d::Viewport {
             x: 0,
             y: 0,
-            width: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_WIDTH))
-                as u32,
-            height: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_HEIGHT))
-                as u32,
+            width: (frame_input.device_pixel_ratio * f32::from(dimensions::WINDOW_WIDTH)) as u32,
+            height: (frame_input.device_pixel_ratio * f32::from(dimensions::WINDOW_HEIGHT)) as u32,
         };
 
         let (_, raw_background) = backgrounds.get_index(selected_bg).unwrap();

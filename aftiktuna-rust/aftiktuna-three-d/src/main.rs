@@ -1,5 +1,6 @@
 mod app;
 
+use aftiktuna_three_d::dimensions;
 use winit::dpi;
 use winit::event_loop::EventLoop;
 use winit::window::{Icon, Window, WindowBuilder, WindowButtons};
@@ -24,8 +25,8 @@ fn init_window() -> (Window, EventLoop<()>) {
         .with_window_icon(Some(small_icon))
         .with_decorations(true)
         .with_inner_size(dpi::LogicalSize::new(
-            aftiktuna_three_d::WINDOW_WIDTH,
-            aftiktuna_three_d::WINDOW_HEIGHT,
+            dimensions::WINDOW_WIDTH,
+            dimensions::WINDOW_HEIGHT,
         ))
         .with_resizable(false)
         .with_enabled_buttons(!WindowButtons::MAXIMIZE)

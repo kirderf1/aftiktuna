@@ -2,7 +2,7 @@ use aftiktuna::serialization::LoadError;
 use aftiktuna::{game_interface, serialization};
 use aftiktuna_three_d::asset::{self, Assets, BuiltinFonts};
 use aftiktuna_three_d::game::{self, GameAction};
-use aftiktuna_three_d::render;
+use aftiktuna_three_d::{dimensions, render};
 use std::env;
 use std::path::Path;
 use std::rc::Rc;
@@ -101,7 +101,7 @@ impl App {
             for line in &self.error_messages {
                 let text_obj = aftiktuna_three_d::make_centered_text_obj(
                     line,
-                    three_d::vec2(aftiktuna_three_d::WINDOW_WIDTH_F / 2., y),
+                    three_d::vec2(dimensions::WINDOW_WIDTH_F / 2., y),
                     three_d::vec4(1., 0.4, 0.7, 1.),
                     &self.builtin_fonts.text_gen_size_16,
                     &frame_input.context,
@@ -134,7 +134,7 @@ impl App {
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
             let text_obj = aftiktuna_three_d::make_centered_text_obj(
                 "Loading textures...",
-                three_d::vec2(aftiktuna_three_d::WINDOW_WIDTH_F / 2., 300.),
+                three_d::vec2(dimensions::WINDOW_WIDTH_F / 2., 300.),
                 three_d::vec4(1., 1., 1., 1.),
                 &self.builtin_fonts.text_gen_size_20,
                 &frame_input.context,

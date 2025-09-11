@@ -1,3 +1,4 @@
+use crate::dimensions;
 use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
 use aftiktuna::asset::color::{self, AftikColorData};
 use aftiktuna::asset::model::{Model, TextureLayer};
@@ -78,10 +79,13 @@ pub fn draw_secondary_background(
             let background_object = three_d::Gm::new(
                 three_d::Rectangle::new(
                     &frame_input.context,
-                    three_d::vec2(crate::WINDOW_WIDTH_F / 2., crate::WINDOW_HEIGHT_F / 2.),
+                    three_d::vec2(
+                        dimensions::WINDOW_WIDTH_F / 2.,
+                        dimensions::WINDOW_HEIGHT_F / 2.,
+                    ),
                     three_d::degrees(0.),
-                    crate::WINDOW_WIDTH_F,
-                    crate::WINDOW_HEIGHT_F,
+                    dimensions::WINDOW_WIDTH_F,
+                    dimensions::WINDOW_HEIGHT_F,
                 ),
                 texture_material(texture),
             );
@@ -279,17 +283,17 @@ pub fn get_render_camera(camera: &crate::Camera, viewport: three_d::Viewport) ->
     let mut render_camera = three_d::Camera::new_orthographic(
         viewport,
         three_d::vec3(
-            camera.camera_x + crate::WINDOW_WIDTH_F * 0.5,
-            crate::WINDOW_HEIGHT_F * 0.5,
+            camera.camera_x + dimensions::WINDOW_WIDTH_F * 0.5,
+            dimensions::WINDOW_HEIGHT_F * 0.5,
             1.0,
         ),
         three_d::vec3(
-            camera.camera_x + crate::WINDOW_WIDTH_F * 0.5,
-            crate::WINDOW_HEIGHT_F * 0.5,
+            camera.camera_x + dimensions::WINDOW_WIDTH_F * 0.5,
+            dimensions::WINDOW_HEIGHT_F * 0.5,
             0.0,
         ),
         three_d::vec3(0.0, 1.0, 0.0),
-        crate::WINDOW_HEIGHT_F,
+        dimensions::WINDOW_HEIGHT_F,
         0.0,
         10.0,
     );

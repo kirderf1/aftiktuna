@@ -722,6 +722,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::position::Coord;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
+use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
 use std::collections::HashMap;
@@ -731,8 +732,8 @@ const SIDE_PANEL_WIDTH: u32 = 250;
 const BOTTOM_PANEL_HEIGHT: u32 = 30;
 
 const SIZE: (u32, u32) = (
-    aftiktuna_three_d::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
-    aftiktuna_three_d::WINDOW_HEIGHT as u32 + BOTTOM_PANEL_HEIGHT,
+    dimensions::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
+    dimensions::WINDOW_HEIGHT as u32 + BOTTOM_PANEL_HEIGHT,
 );
 
 fn main() {
@@ -823,10 +824,8 @@ fn main() {
         let render_viewport = three_d::Viewport {
             x: 0,
             y: (frame_input.device_pixel_ratio * BOTTOM_PANEL_HEIGHT as f32) as i32,
-            width: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_WIDTH))
-                as u32,
-            height: (frame_input.device_pixel_ratio * f32::from(aftiktuna_three_d::WINDOW_HEIGHT))
-                as u32,
+            width: (frame_input.device_pixel_ratio * f32::from(dimensions::WINDOW_WIDTH)) as u32,
+            height: (frame_input.device_pixel_ratio * f32::from(dimensions::WINDOW_HEIGHT)) as u32,
         };
 
         if editor_data.is_in_overview {
@@ -1008,11 +1007,8 @@ const OVERVIEW_SCALE: f32 = 8.;
 
 fn mouse_to_overview_pos(pos: three_d::PhysicalPoint, scale_factor: f32) -> (i32, i32) {
     (
-        ((pos.x / scale_factor - aftiktuna_three_d::WINDOW_WIDTH_F / 2.) / OVERVIEW_SCALE).round()
-            as i32,
-        ((pos.y / scale_factor
-            - BOTTOM_PANEL_HEIGHT as f32
-            - aftiktuna_three_d::WINDOW_HEIGHT_F / 2.)
+        ((pos.x / scale_factor - dimensions::WINDOW_WIDTH_F / 2.) / OVERVIEW_SCALE).round() as i32,
+        ((pos.y / scale_factor - BOTTOM_PANEL_HEIGHT as f32 - dimensions::WINDOW_HEIGHT_F / 2.)
             / OVERVIEW_SCALE)
             .round() as i32,
     )

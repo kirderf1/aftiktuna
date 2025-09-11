@@ -1,5 +1,5 @@
 use crate::asset::Assets;
-use crate::{render, Camera};
+use crate::{dimensions, render, Camera};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
@@ -51,7 +51,7 @@ pub fn render_frame(
             );
 
             let x = match data.direction {
-                Direction::Left => crate::WINDOW_WIDTH_F - 300.,
+                Direction::Left => dimensions::WINDOW_WIDTH_F - 300.,
                 Direction::Right => 300.,
             };
             let objects = render::get_render_objects_for_entity(
@@ -236,7 +236,7 @@ fn draw_camera_arrows(
         arrow_objects.push(three_d::Gm::new(
             three_d::Rectangle::new(
                 &frame_input.context,
-                three_d::vec2(crate::WINDOW_WIDTH_F - 10. - texture_width / 2., 250.),
+                three_d::vec2(dimensions::WINDOW_WIDTH_F - 10. - texture_width / 2., 250.),
                 three_d::degrees(0.),
                 texture_width,
                 texture_height,
@@ -270,7 +270,7 @@ fn draw_store_view(
 
     let objects = render::get_render_objects_for_entity(
         assets.models.lookup_model(&ModelId::portrait()),
-        three_d::vec2(crate::WINDOW_WIDTH_F - 200., 0.),
+        three_d::vec2(dimensions::WINDOW_WIDTH_F - 200., 0.),
         &ObjectProperties {
             direction: Direction::Left,
             aftik_color: view.shopkeeper_color.clone(),

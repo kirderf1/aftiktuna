@@ -3,6 +3,7 @@ pub mod game;
 pub mod render;
 
 mod camera {
+    use crate::dimensions;
     use aftiktuna::asset::placement;
     use aftiktuna::core::position::Coord;
 
@@ -14,7 +15,7 @@ mod camera {
 
     impl Camera {
         pub fn set_center(&mut self, coord: Coord) {
-            self.camera_x = placement::coord_to_center_x(coord) - crate::WINDOW_WIDTH_F / 2.;
+            self.camera_x = placement::coord_to_center_x(coord) - dimensions::WINDOW_WIDTH_F / 2.;
         }
 
         pub fn handle_inputs(&mut self, events: &mut [three_d::Event]) {
@@ -50,11 +51,11 @@ mod camera {
         pub fn clamp(&mut self, area_size: Coord) {
             self.camera_x = if area_size <= 6 {
                 (placement::coord_to_center_x(0) + placement::coord_to_center_x(area_size - 1)) / 2.
-                    - crate::WINDOW_WIDTH_F / 2.
+                    - dimensions::WINDOW_WIDTH_F / 2.
             } else {
                 self.camera_x.clamp(
                     placement::coord_to_center_x(0) - 100.,
-                    placement::coord_to_center_x(area_size - 1) + 100. - crate::WINDOW_WIDTH_F,
+                    placement::coord_to_center_x(area_size - 1) + 100. - dimensions::WINDOW_WIDTH_F,
                 )
             };
         }
@@ -65,7 +66,7 @@ mod camera {
             } else {
                 [
                     self.camera_x > placement::coord_to_center_x(0) - 100.,
-                    self.camera_x + crate::WINDOW_WIDTH_F
+                    self.camera_x + dimensions::WINDOW_WIDTH_F
                         < placement::coord_to_center_x(area_size - 1) + 100.,
                 ]
             }
@@ -73,12 +74,14 @@ mod camera {
     }
 }
 
-pub use camera::Camera;
+pub mod dimensions {
+    pub const WINDOW_WIDTH: u16 = 800;
+    pub const WINDOW_HEIGHT: u16 = 600;
+    pub const WINDOW_WIDTH_F: f32 = WINDOW_WIDTH as f32;
+    pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
+}
 
-pub const WINDOW_WIDTH: u16 = 800;
-pub const WINDOW_HEIGHT: u16 = 600;
-pub const WINDOW_WIDTH_F: f32 = WINDOW_WIDTH as f32;
-pub const WINDOW_HEIGHT_F: f32 = WINDOW_HEIGHT as f32;
+pub use camera::Camera;
 
 pub struct Rect {
     left: f32,
