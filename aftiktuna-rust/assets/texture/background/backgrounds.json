@@ -45,31 +45,31 @@
     "portrait_color": [ 109, 102, 67 ]
   },
   "facility_size3": {
-    "texture": "3x_facility",
+    "texture": "facility/size3",
     "move_factor": 1.0,
     "offset": { "x": -56, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size4": {
-    "texture": "4x_facility",
+    "texture": "facility/size4",
     "move_factor": 1.0,
     "offset": { "x": -56, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size5": {
-    "texture": "5x_facility",
+    "texture": "facility/size5",
     "move_factor": 1.0,
     "offset": { "x": -56, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size6": {
-    "texture": "6x_facility",
+    "texture": "facility/size6",
     "move_factor": 1.0,
     "offset": { "x": -56, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
   },
   "facility_size7": {
-    "texture": "7x_facility",
+    "texture": "facility/size7",
     "move_factor": 1.0,
     "offset": { "x": -56, "y": 60 },
     "portrait_color": [ 153, 153, 153 ]
