@@ -182,14 +182,17 @@ pub(super) fn place_shopkeeper(
         .map(build_stock)
         .collect::<Result<Vec<_>, String>>()?;
 
-    world.spawn((
-        Species::Aftik.model_id(),
-        spawn_data.color.clone(),
-        NounId::from("shopkeeper"),
-        pos,
-        direction,
-        Shopkeeper(stock),
-    ));
+    world.spawn(
+        species_builder_base(Species::Aftik)
+            .add_bundle((
+                spawn_data.color.clone(),
+                NounId::from("shopkeeper"),
+                pos,
+                direction,
+                Shopkeeper(stock),
+            ))
+            .build(),
+    );
     Ok(())
 }
 
