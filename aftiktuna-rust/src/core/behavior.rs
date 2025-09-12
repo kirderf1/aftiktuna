@@ -64,6 +64,9 @@ pub struct CrewLossMemory {
 pub struct Recruitable;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Talk(pub DialogueNode);
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
     pub target_tag: Tag,
     pub task_dialogue: DialogueNode,

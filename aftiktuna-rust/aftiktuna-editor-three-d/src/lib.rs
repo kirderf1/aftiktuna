@@ -191,6 +191,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
         SymbolData::Character(npc_spawn_data) => {
             let interaction = match &npc_spawn_data.interaction {
                 CharacterInteraction::Recruitable => "recruitable",
+                CharacterInteraction::Talk(_) => "talkable",
                 CharacterInteraction::GivesHuntReward(_) => "hunt quest",
                 CharacterInteraction::Hostile { .. } => "hostile",
             };

@@ -1,5 +1,5 @@
 use crate::core::behavior::{
-    Character, CrewLossMemory, EncounterDialogue, GivesHuntReward, Recruitable, Waiting,
+    Character, CrewLossMemory, EncounterDialogue, GivesHuntReward, Recruitable, Talk, Waiting,
 };
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
@@ -67,6 +67,8 @@ pub fn talk_dialogue(
 
             reward.give_reward_to(performer, world);
         }
+    } else if let Some(talk) = target_ref.get::<&Talk>() {
+        view_buffer.push_dialogue(world, target, talk.0.expression, &talk.0.message);
     } else if target_ref.has::<Recruitable>() {
         view_buffer.push_dialogue(
             world,
@@ -156,11 +158,11 @@ fn ship_dialogue(
     if state.generation_state.locations_before_fortuna() == 0 {
         if badly_hurt1 {
             view_buffer.push_dialogue(
-            &state.world,
-            character1,
-            DialogueExpression::Neutral,
-            "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
-        );
+                &state.world,
+                character1,
+                DialogueExpression::Neutral,
+                "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
+            );
             view_buffer.push_dialogue(
                 &state.world,
                 character2,

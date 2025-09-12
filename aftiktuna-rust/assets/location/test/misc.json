@@ -3,11 +3,15 @@
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
-      "objects": [ "<k", "v", "^", ">c" ],
+      "objects": [ "<", "A", "", "v", "", ">c" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
-        "c": { "type": "item", "item": "crowbar" }
+        "c": { "type": "item", "item": "crowbar" },
+        "A": {
+          "type": "character",
+          "interaction": { "type": "talk", "expression": "sad", "message": "That is all there is for me to say right now." }
+        }
       }
     },
     {

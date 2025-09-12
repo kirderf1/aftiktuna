@@ -189,6 +189,7 @@ pub mod world {
         behavior::CrewLossMemory, CrewLossMemory;
 
         behavior::Recruitable, Recruitable;
+        behavior::Talk, Talk;
         behavior::GivesHuntReward, GivesHuntReward;
         behavior::EncounterDialogue, EncounterDialogue;
         core::Tag, Tag;
