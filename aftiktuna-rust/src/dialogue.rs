@@ -1,5 +1,6 @@
 use crate::core::behavior::{
-    Character, CrewLossMemory, EncounterDialogue, GivesHuntReward, Recruitable, Talk, Waiting,
+    BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntReward, Recruitable,
+    Talk, Waiting,
 };
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
@@ -296,4 +297,67 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
             );
         }
     }
+
+    let entities_with_background_dialogue = state
+        .world
+        .query::<&Pos>()
+        .with::<&BackgroundDialogue>()
+        .into_iter()
+        .map(|(entity, pos)| (entity, *pos))
+        .collect::<Vec<_>>();
+    for (speaker, speaker_pos) in entities_with_background_dialogue {
+        if player_pos.is_in(speaker_pos.get_area()) {
+            trigger_backgorund_dialogue(
+                speaker,
+                speaker_pos,
+                state
+                    .world
+                    .remove_one::<BackgroundDialogue>(speaker)
+                    .unwrap(),
+                state,
+                view_buffer,
+            );
+        }
+    }
+}
+
+fn trigger_backgorund_dialogue(
+    speaker: Entity,
+    speaker_pos: Pos,
+    background_dialogue: BackgroundDialogue,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) {
+    let Some(target) = find_one_entity_with_tag(&background_dialogue.target, &state.world) else {
+        return;
+    };
+    let Ok(target_pos) = state.world.get::<&Pos>(target).as_deref().copied() else {
+        return;
+    };
+
+    if target_pos.is_in(speaker_pos.get_area())
+        && state.world.satisfies::<&Character>(target).unwrap()
+    {
+        view_buffer.capture_view_before_dialogue(state);
+
+        position::turn_towards(&mut state.world, speaker, target_pos);
+        position::turn_towards(&mut state.world, target, speaker_pos);
+        let speakers = [speaker, target];
+        for i in 0..background_dialogue.dialogue.len() {
+            let dialogue_node = &background_dialogue.dialogue[i];
+            view_buffer.push_dialogue(
+                &state.world,
+                speakers[i % 2],
+                dialogue_node.expression,
+                &dialogue_node.message,
+            );
+        }
+    }
+}
+fn find_one_entity_with_tag(target_tag: &Tag, world: &World) -> Option<Entity> {
+    world
+        .query::<&Tag>()
+        .iter()
+        .find(|&(_, tag)| tag == target_tag)
+        .map(|(entity, _)| entity)
 }

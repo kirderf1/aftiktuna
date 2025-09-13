@@ -178,7 +178,7 @@ fn perform(
                         .is_ok_and(|pos| pos.is_in(player_area))
             {
                 view_buffer.add_change_message(error.message, state);
-                view_buffer.capture_view(state);
+                view_buffer.capture_view(state, false);
             }
         }
     }

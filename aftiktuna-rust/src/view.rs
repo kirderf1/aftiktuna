@@ -126,7 +126,7 @@ impl<'a> Buffer<'a> {
         }
     }
 
-    pub fn capture_view(&mut self, state: &mut GameState) {
+    pub fn capture_view(&mut self, state: &mut GameState, ensure_command_readiness_frame: bool) {
         let frame = if let Some(shopkeeper) = state
             .world
             .get::<&IsTrading>(state.controlled)
@@ -144,7 +144,12 @@ impl<'a> Buffer<'a> {
             area_view_frame(self, state)
         };
 
-        if self.unseen_view || self.captured_frames.is_empty() || frame.has_messages() {
+        if self.unseen_view
+            || self.captured_frames.is_empty()
+            || (ensure_command_readiness_frame
+                && matches!(self.captured_frames.last(), Some(Frame::Dialogue { .. })))
+            || frame.has_messages()
+        {
             self.captured_frames.push(frame);
         }
         self.unseen_view = false;
@@ -152,7 +157,7 @@ impl<'a> Buffer<'a> {
 
     pub fn capture_view_before_dialogue(&mut self, state: &mut GameState) {
         if !self.messages.is_empty() {
-            self.capture_view(state);
+            self.capture_view(state, false);
         }
     }
 
@@ -162,7 +167,7 @@ impl<'a> Buffer<'a> {
 
     pub fn capture_unseen_view(&mut self, state: &mut GameState) {
         if self.unseen_view {
-            self.capture_view(state);
+            self.capture_view(state, false);
         }
     }
 
@@ -173,7 +178,7 @@ impl<'a> Buffer<'a> {
 
     pub fn flush_hint(&mut self, state: &mut GameState) {
         if self.messages.len() >= 4 {
-            self.capture_view(state);
+            self.capture_view(state, false);
         }
     }
 

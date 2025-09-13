@@ -63,6 +63,7 @@ pub struct CrewLossMemory {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Recruitable;
 
+/// Dialogue that appears after the greeting as a response to the talk action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Talk(pub DialogueNode);
 
@@ -80,6 +81,15 @@ pub struct DialogueNode {
     pub message: String,
 }
 
+/// Dialogue between npcs triggered by encounter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackgroundDialogue {
+    /// The tag is expected to only match one other entity.
+    pub target: Tag,
+    pub dialogue: Vec<DialogueNode>,
+}
+
+/// Dialogue towards the player triggered by encounter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EncounterDialogue(pub DialogueNode);
 

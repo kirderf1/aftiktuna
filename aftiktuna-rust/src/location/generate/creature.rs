@@ -92,6 +92,9 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
 
     let mut builder = aftik_builder_with_stats(profile, false);
     builder.add_bundle((pos, direction));
+    if let Some(tag) = spawn_data.tag.clone() {
+        builder.add(tag);
+    }
     match &spawn_data.interaction {
         CharacterInteraction::Recruitable => {
             builder.add(Recruitable);
@@ -109,6 +112,10 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
             }
         }
     }
+    if let Some(background_dialogue) = spawn_data.background_dialogue.clone() {
+        builder.add(background_dialogue);
+    }
+
     let npc = gen_context.world.spawn(builder.build());
     if let Some(item_type) = spawn_data.wielded_item {
         item_type.spawn(&mut gen_context.world, inventory::Held::in_hand(npc));

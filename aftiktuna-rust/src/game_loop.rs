@@ -99,7 +99,7 @@ fn run_step(
                 state.has_introduced_controlled = true;
             }
 
-            view_buffer.capture_view(state);
+            view_buffer.capture_view(state, false);
             Ok(Step::PrepareTick)
         }
         Step::PrepareTick => {
@@ -114,7 +114,7 @@ fn run_step(
         Step::Tick(chosen_action) => Ok(tick_and_check(chosen_action, state, view_buffer)?),
         Step::ChangeControlled(character) => {
             change_character(state, character, view_buffer);
-            view_buffer.capture_view(state);
+            view_buffer.capture_view(state, false);
             Ok(Step::Tick(None))
         }
     }
@@ -169,7 +169,7 @@ fn tick_and_check(
     view_buffer: &mut view::Buffer,
 ) -> Result<Step, Phase> {
     if chosen_action.is_none() && should_take_user_input(state) {
-        view_buffer.capture_view(state);
+        view_buffer.capture_view(state, true);
         return Err(Phase::CommandInput);
     }
 
@@ -203,7 +203,7 @@ fn tick_and_check(
             .unwrap()
             .get_area();
         if area != prev_area {
-            view_buffer.capture_view(state);
+            view_buffer.capture_view(state, false);
         }
         Ok(Step::PrepareTick)
     }
@@ -347,7 +347,7 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
     if !status::is_alive(state.controlled, &state.world) {
         state.status_cache = StatusCache::default();
-        view_buffer.capture_view(state);
+        view_buffer.capture_view(state, false);
     }
 
     let mut buffer = CommandBuffer::new();
@@ -410,7 +410,7 @@ fn check_player_state(
     }
 
     if state.world.get::<&OpenedChest>(state.controlled).is_ok() {
-        view_buffer.capture_view(state);
+        view_buffer.capture_view(state, false);
         return Err(StopType::Win);
     }
 
@@ -497,7 +497,7 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .count();
     consume_rations_healing(state, view_buffer);
 
-    view_buffer.capture_view(state);
+    view_buffer.capture_view(state, false);
 
     location::despawn_all_except_ship(&mut state.world);
     state

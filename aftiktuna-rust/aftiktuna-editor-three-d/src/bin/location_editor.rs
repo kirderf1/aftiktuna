@@ -582,12 +582,15 @@ mod ui {
                     "shopkeeper_direction",
                 );
             }
-            SymbolData::Character(NpcSpawnData {
-                profile,
-                interaction,
-                wielded_item,
-                direction,
-            }) => {
+            SymbolData::Character(nps_spawn_data) => {
+                let NpcSpawnData {
+                    profile,
+                    tag,
+                    interaction,
+                    background_dialogue,
+                    wielded_item,
+                    direction,
+                } = nps_spawn_data.as_mut();
                 aftiktuna_editor_three_d::option_direction_editor(
                     ui,
                     direction,

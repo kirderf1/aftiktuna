@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Morale stat
 - Aftik characters as a possible Fortuna encounter
 - New data file `noun_data.json` for object name data
+- New features for npc dialogue
 
 ### Changed
 

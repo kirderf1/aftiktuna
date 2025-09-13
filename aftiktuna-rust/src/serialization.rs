@@ -191,6 +191,7 @@ pub mod world {
         behavior::Recruitable, Recruitable;
         behavior::Talk, Talk;
         behavior::GivesHuntReward, GivesHuntReward;
+        behavior::BackgroundDialogue, BackgroundDialogue;
         behavior::EncounterDialogue, EncounterDialogue;
         core::Tag, Tag;
 

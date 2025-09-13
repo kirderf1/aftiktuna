@@ -1,6 +1,6 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
-    use crate::core::behavior::{DialogueNode, GivesHuntReward};
+    use crate::core::behavior::{BackgroundDialogue, DialogueNode, GivesHuntReward};
     use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemType};
     use crate::core::position::Direction;
@@ -131,7 +131,11 @@ pub mod creature {
     pub struct NpcSpawnData {
         #[serde(default, skip_serializing_if = "ProfileOrRandom::is_default")]
         pub profile: ProfileOrRandom,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub tag: Option<Tag>,
         pub interaction: CharacterInteraction,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub background_dialogue: Option<BackgroundDialogue>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub wielded_item: Option<ItemType>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -258,7 +262,7 @@ pub enum SymbolData {
     Container(ContainerData),
     Creature(creature::CreatureSpawnData),
     Shopkeeper(creature::ShopkeeperSpawnData),
-    Character(creature::NpcSpawnData),
+    Character(Box<creature::NpcSpawnData>),
     AftikCorpse(creature::AftikCorpseData),
     Furnish {
         template: String,
