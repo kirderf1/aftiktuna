@@ -211,7 +211,10 @@ impl Assets {
         Ok(Self {
             backgrounds: BackgroundMap::load(context.clone())?,
             models: LazilyLoadedModels::new(context)?,
-            aftik_colors: color::load_aftik_color_data()?,
+            aftik_colors: color::load_aftik_color_data()?
+                .into_iter()
+                .map(|(id, entry)| (id, entry.color_data))
+                .collect(),
             left_mouse_icon,
             side_arrow_texture,
             builtin_fonts,

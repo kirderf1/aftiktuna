@@ -3,13 +3,13 @@
   "crew": [
     {
       "name": "Mint",
-      "color": "mint",
+      "color": "brightgreen",
       "stats": { "strength": 10, "endurance": 3, "agility": 8, "luck": 1 },
       "traits": [ "good_dodger", "fragile" ]
     },
     {
       "name": "Cerulean",
-      "color": "cerulean",
+      "color": "blue",
       "stats": { "strength": 8, "endurance": 2, "agility": 10, "luck": 2 }
     }
   ]

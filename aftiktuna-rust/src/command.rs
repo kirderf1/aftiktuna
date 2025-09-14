@@ -4,7 +4,7 @@ mod store;
 pub mod suggestion;
 
 use crate::action::Action;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::core;
 use crate::core::name::NameData;
 use crate::core::status::CreatureAttribute;
@@ -56,24 +56,24 @@ fn crew_action(action: impl Into<Action>) -> Result<CommandResult, String> {
 pub fn try_parse_input(
     input: &str,
     state: &GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
     if let Some(shopkeeper) = core::store::get_shop_info(&state.world, state.controlled) {
-        store::parse(input, shopkeeper.deref(), state, noun_map)
+        store::parse(input, shopkeeper.deref(), state, assets)
     } else {
-        game::parse(input, state, noun_map)
+        game::parse(input, state, assets)
     }
     .map_err(text::capitalize)
 }
 
-fn status(state: &GameState, noun_map: &NounDataMap) -> Result<CommandResult, String> {
+fn status(state: &GameState, assets: &GameAssets) -> Result<CommandResult, String> {
     Ok(CommandResult::Info(CommandInfo::Status(
-        view::get_full_status(state, noun_map),
+        view::get_full_status(state, assets),
     )))
 }
 
-fn entity_names(entity_ref: EntityRef<'_>, noun_map: &NounDataMap) -> Vec<String> {
-    match NameData::find_by_ref(entity_ref, noun_map) {
+fn entity_names(entity_ref: EntityRef<'_>, assets: &GameAssets) -> Vec<String> {
+    match NameData::find_by_ref(entity_ref, assets) {
         NameData::Name(name) => vec![name],
         NameData::Noun(adjective, noun) => {
             let name = noun.singular();

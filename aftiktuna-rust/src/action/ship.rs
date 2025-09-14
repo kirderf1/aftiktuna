@@ -1,5 +1,5 @@
 use crate::action::{self, Error};
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::core::area::{self, FuelAmount, ShipControls, ShipState, ShipStatus};
 use crate::core::item::ItemType;
 use crate::core::name::{NameData, NameQuery};
@@ -10,15 +10,15 @@ use crate::view::text;
 use hecs::{Entity, World};
 
 pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let state = &mut context.state;
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
     let (status, controls_placement) = lookup_ship_state(state, area)?;
 
-    position::move_adjacent_placement(&mut state.world, performer, controls_placement, noun_map)?;
+    position::move_adjacent_placement(&mut state.world, performer, controls_placement, assets)?;
 
-    let name = NameData::find(&state.world, performer, noun_map).definite();
+    let name = NameData::find(&state.world, performer, assets).definite();
     let (new_status, message) = match status {
         ShipStatus::NeedFuel(amount) => match try_refuel(amount, &mut state.world, performer) {
             RefuelResult::Incomplete(amount) => (
@@ -49,7 +49,7 @@ pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Resul
 }
 
 pub fn launch(context: &mut action::Context, performer: Entity) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let state = &mut context.state;
     if state.generation_state.is_at_fortuna() {
         return Err(Error::private(
@@ -61,15 +61,15 @@ pub fn launch(context: &mut action::Context, performer: Entity) -> action::Resul
 
     let (status, controls_placement) = lookup_ship_state(state, area)?;
 
-    position::move_adjacent_placement(&mut state.world, performer, controls_placement, noun_map)?;
+    position::move_adjacent_placement(&mut state.world, performer, controls_placement, assets)?;
 
     let (new_status, message) = match status {
-        ShipStatus::NeedFuel(amount) => refuel_then_launch(state, performer, amount, noun_map),
+        ShipStatus::NeedFuel(amount) => refuel_then_launch(state, performer, amount, assets),
         ShipStatus::Refueled => (
             ShipStatus::Launching,
             format!(
                 "{} set the ship to launch.",
-                NameData::find(&state.world, performer, noun_map).definite(),
+                NameData::find(&state.world, performer, assets).definite(),
             ),
         ),
         ShipStatus::Launching => (
@@ -95,9 +95,9 @@ fn refuel_then_launch(
     state: &mut GameState,
     performer: Entity,
     amount: FuelAmount,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> (ShipStatus, String) {
-    let name = NameData::find(&state.world, performer, noun_map).definite();
+    let name = NameData::find(&state.world, performer, assets).definite();
     match try_refuel(amount, &mut state.world, performer) {
         RefuelResult::Incomplete(amount) => (
             ShipStatus::NeedFuel(amount),
@@ -110,7 +110,7 @@ fn refuel_then_launch(
                 .with::<&CrewMember>()
                 .iter()
                 .filter(|&(_, (pos, _))| !area::is_in_ship(*pos, &state.world))
-                .map(|(_, (_, query))| NameData::from_query(query, noun_map).definite())
+                .map(|(_, (_, query))| NameData::from_query(query, assets).definite())
                 .collect::<Vec<_>>();
             if absent_crew.is_empty() {
                 (

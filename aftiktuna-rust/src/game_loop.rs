@@ -1,5 +1,5 @@
 use crate::action::{self, Action};
-use crate::asset::{CrewData, NounDataMap};
+use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::behavior::{self, Character, CrewLossMemory, Hostile, RepeatingAction, Waiting};
 use crate::core::inventory::Held;
@@ -64,9 +64,9 @@ pub enum Step {
 pub fn run(
     mut step: Step,
     state: &mut GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> (PhaseResult, Vec<Frame>) {
-    let mut view_buffer = view::Buffer::new(noun_map);
+    let mut view_buffer = view::Buffer::new(assets);
     let phase_result = loop {
         let result = run_step(step, state, &mut view_buffer);
         match result {
@@ -94,7 +94,7 @@ fn run_step(
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
-                    NameData::find(&state.world, state.controlled, view_buffer.noun_map).definite()
+                    NameData::find(&state.world, state.controlled, view_buffer.assets).definite()
                 ));
                 state.has_introduced_controlled = true;
             }
@@ -239,7 +239,7 @@ fn tick(
         &mut action_map,
         &mut state.world,
         &mut state.rng,
-        view_buffer.noun_map,
+        view_buffer.assets,
     );
 
     action::tick(action_map, state, view_buffer);
@@ -267,7 +267,7 @@ fn tick(
                 alive_recovering_entities,
                 name::ArticleKind::The,
                 name::CountFormat::Text,
-                view_buffer.noun_map,
+                view_buffer.assets,
             ))
         ))
     }
@@ -287,7 +287,7 @@ fn tick(
         buffer.despawn(item);
         view_buffer.messages.add(format!(
             "As {} holds the four leaf clover, it disappears in their hand. (Luck has increased by 2 points)",
-            NameData::find_by_ref(holder_ref, view_buffer.noun_map).definite(),
+            NameData::find_by_ref(holder_ref, view_buffer.assets).definite(),
         ));
     }
     buffer.run_on(&mut state.world);
@@ -341,7 +341,7 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     for &aftik in &dead_crew {
         view_buffer.messages.add(format!(
             "{} is dead.",
-            NameData::find(&state.world, aftik, view_buffer.noun_map).definite(),
+            NameData::find(&state.world, aftik, view_buffer.assets).definite(),
         ));
     }
 
@@ -480,7 +480,7 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .iter()
         .filter(|&(_, (pos, _))| !area::is_in_ship(*pos, &state.world))
     {
-        let name = NameData::from_query(query, view_buffer.noun_map).definite();
+        let name = NameData::from_query(query, view_buffer.assets).definite();
         view_buffer.messages.add(format!("{name} was left behind."));
     }
     for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
@@ -585,7 +585,7 @@ fn consume_rations_healing(state: &mut GameState, view_buffer: &mut view::Buffer
         view_buffer.messages.add(build_eating_message(
             crew_eating_rations,
             &state.world,
-            view_buffer.noun_map,
+            view_buffer.assets,
         ));
     }
 }
@@ -593,20 +593,21 @@ fn consume_rations_healing(state: &mut GameState, view_buffer: &mut view::Buffer
 fn build_eating_message(
     crew_eating_rations: Vec<(Entity, u16)>,
     world: &World,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> String {
     if let &[(entity, amount)] = &crew_eating_rations[..] {
         format!(
             "{the_character} ate {one_ration} to recover some health.",
-            the_character = NameData::find(world, entity, noun_map).definite(),
-            one_ration = noun_map
+            the_character = NameData::find(world, entity, assets).definite(),
+            one_ration = assets
+                .noun_data_map
                 .lookup(&ItemType::FoodRation.noun_id())
                 .with_text_count(amount, ArticleKind::One),
         )
     } else {
         let names = crew_eating_rations
             .iter()
-            .map(|(entity, _)| NameData::find(world, *entity, noun_map).definite())
+            .map(|(entity, _)| NameData::find(world, *entity, assets).definite())
             .collect::<Vec<_>>();
         let amount = crew_eating_rations
             .iter()
@@ -624,6 +625,6 @@ fn change_character(state: &mut GameState, character: Entity, view_buffer: &mut 
 
     view_buffer.messages.add(format!(
         "You're now playing as the aftik {}.",
-        NameData::find(&state.world, character, view_buffer.noun_map).definite()
+        NameData::find(&state.world, character, view_buffer.assets).definite()
     ));
 }

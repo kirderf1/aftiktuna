@@ -528,7 +528,7 @@ pub(crate) fn detect_low_health(
             command_buffer.insert_one(entity, SeenWithLowHealth);
             if entity != character {
                 let the_entity =
-                    NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.noun_map).definite();
+                    NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.assets).definite();
                 view_buffer.messages.add(
                     match entity_ref
                         .get::<&Species>()
@@ -573,7 +573,7 @@ pub(crate) fn detect_low_stamina(
             view_buffer.messages.add(format!(
                 "{the_entity} is growing exhausted from dodging attacks.",
                 the_entity =
-                    NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.noun_map).definite()
+                    NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.assets).definite()
             ));
         }
     }

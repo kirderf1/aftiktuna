@@ -1,6 +1,6 @@
 use crate::action::Action;
 use crate::ai;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::command::parse::{Parse, first_match_or};
 use crate::command::{self, CommandResult};
 use crate::core::behavior::Hostile;
@@ -13,14 +13,14 @@ pub fn commands(
     parse: &Parse,
     performer_ref: EntityRef,
     world: &World,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Option<Result<CommandResult, String>> {
     parse.literal("attack", |parse| {
         first_match_or!(
             parse.empty(|| attack_any(performer_ref, world));
             parse.match_against(
-                hostile_targets(world, performer_ref.entity(), noun_map),
-                |parse, targets| parse.done_or_err(|| attack(performer_ref, targets, world, noun_map)),
+                hostile_targets(world, performer_ref.entity(), assets),
+                |parse, targets| parse.done_or_err(|| attack(performer_ref, targets, world, assets)),
                 |_| Err("There is no such target here.".to_string())
             )
         )
@@ -50,7 +50,7 @@ fn attack_any(performer_ref: EntityRef, world: &World) -> Result<CommandResult, 
 pub fn hostile_targets(
     world: &World,
     character: Entity,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> HashMap<String, Vec<Entity>> {
     let pos = *world.get::<&Pos>(character).unwrap();
     let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
@@ -62,7 +62,7 @@ pub fn hostile_targets(
             target_pos.is_in(pos.get_area()) && status::is_alive(entity, world)
         })
         .for_each(|(entity, _)| {
-            for name in command::entity_names(world.entity(entity).unwrap(), noun_map) {
+            for name in command::entity_names(world.entity(entity).unwrap(), assets) {
                 map.entry(name).or_default().push(entity);
             }
         });
@@ -73,7 +73,7 @@ fn attack(
     performer_ref: EntityRef,
     targets: Vec<Entity>,
     world: &World,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
     let character_pos = *performer_ref.get::<&Pos>().unwrap();
 
@@ -85,7 +85,7 @@ fn attack(
                     entity,
                     performer_ref.entity(),
                     world,
-                    noun_map,
+                    assets,
                 ),
                 *world.get::<&Pos>(entity).unwrap(),
             )

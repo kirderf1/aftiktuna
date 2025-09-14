@@ -1,7 +1,7 @@
 use super::area::Area;
 use super::behavior::Hostile;
 use super::name::NameData;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use hecs::{Entity, EntityRef, NoSuchEntity, World};
 use serde::{Deserialize, Serialize};
 use std::cmp::{Ordering, max, min};
@@ -291,10 +291,10 @@ pub(crate) fn move_adjacent_placement(
     world: &mut World,
     entity: Entity,
     target_placement: Placement,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<(), String> {
     let movement = prepare_move_adjacent_placement(world, entity, target_placement)
-        .map_err(|blockage| blockage.into_message(world, noun_map))?;
+        .map_err(|blockage| blockage.into_message(world, assets))?;
     movement.perform(world).unwrap();
     Ok(())
 }
@@ -338,7 +338,7 @@ pub(crate) fn push_and_move(
     world: &mut World,
     entity: Entity,
     destination: Pos,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<(), String> {
     let entity_ref = world.entity(entity).unwrap();
     let position = *entity_ref.get::<&Pos>().unwrap();
@@ -347,7 +347,7 @@ pub(crate) fn push_and_move(
     if let Err(blockage) = check_is_blocked(world, entity_ref, position, destination) {
         blockage
             .try_push(Direction::between(position, destination), world)
-            .map_err(|_| blockage.into_message(world, noun_map))?;
+            .map_err(|_| blockage.into_message(world, assets))?;
     }
 
     Movement::init(entity, position, destination)
@@ -382,19 +382,19 @@ pub(crate) enum Blockage {
 }
 
 impl Blockage {
-    pub fn into_message(self, world: &World, noun_map: &NounDataMap) -> String {
+    pub fn into_message(self, world: &World, assets: &GameAssets) -> String {
         match self {
             Blockage::Hostile(entity) => {
                 format!(
                     "{} is in the way.",
-                    NameData::find(world, entity, noun_map).definite(),
+                    NameData::find(world, entity, assets).definite(),
                 )
             }
             Blockage::TakesSpace([entity1, entity2]) => {
                 format!(
                     "{} and {} are in the way.",
-                    NameData::find(world, entity1, noun_map).definite(),
-                    NameData::find(world, entity2, noun_map).definite(),
+                    NameData::find(world, entity1, assets).definite(),
+                    NameData::find(world, entity2, assets).definite(),
                 )
             }
         }

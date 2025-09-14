@@ -1,5 +1,6 @@
+use super::display::AftikColorId;
 use super::status::CreatureAttribute;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -7,18 +8,36 @@ use std::fmt::Display;
 use std::ops::Deref;
 
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub(crate) enum AdjectiveData {
+    Adjective(Adjective),
+    Color(AftikColorId),
+}
+
+impl AdjectiveData {
+    fn lookup(self, color_adjective_map: &HashMap<AftikColorId, Adjective>) -> Adjective {
+        match self {
+            AdjectiveData::Adjective(adjective) => adjective,
+            AdjectiveData::Color(aftik_color_id) => {
+                color_adjective_or_default(color_adjective_map.get(&aftik_color_id))
+            }
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub(crate) enum NameIdData {
     Name(String),
-    Noun(Option<Adjective>, NounId),
+    Noun(Option<AdjectiveData>, NounId),
 }
 
 impl NameIdData {
-    pub fn lookup(self, noun_map: &NounDataMap) -> NameData {
+    pub fn lookup(self, assets: &GameAssets) -> NameData {
         match self {
             Self::Name(name) => NameData::Name(name),
-            Self::Noun(adjective, noun_id) => {
-                NameData::Noun(adjective, noun_map.lookup(&noun_id).clone())
-            }
+            Self::Noun(adjective, noun_id) => NameData::Noun(
+                adjective.map(|data| data.lookup(&assets.color_adjective_map)),
+                assets.noun_data_map.lookup(&noun_id).clone(),
+            ),
         }
     }
 
@@ -30,7 +49,14 @@ impl NameIdData {
         } else {
             entity_ref.get::<&NounId>().map(|noun_id| {
                 Self::Noun(
-                    entity_ref.get::<&Adjective>().as_deref().cloned(),
+                    entity_ref
+                        .get::<&Adjective>()
+                        .map(|adjective| AdjectiveData::Adjective(adjective.deref().clone()))
+                        .or_else(|| {
+                            entity_ref
+                                .get::<&AftikColorId>()
+                                .map(|color_id| AdjectiveData::Color(color_id.deref().clone()))
+                        }),
                     noun_id.deref().clone(),
                 )
             })
@@ -54,14 +80,22 @@ impl Default for NameIdData {
 
 impl<'a> From<NameQuery<'a>> for NameIdData {
     fn from(query: NameQuery<'a>) -> Self {
-        let (name, noun_id, adjective) = query;
+        let (name, noun_id, adjective, color_id) = query;
         if let Some(name) = name
             && name.is_known
         {
             Self::Name(name.name.clone())
         } else {
             noun_id
-                .map(|noun_id| Self::Noun(adjective.cloned(), noun_id.clone()))
+                .map(|noun_id| {
+                    Self::Noun(
+                        adjective
+                            .cloned()
+                            .map(AdjectiveData::Adjective)
+                            .or_else(|| color_id.cloned().map(AdjectiveData::Color)),
+                        noun_id.clone(),
+                    )
+                })
                 .unwrap_or_default()
         }
     }
@@ -105,10 +139,7 @@ impl NameData {
         }
     }
 
-    pub(crate) fn find_option_by_ref(
-        entity_ref: EntityRef,
-        noun_map: &NounDataMap,
-    ) -> Option<Self> {
+    pub(crate) fn find_option_by_ref(entity_ref: EntityRef, assets: &GameAssets) -> Option<Self> {
         if let Some(name) = entity_ref.get::<&Name>()
             && name.is_known
         {
@@ -116,34 +147,53 @@ impl NameData {
         } else {
             entity_ref.get::<&NounId>().map(|noun_id| {
                 Self::Noun(
-                    entity_ref.get::<&Adjective>().as_deref().cloned(),
-                    noun_map.lookup(&noun_id).clone(),
+                    entity_ref
+                        .get::<&Adjective>()
+                        .as_deref()
+                        .cloned()
+                        .or_else(|| {
+                            entity_ref.get::<&AftikColorId>().map(|color_id| {
+                                color_adjective_or_default(
+                                    assets.color_adjective_map.get(&color_id),
+                                )
+                            })
+                        }),
+                    assets.noun_data_map.lookup(&noun_id).clone(),
                 )
             })
         }
     }
 
-    pub(crate) fn find_by_ref(entity_ref: EntityRef, noun_map: &NounDataMap) -> Self {
-        Self::find_option_by_ref(entity_ref, noun_map).unwrap_or_default()
+    pub(crate) fn find_by_ref(entity_ref: EntityRef, assets: &GameAssets) -> Self {
+        Self::find_option_by_ref(entity_ref, assets).unwrap_or_default()
     }
 
-    pub(crate) fn find(world: &World, entity: Entity, noun_map: &NounDataMap) -> Self {
+    pub(crate) fn find(world: &World, entity: Entity, assets: &GameAssets) -> Self {
         world
             .entity(entity)
             .ok()
-            .and_then(|entity_ref| Self::find_option_by_ref(entity_ref, noun_map))
+            .and_then(|entity_ref| Self::find_option_by_ref(entity_ref, assets))
             .unwrap_or_default()
     }
 
-    pub(crate) fn from_query(query: NameQuery, noun_map: &NounDataMap) -> Self {
-        let (name, noun_id, adjective) = query;
+    pub(crate) fn from_query(query: NameQuery, assets: &GameAssets) -> Self {
+        let (name, noun_id, adjective, color_id) = query;
         if let Some(name) = name
             && name.is_known
         {
             Self::Name(name.name.clone())
         } else {
             noun_id
-                .map(|noun_id| Self::Noun(adjective.cloned(), noun_map.lookup(noun_id).clone()))
+                .map(|noun_id| {
+                    Self::Noun(
+                        adjective.cloned().or_else(|| {
+                            color_id.map(|color_id| {
+                                color_adjective_or_default(assets.color_adjective_map.get(color_id))
+                            })
+                        }),
+                        assets.noun_data_map.lookup(noun_id).clone(),
+                    )
+                })
                 .unwrap_or_default()
         }
     }
@@ -159,22 +209,22 @@ impl Default for NameData {
 pub struct NameWithAttribute(NameData, Option<CreatureAttribute>);
 
 impl NameWithAttribute {
-    pub fn lookup_by_ref(entity_ref: EntityRef, noun_map: &NounDataMap) -> Self {
-        Self::lookup_option_by_ref(entity_ref, noun_map).unwrap_or_default()
+    pub fn lookup_by_ref(entity_ref: EntityRef, assets: &GameAssets) -> Self {
+        Self::lookup_option_by_ref(entity_ref, assets).unwrap_or_default()
     }
 
-    pub fn lookup_option_by_ref(entity_ref: EntityRef, noun_map: &NounDataMap) -> Option<Self> {
+    pub fn lookup_option_by_ref(entity_ref: EntityRef, assets: &GameAssets) -> Option<Self> {
         Some(Self(
-            NameData::find_option_by_ref(entity_ref, noun_map)?,
+            NameData::find_option_by_ref(entity_ref, assets)?,
             entity_ref.get::<&CreatureAttribute>().as_deref().copied(),
         ))
     }
 
-    pub fn lookup(entity: Entity, world: &World, noun_map: &NounDataMap) -> Self {
+    pub fn lookup(entity: Entity, world: &World, assets: &GameAssets) -> Self {
         world
             .entity(entity)
             .ok()
-            .map(|entity_ref| Self::lookup_by_ref(entity_ref, noun_map))
+            .map(|entity_ref| Self::lookup_by_ref(entity_ref, assets))
             .unwrap_or_default()
     }
 
@@ -211,7 +261,12 @@ fn format_option_with_space(option: Option<impl Display>) -> String {
     option.map_or(String::default(), |value| format!("{value} "))
 }
 
-pub type NameQuery<'a> = (Option<&'a Name>, Option<&'a NounId>, Option<&'a Adjective>);
+pub type NameQuery<'a> = (
+    Option<&'a Name>,
+    Option<&'a NounId>,
+    Option<&'a Adjective>,
+    Option<&'a AftikColorId>,
+);
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Name {
@@ -389,7 +444,7 @@ pub fn names_with_counts(
     data: impl IntoIterator<Item = NameIdData>,
     article: ArticleKind,
     format: CountFormat,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Vec<String> {
     let mut names = Vec::new();
     let mut nouns = HashMap::new();
@@ -397,18 +452,29 @@ pub fn names_with_counts(
     for name_data in data {
         match name_data {
             NameIdData::Name(name) => names.push(name),
-            NameIdData::Noun(adjective, noun_id) => {
-                *nouns.entry((adjective, noun_id)).or_insert(0) += 1
+            NameIdData::Noun(adjective_data, noun_id) => {
+                *nouns.entry((adjective_data, noun_id)).or_insert(0) += 1
             }
         }
     }
 
     names
         .into_iter()
-        .chain(nouns.into_iter().map(|((adjective, noun_id), count)| {
-            noun_map
-                .lookup(&noun_id)
-                .with_count(adjective.as_ref(), count, article, format)
+        .chain(nouns.into_iter().map(|((adjective_data, noun_id), count)| {
+            assets.noun_data_map.lookup(&noun_id).with_count(
+                adjective_data
+                    .map(|data| data.lookup(&assets.color_adjective_map))
+                    .as_ref(),
+                count,
+                article,
+                format,
+            )
         }))
         .collect::<Vec<String>>()
+}
+
+fn color_adjective_or_default(color_adjective: Option<&Adjective>) -> Adjective {
+    color_adjective
+        .cloned()
+        .unwrap_or_else(|| Adjective("???-colored".to_string()))
 }

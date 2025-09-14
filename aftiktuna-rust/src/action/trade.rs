@@ -14,9 +14,9 @@ pub fn trade(
     performer: Entity,
     shopkeeper: Entity,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
 
     let shop_placement = world
         .query_one_mut::<PlacementQuery>(shopkeeper)
@@ -24,7 +24,7 @@ pub fn trade(
         .map_err(|_| format!("{performer_name} lost track of the shopkeeper."))?;
     world.get::<&Shopkeeper>(shopkeeper).unwrap();
 
-    position::move_adjacent_placement(world, performer, shop_placement, noun_map)?;
+    position::move_adjacent_placement(world, performer, shop_placement, assets)?;
 
     world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
 
@@ -40,7 +40,7 @@ pub fn buy(
     item_type: ItemType,
     amount: u16,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let (item, price) = try_buy(world, performer, item_type, amount)?;
 
@@ -51,8 +51,9 @@ pub fn buy(
     context.view_context.view_buffer.add_change_message(
         format!(
             "{the_performer} bought {an_item}.",
-            the_performer = NameData::find(world, performer, noun_map).definite(),
-            an_item = noun_map
+            the_performer = NameData::find(world, performer, assets).definite(),
+            an_item = assets
+                .noun_data_map
                 .lookup(&item.noun_id())
                 .with_text_count(amount, name::ArticleKind::A),
         ),
@@ -103,7 +104,7 @@ pub fn sell(
     performer: Entity,
     items: Vec<Entity>,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let mut value = 0;
     let mut is_selling_fuel = false;
@@ -124,7 +125,7 @@ pub fn sell(
             .is_some_and(|item_type| *item_type == ItemType::FuelCan);
     }
 
-    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
 
     if is_selling_fuel && !check_has_fuel_reserve(world, &items) {
         return Err(Error::private(format!(
@@ -137,7 +138,7 @@ pub fn sell(
         items.iter().map(|item| NameIdData::find(world, *item)),
         name::ArticleKind::A,
         name::CountFormat::Text,
-        noun_map,
+        assets,
     );
 
     world.get::<&mut Points>(crew).unwrap().0 += value;
@@ -184,7 +185,7 @@ pub fn exit(context: &mut action::Context, performer: Entity) -> action::Result 
     let performer_name = NameData::find(
         &context.state.world,
         performer,
-        context.view_context.view_buffer.noun_map,
+        context.view_context.view_buffer.assets,
     )
     .definite();
     context

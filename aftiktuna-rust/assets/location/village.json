@@ -56,7 +56,7 @@
           "type": "character",
           "profile": {
             "name": "Tangerine",
-            "color": "tangerine",
+            "color": "softyellow",
             "stats": { "strength": 7, "endurance": 1, "agility": 6, "luck": 8 }
           },
           "interaction": {

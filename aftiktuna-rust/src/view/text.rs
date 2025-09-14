@@ -1,5 +1,5 @@
 use crate::OneOrTwo;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::core::name::{self, NameIdData};
 use hecs::Entity;
 
@@ -28,9 +28,9 @@ impl Message {
         }
     }
 
-    fn into_text(self, noun_map: &NounDataMap) -> String {
+    fn into_text(self, assets: &GameAssets) -> String {
         match self {
-            Message::Combinable(msg_type, entities) => msg_type.into_text(entities, noun_map),
+            Message::Combinable(msg_type, entities) => msg_type.into_text(entities, assets),
             Message::String(text) => text,
         }
     }
@@ -65,7 +65,7 @@ impl CombinableMsgType {
         }
     }
 
-    fn into_text(self, entities: Vec<NameIdData>, noun_map: &NounDataMap) -> String {
+    fn into_text(self, entities: Vec<NameIdData>, assets: &GameAssets) -> String {
         use CombinableMsgType::*;
         match self {
             Noise => format!(
@@ -73,7 +73,7 @@ impl CombinableMsgType {
                 the_paths = join_elements(unique(
                     entities
                         .into_iter()
-                        .map(|name| name.lookup(noun_map).definite())
+                        .map(|name| name.lookup(assets).definite())
                 ))
             ),
             EnterDoor(_, door_name) => format!(
@@ -81,20 +81,20 @@ impl CombinableMsgType {
                 the_characters = capitalize(join_elements(
                     entities
                         .into_iter()
-                        .map(|name| name.lookup(noun_map).definite())
+                        .map(|name| name.lookup(assets).definite())
                         .collect()
                 )),
-                the_door = door_name.lookup(noun_map).definite(),
+                the_door = door_name.lookup(assets).definite(),
             ),
             EnterPath(_, path_name) => format!(
                 "{the_characters} followed {the_path} to a new area.",
                 the_characters = capitalize(join_elements(
                     entities
                         .into_iter()
-                        .map(|name| name.lookup(noun_map).definite())
+                        .map(|name| name.lookup(assets).definite())
                         .collect()
                 )),
-                the_path = path_name.lookup(noun_map).definite(),
+                the_path = path_name.lookup(assets).definite(),
             ),
             Arrive(_) => format!(
                 "{the_characters} arrived from a nearby area.",
@@ -102,24 +102,24 @@ impl CombinableMsgType {
                     entities,
                     name::ArticleKind::A,
                     name::CountFormat::Text,
-                    noun_map,
+                    assets,
                 )))
             ),
             PickUp(performer_name) => format!(
                 "{the_performer} picked up {the_items}.",
-                the_performer = capitalize(performer_name.lookup(noun_map).definite()),
+                the_performer = capitalize(performer_name.lookup(assets).definite()),
                 the_items = join_elements(name::names_with_counts(
                     entities,
                     name::ArticleKind::The,
                     name::CountFormat::Text,
-                    noun_map,
+                    assets,
                 ))
             ),
             Threatening => {
                 if let [entity] = &entities[..] {
                     format!(
                         "{the_creature} makes a threatening pose.",
-                        the_creature = capitalize(entity.clone().lookup(noun_map).definite()),
+                        the_creature = capitalize(entity.clone().lookup(assets).definite()),
                     )
                 } else {
                     format!(
@@ -128,7 +128,7 @@ impl CombinableMsgType {
                             entities,
                             name::ArticleKind::The,
                             name::CountFormat::Text,
-                            noun_map,
+                            assets,
                         ))),
                     )
                 }
@@ -137,7 +137,7 @@ impl CombinableMsgType {
                 if let [entity] = &entities[..] {
                     format!(
                         "{the_creature} moves in to attack.",
-                        the_creature = capitalize(entity.clone().lookup(noun_map).definite()),
+                        the_creature = capitalize(entity.clone().lookup(assets).definite()),
                     )
                 } else {
                     format!(
@@ -146,7 +146,7 @@ impl CombinableMsgType {
                             entities,
                             name::ArticleKind::The,
                             name::CountFormat::Text,
-                            noun_map,
+                            assets,
                         ))),
                     )
                 }
@@ -203,11 +203,11 @@ impl Messages {
         self.0.push(message.into_message());
     }
 
-    pub fn into_text(self, noun_map: &NounDataMap) -> Vec<String> {
+    pub fn into_text(self, assets: &GameAssets) -> Vec<String> {
         let combined_messages = crate::try_combine_adjacent(self.0, Message::try_combine);
         combined_messages
             .into_iter()
-            .map(|message| message.into_text(noun_map))
+            .map(|message| message.into_text(assets))
             .collect()
     }
 }

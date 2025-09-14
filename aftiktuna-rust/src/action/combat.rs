@@ -63,7 +63,7 @@ fn attack_single(
     target: Entity,
     attack_kind: AttackKind,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let attacker_pos = *world
         .get::<&Pos>(attacker)
@@ -78,16 +78,16 @@ fn attack_single(
         .map_err(|_| {
             format!(
                 "{target_name} disappeared before {attacker_name} could attack.",
-                attacker_name = NameWithAttribute::lookup(attacker, world, noun_map).definite(),
-                target_name = NameWithAttribute::lookup(target, world, noun_map).definite()
+                attacker_name = NameWithAttribute::lookup(attacker, world, assets).definite(),
+                target_name = NameWithAttribute::lookup(target, world, assets).definite()
             )
         })?;
 
     if !attacker_pos.is_in(target_placement.area()) {
         return Err(Error::private(format!(
             "{target_name} left before {attacker_name} could attack.",
-            attacker_name = NameWithAttribute::lookup(attacker, world, noun_map).definite(),
-            target_name = NameWithAttribute::lookup(target, world, noun_map).definite(),
+            attacker_name = NameWithAttribute::lookup(attacker, world, assets).definite(),
+            target_name = NameWithAttribute::lookup(target, world, assets).definite(),
         )));
     }
 
@@ -98,7 +98,7 @@ fn attack_single(
     let world = &mut context.state.world;
     behavior::trigger_aggression_in_area(world, attacker_pos.get_area());
 
-    position::move_adjacent_placement(world, attacker, target_placement, noun_map)?;
+    position::move_adjacent_placement(world, attacker, target_placement, assets)?;
 
     if attack_kind == AttackKind::Charged {
         world
@@ -108,7 +108,7 @@ fn attack_single(
             attacker_pos.get_area(),
             format!(
                 "{attacker_name} readies a powerful attack.",
-                attacker_name = NameWithAttribute::lookup(attacker, world, noun_map).definite()
+                attacker_name = NameWithAttribute::lookup(attacker, world, assets).definite()
             ),
             context.state,
         );
@@ -123,7 +123,7 @@ pub(super) fn charged_attack(
     attacker: Entity,
     target: Entity,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let attacker_pos = *world
         .get::<&Pos>(attacker)
@@ -138,16 +138,16 @@ pub(super) fn charged_attack(
         .map_err(|_| {
             format!(
                 "{target_name} disappeared before {attacker_name} could attack.",
-                attacker_name = NameWithAttribute::lookup(attacker, world, noun_map).definite(),
-                target_name = NameWithAttribute::lookup(target, world, noun_map).definite(),
+                attacker_name = NameWithAttribute::lookup(attacker, world, assets).definite(),
+                target_name = NameWithAttribute::lookup(target, world, assets).definite(),
             )
         })?;
 
     if !attacker_pos.is_in(target_placement.area()) {
         return Err(Error::private(format!(
             "{target_name} left before {attacker_name} could attack.",
-            attacker_name = NameWithAttribute::lookup(attacker, world, noun_map).definite(),
-            target_name = NameWithAttribute::lookup(target, world, noun_map).definite(),
+            attacker_name = NameWithAttribute::lookup(attacker, world, assets).definite(),
+            target_name = NameWithAttribute::lookup(target, world, assets).definite(),
         )));
     }
 
@@ -158,7 +158,7 @@ pub(super) fn charged_attack(
     let world = &mut context.state.world;
     behavior::trigger_aggression_in_area(world, attacker_pos.get_area());
 
-    position::move_adjacent_placement(world, attacker, target_placement, noun_map)?;
+    position::move_adjacent_placement(world, attacker, target_placement, assets)?;
 
     perform_attack(context, attacker, target, AttackKind::Charged)
 }
@@ -169,11 +169,11 @@ fn perform_attack(
     target: Entity,
     attack_kind: AttackKind,
 ) -> Result<action::Success, Error> {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let attacker_area = world.get::<&Pos>(attacker).unwrap().get_area();
-    let attacker_name = NameWithAttribute::lookup(attacker, world, noun_map).definite();
-    let target_name = NameWithAttribute::lookup(target, world, noun_map).definite();
+    let attacker_name = NameWithAttribute::lookup(attacker, world, assets).definite();
+    let target_name = NameWithAttribute::lookup(target, world, assets).definite();
 
     let attack_kind_text = match attack_kind {
         AttackKind::Light => "",
@@ -181,7 +181,7 @@ fn perform_attack(
         AttackKind::Charged => "With power, ",
     };
     let (attack_text, hit_verb) = if let Some(weapon) = inventory::get_wielded(world, attacker) {
-        let weapon_name = NameData::find(world, weapon, noun_map).base();
+        let weapon_name = NameData::find(world, weapon, assets).base();
         (
             format!(
                 "{attack_kind_text}{attacker_name} swings their {weapon_name} at {target_name}"

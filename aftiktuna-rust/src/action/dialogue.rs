@@ -17,7 +17,7 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
             the_target = NameData::find(
                 &context.state.world,
                 target,
-                context.view_context.view_buffer.noun_map,
+                context.view_context.view_buffer.assets,
             )
             .definite(),
         )));
@@ -101,7 +101,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
             }
             state.world.remove_one::<Recruitable>(target).unwrap();
             let name =
-                NameData::find(&state.world, target, view_context.view_buffer.noun_map).definite();
+                NameData::find(&state.world, target, view_context.view_buffer.assets).definite();
             state.world.insert_one(target, CrewMember(crew)).unwrap();
 
             view_context
@@ -257,7 +257,7 @@ fn full_dialogue_action(
     move_adjacent: bool,
     dialogue: impl FnOnce(&mut Context) -> Option<action::Result>,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let performer_pos = *context.state.world.get::<&Pos>(performer).unwrap();
     let target_placement = Placement::from(
         context
@@ -273,7 +273,7 @@ fn full_dialogue_action(
             performer,
             target_placement,
         )
-        .map_err(|blockage| blockage.into_message(&context.state.world, noun_map))?;
+        .map_err(|blockage| blockage.into_message(&context.state.world, assets))?;
         Some(movement)
     } else {
         None
@@ -295,8 +295,8 @@ fn full_dialogue_action(
     let result = dialogue(&mut context);
 
     result.unwrap_or_else(|| {
-        let performer_name = NameData::find(&context.state.world, performer, noun_map).definite();
-        let target_name = NameData::find(&context.state.world, target, noun_map).definite();
+        let performer_name = NameData::find(&context.state.world, performer, assets).definite();
+        let target_name = NameData::find(&context.state.world, target, assets).definite();
         context.view_context.add_message_at(
             performer_pos.get_area(),
             format!("{performer_name} finishes talking with {target_name}."),

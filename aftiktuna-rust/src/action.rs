@@ -145,7 +145,7 @@ fn perform(
                     &mut state.world,
                     performer,
                     target_placement,
-                    view_buffer.noun_map,
+                    view_buffer.assets,
                 );
             }
             Ok(Success)
@@ -269,17 +269,17 @@ fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> R
 }
 
 fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let chest_placement = Placement::from(world.query_one_mut::<PlacementQuery>(chest).unwrap());
 
-    position::move_adjacent_placement(world, performer, chest_placement, noun_map)?;
+    position::move_adjacent_placement(world, performer, chest_placement, assets)?;
 
     if world.get::<&FortunaChest>(chest).is_err() {
         return Err(Error::visible(format!(
             "{} tried to open {}, but that is not the fortuna chest!",
-            NameData::find(world, performer, noun_map).definite(),
-            NameData::find(world, chest, noun_map).definite(),
+            NameData::find(world, performer, assets).definite(),
+            NameData::find(world, chest, assets).definite(),
         )));
     }
 
@@ -288,7 +288,7 @@ fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result
         chest_placement.area(),
         format!(
             "{} opened the fortuna chest and found the item that they desired the most.",
-            NameData::find(world, performer, noun_map).definite(),
+            NameData::find(world, performer, assets).definite(),
         ),
         context.state,
     );
@@ -296,7 +296,7 @@ fn open_chest(context: &mut Context, performer: Entity, chest: Entity) -> Result
 }
 
 fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let crew_size = world.query::<&CrewMember>().iter().count();
@@ -306,8 +306,8 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         ));
     }
 
-    let performer_name = NameData::find(world, performer, noun_map).definite();
-    let target_name = NameData::find(world, target, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
+    let target_name = NameData::find(world, target, assets).definite();
     let target_placement = Placement::from(world.query_one_mut::<PlacementQuery>(target).unwrap());
 
     if !status::is_alive(target, world) {
@@ -345,7 +345,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         )));
     }
 
-    position::move_adjacent_placement(world, performer, target_placement, noun_map)?;
+    position::move_adjacent_placement(world, performer, target_placement, assets)?;
 
     inventory::consume_one(ItemType::FoodRation, world, performer).ok_or_else(|| {
         Error::private(format!("{performer_name} needs a food ration for taming."))
@@ -365,10 +365,10 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
 }
 
 fn give_name(context: &mut Context, performer: Entity, target: Entity, name: String) -> Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer, noun_map).definite();
-    let target_name = NameData::find(world, target, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
+    let target_name = NameData::find(world, target, assets).definite();
     let target_placement = Placement::from(world.query_one_mut::<PlacementQuery>(target).unwrap());
 
     {
@@ -384,7 +384,7 @@ fn give_name(context: &mut Context, performer: Entity, target: Entity, name: Str
         }
     }
 
-    position::move_adjacent_placement(world, performer, target_placement, noun_map)?;
+    position::move_adjacent_placement(world, performer, target_placement, assets)?;
 
     world.insert_one(target, Name::known(&name)).unwrap();
 

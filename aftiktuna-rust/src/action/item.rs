@@ -21,7 +21,7 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
         .map(|(item, (_, query))| {
             (
                 item,
-                NameData::from_query(query, context.view_context.view_buffer.noun_map),
+                NameData::from_query(query, context.view_context.view_buffer.assets),
             )
         })
         .ok_or("There are no items to take here.")?;
@@ -52,12 +52,12 @@ pub(super) fn take_item(
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let performer_name = NameIdData::find(&context.state.world, performer);
     let item_pos = *context.state.world.get::<&Pos>(item).map_err(|_| {
         format!(
             "{the_performer} lost track of {the_item}.",
-            the_performer = performer_name.clone().lookup(noun_map).definite(),
+            the_performer = performer_name.clone().lookup(assets).definite(),
             the_item = item_name.definite()
         )
     })?;
@@ -68,7 +68,7 @@ pub(super) fn take_item(
         .capture_unseen_view(item_pos.get_area(), context.state);
 
     let world = &mut context.state.world;
-    position::push_and_move(world, performer, item_pos, noun_map)?;
+    position::push_and_move(world, performer, item_pos, assets)?;
 
     if world
         .get::<&ItemType>(item)
@@ -81,8 +81,8 @@ pub(super) fn take_item(
 
         context.view_context.add_message_at(item_pos.get_area(), format!(
             "{the_performer} tries to pick up {the_item}. But as they do, it disappears in their hand. (Luck has increased by 2 points)",
-            the_performer = performer_name.clone().lookup(noun_map).definite(),
-            the_item = item_name.lookup(noun_map).definite(),
+            the_performer = performer_name.clone().lookup(assets).definite(),
+            the_item = item_name.lookup(assets).definite(),
         ), context.state);
         return Ok(action::Success);
     }
@@ -114,11 +114,11 @@ impl From<SearchAction> for super::Action {
 
 impl SearchAction {
     pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
-        let noun_map = context.view_context.view_buffer.noun_map;
+        let assets = context.view_context.view_buffer.assets;
         let Self { container } = self;
         let world = context.mut_world();
-        let performer_name = NameData::find(world, performer, noun_map).definite();
-        let container_name = NameData::find(world, container, noun_map).definite();
+        let performer_name = NameData::find(world, performer, assets).definite();
+        let container_name = NameData::find(world, container, assets).definite();
         let container_pos = *world
             .get::<&Pos>(container)
             .map_err(|_| format!("{performer_name} lost track of {container_name}."))?;
@@ -132,7 +132,7 @@ impl SearchAction {
             )));
         }
 
-        position::push_and_move(world, performer, container_pos, noun_map)?;
+        position::push_and_move(world, performer, container_pos, assets)?;
 
         let items = inventory::get_held(world, container);
         if items.is_empty() {
@@ -150,7 +150,7 @@ impl SearchAction {
             items.into_iter().map(|item| NameIdData::find(world, item)),
             ArticleKind::A,
             CountFormat::Text,
-            noun_map,
+            assets,
         );
         context.view_context.add_message_at(
             container_pos.get_area(),
@@ -174,10 +174,10 @@ pub(super) fn give_item(
         state,
         mut view_context,
     } = context;
-    let noun_map = view_context.view_buffer.noun_map;
+    let assets = view_context.view_buffer.assets;
     let world = &mut state.world;
-    let performer_name = NameData::find(world, performer, noun_map).definite();
-    let receiver_name = NameData::find(world, receiver, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
+    let receiver_name = NameData::find(world, receiver, assets).definite();
 
     if world
         .get::<&Held>(item)
@@ -216,7 +216,7 @@ pub(super) fn give_item(
     }
 
     let movement = position::prepare_move_adjacent_placement(world, performer, receiver_placement)
-        .map_err(|blockage| blockage.into_message(world, noun_map))?;
+        .map_err(|blockage| blockage.into_message(world, assets))?;
 
     view_context.capture_frame_for_dialogue(state);
     let world = &mut state.world;
@@ -238,7 +238,7 @@ pub(super) fn give_item(
         performer_pos.get_area(),
         format!(
             "{performer_name} gave {receiver_name} a {}.",
-            NameData::find(world, item, noun_map).base(),
+            NameData::find(world, item, assets).base(),
         ),
         state,
     );
@@ -251,9 +251,9 @@ pub(super) fn wield(
     item: Entity,
     item_name: NameData,
 ) -> action::Result {
-    let noun_map = context.view_context.view_buffer.noun_map;
+    let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
 
     if inventory::is_in_inventory(world, item, performer) {
         inventory::unwield_if_needed(world, performer);
@@ -270,7 +270,7 @@ pub(super) fn wield(
         let item_pos = *world
             .get::<&Pos>(item)
             .map_err(|_| format!("{} lost track of {}.", performer_name, item_name.definite()))?;
-        position::push_and_move(world, performer, item_pos, noun_map)?;
+        position::push_and_move(world, performer, item_pos, assets)?;
 
         inventory::unwield_if_needed(world, performer);
         world
@@ -304,11 +304,11 @@ impl From<UseAction> for super::Action {
 
 impl UseAction {
     pub(super) fn run(self, performer: Entity, mut context: Context) -> action::Result {
-        let noun_map = context.view_context.view_buffer.noun_map;
+        let assets = context.view_context.view_buffer.assets;
         let world = &mut context.state.world;
 
         let performer_ref = world.entity(performer).unwrap();
-        let performer_name = NameData::find_by_ref(performer_ref, noun_map).definite();
+        let performer_name = NameData::find_by_ref(performer_ref, assets).definite();
         let area = performer_ref.get::<&Pos>().unwrap().get_area();
 
         let item_ref = world
@@ -320,7 +320,7 @@ impl UseAction {
                     .is_some_and(|held| held.held_by(performer))
             })
             .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
-        let item_name = NameData::find_by_ref(item_ref, noun_map).definite();
+        let item_name = NameData::find_by_ref(item_ref, assets).definite();
 
         let item_type = item_ref.get::<&ItemType>().as_deref().copied();
 

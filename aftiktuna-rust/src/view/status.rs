@@ -1,5 +1,5 @@
 use super::text::{self, Messages};
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::item::ItemType;
 use crate::core::name::{self, Name, NameData, NameIdData, NounId};
@@ -43,7 +43,7 @@ impl FullStatus {
     }
 }
 
-pub fn get_full_status(state: &GameState, noun_map: &NounDataMap) -> FullStatus {
+pub fn get_full_status(state: &GameState, assets: &GameAssets) -> FullStatus {
     let mut ship_messages = Messages::default();
     maybe_print_points(&state.world, state.controlled, &mut ship_messages, None);
 
@@ -87,12 +87,12 @@ pub fn get_full_status(state: &GameState, noun_map: &NounDataMap) -> FullStatus 
                     format!(
                         "{} ({}):",
                         name.name,
-                        text::capitalize(noun_map.lookup(noun_id).singular())
+                        text::capitalize(assets.noun_data_map.lookup(noun_id).singular())
                     )
                 } else {
                     format!(
                         "{}:",
-                        NameData::find(&state.world, character, noun_map).definite()
+                        NameData::find(&state.world, character, assets).definite()
                     )
                 },
             );
@@ -123,22 +123,22 @@ pub fn get_full_status(state: &GameState, noun_map: &NounDataMap) -> FullStatus 
                 character,
                 &mut character_messages,
                 None,
-                noun_map,
+                assets,
             );
             print_inventory(
                 &state.world,
                 character,
                 &mut character_messages,
                 None,
-                noun_map,
+                assets,
             );
 
-            character_messages.into_text(noun_map)
+            character_messages.into_text(assets)
         })
         .collect::<Vec<_>>();
 
     FullStatus {
-        ship: ship_messages.into_text(noun_map),
+        ship: ship_messages.into_text(assets),
         crew,
     }
 }
@@ -148,14 +148,14 @@ pub fn changes_messages(
     character: Entity,
     messages: &mut Messages,
     cache: &mut Cache,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) {
     cache.points = Some(maybe_print_points(world, character, messages, cache.points));
     if let Some(character_cache) = &mut cache.character_cache {
-        print_character_with_cache(world, character, messages, character_cache, noun_map);
+        print_character_with_cache(world, character, messages, character_cache, assets);
     } else {
         cache.character_cache = Some(print_character_without_cache(
-            world, character, messages, noun_map,
+            world, character, messages, assets,
         ));
     }
 }
@@ -192,15 +192,15 @@ fn print_character_with_cache(
     character: Entity,
     messages: &mut Messages,
     cache: &mut CharacterCache,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) {
     if cache.character_id == character {
         cache.health = print_health(world, character, messages, Some(cache.health));
-        cache.wielded = print_wielded(world, character, messages, Some(cache.wielded), noun_map);
+        cache.wielded = print_wielded(world, character, messages, Some(cache.wielded), assets);
         cache.inventory =
-            print_inventory(world, character, messages, Some(&cache.inventory), noun_map);
+            print_inventory(world, character, messages, Some(&cache.inventory), assets);
     } else {
-        *cache = print_character_without_cache(world, character, messages, noun_map);
+        *cache = print_character_without_cache(world, character, messages, assets);
     }
 }
 
@@ -208,11 +208,11 @@ fn print_character_without_cache(
     world: &World,
     character: Entity,
     messages: &mut Messages,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> CharacterCache {
     let health = print_health(world, character, messages, None);
-    let wielded = print_wielded(world, character, messages, None, noun_map);
-    let inventory = print_inventory(world, character, messages, None, noun_map);
+    let wielded = print_wielded(world, character, messages, None, assets);
+    let inventory = print_inventory(world, character, messages, None, assets);
     CharacterCache {
         character_id: character,
         health,
@@ -274,7 +274,7 @@ fn print_wielded(
     character: Entity,
     messages: &mut Messages,
     prev_wielded: Option<Option<Entity>>,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Option<Entity> {
     let wielded = inventory::get_wielded(world, character);
 
@@ -284,7 +284,7 @@ fn print_wielded(
 
     let wield_text = wielded.map_or_else(
         || "Nothing".to_string(),
-        |item| text::capitalize(NameData::find(world, item, noun_map).base()),
+        |item| text::capitalize(NameData::find(world, item, assets).base()),
     );
     messages.add(format!("Wielding {wield_text}"));
     wielded
@@ -295,7 +295,7 @@ fn print_inventory(
     character: Entity,
     messages: &mut Messages,
     prev_inv: Option<&Vec<Entity>>,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Vec<Entity> {
     let mut inventory = inventory::get_inventory(world, character);
     inventory.sort();
@@ -311,7 +311,7 @@ fn print_inventory(
             inventory.iter().map(|item| NameIdData::find(world, *item)),
             name::ArticleKind::One,
             name::CountFormat::Numeric,
-            noun_map,
+            assets,
         )
         .join(", ")
     };

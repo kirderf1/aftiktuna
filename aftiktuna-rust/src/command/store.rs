@@ -1,5 +1,5 @@
 use crate::action::Action;
-use crate::asset::NounDataMap;
+use crate::asset::{GameAssets, NounDataMap};
 use crate::command;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
@@ -14,7 +14,7 @@ pub fn parse(
     input: &str,
     shopkeeper: &Shopkeeper,
     state: &GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
@@ -24,14 +24,14 @@ pub fn parse(
             first_match_or!(
                 parse.numeric(|parse, amount| {
                     parse.match_against(
-                        store_entries(shopkeeper, amount, noun_map),
-                        |parse, item| parse.done_or_err(|| buy(item, amount, noun_map)),
+                        store_entries(shopkeeper, amount, &assets.noun_data_map),
+                        |parse, item| parse.done_or_err(|| buy(item, amount, &assets.noun_data_map)),
                         |input| Err(format!("\"{input}\" does not match an item in the store.")),
                     )
                 });
                 parse.match_against(
-                    store_entries(shopkeeper, 1, noun_map),
-                    |parse, item| parse.done_or_err(|| buy(item, 1, noun_map)),
+                    store_entries(shopkeeper, 1, &assets.noun_data_map),
+                    |parse, item| parse.done_or_err(|| buy(item, 1, &assets.noun_data_map)),
                     |input| Err(format!("\"{input}\" does not match an item in the store.")),
                 )
             )
@@ -40,28 +40,28 @@ pub fn parse(
             first_match_or!(
                 parse.literal("all", |parse| {
                     parse.match_against(
-                        held_item_lists_by_plurality(character, true, world, noun_map),
+                        held_item_lists_by_plurality(character, true, world, assets),
                         |parse, items| parse.done_or_err(|| command::action_result(Action::Sell(items))),
                         |input| Err(format!(
                             "{} is holding no item by the name \"{input}\".",
-                            NameData::find(world, character, noun_map).definite(),
+                            NameData::find(world, character, assets).definite(),
                         )),
                     )
                 }),
                 parse.numeric(|parse, count| {
                     parse.match_against(
-                        held_item_lists_by_plurality(character, count != 1, world, noun_map),
+                        held_item_lists_by_plurality(character, count != 1, world, assets),
                         |parse, items| parse.done_or_err(|| {
-                            sell_count(count, prioritize_inventory(items, world), character, world, noun_map)
+                            sell_count(count, prioritize_inventory(items, world), character, world, assets)
                         }),
                         |input| Err(format!(
                             "{} is holding no item by the name \"{input}\".",
-                            NameData::find(world, character, noun_map).definite(),
+                            NameData::find(world, character, assets).definite(),
                         )),
                     )
                 });
                 parse.match_against(
-                    held_items(world, character, noun_map),
+                    held_items(world, character, assets),
                     |parse, item| parse.done_or_err(|| command::action_result(Action::Sell(vec![item]))),
                     |input| {
                         Err(format!(
@@ -75,7 +75,7 @@ pub fn parse(
             parse.done_or_err(|| command::action_result(Action::ExitTrade))
         }),
         parse.literal("status", |parse| {
-            parse.done_or_err(|| command::status(state, noun_map))
+            parse.done_or_err(|| command::status(state, assets))
         });
         parse.default_err()
     )
@@ -112,14 +112,14 @@ fn buy(stock: &StoreStock, amount: u16, noun_map: &NounDataMap) -> Result<Comman
     command::action_result(Action::Buy(stock.item, amount))
 }
 
-fn held_items(world: &World, character: Entity, noun_map: &NounDataMap) -> Vec<(String, Entity)> {
+fn held_items(world: &World, character: Entity, assets: &GameAssets) -> Vec<(String, Entity)> {
     let mut items = world
         .query::<(NameQuery, &Held)>()
         .iter()
         .filter(|(_, (_, held))| held.held_by(character))
         .map(|(entity, (query, held))| {
             (
-                NameData::from_query(query, noun_map).base(),
+                NameData::from_query(query, assets).base(),
                 entity,
                 held.is_in_hand(),
             )
@@ -137,7 +137,7 @@ fn held_item_lists_by_plurality(
     character: Entity,
     plural: bool,
     world: &World,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> HashMap<String, Vec<Entity>> {
     let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
     world
@@ -145,7 +145,7 @@ fn held_item_lists_by_plurality(
         .iter()
         .filter(|&(_, (_, held))| held.held_by(character))
         .for_each(|(entity, (name_query, _))| {
-            let name_data = NameData::from_query(name_query, noun_map);
+            let name_data = NameData::from_query(name_query, assets);
             let name = if plural {
                 name_data.plural()
             } else {
@@ -167,14 +167,14 @@ fn sell_count(
     items: Vec<Entity>,
     character: Entity,
     world: &World,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
     let count = usize::from(count);
     if items.len() < count {
         return Err(format!(
             "{} does not have that many {}.",
-            NameData::find(world, character, noun_map).definite(),
-            NameData::find(world, *items.first().unwrap(), noun_map).plural(),
+            NameData::find(world, character, assets).definite(),
+            NameData::find(world, *items.first().unwrap(), assets).plural(),
         ));
     }
     command::action_result(Action::Sell(items[0..count].to_owned()))

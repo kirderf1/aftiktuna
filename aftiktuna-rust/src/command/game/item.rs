@@ -1,6 +1,6 @@
 use crate::action::Action;
 use crate::action::item::{SearchAction, UseAction};
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::command::{self, CommandResult};
 use crate::core::behavior;
@@ -15,7 +15,7 @@ use hecs::{Entity, World};
 pub fn commands(
     parse: &Parse,
     state: &GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Option<Result<CommandResult, String>> {
     let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
     first_match!(
@@ -25,8 +25,8 @@ pub fn commands(
                     parse.done_or_err(|| take_all(state))
                 });
                 parse.match_against(
-                    super::targets_by_proximity::<&ItemType>(character_pos, &state.world, noun_map),
-                    |parse, item| parse.done_or_err(|| take(item, state, noun_map)),
+                    super::targets_by_proximity::<&ItemType>(character_pos, &state.world, assets),
+                    |parse, item| parse.done_or_err(|| take(item, state, assets)),
                     |input| Err(format!("There is no {input} here to pick up.")),
                 )
             )
@@ -36,25 +36,25 @@ pub fn commands(
                 super::targets_in_room::<&Container>(
                     character_pos.get_area(),
                     &state.world,
-                    noun_map,
+                    assets,
                 ),
-                |parse, container| parse.done_or_err(|| search(container, state, noun_map)),
+                |parse, container| parse.done_or_err(|| search(container, state, assets)),
                 |input| Err(format!("\"{input}\" is not a valid searchable container.")),
             )
         }),
         parse.literal("give", |parse| {
             parse.match_against(
-                super::crew_character_targets(&state.world, noun_map),
+                super::crew_character_targets(&state.world, assets),
                 |parse, receiver| {
                     parse.match_against(
-                        inventory_items(state.controlled, &state.world, noun_map)
+                        inventory_items(state.controlled, &state.world, assets)
                             .into_iter()
-                            .chain(items_in_hand(state.controlled, &state.world, noun_map)),
-                        |parse, item| parse.done_or_err(|| give(receiver, item, state, noun_map)),
+                            .chain(items_in_hand(state.controlled, &state.world, assets)),
+                        |parse, item| parse.done_or_err(|| give(receiver, item, state, assets)),
                         |input| {
                             Err(format!(
                                 "{} has no {input} to give.",
-                                NameData::find(&state.world, state.controlled, noun_map).definite(),
+                                NameData::find(&state.world, state.controlled, assets).definite(),
                             ))
                         },
                     )
@@ -64,11 +64,11 @@ pub fn commands(
         }),
         parse.literal("wield", |parse| {
             parse.match_against(
-                items_in_hand(state.controlled, &state.world, noun_map)
+                items_in_hand(state.controlled, &state.world, assets)
                     .into_iter()
                     .map(|(name, item)| (name, WieldItemTarget::InHand(item)))
                     .chain(
-                        inventory_items(state.controlled, &state.world, noun_map)
+                        inventory_items(state.controlled, &state.world, assets)
                             .into_iter()
                             .map(|(name, item)| (name, WieldItemTarget::InInventory(item))),
                     )
@@ -76,62 +76,54 @@ pub fn commands(
                         super::targets_by_proximity::<(&CanWield, &ItemType)>(
                             character_pos,
                             &state.world,
-                            noun_map,
+                            assets,
                         )
                         .into_iter()
                         .map(|(name, item)| (name, WieldItemTarget::OnGround(item))),
                     ),
-                |parse, item| parse.done_or_err(|| wield(item, state, noun_map)),
+                |parse, item| parse.done_or_err(|| wield(item, state, assets)),
                 |input| {
                     Err(format!(
                         "There is no {input} that {} can wield.",
-                        NameData::find(&state.world, state.controlled, noun_map).definite(),
+                        NameData::find(&state.world, state.controlled, assets).definite(),
                     ))
                 },
             )
         }),
         parse.literal("use", |parse| {
             parse.match_against(
-                items_in_hand(state.controlled, &state.world, noun_map)
+                items_in_hand(state.controlled, &state.world, assets)
                     .into_iter()
-                    .chain(inventory_items(state.controlled, &state.world, noun_map)),
-                |parse, item| parse.done_or_err(|| use_item(item, state, noun_map)),
+                    .chain(inventory_items(state.controlled, &state.world, assets)),
+                |parse, item| parse.done_or_err(|| use_item(item, state, assets)),
                 |input| Err(format!("No held item by the name \"{input}\".")),
             )
         }),
     )
 }
 
-fn inventory_items(
-    character: Entity,
-    world: &World,
-    noun_map: &NounDataMap,
-) -> Vec<(String, Entity)> {
+fn inventory_items(character: Entity, world: &World, assets: &GameAssets) -> Vec<(String, Entity)> {
     world
         .query::<&Held>()
         .with::<&ItemType>()
         .iter()
         .filter(|&(_, held)| held.is_in_inventory(character))
         .flat_map(|(entity, _)| {
-            command::entity_names(world.entity(entity).unwrap(), noun_map)
+            command::entity_names(world.entity(entity).unwrap(), assets)
                 .into_iter()
                 .map(move |name| (name, entity))
         })
         .collect()
 }
 
-fn items_in_hand(
-    character: Entity,
-    world: &World,
-    noun_map: &NounDataMap,
-) -> Vec<(String, Entity)> {
+fn items_in_hand(character: Entity, world: &World, assets: &GameAssets) -> Vec<(String, Entity)> {
     world
         .query::<&Held>()
         .with::<&ItemType>()
         .iter()
         .filter(|&(_, held)| held.held_by(character) && held.is_in_hand())
         .flat_map(|(entity, _)| {
-            command::entity_names(world.entity(entity).unwrap(), noun_map)
+            command::entity_names(world.entity(entity).unwrap(), assets)
                 .into_iter()
                 .map(move |name| (name, entity))
         })
@@ -157,27 +149,21 @@ fn take_all(state: &GameState) -> Result<CommandResult, String> {
     command::action_result(Action::TakeAll)
 }
 
-fn take(item: Entity, state: &GameState, noun_map: &NounDataMap) -> Result<CommandResult, String> {
-    super::check_accessible_with_message(item, state.controlled, true, &state.world, noun_map)?;
+fn take(item: Entity, state: &GameState, assets: &GameAssets) -> Result<CommandResult, String> {
+    super::check_accessible_with_message(item, state.controlled, true, &state.world, assets)?;
 
     command::action_result(Action::TakeItem(
         item,
-        NameData::find(&state.world, item, noun_map),
+        NameData::find(&state.world, item, assets),
     ))
 }
 
 fn search(
     container: Entity,
     state: &GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
-    super::check_accessible_with_message(
-        container,
-        state.controlled,
-        true,
-        &state.world,
-        noun_map,
-    )?;
+    super::check_accessible_with_message(container, state.controlled, true, &state.world, assets)?;
 
     command::action_result(SearchAction { container })
 }
@@ -186,12 +172,12 @@ fn give(
     receiver: Entity,
     item: Entity,
     state: &GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
     if state.controlled == receiver {
         return Err(format!(
             "{} can't give an item to themselves.",
-            NameData::find(&state.world, state.controlled, noun_map).definite()
+            NameData::find(&state.world, state.controlled, assets).definite()
         ));
     }
 
@@ -199,7 +185,7 @@ fn give(
         receiver,
         state.controlled,
         &state.world,
-        noun_map,
+        assets,
     )?;
 
     command::action_result(Action::GiveItem(item, receiver))
@@ -214,17 +200,17 @@ enum WieldItemTarget {
 fn wield(
     item: WieldItemTarget,
     state: &GameState,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Result<CommandResult, String> {
     match item {
         WieldItemTarget::InHand(item) => Err(format!(
             "{} is already wielding a {}.",
-            NameData::find(&state.world, state.controlled, noun_map).definite(),
-            NameData::find(&state.world, item, noun_map).base(),
+            NameData::find(&state.world, state.controlled, assets).definite(),
+            NameData::find(&state.world, item, assets).base(),
         )),
         WieldItemTarget::InInventory(item) => command::action_result(Action::Wield(
             item,
-            NameData::find(&state.world, item, noun_map),
+            NameData::find(&state.world, item, assets),
         )),
         WieldItemTarget::OnGround(item) => {
             super::check_accessible_with_message(
@@ -232,34 +218,30 @@ fn wield(
                 state.controlled,
                 true,
                 &state.world,
-                noun_map,
+                assets,
             )?;
 
             command::action_result(Action::Wield(
                 item,
-                NameData::find(&state.world, item, noun_map),
+                NameData::find(&state.world, item, assets),
             ))
         }
     }
 }
 
-fn use_item(
-    item: Entity,
-    state: &GameState,
-    noun_map: &NounDataMap,
-) -> Result<CommandResult, String> {
+fn use_item(item: Entity, state: &GameState, assets: &GameAssets) -> Result<CommandResult, String> {
     let world = &state.world;
     let character = state.controlled;
     let item_ref = world.entity(item).unwrap();
     let item_type = *item_ref.get::<&ItemType>().unwrap();
 
     if item_type == ItemType::FuelCan {
-        super::refuel_ship(state, noun_map)
+        super::refuel_ship(state, assets)
     } else if item_type == ItemType::Medkit {
         if !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
                 "{} is not hurt, and does not need to use the medkit.",
-                NameData::find(world, character, noun_map).definite(),
+                NameData::find(world, character, assets).definite(),
             ));
         }
         command::action_result(UseAction { item })
@@ -272,13 +254,10 @@ fn use_item(
         {
             Err(format!(
                 "{} is already being held.",
-                NameData::find_by_ref(item_ref, noun_map).definite(),
+                NameData::find_by_ref(item_ref, assets).definite(),
             ))
         } else {
-            command::action_result(Action::Wield(
-                item,
-                NameData::find_by_ref(item_ref, noun_map),
-            ))
+            command::action_result(Action::Wield(item, NameData::find_by_ref(item_ref, assets)))
         }
     } else {
         Err("The item can not be used in any meaningful way.".to_string())

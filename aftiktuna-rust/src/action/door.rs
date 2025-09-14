@@ -38,24 +38,24 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         state,
         view_context,
     } = context;
-    let noun_map = view_context.view_buffer.noun_map;
+    let assets = view_context.view_buffer.assets;
     let world = &mut state.world;
     let performer_name = NameIdData::find(world, performer);
 
     let door_pos = *world.get::<&Pos>(door).ok().ok_or_else(|| {
         format!(
             "{the_performer} lost track of the door.",
-            the_performer = performer_name.clone().lookup(noun_map).definite()
+            the_performer = performer_name.clone().lookup(assets).definite()
         )
     })?;
     if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
         return Err(Error::private(format!(
             "{the_performer} cannot reach the door from here.",
-            the_performer = performer_name.lookup(noun_map).definite()
+            the_performer = performer_name.lookup(assets).definite()
         )));
     }
 
-    position::push_and_move(world, performer, door_pos, noun_map)?;
+    position::push_and_move(world, performer, door_pos, assets)?;
 
     let door_data = world
         .get::<&Door>(door)
@@ -73,7 +73,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
         on_door_failure(state, performer, door, block_type);
         return Err(Error::visible(format!(
             "{performer} is unable to enter the door as it is {blocked}.",
-            performer = performer_name.lookup(noun_map).definite(),
+            performer = performer_name.lookup(assets).definite(),
             blocked = block_type.description(),
         )));
     }
@@ -97,7 +97,7 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
                 Direction::towards_center(door_data.destination, world),
                 world,
             )
-            .map_err(|_| blockage.into_message(world, noun_map))?;
+            .map_err(|_| blockage.into_message(world, assets))?;
     }
     world.insert_one(performer, destination_pos).unwrap();
     if let Ok(mut stamina) = world.get::<&mut Stamina>(performer) {
@@ -139,9 +139,9 @@ pub(super) fn force_door(
         state,
         mut view_context,
     } = context;
-    let noun_map = view_context.view_buffer.noun_map;
+    let assets = view_context.view_buffer.assets;
     let world = &state.world;
-    let performer_name = NameData::find(world, performer, noun_map).definite();
+    let performer_name = NameData::find(world, performer, assets).definite();
     let door_pos = *world
         .get::<&Pos>(door)
         .ok()
@@ -158,7 +158,7 @@ pub(super) fn force_door(
         .door_pair;
 
     let movement = position::prepare_move(world, performer, door_pos)
-        .map_err(|blockage| blockage.into_message(world, noun_map))?;
+        .map_err(|blockage| blockage.into_message(world, assets))?;
     view_context.capture_frame_for_dialogue(state);
     let world = &mut state.world;
     movement.perform(world).unwrap();

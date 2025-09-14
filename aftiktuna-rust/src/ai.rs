@@ -1,6 +1,6 @@
 use crate::action::Action;
 use crate::action::item::UseAction;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::core::behavior::{
     self, BadlyHurtBehavior, Character, Hostile, Intention, ObservationTarget, RepeatingAction,
     Waiting, Wandering,
@@ -80,7 +80,7 @@ pub fn tick(
     action_map: &mut HashMap<Entity, Action>,
     world: &mut World,
     rng: &mut impl Rng,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) {
     let mut buffer = CommandBuffer::new();
 
@@ -95,7 +95,7 @@ pub fn tick(
                 buffer.remove_one::<RepeatingAction>(entity);
                 Action::from(*action)
             } else {
-                pick_action(entity_ref, world, rng, noun_map).unwrap_or(Action::Wait)
+                pick_action(entity_ref, world, rng, assets).unwrap_or(Action::Wait)
             };
 
             action_map.insert(entity, action);
@@ -115,12 +115,12 @@ fn pick_action(
     entity_ref: EntityRef,
     world: &World,
     rng: &mut impl Rng,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Option<Action> {
     if let Some(hostile) = entity_ref.get::<&Hostile>() {
         pick_foe_action(entity_ref, &hostile, world, rng)
     } else if entity_ref.satisfies::<&CrewMember>() {
-        pick_crew_action(entity_ref, world, rng, noun_map)
+        pick_crew_action(entity_ref, world, rng, assets)
     } else {
         None
     }
@@ -191,7 +191,7 @@ fn pick_crew_action(
     entity_ref: EntityRef,
     world: &World,
     rng: &mut impl Rng,
-    noun_map: &NounDataMap,
+    assets: &GameAssets,
 ) -> Option<Action> {
     let entity_pos = *entity_ref.get::<&Pos>()?;
 
@@ -260,7 +260,7 @@ fn pick_crew_action(
     if let Some(intention) = intention {
         match *intention {
             Intention::Wield(item) => {
-                return Some(Action::Wield(item, NameData::find(world, item, noun_map)));
+                return Some(Action::Wield(item, NameData::find(world, item, assets)));
             }
             Intention::Force(door) => return Some(Action::ForceDoor(door, true)),
             _ => {}

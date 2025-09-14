@@ -5,6 +5,7 @@ pub mod model;
 pub mod color {
     use super::Error;
     use crate::core::display::AftikColorId;
+    use crate::core::name::Adjective;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
 
@@ -32,9 +33,16 @@ pub mod color {
         }
     }
 
+    #[derive(Clone, Serialize, Deserialize)]
+    pub struct AftikColorEntry {
+        pub adjective: Adjective,
+        #[serde(flatten)]
+        pub color_data: AftikColorData,
+    }
+
     pub const AFTIK_COLORS_PATH: &str = "assets/aftik_colors.json";
 
-    pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorData>, Error> {
+    pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorEntry>, Error> {
         super::load_from_json(AFTIK_COLORS_PATH)
     }
 
@@ -311,7 +319,7 @@ pub mod placement {
 }
 
 use crate::core::display::AftikColorId;
-use crate::core::name::{NounData, NounId};
+use crate::core::name::{Adjective, NounData, NounId};
 use crate::core::status::{Stats, Traits};
 use rand::Rng;
 use serde::de::DeserializeOwned;
@@ -440,5 +448,22 @@ impl NounDataMap {
 
     pub(crate) fn lookup(&self, noun_id: &NounId) -> &NounData {
         self.map.get(noun_id).unwrap_or(&self.fallback)
+    }
+}
+
+pub(crate) struct GameAssets {
+    pub noun_data_map: NounDataMap,
+    pub color_adjective_map: HashMap<AftikColorId, Adjective>,
+}
+
+impl GameAssets {
+    pub fn load() -> Result<Self, Error> {
+        Ok(Self {
+            noun_data_map: NounDataMap::load()?,
+            color_adjective_map: color::load_aftik_color_data()?
+                .into_iter()
+                .map(|(id, entry)| (id, entry.adjective))
+                .collect(),
+        })
     }
 }

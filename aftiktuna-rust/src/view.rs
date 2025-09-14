@@ -3,7 +3,7 @@ pub use self::status::FullStatus;
 pub(crate) use self::status::get_full_status;
 use self::text::{IntoMessage, Messages};
 use crate::StopType;
-use crate::asset::NounDataMap;
+use crate::asset::GameAssets;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression};
 use crate::core::position::{Direction, Pos};
@@ -75,7 +75,7 @@ mod store {
             .unwrap()
             .0
             .iter()
-            .map(|stock| StoreStockView::create(stock, buffer.noun_map))
+            .map(|stock| StoreStockView::create(stock, &buffer.assets.noun_data_map))
             .collect();
         let mut sellable_items_count = IndexMap::new();
         world
@@ -87,7 +87,7 @@ mod store {
             .for_each(|name_data| *sellable_items_count.entry(name_data).or_default() += 1);
         let sellable_items = sellable_items_count
             .into_iter()
-            .map(|(name_data, count)| (name_data.lookup(buffer.noun_map), count))
+            .map(|(name_data, count)| (name_data.lookup(buffer.assets), count))
             .collect();
 
         Frame::StoreView {
@@ -100,7 +100,7 @@ mod store {
             },
             messages: buffer
                 .pop_messages(world, character, cache)
-                .into_text(buffer.noun_map),
+                .into_text(buffer.assets),
         }
     }
 }
@@ -113,16 +113,16 @@ pub(crate) struct Buffer<'a> {
     pub messages: Messages,
     captured_frames: Vec<Frame>,
     unseen_view: bool,
-    pub noun_map: &'a NounDataMap,
+    pub assets: &'a GameAssets,
 }
 
 impl<'a> Buffer<'a> {
-    pub fn new(noun_map: &'a NounDataMap) -> Self {
+    pub fn new(assets: &'a GameAssets) -> Self {
         Self {
             messages: Messages::default(),
             captured_frames: Vec::new(),
             unseen_view: false,
-            noun_map,
+            assets,
         }
     }
 
@@ -190,12 +190,12 @@ impl<'a> Buffer<'a> {
     ) -> Messages {
         let mut messages = Messages::default();
         self.pop_message_cache(&mut messages);
-        status::changes_messages(world, character, &mut messages, cache, self.noun_map);
+        status::changes_messages(world, character, &mut messages, cache, self.assets);
         messages
     }
 
     fn pop_message_cache(&mut self, messages: &mut Messages) {
-        let messages_text = take(&mut self.messages).into_text(self.noun_map).join(" ");
+        let messages_text = take(&mut self.messages).into_text(self.assets).join(" ");
         if !messages_text.is_empty() {
             messages.add(messages_text);
         }
@@ -327,7 +327,7 @@ fn area_view_frame(buffer: &mut Buffer, state: &mut GameState) -> Frame {
     Frame::AreaView {
         messages: buffer
             .pop_messages(&state.world, state.controlled, &mut state.status_cache)
-            .into_text(buffer.noun_map),
-        render_data: area::prepare_render_data(state, buffer.noun_map),
+            .into_text(buffer.assets),
+        render_data: area::prepare_render_data(state, buffer.assets),
     }
 }
