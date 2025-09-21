@@ -100,6 +100,7 @@ fn run_step(
             }
 
             view_buffer.capture_view(state, false);
+            dialogue::trigger_landing_dialogue(state, view_buffer);
             Ok(Step::PrepareTick)
         }
         Step::PrepareTick => {

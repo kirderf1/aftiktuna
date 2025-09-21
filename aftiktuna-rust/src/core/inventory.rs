@@ -108,5 +108,19 @@ pub fn drop_all_items(world: &mut World, entity: Entity) {
     }
 }
 
+pub fn fuel_cans_held_by_crew(world: &World, excluding_items: &[Entity]) -> usize {
+    world
+        .query::<(&ItemType, &Held)>()
+        .iter()
+        .filter(|&(item, (item_type, held))| {
+            *item_type == ItemType::FuelCan
+                && !excluding_items.contains(&item)
+                && world
+                    .satisfies::<&super::CrewMember>(held.holder)
+                    .unwrap_or(false)
+        })
+        .count()
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Container;

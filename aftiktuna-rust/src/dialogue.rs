@@ -6,7 +6,7 @@ use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::status::Health;
-use crate::core::{CrewMember, Tag};
+use crate::core::{CrewMember, Tag, area, inventory};
 use crate::game_loop::GameState;
 use crate::view;
 use hecs::{Entity, World};
@@ -115,13 +115,6 @@ fn regular_greeting(
     } else {
         view_buffer.push_dialogue(world, target, DialogueExpression::Excited, "Hello!");
     }
-}
-
-fn any_alive_with_tag(target_tag: &Tag, world: &World) -> bool {
-    world
-        .query::<(&Health, &Tag)>()
-        .iter()
-        .any(|(_, (health, tag))| health.is_alive() && target_tag == tag)
 }
 
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
@@ -307,7 +300,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
         .collect::<Vec<_>>();
     for (speaker, speaker_pos) in entities_with_background_dialogue {
         if player_pos.is_in(speaker_pos.get_area()) {
-            trigger_backgorund_dialogue(
+            trigger_background_dialogue(
                 speaker,
                 speaker_pos,
                 state
@@ -321,7 +314,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
     }
 }
 
-fn trigger_backgorund_dialogue(
+fn trigger_background_dialogue(
     speaker: Entity,
     speaker_pos: Pos,
     background_dialogue: BackgroundDialogue,
@@ -354,6 +347,54 @@ fn trigger_backgorund_dialogue(
         }
     }
 }
+
+pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    let player_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
+    let Some(speaker) = state
+        .world
+        .query_mut::<&Pos>()
+        .with::<&CrewMember>()
+        .into_iter()
+        .find(|&(entity, pos)| entity != state.controlled && pos.is_in(player_pos.get_area()))
+        .map(|(entity, _)| entity)
+    else {
+        return;
+    };
+
+    if area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
+        fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
+    }) {
+        position::turn_towards(&mut state.world, speaker, player_pos);
+
+        if state
+            .world
+            .get::<&Health>(speaker)
+            .is_ok_and(|health| health.is_badly_hurt())
+        {
+            view_buffer.push_dialogue(
+                &state.world,
+                speaker,
+                DialogueExpression::Neutral,
+                "We have enough fuel to leave right away. Let's not take any risks and leave soon.",
+            );
+        } else {
+            view_buffer.push_dialogue(
+                &state.world,
+                speaker,
+                DialogueExpression::Neutral,
+                "We have enough fuel to leave right away. But we could still take a look around for any additional resources.",
+            );
+        }
+    }
+}
+
+fn any_alive_with_tag(target_tag: &Tag, world: &World) -> bool {
+    world
+        .query::<(&Health, &Tag)>()
+        .iter()
+        .any(|(_, (health, tag))| health.is_alive() && target_tag == tag)
+}
+
 fn find_one_entity_with_tag(target_tag: &Tag, world: &World) -> Option<Entity> {
     world
         .query::<&Tag>()

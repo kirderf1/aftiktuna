@@ -1,11 +1,10 @@
 use crate::action::{self, Error};
-use crate::core::CrewMember;
-use crate::core::area::{FuelAmount, ShipState, ShipStatus};
-use crate::core::inventory::Held;
+use crate::core::inventory::{self, Held};
 use crate::core::item::{self, ItemType, Price};
 use crate::core::name::{self, NameData, NameIdData};
 use crate::core::position::{self, Placement, PlacementQuery};
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
+use crate::core::{CrewMember, area};
 use crate::view::text;
 use hecs::{Entity, EntityRef, World};
 
@@ -127,7 +126,11 @@ pub fn sell(
 
     let performer_name = NameData::find(world, performer, assets).definite();
 
-    if is_selling_fuel && !check_has_fuel_reserve(world, &items) {
+    if is_selling_fuel
+        && area::fuel_needed_to_launch(world).is_some_and(|fuel_amount| {
+            fuel_amount > inventory::fuel_cans_held_by_crew(world, &items)
+        })
+    {
         return Err(Error::private(format!(
             "{performer_name} does not want to sell their fuel can, since they need it to refuel their ship."
         )));
@@ -154,31 +157,6 @@ pub fn sell(
         context.state,
     );
     Ok(action::Success)
-}
-
-fn check_has_fuel_reserve(world: &World, excluding_items: &[Entity]) -> bool {
-    let mut query = world.query::<&ShipState>();
-    let Some((_, ship_state)) = query.iter().next() else {
-        return true;
-    };
-    let ShipStatus::NeedFuel(fuel_amount) = ship_state.status else {
-        return true;
-    };
-
-    let amount_needed = match fuel_amount {
-        FuelAmount::OneCan => 1,
-        FuelAmount::TwoCans => 2,
-    };
-    world
-        .query::<(&ItemType, &Held)>()
-        .iter()
-        .filter(|&(item, (item_type, held))| {
-            *item_type == ItemType::FuelCan
-                && !excluding_items.contains(&item)
-                && world.satisfies::<&CrewMember>(held.holder).unwrap_or(false)
-        })
-        .count()
-        >= amount_needed
 }
 
 pub fn exit(context: &mut action::Context, performer: Entity) -> action::Result {
