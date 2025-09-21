@@ -117,6 +117,15 @@ impl Reward {
     }
 }
 
+/// Assigned to crew entity when any crew member have brought up that the crew has sufficient fuel to leave.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TalkedAboutEnoughFuel;
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TalkState {
+    pub talked_about_badly_hurt: bool,
+}
+
 pub fn is_safe(world: &hecs::World, area: hecs::Entity) -> bool {
     world
         .query::<&Pos>()

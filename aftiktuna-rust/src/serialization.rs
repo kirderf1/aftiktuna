@@ -193,6 +193,8 @@ pub mod world {
         behavior::GivesHuntReward, GivesHuntReward;
         behavior::BackgroundDialogue, BackgroundDialogue;
         behavior::EncounterDialogue, EncounterDialogue;
+        behavior::TalkedAboutEnoughFuel, TalkedAboutEnoughFuel;
+        behavior::TalkState, TalkState;
         core::Tag, Tag;
 
         store::Shopkeeper, Shopkeeper;

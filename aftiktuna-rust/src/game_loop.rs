@@ -1,7 +1,9 @@
 use crate::action::{self, Action};
 use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
-use crate::core::behavior::{self, Character, CrewLossMemory, Hostile, RepeatingAction, Waiting};
+use crate::core::behavior::{
+    self, Character, CrewLossMemory, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
+};
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
@@ -506,6 +508,9 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .get::<&mut ShipState>(state.ship_core)
         .unwrap()
         .status = ShipStatus::NeedFuel(FuelAmount::TwoCans);
+
+    let crew = state.world.get::<&CrewMember>(state.controlled).unwrap().0;
+    let _ = state.world.remove_one::<TalkedAboutEnoughFuel>(crew);
 
     status::apply_morale_effects_from_crew_state(&mut state.world, rations_before_eating);
 }

@@ -3,7 +3,7 @@ use super::behavior::BadlyHurtBehavior;
 use super::name::NameWithAttribute;
 use super::position::Pos;
 use crate::core::CrewMember;
-use crate::core::behavior::{Character, CrewLossMemory};
+use crate::core::behavior::{Character, CrewLossMemory, TalkState};
 use crate::core::item::ItemType;
 use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
@@ -253,11 +253,13 @@ impl Health {
 
         self.value = f32::min(1., self.value + fraction);
 
-        if was_badly_hurt
-            && !self.is_badly_hurt()
-            && let Some(mut morale) = entity_ref.get::<&mut Morale>()
-        {
-            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::MEDIUM_DEPTH);
+        if was_badly_hurt && !self.is_badly_hurt() {
+            if let Some(mut talk_state) = entity_ref.get::<&mut TalkState>() {
+                talk_state.talked_about_badly_hurt = false;
+            }
+            if let Some(mut morale) = entity_ref.get::<&mut Morale>() {
+                morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::MEDIUM_DEPTH);
+            }
         }
     }
 

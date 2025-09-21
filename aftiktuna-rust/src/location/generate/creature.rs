@@ -4,7 +4,7 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
-use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable, Talk};
+use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable, Talk, TalkState};
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{CreatureAttribute, Health, Morale, Stamina};
@@ -158,6 +158,7 @@ pub(crate) fn aftik_builder_with_stats(
         Health::from_fraction(1.),
         Stamina::with_max(&profile.stats),
         Morale::default(),
+        TalkState::default(),
         OccupiesSpace,
         profile.stats,
         profile.traits,
