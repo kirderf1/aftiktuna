@@ -1,0 +1,34 @@
+[
+  {
+    "has_recent_crew_loss_memory": true,
+    "expression": "sad",
+    "message": "I am sad that we lost {crew_loss_memory_name}. Do you think that we will make it?",
+    "reply": [
+      { "is_badly_hurt": true, "expression": "neutral", "message": "I am not sure, but I hope so." },
+      { "expression": "neutral", "message": "Don't worry. I'm sure we will." }
+    ]
+  },
+  {
+    "is_badly_hurt": true,
+    "expression": "neutral",
+    "message": "Will we be able to go somewhere safer next?",
+    "reply": [
+      { "expression": "neutral", "message": "I don't know. Let's see what our options are." }
+    ]
+  },
+  {
+    "is_badly_hurt": false,
+    "is_target_badly_hurt": true,
+    "expression": "neutral",
+    "message": "That worked out in the end, right?",
+    "reply": [
+      {
+        "expression": "neutral",
+        "message": "I guess so. But can we go somewhere safer next?",
+        "reply": [
+          { "expression": "neutral", "message": "I don't know. Let's see what our options are." }
+        ]
+      }
+    ]
+  }
+]

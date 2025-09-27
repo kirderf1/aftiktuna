@@ -67,33 +67,66 @@ pub mod color {
 }
 
 pub(crate) mod dialogue {
-    use crate::core::{area, display::DialogueExpression, inventory, status::Health};
+    use crate::core::behavior::CrewLossMemory;
+    use crate::core::display::DialogueExpression;
+    use crate::core::status::Health;
+    use crate::core::{area, inventory};
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Serialize, Deserialize)]
+    #[serde(deny_unknown_fields)]
     pub struct ConditionedDialogueNode {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub is_badly_hurt: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub is_target_badly_hurt: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
         pub has_enough_fuel: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub has_crew_loss_memory: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub has_recent_crew_loss_memory: Option<bool>,
         pub expression: DialogueExpression,
         pub message: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reply: Option<DialogueList>,
     }
 
     impl ConditionedDialogueNode {
-        pub fn is_available(&self, speaker: Entity, world: &World) -> bool {
+        pub fn is_available(&self, speaker: Entity, target: Entity, world: &World) -> bool {
             self.is_badly_hurt.is_none_or(|is_badly_hurt| {
                 is_badly_hurt
                     == world
                         .get::<&Health>(speaker)
                         .is_ok_and(|health| health.is_badly_hurt())
-            }) && self.has_enough_fuel.is_none_or(|has_enough_fuel| {
-                has_enough_fuel
-                    == area::fuel_needed_to_launch(world).is_some_and(|fuel_amount| {
-                        fuel_amount <= inventory::fuel_cans_held_by_crew(world, &[])
+            }) && self
+                .is_target_badly_hurt
+                .is_none_or(|is_target_badly_hurt| {
+                    is_target_badly_hurt
+                        == world
+                            .get::<&Health>(target)
+                            .is_ok_and(|health| health.is_badly_hurt())
+                })
+                && self.has_enough_fuel.is_none_or(|has_enough_fuel| {
+                    has_enough_fuel
+                        == area::fuel_needed_to_launch(world).is_some_and(|fuel_amount| {
+                            fuel_amount <= inventory::fuel_cans_held_by_crew(world, &[])
+                        })
+                })
+                && self
+                    .has_crew_loss_memory
+                    .is_none_or(|has_crew_loss_memory| {
+                        has_crew_loss_memory == world.satisfies::<&CrewLossMemory>(speaker).unwrap()
                     })
-            })
+                && self
+                    .has_recent_crew_loss_memory
+                    .is_none_or(|has_recent_crew_loss_memory| {
+                        has_recent_crew_loss_memory
+                            == world
+                                .get::<&CrewLossMemory>(speaker)
+                                .is_ok_and(|crew_loss_memory| crew_loss_memory.recent)
+                    })
         }
     }
 
@@ -104,9 +137,12 @@ pub(crate) mod dialogue {
         pub fn select_node(
             &self,
             speaker: Entity,
+            target: Entity,
             world: &World,
         ) -> Option<&ConditionedDialogueNode> {
-            self.0.iter().find(|node| node.is_available(speaker, world))
+            self.0
+                .iter()
+                .find(|node| node.is_available(speaker, target, world))
         }
     }
 

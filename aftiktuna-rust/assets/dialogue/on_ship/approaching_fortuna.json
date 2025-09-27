@@ -1,0 +1,19 @@
+[
+  {
+    "is_badly_hurt": true,
+    "expression": "neutral",
+    "message": "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
+    "reply": [
+      { "expression": "neutral", "message": "I hope so." }
+    ]
+  },
+  {
+    "expression": "excited",
+    "message": "Looks like we are arriving at the Fortuna crash site next. Are you excited?",
+    "reply": [
+      { "has_crew_loss_memory": true, "expression": "sad", "message": "Yeah. I just wish {crew_loss_memory_name} was with us too." },
+      { "is_badly_hurt": true, "expression": "neutral", "message": "Yeah, but I am also worried." },
+      { "expression": "excited", "message": "Yeah, I think so!" }
+    ]
+  }
+]

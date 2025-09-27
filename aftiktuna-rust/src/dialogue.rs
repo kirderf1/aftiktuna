@@ -1,10 +1,11 @@
+use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntReward,
     Recruitable, Talk, TalkState, TalkedAboutEnoughFuel, Waiting,
 };
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
-use crate::core::position::{self, Direction, Pos};
+use crate::core::position::{self, Pos};
 use crate::core::status::Health;
 use crate::core::{CrewMember, Tag, area, inventory};
 use crate::game_loop::GameState;
@@ -126,135 +127,32 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
         .choose_multiple(&mut state.rng, 2);
     crew_characters.shuffle(&mut state.rng);
     if let [(character1, ()), (character2, ())] = crew_characters[..] {
+        let area = state.world.get::<&Pos>(character1).unwrap().get_area();
         state
             .world
-            .insert_one(character1, Direction::Right)
+            .insert_one(character1, Pos::new(area, 0, &state.world))
             .unwrap();
-        state.world.insert_one(character2, Direction::Left).unwrap();
-        ship_dialogue(character1, character2, state, view_buffer);
-    }
-}
-
-fn ship_dialogue(
-    character1: Entity,
-    character2: Entity,
-    state: &mut GameState,
-    view_buffer: &mut view::Buffer,
-) {
-    let badly_hurt1 = state
-        .world
-        .get::<&Health>(character1)
-        .is_ok_and(|health| health.is_badly_hurt());
-    let badly_hurt2 = state
-        .world
-        .get::<&Health>(character2)
-        .is_ok_and(|health| health.is_badly_hurt());
-    if state.generation_state.locations_before_fortuna() == 0 {
-        if badly_hurt1 {
-            view_buffer.push_dialogue(
-                &state.world,
+        state
+            .world
+            .insert_one(character2, Pos::new(area, 1, &state.world))
+            .unwrap();
+        if state.generation_state.locations_before_fortuna() == 0 {
+            trigger_dialogue_by_name(
+                "on_ship/approaching_fortuna",
                 character1,
-                DialogueExpression::Neutral,
-                "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
-            );
-            view_buffer.push_dialogue(
-                &state.world,
                 character2,
-                DialogueExpression::Neutral,
-                "I hope so.",
+                state,
+                view_buffer,
             );
         } else {
-            view_buffer.push_dialogue(
-                &state.world,
+            trigger_dialogue_by_name(
+                "on_ship/approaching_location",
                 character1,
-                DialogueExpression::Excited,
-                "Looks like we are arriving at the Fortuna crash site next. Are you excited?",
-            );
-            if let Ok(memory) = state.world.get::<&CrewLossMemory>(character2) {
-                view_buffer.push_dialogue(
-                    &state.world,
-                    character2,
-                    DialogueExpression::Sad,
-                    format!(
-                        "Yeah. I just wish {name} was with us too.",
-                        name = memory.name,
-                    ),
-                );
-            } else if badly_hurt2 {
-                view_buffer.push_dialogue(
-                    &state.world,
-                    character2,
-                    DialogueExpression::Neutral,
-                    "Yeah, but I am also worried.",
-                );
-            } else {
-                view_buffer.push_dialogue(
-                    &state.world,
-                    character2,
-                    DialogueExpression::Excited,
-                    "Yeah, I think so!",
-                );
-            }
-        }
-    } else if let Ok(memory) = state.world.get::<&CrewLossMemory>(character1)
-        && memory.recent
-    {
-        view_buffer.push_dialogue(
-            &state.world,
-            character1,
-            DialogueExpression::Sad,
-            format!(
-                "I am sad that we lost {name}. Do you think that we will make it?",
-                name = memory.name
-            ),
-        );
-        if badly_hurt2 {
-            view_buffer.push_dialogue(
-                &state.world,
                 character2,
-                DialogueExpression::Neutral,
-                "I am not sure, but I hope so.",
-            );
-        } else {
-            view_buffer.push_dialogue(
-                &state.world,
-                character2,
-                DialogueExpression::Neutral,
-                "Don't worry. I'm sure we will.",
+                state,
+                view_buffer,
             );
         }
-    } else if badly_hurt1 {
-        view_buffer.push_dialogue(
-            &state.world,
-            character1,
-            DialogueExpression::Neutral,
-            "Will we be able to go somewhere safer next?",
-        );
-        view_buffer.push_dialogue(
-            &state.world,
-            character2,
-            DialogueExpression::Neutral,
-            "I don't know. Let's see what our options are.",
-        );
-    } else if !badly_hurt1 && badly_hurt2 {
-        view_buffer.push_dialogue(
-            &state.world,
-            character1,
-            DialogueExpression::Neutral,
-            "That worked out in the end, right?",
-        );
-        view_buffer.push_dialogue(
-            &state.world,
-            character2,
-            DialogueExpression::Neutral,
-            "I guess so. But can we go somewhere safer next?",
-        );
-        view_buffer.push_dialogue(
-            &state.world,
-            character1,
-            DialogueExpression::Neutral,
-            "I don't know. Let's see what our options are.",
-        );
     }
 }
 
@@ -337,7 +235,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
             trigger_dialogue_by_name(
                 "obtained_enough_fuel",
                 speaker,
-                player_pos,
+                state.controlled,
                 state,
                 view_buffer,
             );
@@ -363,7 +261,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
                 trigger_dialogue_by_name(
                     "badly_hurt_after_battle",
                     speaker,
-                    player_pos,
+                    state.controlled,
                     state,
                     view_buffer,
                 );
@@ -425,31 +323,74 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
         let crew = state.world.get::<&CrewMember>(speaker).unwrap().0;
         state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
 
-        trigger_dialogue_by_name("landing_with_fuel", speaker, player_pos, state, view_buffer);
+        trigger_dialogue_by_name(
+            "landing_with_fuel",
+            speaker,
+            state.controlled,
+            state,
+            view_buffer,
+        );
     }
 }
 
 fn trigger_dialogue_by_name(
     name: &str,
     speaker: Entity,
-    target_pos: Pos,
+    target: Entity,
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
     match asset::dialogue::load_dialogue_data(name) {
         Ok(dialogue) => {
-            if let Some(dialogue_node) = dialogue.select_node(speaker, &state.world) {
+            if let Some(dialogue_node) = dialogue.select_node(speaker, target, &state.world) {
                 view_buffer.capture_view_before_dialogue(state);
-                position::turn_towards(&mut state.world, speaker, target_pos);
-                view_buffer.push_dialogue(
-                    &state.world,
+                run_dialogue_node(
+                    dialogue_node,
                     speaker,
-                    dialogue_node.expression,
-                    &dialogue_node.message,
+                    target,
+                    &mut state.world,
+                    view_buffer,
                 );
             }
         }
         Err(error) => println!("Failed to load dialogue {name}: {error}"),
+    }
+}
+
+fn run_dialogue_node(
+    dialogue_node: &ConditionedDialogueNode,
+    speaker: Entity,
+    target: Entity,
+    world: &mut World,
+    view_buffer: &mut view::Buffer,
+) {
+    let target_pos = *world.get::<&Pos>(target).unwrap();
+    position::turn_towards(world, speaker, target_pos);
+
+    if dialogue_node.message.contains("{crew_loss_memory_name}")
+        && let Ok(crew_loss_memory) = world.get::<&CrewLossMemory>(speaker)
+    {
+        view_buffer.push_dialogue(
+            world,
+            speaker,
+            dialogue_node.expression,
+            dialogue_node
+                .message
+                .replace("{crew_loss_memory_name}", &crew_loss_memory.name),
+        );
+    } else {
+        view_buffer.push_dialogue(
+            world,
+            speaker,
+            dialogue_node.expression,
+            &dialogue_node.message,
+        );
+    }
+
+    if let Some(reply) = &dialogue_node.reply
+        && let Some(reply_node) = reply.select_node(target, speaker, world)
+    {
+        run_dialogue_node(reply_node, target, speaker, world, view_buffer);
     }
 }
 
