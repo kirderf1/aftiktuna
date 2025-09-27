@@ -66,6 +66,55 @@ pub mod color {
     }
 }
 
+pub(crate) mod dialogue {
+    use crate::core::{area, display::DialogueExpression, inventory, status::Health};
+    use hecs::{Entity, World};
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Clone, Serialize, Deserialize)]
+    pub struct ConditionedDialogueNode {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub is_badly_hurt: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub has_enough_fuel: Option<bool>,
+        pub expression: DialogueExpression,
+        pub message: String,
+    }
+
+    impl ConditionedDialogueNode {
+        pub fn is_available(&self, speaker: Entity, world: &World) -> bool {
+            self.is_badly_hurt.is_none_or(|is_badly_hurt| {
+                is_badly_hurt
+                    == world
+                        .get::<&Health>(speaker)
+                        .is_ok_and(|health| health.is_badly_hurt())
+            }) && self.has_enough_fuel.is_none_or(|has_enough_fuel| {
+                has_enough_fuel
+                    == area::fuel_needed_to_launch(world).is_some_and(|fuel_amount| {
+                        fuel_amount <= inventory::fuel_cans_held_by_crew(world, &[])
+                    })
+            })
+        }
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    pub struct DialogueList(Vec<ConditionedDialogueNode>);
+
+    impl DialogueList {
+        pub fn select_node(
+            &self,
+            speaker: Entity,
+            world: &World,
+        ) -> Option<&ConditionedDialogueNode> {
+            self.0.iter().find(|node| node.is_available(speaker, world))
+        }
+    }
+
+    pub fn load_dialogue_data(name: &str) -> Result<DialogueList, super::Error> {
+        super::load_json_asset(format!("dialogue/{name}.json"))
+    }
+}
+
 pub mod loot {
     use crate::core::item::ItemType;
     use rand::Rng;

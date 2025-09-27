@@ -1,0 +1,4 @@
+[
+  { "has_enough_fuel": true, "expression": "neutral", "message": "I am not doing too good after that battle. I suggest that we leave for the next location." },
+  { "expression": "neutral", "message": "I am not doing too good after that battle. Let's be careful until we can leave this place." }
+]

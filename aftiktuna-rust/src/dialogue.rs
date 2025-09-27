@@ -8,7 +8,7 @@ use crate::core::position::{self, Direction, Pos};
 use crate::core::status::Health;
 use crate::core::{CrewMember, Tag, area, inventory};
 use crate::game_loop::GameState;
-use crate::view;
+use crate::{asset, view};
 use hecs::{Entity, World};
 use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
 
@@ -332,29 +332,15 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
             })
         {
             let speaker = *possible_speakers.choose(&mut state.rng).unwrap();
-            view_buffer.capture_view_before_dialogue(state);
-            position::turn_towards(&mut state.world, speaker, player_pos);
             state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
 
-            if state
-                .world
-                .get::<&Health>(speaker)
-                .is_ok_and(|health| health.is_badly_hurt())
-            {
-                view_buffer.push_dialogue(
-                    &state.world,
-                    speaker,
-                    DialogueExpression::Neutral,
-                    "We should have enough fuel to leave now. I suggest that we go back before running into any more trouble.",
-                );
-            } else {
-                view_buffer.push_dialogue(
-                    &state.world,
-                    speaker,
-                    DialogueExpression::Neutral,
-                    "We should have enough fuel to leave now. Or we could explore a little longer for any additional resources.",
-                );
-            }
+            trigger_dialogue_by_name(
+                "obtained_enough_fuel",
+                speaker,
+                player_pos,
+                state,
+                view_buffer,
+            );
         }
 
         for speaker in possible_speakers {
@@ -369,30 +355,18 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
                     .get::<&TalkState>(speaker)
                     .is_ok_and(|state| !state.talked_about_badly_hurt)
             {
-                view_buffer.capture_view_before_dialogue(state);
-                position::turn_towards(&mut state.world, speaker, player_pos);
                 state
                     .world
                     .get::<&mut TalkState>(speaker)
                     .unwrap()
                     .talked_about_badly_hurt = true;
-                if area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
-                    fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
-                }) {
-                    view_buffer.push_dialogue(
-                        &state.world,
-                        speaker,
-                        DialogueExpression::Neutral,
-                        "I am not doing too good after that battle. I suggest that we leave for the next location.",
-                    );
-                } else {
-                    view_buffer.push_dialogue(
-                        &state.world,
-                        speaker,
-                        DialogueExpression::Neutral,
-                        "I am not doing too good after that battle. Let's be careful until we can leave this place.",
-                    );
-                }
+                trigger_dialogue_by_name(
+                    "badly_hurt_after_battle",
+                    speaker,
+                    player_pos,
+                    state,
+                    view_buffer,
+                );
             }
         }
     }
@@ -448,30 +422,34 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
     if area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
         fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
     }) {
-        view_buffer.capture_view_before_dialogue(state);
-        position::turn_towards(&mut state.world, speaker, player_pos);
         let crew = state.world.get::<&CrewMember>(speaker).unwrap().0;
         state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
 
-        if state
-            .world
-            .get::<&Health>(speaker)
-            .is_ok_and(|health| health.is_badly_hurt())
-        {
-            view_buffer.push_dialogue(
-                &state.world,
-                speaker,
-                DialogueExpression::Neutral,
-                "We have enough fuel to leave right away. Let's not take any risks and leave soon.",
-            );
-        } else {
-            view_buffer.push_dialogue(
-                &state.world,
-                speaker,
-                DialogueExpression::Neutral,
-                "We have enough fuel to leave right away. But we could still take a look around for any additional resources.",
-            );
+        trigger_dialogue_by_name("landing_with_fuel", speaker, player_pos, state, view_buffer);
+    }
+}
+
+fn trigger_dialogue_by_name(
+    name: &str,
+    speaker: Entity,
+    target_pos: Pos,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) {
+    match asset::dialogue::load_dialogue_data(name) {
+        Ok(dialogue) => {
+            if let Some(dialogue_node) = dialogue.select_node(speaker, &state.world) {
+                view_buffer.capture_view_before_dialogue(state);
+                position::turn_towards(&mut state.world, speaker, target_pos);
+                view_buffer.push_dialogue(
+                    &state.world,
+                    speaker,
+                    dialogue_node.expression,
+                    &dialogue_node.message,
+                );
+            }
         }
+        Err(error) => println!("Failed to load dialogue {name}: {error}"),
     }
 }
 

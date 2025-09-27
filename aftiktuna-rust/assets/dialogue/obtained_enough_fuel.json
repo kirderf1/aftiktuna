@@ -1,0 +1,4 @@
+[
+  { "is_badly_hurt": true, "expression": "neutral", "message": "We should have enough fuel to leave now. I suggest that we go back before running into any more trouble." },
+  { "expression": "neutral", "message": "We should have enough fuel to leave now. Or we could explore a little longer for any additional resources." }
+]
