@@ -70,6 +70,7 @@ pub struct Talk(pub DialogueNode);
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
     pub target_tag: Tag,
+    pub target_label: String,
     pub task_dialogue: DialogueNode,
     pub reward_dialogue: DialogueNode,
     pub reward: Reward,

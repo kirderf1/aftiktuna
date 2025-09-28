@@ -46,21 +46,36 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
             },
         )
     } else {
-        Err(Error::private(format!(
-            "{the_speaker} has nothing to say to {the_target}.",
-            the_speaker = NameData::find(
-                &context.state.world,
-                performer,
-                context.view_context.view_buffer.assets
-            )
-            .definite(),
-            the_target = NameData::find(
-                &context.state.world,
-                target,
-                context.view_context.view_buffer.assets,
-            )
-            .definite(),
-        )))
+        Err(Error::private(
+            if let Ok(gives_hunt_reward) = context.state.world.get::<&GivesHuntReward>(target) {
+                format!(
+                    "{the_target} is still waiting for {the_hunt_target} to be gone.",
+                    the_target = NameData::find(
+                        &context.state.world,
+                        target,
+                        context.view_context.view_buffer.assets,
+                    )
+                    .definite(),
+                    the_hunt_target = gives_hunt_reward.target_label,
+                )
+            } else {
+                format!(
+                    "{the_speaker} has nothing to say to {the_target}.",
+                    the_speaker = NameData::find(
+                        &context.state.world,
+                        performer,
+                        context.view_context.view_buffer.assets
+                    )
+                    .definite(),
+                    the_target = NameData::find(
+                        &context.state.world,
+                        target,
+                        context.view_context.view_buffer.assets,
+                    )
+                    .definite(),
+                )
+            },
+        ))
     }
 }
 
