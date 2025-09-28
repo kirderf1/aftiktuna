@@ -248,6 +248,21 @@ impl Species {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tag(String);
 
+pub fn any_alive_with_tag(target_tag: &Tag, world: &hecs::World) -> bool {
+    world
+        .query::<(&status::Health, &Tag)>()
+        .iter()
+        .any(|(_, (health, tag))| health.is_alive() && target_tag == tag)
+}
+
+pub fn find_one_entity_with_tag(target_tag: &Tag, world: &hecs::World) -> Option<Entity> {
+    world
+        .query::<&Tag>()
+        .iter()
+        .find(|&(_, tag)| tag == target_tag)
+        .map(|(entity, _)| entity)
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct FortunaChest;
 

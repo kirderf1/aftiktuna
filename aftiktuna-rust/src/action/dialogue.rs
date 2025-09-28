@@ -1,5 +1,5 @@
 use crate::action::{self, Context, Error};
-use crate::core::behavior::{Hostile, Recruitable, Waiting};
+use crate::core::behavior::{GivesHuntReward, Hostile, Recruitable, Waiting};
 use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
@@ -23,24 +23,52 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
         )));
     }
 
-    full_dialogue_action(
-        context,
-        performer,
-        target,
-        true,
-        |Context {
-             state,
-             view_context,
-         }| {
-            crate::dialogue::talk_dialogue(
+    if context
+        .state
+        .world
+        .get::<&Name>(target)
+        .is_ok_and(|name| !name.is_known)
+        || context
+            .state
+            .world
+            .get::<&GivesHuntReward>(target)
+            .is_ok_and(|gives_hunt_reward| gives_hunt_reward.is_fulfilled(&context.state.world))
+    {
+        full_dialogue_action(
+            context,
+            performer,
+            target,
+            true,
+            |Context {
+                 state,
+                 view_context,
+             }| {
+                crate::dialogue::talk_dialogue(
+                    performer,
+                    target,
+                    &mut state.world,
+                    view_context.view_buffer,
+                );
+                None
+            },
+        )
+    } else {
+        Err(Error::private(format!(
+            "{the_speaker} has nothing to say to {the_target}.",
+            the_speaker = NameData::find(
+                &context.state.world,
                 performer,
+                context.view_context.view_buffer.assets
+            )
+            .definite(),
+            the_target = NameData::find(
+                &context.state.world,
                 target,
-                &mut state.world,
-                view_context.view_buffer,
-            );
-            None
-        },
-    )
+                context.view_context.view_buffer.assets,
+            )
+            .definite(),
+        )))
+    }
 }
 
 pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> action::Result {

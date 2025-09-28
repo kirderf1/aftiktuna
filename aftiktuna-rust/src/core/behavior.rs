@@ -75,6 +75,12 @@ pub struct GivesHuntReward {
     pub reward: Reward,
 }
 
+impl GivesHuntReward {
+    pub fn is_fulfilled(&self, world: &hecs::World) -> bool {
+        !super::any_alive_with_tag(&self.target_tag, world)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DialogueNode {
     pub expression: DialogueExpression,

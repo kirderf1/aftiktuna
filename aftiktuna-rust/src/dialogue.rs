@@ -1,13 +1,13 @@
 use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntReward,
-    Recruitable, Talk, TalkState, TalkedAboutEnoughFuel, Waiting,
+    Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
 };
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
 use crate::core::position::{self, Pos};
 use crate::core::status::Health;
-use crate::core::{CrewMember, Tag, area, inventory};
+use crate::core::{self, CrewMember, area, inventory};
 use crate::game_loop::GameState;
 use crate::{asset, view};
 use hecs::{Entity, World};
@@ -38,14 +38,12 @@ pub fn talk_dialogue(
             DialogueExpression::Neutral,
             format!("My name is {name_string}."),
         );
-    } else {
-        regular_greeting(performer, target, world, view_buffer);
     }
 
     let gives_hunt_reward = target_ref.get::<&GivesHuntReward>();
     if gives_hunt_reward.is_some() {
         let gives_hunt_reward = gives_hunt_reward.unwrap();
-        if any_alive_with_tag(&gives_hunt_reward.target_tag, world) {
+        if !gives_hunt_reward.is_fulfilled(world) {
             view_buffer.push_dialogue(
                 world,
                 target,
@@ -78,43 +76,6 @@ pub fn talk_dialogue(
             DialogueExpression::Neutral,
             "I wish I could leave this place and go on an adventure.",
         );
-    }
-}
-
-fn regular_greeting(
-    performer: Entity,
-    target: Entity,
-    world: &World,
-    view_buffer: &mut view::Buffer,
-) {
-    let target_ref = world.entity(target).unwrap();
-
-    view_buffer.push_dialogue(world, performer, DialogueExpression::Excited, "Hi!");
-
-    if target_ref
-        .get::<&GivesHuntReward>()
-        .is_some_and(|gives_hunt_reward| any_alive_with_tag(&gives_hunt_reward.target_tag, world))
-    {
-        view_buffer.push_dialogue(
-            world,
-            target,
-            DialogueExpression::Neutral,
-            "Hello! I have a bit of a problem at the moment.",
-        );
-    } else if target_ref.has::<Waiting>() {
-        view_buffer.push_dialogue(
-            world,
-            target,
-            DialogueExpression::Neutral,
-            "Hello! I'll continue to wait here until you tell me otherwise.",
-        );
-    } else if target_ref
-        .get::<&Health>()
-        .is_some_and(|health| health.is_badly_hurt())
-    {
-        view_buffer.push_dialogue(world, target, DialogueExpression::Neutral, "Hello! I'm not doing too well right now. Perhaps I should stay behind if we will be exploring anything more.");
-    } else {
-        view_buffer.push_dialogue(world, target, DialogueExpression::Excited, "Hello!");
     }
 }
 
@@ -277,7 +238,8 @@ fn trigger_background_dialogue(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
-    let Some(target) = find_one_entity_with_tag(&background_dialogue.target, &state.world) else {
+    let Some(target) = core::find_one_entity_with_tag(&background_dialogue.target, &state.world)
+    else {
         return;
     };
     let Ok(target_pos) = state.world.get::<&Pos>(target).as_deref().copied() else {
@@ -392,19 +354,4 @@ fn run_dialogue_node(
     {
         run_dialogue_node(reply_node, target, speaker, world, view_buffer);
     }
-}
-
-fn any_alive_with_tag(target_tag: &Tag, world: &World) -> bool {
-    world
-        .query::<(&Health, &Tag)>()
-        .iter()
-        .any(|(_, (health, tag))| health.is_alive() && target_tag == tag)
-}
-
-fn find_one_entity_with_tag(target_tag: &Tag, world: &World) -> Option<Entity> {
-    world
-        .query::<&Tag>()
-        .iter()
-        .find(|&(_, tag)| tag == target_tag)
-        .map(|(entity, _)| entity)
 }
