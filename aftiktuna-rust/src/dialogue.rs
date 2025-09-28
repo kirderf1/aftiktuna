@@ -13,70 +13,87 @@ use crate::{asset, view};
 use hecs::{Entity, World};
 use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
 
-pub fn talk_dialogue(
+/// Expects dialogue setup (placement and frame capture) to already be done.
+pub fn ask_name_dialogue(
     performer: Entity,
     target: Entity,
     world: &mut World,
     view_buffer: &mut view::Buffer,
 ) {
-    let target_ref = world.entity(target).unwrap();
-    if target_ref.get::<&Name>().is_some_and(|name| !name.is_known) {
-        let name_string = {
-            let mut name_ref = target_ref.get::<&mut Name>().unwrap();
-            name_ref.is_known = true;
-            name_ref.name.clone()
-        };
-        view_buffer.push_dialogue(
-            world,
-            performer,
-            DialogueExpression::Neutral,
-            "Hi! What is your name?",
-        );
-        view_buffer.push_dialogue(
-            world,
-            target,
-            DialogueExpression::Neutral,
-            format!("My name is {name_string}."),
-        );
-    }
+    let name_string = {
+        let mut name_ref = world.get::<&mut Name>(target).unwrap();
+        name_ref.is_known = true;
+        name_ref.name.clone()
+    };
+    view_buffer.push_dialogue(
+        world,
+        performer,
+        DialogueExpression::Neutral,
+        "Hi! What is your name?",
+    );
+    view_buffer.push_dialogue(
+        world,
+        target,
+        DialogueExpression::Neutral,
+        format!("My name is {name_string}."),
+    );
+}
 
-    let gives_hunt_reward = target_ref.get::<&GivesHuntReward>();
+/// Expects dialogue setup (placement and frame capture) to already be done.
+pub fn prompt_npc_dialogue(
+    crew_member: Entity,
+    npc: Entity,
+    world: &mut World,
+    view_buffer: &mut view::Buffer,
+) {
+    let npc_ref = world.entity(npc).unwrap();
+    let gives_hunt_reward = npc_ref.get::<&GivesHuntReward>();
     if gives_hunt_reward.is_some() {
         let gives_hunt_reward = gives_hunt_reward.unwrap();
         if !gives_hunt_reward.is_fulfilled(world) {
             view_buffer.push_dialogue(
                 world,
-                target,
+                npc,
                 gives_hunt_reward.task_dialogue.expression,
                 &gives_hunt_reward.task_dialogue.message,
             );
         } else {
             drop(gives_hunt_reward);
-            let GivesHuntReward {
-                reward_dialogue,
-                reward,
-                ..
-            } = world.remove_one::<GivesHuntReward>(target).unwrap();
-
-            view_buffer.push_dialogue(
-                world,
-                target,
-                reward_dialogue.expression,
-                reward_dialogue.message,
-            );
-
-            reward.give_reward_to(performer, world);
+            complete_hunt_quest(crew_member, npc, world, view_buffer);
         }
-    } else if let Some(talk) = target_ref.get::<&Talk>() {
-        view_buffer.push_dialogue(world, target, talk.0.expression, &talk.0.message);
-    } else if target_ref.has::<Recruitable>() {
+    } else if let Some(talk) = npc_ref.get::<&Talk>() {
+        view_buffer.push_dialogue(world, npc, talk.0.expression, &talk.0.message);
+    } else if npc_ref.has::<Recruitable>() {
         view_buffer.push_dialogue(
             world,
-            target,
+            npc,
             DialogueExpression::Neutral,
             "I wish I could leave this place and go on an adventure.",
         );
     }
+}
+
+/// Expects dialogue setup (placement and frame capture) to already be done.
+pub fn complete_hunt_quest(
+    crew_member: Entity,
+    npc: Entity,
+    world: &mut World,
+    view_buffer: &mut view::Buffer,
+) {
+    let GivesHuntReward {
+        reward_dialogue,
+        reward,
+        ..
+    } = world.remove_one::<GivesHuntReward>(npc).unwrap();
+
+    view_buffer.push_dialogue(
+        world,
+        npc,
+        reward_dialogue.expression,
+        reward_dialogue.message,
+    );
+
+    reward.give_reward_to(crew_member, world);
 }
 
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {

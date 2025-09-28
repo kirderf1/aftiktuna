@@ -5,7 +5,8 @@ use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
 use crate::core::{self, CrewMember, area, position, status};
-use hecs::Entity;
+use crate::view;
+use hecs::{Entity, World};
 
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
     if !status::is_alive(target, &context.state.world) {
@@ -23,17 +24,9 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
         )));
     }
 
-    if context
-        .state
-        .world
-        .get::<&Name>(target)
-        .is_ok_and(|name| !name.is_known)
-        || context
-            .state
-            .world
-            .get::<&GivesHuntReward>(target)
-            .is_ok_and(|gives_hunt_reward| gives_hunt_reward.is_fulfilled(&context.state.world))
-    {
+    let topic = TalkTopic::pick(target, &context.state.world);
+
+    if let Some(topic) = topic {
         full_dialogue_action(
             context,
             performer,
@@ -43,7 +36,7 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
                  state,
                  view_context,
              }| {
-                crate::dialogue::talk_dialogue(
+                topic.perform(
                     performer,
                     target,
                     &mut state.world,
@@ -68,6 +61,45 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
             )
             .definite(),
         )))
+    }
+}
+
+enum TalkTopic {
+    AskName,
+    CompleteHuntQuest,
+}
+
+impl TalkTopic {
+    fn pick(target: Entity, world: &World) -> Option<Self> {
+        if world.get::<&Name>(target).is_ok_and(|name| !name.is_known) {
+            Some(TalkTopic::AskName)
+        } else if world
+            .get::<&GivesHuntReward>(target)
+            .is_ok_and(|gives_hunt_reward| gives_hunt_reward.is_fulfilled(world))
+        {
+            Some(TalkTopic::CompleteHuntQuest)
+        } else {
+            None
+        }
+    }
+
+    /// Expects dialogue setup (placement and frame capture) to already be done.
+    fn perform(
+        self,
+        performer: Entity,
+        target: Entity,
+        world: &mut World,
+        view_buffer: &mut view::Buffer,
+    ) {
+        match self {
+            TalkTopic::AskName => {
+                crate::dialogue::ask_name_dialogue(performer, target, world, view_buffer);
+                crate::dialogue::prompt_npc_dialogue(performer, target, world, view_buffer);
+            }
+            TalkTopic::CompleteHuntQuest => {
+                crate::dialogue::complete_hunt_quest(performer, target, world, view_buffer)
+            }
+        }
     }
 }
 
