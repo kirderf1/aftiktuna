@@ -31,6 +31,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Wandering creatures can now be set to wander within a restricted area
 - New model property "order_weight"
 
+### Fixed
+
+- Removed an unintentional extra creature from one of the possible Fortuna locations
+
 ### Contributors for this release
 
 - kirderf1

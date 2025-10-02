@@ -22,7 +22,7 @@
           "offset": { "x": 900, "y": 284 }
         }
       ],
-      "objects": [ "\\", "-", "-G", "-7!", "-", "-3", "-¤", "-6", "." ],
+      "objects": [ "\\", "-", "-", "-7!", "-", "-3", "-¤", "-6", "." ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
         ".": { "type": "inanimate", "model": "path/right_corner" },
