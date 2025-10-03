@@ -30,7 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Large creatures (blood mantis and voracious frog) now occupy two coordinate positions
 - Wandering creatures can now be set to wander within a restricted area
 - New model property "order_weight"
-- Reduced reward from azureclops hunting mission
+- Reduced reward from azureclops hunting mission and tweaked its dialogue
 
 ### Fixed
 

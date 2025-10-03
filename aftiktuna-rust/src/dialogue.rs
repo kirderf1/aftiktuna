@@ -50,16 +50,28 @@ pub fn prompt_npc_dialogue(
     let gives_hunt_reward = npc_ref.get::<&GivesHuntReward>();
     if gives_hunt_reward.is_some() {
         let gives_hunt_reward = gives_hunt_reward.unwrap();
+
         if !gives_hunt_reward.is_fulfilled(world) {
-            view_buffer.push_dialogue(
-                world,
-                npc,
-                gives_hunt_reward.task_dialogue.expression,
-                &gives_hunt_reward.task_dialogue.message,
-            );
+            let dialogue_node = gives_hunt_reward.task_dialogue.clone();
+            drop(gives_hunt_reward);
+            run_dialogue_node(&dialogue_node, npc, crew_member, world, view_buffer);
         } else {
             drop(gives_hunt_reward);
-            complete_hunt_quest(crew_member, npc, world, view_buffer);
+            let GivesHuntReward {
+                already_completed_dialogue,
+                reward,
+                ..
+            } = world.remove_one::<GivesHuntReward>(npc).unwrap();
+
+            run_dialogue_node(
+                &already_completed_dialogue,
+                npc,
+                crew_member,
+                world,
+                view_buffer,
+            );
+
+            reward.give_reward_to(crew_member, world);
         }
     } else if let Some(talk) = npc_ref.get::<&Talk>() {
         view_buffer.push_dialogue(world, npc, talk.0.expression, &talk.0.message);
@@ -86,12 +98,7 @@ pub fn complete_hunt_quest(
         ..
     } = world.remove_one::<GivesHuntReward>(npc).unwrap();
 
-    view_buffer.push_dialogue(
-        world,
-        npc,
-        reward_dialogue.expression,
-        reward_dialogue.message,
-    );
+    run_dialogue_node(&reward_dialogue, crew_member, npc, world, view_buffer);
 
     reward.give_reward_to(crew_member, world);
 }

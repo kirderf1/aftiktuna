@@ -3,6 +3,7 @@ use super::inventory::Held;
 use super::item::ItemType;
 use super::position::Pos;
 use super::{CrewMember, Tag, status, store};
+use crate::asset::dialogue::ConditionedDialogueNode;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -67,12 +68,13 @@ pub struct Recruitable;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Talk(pub DialogueNode);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct GivesHuntReward {
     pub target_tag: Tag,
     pub target_label: String,
-    pub task_dialogue: DialogueNode,
-    pub reward_dialogue: DialogueNode,
+    pub task_dialogue: ConditionedDialogueNode,
+    pub already_completed_dialogue: ConditionedDialogueNode,
+    pub reward_dialogue: ConditionedDialogueNode,
     pub reward: Reward,
 }
 

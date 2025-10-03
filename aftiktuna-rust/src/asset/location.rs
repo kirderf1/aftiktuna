@@ -115,7 +115,7 @@ pub mod creature {
         *health == 1.
     }
 
-    #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[derive(Clone, Serialize, Deserialize)]
     #[serde(tag = "type", rename_all = "snake_case")]
     pub enum CharacterInteraction {
         Recruitable,
