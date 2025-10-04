@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Fixed crash from talking to a crew member on the move
 - Removed an unintentional extra creature from one of the possible Fortuna locations
 
 ### Contributors for this release

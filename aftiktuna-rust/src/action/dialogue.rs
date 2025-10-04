@@ -309,6 +309,14 @@ fn full_dialogue_action(
             .unwrap(),
     );
 
+    if !performer_pos.is_in(target_placement.area()) {
+        let performer_name = NameData::find(&context.state.world, performer, assets).definite();
+        let target_name = NameData::find(&context.state.world, target, assets).definite();
+        return Err(Error::private(format!(
+            "{target_name} left before {performer_name} could talk to them.",
+        )));
+    }
+
     let movement = if move_adjacent {
         let movement = position::prepare_move_adjacent_placement(
             &context.state.world,
