@@ -65,13 +65,11 @@ fn prompt_npc_dialogue(
         let gives_hunt_reward = gives_hunt_reward.unwrap();
 
         if !gives_hunt_reward.is_fulfilled(&state.world) {
-            let dialogue_node = gives_hunt_reward.task_dialogue.clone();
-            drop(gives_hunt_reward);
             run_dialogue_node(
-                &dialogue_node,
+                &gives_hunt_reward.task_dialogue,
                 npc,
                 crew_member,
-                &mut state.world,
+                &state.world,
                 view_buffer,
             );
         } else {
@@ -86,7 +84,7 @@ fn prompt_npc_dialogue(
                 &already_completed_dialogue,
                 npc,
                 crew_member,
-                &mut state.world,
+                &state.world,
                 view_buffer,
             );
 
@@ -175,7 +173,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
         if player_pos.is_in(speaker_pos.get_area()) {
             view_buffer.capture_view_before_dialogue(state);
 
-            position::turn_towards(&mut state.world, speaker, player_pos);
+            position::turn_towards(&state.world, speaker, player_pos);
             let EncounterDialogue(dialogue_node) = state
                 .world
                 .remove_one::<EncounterDialogue>(speaker)
@@ -290,8 +288,8 @@ fn trigger_background_dialogue(
     {
         view_buffer.capture_view_before_dialogue(state);
 
-        position::turn_towards(&mut state.world, speaker, target_pos);
-        position::turn_towards(&mut state.world, target, speaker_pos);
+        position::turn_towards(&state.world, speaker, target_pos);
+        position::turn_towards(&state.world, target, speaker_pos);
         let speakers = [speaker, target];
         for i in 0..background_dialogue.dialogue.len() {
             let dialogue_node = &background_dialogue.dialogue[i];
@@ -345,13 +343,7 @@ pub fn trigger_dialogue_by_name(
         Ok(dialogue) => {
             if let Some(dialogue_node) = dialogue.select_node(speaker, target, &state.world) {
                 view_buffer.capture_view_before_dialogue(state);
-                run_dialogue_node(
-                    dialogue_node,
-                    speaker,
-                    target,
-                    &mut state.world,
-                    view_buffer,
-                );
+                run_dialogue_node(dialogue_node, speaker, target, &state.world, view_buffer);
             }
         }
         Err(error) => println!("Failed to load dialogue {name}: {error}"),
@@ -362,7 +354,7 @@ fn run_dialogue_node(
     dialogue_node: &ConditionedDialogueNode,
     speaker: Entity,
     target: Entity,
-    world: &mut World,
+    world: &World,
     view_buffer: &mut view::Buffer,
 ) {
     let target_pos = *world.get::<&Pos>(target).unwrap();

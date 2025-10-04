@@ -438,7 +438,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 .get::<&Hostile>(entity)
                 .is_ok_and(|hostile| !hostile.aggressive)
             {
-                position::turn_towards(&mut state.world, entity, player_pos);
+                position::turn_towards(&state.world, entity, player_pos);
                 view_buffer.messages.add(
                     CombinableMsgType::Threatening.message(NameIdData::find(&state.world, entity)),
                 );
@@ -449,7 +449,7 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
                 .get::<&Hostile>(entity)
                 .is_ok_and(|hostile| hostile.aggressive)
             {
-                position::turn_towards(&mut state.world, entity, player_pos);
+                position::turn_towards(&state.world, entity, player_pos);
                 view_buffer.messages.add(
                     CombinableMsgType::Attacking.message(NameIdData::find(&state.world, entity)),
                 );

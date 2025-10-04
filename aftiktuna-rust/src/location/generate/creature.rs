@@ -171,7 +171,12 @@ pub(crate) fn aftik_builder_with_stats(
 
 fn species_builder_base(species: Species) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
-    builder.add_bundle((species, species.model_id(), species.noun_id()));
+    builder.add_bundle((
+        species,
+        species.model_id(),
+        species.noun_id(),
+        Direction::default(),
+    ));
     if species.is_large() {
         builder.add(Large);
     }

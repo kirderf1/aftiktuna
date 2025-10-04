@@ -356,18 +356,24 @@ pub(crate) fn push_and_move(
     Ok(())
 }
 
-pub(crate) fn turn_towards(world: &mut World, entity: Entity, target_pos: Pos) {
-    let placement = Placement::from(world.query_one_mut::<PlacementQuery>(entity).unwrap());
+/// Expects entity to have both a Pos and a Direction.
+pub(crate) fn turn_towards(world: &World, entity: Entity, target_pos: Pos) {
+    let placement = Placement::from(
+        world
+            .query_one::<PlacementQuery>(entity)
+            .unwrap()
+            .get()
+            .unwrap(),
+    );
     let new_direction = Direction::between(placement.pos, target_pos);
     if placement.direction != new_direction {
+        *world.get::<&mut Direction>(entity).unwrap() = new_direction;
         if placement.is_large {
             let new_pos = placement
                 .pos
                 .try_offset_direction(new_direction, world)
                 .unwrap();
-            world.insert(entity, (new_pos, new_direction)).unwrap();
-        } else {
-            world.insert_one(entity, new_direction).unwrap();
+            *world.get::<&mut Pos>(entity).unwrap() = new_pos;
         }
     }
 }

@@ -248,9 +248,9 @@ fn full_dialogue_action(
         if let Some(movement) = movement {
             movement.perform(&mut context.state.world).unwrap();
         } else {
-            position::turn_towards(&mut context.state.world, performer, target_placement.pos);
+            position::turn_towards(&context.state.world, performer, target_placement.pos);
         }
-        position::turn_towards(&mut context.state.world, target, performer_pos);
+        position::turn_towards(&context.state.world, target, performer_pos);
     }
 
     let result = dialogue(&mut context);
