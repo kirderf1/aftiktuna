@@ -1,12 +1,13 @@
-use crate::action::Action;
+use crate::action::{Action, TalkAction};
 use crate::asset::GameAssets;
 use crate::command;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
-use crate::core::behavior::{Character, Recruitable, Waiting};
+use crate::core::behavior::{Character, GivesHuntReward, Recruitable, Waiting};
 use crate::core::name::{Name, NameData};
 use crate::core::position::Pos;
 use crate::core::{area, status};
+use crate::dialogue::TalkTopic;
 use crate::game_loop::GameState;
 use hecs::Entity;
 
@@ -107,7 +108,26 @@ fn talk_to(
 
     super::check_adjacent_accessible_with_message(target, state.controlled, &state.world, assets)?;
 
-    command::action_result(Action::TalkTo(target))
+    let Some(topic) = TalkTopic::pick(target, &state.world) else {
+        return Err(
+            if let Ok(gives_hunt_reward) = state.world.get::<&GivesHuntReward>(target) {
+                format!(
+                    "{the_target} is still waiting for {the_hunt_target} to be gone.",
+                    the_target = NameData::find(&state.world, target, assets,).definite(),
+                    the_hunt_target = gives_hunt_reward.target_label,
+                )
+            } else {
+                format!(
+                    "{the_speaker} has nothing to say to {the_target}.",
+                    the_speaker =
+                        NameData::find(&state.world, state.controlled, assets,).definite(),
+                    the_target = NameData::find(&state.world, target, assets,).definite(),
+                )
+            },
+        );
+    };
+
+    command::action_result(TalkAction { target, topic })
 }
 
 fn recruit_targets(state: &GameState, assets: &GameAssets) -> Vec<(String, Entity)> {

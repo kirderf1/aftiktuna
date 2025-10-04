@@ -12,8 +12,48 @@ use crate::{asset, view};
 use hecs::{Entity, World};
 use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
 
+#[derive(Clone, Debug)]
+pub enum TalkTopic {
+    AskName,
+    CompleteHuntQuest,
+}
+
+impl TalkTopic {
+    pub fn pick(target: Entity, world: &World) -> Option<Self> {
+        if world.get::<&Name>(target).is_ok_and(|name| !name.is_known) {
+            Some(TalkTopic::AskName)
+        } else if world
+            .get::<&GivesHuntReward>(target)
+            .is_ok_and(|gives_hunt_reward| gives_hunt_reward.is_fulfilled(world))
+        {
+            Some(TalkTopic::CompleteHuntQuest)
+        } else {
+            None
+        }
+    }
+
+    /// Expects dialogue setup (placement and frame capture) to already be done.
+    pub fn perform(
+        self,
+        performer: Entity,
+        target: Entity,
+        state: &mut GameState,
+        view_buffer: &mut view::Buffer,
+    ) {
+        match self {
+            TalkTopic::AskName => {
+                trigger_dialogue_by_name("ask_name", performer, target, state, view_buffer);
+                prompt_npc_dialogue(performer, target, state, view_buffer);
+            }
+            TalkTopic::CompleteHuntQuest => {
+                complete_hunt_quest(performer, target, &mut state.world, view_buffer)
+            }
+        }
+    }
+}
+
 /// Expects dialogue setup (placement and frame capture) to already be done.
-pub fn prompt_npc_dialogue(
+fn prompt_npc_dialogue(
     crew_member: Entity,
     npc: Entity,
     state: &mut GameState,
@@ -61,7 +101,7 @@ pub fn prompt_npc_dialogue(
 }
 
 /// Expects dialogue setup (placement and frame capture) to already be done.
-pub fn complete_hunt_quest(
+fn complete_hunt_quest(
     crew_member: Entity,
     npc: Entity,
     world: &mut World,

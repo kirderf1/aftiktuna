@@ -18,6 +18,7 @@ use hecs::{Entity, World};
 use std::collections::HashMap;
 use std::result;
 
+pub use dialogue::TalkAction;
 pub use door::ForceDoorAction;
 
 #[derive(Clone)]
@@ -38,7 +39,7 @@ pub enum Action {
     Rest(bool),
     Refuel,
     Launch,
-    TalkTo(Entity),
+    TalkTo(TalkAction),
     Recruit(Entity),
     TellToWait(Entity),
     TellToWaitAtShip(Entity),
@@ -155,7 +156,7 @@ fn perform(
         Rest(first) => rest(&mut context, performer, first),
         Refuel => ship::refuel(&mut context, performer),
         Launch => ship::launch(&mut context, performer),
-        TalkTo(target) => dialogue::talk_to(context, performer, target),
+        TalkTo(talk_action) => talk_action.run(context, performer),
         Recruit(target) => dialogue::recruit(context, performer, target),
         TellToWait(target) => dialogue::tell_to_wait(context, performer, target),
         TellToWaitAtShip(target) => dialogue::tell_to_wait_at_ship(context, performer, target),

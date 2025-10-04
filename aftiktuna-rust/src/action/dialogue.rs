@@ -1,32 +1,42 @@
 use crate::action::{self, Context, Error};
-use crate::core::behavior::{GivesHuntReward, Hostile, Recruitable, Waiting};
-use crate::core::name::{Name, NameData};
+use crate::core::behavior::{Hostile, Recruitable, Waiting};
+use crate::core::name::NameData;
 use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
 use crate::core::{self, CrewMember, position, status};
-use crate::game_loop::GameState;
-use crate::{dialogue, view};
-use hecs::{Entity, World};
+use crate::dialogue::{self, TalkTopic};
+use hecs::Entity;
 
-pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
-    if !status::is_alive(target, &context.state.world) {
-        return Ok(action::Success);
+#[derive(Clone, Debug)]
+pub struct TalkAction {
+    pub target: Entity,
+    pub topic: TalkTopic,
+}
+
+impl From<TalkAction> for super::Action {
+    fn from(value: TalkAction) -> Self {
+        Self::TalkTo(value)
     }
-    if context.state.world.satisfies::<&Hostile>(target).unwrap() {
-        return Err(Error::private(format!(
-            "{the_target} is not interested in talking.",
-            the_target = NameData::find(
-                &context.state.world,
-                target,
-                context.view_context.view_buffer.assets,
-            )
-            .definite(),
-        )));
-    }
+}
 
-    let topic = TalkTopic::pick(target, &context.state.world);
+impl TalkAction {
+    pub(super) fn run(self, context: Context, performer: Entity) -> action::Result {
+        let Self { target, topic } = self;
+        if !status::is_alive(target, &context.state.world) {
+            return Ok(action::Success);
+        }
+        if context.state.world.satisfies::<&Hostile>(target).unwrap() {
+            return Err(Error::private(format!(
+                "{the_target} is not interested in talking.",
+                the_target = NameData::find(
+                    &context.state.world,
+                    target,
+                    context.view_context.view_buffer.assets,
+                )
+                .definite(),
+            )));
+        }
 
-    if let Some(topic) = topic {
         full_dialogue_action(
             context,
             performer,
@@ -40,82 +50,6 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
                 None
             },
         )
-    } else {
-        Err(Error::private(
-            if let Ok(gives_hunt_reward) = context.state.world.get::<&GivesHuntReward>(target) {
-                format!(
-                    "{the_target} is still waiting for {the_hunt_target} to be gone.",
-                    the_target = NameData::find(
-                        &context.state.world,
-                        target,
-                        context.view_context.view_buffer.assets,
-                    )
-                    .definite(),
-                    the_hunt_target = gives_hunt_reward.target_label,
-                )
-            } else {
-                format!(
-                    "{the_speaker} has nothing to say to {the_target}.",
-                    the_speaker = NameData::find(
-                        &context.state.world,
-                        performer,
-                        context.view_context.view_buffer.assets
-                    )
-                    .definite(),
-                    the_target = NameData::find(
-                        &context.state.world,
-                        target,
-                        context.view_context.view_buffer.assets,
-                    )
-                    .definite(),
-                )
-            },
-        ))
-    }
-}
-
-enum TalkTopic {
-    AskName,
-    CompleteHuntQuest,
-}
-
-impl TalkTopic {
-    fn pick(target: Entity, world: &World) -> Option<Self> {
-        if world.get::<&Name>(target).is_ok_and(|name| !name.is_known) {
-            Some(TalkTopic::AskName)
-        } else if world
-            .get::<&GivesHuntReward>(target)
-            .is_ok_and(|gives_hunt_reward| gives_hunt_reward.is_fulfilled(world))
-        {
-            Some(TalkTopic::CompleteHuntQuest)
-        } else {
-            None
-        }
-    }
-
-    /// Expects dialogue setup (placement and frame capture) to already be done.
-    fn perform(
-        self,
-        performer: Entity,
-        target: Entity,
-        state: &mut GameState,
-        view_buffer: &mut view::Buffer,
-    ) {
-        match self {
-            TalkTopic::AskName => {
-                dialogue::trigger_dialogue_by_name(
-                    "ask_name",
-                    performer,
-                    target,
-                    state,
-                    view_buffer,
-                );
-                dialogue::prompt_npc_dialogue(performer, target, state, view_buffer);
-            }
-            TalkTopic::CompleteHuntQuest => {
-                dialogue::complete_hunt_quest(performer, target, &mut state.world, view_buffer)
-            }
-        }
     }
 }
 
