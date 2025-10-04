@@ -120,7 +120,7 @@ pub mod creature {
     pub enum CharacterInteraction {
         Recruitable,
         Talk(DialogueNode),
-        GivesHuntReward(GivesHuntReward),
+        GivesHuntReward(Box<GivesHuntReward>),
         Hostile {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             encounter_dialogue: Option<DialogueNode>,

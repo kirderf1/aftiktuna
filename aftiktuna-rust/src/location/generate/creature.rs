@@ -4,7 +4,9 @@ use crate::asset::location::creature::{
     ShopkeeperSpawnData, StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
-use crate::core::behavior::{Character, EncounterDialogue, Hostile, Recruitable, Talk, TalkState};
+use crate::core::behavior::{
+    Character, EncounterDialogue, GivesHuntReward, Hostile, Recruitable, Talk, TalkState,
+};
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{CreatureAttribute, Health, Morale, Stamina};
@@ -103,7 +105,7 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
             builder.add(Talk(dialogue_node.clone()));
         }
         CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
-            builder.add(gives_hunt_reward.clone());
+            builder.add(GivesHuntReward::clone(gives_hunt_reward));
         }
         CharacterInteraction::Hostile { encounter_dialogue } => {
             builder.add(Hostile { aggressive: true });
