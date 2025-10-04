@@ -319,7 +319,7 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
     }
 }
 
-fn trigger_dialogue_by_name(
+pub fn trigger_dialogue_by_name(
     name: &str,
     speaker: Entity,
     target: Entity,

@@ -1,3 +1,10 @@
+mod combat;
+mod dialogue;
+mod door;
+pub mod item;
+mod ship;
+mod trade;
+
 use crate::core::behavior::{Hostile, Recruitable, RepeatingAction};
 use crate::core::combat::AttackKind;
 use crate::core::item::ItemType;
@@ -11,12 +18,7 @@ use hecs::{Entity, World};
 use std::collections::HashMap;
 use std::result;
 
-mod combat;
-mod dialogue;
-mod door;
-pub mod item;
-mod ship;
-mod trade;
+pub use door::ForceDoorAction;
 
 #[derive(Clone)]
 pub enum Action {
@@ -27,7 +29,7 @@ pub enum Action {
     Wield(Entity, NameData),
     Use(item::UseAction),
     EnterDoor(Entity),
-    ForceDoor(Entity, bool),
+    ForceDoor(ForceDoorAction),
     GoToShip,
     Attack(Vec<Entity>, AttackKind),
     ChargedAttack(Entity),
@@ -125,7 +127,7 @@ fn perform(
         Wield(item, name) => item::wield(&mut context, performer, item, name),
         Use(use_action) => use_action.run(performer, context),
         EnterDoor(door) => door::enter_door(&mut context, performer, door),
-        ForceDoor(door, assisting) => door::force_door(context, performer, door, assisting),
+        ForceDoor(force_door_action) => force_door_action.run(context, performer),
         GoToShip => door::go_to_ship(context, performer),
         Attack(targets, attack_kind) => {
             combat::attack(&mut context, performer, targets, attack_kind)

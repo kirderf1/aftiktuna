@@ -1,0 +1,18 @@
+[
+  {
+    "is_at_ship": true,
+    "expression": "neutral",
+    "message": "Please wait at the ship.",
+    "reply": [
+      { "expression": "neutral", "message": "Sure thing. I will stay here for now." }
+    ]
+  },
+  {
+    "is_at_ship": false,
+    "expression": "neutral",
+    "message": "Please go back and wait at the ship.",
+    "reply": [
+      { "expression": "neutral", "message": "Sure thing. I will go and wait at the ship for now." }
+    ]
+  }
+]

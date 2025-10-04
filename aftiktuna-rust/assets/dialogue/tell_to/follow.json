@@ -1,0 +1,9 @@
+[
+  {
+    "expression": "neutral",
+    "message": "Time to go, please follow me.",
+    "reply": [
+      { "expression": "neutral", "message": "Alright, let's go!" }
+    ]
+  }
+]

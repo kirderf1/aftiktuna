@@ -4,8 +4,8 @@ use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
-use crate::core::{self, CrewMember, area, position, status};
-use crate::view;
+use crate::core::{self, CrewMember, position, status};
+use crate::{dialogue, view};
 use hecs::{Entity, World};
 
 pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> action::Result {
@@ -203,17 +203,12 @@ pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) 
              state,
              view_context,
          }| {
-            view_context.view_buffer.push_dialogue(
-                &state.world,
+            dialogue::trigger_dialogue_by_name(
+                "tell_to/wait",
                 performer,
-                DialogueExpression::Neutral,
-                "Please wait here for now.",
-            );
-            view_context.view_buffer.push_dialogue(
-                &state.world,
                 target,
-                DialogueExpression::Neutral,
-                "Sure thing. Just tell me when I should follow along again.",
+                state,
+                view_context.view_buffer,
             );
 
             state
@@ -244,36 +239,13 @@ pub(super) fn tell_to_wait_at_ship(
              state,
              view_context,
          }| {
-            let target_pos = *state.world.get::<&Pos>(target).unwrap();
-            if area::is_in_ship(target_pos, &state.world) {
-                view_context.view_buffer.push_dialogue(
-                    &state.world,
-                    performer,
-                    DialogueExpression::Neutral,
-                    "Please wait at the ship.",
-                );
-
-                view_context.view_buffer.push_dialogue(
-                    &state.world,
-                    target,
-                    DialogueExpression::Neutral,
-                    "Sure thing. I will stay here for now.",
-                );
-            } else {
-                view_context.view_buffer.push_dialogue(
-                    &state.world,
-                    performer,
-                    DialogueExpression::Neutral,
-                    "Please go back and wait at the ship.",
-                );
-
-                view_context.view_buffer.push_dialogue(
-                    &state.world,
-                    target,
-                    DialogueExpression::Neutral,
-                    "Sure thing. I will go and wait at the ship for now.",
-                );
-            }
+            dialogue::trigger_dialogue_by_name(
+                "tell_to/wait_at_ship",
+                performer,
+                target,
+                state,
+                view_context.view_buffer,
+            );
 
             state
                 .world
@@ -305,17 +277,12 @@ pub(super) fn tell_to_follow(
              state,
              view_context,
          }| {
-            view_context.view_buffer.push_dialogue(
-                &state.world,
+            dialogue::trigger_dialogue_by_name(
+                "tell_to/follow",
                 performer,
-                DialogueExpression::Neutral,
-                "Time to go, please follow me.",
-            );
-            view_context.view_buffer.push_dialogue(
-                &state.world,
                 target,
-                DialogueExpression::Neutral,
-                "Alright, let's go!",
+                state,
+                view_context.view_buffer,
             );
 
             state.world.remove_one::<Waiting>(target).unwrap();

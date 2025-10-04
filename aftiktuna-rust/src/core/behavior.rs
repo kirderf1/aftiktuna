@@ -32,7 +32,10 @@ pub enum BadlyHurtBehavior {
 #[derive(Serialize, Deserialize)]
 pub enum Intention {
     Wield(hecs::Entity),
-    Force(hecs::Entity),
+    Force {
+        door: hecs::Entity,
+        assisted: hecs::Entity,
+    },
     UseMedkit(hecs::Entity),
 }
 

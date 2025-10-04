@@ -69,6 +69,7 @@ pub mod color {
 pub(crate) mod dialogue {
     use crate::core::behavior::CrewLossMemory;
     use crate::core::display::DialogueExpression;
+    use crate::core::position::Pos;
     use crate::core::status::{Health, Morale, MoraleState};
     use crate::core::{area, inventory};
     use hecs::{Entity, World};
@@ -83,6 +84,8 @@ pub(crate) mod dialogue {
         pub is_target_badly_hurt: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub has_enough_fuel: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub is_at_ship: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub has_crew_loss_memory: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -115,6 +118,12 @@ pub(crate) mod dialogue {
                         == area::fuel_needed_to_launch(world).is_some_and(|fuel_amount| {
                             fuel_amount <= inventory::fuel_cans_held_by_crew(world, &[])
                         })
+                })
+                && self.is_at_ship.is_none_or(|is_at_ship| {
+                    is_at_ship
+                        == world
+                            .get::<&Pos>(speaker)
+                            .is_ok_and(|pos| area::is_in_ship(*pos, world))
                 })
                 && self
                     .has_crew_loss_memory

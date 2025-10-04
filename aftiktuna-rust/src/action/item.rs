@@ -1,11 +1,11 @@
 use crate::action::{self, Context, Error};
 use crate::core::behavior::{self, RepeatingAction};
-use crate::core::display::DialogueExpression;
 use crate::core::inventory::{self, Held};
 use crate::core::item::ItemType;
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, StatChanges};
+use crate::dialogue;
 use crate::view::text::{self, CombinableMsgType};
 use hecs::Entity;
 
@@ -219,18 +219,19 @@ pub(super) fn give_item(
         .map_err(|blockage| blockage.into_message(world, assets))?;
 
     view_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
 
-    movement.perform(world).unwrap();
+    movement.perform(&mut state.world).unwrap();
 
-    view_context.view_buffer.push_dialogue(
-        world,
+    dialogue::trigger_dialogue_by_name(
+        "give_item",
         performer,
-        DialogueExpression::Neutral,
-        "Here, hold on to this.",
+        receiver,
+        state,
+        view_context.view_buffer,
     );
 
-    world
+    state
+        .world
         .insert_one(item, Held::in_inventory(receiver))
         .unwrap();
 
@@ -238,7 +239,7 @@ pub(super) fn give_item(
         performer_pos.get_area(),
         format!(
             "{performer_name} gave {receiver_name} a {}.",
-            NameData::find(world, item, assets).base(),
+            NameData::find(&state.world, item, assets).base(),
         ),
         state,
     );

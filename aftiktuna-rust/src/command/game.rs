@@ -1,4 +1,4 @@
-use crate::action::Action;
+use crate::action::{Action, ForceDoorAction};
 use crate::asset::{GameAssets, NounDataMap};
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match_or};
@@ -185,7 +185,10 @@ fn force(
 ) -> Result<CommandResult, String> {
     check_accessible_with_message(door, character, false, world, assets)?;
 
-    command::action_result(Action::ForceDoor(door, false))
+    command::action_result(ForceDoorAction {
+        door,
+        assisting: None,
+    })
 }
 
 fn go_to_ship(world: &World, character: Entity) -> Result<CommandResult, String> {

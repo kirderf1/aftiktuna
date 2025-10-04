@@ -1,5 +1,5 @@
-use crate::action::Action;
 use crate::action::item::UseAction;
+use crate::action::{Action, ForceDoorAction};
 use crate::asset::GameAssets;
 use crate::core::behavior::{
     self, BadlyHurtBehavior, Character, Hostile, Intention, ObservationTarget, RepeatingAction,
@@ -262,7 +262,15 @@ fn pick_crew_action(
             Intention::Wield(item) => {
                 return Some(Action::Wield(item, NameData::find(world, item, assets)));
             }
-            Intention::Force(door) => return Some(Action::ForceDoor(door, true)),
+            Intention::Force { door, assisted } => {
+                return Some(
+                    ForceDoorAction {
+                        door,
+                        assisting: Some(assisted),
+                    }
+                    .into(),
+                );
+            }
             _ => {}
         };
     }

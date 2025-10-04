@@ -1,7 +1,5 @@
 use crate::action::{self, Context, Error};
-use crate::ai;
 use crate::core::behavior::{self, Character, Intention, RepeatingAction};
-use crate::core::display::DialogueExpression;
 use crate::core::item::Tool;
 use crate::core::name::{NameData, NameIdData};
 use crate::core::position::{self, Direction, Placement, PlacementQuery, Pos};
@@ -9,6 +7,7 @@ use crate::core::status::Stamina;
 use crate::core::{BlockType, CrewMember, Door, DoorKind, IsCut, area, inventory};
 use crate::game_loop::GameState;
 use crate::view::text::CombinableMsgType;
+use crate::{ai, dialogue};
 use hecs::{Entity, World};
 use std::ops::Deref;
 
@@ -129,79 +128,90 @@ pub(super) fn enter_door(context: &mut Context, performer: Entity, door: Entity)
     Ok(action::Success)
 }
 
-pub(super) fn force_door(
-    context: Context,
-    performer: Entity,
-    door: Entity,
-    assisting: bool,
-) -> action::Result {
-    let Context {
-        state,
-        mut view_context,
-    } = context;
-    let assets = view_context.view_buffer.assets;
-    let world = &state.world;
-    let performer_name = NameData::find(world, performer, assets).definite();
-    let door_pos = *world
-        .get::<&Pos>(door)
-        .ok()
-        .ok_or_else(|| format!("{performer_name} lost track of the door."))?;
-    if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
-        return Err(Error::private(format!(
-            "{performer_name} cannot reach the door from here."
-        )));
+#[derive(Clone)]
+pub struct ForceDoorAction {
+    pub door: Entity,
+    pub assisting: Option<Entity>,
+}
+
+impl From<ForceDoorAction> for super::Action {
+    fn from(value: ForceDoorAction) -> Self {
+        Self::ForceDoor(value)
     }
+}
 
-    let door_pair = world
-        .get::<&Door>(door)
-        .map_err(|_| "The door ceased being a door.")?
-        .door_pair;
-
-    let movement = position::prepare_move(world, performer, door_pos)
-        .map_err(|blockage| blockage.into_message(world, assets))?;
-    view_context.capture_frame_for_dialogue(state);
-    let world = &mut state.world;
-    movement.perform(world).unwrap();
-    if assisting {
-        view_context.view_buffer.push_dialogue(
-            world,
-            performer,
-            DialogueExpression::Neutral,
-            "I'll help you get that door open.",
-        );
-    }
-
-    let block_type = *world.get::<&BlockType>(door_pair).map_err(|_| {
-        Error::visible(format!(
-            "{performer_name} inspects the door, but it does not appear to be stuck."
-        ))
-    })?;
-
-    match check_tool_for_forcing(block_type, world, performer, &performer_name) {
-        Err(message) => {
-            on_door_failure(state, performer, door, block_type);
-            Err(Error::visible(message))
+impl ForceDoorAction {
+    pub(super) fn run(self, context: Context, performer: Entity) -> action::Result {
+        let Self { door, assisting } = self;
+        let Context {
+            state,
+            mut view_context,
+        } = context;
+        let assets = view_context.view_buffer.assets;
+        let world = &state.world;
+        let performer_name = NameData::find(world, performer, assets).definite();
+        let door_pos = *world
+            .get::<&Pos>(door)
+            .ok()
+            .ok_or_else(|| format!("{performer_name} lost track of the door."))?;
+        if Ok(door_pos.get_area()) != world.get::<&Pos>(performer).map(|pos| pos.get_area()) {
+            return Err(Error::private(format!(
+                "{performer_name} cannot reach the door from here."
+            )));
         }
-        Ok(tool) => {
-            world.remove_one::<BlockType>(door_pair).unwrap();
-            if tool == Tool::Blowtorch {
-                let doors = world
-                    .query::<&Door>()
-                    .iter()
-                    .filter(|&(_, door)| door.door_pair == door_pair)
-                    .map(|(entity, _)| entity)
-                    .collect::<Vec<_>>();
-                for door in doors {
-                    world.insert_one(door, IsCut).unwrap();
-                }
-            }
 
-            view_context.add_message_at(
-                door_pos.get_area(),
-                tool.into_message(&performer_name),
+        let door_pair = world
+            .get::<&Door>(door)
+            .map_err(|_| "The door ceased being a door.")?
+            .door_pair;
+
+        let movement = position::prepare_move(world, performer, door_pos)
+            .map_err(|blockage| blockage.into_message(world, assets))?;
+        view_context.capture_frame_for_dialogue(state);
+        movement.perform(&mut state.world).unwrap();
+        if let Some(assisted) = assisting {
+            dialogue::trigger_dialogue_by_name(
+                "help_force_door",
+                performer,
+                assisted,
                 state,
+                view_context.view_buffer,
             );
-            Ok(action::Success)
+        }
+
+        let world = &mut state.world;
+        let block_type = *world.get::<&BlockType>(door_pair).map_err(|_| {
+            Error::visible(format!(
+                "{performer_name} inspects the door, but it does not appear to be stuck."
+            ))
+        })?;
+
+        match check_tool_for_forcing(block_type, world, performer, &performer_name) {
+            Err(message) => {
+                on_door_failure(state, performer, door, block_type);
+                Err(Error::visible(message))
+            }
+            Ok(tool) => {
+                world.remove_one::<BlockType>(door_pair).unwrap();
+                if tool == Tool::Blowtorch {
+                    let doors = world
+                        .query::<&Door>()
+                        .iter()
+                        .filter(|&(_, door)| door.door_pair == door_pair)
+                        .map(|(entity, _)| entity)
+                        .collect::<Vec<_>>();
+                    for door in doors {
+                        world.insert_one(door, IsCut).unwrap();
+                    }
+                }
+
+                view_context.add_message_at(
+                    door_pos.get_area(),
+                    tool.into_message(&performer_name),
+                    state,
+                );
+                Ok(action::Success)
+            }
         }
     }
 }
@@ -228,7 +238,13 @@ fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block
         .map(|(crew_member, _)| crew_member);
     if let Some(crew_member) = crew_member {
         world
-            .insert_one(crew_member, Intention::Force(door))
+            .insert_one(
+                crew_member,
+                Intention::Force {
+                    door,
+                    assisted: performer,
+                },
+            )
             .unwrap();
     }
 }
