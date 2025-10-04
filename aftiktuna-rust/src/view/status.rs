@@ -116,7 +116,7 @@ pub fn get_full_status(state: &GameState, assets: &GameAssets) -> FullStatus {
                 .as_deref()
                 .copied()
                 .unwrap_or_default();
-            character_messages.add(format!("Morale: {}", morale.label()));
+            character_messages.add(format!("Morale: {}", morale.state().label()));
 
             print_wielded(
                 &state.world,

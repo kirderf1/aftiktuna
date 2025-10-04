@@ -361,13 +361,13 @@ impl Morale {
         }
     }
 
-    pub fn label(&self) -> &'static str {
+    pub fn state(&self) -> MoraleState {
         match self.value() {
-            ..-10.0 => "Devestating",
-            -10.0..-5.0 => "Poor",
-            5.0..10.0 => "Good",
-            10.0.. => "Excellent",
-            _ => "Neutral",
+            ..-10.0 => MoraleState::Devestating,
+            -10.0..-5.0 => MoraleState::Poor,
+            5.0..10.0 => MoraleState::Good,
+            10.0.. => MoraleState::Excellent,
+            _ => MoraleState::Neutral,
         }
     }
 
@@ -408,6 +408,29 @@ impl Morale {
     }
     pub fn crew_death_effect(&mut self) {
         self.apply_negative_effect(Morale::HIGH_INTENSITY, Morale::DEEP_DEPTH)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MoraleState {
+    Devestating,
+    Poor,
+    #[default]
+    Neutral,
+    Good,
+    Excellent,
+}
+
+impl MoraleState {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Devestating => "Devestating",
+            Self::Poor => "Poor",
+            Self::Neutral => "Neutral",
+            Self::Good => "Good",
+            Self::Excellent => "Excellent",
+        }
     }
 }
 

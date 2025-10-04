@@ -69,7 +69,7 @@ pub mod color {
 pub(crate) mod dialogue {
     use crate::core::behavior::CrewLossMemory;
     use crate::core::display::DialogueExpression;
-    use crate::core::status::Health;
+    use crate::core::status::{Health, Morale, MoraleState};
     use crate::core::{area, inventory};
     use hecs::{Entity, World};
     use serde::{Deserialize, Serialize};
@@ -87,6 +87,8 @@ pub(crate) mod dialogue {
         pub has_crew_loss_memory: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub has_recent_crew_loss_memory: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub morale_is_at_least: Option<MoraleState>,
         pub expression: DialogueExpression,
         pub message: String,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -127,6 +129,13 @@ pub(crate) mod dialogue {
                                 .get::<&CrewLossMemory>(speaker)
                                 .is_ok_and(|crew_loss_memory| crew_loss_memory.recent)
                     })
+                && self.morale_is_at_least.is_none_or(|morale_state| {
+                    morale_state
+                        <= world
+                            .get::<&Morale>(speaker)
+                            .map(|morale| morale.state())
+                            .unwrap_or_default()
+                })
         }
     }
 
