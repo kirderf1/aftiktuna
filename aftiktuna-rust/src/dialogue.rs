@@ -3,7 +3,6 @@ use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntReward,
     Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
 };
-use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
 use crate::core::position::{self, Pos};
 use crate::core::status::Health;
@@ -14,74 +13,50 @@ use hecs::{Entity, World};
 use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
 
 /// Expects dialogue setup (placement and frame capture) to already be done.
-pub fn ask_name_dialogue(
-    performer: Entity,
-    target: Entity,
-    world: &mut World,
-    view_buffer: &mut view::Buffer,
-) {
-    let name_string = {
-        let mut name_ref = world.get::<&mut Name>(target).unwrap();
-        name_ref.is_known = true;
-        name_ref.name.clone()
-    };
-    view_buffer.push_dialogue(
-        world,
-        performer,
-        DialogueExpression::Neutral,
-        "Hi! What is your name?",
-    );
-    view_buffer.push_dialogue(
-        world,
-        target,
-        DialogueExpression::Neutral,
-        format!("My name is {name_string}."),
-    );
-}
-
-/// Expects dialogue setup (placement and frame capture) to already be done.
 pub fn prompt_npc_dialogue(
     crew_member: Entity,
     npc: Entity,
-    world: &mut World,
+    state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
-    let npc_ref = world.entity(npc).unwrap();
+    let npc_ref = state.world.entity(npc).unwrap();
     let gives_hunt_reward = npc_ref.get::<&GivesHuntReward>();
     if gives_hunt_reward.is_some() {
         let gives_hunt_reward = gives_hunt_reward.unwrap();
 
-        if !gives_hunt_reward.is_fulfilled(world) {
+        if !gives_hunt_reward.is_fulfilled(&state.world) {
             let dialogue_node = gives_hunt_reward.task_dialogue.clone();
             drop(gives_hunt_reward);
-            run_dialogue_node(&dialogue_node, npc, crew_member, world, view_buffer);
+            run_dialogue_node(
+                &dialogue_node,
+                npc,
+                crew_member,
+                &mut state.world,
+                view_buffer,
+            );
         } else {
             drop(gives_hunt_reward);
             let GivesHuntReward {
                 already_completed_dialogue,
                 reward,
                 ..
-            } = world.remove_one::<GivesHuntReward>(npc).unwrap();
+            } = state.world.remove_one::<GivesHuntReward>(npc).unwrap();
 
             run_dialogue_node(
                 &already_completed_dialogue,
                 npc,
                 crew_member,
-                world,
+                &mut state.world,
                 view_buffer,
             );
 
-            reward.give_reward_to(crew_member, world);
+            reward.give_reward_to(crew_member, &mut state.world);
         }
     } else if let Some(talk) = npc_ref.get::<&Talk>() {
-        view_buffer.push_dialogue(world, npc, talk.0.expression, &talk.0.message);
+        view_buffer.push_dialogue(&state.world, npc, talk.0.expression, &talk.0.message);
     } else if npc_ref.has::<Recruitable>() {
-        view_buffer.push_dialogue(
-            world,
-            npc,
-            DialogueExpression::Neutral,
-            "I wish I could leave this place and go on an adventure.",
-        );
+        drop(gives_hunt_reward);
+        trigger_dialogue_by_name("recruitable", npc, crew_member, state, view_buffer);
     }
 }
 
@@ -353,25 +328,22 @@ fn run_dialogue_node(
     let target_pos = *world.get::<&Pos>(target).unwrap();
     position::turn_towards(world, speaker, target_pos);
 
-    if dialogue_node.message.contains("{crew_loss_memory_name}")
+    let message = if dialogue_node.message.contains("{name}")
+        && let Ok(mut name) = world.get::<&mut Name>(speaker)
+    {
+        name.is_known = true;
+        dialogue_node.message.replace("{name}", &name.name)
+    } else if dialogue_node.message.contains("{crew_loss_memory_name}")
         && let Ok(crew_loss_memory) = world.get::<&CrewLossMemory>(speaker)
     {
-        view_buffer.push_dialogue(
-            world,
-            speaker,
-            dialogue_node.expression,
-            dialogue_node
-                .message
-                .replace("{crew_loss_memory_name}", &crew_loss_memory.name),
-        );
+        dialogue_node
+            .message
+            .replace("{crew_loss_memory_name}", &crew_loss_memory.name)
     } else {
-        view_buffer.push_dialogue(
-            world,
-            speaker,
-            dialogue_node.expression,
-            &dialogue_node.message,
-        );
-    }
+        dialogue_node.message.clone()
+    };
+
+    view_buffer.push_dialogue(world, speaker, dialogue_node.expression, message);
 
     if let Some(reply) = &dialogue_node.reply
         && let Some(reply_node) = reply.select_node(target, speaker, world)

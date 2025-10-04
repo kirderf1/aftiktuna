@@ -1,0 +1,10 @@
+[
+  {
+    "expression": "neutral",
+    "message": "Hi! Do you want to join me in the search for Fortuna?",
+    "reply": [
+      { "known_name": false, "expression": "excited", "message": "Sure, I'll join you! My name is {name}." },
+      { "expression": "excited", "message": "Sure, I'll join you!" }
+    ]
+  }
+]

@@ -69,6 +69,7 @@ pub mod color {
 pub(crate) mod dialogue {
     use crate::core::behavior::CrewLossMemory;
     use crate::core::display::DialogueExpression;
+    use crate::core::name::Name;
     use crate::core::position::Pos;
     use crate::core::status::{Health, Morale, MoraleState};
     use crate::core::{area, inventory};
@@ -86,6 +87,8 @@ pub(crate) mod dialogue {
         pub has_enough_fuel: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub is_at_ship: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub known_name: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub has_crew_loss_memory: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -124,6 +127,9 @@ pub(crate) mod dialogue {
                         == world
                             .get::<&Pos>(speaker)
                             .is_ok_and(|pos| area::is_in_ship(*pos, world))
+                })
+                && self.known_name.is_none_or(|known_name| {
+                    Some(known_name) == world.get::<&Name>(speaker).ok().map(|name| name.is_known)
                 })
                 && self
                     .has_crew_loss_memory

@@ -1,10 +1,10 @@
 use crate::action::{self, Context, Error};
 use crate::core::behavior::{GivesHuntReward, Hostile, Recruitable, Waiting};
-use crate::core::display::DialogueExpression;
 use crate::core::name::{Name, NameData};
 use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
 use crate::core::{self, CrewMember, position, status};
+use crate::game_loop::GameState;
 use crate::{dialogue, view};
 use hecs::{Entity, World};
 
@@ -36,12 +36,7 @@ pub(super) fn talk_to(context: Context, performer: Entity, target: Entity) -> ac
                  state,
                  view_context,
              }| {
-                topic.perform(
-                    performer,
-                    target,
-                    &mut state.world,
-                    view_context.view_buffer,
-                );
+                topic.perform(performer, target, state, view_context.view_buffer);
                 None
             },
         )
@@ -103,16 +98,22 @@ impl TalkTopic {
         self,
         performer: Entity,
         target: Entity,
-        world: &mut World,
+        state: &mut GameState,
         view_buffer: &mut view::Buffer,
     ) {
         match self {
             TalkTopic::AskName => {
-                crate::dialogue::ask_name_dialogue(performer, target, world, view_buffer);
-                crate::dialogue::prompt_npc_dialogue(performer, target, world, view_buffer);
+                dialogue::trigger_dialogue_by_name(
+                    "ask_name",
+                    performer,
+                    target,
+                    state,
+                    view_buffer,
+                );
+                dialogue::prompt_npc_dialogue(performer, target, state, view_buffer);
             }
             TalkTopic::CompleteHuntQuest => {
-                crate::dialogue::complete_hunt_quest(performer, target, world, view_buffer)
+                dialogue::complete_hunt_quest(performer, target, &mut state.world, view_buffer)
             }
         }
     }
@@ -136,37 +137,13 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
              state,
              view_context,
          }| {
-            view_context.view_buffer.push_dialogue(
-                &state.world,
+            dialogue::trigger_dialogue_by_name(
+                "recruit",
                 performer,
-                DialogueExpression::Neutral,
-                "Hi! Do you want to join me in the search for Fortuna?",
+                target,
+                state,
+                view_context.view_buffer,
             );
-            if state
-                .world
-                .get::<&Name>(target)
-                .ok()
-                .is_some_and(|name| !name.is_known)
-            {
-                let name_string = {
-                    let mut name_ref = state.world.get::<&mut Name>(target).unwrap();
-                    name_ref.is_known = true;
-                    name_ref.name.clone()
-                };
-                view_context.view_buffer.push_dialogue(
-                    &state.world,
-                    target,
-                    DialogueExpression::Excited,
-                    format!("Sure, I'll join you! My name is {name_string}."),
-                );
-            } else {
-                view_context.view_buffer.push_dialogue(
-                    &state.world,
-                    target,
-                    DialogueExpression::Excited,
-                    "Sure, I'll join you!",
-                );
-            }
 
             if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
                 morale.journey_start_effect();
