@@ -25,7 +25,7 @@
   },
   {
     "name": "Moss",
-    "color": "softgreen",
+    "color": "turquoisegreen",
     "stats": { "strength": 8, "endurance": 4, "agility": 10, "luck": 0 },
     "traits": [ "good_dodger", "big_eater" ]
   }
