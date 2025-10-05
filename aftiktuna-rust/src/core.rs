@@ -3,7 +3,7 @@ pub(crate) mod behavior;
 pub(crate) mod combat;
 pub(crate) mod inventory;
 pub mod item;
-pub(crate) mod name;
+pub mod name;
 pub mod position;
 pub mod status;
 

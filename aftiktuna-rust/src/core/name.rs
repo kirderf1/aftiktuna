@@ -206,7 +206,7 @@ impl Default for NameData {
 }
 
 #[derive(Clone, Default)]
-pub struct NameWithAttribute(NameData, Option<CreatureAttribute>);
+pub(crate) struct NameWithAttribute(NameData, Option<CreatureAttribute>);
 
 impl NameWithAttribute {
     pub fn lookup_by_ref(entity_ref: EntityRef, assets: &GameAssets) -> Self {
@@ -261,7 +261,7 @@ fn format_option_with_space(option: Option<impl Display>) -> String {
     option.map_or(String::default(), |value| format!("{value} "))
 }
 
-pub type NameQuery<'a> = (
+pub(crate) type NameQuery<'a> = (
     Option<&'a Name>,
     Option<&'a NounId>,
     Option<&'a Adjective>,
@@ -269,7 +269,7 @@ pub type NameQuery<'a> = (
 );
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Name {
+pub(crate) struct Name {
     pub name: String,
     pub is_known: bool,
 }
@@ -311,14 +311,6 @@ impl Default for NounData {
 }
 
 impl NounData {
-    pub fn new(singular: &str, plural: &str, article: IndefiniteArticle) -> Self {
-        Self {
-            singular: singular.to_string(),
-            plural: plural.to_string(),
-            article,
-        }
-    }
-
     pub fn singular(&self) -> &str {
         &self.singular
     }
@@ -335,11 +327,11 @@ impl NounData {
         }
     }
 
-    pub fn with_text_count(&self, count: u16, article: ArticleKind) -> String {
+    pub(crate) fn with_text_count(&self, count: u16, article: ArticleKind) -> String {
         self.with_count(None, count, article, CountFormat::Text)
     }
 
-    pub fn with_count(
+    pub(crate) fn with_count(
         &self,
         adjective: Option<&Adjective>,
         count: u16,
@@ -389,7 +381,7 @@ impl Display for Adjective {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CountFormat {
+pub(crate) enum CountFormat {
     Numeric,
     Text,
 }
@@ -417,7 +409,7 @@ impl CountFormat {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ArticleKind {
+pub(crate) enum ArticleKind {
     The,
     A,
     One,
@@ -425,7 +417,7 @@ pub enum ArticleKind {
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum IndefiniteArticle {
+pub(crate) enum IndefiniteArticle {
     #[default]
     A,
     An,
@@ -440,7 +432,7 @@ impl Display for IndefiniteArticle {
     }
 }
 
-pub fn names_with_counts(
+pub(crate) fn names_with_counts(
     data: impl IntoIterator<Item = NameIdData>,
     article: ArticleKind,
     format: CountFormat,

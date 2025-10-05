@@ -1,7 +1,8 @@
-use aftiktuna::asset::color::{self, AftikColorData, RGBColor};
+use aftiktuna::asset::color::{self, AftikColorData, AftikColorEntry, RGBColor};
 use aftiktuna::asset::model::{self, Model};
 use aftiktuna::core::Species;
 use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::name::Adjective;
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -12,7 +13,7 @@ use three_d::{FrameInput, egui};
 
 const SIZE: (u32, u32) = (800, 600);
 
-type AftikColorMap = IndexMap<AftikColorId, AftikColorData>;
+type AftikColorMap = IndexMap<AftikColorId, AftikColorEntry>;
 
 fn main() {
     let mut aftik_colors = load_aftik_colors_ordered();
@@ -70,9 +71,9 @@ fn main() {
             0.78, 0.78, 0.78, 1., 1.,
         ));
 
-        let (_, &aftik_color_data) = aftik_colors.get_index(selected_index).unwrap();
+        let (_, aftik_color_data) = aftik_colors.get_index(selected_index).unwrap();
         draw_examples(
-            aftik_color_data,
+            aftik_color_data.color_data,
             &aftik_model,
             &portrait_model,
             &frame_input,
@@ -205,12 +206,12 @@ fn side_panel(
             let (_, aftik_color_data) = aftik_colors.get_index_mut(*selected_index).unwrap();
 
             ui.label("Primary color:");
-            color_picker(ui, &mut aftik_color_data.primary_color);
+            color_picker(ui, &mut aftik_color_data.color_data.primary_color);
 
             ui.separator();
 
             ui.label("Secondary color:");
-            color_picker(ui, &mut aftik_color_data.secondary_color);
+            color_picker(ui, &mut aftik_color_data.color_data.secondary_color);
 
             ui.separator();
 
@@ -225,7 +226,16 @@ fn init_new_color(
     aftik_colors: &mut AftikColorMap,
 ) {
     if !aftik_colors.contains_key(&new_id) {
-        *selected_index = aftik_colors.insert_full(new_id, color::DEFAULT_COLOR).0;
+        let adjective = Adjective(new_id.0.clone());
+        *selected_index = aftik_colors
+            .insert_full(
+                new_id,
+                AftikColorEntry {
+                    adjective,
+                    color_data: color::DEFAULT_COLOR,
+                },
+            )
+            .0;
     }
 }
 
