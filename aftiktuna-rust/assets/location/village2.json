@@ -1,0 +1,429 @@
+{
+  "areas": [
+    {
+      "name": "Ship Area",
+      "pos_in_overview": [ 21, -12 ],
+      "background": "field",
+      "extra_background_layers": [
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 104, "y": 270 }
+        },
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 168, "y": 270 }
+        }
+      ],
+      "objects": [ "3", "<", "-", "#-", "-", "-", "-", "v-", ".", "" ],
+      "symbols": {
+        "#": { "type": "inanimate", "model": "ship" },
+        "<": { "type": "door", "pair_id": "village_entrance", "display_type": "left_path" },
+        ".": { "type": "inanimate", "model": "path/right_end" }
+      }
+    },
+    {
+      "name": "Village Road",
+      "pos_in_overview": [ 8, -8 ],
+      "background": "forest_entrance",
+      "background_offset": 2,
+      "extra_background_layers": [
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 924, "y": 218 }
+        },
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 334, "y": 218 }
+        },
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 186, "y": 267 }
+        },
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 752, "y": 269 }
+        }
+      ],
+      "objects": [ "", "<", "-", "-", ":L", "-", "-", "^", "-", "-", ":R", "-", ">", "" ],
+      "symbols": {
+        ">": { "type": "door", "pair_id": "village_entrance", "display_type": "right_path", "adjective": "right" },
+        "^": { "type": "door", "pair_id": "village_road", "display_type": "crossroad_path", "adjective": "middle" },
+        "<": { "type": "door", "pair_id": "village_road2", "display_type": "left_path", "adjective": "left" },
+        "L": { "type": "door", "pair_id": "house2a", "display_type": "house", "adjective": "left" },
+        "R": { "type": "door", "pair_id": "house1a", "display_type": "house", "adjective": "right" },
+        ":": { "type": "inanimate", "model": "path/crossroad" }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ 11, -11 ],
+      "background": "shack",
+      "objects": [ "Tp", "AC", "<", ">" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "house1a", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "house1b", "display_type": "door", "adjective": "right" },
+        "A": {
+          "type": "character",
+          "interaction": { "type": "recruitable" },
+          "direction": "left"
+        },
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "C": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
+        "p": { "type": "inanimate", "model": "environment/potted_plant" }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ 11, -14 ],
+      "background": "shack",
+      "objects": [ "B", ":", "#", "^" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "house1b", "display_type": "door" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
+        "#": {
+          "type": "container",
+          "container_type": "chest",
+          "content": [],
+          "direction": "right"
+        },
+        ":": { "type": "furnish", "template": "poster" }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ 6, -11 ],
+      "background": "shack",
+      "objects": [ "<", ">", "T", "#" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "house2b", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "house2a", "display_type": "door", "adjective": "right" },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [],
+          "direction": "right"
+        },
+        "T": { "type": "inanimate", "model": "environment/table" }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ 6, -14 ],
+      "background": "shack",
+      "objects": [ "^", "p", "", "B" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "house2b", "display_type": "door" },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        "p": { "type": "inanimate", "model": "environment/potted_plant" }
+      }
+    },
+    {
+      "name": "Village Road",
+      "pos_in_overview": [ 10, -2 ],
+      "background": "forest_entrance",
+      "background_offset": -4,
+      "extra_background_layers": [
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": -66, "y": 220 }
+        },
+        {
+          "texture": "facility_outside",
+          "move_factor": 1.0,
+          "offset": { "x": 578, "y": 215 }
+        },
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 414, "y": 270 }
+        }
+      ],
+      "objects": [ "", ".<", "-1", "-2", "^", "-", "-:", ",>", "" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "village_road", "display_type": "crossroad_path" },
+        "<": { "type": "door", "pair_id": "house3a", "display_type": "house" },
+        ">": { "type": "door", "pair_id": "store", "display_type": "store" },
+        ".": { "type": "inanimate", "model": "path/left_corner" },
+        ",": { "type": "inanimate", "model": "path/right_corner" },
+        ":": { "type": "furnish", "template": "poster" },
+        "1": {
+          "type": "character",
+          "profile": {
+            "name": "Tomato",
+            "color": "red",
+            "stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 }
+          },
+          "tag": "dialogue_target",
+          "interaction": { "type": "talk", "expression": "excited", "message": "And here I was planning to head out. I guess I'll have to wait until it is safer.." }
+        },
+        "2": {
+          "type": "character",
+          "profile": {
+            "name": "Sky",
+            "color": "cyan",
+            "stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 }
+          },
+          "interaction": { "type": "talk", "expression": "sad", "message": "You be careful too if you're planning to head out into the forest!" },
+          "background_dialogue": {
+            "target": "dialogue_target",
+            "dialogue": [
+              { "expression": "excited", "message": "Be careful going out into the forest right now!" },
+              { "expression": "neutral", "message": "Why is that?" },
+              { "expression": "sad", "message": "There's large bug-monster-thing out there!" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ 7, 1 ],
+      "background": "shack",
+      "objects": [ "TC", "p", "<", ">" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "house3a", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "house3b", "display_type": "door", "adjective": "right" },
+        "T": { "type": "inanimate", "model": "environment/table" },
+        "C": { "type": "inanimate", "model": "environment/chair" },
+        "p": { "type": "inanimate", "model": "environment/potted_plant" }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ 7, 4 ],
+      "background": "shack",
+      "objects": [ "B", ":", "#", "^" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "house3b", "display_type": "door" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
+        "#": {
+          "type": "container",
+          "container_type": "drawer",
+          "content": [],
+          "direction": "right"
+        },
+        ":": { "type": "furnish", "template": "poster" }
+      }
+    },
+    {
+      "name": "Store",
+      "pos_in_overview": [ 14, 1 ],
+      "background": "facility_size5",
+      "objects": [ ":", "^", "T", "#S", ">" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "store", "display_type": "door" },
+        ">": { "type": "inanimate", "model": "door/door" },
+        "S": {
+          "type": "shopkeeper",
+          "stock": [
+            { "item": "fuel_can" },
+            { "item": "bat", "quantity": 2 },
+            { "item": "blowtorch", "quantity": 1 },
+            { "item": "medkit", "quantity": 1 },
+            { "item": "food_ration", "quantity": 10 }
+          ],
+          "color": "softgreen"
+        },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [],
+          "direction": "right"
+        },
+        "T": { "type": "inanimate", "model": "environment/table" },
+        ":": { "type": "furnish", "template": "poster" }
+      }
+    },
+    {
+      "name": "Village Road",
+      "pos_in_overview": [ -3, -4 ],
+      "background": "forest_entrance",
+      "background_offset": 4,
+      "extra_background_layers": [
+        {
+          "texture": "building",
+          "move_factor": 1.0,
+          "offset": { "x": 354, "y": 220 }
+        },
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 850, "y": 270 }
+        }
+      ],
+      "objects": [ "", "<", "A", "", "", ":^", "-", ">", "" ],
+      "symbols": {
+        ">": { "type": "door", "pair_id": "village_road2", "display_type": "right_path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "forest1", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "house4", "display_type": "house" },
+        ":": { "type": "inanimate", "model": "path/left_corner" },
+        "A": {
+          "type": "character",
+          "profile": {
+            "name": "Amethyst",
+            "color": "softpurple",
+            "stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 }
+          },
+          "interaction": {
+            "type": "gives_hunt_reward",
+            "target_tag": "forest_mantis",
+            "target_label": "the Blood Mantis",
+            "task_dialogue": {
+              "expression": "neutral",
+              "message": "Are you interested in earning some points? A Blood Mantis has wandered into the nearby forest, and that makes ther forest quite dangerous! I have put out a bounty on the mantis for 5000p.",
+              "reply": [
+                { "expression": "neutral", "message": "Alright, we'll keep it in mind." }
+              ]
+            },
+            "already_completed_dialogue": { "expression": "excited", "message": "You took out the mantis out in the forest? Wonderful! I happened to have a bounty out for it. Here's 5000p as the reward." },
+            "reward_dialogue": {
+              "expression": "neutral",
+              "message": "We have taken care of the bounty. The mantis is dead.",
+              "reply": [
+                { "expression": "excited", "message": "Wonderful! Here is the 5000p reward." }
+              ]
+            },
+            "reward": {
+              "points": 5000
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Room",
+      "pos_in_overview": [ -2, -1 ],
+      "background": "shack",
+      "objects": [ ":", "T", "^", "#" ],
+      "symbols": {
+        "^": { "type": "door", "pair_id": "house4", "display_type": "door" },
+        "#": {
+          "type": "container",
+          "container_type": "crate",
+          "content": [],
+          "direction": "right"
+        },
+        ":": {
+          "type": "container",
+          "container_type": "chest",
+          "content": [],
+          "direction": "right"
+        },
+        "T": { "type": "inanimate", "model": "environment/table" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -7, -8 ],
+      "tag": "forest",
+      "background": "forest",
+      "background_offset": -1,
+      "extra_background_layers": [
+        {
+          "texture": "distant_shack",
+          "move_factor": 0.9,
+          "offset": { "x": 362, "y": 270 }
+        }
+      ],
+      "objects": [ "", "<", "", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "forest7", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "forest1", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "forest2", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -4, -13 ],
+      "tag": "forest",
+      "background": "forest",
+      "background_offset": 2,
+      "objects": [ "", "<", "", "^", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "forest4", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "forest2", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "forest3", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -11, -18 ],
+      "tag": "forest",
+      "background": "forest",
+      "background_offset": 1,
+      "objects": [ "", "<", "^", "", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "forest6", "display_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "forest4", "display_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "forest5", "display_type": "path", "adjective": "right" }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -3, -18 ],
+      "tag": "forest",
+      "background": "forest",
+      "background_offset": 4,
+      "objects": [ "#", "<", "M", ">", "E" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "forest5", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "forest3", "display_type": "path", "adjective": "right" },
+        "#": { "type": "inanimate", "model": "environment/tree_stump" },
+        "M": {
+          "type": "creature",
+          "creature": "blood_mantis",
+          "attribute": "bulky",
+          "aggressive": true,
+          "wandering": { "area_tag": "forest" },
+          "tag": "forest_mantis"
+        },
+        "E": {
+          "type": "creature",
+          "creature": "eyesaur",
+          "aggressive": true,
+          "wandering": { "area_tag": "forest" }
+        }
+      }
+    },
+    {
+      "name": "Forest",
+      "pos_in_overview": [ -13, -13 ],
+      "tag": "forest",
+      "background": "forest",
+      "background_offset": 3,
+      "objects": [ "", "<", "", "#", ">", "" ],
+      "symbols": {
+        "<": { "type": "door", "pair_id": "forest6", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "forest7", "display_type": "path", "adjective": "right" },
+        "#": { "type": "inanimate", "model": "environment/mossy_rock" }
+      }
+    }
+  ],
+  "door_pairs": {
+    "village_entrance": {},
+    "village_road": {},
+    "village_road2": {},
+    "house1a": {},
+    "house1b": {},
+    "house2a": {},
+    "house2b": {},
+    "store": {},
+    "house3a": {},
+    "house3b": {},
+    "house4": {},
+    "forest1": {},
+    "forest2": {},
+    "forest3": {},
+    "forest4": {},
+    "forest5": {},
+    "forest6": {},
+    "forest7": {}
+  }
+}
