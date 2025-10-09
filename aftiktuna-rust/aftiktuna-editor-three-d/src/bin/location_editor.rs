@@ -390,7 +390,9 @@ mod ui {
                         new_char: String::new(),
                         symbol_data: SymbolData::Creature(CreatureSpawnData {
                             creature: creature::Type::Goblin,
+                            name: None,
                             health: 1.,
+                            stats: None,
                             attribute: AttributeChoice::Random,
                             aggressive: None,
                             wandering: None,
@@ -646,7 +648,9 @@ mod ui {
         ui: &mut egui::Ui,
         CreatureSpawnData {
             creature,
+            name,
             health,
+            stats,
             attribute,
             aggressive,
             wandering,

@@ -1,19 +1,27 @@
 [
   {
-    "objects": [ "G", "G", "Z" ],
-    "symbols": {}
+    "objects": [ "", "Z", "" ],
+    "symbols": {
+      "Z": {
+        "type": "creature",
+        "name": "The Behemoth",
+        "stats": { "strength": 18, "endurance": 15, "agility": 3, "luck": 4 },
+        "creature": "azureclops",
+        "attribute": "none"
+      }
+    }
   },
   {
-    "objects": [ "E", "E", "E" ],
-    "symbols": {}
-  },
-  {
-    "objects": [ "M", "", "M" ],
-    "symbols": {}
-  },
-  {
-    "objects": [ "M", "", "Z" ],
-    "symbols": {}
+    "objects": [ "", "M", "" ],
+    "symbols": {
+      "M": {
+        "type": "creature",
+        "name": "The Crimson Cutter",
+        "stats": { "strength": 20, "endurance": 8, "agility": 12, "luck": 1 },
+        "creature": "blood_mantis",
+        "attribute": "none"
+      }
+    }
   },
   {
     "objects": [ "", "A", "a" ],
@@ -29,9 +37,7 @@
       },
       "a": {
         "type": "character",
-        "interaction": {
-          "type": "hostile"
-        },
+        "interaction": { "type": "hostile" },
         "wielded_item": "bat",
         "direction": "right"
       }

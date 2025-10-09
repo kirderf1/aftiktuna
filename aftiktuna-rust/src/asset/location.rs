@@ -93,8 +93,12 @@ pub mod creature {
     #[derive(Clone, Serialize, Deserialize)]
     pub struct CreatureSpawnData {
         pub creature: Type,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub name: Option<String>,
         #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
         pub health: f32,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub stats: Option<Stats>,
         #[serde(default, skip_serializing_if = "crate::is_default")]
         pub attribute: AttributeChoice,
         #[serde(default, skip_serializing_if = "Option::is_none")]

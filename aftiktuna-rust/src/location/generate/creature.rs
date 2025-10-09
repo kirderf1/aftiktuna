@@ -42,18 +42,25 @@ pub(super) fn place_creature(
     pos: Pos,
     gen_context: &mut LocationGenContext,
 ) {
-    let health = Health::from_fraction(spawn_data.health);
-    let attribute = evaluate_attribute(spawn_data.attribute, &mut gen_context.rng);
+    let CreatureSpawnData {
+        creature,
+        name,
+        health,
+        stats,
+        attribute,
+        aggressive,
+        wandering,
+        tag,
+        direction,
+    } = spawn_data;
+    let health = Health::from_fraction(*health);
+    let attribute = evaluate_attribute(*attribute, &mut gen_context.rng);
     let is_alive = health.is_alive();
-    let aggressive = spawn_data
-        .aggressive
-        .unwrap_or_else(|| spawn_data.creature.is_aggressive_by_default());
-    let direction = spawn_data
-        .direction
-        .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
-    let mut stats = spawn_data.creature.default_stats();
+    let aggressive = aggressive.unwrap_or_else(|| creature.is_aggressive_by_default());
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
+    let mut stats = stats.clone().unwrap_or(creature.default_stats());
 
-    let mut builder = species_builder_base(spawn_data.creature.species());
+    let mut builder = species_builder_base(creature.species());
     if let Some(attribute) = attribute {
         attribute.adjust_stats(&mut stats);
         builder.add(attribute);
@@ -61,7 +68,11 @@ pub(super) fn place_creature(
 
     builder.add_bundle((pos, direction, health, Stamina::with_max(&stats), stats));
 
-    if let Some(tag) = spawn_data.tag.clone() {
+    if let Some(name) = name {
+        builder.add(Name::known(name));
+    }
+
+    if let Some(tag) = tag.clone() {
         builder.add(tag);
     }
 
@@ -69,11 +80,11 @@ pub(super) fn place_creature(
         builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
     }
 
-    if let Some(wandering) = spawn_data.wandering.clone() {
+    if let Some(wandering) = wandering.clone() {
         builder.add(wandering);
     }
 
-    if spawn_data.creature.is_tameable() {
+    if creature.is_tameable() {
         builder.add(Recruitable);
     }
 
