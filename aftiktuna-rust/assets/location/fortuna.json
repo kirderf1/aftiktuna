@@ -4,7 +4,7 @@
       "name": "Field",
       "background": "field",
       "background_offset": 4,
-      "objects": [ "", "v", ".", "-6", "/" ],
+      "objects": [ "", "v", ".", "-6", "/", "" ],
       "symbols": {
         "/": { "type": "door", "pair_id": "path", "display_type": "right_path" },
         ".": { "type": "inanimate", "model": "path/left_end" }
@@ -22,7 +22,7 @@
           "offset": { "x": 800, "y": 284 }
         }
       ],
-      "objects": [ "\\", "-", "-", "-8!", "-", "-", "-¤", "." ],
+      "objects": [ "", "\\", "-", "-8!", "-", "-", "-¤", "." ],
       "symbols": {
         "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
         ".": { "type": "inanimate", "model": "path/right_corner" },
