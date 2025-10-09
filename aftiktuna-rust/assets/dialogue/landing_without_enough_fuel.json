@@ -1,0 +1,10 @@
+[
+  { "is_at_fortuna": true, "expression": "neutral", "message": "We are finally here. Let's be careful and keep an eye out for the Fortuna chest." },
+  {
+    "expression": "neutral",
+    "message": "We do not have enough fuel to continue our journey, so we should really try to find some here.",
+    "reply": [
+      { "expression": "neutral", "message": "Got it, that we will do." }
+    ]
+  }
+]

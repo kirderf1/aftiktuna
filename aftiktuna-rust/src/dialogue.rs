@@ -46,7 +46,7 @@ impl TalkTopic {
                 prompt_npc_dialogue(performer, target, state, view_buffer);
             }
             TalkTopic::CompleteHuntQuest => {
-                complete_hunt_quest(performer, target, &mut state.world, view_buffer)
+                complete_hunt_quest(performer, target, state, view_buffer)
             }
         }
     }
@@ -69,7 +69,7 @@ fn prompt_npc_dialogue(
                 &gives_hunt_reward.task_dialogue,
                 npc,
                 crew_member,
-                &state.world,
+                state,
                 view_buffer,
             );
         } else {
@@ -84,7 +84,7 @@ fn prompt_npc_dialogue(
                 &already_completed_dialogue,
                 npc,
                 crew_member,
-                &state.world,
+                state,
                 view_buffer,
             );
 
@@ -102,18 +102,18 @@ fn prompt_npc_dialogue(
 fn complete_hunt_quest(
     crew_member: Entity,
     npc: Entity,
-    world: &mut World,
+    state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
     let GivesHuntReward {
         reward_dialogue,
         reward,
         ..
-    } = world.remove_one::<GivesHuntReward>(npc).unwrap();
+    } = state.world.remove_one::<GivesHuntReward>(npc).unwrap();
 
-    run_dialogue_node(&reward_dialogue, crew_member, npc, world, view_buffer);
+    run_dialogue_node(&reward_dialogue, crew_member, npc, state, view_buffer);
 
-    reward.give_reward_to(crew_member, world);
+    reward.give_reward_to(crew_member, &mut state.world);
 }
 
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
@@ -329,6 +329,14 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
             state,
             view_buffer,
         );
+    } else {
+        trigger_dialogue_by_name(
+            "landing_without_enough_fuel",
+            speaker,
+            state.controlled,
+            state,
+            view_buffer,
+        );
     }
 }
 
@@ -341,9 +349,9 @@ pub fn trigger_dialogue_by_name(
 ) {
     match asset::dialogue::load_dialogue_data(name) {
         Ok(dialogue) => {
-            if let Some(dialogue_node) = dialogue.select_node(speaker, target, &state.world) {
+            if let Some(dialogue_node) = dialogue.select_node(speaker, target, state) {
                 view_buffer.capture_view_before_dialogue(state);
-                run_dialogue_node(dialogue_node, speaker, target, &state.world, view_buffer);
+                run_dialogue_node(dialogue_node, speaker, target, state, view_buffer);
             }
         }
         Err(error) => println!("Failed to load dialogue {name}: {error}"),
@@ -354,9 +362,10 @@ fn run_dialogue_node(
     dialogue_node: &ConditionedDialogueNode,
     speaker: Entity,
     target: Entity,
-    world: &World,
+    state: &GameState,
     view_buffer: &mut view::Buffer,
 ) {
+    let world = &state.world;
     let target_pos = *world.get::<&Pos>(target).unwrap();
     position::turn_towards(world, speaker, target_pos);
 
@@ -378,8 +387,8 @@ fn run_dialogue_node(
     view_buffer.push_dialogue(world, speaker, dialogue_node.expression, message);
 
     if let Some(reply) = &dialogue_node.reply
-        && let Some(reply_node) = reply.select_node(target, speaker, world)
+        && let Some(reply_node) = reply.select_node(target, speaker, state)
     {
-        run_dialogue_node(reply_node, target, speaker, world, view_buffer);
+        run_dialogue_node(reply_node, target, speaker, state, view_buffer);
     }
 }

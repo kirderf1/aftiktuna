@@ -73,7 +73,8 @@ pub(crate) mod dialogue {
     use crate::core::position::Pos;
     use crate::core::status::{Health, Morale, MoraleState};
     use crate::core::{area, inventory};
-    use hecs::{Entity, World};
+    use crate::game_loop::GameState;
+    use hecs::Entity;
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Serialize, Deserialize)]
@@ -87,6 +88,8 @@ pub(crate) mod dialogue {
         pub has_enough_fuel: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub is_at_ship: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub is_at_fortuna: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub known_name: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -102,7 +105,8 @@ pub(crate) mod dialogue {
     }
 
     impl ConditionedDialogueNode {
-        pub fn is_available(&self, speaker: Entity, target: Entity, world: &World) -> bool {
+        pub fn is_available(&self, speaker: Entity, target: Entity, state: &GameState) -> bool {
+            let world = &state.world;
             self.is_badly_hurt.is_none_or(|is_badly_hurt| {
                 is_badly_hurt
                     == world
@@ -127,6 +131,9 @@ pub(crate) mod dialogue {
                         == world
                             .get::<&Pos>(speaker)
                             .is_ok_and(|pos| area::is_in_ship(*pos, world))
+                })
+                && self.is_at_fortuna.is_none_or(|is_at_fortuna| {
+                    is_at_fortuna == state.generation_state.is_at_fortuna()
                 })
                 && self.known_name.is_none_or(|known_name| {
                     Some(known_name) == world.get::<&Name>(speaker).ok().map(|name| name.is_known)
@@ -162,11 +169,11 @@ pub(crate) mod dialogue {
             &self,
             speaker: Entity,
             target: Entity,
-            world: &World,
+            state: &GameState,
         ) -> Option<&ConditionedDialogueNode> {
             self.0
                 .iter()
-                .find(|node| node.is_available(speaker, target, world))
+                .find(|node| node.is_available(speaker, target, state))
         }
     }
 
