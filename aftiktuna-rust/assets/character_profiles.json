@@ -28,5 +28,11 @@
     "color": "turquoisegreen",
     "stats": { "strength": 8, "endurance": 4, "agility": 10, "luck": 0 },
     "traits": [ "good_dodger", "big_eater" ]
+  },
+  {
+    "name": "Pear",
+    "color": "gold",
+    "stats": { "strength": 5, "endurance": 2, "agility": 9, "luck": 4 },
+    "traits": [ "fast_healer" ]
   }
 ]

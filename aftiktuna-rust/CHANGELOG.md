@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Morale stat
 - New village location
 - Aftik characters as a possible Fortuna encounter
+- New recruitable aftik
 - New features for npc dialogue
 - New situation-triggered crew dialogue
 - New data files for dialogue in `assets/dialogue/`
