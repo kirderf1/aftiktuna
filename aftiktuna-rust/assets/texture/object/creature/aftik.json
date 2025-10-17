@@ -34,6 +34,14 @@
     },
     {
       "if_alive": true,
+      "offset": { "x": -6.0, "y": 43.0 },
+      "texture": [
+        [ "uncolored", "creature/aftik/scarf_details" ],
+        [ "primary", "creature/aftik/scarf_primary" ]
+      ]
+    },
+    {
+      "if_alive": true,
       "offset": { "x": -3.0, "y": 0.0 },
       "texture": [
         [ "uncolored", "creature/aftik/body_details" ],
@@ -68,10 +76,30 @@
     },
     {
       "if_alive": false,
-      "texture": [
-        [ "uncolored", "creature/aftik/corpse_details" ],
-        [ "secondary", "creature/aftik/corpse_secondary" ],
-        [ "primary", "creature/aftik/corpse_primary" ]
+      "children": [
+        {
+          "offset": { "x": 46.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "creature/aftik/head_details_dead" ],
+            [ "secondary", "creature/aftik/head_secondary" ],
+            [ "primary", "creature/aftik/head_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -2.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "creature/aftik/corpse_scarf_details" ],
+            [ "primary", "creature/aftik/corpse_scarf_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -40.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "creature/aftik/corpse_details" ],
+            [ "secondary", "creature/aftik/corpse_secondary" ],
+            [ "primary", "creature/aftik/corpse_primary" ]
+          ]
+        }
       ]
     }
   ],

@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 5.0, making it incompatible with previous save files
+- Aftiks are now rendered with a scarf
 - Attacks now come in a few different flavors with slightly different properties
 - Changes in behavior for some types of fauna when they are badly hurt
 - Hostile creature movement is now blocked by crew the same way that crew movement is blocked by hostiles

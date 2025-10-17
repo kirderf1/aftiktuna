@@ -24,7 +24,7 @@ pub mod display {
         }
 
         pub fn portrait() -> Self {
-            Self::new("portrait")
+            Self::new("aftik_portrait")
         }
 
         pub fn fortuna_chest() -> Self {

@@ -1,0 +1,139 @@
+{
+  "layers": [
+    {
+      "if_hurt": false,
+      "if_expression": "neutral",
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -6.0 }
+      ],
+      "animation_length": 1.5,
+      "children": [
+        {
+          "offset": { "x": 0.0, "y": 214.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/head_details" ],
+            [ "secondary", "aftik_portrait/head_secondary" ],
+            [ "primary", "aftik_portrait/head_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -32.0, "y": 63.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/scarf_details" ],
+            [ "primary", "aftik_portrait/scarf_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -43.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/body_details" ],
+            [ "secondary", "aftik_portrait/body_secondary" ],
+            [ "primary", "aftik_portrait/body_primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "if_hurt": false,
+      "if_expression": "excited",
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -10.0 }
+      ],
+      "animation_length": 0.8,
+      "children": [
+        {
+          "offset": { "x": 0.0, "y": 214.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/head_details" ],
+            [ "secondary", "aftik_portrait/head_secondary" ],
+            [ "primary", "aftik_portrait/head_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -32.0, "y": 63.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/scarf_details" ],
+            [ "primary", "aftik_portrait/scarf_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -43.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/body_details" ],
+            [ "secondary", "aftik_portrait/body_secondary" ],
+            [ "primary", "aftik_portrait/body_primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "if_hurt": false,
+      "if_expression": "sad",
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -4.0 }
+      ],
+      "animation_length": 2.0,
+      "children": [
+        {
+          "offset": { "x": 0.0, "y": 214.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/head_details_sad" ],
+            [ "secondary", "aftik_portrait/head_secondary" ],
+            [ "primary", "aftik_portrait/head_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -32.0, "y": 63.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/scarf_details" ],
+            [ "primary", "aftik_portrait/scarf_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -43.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/body_details" ],
+            [ "secondary", "aftik_portrait/body_secondary" ],
+            [ "primary", "aftik_portrait/body_primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "if_hurt": true,
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -4.0 }
+      ],
+      "animation_length": 2.0,
+      "children": [
+        {
+          "offset": { "x": 0.0, "y": 214.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/head_details_wounded" ],
+            [ "secondary", "aftik_portrait/head_secondary" ],
+            [ "primary", "aftik_portrait/head_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -32.0, "y": 63.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/scarf_details" ],
+            [ "primary", "aftik_portrait/scarf_primary" ]
+          ]
+        },
+        {
+          "offset": { "x": -43.0, "y": 0.0 },
+          "texture": [
+            [ "uncolored", "aftik_portrait/body_details_wounded" ],
+            [ "secondary", "aftik_portrait/body_secondary" ],
+            [ "primary", "aftik_portrait/body_primary" ]
+          ]
+        }
+      ]
+    }
+  ]
+}
