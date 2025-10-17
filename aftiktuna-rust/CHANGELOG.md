@@ -32,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tweaked "talk to" dialogue, removing regular greetings
 - New condition for view capturing to limit buildup of messages
 - Creature attributes increase stats slightly more
-- Encountered aftiks may now have randomly generated stats
+- Encountered aftiks may now have randomly selected traits and stats
 - Large creatures (blood mantis and voracious frog) now occupy two coordinate positions
 - Wandering creatures can now be set to wander within a restricted area
 - New model property "order_weight"

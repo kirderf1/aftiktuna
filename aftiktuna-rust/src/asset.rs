@@ -492,8 +492,8 @@ pub struct AftikProfile {
     pub color: AftikColorId,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub stats: Option<Stats>,
-    #[serde(default, skip_serializing_if = "Traits::is_empty")]
-    pub traits: Traits,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub traits: Option<Traits>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

@@ -171,6 +171,7 @@ pub(crate) fn aftik_builder_with_stats(
         stats,
         traits,
     } = profile;
+    let traits = traits.unwrap_or_else(|| random_traits(rng));
     let stats = stats
         .unwrap_or_else(|| random_stats_from_base(Species::Aftik.default_stats(), &traits, rng));
     let mut builder = species_builder_base(Species::Aftik);
@@ -191,6 +192,26 @@ pub(crate) fn aftik_builder_with_stats(
         .add::<Stats>(stats)
         .add::<Traits>(traits);
     builder
+}
+
+fn random_traits(rng: &mut impl Rng) -> Traits {
+    let mut traits = Vec::new();
+
+    if let &Some(positive_trait) = [None, Some(Trait::GoodDodger), Some(Trait::FastHealer)]
+        .choose(rng)
+        .unwrap()
+    {
+        traits.push(positive_trait);
+    }
+
+    if let &Some(negative_trait) = [None, Some(Trait::Fragile), Some(Trait::BigEater)]
+        .choose(rng)
+        .unwrap()
+    {
+        traits.push(negative_trait);
+    }
+
+    traits.into()
 }
 
 fn random_stats_from_base(mut stats: Stats, traits: &Traits, rng: &mut impl Rng) -> Stats {

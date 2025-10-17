@@ -10,7 +10,8 @@
     {
       "name": "Cerulean",
       "color": "blue",
-      "stats": { "strength": 8, "endurance": 2, "agility": 10, "luck": 2 }
+      "stats": { "strength": 8, "endurance": 2, "agility": 10, "luck": 2 },
+      "traits": []
     }
   ]
 }

@@ -1,32 +1,8 @@
 [
-  {
-    "name": "Plum",
-    "color": "purple",
-    "traits": [ "fast_healer", "big_eater" ]
-  },
-  {
-    "name": "Amber",
-    "color": "yellow",
-    "traits": [ "good_dodger" ]
-  },
-  {
-    "name": "Cinnamon",
-    "color": "brown",
-    "traits": [ "fragile" ]
-  },
-  {
-    "name": "Smoke",
-    "color": "grey",
-    "traits": [ "big_eater" ]
-  },
-  {
-    "name": "Moss",
-    "color": "turquoisegreen",
-    "traits": [ "good_dodger", "big_eater" ]
-  },
-  {
-    "name": "Pear",
-    "color": "gold",
-    "traits": [ "fast_healer" ]
-  }
+  { "name": "Plum", "color": "purple" },
+  { "name": "Amber", "color": "yellow" },
+  { "name": "Cinnamon", "color": "brown" },
+  { "name": "Smoke", "color": "grey" },
+  { "name": "Moss", "color": "turquoisegreen" },
+  { "name": "Pear", "color": "gold" }
 ]
