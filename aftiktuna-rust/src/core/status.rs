@@ -192,6 +192,13 @@ impl Trait {
             .get::<&Traits>()
             .is_some_and(|traits| traits.0.contains(&self))
     }
+
+    pub fn effect_on_generated_stats(self) -> i16 {
+        match self {
+            Trait::GoodDodger | Trait::FastHealer => -2,
+            Trait::Fragile | Trait::BigEater => 2,
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

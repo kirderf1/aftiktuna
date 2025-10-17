@@ -75,17 +75,6 @@ pub mod creature {
         pub fn is_tameable(self) -> bool {
             matches!(self, Self::Eyesaur | Self::Scarvie)
         }
-
-        pub fn default_stats(self) -> Stats {
-            match self {
-                Self::Goblin => Stats::new(2, 4, 10, 2),
-                Self::Eyesaur => Stats::new(7, 7, 4, 2),
-                Self::Azureclops => Stats::new(15, 10, 4, 2),
-                Self::Scarvie => Stats::new(3, 2, 8, 1),
-                Self::VoraciousFrog => Stats::new(8, 8, 3, 3),
-                Self::BloodMantis => Stats::new(15, 5, 10, 5),
-            }
-        }
     }
 
     pub use crate::core::behavior::Wandering;

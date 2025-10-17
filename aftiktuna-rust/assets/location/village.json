@@ -59,11 +59,7 @@
         ",": { "type": "inanimate", "model": "path/right_corner" },
         "A": {
           "type": "character",
-          "profile": {
-            "name": "Tangerine",
-            "color": "softyellow",
-            "stats": { "strength": 7, "endurance": 1, "agility": 6, "luck": 8 }
-          },
+          "profile": { "name": "Tangerine", "color": "softyellow" },
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "house_azureclops",

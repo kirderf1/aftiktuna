@@ -490,7 +490,8 @@ pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Res
 pub struct AftikProfile {
     pub name: String,
     pub color: AftikColorId,
-    pub stats: Stats,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stats: Option<Stats>,
     #[serde(default, skip_serializing_if = "Traits::is_empty")]
     pub traits: Traits,
 }

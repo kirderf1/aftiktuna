@@ -2,37 +2,31 @@
   {
     "name": "Plum",
     "color": "purple",
-    "stats": { "strength": 10, "endurance": 2, "agility": 10, "luck": 0 },
     "traits": [ "fast_healer", "big_eater" ]
   },
   {
     "name": "Amber",
     "color": "yellow",
-    "stats": { "strength": 8, "endurance": 2, "agility": 9, "luck": 1 },
     "traits": [ "good_dodger" ]
   },
   {
     "name": "Cinnamon",
     "color": "brown",
-    "stats": { "strength": 8, "endurance": 2, "agility": 9, "luck": 3 },
     "traits": [ "fragile" ]
   },
   {
     "name": "Smoke",
     "color": "grey",
-    "stats": { "strength": 9, "endurance": 6, "agility": 7, "luck": 2 },
     "traits": [ "big_eater" ]
   },
   {
     "name": "Moss",
     "color": "turquoisegreen",
-    "stats": { "strength": 8, "endurance": 4, "agility": 10, "luck": 0 },
     "traits": [ "good_dodger", "big_eater" ]
   },
   {
     "name": "Pear",
     "color": "gold",
-    "stats": { "strength": 5, "endurance": 2, "agility": 9, "luck": 4 },
     "traits": [ "fast_healer" ]
   }
 ]

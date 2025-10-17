@@ -7,14 +7,17 @@ use crate::asset::{self, AftikProfile};
 use crate::core::behavior::{
     Character, EncounterDialogue, GivesHuntReward, Hostile, Recruitable, Talk, TalkState,
 };
+use crate::core::display::AftikColorId;
 use crate::core::name::{Name, NounId};
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
-use crate::core::status::{CreatureAttribute, Health, Morale, Stamina};
+use crate::core::status::{
+    ChangedStats, CreatureAttribute, Health, Morale, Stamina, StatChanges, Stats, Trait, Traits,
+};
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{Species, inventory};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
-use rand::seq::IndexedRandom;
+use rand::seq::{IndexedRandom, SliceRandom};
 use std::collections::HashSet;
 
 fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<CreatureAttribute> {
@@ -58,7 +61,7 @@ pub(super) fn place_creature(
     let is_alive = health.is_alive();
     let aggressive = aggressive.unwrap_or_else(|| creature.is_aggressive_by_default());
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
-    let mut stats = stats.clone().unwrap_or(creature.default_stats());
+    let mut stats = stats.clone().unwrap_or(creature.species().default_stats());
 
     let mut builder = species_builder_base(creature.species());
     if let Some(attribute) = attribute {
@@ -103,7 +106,7 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
         .direction
         .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
-    let mut builder = aftik_builder_with_stats(profile, false);
+    let mut builder = aftik_builder_with_stats(profile, false, &mut gen_context.rng);
     builder.add_bundle((pos, direction));
     if let Some(tag) = spawn_data.tag.clone() {
         builder.add(tag);
@@ -160,24 +163,92 @@ pub(super) fn place_corpse(
 pub(crate) fn aftik_builder_with_stats(
     profile: AftikProfile,
     is_name_known: bool,
+    rng: &mut impl Rng,
 ) -> EntityBuilder {
+    let AftikProfile {
+        name,
+        color,
+        stats,
+        traits,
+    } = profile;
+    let stats = stats
+        .unwrap_or_else(|| random_stats_from_base(Species::Aftik.default_stats(), &traits, rng));
     let mut builder = species_builder_base(Species::Aftik);
-    builder.add_bundle((
-        profile.color,
-        Name {
-            name: profile.name,
-            is_known: is_name_known,
-        },
-        Health::from_fraction(1.),
-        Stamina::with_max(&profile.stats),
-        Morale::default(),
-        TalkState::default(),
-        OccupiesSpace,
-        profile.stats,
-        profile.traits,
-        Character,
-    ));
     builder
+        .add::<AftikColorId>(color)
+        .add_bundle((
+            Name {
+                name,
+                is_known: is_name_known,
+            },
+            Health::from_fraction(1.),
+            Stamina::with_max(&stats),
+            Morale::default(),
+            TalkState::default(),
+            OccupiesSpace,
+            Character,
+        ))
+        .add::<Stats>(stats)
+        .add::<Traits>(traits);
+    builder
+}
+
+fn random_stats_from_base(mut stats: Stats, traits: &Traits, rng: &mut impl Rng) -> Stats {
+    let change_from_traits = traits
+        .sorted_iter()
+        .map(Trait::effect_on_generated_stats)
+        .sum();
+    if change_from_traits > 0 {
+        for _ in 1..=change_from_traits {
+            adjust_random_stat(&mut stats, 1, rng);
+        }
+    } else if change_from_traits < 0 {
+        for _ in 1..=(-change_from_traits) {
+            adjust_random_stat(&mut stats, -1, rng);
+        }
+    }
+
+    for _ in 1..=8 {
+        adjust_random_stat(&mut stats, -1, rng);
+        adjust_random_stat(&mut stats, 1, rng);
+    }
+
+    stats
+}
+
+fn adjust_random_stat(stats: &mut Stats, amount: i16, rng: &mut impl Rng) {
+    let mut stat_changes = [
+        StatChanges {
+            strength: amount,
+            endurance: 0,
+            agility: 0,
+            luck: 0,
+        },
+        StatChanges {
+            strength: 0,
+            endurance: amount,
+            agility: 0,
+            luck: 0,
+        },
+        StatChanges {
+            strength: 0,
+            endurance: 0,
+            agility: amount,
+            luck: 0,
+        },
+        StatChanges {
+            strength: 0,
+            endurance: 0,
+            agility: 0,
+            luck: amount,
+        },
+    ];
+    stat_changes.shuffle(rng);
+    for attempted_change in stat_changes {
+        if let Ok(ChangedStats) = stats.try_change_in_bounds(attempted_change) {
+            return;
+        }
+    }
 }
 
 fn species_builder_base(species: Species) -> EntityBuilder {

@@ -150,6 +150,7 @@ pub mod store {
 
 use self::behavior::BadlyHurtBehavior;
 use self::combat::{AttackSet, UnarmedType, WeaponProperties};
+use self::status::Stats;
 use hecs::Entity;
 use serde::{Deserialize, Serialize};
 
@@ -194,6 +195,18 @@ impl Species {
             Self::BloodMantis => "blood_mantis",
         }
         .into()
+    }
+
+    pub fn default_stats(self) -> Stats {
+        match self {
+            Self::Aftik => Stats::new(10, 1, 10, 1),
+            Self::Goblin => Stats::new(2, 4, 10, 2),
+            Self::Eyesaur => Stats::new(7, 7, 4, 2),
+            Self::Azureclops => Stats::new(15, 10, 4, 2),
+            Self::Scarvie => Stats::new(3, 2, 8, 1),
+            Self::VoraciousFrog => Stats::new(8, 8, 3, 3),
+            Self::BloodMantis => Stats::new(15, 5, 10, 5),
+        }
     }
 
     pub fn is_large(self) -> bool {

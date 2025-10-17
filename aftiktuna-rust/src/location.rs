@@ -272,14 +272,16 @@ pub(crate) fn spawn_starting_crew_and_ship(
     let mut crew_iter = crew_data
         .crew
         .into_iter()
-        .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, &mut rng));
+        .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, &mut rng))
+        .collect::<Vec<_>>()
+        .into_iter();
     let mut iter_pos = Pos::new(build_data.spawned_areas[0], 0, &world);
 
     let controlled_character = crew_iter
         .next()
         .ok_or_else(|| "Crew must not be empty".to_string())?;
     let controlled_character = world.spawn(
-        creature::aftik_builder_with_stats(controlled_character, true)
+        creature::aftik_builder_with_stats(controlled_character, true, &mut rng)
             .add_bundle((CrewMember(crew), iter_pos))
             .build(),
     );
@@ -295,7 +297,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
             iter_pos = new_pos;
         }
         world.spawn(
-            creature::aftik_builder_with_stats(profile, true)
+            creature::aftik_builder_with_stats(profile, true, &mut rng)
                 .add_bundle((CrewMember(crew), iter_pos))
                 .build(),
         );

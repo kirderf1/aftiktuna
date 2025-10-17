@@ -160,21 +160,13 @@
         ":": { "type": "furnish", "template": "poster" },
         "1": {
           "type": "character",
-          "profile": {
-            "name": "Tomato",
-            "color": "red",
-            "stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 }
-          },
+          "profile": { "name": "Tomato", "color": "red" },
           "tag": "dialogue_target",
           "interaction": { "type": "talk", "expression": "excited", "message": "And here I was planning to head out. I guess I'll have to wait until it is safer.." }
         },
         "2": {
           "type": "character",
-          "profile": {
-            "name": "Sky",
-            "color": "cyan",
-            "stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 }
-          },
+          "profile": { "name": "Sky", "color": "cyan" },
           "interaction": { "type": "talk", "expression": "sad", "message": "You be careful too if you're planning to head out into the forest!" },
           "background_dialogue": {
             "target": "dialogue_target",
@@ -271,11 +263,7 @@
         ":": { "type": "inanimate", "model": "path/left_corner" },
         "A": {
           "type": "character",
-          "profile": {
-            "name": "Amethyst",
-            "color": "softpurple",
-            "stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 }
-          },
+          "profile": { "name": "Amethyst", "color": "softpurple" },
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "forest_mantis",
