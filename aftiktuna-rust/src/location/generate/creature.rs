@@ -8,7 +8,7 @@ use crate::core::behavior::{
     Character, EncounterDialogue, GivesHuntReward, Hostile, Recruitable, Talk, TalkState,
 };
 use crate::core::display::AftikColorId;
-use crate::core::name::{Name, NounId};
+use crate::core::name::Name;
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{
     ChangedStats, CreatureAttribute, Health, Morale, Stamina, StatChanges, Stats, Trait, Traits,
@@ -306,13 +306,9 @@ pub(super) fn place_shopkeeper(
 
     world.spawn(
         species_builder_base(Species::Aftik)
-            .add_bundle((
-                spawn_data.color.clone(),
-                NounId::from("shopkeeper"),
-                pos,
-                direction,
-                Shopkeeper(stock),
-            ))
+            .add_bundle((AftikColorId::clone(&spawn_data.color), Shopkeeper(stock)))
+            .add::<Pos>(pos)
+            .add::<Direction>(direction)
             .build(),
     );
     Ok(())

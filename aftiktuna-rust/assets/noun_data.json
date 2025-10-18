@@ -5,7 +5,6 @@
   "eyesaur": { "singular": "eyesaur", "plural": "eyesaurs", "article": "an" },
   "goblin": { "singular": "goblin", "plural": "goblins", "article": "a" },
   "scarvie": { "singular": "scarvie", "plural": "scarvies", "article": "a" },
-  "shopkeeper": { "singular": "shopkeeper", "plural": "shopkeepers", "article": "a" },
   "voracious_frog": { "singular": "voracious frog", "plural": "voracious frogs", "article": "a" },
 
   "door": { "singular": "door", "plural": "doors", "article": "a" },

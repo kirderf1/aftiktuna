@@ -4,12 +4,13 @@ use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression, ModelId};
-use crate::core::inventory::Held;
+use crate::core::inventory::{self, Held};
 use crate::core::item::{CanWield, ItemType};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health, Morale};
-use crate::core::{BlockType, Door, IsCut, inventory};
+use crate::core::store::Shopkeeper;
+use crate::core::{BlockType, Door, IsCut};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::text;
@@ -69,7 +70,11 @@ fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String
         return format!("Corpse of {name}");
     }
 
-    if entity_ref.satisfies::<&status::IsStunned>() {
+    if entity_ref.has::<Shopkeeper>() {
+        return format!("{name} (shopkeeper)");
+    }
+
+    if entity_ref.has::<status::IsStunned>() {
         return format!("{name} (stunned)");
     }
 
