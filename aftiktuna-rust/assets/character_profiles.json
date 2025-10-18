@@ -1,8 +1,14 @@
 [
   { "name": "Plum", "color": "purple" },
+  { "name": "Lilac", "color": "purple" },
   { "name": "Amber", "color": "yellow" },
+  { "name": "Sunny", "color": "yellow" },
   { "name": "Cinnamon", "color": "brown" },
+  { "name": "Chocolate", "color": "brown" },
   { "name": "Smoke", "color": "grey" },
+  { "name": "Rock", "color": "grey" },
   { "name": "Moss", "color": "turquoisegreen" },
-  { "name": "Pear", "color": "gold" }
+  { "name": "Celadon", "color": "turquoisegreen" },
+  { "name": "Pear", "color": "gold" },
+  { "name": "Olive", "color": "gold" }
 ]

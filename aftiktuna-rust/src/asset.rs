@@ -438,6 +438,7 @@ use crate::core::display::AftikColorId;
 use crate::core::name::{Adjective, NounData, NounId};
 use crate::core::status::{Stats, Traits};
 use rand::Rng;
+use rand::seq::IteratorRandom;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -514,9 +515,12 @@ impl ProfileOrRandom {
         self,
         character_profiles: &mut Vec<AftikProfile>,
         rng: &mut impl Rng,
+        used_aftik_colors: &[&AftikColorId],
     ) -> Option<AftikProfile> {
         match self {
-            ProfileOrRandom::Random => remove_random_profile(character_profiles, rng),
+            ProfileOrRandom::Random => {
+                remove_random_profile(character_profiles, rng, used_aftik_colors)
+            }
             ProfileOrRandom::Profile(profile) => Some(profile),
         }
     }
@@ -525,12 +529,18 @@ impl ProfileOrRandom {
 pub(crate) fn remove_random_profile(
     character_profiles: &mut Vec<AftikProfile>,
     rng: &mut impl Rng,
+    used_aftik_colors: &[&AftikColorId],
 ) -> Option<AftikProfile> {
-    if character_profiles.is_empty() {
+    let chosen_index = character_profiles
+        .iter()
+        .enumerate()
+        .filter(|(_, profile)| !used_aftik_colors.contains(&&profile.color))
+        .map(|(index, _)| index)
+        .choose_stable(rng);
+    let Some(chosen_index) = chosen_index else {
         eprintln!("Tried picking a random profile, but there were none left to choose.");
         return None;
-    }
-    let chosen_index = rng.random_range(0..character_profiles.len());
+    };
     Some(character_profiles.swap_remove(chosen_index))
 }
 

@@ -3,7 +3,7 @@
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
-      "objects": [ "<", "A", "", "v", "", ">c" ],
+      "objects": [ "<A", "A", "A", "v", "", ">cA" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },

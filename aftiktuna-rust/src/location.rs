@@ -269,12 +269,20 @@ pub(crate) fn spawn_starting_crew_and_ship(
     },));
     let crew = world.spawn((Points(crew_data.points),));
 
-    let mut crew_iter = crew_data
-        .crew
-        .into_iter()
-        .filter_map(|profile| profile.unwrap(&mut generation_state.character_profiles, &mut rng))
-        .collect::<Vec<_>>()
-        .into_iter();
+    let mut crew_profiles = Vec::<AftikProfile>::new();
+    for profile in crew_data.crew {
+        if let Some(profile) = profile.unwrap(
+            &mut generation_state.character_profiles,
+            &mut rng,
+            &crew_profiles
+                .iter()
+                .map(|profile| &profile.color)
+                .collect::<Vec<_>>(),
+        ) {
+            crew_profiles.push(profile);
+        }
+    }
+    let mut crew_iter = crew_profiles.into_iter();
     let mut iter_pos = Pos::new(build_data.spawned_areas[0], 0, &world);
 
     let controlled_character = crew_iter

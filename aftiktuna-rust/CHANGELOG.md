@@ -14,7 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New Fortuna encounters replacing the existing encounters:
   - Aftik characters as a possible Fortuna encounter
   - Creatures with custom name and increased stats
-- New recruitable aftik
+- New aftik colors and aftik name variants
 - New features for npc dialogue
 - New situation-triggered crew dialogue
 - New data files for dialogue in `assets/dialogue/`

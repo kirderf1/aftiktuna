@@ -95,11 +95,11 @@ pub(super) fn place_creature(
 }
 
 pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut LocationGenContext) {
-    let Some(profile) = spawn_data
-        .profile
-        .clone()
-        .unwrap(&mut gen_context.character_profiles, &mut gen_context.rng)
-    else {
+    let Some(profile) = spawn_data.profile.clone().unwrap(
+        &mut gen_context.character_profiles,
+        &mut gen_context.rng,
+        &used_aftik_colors(&mut gen_context.world),
+    ) else {
         return;
     };
     let direction = spawn_data
@@ -144,8 +144,12 @@ pub(super) fn place_corpse(
     gen_context: &mut LocationGenContext,
 ) {
     let Some(color) = spawn_data.color.clone().or_else(|| {
-        asset::remove_random_profile(&mut gen_context.character_profiles, &mut gen_context.rng)
-            .map(|profile| profile.color)
+        asset::remove_random_profile(
+            &mut gen_context.character_profiles,
+            &mut gen_context.rng,
+            &used_aftik_colors(&mut gen_context.world),
+        )
+        .map(|profile| profile.color)
     }) else {
         return;
     };
@@ -345,4 +349,12 @@ pub(super) fn align_aggressiveness(world: &mut World) {
     for (_, (pos, hostile)) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
         hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
+}
+
+pub(crate) fn used_aftik_colors(world: &mut World) -> Vec<&AftikColorId> {
+    world
+        .query_mut::<&AftikColorId>()
+        .into_iter()
+        .map(|(_, color)| color)
+        .collect()
 }
