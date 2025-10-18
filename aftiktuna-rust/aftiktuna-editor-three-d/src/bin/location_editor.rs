@@ -1,8 +1,7 @@
 mod ui {
     use aftiktuna::asset::color::AftikColorData;
     use aftiktuna::asset::location::creature::{
-        self, AftikCorpseData, AttributeChoice, CreatureSpawnData, NpcSpawnData,
-        ShopkeeperSpawnData, Wandering,
+        self, AftikCorpseData, AttributeChoice, CreatureSpawnData, NpcSpawnData, Wandering,
     };
     use aftiktuna::asset::location::{
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
@@ -567,23 +566,6 @@ mod ui {
             SymbolData::Creature(creature_spawn_data) => {
                 creature_spawn_data_editor(ui, creature_spawn_data);
             }
-            SymbolData::Shopkeeper(ShopkeeperSpawnData {
-                stock,
-                color,
-                direction,
-            }) => {
-                aftiktuna_editor_three_d::color_editor(
-                    ui,
-                    color,
-                    "shopkeeper_color",
-                    aftik_colors.keys(),
-                );
-                aftiktuna_editor_three_d::option_direction_editor(
-                    ui,
-                    direction,
-                    "shopkeeper_direction",
-                );
-            }
             SymbolData::Character(nps_spawn_data) => {
                 let NpcSpawnData {
                     profile,
@@ -1046,12 +1028,10 @@ fn color_for_pos(objects: &str, selected: bool, symbol_lookup: &SymbolLookup) ->
         .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::LocationEntry)))
     {
         ENTRY_COLOR
-    } else if objects.chars().any(|char| {
-        matches!(
-            symbol_lookup.lookup(char),
-            Some(SymbolData::Character(_)) | Some(SymbolData::Shopkeeper(_))
-        )
-    }) {
+    } else if objects
+        .chars()
+        .any(|char| matches!(symbol_lookup.lookup(char), Some(SymbolData::Character(_))))
+    {
         NPC_COLOR
     } else if objects
         .chars()

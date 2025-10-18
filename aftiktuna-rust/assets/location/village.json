@@ -134,15 +134,23 @@
         "^": { "type": "door", "pair_id": "store", "display_type": "door" },
         ">": { "type": "inanimate", "model": "door/door" },
         "S": {
-          "type": "shopkeeper",
-          "stock": [
-            { "item": "fuel_can" },
-            { "item": "bat", "quantity": 2 },
-            { "item": "sword", "quantity": 1 },
-            { "item": "black_orb", "quantity": 1 },
-            { "item": "food_ration", "quantity": 10 }
-          ],
-          "color": "green_nonrandom"
+          "type": "character",
+          "profile": {
+            "name": "Jade",
+            "color": "green_nonrandom",
+            "stats": { "type": "random" },
+            "traits": []
+          },
+          "interaction": {
+            "type": "shopkeeper",
+            "stock": [
+              { "item": "fuel_can" },
+              { "item": "bat", "quantity": 2 },
+              { "item": "sword", "quantity": 1 },
+              { "item": "black_orb", "quantity": 1 },
+              { "item": "food_ration", "quantity": 10 }
+            ]
+          }
         },
         "T": { "type": "inanimate", "model": "environment/table" },
         ":": { "type": "inanimate", "model": "environment/planet_poster" },

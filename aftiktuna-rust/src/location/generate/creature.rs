@@ -1,7 +1,7 @@
 use super::LocationGenContext;
 use crate::asset::location::creature::{
     AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
-    ShopkeeperSpawnData, StockDefinition,
+    StockDefinition,
 };
 use crate::asset::{self, AftikProfile};
 use crate::core::behavior::{
@@ -94,13 +94,17 @@ pub(super) fn place_creature(
     gen_context.world.spawn(builder.build());
 }
 
-pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut LocationGenContext) {
+pub(super) fn place_npc(
+    spawn_data: &NpcSpawnData,
+    pos: Pos,
+    gen_context: &mut LocationGenContext,
+) -> Result<(), String> {
     let Some(profile) = spawn_data.profile.clone().unwrap(
         &mut gen_context.aftik_color_names,
         &mut gen_context.rng,
         &used_aftik_colors(&mut gen_context.world),
     ) else {
-        return;
+        return Ok(());
     };
     let direction = spawn_data
         .direction
@@ -121,6 +125,13 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
         CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
             builder.add(GivesHuntReward::clone(gives_hunt_reward));
         }
+        CharacterInteraction::Shopkeeper { stock } => {
+            let stock = stock
+                .iter()
+                .map(build_stock)
+                .collect::<Result<Vec<_>, String>>()?;
+            builder.add(Shopkeeper(stock));
+        }
         CharacterInteraction::Hostile { encounter_dialogue } => {
             builder.add(Hostile { aggressive: true });
             if let Some(dialogue_node) = encounter_dialogue {
@@ -136,6 +147,8 @@ pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut L
     if let Some(item_type) = spawn_data.wielded_item {
         item_type.spawn(&mut gen_context.world, inventory::Held::in_hand(npc));
     }
+
+    Ok(())
 }
 
 pub(super) fn place_corpse(
@@ -288,30 +301,6 @@ fn species_builder_base(species: Species) -> EntityBuilder {
         builder.add(Large);
     }
     builder
-}
-
-pub(super) fn place_shopkeeper(
-    spawn_data: &ShopkeeperSpawnData,
-    pos: Pos,
-    world: &mut World,
-) -> Result<(), String> {
-    let direction = spawn_data
-        .direction
-        .unwrap_or_else(|| Direction::towards_center(pos, world));
-    let stock = spawn_data
-        .stock
-        .iter()
-        .map(build_stock)
-        .collect::<Result<Vec<_>, String>>()?;
-
-    world.spawn(
-        species_builder_base(Species::Aftik)
-            .add_bundle((AftikColorId::clone(&spawn_data.color), Shopkeeper(stock)))
-            .add::<Pos>(pos)
-            .add::<Direction>(direction)
-            .build(),
-    );
-    Ok(())
 }
 
 fn build_stock(

@@ -187,12 +187,12 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
         SymbolData::Creature(creature_spawn_data) => {
             format!("Creature ({:?})", creature_spawn_data.creature.species())
         }
-        SymbolData::Shopkeeper(_) => "Shopkeeper".to_string(),
         SymbolData::Character(npc_spawn_data) => {
             let interaction = match &npc_spawn_data.interaction {
                 CharacterInteraction::Recruitable => "recruitable",
                 CharacterInteraction::Talk(_) => "talkable",
                 CharacterInteraction::GivesHuntReward(_) => "hunt quest",
+                CharacterInteraction::Shopkeeper { .. } => "shopkeeper",
                 CharacterInteraction::Hostile { .. } => "hostile",
             };
             format!("NCP ({interaction})")
@@ -338,22 +338,6 @@ pub fn object_from_symbol(
                 },
             }
         }
-        SymbolData::Shopkeeper(shopkeeper_spawn_data) => ObjectRenderData {
-            coord,
-            model_id: Species::Aftik.model_id(),
-            hash: 0,
-            is_controlled: false,
-            name_data: None,
-            wielded_item: None,
-            interactions: Vec::default(),
-            properties: ObjectProperties {
-                direction: shopkeeper_spawn_data
-                    .direction
-                    .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
-                aftik_color: Some(shopkeeper_spawn_data.color.clone()),
-                ..Default::default()
-            },
-        },
         SymbolData::Character(npc_spawn_data) => ObjectRenderData {
             coord,
             model_id: Species::Aftik.model_id(),

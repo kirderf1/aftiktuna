@@ -78,7 +78,7 @@ fn talk_targets(state: &GameState, assets: &GameAssets) -> Vec<(String, Entity)>
     state
         .world
         .query::<&Pos>()
-        .with::<hecs::Or<(&Name, &Character), &Shopkeeper>>()
+        .with::<(hecs::Or<&Name, &Shopkeeper>, &Character)>()
         .iter()
         .filter(|(_, pos)| pos.is_in(character_pos.get_area()))
         .flat_map(|(entity, _)| {

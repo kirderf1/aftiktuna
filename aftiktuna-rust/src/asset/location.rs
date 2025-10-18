@@ -114,6 +114,9 @@ pub mod creature {
         Recruitable,
         Talk(DialogueNode),
         GivesHuntReward(Box<GivesHuntReward>),
+        Shopkeeper {
+            stock: Vec<StockDefinition>,
+        },
         Hostile {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             encounter_dialogue: Option<DialogueNode>,
@@ -139,14 +142,6 @@ pub mod creature {
     pub struct AftikCorpseData {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub color: Option<AftikColorId>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub direction: Option<Direction>,
-    }
-
-    #[derive(Clone, Serialize, Deserialize)]
-    pub struct ShopkeeperSpawnData {
-        pub stock: Vec<StockDefinition>,
-        pub color: AftikColorId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub direction: Option<Direction>,
     }
@@ -254,7 +249,6 @@ pub enum SymbolData {
     },
     Container(ContainerData),
     Creature(creature::CreatureSpawnData),
-    Shopkeeper(creature::ShopkeeperSpawnData),
     Character(Box<creature::NpcSpawnData>),
     AftikCorpse(creature::AftikCorpseData),
     Furnish {
