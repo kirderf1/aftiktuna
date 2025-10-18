@@ -179,7 +179,8 @@ impl LoadedApp {
         let autosave = !disable_autosave;
 
         let state = if new_game {
-            AppState::game(game_interface::setup_new(), autosave, &mut assets)
+            let game = game_interface::setup_new()?;
+            AppState::game(game, autosave, &mut assets)
         } else {
             AppState::main_menu()
         };
@@ -213,13 +214,17 @@ impl LoadedApp {
                 let menu_action = handle_menu_frame(*has_save_file, frame_input, &mut self.gui);
 
                 match menu_action {
-                    Some(MenuAction::NewGame) => {
-                        self.state = AppState::game(
-                            game_interface::setup_new(),
-                            self.autosave,
-                            &mut self.assets,
-                        );
-                    }
+                    Some(MenuAction::NewGame) => match game_interface::setup_new() {
+                        Ok(game) => {
+                            self.state = AppState::game(game, self.autosave, &mut self.assets)
+                        }
+                        Err(error) => {
+                            return (
+                                AppAction::Continue,
+                                vec![format!("Unable to load assets:"), format!("{error}")],
+                            );
+                        }
+                    },
                     Some(MenuAction::LoadGame) => match game_interface::load() {
                         Ok(game) => {
                             self.state = AppState::game(game, self.autosave, &mut self.assets)

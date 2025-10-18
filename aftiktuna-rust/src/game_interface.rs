@@ -1,4 +1,4 @@
-use crate::asset::GameAssets;
+use crate::asset::{self, GameAssets};
 use crate::command::{self, CommandResult};
 use crate::game_loop::{self, GameState, Step};
 use crate::location::{self, GenerationState};
@@ -19,8 +19,8 @@ pub fn load() -> Result<Game, LoadError> {
     })
 }
 
-pub fn setup_new() -> Game {
-    setup_new_with(GenerationState::load_new(3).unwrap_or_else(|message| panic!("{message}")))
+pub fn setup_new() -> Result<Game, asset::Error> {
+    Ok(setup_new_with(GenerationState::load_new(3)?))
 }
 
 pub fn setup_new_with(locations: GenerationState) -> Game {
