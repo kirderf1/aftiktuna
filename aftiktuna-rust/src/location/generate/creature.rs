@@ -96,7 +96,7 @@ pub(super) fn place_creature(
 
 pub(super) fn place_npc(spawn_data: &NpcSpawnData, pos: Pos, gen_context: &mut LocationGenContext) {
     let Some(profile) = spawn_data.profile.clone().unwrap(
-        &mut gen_context.character_profiles,
+        &mut gen_context.aftik_color_names,
         &mut gen_context.rng,
         &used_aftik_colors(&mut gen_context.world),
     ) else {
@@ -144,8 +144,8 @@ pub(super) fn place_corpse(
     gen_context: &mut LocationGenContext,
 ) {
     let Some(color) = spawn_data.color.clone().or_else(|| {
-        asset::remove_random_profile(
-            &mut gen_context.character_profiles,
+        asset::random_profile(
+            &mut gen_context.aftik_color_names,
             &mut gen_context.rng,
             &used_aftik_colors(&mut gen_context.world),
         )

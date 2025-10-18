@@ -1,0 +1,12 @@
+{
+  "red": [ "Tomato" ],
+  "yellow": [ "Amber", "Sunny" ],
+  "softyellow": [ "Tangerine" ],
+  "gold": [ "Pear", "Olive" ],
+  "turquoisegreen": [ "Moss", "Celadon" ],
+  "cyan": [ "Sky" ],
+  "purple": [ "Plum", "Lilac" ],
+  "softpurple": [ "Amethyst" ],
+  "brown": [ "Cinnamon", "Chocolate" ],
+  "grey": [ "Smoke", "Rock" ]
+}

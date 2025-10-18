@@ -6,7 +6,7 @@ use crate::asset::location::{DoorPairData, DoorType, LocationData};
 use crate::asset::{AftikProfile, CrewData};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::behavior::{ObservationTarget, Waiting};
-use crate::core::display::ModelId;
+use crate::core::display::{AftikColorId, ModelId};
 use crate::core::name::NounId;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::status::Morale;
@@ -20,6 +20,7 @@ use rand::Rng;
 use rand::rngs::ThreadRng;
 use rand::seq::index;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Eq, PartialEq, Serialize, Deserialize)]
 enum TrackedState {
@@ -31,7 +32,7 @@ enum TrackedState {
 pub struct GenerationState {
     locations: Locations,
     state: TrackedState,
-    character_profiles: Vec<AftikProfile>,
+    aftik_color_names: HashMap<AftikColorId, Vec<String>>,
 }
 
 impl GenerationState {
@@ -41,7 +42,7 @@ impl GenerationState {
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: locations_before_fortuna,
             },
-            character_profiles: asset::load_character_profiles()?,
+            aftik_color_names: asset::load_aftik_color_names()?,
         })
     }
 
@@ -51,7 +52,7 @@ impl GenerationState {
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: 1,
             },
-            character_profiles: asset::load_character_profiles()?,
+            aftik_color_names: asset::load_aftik_color_names()?,
         })
     }
 
@@ -240,7 +241,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
 ) -> Result<InitialSpawnData, String> {
     let mut gen_context = LocationGenContext {
         world: World::new(),
-        character_profiles: generation_state.character_profiles.clone(),
+        aftik_color_names: generation_state.aftik_color_names.clone(),
         rng: rand::rng(),
     };
     let ship_data = LocationData::load_from_json("crew_ship")?;
@@ -248,10 +249,10 @@ pub(crate) fn spawn_starting_crew_and_ship(
     let build_data = generate::build_location(ship_data, &mut gen_context)?;
     let LocationGenContext {
         mut world,
-        character_profiles,
+        aftik_color_names,
         mut rng,
     } = gen_context;
-    generation_state.character_profiles = character_profiles;
+    generation_state.aftik_color_names = aftik_color_names;
 
     let food_deposit_pos = build_data
         .food_deposit_pos
@@ -272,7 +273,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
     let mut crew_profiles = Vec::<AftikProfile>::new();
     for profile in crew_data.crew {
         if let Some(profile) = profile.unwrap(
-            &mut generation_state.character_profiles,
+            &mut generation_state.aftik_color_names,
             &mut rng,
             &crew_profiles
                 .iter()
@@ -378,7 +379,7 @@ pub(crate) fn setup_location_into_game(
 #[derive(Default)]
 pub struct LocationGenContext {
     world: World,
-    character_profiles: Vec<AftikProfile>,
+    aftik_color_names: HashMap<AftikColorId, Vec<String>>,
     rng: ThreadRng,
 }
 
@@ -387,14 +388,14 @@ impl LocationGenContext {
         Self {
             world: serialization::world::serialize_clone(&state.world)
                 .expect("Unexpected error when cloning world"),
-            character_profiles: state.generation_state.character_profiles.clone(),
+            aftik_color_names: state.generation_state.aftik_color_names.clone(),
             rng: rand::rng(),
         }
     }
 
     fn apply_to_game_state(self, game_state: &mut GameState) {
         game_state.world = self.world;
-        game_state.generation_state.character_profiles = self.character_profiles;
+        game_state.generation_state.aftik_color_names = self.aftik_color_names;
     }
 }
 

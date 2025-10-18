@@ -547,39 +547,44 @@ impl ProfileOrRandom {
 
     pub(crate) fn unwrap(
         self,
-        character_profiles: &mut Vec<AftikProfile>,
+        aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
         rng: &mut impl Rng,
         used_aftik_colors: &[&AftikColorId],
     ) -> Option<AftikProfile> {
         match self {
-            ProfileOrRandom::Random => {
-                remove_random_profile(character_profiles, rng, used_aftik_colors)
-            }
+            ProfileOrRandom::Random => random_profile(aftik_color_names, rng, used_aftik_colors),
             ProfileOrRandom::Profile(profile) => Some(profile),
         }
     }
 }
 
-pub(crate) fn remove_random_profile(
-    character_profiles: &mut Vec<AftikProfile>,
+pub(crate) fn random_profile(
+    aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
     rng: &mut impl Rng,
     used_aftik_colors: &[&AftikColorId],
 ) -> Option<AftikProfile> {
-    let chosen_index = character_profiles
+    let chosen_color = aftik_color_names
         .iter()
-        .enumerate()
-        .filter(|(_, profile)| !used_aftik_colors.contains(&&profile.color))
-        .map(|(index, _)| index)
-        .choose_stable(rng);
-    let Some(chosen_index) = chosen_index else {
-        eprintln!("Tried picking a random profile, but there were none left to choose.");
+        .filter(|(color, names)| !used_aftik_colors.contains(color) && !names.is_empty())
+        .map(|(color, _)| color)
+        .choose_stable(rng)
+        .cloned();
+    let Some(chosen_color) = chosen_color else {
+        eprintln!("Tried picking a random name and color, but there were none left to choose.");
         return None;
     };
-    Some(character_profiles.swap_remove(chosen_index))
+    let name_choices = aftik_color_names.get_mut(&chosen_color).unwrap();
+    let chosen_name = name_choices.swap_remove(rng.random_range(0..name_choices.len()));
+    Some(AftikProfile {
+        name: chosen_name,
+        color: chosen_color,
+        stats: StatsOrRandom::Random,
+        traits: TraitsOrRandom::Random,
+    })
 }
 
-pub(crate) fn load_character_profiles() -> Result<Vec<AftikProfile>, Error> {
-    load_json_asset("character_profiles.json")
+pub(crate) fn load_aftik_color_names() -> Result<HashMap<AftikColorId, Vec<String>>, Error> {
+    load_json_asset("selectable_aftik_color_names.json")
 }
 
 #[derive(Debug, Deserialize)]

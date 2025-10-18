@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New situation-triggered crew dialogue
 - New data files for dialogue in `assets/dialogue/`
 - New data file `noun_data.json` for object name data
+- New data file `selectable_aftik_color_names.json` for names used by randomly generated aftiks
 
 ### Changed
 
@@ -45,6 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+- Removed `character_profiles.json` in favor of characters generated based on `selectable_aftik_color_names.json`
 - Removed one Fortuna location variant
 - Replaced previous Fortuna encounters
 

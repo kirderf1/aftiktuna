@@ -5,13 +5,13 @@ There are different kinds of data filees in here.
 
 Contains crew data used when starting a new game.
 
-## `assets/character_profiles.json`
-
-Contains a list of character profiles that is picked from when the game selects a random profile.
-
 ## `assets/aftik_colors.json`
 
 Contains a list of aftik color definitions.
+
+## `assets/selectable_aftik_color_names.json`
+
+Contains a list of aftik colors that may be used for randomly-generated aftiks, together with a list of relevant names for each color.
 
 ## `assets/location/*.json`
 
