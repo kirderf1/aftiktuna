@@ -1,18 +1,98 @@
 [
-  { "name": "Plum", "color": "purple" },
-  { "name": "Lilac", "color": "purple" },
-  { "name": "Amber", "color": "yellow" },
-  { "name": "Sunny", "color": "yellow" },
-  { "name": "Cinnamon", "color": "brown" },
-  { "name": "Chocolate", "color": "brown" },
-  { "name": "Smoke", "color": "grey" },
-  { "name": "Rock", "color": "grey" },
-  { "name": "Moss", "color": "turquoisegreen" },
-  { "name": "Tangerine", "color": "softyellow" },
-  { "name": "Celadon", "color": "turquoisegreen" },
-  { "name": "Pear", "color": "gold" },
-  { "name": "Olive", "color": "gold" },
-  { "name": "Tomato", "color": "red" },
-  { "name": "Sky", "color": "cyan" },
-  { "name": "Amethyst", "color": "softpurple" }
+  {
+    "name": "Plum",
+    "color": "purple",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Lilac",
+    "color": "purple",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Amber",
+    "color": "yellow",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Sunny",
+    "color": "yellow",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Cinnamon",
+    "color": "brown",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Chocolate",
+    "color": "brown",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Smoke",
+    "color": "grey",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Rock",
+    "color": "grey",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Moss",
+    "color": "turquoisegreen",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Tangerine",
+    "color": "softyellow",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Celadon",
+    "color": "turquoisegreen",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Pear",
+    "color": "gold",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Olive",
+    "color": "gold",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Tomato",
+    "color": "red",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Sky",
+    "color": "cyan",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  },
+  {
+    "name": "Amethyst",
+    "color": "softpurple",
+    "stats": { "type": "random" },
+    "traits": { "type": "random" }
+  }
 ]

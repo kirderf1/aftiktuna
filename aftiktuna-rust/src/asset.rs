@@ -487,14 +487,48 @@ pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Res
     Ok(object)
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum StatsOrRandom {
+    #[default]
+    Random,
+    #[serde(untagged)]
+    Stats(Stats),
+}
+
+impl StatsOrRandom {
+    pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Stats) -> Stats {
+        match self {
+            Self::Random => random_selection(),
+            Self::Stats(stats) => stats,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum TraitsOrRandom {
+    #[default]
+    Random,
+    #[serde(untagged)]
+    Traits(Traits),
+}
+
+impl TraitsOrRandom {
+    pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Traits) -> Traits {
+        match self {
+            Self::Random => random_selection(),
+            Self::Traits(traits) => traits,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AftikProfile {
     pub name: String,
     pub color: AftikColorId,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub stats: Option<Stats>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub traits: Option<Traits>,
+    pub stats: StatsOrRandom,
+    pub traits: TraitsOrRandom,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
