@@ -2,35 +2,48 @@ use crate::action::{self, Error};
 use crate::core::inventory::{self, Held};
 use crate::core::item::{self, ItemType, Price};
 use crate::core::name::{self, NameData, NameIdData};
-use crate::core::position::{self, Placement, PlacementQuery};
+use crate::core::position::Pos;
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
 use crate::core::{CrewMember, area};
 use crate::view::text;
 use hecs::{Entity, EntityRef, World};
 
-pub fn trade(
-    context: &mut action::Context,
-    performer: Entity,
-    shopkeeper: Entity,
-) -> action::Result {
-    let assets = context.view_context.view_buffer.assets;
-    let world = &mut context.state.world;
-    let performer_name = NameData::find(world, performer, assets).definite();
+pub fn trade(context: action::Context, performer: Entity, shopkeeper: Entity) -> action::Result {
+    action::dialogue::full_dialogue_action(
+        context,
+        performer,
+        shopkeeper,
+        true,
+        |action::Context {
+             state,
+             view_context,
+         }| {
+            state
+                .world
+                .get::<&Shopkeeper>(shopkeeper)
+                .expect("Expected target of trade action to be a shopkeeper.");
+            state
+                .world
+                .insert_one(performer, IsTrading(shopkeeper))
+                .unwrap();
 
-    let shop_placement = world
-        .query_one_mut::<PlacementQuery>(shopkeeper)
-        .map(Placement::from)
-        .map_err(|_| format!("{performer_name} lost track of the shopkeeper."))?;
-    world.get::<&Shopkeeper>(shopkeeper).unwrap();
+            crate::dialogue::trigger_dialogue_by_name(
+                "initiate_trade",
+                performer,
+                shopkeeper,
+                state,
+                view_context.view_buffer,
+            );
 
-    position::move_adjacent_placement(world, performer, shop_placement, assets)?;
-
-    world.insert_one(performer, IsTrading(shopkeeper)).unwrap();
-
-    context.view_context.add_message_at(shop_placement.area(), format!(
-        "{performer_name} starts trading with the shopkeeper. \"Welcome to the store. What do you want to buy?\"",
-    ), context.state);
-    Ok(action::Success)
+            let area = state.world.get::<&Pos>(performer).unwrap().get_area();
+            view_context.add_message_at(
+                area,
+                "\"Welcome to the store. What do you want to buy?\"".to_owned(),
+                state,
+            );
+            Some(Ok(action::Success))
+        },
+    )
 }
 
 pub fn buy(

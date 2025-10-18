@@ -161,7 +161,7 @@ fn perform(
         TellToWait(target) => dialogue::tell_to_wait(context, performer, target),
         TellToWaitAtShip(target) => dialogue::tell_to_wait_at_ship(context, performer, target),
         TellToFollow(target) => dialogue::tell_to_follow(context, performer, target),
-        Trade(shopkeeper) => trade::trade(&mut context, performer, shopkeeper),
+        Trade(shopkeeper) => trade::trade(context, performer, shopkeeper),
         Buy(item_type, amount) => trade::buy(&mut context, performer, item_type, amount),
         Sell(items) => trade::sell(&mut context, performer, items),
         ExitTrade => trade::exit(&mut context, performer),

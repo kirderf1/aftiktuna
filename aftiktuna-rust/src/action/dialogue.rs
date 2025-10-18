@@ -203,7 +203,7 @@ pub(super) fn tell_to_follow(
     )
 }
 
-fn full_dialogue_action(
+pub(super) fn full_dialogue_action(
     mut context: Context,
     performer: Entity,
     target: Entity,

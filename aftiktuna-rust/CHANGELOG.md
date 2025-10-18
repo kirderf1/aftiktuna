@@ -39,7 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New model property "order_weight"
 - Reduced reward from azureclops hunting mission and tweaked its dialogue
 - In location definitions, shopkeepers are now defined as characters with specific interaction
-- Tweak shopkeeper display name
+- Tweaked shopkeeper display name and initiating interaction
 
 ### Fixed
 
