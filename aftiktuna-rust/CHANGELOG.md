@@ -47,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Removed
 
+- Removed "trade" command in favor of the "talk to \<character\>" command
 - Removed `character_profiles.json` in favor of characters generated based on `selectable_aftik_color_names.json`
 - Removed one Fortuna location variant
 - Replaced previous Fortuna encounters

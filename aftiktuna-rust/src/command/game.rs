@@ -8,7 +8,6 @@ use crate::core::inventory::Held;
 use crate::core::item::ItemType;
 use crate::core::name::{Name, NameData, NameQuery};
 use crate::core::position::{Blockage, Placement, PlacementQuery, Pos};
-use crate::core::store::Shopkeeper;
 use crate::core::{CrewMember, FortunaChest, area, inventory, position, status};
 use crate::game_loop::GameState;
 use crate::{command, core};
@@ -82,9 +81,6 @@ pub fn parse(input: &str, state: &GameState, assets: &GameAssets) -> Result<Comm
                 |parse, target| parse.done_or_err(|| control(character, target)),
                 |input| Err(format!("There is no crew member by the name \"{input}\".")),
             )
-        }),
-        parse.literal("trade", |parse| {
-            parse.done_or_err(|| trade(world, character, assets))
         }),
         parse.literal("open", |parse| {
             parse.match_against(
@@ -297,22 +293,6 @@ fn control(character: Entity, target: Entity) -> Result<CommandResult, String> {
     } else {
         Ok(CommandResult::ChangeControlled(target))
     }
-}
-
-fn trade(world: &World, character: Entity, assets: &GameAssets) -> Result<CommandResult, String> {
-    let area = world.get::<&Pos>(character).unwrap().get_area();
-    let shopkeeper = world
-        .query::<&Pos>()
-        .with::<&Shopkeeper>()
-        .iter()
-        .filter(|(_, pos)| pos.is_in(area))
-        .map(|(id, _)| id)
-        .next()
-        .ok_or_else(|| "There is no shopkeeper to trade with here.".to_string())?;
-
-    check_adjacent_accessible_with_message(shopkeeper, character, world, assets)?;
-
-    command::action_result(Action::Trade(shopkeeper))
 }
 
 fn fortuna_chest_targets(

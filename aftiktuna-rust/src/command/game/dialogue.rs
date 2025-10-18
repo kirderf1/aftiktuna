@@ -6,6 +6,7 @@ use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::core::behavior::{Character, GivesHuntReward, Recruitable, Waiting};
 use crate::core::name::{Name, NameData};
 use crate::core::position::Pos;
+use crate::core::store::Shopkeeper;
 use crate::core::{area, status};
 use crate::dialogue::TalkTopic;
 use crate::game_loop::GameState;
@@ -77,7 +78,7 @@ fn talk_targets(state: &GameState, assets: &GameAssets) -> Vec<(String, Entity)>
     state
         .world
         .query::<&Pos>()
-        .with::<(&Name, &Character)>()
+        .with::<hecs::Or<(&Name, &Character), &Shopkeeper>>()
         .iter()
         .filter(|(_, pos)| pos.is_in(character_pos.get_area()))
         .flat_map(|(entity, _)| {
@@ -107,6 +108,10 @@ fn talk_to(
     }
 
     super::check_adjacent_accessible_with_message(target, state.controlled, &state.world, assets)?;
+
+    if state.world.satisfies::<&Shopkeeper>(target).unwrap() {
+        return command::action_result(Action::Trade(target));
+    }
 
     let Some(topic) = TalkTopic::pick(target, &state.world) else {
         return Err(

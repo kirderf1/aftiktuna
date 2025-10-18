@@ -22,7 +22,6 @@ Currently available commands are:
 - launch ship
 - status
 - control <character>
-- trade
 - recruit aftik
 - talk to <character>
 - tell <character> to wait
@@ -32,7 +31,7 @@ Currently available commands are:
 - tame <creature>
 - name <creature> <name>
 
-When trading at a store, there are the following commands:
+When interacting with a store, there are the following commands:
 - buy <item>
 - buy <number> <items>
 - sell <item>

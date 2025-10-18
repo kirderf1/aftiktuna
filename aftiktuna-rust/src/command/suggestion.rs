@@ -147,7 +147,7 @@ impl InteractionType {
                     recursive!(inventory.iter().map(ItemProfile::name), "check {}"),
                 ]
             }
-            InteractionType::Shopkeeper => vec![simple!("trade")],
+            InteractionType::Shopkeeper => vec![simple!("talk to {name}")],
             InteractionType::Recruitable => {
                 vec![simple!("recruit {name}")]
             }
