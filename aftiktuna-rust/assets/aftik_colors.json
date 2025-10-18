@@ -1,5 +1,5 @@
 {
-  "red_nonrandom": {
+  "red": {
     "adjective": "red",
     "primary_color": { "r": 255, "g": 106, "b": 85 },
     "secondary_color": { "r": 154, "g": 38, "b": 119 }
@@ -9,7 +9,7 @@
     "primary_color": { "r": 255, "g": 238, "b": 80 },
     "secondary_color": { "r": 252, "g": 140, "b": 140 }
   },
-  "softyellow_nonrandom": {
+  "softyellow": {
     "adjective": "soft-yellow",
     "primary_color": { "r": 241, "g": 242, "b": 197 },
     "secondary_color": { "r": 255, "g": 149, "b": 0 }
@@ -19,7 +19,7 @@
     "primary_color": { "r": 191, "g": 192, "b": 87 },
     "secondary_color": { "r": 102, "g": 169, "b": 100 }
   },
-  "brightgreen": {
+  "brightgreen_nonrandom": {
     "adjective": "bright-green",
     "primary_color": { "r": 148, "g": 216, "b": 0 },
     "secondary_color": { "r": 255, "g": 238, "b": 153 }
@@ -39,12 +39,12 @@
     "primary_color": { "r": 173, "g": 210, "b": 101 },
     "secondary_color": { "r": 177, "g": 255, "b": 181 }
   },
-  "blue": {
+  "blue_nonrandom": {
     "adjective": "blue",
     "primary_color": { "r": 84, "g": 141, "b": 197 },
     "secondary_color": { "r": 153, "g": 223, "b": 255 }
   },
-  "cyan_nonrandom": {
+  "cyan": {
     "adjective": "cyan",
     "primary_color": { "r": 121, "g": 202, "b": 195 },
     "secondary_color": { "r": 220, "g": 219, "b": 207 }
@@ -54,7 +54,7 @@
     "primary_color": { "r": 183, "g": 98, "b": 168 },
     "secondary_color": { "r": 255, "g": 177, "b": 132 }
   },
-  "softpurple_nonrandom": {
+  "softpurple": {
     "adjective": "soft-purple",
     "primary_color": { "r": 185, "g": 161, "b": 218 },
     "secondary_color": { "r": 136, "g": 63, "b": 63 }

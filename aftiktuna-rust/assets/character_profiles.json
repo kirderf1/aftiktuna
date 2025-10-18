@@ -8,7 +8,11 @@
   { "name": "Smoke", "color": "grey" },
   { "name": "Rock", "color": "grey" },
   { "name": "Moss", "color": "turquoisegreen" },
+  { "name": "Tangerine", "color": "softyellow" },
   { "name": "Celadon", "color": "turquoisegreen" },
   { "name": "Pear", "color": "gold" },
-  { "name": "Olive", "color": "gold" }
+  { "name": "Olive", "color": "gold" },
+  { "name": "Tomato", "color": "red" },
+  { "name": "Sky", "color": "cyan" },
+  { "name": "Amethyst", "color": "softpurple" }
 ]

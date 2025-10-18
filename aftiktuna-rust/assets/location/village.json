@@ -59,7 +59,6 @@
         ",": { "type": "inanimate", "model": "path/right_corner" },
         "A": {
           "type": "character",
-          "profile": { "name": "Tangerine", "color": "softyellow_nonrandom" },
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "house_azureclops",
