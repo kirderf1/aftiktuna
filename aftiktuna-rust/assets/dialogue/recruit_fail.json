@@ -1,0 +1,9 @@
+[
+  {
+    "expression": "neutral",
+    "message": "Hi! Do you like to join me in the search for Fortuna?",
+    "reply": [
+      { "expression": "sad", "message": "Isn't that quite the dangerous journey? I'm afraid that's not for me." }
+    ]
+  }
+]

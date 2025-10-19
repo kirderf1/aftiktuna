@@ -96,6 +96,7 @@ pub enum InteractionType {
     Shopkeeper,
     Recruitable,
     Talkable,
+    UnknownName,
     Waiting,
     Following,
     Foe,
@@ -148,12 +149,9 @@ impl InteractionType {
                 ]
             }
             InteractionType::Shopkeeper => vec![simple!("talk to {name}")],
-            InteractionType::Recruitable => {
-                vec![simple!("recruit {name}")]
-            }
-            InteractionType::Talkable => {
-                vec![simple!("talk to {name}")]
-            }
+            InteractionType::Recruitable => vec![simple!("ask {name} to join")],
+            InteractionType::Talkable => vec![simple!("talk to {name}")],
+            InteractionType::UnknownName => vec![simple!("ask {name} for their name")],
             InteractionType::Waiting => vec![simple!("tell {name} to follow")],
             InteractionType::Following => vec![simple!("tell {name} to wait")],
             InteractionType::Foe => vec![simple!("attack {name}")],
@@ -212,6 +210,9 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
         && status::is_alive_ref(entity_ref)
     {
         interactions.push(InteractionType::Talkable);
+        if !entity_ref.get::<&Name>().unwrap().is_known {
+            interactions.push(InteractionType::UnknownName);
+        }
     }
     if entity_ref.has::<Hostile>() && status::is_alive_ref(entity_ref) {
         interactions.push(InteractionType::Foe);

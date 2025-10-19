@@ -71,29 +71,40 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
              state,
              view_context,
          }| {
-            dialogue::trigger_dialogue_by_name(
-                "recruit",
-                performer,
-                target,
-                state,
-                view_context.view_buffer,
-            );
+            if state.world.satisfies::<&Recruitable>(target).unwrap() {
+                dialogue::trigger_dialogue_by_name(
+                    "recruit",
+                    performer,
+                    target,
+                    state,
+                    view_context.view_buffer,
+                );
 
-            if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
-                morale.journey_start_effect();
-            }
-            for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
-                morale.new_crew_member_effect();
-            }
-            state.world.remove_one::<Recruitable>(target).unwrap();
-            let name =
-                NameData::find(&state.world, target, view_context.view_buffer.assets).definite();
-            state.world.insert_one(target, CrewMember(crew)).unwrap();
+                if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
+                    morale.journey_start_effect();
+                }
+                for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+                    morale.new_crew_member_effect();
+                }
+                state.world.remove_one::<Recruitable>(target).unwrap();
+                let name = NameData::find(&state.world, target, view_context.view_buffer.assets)
+                    .definite();
+                state.world.insert_one(target, CrewMember(crew)).unwrap();
 
-            view_context
-                .view_buffer
-                .add_change_message(format!("{name} joined the crew!"), state);
-            Some(Ok(action::Success))
+                view_context
+                    .view_buffer
+                    .add_change_message(format!("{name} joined the crew!"), state);
+                Some(Ok(action::Success))
+            } else {
+                dialogue::trigger_dialogue_by_name(
+                    "recruit_fail",
+                    performer,
+                    target,
+                    state,
+                    view_context.view_buffer,
+                );
+                None
+            }
         },
     )
 }

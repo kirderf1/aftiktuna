@@ -22,11 +22,12 @@ Currently available commands are:
 - launch ship
 - status
 - control <character>
-- recruit aftik
 - talk to <character>
 - tell <character> to wait
 - tell <character> to wait at ship
 - tell <character> to follow
+- ask <character> for their name
+- ask <character> to join
 - open fortuna chest
 - tame <creature>
 - name <creature> <name>
