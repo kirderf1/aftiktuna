@@ -1,15 +1,17 @@
 use crate::action::item::UseAction;
-use crate::action::{Action, ForceDoorAction};
+use crate::action::{Action, ForceDoorAction, TalkAction};
 use crate::asset::GameAssets;
 use crate::core::behavior::{
-    self, BadlyHurtBehavior, Character, Hostile, Intention, ObservationTarget, RepeatingAction,
-    Waiting, Wandering,
+    self, BadlyHurtBehavior, Character, GivesHuntRewardData, Hostile, Intention, ObservationTarget,
+    RepeatingAction, Waiting, Wandering,
 };
 use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemType;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{CrewMember, Door, Species, Tag, area, inventory, status};
+use crate::dialogue::TalkTopic;
+use crate::game_loop::GameState;
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
 use rand::seq::{IndexedRandom, IteratorRandom};
@@ -74,6 +76,62 @@ fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
     }
 
     None
+}
+
+pub(crate) fn controlled_character_action(state: &GameState) -> Option<Action> {
+    if state
+        .world
+        .satisfies::<&RepeatingAction>(state.controlled)
+        .unwrap()
+        || !behavior::is_safe(
+            &state.world,
+            state
+                .world
+                .get::<&Pos>(state.controlled)
+                .unwrap()
+                .get_area(),
+        )
+    {
+        return None;
+    }
+
+    let area = state
+        .world
+        .get::<&Pos>(state.controlled)
+        .unwrap()
+        .get_area();
+    if let Some((target, _)) = state
+        .world
+        .query::<(&Pos, &GivesHuntRewardData)>()
+        .iter()
+        .find(|(_, (pos, gives_hunt_reward))| {
+            pos.is_in(area)
+                && gives_hunt_reward.presented
+                && gives_hunt_reward.is_fulfilled(&state.world)
+        })
+    {
+        Some(
+            TalkAction {
+                target,
+                topic: TalkTopic::CompleteHuntQuest,
+            }
+            .into(),
+        )
+    } else if is_wait_requested(&state.world, state.controlled) {
+        Some(Action::Wait)
+    } else {
+        None
+    }
+}
+
+fn is_wait_requested(world: &World, controlled: Entity) -> bool {
+    let area = world.get::<&Pos>(controlled).unwrap().get_area();
+    world
+        .query::<&Pos>()
+        .with::<&CrewMember>()
+        .iter()
+        .filter(|(entity, pos)| *entity != controlled && pos.is_in(area))
+        .any(|(entity, _)| is_requesting_wait(world, entity))
 }
 
 pub fn tick(

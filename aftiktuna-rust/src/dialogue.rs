@@ -1,6 +1,6 @@
 use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::behavior::{
-    self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntReward,
+    self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntRewardData,
     Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
 };
 use crate::core::name::Name;
@@ -23,7 +23,7 @@ impl TalkTopic {
         if world.get::<&Name>(target).is_ok_and(|name| !name.is_known) {
             Some(TalkTopic::AskName)
         } else if world
-            .get::<&GivesHuntReward>(target)
+            .get::<&GivesHuntRewardData>(target)
             .is_ok_and(|gives_hunt_reward| gives_hunt_reward.is_fulfilled(world))
         {
             Some(TalkTopic::CompleteHuntQuest)
@@ -60,9 +60,9 @@ fn prompt_npc_dialogue(
     view_buffer: &mut view::Buffer,
 ) {
     let npc_ref = state.world.entity(npc).unwrap();
-    let gives_hunt_reward = npc_ref.get::<&GivesHuntReward>();
+    let gives_hunt_reward = npc_ref.get::<&mut GivesHuntRewardData>();
     if gives_hunt_reward.is_some() {
-        let gives_hunt_reward = gives_hunt_reward.unwrap();
+        let mut gives_hunt_reward = gives_hunt_reward.unwrap();
 
         if !gives_hunt_reward.is_fulfilled(&state.world) {
             run_dialogue_node(
@@ -72,13 +72,14 @@ fn prompt_npc_dialogue(
                 state,
                 view_buffer,
             );
+            gives_hunt_reward.presented = true;
         } else {
             drop(gives_hunt_reward);
-            let GivesHuntReward {
+            let GivesHuntRewardData {
                 already_completed_dialogue,
                 reward,
                 ..
-            } = state.world.remove_one::<GivesHuntReward>(npc).unwrap();
+            } = state.world.remove_one::<GivesHuntRewardData>(npc).unwrap();
 
             run_dialogue_node(
                 &already_completed_dialogue,
@@ -105,11 +106,11 @@ fn complete_hunt_quest(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
-    let GivesHuntReward {
+    let GivesHuntRewardData {
         reward_dialogue,
         reward,
         ..
-    } = state.world.remove_one::<GivesHuntReward>(npc).unwrap();
+    } = state.world.remove_one::<GivesHuntRewardData>(npc).unwrap();
 
     run_dialogue_node(&reward_dialogue, crew_member, npc, state, view_buffer);
 

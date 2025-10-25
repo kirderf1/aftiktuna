@@ -72,16 +72,17 @@ pub struct Recruitable;
 pub struct Talk(pub DialogueNode);
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct GivesHuntReward {
+pub struct GivesHuntRewardData {
     pub target_tag: Tag,
     pub target_label: String,
     pub task_dialogue: ConditionedDialogueNode,
     pub already_completed_dialogue: ConditionedDialogueNode,
     pub reward_dialogue: ConditionedDialogueNode,
     pub reward: Reward,
+    pub presented: bool,
 }
 
-impl GivesHuntReward {
+impl GivesHuntRewardData {
     pub fn is_fulfilled(&self, world: &hecs::World) -> bool {
         !super::any_alive_with_tag(&self.target_tag, world)
     }

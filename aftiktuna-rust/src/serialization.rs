@@ -190,7 +190,7 @@ pub mod world {
 
         behavior::Recruitable, Recruitable;
         behavior::Talk, Talk;
-        behavior::GivesHuntReward, GivesHuntReward;
+        behavior::GivesHuntRewardData, GivesHuntReward;
         behavior::BackgroundDialogue, BackgroundDialogue;
         behavior::EncounterDialogue, EncounterDialogue;
         behavior::TalkedAboutEnoughFuel, TalkedAboutEnoughFuel;

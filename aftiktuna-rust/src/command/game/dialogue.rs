@@ -3,7 +3,7 @@ use crate::asset::GameAssets;
 use crate::command;
 use crate::command::CommandResult;
 use crate::command::parse::{Parse, first_match, first_match_or};
-use crate::core::behavior::{Character, GivesHuntReward, Waiting};
+use crate::core::behavior::{Character, GivesHuntRewardData, Waiting};
 use crate::core::name::{Name, NameData};
 use crate::core::position::Pos;
 use crate::core::store::Shopkeeper;
@@ -112,7 +112,7 @@ fn talk_to(
 
     let Some(topic) = TalkTopic::pick(target, &state.world) else {
         return Err(
-            if let Ok(gives_hunt_reward) = state.world.get::<&GivesHuntReward>(target) {
+            if let Ok(gives_hunt_reward) = state.world.get::<&GivesHuntRewardData>(target) {
                 format!(
                     "{the_target} is still waiting for {the_hunt_target} to be gone.",
                     the_target = NameData::find(&state.world, target, assets,).definite(),

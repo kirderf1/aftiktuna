@@ -5,7 +5,7 @@ use crate::asset::location::creature::{
 };
 use crate::asset::{self, AftikProfile};
 use crate::core::behavior::{
-    Character, EncounterDialogue, GivesHuntReward, Hostile, Recruitable, Talk, TalkState,
+    Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
 use crate::core::display::AftikColorId;
 use crate::core::name::Name;
@@ -123,7 +123,7 @@ pub(super) fn place_npc(
             builder.add(Talk(dialogue_node.clone()));
         }
         CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
-            builder.add(GivesHuntReward::clone(gives_hunt_reward));
+            builder.add::<GivesHuntRewardData>(gives_hunt_reward.cloned_data());
         }
         CharacterInteraction::Shopkeeper { stock } => {
             let stock = stock

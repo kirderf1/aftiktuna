@@ -1,6 +1,7 @@
 pub mod creature {
     use crate::asset::ProfileOrRandom;
-    use crate::core::behavior::{BackgroundDialogue, DialogueNode, GivesHuntReward};
+    use crate::asset::dialogue::ConditionedDialogueNode;
+    use crate::core::behavior::{BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward};
     use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemType};
     use crate::core::position::Direction;
@@ -106,6 +107,38 @@ pub mod creature {
 
     fn is_full_health(health: &f32) -> bool {
         *health == 1.
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    pub struct GivesHuntReward {
+        pub target_tag: Tag,
+        pub target_label: String,
+        pub task_dialogue: ConditionedDialogueNode,
+        pub already_completed_dialogue: ConditionedDialogueNode,
+        pub reward_dialogue: ConditionedDialogueNode,
+        pub reward: Reward,
+    }
+
+    impl GivesHuntReward {
+        pub(crate) fn cloned_data(&self) -> GivesHuntRewardData {
+            let Self {
+                target_tag,
+                target_label,
+                task_dialogue,
+                already_completed_dialogue,
+                reward_dialogue,
+                reward,
+            } = self.clone();
+            GivesHuntRewardData {
+                target_tag,
+                target_label,
+                task_dialogue,
+                already_completed_dialogue,
+                reward_dialogue,
+                reward,
+                presented: false,
+            }
+        }
     }
 
     #[derive(Clone, Serialize, Deserialize)]

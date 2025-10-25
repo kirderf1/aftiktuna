@@ -2,7 +2,7 @@ use crate::action::{self, Action};
 use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::behavior::{
-    self, Character, CrewLossMemory, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
+    Character, CrewLossMemory, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
 };
 use crate::core::inventory::Held;
 use crate::core::item::ItemType;
@@ -108,11 +108,10 @@ fn run_step(
         Step::PrepareTick => {
             view_buffer.flush_hint(state);
             ai::prepare_intentions(&mut state.world);
-            Ok(Step::Tick(if should_controlled_character_wait(state) {
-                Some((Action::Wait, command::Target::Controlled))
-            } else {
-                None
-            }))
+            Ok(Step::Tick(
+                ai::controlled_character_action(state)
+                    .map(|action| (action, command::Target::Controlled)),
+            ))
         }
         Step::Tick(chosen_action) => Ok(tick_and_check(chosen_action, state, view_buffer)?),
         Step::ChangeControlled(character) => {
@@ -138,32 +137,6 @@ fn prepare_next_location(
             Err(Phase::ChooseLocation(choice))
         }
     }
-}
-
-fn should_controlled_character_wait(state: &GameState) -> bool {
-    !state
-        .world
-        .satisfies::<&RepeatingAction>(state.controlled)
-        .unwrap()
-        && is_wait_requested(&state.world, state.controlled)
-        && behavior::is_safe(
-            &state.world,
-            state
-                .world
-                .get::<&Pos>(state.controlled)
-                .unwrap()
-                .get_area(),
-        )
-}
-
-fn is_wait_requested(world: &World, controlled: Entity) -> bool {
-    let area = world.get::<&Pos>(controlled).unwrap().get_area();
-    world
-        .query::<&Pos>()
-        .with::<&CrewMember>()
-        .iter()
-        .filter(|(entity, pos)| *entity != controlled && pos.is_in(area))
-        .any(|(entity, _)| ai::is_requesting_wait(world, entity))
 }
 
 fn tick_and_check(
