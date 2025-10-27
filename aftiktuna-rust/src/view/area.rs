@@ -5,7 +5,7 @@ use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression, ModelId};
 use crate::core::inventory::{self, Held};
-use crate::core::item::{CanWield, ItemType};
+use crate::core::item::{CanWield, ItemTypeId};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health, Morale};
@@ -120,8 +120,8 @@ impl ItemProfile {
             is_wieldable: item.satisfies::<&CanWield>(),
             is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
             is_usable: item
-                .get::<&ItemType>()
-                .is_some_and(|item_type| item_type.is_usable()),
+                .get::<&ItemTypeId>()
+                .is_some_and(|item_type| item_type.is_medkit() || item_type.is_black_orb()),
         }
     }
 

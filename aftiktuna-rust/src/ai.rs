@@ -6,7 +6,7 @@ use crate::core::behavior::{
     RepeatingAction, Waiting, Wandering,
 };
 use crate::core::combat::{self, AttackKind};
-use crate::core::item::ItemType;
+use crate::core::item::ItemTypeId;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
 use crate::core::{CrewMember, Door, Species, Tag, area, inventory, status};
@@ -18,7 +18,7 @@ use rand::seq::{IndexedRandom, IteratorRandom};
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 
-pub fn prepare_intentions(world: &mut World) {
+pub fn prepare_intentions(world: &mut World, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
 
     for (crew_member, _) in world
@@ -26,7 +26,7 @@ pub fn prepare_intentions(world: &mut World) {
         .with::<(&CrewMember, &Character)>()
         .iter()
     {
-        if let Some(intention) = pick_intention(crew_member, world) {
+        if let Some(intention) = pick_intention(crew_member, world, assets) {
             buffer.insert_one(crew_member, intention);
         };
     }
@@ -47,28 +47,29 @@ pub fn prepare_intentions(world: &mut World) {
     buffer.run_on(world);
 }
 
-fn pick_intention(crew_member: Entity, world: &World) -> Option<Intention> {
+fn pick_intention(crew_member: Entity, world: &World, assets: &GameAssets) -> Option<Intention> {
     if world
         .get::<&status::Health>(crew_member)
         .is_ok_and(|health| health.is_badly_hurt())
     {
         for item in inventory::get_inventory(world, crew_member) {
             if world
-                .get::<&ItemType>(item)
-                .is_ok_and(|item_type| *item_type == ItemType::Medkit)
+                .get::<&ItemTypeId>(item)
+                .is_ok_and(|item_type| item_type.is_medkit())
             {
                 return Some(Intention::UseMedkit(item));
             }
         }
     }
 
-    let current_properties = combat::get_active_weapon_properties(world, crew_member);
+    let current_properties = combat::get_active_weapon_properties(world, crew_member, assets);
 
     for item in inventory::get_inventory(world, crew_member) {
         if let Some(properties) = world
-            .get::<&ItemType>(item)
+            .get::<&ItemTypeId>(item)
             .ok()
-            .and_then(|item_type| item_type.weapon_properties())
+            .and_then(|item_type| assets.item_type_map.get(&item_type))
+            .and_then(|data| data.weapon)
             && properties.damage_mod > current_properties.damage_mod
         {
             return Some(Intention::Wield(item));
@@ -176,7 +177,7 @@ fn pick_action(
     assets: &GameAssets,
 ) -> Option<Action> {
     if let Some(hostile) = entity_ref.get::<&Hostile>() {
-        pick_foe_action(entity_ref, &hostile, world, rng)
+        pick_foe_action(entity_ref, &hostile, world, rng, assets)
     } else if entity_ref.satisfies::<&CrewMember>() {
         pick_crew_action(entity_ref, world, rng, assets)
     } else {
@@ -189,6 +190,7 @@ fn pick_foe_action(
     hostile: &Hostile,
     world: &World,
     rng: &mut impl Rng,
+    assets: &GameAssets,
 ) -> Option<Action> {
     if has_behavior(entity_ref, BadlyHurtBehavior::Fearful)
         && let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
@@ -209,7 +211,7 @@ fn pick_foe_action(
         if !targets.is_empty() {
             return Some(Action::Attack(
                 targets,
-                pick_attack_kind(entity_ref, world, rng),
+                pick_attack_kind(entity_ref, world, rng, assets),
             ));
         }
     }
@@ -311,7 +313,7 @@ fn pick_crew_action(
     if !foes.is_empty() {
         return Some(Action::Attack(
             foes,
-            pick_attack_kind(entity_ref, world, rng),
+            pick_attack_kind(entity_ref, world, rng, assets),
         ));
     }
 
@@ -336,10 +338,16 @@ fn pick_crew_action(
     None
 }
 
-pub fn pick_attack_kind(attacker_ref: EntityRef, world: &World, rng: &mut impl Rng) -> AttackKind {
-    let available_kinds = combat::get_active_weapon_properties(world, attacker_ref.entity())
-        .attack_set
-        .available_kinds();
+pub fn pick_attack_kind(
+    attacker_ref: EntityRef,
+    world: &World,
+    rng: &mut impl Rng,
+    assets: &GameAssets,
+) -> AttackKind {
+    let available_kinds =
+        combat::get_active_weapon_properties(world, attacker_ref.entity(), assets)
+            .attack_set
+            .available_kinds();
 
     if has_behavior(attacker_ref, BadlyHurtBehavior::Determined)
         && available_kinds.contains(&AttackKind::Rash)

@@ -1,16 +1,15 @@
 use crate::action::{Action, ForceDoorAction};
-use crate::asset::{GameAssets, NounDataMap};
-use crate::command::CommandResult;
+use crate::asset::GameAssets;
 use crate::command::parse::{Parse, first_match_or};
-use crate::core::area::{ShipControls, ShipState, ShipStatus};
+use crate::command::{self, CommandResult};
+use crate::core::area::{self, ShipControls, ShipState, ShipStatus};
 use crate::core::behavior::{self, Character};
-use crate::core::inventory::Held;
-use crate::core::item::ItemType;
+use crate::core::inventory::{self, Held};
+use crate::core::item::ItemTypeId;
 use crate::core::name::{Name, NameData, NameQuery};
-use crate::core::position::{Blockage, Placement, PlacementQuery, Pos};
-use crate::core::{CrewMember, FortunaChest, area, inventory, position, status};
+use crate::core::position::{self, Blockage, Placement, PlacementQuery, Pos};
+use crate::core::{self, CrewMember, FortunaChest, status};
 use crate::game_loop::GameState;
-use crate::{command, core};
 use hecs::{Entity, Query, World};
 
 mod combat;
@@ -71,7 +70,7 @@ pub fn parse(input: &str, state: &GameState, assets: &GameAssets) -> Result<Comm
         parse.literal("check", |parse| {
             parse.match_against(
                 check_item_targets(world, character, assets),
-                |parse, item| parse.done_or_err(|| check(world, item, &assets.noun_data_map)),
+                |parse, item| parse.done_or_err(|| check(world, item, assets)),
                 |input| Err(format!("There is no item by the name \"{input}\" here.")),
             )
         }),
@@ -241,7 +240,7 @@ fn refuel_ship(state: &GameState, assets: &GameAssets) -> Result<CommandResult, 
     if !matches!(status, ShipStatus::NeedFuel(_)) {
         return Err("The ship is already refueled.".to_string());
     }
-    if !inventory::is_holding(ItemType::FuelCan, world, character) {
+    if !inventory::is_holding(ItemTypeId::is_fuel_can, world, character) {
         return Err(format!(
             "{} needs a fuel can to refuel the ship.",
             NameData::find(world, character, assets).definite()
@@ -277,7 +276,7 @@ fn launch_ship(state: &GameState, assets: &GameAssets) -> Result<CommandResult, 
         .map_err(|_| "The crew has no ship.".to_string())?
         .status;
     if matches!(status, ShipStatus::NeedFuel(_))
-        && !inventory::is_holding(ItemType::FuelCan, world, character)
+        && !inventory::is_holding(ItemTypeId::is_fuel_can, world, character)
     {
         return Err(format!(
             "{} needs a fuel can to launch the ship.",
@@ -354,9 +353,9 @@ fn held_item_targets(world: &World, holder: Entity, assets: &GameAssets) -> Vec<
         .collect()
 }
 
-fn check(world: &World, item: Entity, noun_map: &NounDataMap) -> Result<CommandResult, String> {
+fn check(world: &World, item: Entity, assets: &GameAssets) -> Result<CommandResult, String> {
     Ok(CommandResult::Info(crate::CommandInfo::Message(
-        core::item::description(world.entity(item).unwrap(), noun_map),
+        core::item::description(world.entity(item).unwrap(), assets),
     )))
 }
 
@@ -368,7 +367,7 @@ fn tame(
 ) -> Result<CommandResult, String> {
     check_adjacent_accessible_with_message(target, character, world, assets)?;
 
-    if !inventory::is_holding(ItemType::FoodRation, world, character) {
+    if !inventory::is_holding(ItemTypeId::is_food_ration, world, character) {
         return Err(format!(
             "{} needs a food ration to tame.",
             NameData::find(world, character, assets).definite()

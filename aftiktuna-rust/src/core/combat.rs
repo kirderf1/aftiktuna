@@ -1,5 +1,7 @@
-use super::item::ItemType;
+use super::item::ItemTypeId;
 use super::{Species, inventory};
+use crate::asset::GameAssets;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AttackKind {
@@ -64,7 +66,8 @@ impl UnarmedType {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AttackSet {
     Light,
     Quick,
@@ -86,23 +89,26 @@ impl AttackSet {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct WeaponProperties {
     pub damage_mod: f32,
     pub attack_set: AttackSet,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub stun_attack: bool,
 }
 
 pub fn get_active_weapon_properties(
     world: &hecs::World,
     attacker: hecs::Entity,
+    assets: &GameAssets,
 ) -> WeaponProperties {
     inventory::get_wielded(world, attacker)
         .and_then(|item| {
             world
-                .get::<&ItemType>(item)
+                .get::<&ItemTypeId>(item)
                 .ok()
-                .and_then(|item_type| item_type.weapon_properties())
+                .and_then(|item_type| assets.item_type_map.get(&item_type))
+                .and_then(|data| data.weapon)
         })
         .unwrap_or_else(|| {
             world

@@ -3,7 +3,7 @@ use crate::asset::location::creature::{
     AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     StockDefinition,
 };
-use crate::asset::{self, AftikProfile};
+use crate::asset::{self, AftikProfile, GameAssets};
 use crate::core::behavior::{
     Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
@@ -128,7 +128,7 @@ pub(super) fn place_npc(
         CharacterInteraction::Shopkeeper { stock } => {
             let stock = stock
                 .iter()
-                .map(build_stock)
+                .map(|stock| build_stock(stock, gen_context.assets))
                 .collect::<Result<Vec<_>, String>>()?;
             builder.add(Shopkeeper(stock));
         }
@@ -144,8 +144,12 @@ pub(super) fn place_npc(
     }
 
     let npc = gen_context.world.spawn(builder.build());
-    if let Some(item_type) = spawn_data.wielded_item {
-        item_type.spawn(&mut gen_context.world, inventory::Held::in_hand(npc));
+    if let Some(item_type) = &spawn_data.wielded_item {
+        item_type.spawn(
+            &mut gen_context.world,
+            inventory::Held::in_hand(npc),
+            &gen_context.assets.item_type_map,
+        );
     }
 
     Ok(())
@@ -304,21 +308,24 @@ fn species_builder_base(species: Species) -> EntityBuilder {
 }
 
 fn build_stock(
-    &StockDefinition {
+    StockDefinition {
         item,
         price,
         quantity,
     }: &StockDefinition,
+    assets: &GameAssets,
 ) -> Result<StoreStock, String> {
-    let price = price.or_else(|| item.price()).ok_or_else(|| {
-        format!(
-            "Cannot get a price from item \"{}\" to put in store",
-            item.noun_id().0
-        )
-    })?;
+    let price = price
+        .or_else(|| assets.item_type_map.get(item).and_then(|data| data.price))
+        .ok_or_else(|| {
+            format!(
+                "Cannot get a price from item \"{}\" to put in store",
+                item.noun_id().0
+            )
+        })?;
     let quantity = quantity.unwrap_or(StockQuantity::Unlimited);
     Ok(StoreStock {
-        item,
+        item: item.clone(),
         price,
         quantity,
     })

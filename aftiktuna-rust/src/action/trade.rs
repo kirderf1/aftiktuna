@@ -1,6 +1,6 @@
 use crate::action::{self, Error};
 use crate::core::inventory::{self, Held};
-use crate::core::item::{self, ItemType, Price};
+use crate::core::item::{self, ItemTypeId, Price};
 use crate::core::name::{self, NameData, NameIdData};
 use crate::core::position::Pos;
 use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
@@ -49,15 +49,21 @@ pub fn trade(context: action::Context, performer: Entity, shopkeeper: Entity) ->
 pub fn buy(
     context: &mut action::Context,
     performer: Entity,
-    item_type: ItemType,
+    item_type: ItemTypeId,
     amount: u16,
 ) -> action::Result {
     let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
-    let (item, price) = try_buy(world, performer, item_type, amount)?;
+    let (item_type, price) = try_buy(world, performer, &item_type, amount)?;
 
     for _ in 0..amount {
-        item::spawn(world, item, Some(price), Held::in_inventory(performer));
+        item::spawn(
+            world,
+            &item_type,
+            Some(price),
+            Held::in_inventory(performer),
+            &context.view_context.view_buffer.assets.item_type_map,
+        );
     }
 
     context.view_context.view_buffer.add_change_message(
@@ -66,7 +72,7 @@ pub fn buy(
             the_performer = NameData::find(world, performer, assets).definite(),
             an_item = assets
                 .noun_data_map
-                .lookup(&item.noun_id())
+                .lookup(&item_type.noun_id())
                 .with_text_count(amount, name::ArticleKind::A),
         ),
         context.state,
@@ -77,9 +83,9 @@ pub fn buy(
 fn try_buy(
     world: &mut World,
     performer: Entity,
-    item_type: ItemType,
+    item_type: &ItemTypeId,
     amount: u16,
-) -> Result<(ItemType, Price), String> {
+) -> Result<(ItemTypeId, Price), String> {
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
         .get::<&IsTrading>(performer)
@@ -101,14 +107,17 @@ fn try_buy(
     )?;
     stock.quantity = new_quantity;
 
-    Ok((stock.item, stock.price))
+    Ok((stock.item.clone(), stock.price))
 }
 
-fn find_stock(shopkeeper: &mut Shopkeeper, item_type: ItemType) -> Option<&mut StoreStock> {
+fn find_stock<'a>(
+    shopkeeper: &'a mut Shopkeeper,
+    item_type: &ItemTypeId,
+) -> Option<&'a mut StoreStock> {
     shopkeeper
         .0
         .iter_mut()
-        .find(|priced| priced.item == item_type)
+        .find(|priced| priced.item == *item_type)
 }
 
 pub fn sell(
@@ -133,8 +142,8 @@ pub fn sell(
             .ok_or("That item can not be sold.")?
             .sell_price();
         is_selling_fuel |= item_ref
-            .get::<&ItemType>()
-            .is_some_and(|item_type| *item_type == ItemType::FuelCan);
+            .get::<&ItemTypeId>()
+            .is_some_and(|item_type| item_type.is_fuel_can());
     }
 
     let performer_name = NameData::find(world, performer, assets).definite();

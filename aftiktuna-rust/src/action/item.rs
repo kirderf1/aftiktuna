@@ -1,7 +1,7 @@
 use crate::action::{self, Context, Error};
 use crate::core::behavior::{self, RepeatingAction};
 use crate::core::inventory::{self, Held};
-use crate::core::item::ItemType;
+use crate::core::item::ItemTypeId;
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, StatChanges};
@@ -14,7 +14,7 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
         .query::<(&Pos, NameQuery)>()
-        .with::<&ItemType>()
+        .with::<&ItemTypeId>()
         .iter()
         .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
         .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
@@ -33,7 +33,7 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
         .world
         .query::<&Pos>()
         .with::<NameQuery>()
-        .with::<&ItemType>()
+        .with::<&ItemTypeId>()
         .iter()
         .any(|(_, pos)| pos.is_in(aftik_pos.get_area()))
     {
@@ -71,8 +71,8 @@ pub(super) fn take_item(
     position::push_and_move(world, performer, item_pos, assets)?;
 
     if world
-        .get::<&ItemType>(item)
-        .is_ok_and(|item_type| *item_type == ItemType::FourLeafClover)
+        .get::<&ItemTypeId>(item)
+        .is_ok_and(|item_type| item_type.is_four_leaf_clover())
         && FOUR_LEAF_CLOVER_EFFECT
             .try_apply(world.entity(performer).unwrap())
             .is_some()
@@ -323,10 +323,10 @@ impl UseAction {
             .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
         let item_name = NameData::find_by_ref(item_ref, assets).definite();
 
-        let item_type = item_ref.get::<&ItemType>().as_deref().copied();
+        let item_type = item_ref.get::<&ItemTypeId>().as_deref().cloned();
 
         match item_type {
-            Some(ItemType::Medkit) => {
+            Some(item_type) if item_type.is_medkit() => {
                 let mut health = performer_ref.get::<&mut Health>().unwrap();
                 if !health.is_hurt() {
                     return Err(Error::private(format!(
@@ -345,7 +345,7 @@ impl UseAction {
                 );
                 Ok(action::Success)
             }
-            Some(ItemType::BlackOrb) => {
+            Some(item_type) if item_type.is_black_orb() => {
                 let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
                     context.view_context.add_message_at(area, format!(
                         "{performer_name} holds up and inspects the orb, but can't figure out what it is."

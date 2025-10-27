@@ -17,7 +17,7 @@ pub fn commands(
 ) -> Option<Result<CommandResult, String>> {
     parse.literal("attack", |parse| {
         first_match_or!(
-            parse.empty(|| attack_any(performer_ref, world));
+            parse.empty(|| attack_any(performer_ref, world, assets));
             parse.match_against(
                 hostile_targets(world, performer_ref.entity(), assets),
                 |parse, targets| parse.done_or_err(|| attack(performer_ref, targets, world, assets)),
@@ -27,7 +27,11 @@ pub fn commands(
     })
 }
 
-fn attack_any(performer_ref: EntityRef, world: &World) -> Result<CommandResult, String> {
+fn attack_any(
+    performer_ref: EntityRef,
+    world: &World,
+    assets: &GameAssets,
+) -> Result<CommandResult, String> {
     let area = performer_ref.get::<&Pos>().unwrap().get_area();
     let foes = world
         .query::<&Pos>()
@@ -42,7 +46,7 @@ fn attack_any(performer_ref: EntityRef, world: &World) -> Result<CommandResult, 
     } else {
         command::action_result(Action::Attack(
             foes,
-            ai::pick_attack_kind(performer_ref, world, &mut rand::rng()),
+            ai::pick_attack_kind(performer_ref, world, &mut rand::rng(), assets),
         ))
     }
 }
@@ -102,6 +106,6 @@ fn attack(
 
     command::action_result(Action::Attack(
         targets,
-        ai::pick_attack_kind(performer_ref, world, &mut rand::rng()),
+        ai::pick_attack_kind(performer_ref, world, &mut rand::rng(), assets),
     ))
 }

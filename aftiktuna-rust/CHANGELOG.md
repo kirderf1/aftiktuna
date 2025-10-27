@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - New situation-triggered crew dialogue
 - New data files for dialogue in `assets/dialogue/`
 - New data file `noun_data.json` for object name data
+- New data file `item_types.json` for declaring item types and some item properties
 - New data file `selectable_aftik_color_names.json` for names used by randomly generated aftiks
 - New commands "ask \<character\> to join" and "ask \<character\> for their name", which correspond to already-existing actions
 

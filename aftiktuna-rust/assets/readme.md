@@ -33,6 +33,10 @@ Determines the locations used by the game, and defines some location metadata.
 
 Special location that is loaded in as the crew ship when starting a new game.
 
+## `assets/item_types.json`
+
+Contains a list of item types and properties. Note that some items have hardcoded functionality associated with their id.
+
 ## `assets/loot_table/*.json`
 
 Each file is a loot table used by game systems to randomly select an item.

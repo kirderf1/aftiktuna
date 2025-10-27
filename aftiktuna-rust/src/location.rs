@@ -3,7 +3,7 @@ pub mod generate;
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
 use crate::asset::location::{DoorPairData, DoorType, LocationData};
-use crate::asset::{AftikProfile, CrewData};
+use crate::asset::{AftikProfile, CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::behavior::{ObservationTarget, Waiting};
 use crate::core::display::{AftikColorId, ModelId};
@@ -238,10 +238,12 @@ pub struct InitialSpawnData {
 pub(crate) fn spawn_starting_crew_and_ship(
     crew_data: CrewData,
     generation_state: &mut GenerationState,
+    assets: &GameAssets,
 ) -> Result<InitialSpawnData, String> {
     let mut gen_context = LocationGenContext {
         world: World::new(),
         aftik_color_names: generation_state.aftik_color_names.clone(),
+        assets,
         rng: rand::rng(),
     };
     let ship_data = LocationData::load_from_json("crew_ship")?;
@@ -250,6 +252,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
     let LocationGenContext {
         mut world,
         aftik_color_names,
+        assets: _,
         mut rng,
     } = gen_context;
     generation_state.aftik_color_names = aftik_color_names;
@@ -327,8 +330,9 @@ pub(crate) fn setup_location_into_game(
     location_name: &str,
     messages: &mut Messages,
     state: &mut GameState,
+    assets: &GameAssets,
 ) -> Result<(), String> {
-    let mut gen_context = LocationGenContext::clone_from(state);
+    let mut gen_context = LocationGenContext::clone_from(state, assets);
 
     let build_data = LocationData::load_from_json(location_name)
         .and_then(|location_data| generate::build_location(location_data, &mut gen_context))
@@ -376,19 +380,29 @@ pub(crate) fn setup_location_into_game(
     Ok(())
 }
 
-#[derive(Default)]
-pub struct LocationGenContext {
+pub struct LocationGenContext<'a> {
     world: World,
     aftik_color_names: HashMap<AftikColorId, Vec<String>>,
+    assets: &'a GameAssets,
     rng: ThreadRng,
 }
 
-impl LocationGenContext {
-    fn clone_from(state: &GameState) -> Self {
+impl<'a> LocationGenContext<'a> {
+    fn clone_from(state: &GameState, assets: &'a GameAssets) -> Self {
         Self {
             world: serialization::world::serialize_clone(&state.world)
                 .expect("Unexpected error when cloning world"),
             aftik_color_names: state.generation_state.aftik_color_names.clone(),
+            assets,
+            rng: rand::rng(),
+        }
+    }
+
+    pub fn dummy(assets: &'a GameAssets) -> Self {
+        Self {
+            world: World::new(),
+            aftik_color_names: Default::default(),
+            assets,
             rng: rand::rng(),
         }
     }

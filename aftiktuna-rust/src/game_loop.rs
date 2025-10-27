@@ -5,7 +5,7 @@ use crate::core::behavior::{
     Character, CrewLossMemory, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
 };
 use crate::core::inventory::Held;
-use crate::core::item::ItemType;
+use crate::core::item::ItemTypeId;
 use crate::core::name::{self, ArticleKind, Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Pos};
 use crate::core::status::{self, Health, Morale, Stamina, Trait};
@@ -33,7 +33,7 @@ pub struct GameState {
     pub has_introduced_controlled: bool,
 }
 
-pub fn setup(mut generation_state: GenerationState) -> GameState {
+pub fn setup(mut generation_state: GenerationState, assets: &GameAssets) -> GameState {
     let InitialSpawnData {
         world,
         controlled_character,
@@ -41,6 +41,7 @@ pub fn setup(mut generation_state: GenerationState) -> GameState {
     } = location::spawn_starting_crew_and_ship(
         CrewData::load_starting_crew().expect("Unable to set up game"),
         &mut generation_state,
+        assets,
     )
     .unwrap();
 
@@ -91,8 +92,13 @@ fn run_step(
     match phase {
         Step::PrepareNextLocation => Ok(prepare_next_location(state, view_buffer)?),
         Step::LoadLocation(location) => {
-            location::setup_location_into_game(&location, &mut view_buffer.messages, state)
-                .map_err(|message| Phase::LoadLocation(location).with_error(message))?;
+            location::setup_location_into_game(
+                &location,
+                &mut view_buffer.messages,
+                state,
+                view_buffer.assets,
+            )
+            .map_err(|message| Phase::LoadLocation(location).with_error(message))?;
             if !state.has_introduced_controlled {
                 view_buffer.messages.add(format!(
                     "You're playing as the aftik {}.",
@@ -107,7 +113,7 @@ fn run_step(
         }
         Step::PrepareTick => {
             view_buffer.flush_hint(state);
-            ai::prepare_intentions(&mut state.world);
+            ai::prepare_intentions(&mut state.world, view_buffer.assets);
             Ok(Step::Tick(
                 ai::controlled_character_action(state)
                     .map(|action| (action, command::Target::Controlled)),
@@ -250,9 +256,9 @@ fn tick(
 
     for (item, (_, held)) in state
         .world
-        .query::<(&ItemType, &Held)>()
+        .query::<(&ItemTypeId, &Held)>()
         .into_iter()
-        .filter(|&(_, (item_type, _))| *item_type == ItemType::FourLeafClover)
+        .filter(|&(_, (item_type, _))| item_type.is_four_leaf_clover())
     {
         let Ok(holder_ref) = state.world.entity(held.holder) else {
             continue;
@@ -465,10 +471,10 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
     let rations_before_eating = state
         .world
-        .query::<(&ItemType, &Pos)>()
+        .query::<(&ItemTypeId, &Pos)>()
         .iter()
         .filter(|&(_, (item_type, pos))| {
-            *item_type == ItemType::FoodRation && area::is_in_ship(*pos, &state.world)
+            item_type.is_food_ration() && area::is_in_ship(*pos, &state.world)
         })
         .count();
     consume_rations_healing(state, view_buffer);
@@ -485,7 +491,11 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let crew = state.world.get::<&CrewMember>(state.controlled).unwrap().0;
     let _ = state.world.remove_one::<TalkedAboutEnoughFuel>(crew);
 
-    status::apply_morale_effects_from_crew_state(&mut state.world, rations_before_eating);
+    status::apply_morale_effects_from_crew_state(
+        &mut state.world,
+        rations_before_eating,
+        view_buffer.assets,
+    );
 }
 
 fn deposit_items_to_ship(state: &mut GameState) {
@@ -499,11 +509,10 @@ fn deposit_items_to_ship(state: &mut GameState) {
         .collect::<Vec<_>>();
     let items = state
         .world
-        .query::<(&ItemType, &Held)>()
+        .query::<(&ItemTypeId, &Held)>()
         .iter()
         .filter(|&(_, (item_type, held))| {
-            *item_type == ItemType::FoodRation
-                && crew_in_ship.iter().any(|&entity| held.held_by(entity))
+            item_type.is_food_ration() && crew_in_ship.iter().any(|&entity| held.held_by(entity))
         })
         .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
@@ -538,10 +547,10 @@ fn consume_rations_healing(state: &mut GameState, view_buffer: &mut view::Buffer
         };
         let rations = state
             .world
-            .query::<(&ItemType, &Pos)>()
+            .query::<(&ItemTypeId, &Pos)>()
             .iter()
             .filter(|&(_, (item_type, pos))| {
-                *item_type == ItemType::FoodRation && area::is_in_ship(*pos, &state.world)
+                item_type.is_food_ration() && area::is_in_ship(*pos, &state.world)
             })
             .take(usize::from(rations_to_eat))
             .map(|(entity, _)| entity)
@@ -580,7 +589,7 @@ fn build_eating_message(
             the_character = NameData::find(world, entity, assets).definite(),
             one_ration = assets
                 .noun_data_map
-                .lookup(&ItemType::FoodRation.noun_id())
+                .lookup(&ItemTypeId::food_ration().noun_id())
                 .with_text_count(amount, ArticleKind::One),
         )
     } else {

@@ -134,7 +134,7 @@ pub mod store {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub(crate) struct StoreStock {
-        pub item: item::ItemType,
+        pub item: item::ItemTypeId,
         pub price: item::Price,
         pub quantity: StockQuantity,
     }

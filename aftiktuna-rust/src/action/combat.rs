@@ -1,4 +1,5 @@
 use crate::action::{self, Error};
+use crate::asset::GameAssets;
 use crate::core::behavior::{self, Hostile, RepeatingAction};
 use crate::core::combat::{self, AttackKind};
 use crate::core::name::{NameData, NameWithAttribute};
@@ -224,6 +225,7 @@ fn perform_attack(
                 attack_kind,
                 world,
                 &mut context.state.rng,
+                context.view_context.view_buffer.assets,
             );
             let effect_text = effect
                 .map(AttackEffect::verb)
@@ -243,6 +245,7 @@ fn perform_attack(
                 attack_kind,
                 world,
                 &mut context.state.rng,
+                context.view_context.view_buffer.assets,
             );
             let effect_text = effect
                 .map(AttackEffect::verb)
@@ -285,12 +288,13 @@ fn perform_attack_hit(
     attack_kind: AttackKind,
     world: &mut World,
     rng: &mut impl Rng,
+    assets: &GameAssets,
 ) -> Option<AttackEffect> {
     let damage_factor = if is_direct_hit { 1.0 } else { 0.5 } * attack_kind.damage_modifier();
 
     let damage_result = deal_damage(
         world.entity(target).unwrap(),
-        damage_factor * get_attack_damage(world, attacker),
+        damage_factor * get_attack_damage(world, attacker, assets),
     );
 
     if matches!(damage_result, Some(Killed)) {
@@ -300,7 +304,7 @@ fn perform_attack_hit(
     }
     if is_direct_hit
         && !world.satisfies::<&status::IsStunned>(target).unwrap()
-        && combat::get_active_weapon_properties(world, attacker).stun_attack
+        && combat::get_active_weapon_properties(world, attacker, assets).stun_attack
     {
         let successful_stun = roll_stun(
             world.entity(attacker).unwrap(),
@@ -326,7 +330,7 @@ fn deal_damage(target_ref: EntityRef, damage: f32) -> Option<Killed> {
     if health.is_dead() { Some(Killed) } else { None }
 }
 
-fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
+fn get_attack_damage(world: &World, attacker: Entity, assets: &GameAssets) -> f32 {
     let strength = world
         .get::<&Stats>(attacker)
         .expect("Expected attacker to have stats attached")
@@ -337,7 +341,7 @@ fn get_attack_damage(world: &World, attacker: Entity) -> f32 {
         .copied()
         .unwrap_or_default();
     let strength_mod = f32::from(strength + 2) / 6.0;
-    combat::get_active_weapon_properties(world, attacker).damage_mod
+    combat::get_active_weapon_properties(world, attacker, assets).damage_mod
         * strength_mod
         * morale.damage_factor()
 }

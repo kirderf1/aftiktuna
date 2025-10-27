@@ -7,7 +7,7 @@ mod trade;
 
 use crate::core::behavior::{Hostile, Recruitable, RepeatingAction};
 use crate::core::combat::AttackKind;
-use crate::core::item::ItemType;
+use crate::core::item::ItemTypeId;
 use crate::core::name::{Name, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::{self, CrewMember, Door, FortunaChest, OpenedChest, inventory, status};
@@ -45,7 +45,7 @@ pub enum Action {
     TellToWaitAtShip(Entity),
     TellToFollow(Entity),
     Trade(Entity),
-    Buy(ItemType, u16),
+    Buy(ItemTypeId, u16),
     Sell(Vec<Entity>),
     ExitTrade,
     OpenChest(Entity),
@@ -350,7 +350,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
 
     position::move_adjacent_placement(world, performer, target_placement, assets)?;
 
-    inventory::consume_one(ItemType::FoodRation, world, performer).ok_or_else(|| {
+    inventory::consume_one(ItemTypeId::is_food_ration, world, performer).ok_or_else(|| {
         Error::private(format!("{performer_name} needs a food ration for taming."))
     })?;
 

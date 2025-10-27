@@ -4,7 +4,7 @@ use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::{ProfileOrRandom, background};
 use aftiktuna::core::Species;
 use aftiktuna::core::display::{AftikColorId, ModelId};
-use aftiktuna::core::item::ItemType;
+use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
@@ -37,16 +37,24 @@ pub fn option_direction_editor(
         });
 }
 
-pub fn item_type_editor(ui: &mut egui::Ui, edited_type: &mut ItemType, id: impl Hash) {
+pub fn item_type_editor(
+    ui: &mut egui::Ui,
+    edited_type: &mut ItemTypeId,
+    id: impl Hash,
+    item_type_list: &[ItemTypeId],
+) {
     egui::ComboBox::new(id, "Item Type")
         .selected_text(format!("{edited_type:?}"))
         .show_ui(ui, |ui| {
-            for selectable_type in ItemType::variants() {
-                ui.selectable_value(
-                    edited_type,
-                    *selectable_type,
+            for selectable_type in item_type_list {
+                let mut response = ui.selectable_label(
+                    edited_type == selectable_type,
                     format!("{selectable_type:?}"),
                 );
+                if response.clicked() && edited_type != selectable_type {
+                    *edited_type = selectable_type.clone();
+                    response.mark_changed();
+                }
             }
         });
 }
@@ -61,7 +69,12 @@ pub fn loot_table_id_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) 
     }
 }
 
-pub fn item_or_loot_editor(ui: &mut egui::Ui, item_or_loot: &mut ItemOrLoot, id: impl Hash + Copy) {
+pub fn item_or_loot_editor(
+    ui: &mut egui::Ui,
+    item_or_loot: &mut ItemOrLoot,
+    id: impl Hash + Copy,
+    item_type_list: &[ItemTypeId],
+) {
     let selected_text = match item_or_loot {
         ItemOrLoot::Item { .. } => "Item",
         ItemOrLoot::Loot { .. } => "Loot",
@@ -72,7 +85,7 @@ pub fn item_or_loot_editor(ui: &mut egui::Ui, item_or_loot: &mut ItemOrLoot, id:
             let is_item = matches!(item_or_loot, ItemOrLoot::Item { .. });
             if ui.selectable_label(is_item, "Item").clicked() && !is_item {
                 *item_or_loot = ItemOrLoot::Item {
-                    item: ItemType::AncientCoin,
+                    item: item_type_list[0].clone(),
                 };
             }
             let is_loot = matches!(item_or_loot, ItemOrLoot::Loot { .. });
@@ -83,7 +96,9 @@ pub fn item_or_loot_editor(ui: &mut egui::Ui, item_or_loot: &mut ItemOrLoot, id:
             }
         });
     match item_or_loot {
-        ItemOrLoot::Item { item } => item_type_editor(ui, item, ("item_or_loot", id)),
+        ItemOrLoot::Item { item } => {
+            item_type_editor(ui, item, ("item_or_loot", id), item_type_list)
+        }
         ItemOrLoot::Loot { table } => loot_table_id_editor(ui, table),
     }
 }
@@ -259,7 +274,7 @@ pub fn object_from_symbol(
         },
         SymbolData::Item { item } => ObjectRenderData {
             coord,
-            model_id: (*item).into(),
+            model_id: item.model_id(),
             hash: 0,
             is_controlled: false,
             name_data: None,

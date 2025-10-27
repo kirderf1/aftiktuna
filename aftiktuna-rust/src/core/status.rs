@@ -1,10 +1,9 @@
-use super::Species;
-use super::behavior::BadlyHurtBehavior;
+use super::behavior::{BadlyHurtBehavior, Character, CrewLossMemory, TalkState};
+use super::item::ItemTypeId;
 use super::name::NameWithAttribute;
 use super::position::Pos;
-use crate::core::CrewMember;
-use crate::core::behavior::{Character, CrewLossMemory, TalkState};
-use crate::core::item::ItemType;
+use super::{CrewMember, Species};
+use crate::asset::GameAssets;
 use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -442,6 +441,7 @@ impl MoraleState {
 pub(crate) fn apply_morale_effects_from_crew_state(
     world: &mut World,
     rations_before_eating: usize,
+    assets: &GameAssets,
 ) {
     let mut crew_positive_effect = 0.;
     let mut crew_negative_effect = 0.;
@@ -463,9 +463,9 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     }
 
     let rations_after_eating = world
-        .query::<&ItemType>()
+        .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, item_type)| *item_type == ItemType::FoodRation)
+        .filter(|&(_, item_type)| item_type.is_food_ration())
         .count();
     if rations_before_eating == 0 {
         crew_negative_effect += Morale::SMALL_INTENSITY;
@@ -475,9 +475,14 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     }
 
     let mut weapon_values = world
-        .query::<&ItemType>()
+        .query::<&ItemTypeId>()
         .iter()
-        .filter_map(|(_, item_type)| item_type.weapon_properties())
+        .filter_map(|(_, item_type)| {
+            assets
+                .item_type_map
+                .get(item_type)
+                .and_then(|data| data.weapon)
+        })
         .map(|weapon_properties| {
             (weapon_properties.damage_mod - 1.
                 + if weapon_properties.stun_attack {
@@ -498,18 +503,18 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     }
 
     let fuel_can_count = world
-        .query::<&ItemType>()
+        .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, item_type)| *item_type == ItemType::FuelCan)
+        .filter(|&(_, item_type)| item_type.is_fuel_can())
         .count();
     if fuel_can_count >= 1 {
         crew_positive_effect += Morale::SMALL_INTENSITY;
     }
 
     let medkit_count = world
-        .query::<&ItemType>()
+        .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, item_type)| *item_type == ItemType::Medkit)
+        .filter(|&(_, item_type)| item_type.is_medkit())
         .count();
     if medkit_count >= 1 {
         crew_positive_effect += Morale::SMALL_INTENSITY;

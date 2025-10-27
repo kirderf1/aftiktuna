@@ -1,4 +1,4 @@
-use crate::core::item::{ItemType, Tool};
+use crate::core::item::{ItemTypeId, Tool};
 use crate::core::position::Pos;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
@@ -37,18 +37,22 @@ impl Held {
     }
 }
 
-pub fn is_holding(searched_type: ItemType, world: &World, holder: Entity) -> bool {
+pub fn is_holding(
+    item_type_matcher: impl Fn(&ItemTypeId) -> bool,
+    world: &World,
+    holder: Entity,
+) -> bool {
     world
-        .query::<(&ItemType, &Held)>()
+        .query::<(&ItemTypeId, &Held)>()
         .iter()
-        .any(|(_, (item_type, held))| held.held_by(holder) && *item_type == searched_type)
+        .any(|(_, (item_type, held))| held.held_by(holder) && item_type_matcher(item_type))
 }
 
 pub fn is_holding_tool(world: &World, holder: Entity, requested_tool: Tool) -> bool {
     world
-        .query::<(&ItemType, &Held)>()
+        .query::<(&ItemTypeId, &Held)>()
         .iter()
-        .any(|(_, (item_type, held))| held.held_by(holder) && requested_tool.matches(*item_type))
+        .any(|(_, (item_type, held))| held.held_by(holder) && requested_tool.matches(item_type))
 }
 
 pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
@@ -84,11 +88,15 @@ pub fn get_wielded(world: &World, holder: Entity) -> Option<Entity> {
         .map(|(item, _)| item)
 }
 
-pub fn consume_one(consumed_type: ItemType, world: &mut World, holder: Entity) -> Option<()> {
+pub fn consume_one(
+    item_type_matcher: impl Fn(&ItemTypeId) -> bool,
+    world: &mut World,
+    holder: Entity,
+) -> Option<()> {
     let (item, _) = world
-        .query::<(&ItemType, &Held)>()
+        .query::<(&ItemTypeId, &Held)>()
         .iter()
-        .find(|&(_, (item_type, held))| held.held_by(holder) && *item_type == consumed_type)?;
+        .find(|&(_, (item_type, held))| held.held_by(holder) && item_type_matcher(item_type))?;
     world.despawn(item).ok()
 }
 
@@ -110,10 +118,10 @@ pub fn drop_all_items(world: &mut World, entity: Entity) {
 
 pub fn fuel_cans_held_by_crew(world: &World, excluding_items: &[Entity]) -> usize {
     world
-        .query::<(&ItemType, &Held)>()
+        .query::<(&ItemTypeId, &Held)>()
         .iter()
         .filter(|&(item, (item_type, held))| {
-            *item_type == ItemType::FuelCan
+            item_type.is_fuel_can()
                 && !excluding_items.contains(&item)
                 && world
                     .satisfies::<&super::CrewMember>(held.holder)

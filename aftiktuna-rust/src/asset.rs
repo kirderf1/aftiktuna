@@ -183,7 +183,7 @@ pub(crate) mod dialogue {
 }
 
 pub mod loot {
-    use crate::core::item::ItemType;
+    use crate::core::item::ItemTypeId;
     use rand::Rng;
     use rand::distr::weighted::WeightedIndex;
     use serde::{Deserialize, Serialize};
@@ -200,7 +200,7 @@ pub mod loot {
 
     #[derive(Debug, Deserialize)]
     struct LootEntry {
-        item: ItemType,
+        item: ItemTypeId,
         weight: u16,
     }
 
@@ -221,8 +221,8 @@ pub mod loot {
             })
         }
 
-        pub(crate) fn pick_loot_item(&self, rng: &mut impl Rng) -> ItemType {
-            self.entries[rng.sample(&self.index_distribution)].item
+        pub(crate) fn pick_loot_item(&self, rng: &mut impl Rng) -> &ItemTypeId {
+            &self.entries[rng.sample(&self.index_distribution)].item
         }
     }
 
@@ -434,7 +434,9 @@ pub mod placement {
     }
 }
 
+use crate::core::combat::WeaponProperties;
 use crate::core::display::AftikColorId;
+use crate::core::item::{ItemTypeId, Price};
 use crate::core::name::{Adjective, NounData, NounId};
 use crate::core::status::{Stats, Traits};
 use rand::Rng;
@@ -617,9 +619,22 @@ impl NounDataMap {
     }
 }
 
-pub(crate) struct GameAssets {
-    pub noun_data_map: NounDataMap,
-    pub color_adjective_map: HashMap<AftikColorId, Adjective>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ItemTypeData {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) weapon: Option<WeaponProperties>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) price: Option<Price>,
+}
+
+pub fn load_item_type_map() -> Result<HashMap<ItemTypeId, ItemTypeData>, Error> {
+    load_json_asset::<HashMap<ItemTypeId, ItemTypeData>>("item_types.json")
+}
+
+pub struct GameAssets {
+    pub(crate) noun_data_map: NounDataMap,
+    pub(crate) color_adjective_map: HashMap<AftikColorId, Adjective>,
+    pub(crate) item_type_map: HashMap<ItemTypeId, ItemTypeData>,
 }
 
 impl GameAssets {
@@ -630,6 +645,7 @@ impl GameAssets {
                 .into_iter()
                 .map(|(id, entry)| (id, entry.adjective))
                 .collect(),
+            item_type_map: load_item_type_map()?,
         })
     }
 }

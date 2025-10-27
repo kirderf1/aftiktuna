@@ -3,7 +3,7 @@ pub mod creature {
     use crate::asset::dialogue::ConditionedDialogueNode;
     use crate::core::behavior::{BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward};
     use crate::core::display::AftikColorId;
-    use crate::core::item::{self, ItemType};
+    use crate::core::item::{self, ItemTypeId};
     use crate::core::position::Direction;
     use crate::core::status::{CreatureAttribute, Stats};
     use crate::core::store::StockQuantity;
@@ -166,7 +166,7 @@ pub mod creature {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub background_dialogue: Option<BackgroundDialogue>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub wielded_item: Option<ItemType>,
+        pub wielded_item: Option<ItemTypeId>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub direction: Option<Direction>,
     }
@@ -179,9 +179,9 @@ pub mod creature {
         pub direction: Option<Direction>,
     }
 
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct StockDefinition {
-        pub item: ItemType,
+        pub item: ItemTypeId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub price: Option<item::Price>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -193,7 +193,7 @@ use crate::asset::background::ParallaxLayer;
 use crate::asset::loot::{self, LootTableId};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
-use crate::core::item::ItemType;
+use crate::core::item::ItemTypeId;
 use crate::core::name::NounId;
 use crate::core::position::Direction;
 use crate::core::{BlockType, DoorKind, Tag};
@@ -269,7 +269,7 @@ pub enum SymbolData {
     },
     FoodDeposit,
     Item {
-        item: ItemType,
+        item: ItemTypeId,
     },
     Loot {
         table: loot::LootTableId,
@@ -454,7 +454,7 @@ impl ContainerType {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ItemOrLoot {
-    Item { item: ItemType },
+    Item { item: ItemTypeId },
     Loot { table: LootTableId },
 }
 

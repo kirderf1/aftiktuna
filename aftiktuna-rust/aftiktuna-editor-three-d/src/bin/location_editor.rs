@@ -10,7 +10,7 @@ mod ui {
     use aftiktuna::core::BlockType;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::display::{AftikColorId, ModelId};
-    use aftiktuna::core::item::ItemType;
+    use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
@@ -44,6 +44,7 @@ mod ui {
                             }
                         },
                         &assets.aftik_colors,
+                        &assets.item_type_list,
                     );
 
                     match action {
@@ -77,12 +78,7 @@ mod ui {
                         overview_ui(editor_data, ui);
                     } else {
                         ui.separator();
-                        area_view_ui(
-                            ui,
-                            editor_data,
-                            &assets.background_types,
-                            &assets.base_symbols,
-                        );
+                        area_view_ui(ui, editor_data, assets);
                     }
 
                     ui.separator();
@@ -185,8 +181,7 @@ mod ui {
     fn area_view_ui(
         ui: &mut egui::Ui,
         editor_data: &mut super::EditorData,
-        background_types: &[BackgroundId],
-        base_symbols: &SymbolMap,
+        assets: &super::Assets,
     ) {
         egui::ComboBox::from_id_salt("area").show_index(
             ui,
@@ -219,13 +214,12 @@ mod ui {
             ui,
             area,
             &mut editor_data.selected_extra_background_layer,
-            background_types,
-            base_symbols,
+            assets,
         );
 
         ui.separator();
         ui.collapsing("Global Symbols", |ui| {
-            for (char, symbol_data) in base_symbols {
+            for (char, symbol_data) in &assets.base_symbols {
                 let color = if area.symbols.contains_key(char) {
                     egui::Color32::DARK_GRAY
                 } else {
@@ -244,8 +238,7 @@ mod ui {
         ui: &mut egui::Ui,
         area: &mut AreaData,
         selected_extra_background_layer: &mut usize,
-        background_types: &[BackgroundId],
-        base_symbols: &SymbolMap,
+        assets: &super::Assets,
     ) -> Option<SymbolEditData> {
         ui.label("Display Name:");
         ui.text_edit_singleline(&mut area.name);
@@ -254,7 +247,7 @@ mod ui {
         egui::ComboBox::from_id_salt("background")
             .selected_text(&area.background.0)
             .show_ui(ui, |ui| {
-                for background_id in background_types {
+                for background_id in &assets.background_types {
                     if ui
                         .selectable_label(background_id == &area.background, &background_id.0)
                         .clicked()
@@ -322,7 +315,7 @@ mod ui {
             let mut char_to_delete = None;
 
             for (char, symbol_data) in &area.symbols {
-                let color = if base_symbols.contains_key(char) {
+                let color = if assets.base_symbols.contains_key(char) {
                     egui::Color32::LIGHT_GRAY
                 } else {
                     egui::Color32::GRAY
@@ -378,7 +371,7 @@ mod ui {
                         old_char: None,
                         new_char: String::new(),
                         symbol_data: SymbolData::Item {
-                            item: ItemType::MeteorChunk,
+                            item: assets.item_type_list[0].clone(),
                         },
                     })
                 }
@@ -448,6 +441,7 @@ mod ui {
         symbol_edit_data: &mut SymbolEditData,
         symbol_lookup: impl FnOnce(char) -> SymbolStatus,
         aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
+        item_type_list: &[ItemTypeId],
     ) -> Option<SymbolEditAction> {
         ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
 
@@ -484,7 +478,7 @@ mod ui {
             }
             SymbolData::FoodDeposit => {}
             SymbolData::Item { item } => {
-                aftiktuna_editor_three_d::item_type_editor(ui, item, "item");
+                aftiktuna_editor_three_d::item_type_editor(ui, item, "item", item_type_list);
             }
             SymbolData::Loot { table } => {
                 aftiktuna_editor_three_d::loot_table_id_editor(ui, table);
@@ -550,12 +544,17 @@ mod ui {
                 ui.separator();
 
                 for (index, item_or_loot) in content.iter_mut().enumerate() {
-                    aftiktuna_editor_three_d::item_or_loot_editor(ui, item_or_loot, index);
+                    aftiktuna_editor_three_d::item_or_loot_editor(
+                        ui,
+                        item_or_loot,
+                        index,
+                        item_type_list,
+                    );
                 }
                 ui.horizontal(|ui| {
                     if ui.button("Add").clicked() {
                         content.push(ItemOrLoot::Item {
-                            item: ItemType::AncientCoin,
+                            item: item_type_list[0].clone(),
                         });
                     }
                     if ui.button("Remove").clicked() {
@@ -709,6 +708,7 @@ use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, placement};
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::AftikColorId;
+use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Coord;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
@@ -771,6 +771,10 @@ fn main() {
             File::open(color::AFTIK_COLORS_PATH).unwrap(),
         )
         .unwrap(),
+        item_type_list: aftiktuna::asset::load_item_type_map()
+            .unwrap()
+            .into_keys()
+            .collect(),
     };
     let mut camera = aftiktuna_three_d::Camera::default();
     let mut gui = three_d::GUI::new(&window.gl());
@@ -871,6 +875,7 @@ struct Assets {
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     aftik_colors: IndexMap<AftikColorId, AftikColorData>,
+    item_type_list: Vec<ItemTypeId>,
 }
 
 #[derive(Clone, Copy, Debug)]

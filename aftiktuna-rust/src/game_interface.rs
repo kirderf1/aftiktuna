@@ -24,14 +24,15 @@ pub fn setup_new() -> Result<Game, asset::Error> {
 }
 
 pub fn setup_new_with(locations: GenerationState) -> Game {
+    let assets = GameAssets::load().unwrap();
     let mut game = Game {
         serialized_state: SerializedState {
             phase: Phase::Invalid,
-            state: game_loop::setup(locations),
+            state: game_loop::setup(locations, &assets),
             frame_cache: FrameCache::new(vec![Frame::Introduction]),
         },
         is_in_error_state: false,
-        assets: GameAssets::load().unwrap(),
+        assets,
     };
     game.run_from_step(Step::PrepareNextLocation);
     game

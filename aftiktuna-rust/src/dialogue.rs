@@ -89,7 +89,7 @@ fn prompt_npc_dialogue(
                 view_buffer,
             );
 
-            reward.give_reward_to(crew_member, &mut state.world);
+            reward.give_reward_to(crew_member, &mut state.world, view_buffer.assets);
         }
     } else if let Some(talk) = npc_ref.get::<&Talk>() {
         view_buffer.push_dialogue(&state.world, npc, talk.0.expression, &talk.0.message);
@@ -114,7 +114,7 @@ fn complete_hunt_quest(
 
     run_dialogue_node(&reward_dialogue, crew_member, npc, state, view_buffer);
 
-    reward.give_reward_to(crew_member, &mut state.world);
+    reward.give_reward_to(crew_member, &mut state.world, view_buffer.assets);
 }
 
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {

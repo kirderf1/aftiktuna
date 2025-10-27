@@ -208,7 +208,7 @@ pub mod world {
         inventory::Held, Held;
         inventory::Container, Container;
 
-        item::ItemType, ItemType;
+        item::ItemTypeId, ItemType;
         item::CanWield, CanWield;
         item::Price, Price;
 

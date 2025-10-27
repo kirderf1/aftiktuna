@@ -1,7 +1,7 @@
 use crate::core::area::ShipControls;
 use crate::core::behavior::{Character, Hostile, Recruitable, Waiting};
 use crate::core::inventory::Container;
-use crate::core::item::{CanWield, ItemType};
+use crate::core::item::{CanWield, ItemTypeId};
 use crate::core::name::{Name, NameData};
 use crate::core::store::Shopkeeper;
 use crate::core::{BlockType, CrewMember, Door, FortunaChest, status};
@@ -165,7 +165,7 @@ pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionTyp
     let world = &state.world;
     let entity_ref = world.entity(entity).unwrap();
 
-    if entity_ref.satisfies::<&ItemType>() {
+    if entity_ref.satisfies::<&ItemTypeId>() {
         interactions.push(InteractionType::Item);
     }
     if entity_ref.satisfies::<&CanWield>() {

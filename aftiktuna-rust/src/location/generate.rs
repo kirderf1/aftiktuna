@@ -22,9 +22,9 @@ pub struct LocationBuildData {
     pub food_deposit_pos: Option<Pos>,
 }
 
-pub fn build_location(
+pub fn build_location<'a, 'b>(
     location_data: LocationData,
-    gen_context: &mut LocationGenContext,
+    gen_context: &'a mut LocationGenContext<'b>,
 ) -> Result<LocationBuildData, String> {
     let mut builder = Builder::new(gen_context, location_data.door_pairs);
     let base_symbols = asset::location::load_base_symbols()?;
@@ -105,14 +105,22 @@ fn place_symbol(
             }
         }
         SymbolData::Item { item } => {
-            item.spawn(&mut builder.gen_context.world, pos);
+            item.spawn(
+                &mut builder.gen_context.world,
+                pos,
+                &builder.gen_context.assets.item_type_map,
+            );
         }
         SymbolData::Loot { table } => {
-            let item = builder
+            let item_type = builder
                 .loot_table_cache
                 .get_or_load(table)?
                 .pick_loot_item(&mut builder.gen_context.rng);
-            item.spawn(&mut builder.gen_context.world, pos);
+            item_type.spawn(
+                &mut builder.gen_context.world,
+                pos,
+                &builder.gen_context.assets.item_type_map,
+            );
         }
         SymbolData::Door(door_data) => door::place(door_data, pos, builder)?,
         SymbolData::Inanimate { model, direction } => {
@@ -141,16 +149,16 @@ fn place_symbol(
     Ok(())
 }
 
-struct Builder<'a> {
-    gen_context: &'a mut LocationGenContext,
+struct Builder<'a, 'b> {
+    gen_context: &'a mut LocationGenContext<'b>,
     entry_positions: Vec<Pos>,
     food_deposit_pos: Option<Pos>,
     door_pair_builder: door::DoorPairsBuilder,
     loot_table_cache: loot::LootTableCache,
 }
 
-impl<'a> Builder<'a> {
-    fn new(gen_context: &'a mut LocationGenContext, door_pair_data: DoorPairMap) -> Self {
+impl<'a, 'b> Builder<'a, 'b> {
+    fn new(gen_context: &'a mut LocationGenContext<'b>, door_pair_data: DoorPairMap) -> Self {
         Self {
             gen_context,
             entry_positions: Vec::new(),
@@ -200,16 +208,17 @@ fn generate_item_or_loot(
     container: Entity,
     builder: &mut Builder,
 ) -> Result<(), String> {
-    let item = match item_or_loot {
-        ItemOrLoot::Item { item } => *item,
+    let item_type = match item_or_loot {
+        ItemOrLoot::Item { item } => item,
         ItemOrLoot::Loot { table } => builder
             .loot_table_cache
             .get_or_load(table)?
             .pick_loot_item(&mut builder.gen_context.rng),
     };
-    item.spawn(
+    item_type.spawn(
         &mut builder.gen_context.world,
         Held::in_inventory(container),
+        &builder.gen_context.assets.item_type_map,
     );
     Ok(())
 }

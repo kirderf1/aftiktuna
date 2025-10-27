@@ -109,7 +109,7 @@ fn buy(stock: &StoreStock, amount: u16, noun_map: &NounDataMap) -> Result<Comman
         ));
     }
 
-    command::action_result(Action::Buy(stock.item, amount))
+    command::action_result(Action::Buy(stock.item.clone(), amount))
 }
 
 fn held_items(world: &World, character: Entity, assets: &GameAssets) -> Vec<(String, Entity)> {

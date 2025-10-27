@@ -1,7 +1,7 @@
 use super::text::{self, Messages};
 use crate::asset::GameAssets;
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
-use crate::core::item::ItemType;
+use crate::core::item::ItemTypeId;
 use crate::core::name::{self, Name, NameData, NameIdData, NounId};
 use crate::core::position::Pos;
 use crate::core::status::{Health, Morale, Stats, Trait, Traits};
@@ -64,10 +64,10 @@ pub fn get_full_status(state: &GameState, assets: &GameAssets) -> FullStatus {
 
     let ration_count = state
         .world
-        .query::<(&ItemType, &Pos)>()
+        .query::<(&ItemTypeId, &Pos)>()
         .iter()
         .filter(|&(_, (item_type, pos))| {
-            *item_type == ItemType::FoodRation && area::is_in_ship(*pos, &state.world)
+            item_type.is_food_ration() && area::is_in_ship(*pos, &state.world)
         })
         .count();
     ship_messages.add(format!("Food rations at ship: {ration_count}"));

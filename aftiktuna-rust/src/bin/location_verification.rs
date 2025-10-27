@@ -1,3 +1,4 @@
+use aftiktuna::asset::GameAssets;
 use aftiktuna::asset::location::LocationData;
 use aftiktuna::location;
 use aftiktuna::location::generate::LocationBuildData;
@@ -10,21 +11,26 @@ fn main() {
             return;
         }
     };
+    let assets = GameAssets::load().unwrap();
 
     let mut failure_count = 0;
     for location_name in locations.all_location_names() {
-        if !try_load(location_name, |_| Ok(())) {
+        if !try_load(location_name, |_| Ok(()), &assets) {
             failure_count += 1;
         }
     }
 
-    if !try_load("crew_ship", |build_data| {
-        if build_data.food_deposit_pos.is_none() {
-            Err("Missing food deposit in ship".to_string())
-        } else {
-            Ok(())
-        }
-    }) {
+    if !try_load(
+        "crew_ship",
+        |build_data| {
+            if build_data.food_deposit_pos.is_none() {
+                Err("Missing food deposit in ship".to_string())
+            } else {
+                Ok(())
+            }
+        },
+        &assets,
+    ) {
         failure_count += 1;
     }
 
@@ -36,12 +42,13 @@ fn main() {
 fn try_load(
     location_name: &str,
     verify_build_data: impl Fn(LocationBuildData) -> Result<(), String>,
+    assets: &GameAssets,
 ) -> bool {
     let load_result = LocationData::load_from_json(location_name)
         .and_then(|location_data| {
             location::generate::build_location(
                 location_data,
-                &mut location::LocationGenContext::default(),
+                &mut location::LocationGenContext::dummy(assets),
             )
         })
         .and_then(verify_build_data);

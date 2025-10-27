@@ -1,0 +1,26 @@
+{
+  "fuel_can": { "price": 3500 },
+  "food_ration": { "price": 500 },
+  "crowbar": {
+    "weapon": { "damage_mod": 3.0, "attack_set": "light" },
+    "price": 2000
+  },
+  "blowtorch": { "price": 6000 },
+  "knife": {
+    "weapon": { "damage_mod": 3.0, "attack_set": "quick" },
+    "price": 300
+  },
+  "bat": {
+    "weapon": { "damage_mod": 3.0, "attack_set": "intense", "stun_attack": true },
+    "price": 1000
+  },
+  "sword": {
+    "weapon": { "damage_mod": 5.0, "attack_set": "quick" },
+    "price": 5000
+  },
+  "medkit": { "price": 4000 },
+  "meteor_chunk": { "price": 2500 },
+  "ancient_coin": { "price": 500 },
+  "black_orb": { "price": 8000 },
+  "four_leaf_clover": {}
+}

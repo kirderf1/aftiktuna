@@ -1,10 +1,10 @@
 use super::display::ModelId;
-use crate::asset::NounDataMap;
+use crate::asset::{GameAssets, ItemTypeData};
 use crate::core::name::NounId;
-use crate::core::{AttackSet, WeaponProperties};
 use crate::view::text;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Tool {
@@ -26,12 +26,11 @@ impl Tool {
         }
     }
 
-    pub fn matches(self, item_type: ItemType) -> bool {
-        item_type
-            == match self {
-                Tool::Crowbar => ItemType::Crowbar,
-                Tool::Blowtorch => ItemType::Blowtorch,
-            }
+    pub fn matches(self, item_type: &ItemTypeId) -> bool {
+        match self {
+            Tool::Crowbar => item_type.is_crowbar(),
+            Tool::Blowtorch => item_type.is_blowtorch(),
+        }
     }
 }
 
@@ -51,185 +50,124 @@ impl Price {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ItemType {
-    FuelCan,
-    FoodRation,
-    Crowbar,
-    Blowtorch,
-    Knife,
-    Bat,
-    Sword,
-    Medkit,
-    MeteorChunk,
-    AncientCoin,
-    BlackOrb,
-    FourLeafClover,
-}
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct ItemTypeId(String);
 
-impl ItemType {
-    pub fn variants() -> &'static [Self] {
-        use ItemType::*;
-        &[
-            FuelCan,
-            FoodRation,
-            Crowbar,
-            Blowtorch,
-            Knife,
-            Bat,
-            Sword,
-            Medkit,
-            MeteorChunk,
-            AncientCoin,
-            BlackOrb,
-            FourLeafClover,
-        ]
+impl ItemTypeId {
+    pub fn is_fuel_can(&self) -> bool {
+        self.0 == "fuel_can"
+    }
+    const FOOD_RATION: &'static str = "food_ration";
+    pub fn food_ration() -> Self {
+        Self(Self::FOOD_RATION.into())
+    }
+    pub fn is_food_ration(&self) -> bool {
+        self.0 == Self::FOOD_RATION
+    }
+    pub fn is_crowbar(&self) -> bool {
+        self.0 == "crowbar"
+    }
+    pub fn is_blowtorch(&self) -> bool {
+        self.0 == "blowtorch"
+    }
+    pub fn is_medkit(&self) -> bool {
+        self.0 == "medkit"
+    }
+    pub fn is_black_orb(&self) -> bool {
+        self.0 == "black_orb"
+    }
+    pub fn is_four_leaf_clover(&self) -> bool {
+        self.0 == "four_leaf_clover"
     }
 
-    pub fn spawn(self, world: &mut World, location: impl Component) -> Entity {
-        spawn(world, self, self.price(), location)
+    pub fn noun_id(&self) -> NounId {
+        NounId(self.0.clone())
     }
 
-    pub fn noun_id(self) -> NounId {
-        use ItemType::*;
-        match self {
-            FuelCan => "fuel_can",
-            FoodRation => "food_ration",
-            Crowbar => "crowbar",
-            Blowtorch => "blowtorch",
-            Knife => "knife",
-            Bat => "bat",
-            Sword => "sword",
-            Medkit => "medkit",
-            MeteorChunk => "meteor_chunk",
-            AncientCoin => "ancient_coin",
-            BlackOrb => "black_orb",
-            FourLeafClover => "four_leaf_clover",
-        }
-        .into()
+    pub fn model_id(&self) -> ModelId {
+        ModelId::item(&self.0)
     }
 
-    pub fn price(self) -> Option<Price> {
-        use ItemType::*;
-        match self {
-            FuelCan => Some(3500),
-            FoodRation => Some(500),
-            Crowbar => Some(2000),
-            Blowtorch => Some(6000),
-            Knife => Some(300),
-            Bat => Some(1000),
-            Sword => Some(5000),
-            Medkit => Some(4000),
-            MeteorChunk => Some(2500),
-            AncientCoin => Some(500),
-            BlackOrb => Some(8000),
-            _ => None,
-        }
-        .map(Price)
-    }
-
-    pub fn weapon_properties(self) -> Option<WeaponProperties> {
-        match self {
-            Self::Crowbar => Some(WeaponProperties {
-                damage_mod: 3.0,
-                attack_set: AttackSet::Light,
-                stun_attack: false,
-            }),
-            Self::Knife => Some(WeaponProperties {
-                damage_mod: 3.0,
-                attack_set: AttackSet::Quick,
-                stun_attack: false,
-            }),
-            Self::Bat => Some(WeaponProperties {
-                damage_mod: 3.0,
-                attack_set: AttackSet::Intense,
-                stun_attack: true,
-            }),
-            Self::Sword => Some(WeaponProperties {
-                damage_mod: 5.0,
-                attack_set: AttackSet::Quick,
-                stun_attack: false,
-            }),
-            _ => None,
-        }
-    }
-
-    pub fn is_usable(self) -> bool {
-        matches!(self, Self::Medkit | Self::BlackOrb)
+    pub(crate) fn spawn(
+        &self,
+        world: &mut World,
+        location: impl Component,
+        item_type_map: &HashMap<ItemTypeId, ItemTypeData>,
+    ) -> Entity {
+        spawn(
+            world,
+            self,
+            item_type_map.get(self).and_then(|data| data.price),
+            location,
+            item_type_map,
+        )
     }
 }
 
-impl From<ItemType> for ModelId {
-    fn from(item: ItemType) -> Self {
-        use ItemType::*;
-        ModelId::item(match item {
-            FuelCan => "fuel_can",
-            FoodRation => "food_ration",
-            Crowbar => "crowbar",
-            Blowtorch => "blowtorch",
-            Knife => "knife",
-            Bat => "bat",
-            Sword => "sword",
-            Medkit => "medkit",
-            MeteorChunk => "meteor_chunk",
-            AncientCoin => "ancient_coin",
-            BlackOrb => "black_orb",
-            FourLeafClover => "four_leaf_clover",
-        })
-    }
-}
-
-pub fn spawn(
+pub(crate) fn spawn(
     world: &mut World,
-    item_type: ItemType,
+    item_type: &ItemTypeId,
     price: Option<Price>,
     location: impl Component,
+    item_type_map: &HashMap<ItemTypeId, ItemTypeData>,
 ) -> Entity {
+    let item_type_data = item_type_map.get(item_type);
     let mut builder = EntityBuilder::new();
-    builder.add_bundle((
-        location,
-        item_type,
-        ModelId::from(item_type),
-        item_type.noun_id(),
-    ));
+    builder
+        .add::<ItemTypeId>(item_type.clone())
+        .add::<ModelId>(item_type.model_id())
+        .add::<NounId>(item_type.noun_id())
+        .add(location);
     if let Some(price) = price {
         builder.add(price);
     }
 
-    if item_type.weapon_properties().is_some() {
+    if item_type_data.and_then(|data| data.weapon).is_some() {
         builder.add(CanWield);
     }
 
     world.spawn(builder.build())
 }
 
-pub(crate) fn description(item_ref: EntityRef, noun_map: &NounDataMap) -> Vec<String> {
+pub(crate) fn description(item_ref: EntityRef, assets: &GameAssets) -> Vec<String> {
     let mut messages = Vec::new();
     messages.push(format!(
         "{}:",
         text::capitalize(
-            noun_map
+            assets
+                .noun_data_map
                 .lookup(&item_ref.get::<&NounId>().unwrap())
                 .singular()
         )
     ));
 
-    let item_type = *item_ref.get::<&ItemType>().unwrap();
+    let item_type = item_ref.get::<&ItemTypeId>().unwrap();
 
-    if let Some(weapon_properties) = item_type.weapon_properties() {
+    if let Some(weapon_properties) = assets
+        .item_type_map
+        .get(&item_type)
+        .and_then(|data| data.weapon)
+    {
         messages.push(format!("Weapon value: {}", weapon_properties.damage_mod));
     }
-    match item_type {
-        ItemType::FuelCan => messages.push("Used to refuel the ship.".into()),
-        ItemType::FoodRation => messages.push("May be eaten by crew members while travelling to their next location to recover health.".into()),
-        ItemType::Crowbar => messages.push("Used to force open doors that are stuck.".into()),
-        ItemType::Blowtorch => messages.push("Used to cut apart any door that won't open.".into()),
-        ItemType::Medkit => messages.push("Used to recover some health of the user.".into()),
-        ItemType::BlackOrb => messages.push("A mysterious object that when used, might change the user in some way.".into()),
-        ItemType::FourLeafClover => messages.push("A mysterious object said to bring luck to whoever finds it.".into()),
-        _ => {}
+
+    if item_type.is_fuel_can() {
+        messages.push("Used to refuel the ship.".into());
+    } else if item_type.is_food_ration() {
+        messages.push("May be eaten by crew members while travelling to their next location to recover health.".into());
+    } else if item_type.is_crowbar() {
+        messages.push("Used to force open doors that are stuck.".into());
+    } else if item_type.is_blowtorch() {
+        messages.push("Used to cut apart any door that won't open.".into());
+    } else if item_type.is_medkit() {
+        messages.push("Used to recover some health of the user.".into());
+    } else if item_type.is_black_orb() {
+        messages
+            .push("A mysterious object that when used, might change the user in some way.".into());
+    } else if item_type.is_four_leaf_clover() {
+        messages.push("A mysterious object said to bring luck to whoever finds it.".into());
     }
+
     if item_ref.satisfies::<&Price>() {
         messages.push("Can be sold at a store.".into());
     }
