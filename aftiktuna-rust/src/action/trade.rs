@@ -1,6 +1,6 @@
 use crate::action::{self, Error};
 use crate::core::inventory::{self, Held};
-use crate::core::item::{self, ItemTypeId};
+use crate::core::item::ItemTypeId;
 use crate::core::name::{self, NameData, NameIdData};
 use crate::core::store::{self, IsTrading, Points, Shopkeeper, StoreStock};
 use crate::core::{CrewMember, area};
@@ -47,12 +47,7 @@ pub fn buy(
     let item_type = try_buy(world, performer, &item_type, amount)?;
 
     for _ in 0..amount {
-        item::spawn(
-            world,
-            &item_type,
-            Held::in_inventory(performer),
-            &context.view_context.view_buffer.assets.item_type_map,
-        );
+        item_type.spawn(world, Held::in_inventory(performer));
     }
 
     context.view_context.view_buffer.add_change_message(

@@ -5,7 +5,7 @@ use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{AftikColorId, DialogueExpression, ModelId};
 use crate::core::inventory::{self, Held};
-use crate::core::item::{CanWield, ItemTypeId};
+use crate::core::item::ItemTypeId;
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health, Morale};
@@ -117,7 +117,10 @@ impl ItemProfile {
     fn create(item: EntityRef, assets: &GameAssets) -> Self {
         Self {
             name: NameData::find_by_ref(item, assets).base(),
-            is_wieldable: item.satisfies::<&CanWield>(),
+            is_wieldable: item
+                .get::<&ItemTypeId>()
+                .and_then(|item_type| assets.item_type_map.get(&item_type))
+                .is_some_and(|data| data.weapon.is_some()),
             is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
             is_usable: item
                 .get::<&ItemTypeId>()
@@ -205,7 +208,7 @@ fn build_object_data(
         is_controlled: entity == state.controlled,
         name_data: ObjectNameData::build(entity_ref, &state.world, assets),
         wielded_item: find_wielded_item_texture(&state.world, entity),
-        interactions: suggestion::interactions_for(entity, state),
+        interactions: suggestion::interactions_for(entity, state, assets),
         properties,
     }
 }

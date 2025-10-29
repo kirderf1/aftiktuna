@@ -3,7 +3,6 @@ use super::inventory::Held;
 use super::item::ItemTypeId;
 use super::position::Pos;
 use super::{CrewMember, Tag, status, store};
-use crate::asset::GameAssets;
 use crate::asset::dialogue::ConditionedDialogueNode;
 use serde::{Deserialize, Serialize};
 
@@ -116,12 +115,7 @@ pub struct Reward {
 }
 
 impl Reward {
-    pub fn give_reward_to(
-        &self,
-        target: hecs::Entity,
-        world: &mut hecs::World,
-        assets: &GameAssets,
-    ) {
+    pub fn give_reward_to(&self, target: hecs::Entity, world: &mut hecs::World) {
         if self.points != 0 {
             let mut crew_points = world
                 .get::<&CrewMember>(target)
@@ -131,7 +125,7 @@ impl Reward {
         }
 
         for item_type in &self.items {
-            item_type.spawn(world, Held::in_inventory(target), &assets.item_type_map);
+            item_type.spawn(world, Held::in_inventory(target));
         }
     }
 }

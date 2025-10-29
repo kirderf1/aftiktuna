@@ -145,11 +145,7 @@ pub(super) fn place_npc(
 
     let npc = gen_context.world.spawn(builder.build());
     if let Some(item_type) = &spawn_data.wielded_item {
-        item_type.spawn(
-            &mut gen_context.world,
-            inventory::Held::in_hand(npc),
-            &gen_context.assets.item_type_map,
-        );
+        item_type.spawn(&mut gen_context.world, inventory::Held::in_hand(npc));
     }
 
     Ok(())

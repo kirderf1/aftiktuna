@@ -1,10 +1,9 @@
 use super::display::ModelId;
-use crate::asset::{GameAssets, ItemTypeData};
+use crate::asset::GameAssets;
 use crate::core::name::NounId;
 use crate::view::text;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Tool {
@@ -33,9 +32,6 @@ impl Tool {
         }
     }
 }
-
-#[derive(Debug, Default, Serialize, Deserialize)]
-pub struct CanWield;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Price(i32);
@@ -88,35 +84,16 @@ impl ItemTypeId {
         ModelId::item(&self.0)
     }
 
-    pub(crate) fn spawn(
-        &self,
-        world: &mut World,
-        location: impl Component,
-        item_type_map: &HashMap<ItemTypeId, ItemTypeData>,
-    ) -> Entity {
-        spawn(world, self, location, item_type_map)
+    pub(crate) fn spawn(&self, world: &mut World, location: impl Component) -> Entity {
+        let mut builder = EntityBuilder::new();
+        builder
+            .add::<ItemTypeId>(self.clone())
+            .add::<ModelId>(self.model_id())
+            .add::<NounId>(self.noun_id())
+            .add(location);
+
+        world.spawn(builder.build())
     }
-}
-
-pub(crate) fn spawn(
-    world: &mut World,
-    item_type: &ItemTypeId,
-    location: impl Component,
-    item_type_map: &HashMap<ItemTypeId, ItemTypeData>,
-) -> Entity {
-    let item_type_data = item_type_map.get(item_type);
-    let mut builder = EntityBuilder::new();
-    builder
-        .add::<ItemTypeId>(item_type.clone())
-        .add::<ModelId>(item_type.model_id())
-        .add::<NounId>(item_type.noun_id())
-        .add(location);
-
-    if item_type_data.and_then(|data| data.weapon).is_some() {
-        builder.add(CanWield);
-    }
-
-    world.spawn(builder.build())
 }
 
 pub(crate) fn description(item_ref: EntityRef, assets: &GameAssets) -> Vec<String> {

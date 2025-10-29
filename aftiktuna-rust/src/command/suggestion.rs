@@ -1,7 +1,8 @@
+use crate::asset::GameAssets;
 use crate::core::area::ShipControls;
 use crate::core::behavior::{Character, Hostile, Recruitable, Waiting};
 use crate::core::inventory::Container;
-use crate::core::item::{CanWield, ItemTypeId};
+use crate::core::item::ItemTypeId;
 use crate::core::name::{Name, NameData};
 use crate::core::store::Shopkeeper;
 use crate::core::{BlockType, CrewMember, Door, FortunaChest, status};
@@ -160,16 +161,24 @@ impl InteractionType {
     }
 }
 
-pub fn interactions_for(entity: Entity, state: &GameState) -> Vec<InteractionType> {
+pub fn interactions_for(
+    entity: Entity,
+    state: &GameState,
+    assets: &GameAssets,
+) -> Vec<InteractionType> {
     let mut interactions = Vec::new();
     let world = &state.world;
     let entity_ref = world.entity(entity).unwrap();
 
-    if entity_ref.satisfies::<&ItemTypeId>() {
+    if let Some(item_type) = entity_ref.get::<&ItemTypeId>() {
         interactions.push(InteractionType::Item);
-    }
-    if entity_ref.satisfies::<&CanWield>() {
-        interactions.push(InteractionType::Wieldable);
+        if assets
+            .item_type_map
+            .get(&item_type)
+            .is_some_and(|data| data.weapon.is_some())
+        {
+            interactions.push(InteractionType::Wieldable);
+        }
     }
 
     if entity_ref.satisfies::<&Container>() {

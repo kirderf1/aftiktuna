@@ -207,9 +207,7 @@ pub mod world {
 
         inventory::Held, Held;
         inventory::Container, Container;
-
         item::ItemTypeId, ItemType;
-        item::CanWield, CanWield;
 
         core::FortunaChest, FortunaChest;
         core::OpenedChest, OpenedChest;

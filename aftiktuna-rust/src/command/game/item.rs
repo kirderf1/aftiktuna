@@ -5,7 +5,7 @@ use crate::command::parse::{Parse, first_match, first_match_or};
 use crate::command::{self, CommandResult};
 use crate::core::behavior;
 use crate::core::inventory::{Container, Held};
-use crate::core::item::{CanWield, ItemTypeId};
+use crate::core::item::ItemTypeId;
 use crate::core::name::NameData;
 use crate::core::position::Pos;
 use crate::core::status::Health;
@@ -73,7 +73,7 @@ pub fn commands(
                             .map(|(name, item)| (name, WieldItemTarget::InInventory(item))),
                     )
                     .chain(
-                        super::targets_by_proximity::<(&CanWield, &ItemTypeId)>(
+                        super::targets_by_proximity::<&ItemTypeId>(
                             character_pos,
                             &state.world,
                             assets,
@@ -259,7 +259,11 @@ fn use_item(item: Entity, state: &GameState, assets: &GameAssets) -> Result<Comm
         command::action_result(UseAction { item })
     } else if item_type.is_black_orb() {
         command::action_result(UseAction { item })
-    } else if item_ref.satisfies::<&CanWield>() {
+    } else if assets
+        .item_type_map
+        .get(&item_type)
+        .is_some_and(|data| data.weapon.is_some())
+    {
         if item_ref
             .get::<&Held>()
             .is_some_and(|held| held.is_in_hand())

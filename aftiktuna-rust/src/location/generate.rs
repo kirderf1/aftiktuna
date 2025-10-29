@@ -105,22 +105,14 @@ fn place_symbol(
             }
         }
         SymbolData::Item { item } => {
-            item.spawn(
-                &mut builder.gen_context.world,
-                pos,
-                &builder.gen_context.assets.item_type_map,
-            );
+            item.spawn(&mut builder.gen_context.world, pos);
         }
         SymbolData::Loot { table } => {
             let item_type = builder
                 .loot_table_cache
                 .get_or_load(table)?
                 .pick_loot_item(&mut builder.gen_context.rng);
-            item_type.spawn(
-                &mut builder.gen_context.world,
-                pos,
-                &builder.gen_context.assets.item_type_map,
-            );
+            item_type.spawn(&mut builder.gen_context.world, pos);
         }
         SymbolData::Door(door_data) => door::place(door_data, pos, builder)?,
         SymbolData::Inanimate { model, direction } => {
@@ -218,7 +210,6 @@ fn generate_item_or_loot(
     item_type.spawn(
         &mut builder.gen_context.world,
         Held::in_inventory(container),
-        &builder.gen_context.assets.item_type_map,
     );
     Ok(())
 }
