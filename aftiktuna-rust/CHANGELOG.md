@@ -46,6 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Fixed crash from talking to a crew member on the move
+- Fixed arbitrary item being wieldable when manually typing a command
 - Removed an unintentional extra creature from one of the possible Fortuna locations
 
 ### Removed

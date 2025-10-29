@@ -202,16 +202,15 @@ fn wield(
     state: &GameState,
     assets: &GameAssets,
 ) -> Result<CommandResult, String> {
-    match item {
-        WieldItemTarget::InHand(item) => Err(format!(
-            "{} is already wielding a {}.",
-            NameData::find(&state.world, state.controlled, assets).definite(),
-            NameData::find(&state.world, item, assets).base(),
-        )),
-        WieldItemTarget::InInventory(item) => command::action_result(Action::Wield(
-            item,
-            NameData::find(&state.world, item, assets),
-        )),
+    let item = match item {
+        WieldItemTarget::InHand(item) => {
+            return Err(format!(
+                "{the_character} is already wielding a {item}.",
+                the_character = NameData::find(&state.world, state.controlled, assets).definite(),
+                item = NameData::find(&state.world, item, assets).base(),
+            ));
+        }
+        WieldItemTarget::InInventory(item) => item,
         WieldItemTarget::OnGround(item) => {
             super::check_accessible_with_message(
                 item,
@@ -220,13 +219,26 @@ fn wield(
                 &state.world,
                 assets,
             )?;
-
-            command::action_result(Action::Wield(
-                item,
-                NameData::find(&state.world, item, assets),
-            ))
+            item
         }
+    };
+
+    let item_type = state.world.get::<&ItemTypeId>(item).unwrap();
+    if assets
+        .item_type_map
+        .get(&item_type)
+        .is_none_or(|data| data.weapon.is_none())
+    {
+        return Err(format!(
+            "{the_item} is not a wieldable item.",
+            the_item = NameData::find(&state.world, item, assets).definite(),
+        ));
     }
+
+    command::action_result(Action::Wield(
+        item,
+        NameData::find(&state.world, item, assets),
+    ))
 }
 
 fn use_item(item: Entity, state: &GameState, assets: &GameAssets) -> Result<CommandResult, String> {
