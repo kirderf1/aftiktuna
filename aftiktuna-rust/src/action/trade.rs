@@ -2,8 +2,7 @@ use crate::action::{self, Error};
 use crate::core::inventory::{self, Held};
 use crate::core::item::{self, ItemTypeId, Price};
 use crate::core::name::{self, NameData, NameIdData};
-use crate::core::position::Pos;
-use crate::core::store::{IsTrading, Points, Shopkeeper, StoreStock};
+use crate::core::store::{self, IsTrading, Points, Shopkeeper, StoreStock};
 use crate::core::{CrewMember, area};
 use crate::view::text;
 use hecs::{Entity, EntityRef, World};
@@ -22,10 +21,6 @@ pub fn trade(context: action::Context, performer: Entity, shopkeeper: Entity) ->
                 .world
                 .get::<&Shopkeeper>(shopkeeper)
                 .expect("Expected target of trade action to be a shopkeeper.");
-            state
-                .world
-                .insert_one(performer, IsTrading(shopkeeper))
-                .unwrap();
 
             crate::dialogue::trigger_dialogue_by_name(
                 "initiate_trade",
@@ -35,12 +30,7 @@ pub fn trade(context: action::Context, performer: Entity, shopkeeper: Entity) ->
                 view_context.view_buffer,
             );
 
-            let area = state.world.get::<&Pos>(performer).unwrap().get_area();
-            view_context.add_message_at(
-                area,
-                "\"Welcome to the store. What do you want to buy?\"".to_owned(),
-                state,
-            );
+            store::initiate_trade(performer, shopkeeper, state, view_context.view_buffer);
             Some(Ok(action::Success))
         },
     )

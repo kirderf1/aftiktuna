@@ -6,6 +6,7 @@ use crate::core::behavior::{
 use crate::core::name::Name;
 use crate::core::position::{self, Pos};
 use crate::core::status::Health;
+use crate::core::store::{self, Shopkeeper};
 use crate::core::{self, CrewMember, area, inventory};
 use crate::game_loop::GameState;
 use crate::{asset, view};
@@ -96,6 +97,9 @@ fn prompt_npc_dialogue(
     } else if npc_ref.has::<Recruitable>() {
         drop(gives_hunt_reward);
         trigger_dialogue_by_name("recruitable", npc, crew_member, state, view_buffer);
+    } else if npc_ref.has::<Shopkeeper>() {
+        drop(gives_hunt_reward);
+        store::initiate_trade(crew_member, npc, state, view_buffer);
     }
 }
 

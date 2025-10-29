@@ -90,6 +90,8 @@ pub mod display {
 }
 
 pub mod store {
+    use crate::game_loop::GameState;
+    use crate::view;
     use hecs::{Entity, Ref, World};
     use serde::{Deserialize, Serialize};
     use std::fmt::Display;
@@ -145,6 +147,23 @@ pub mod store {
     pub(crate) fn get_shop_info(world: &World, character: Entity) -> Option<Ref<'_, Shopkeeper>> {
         let shopkeeper = world.get::<&IsTrading>(character).ok()?.0;
         world.get::<&Shopkeeper>(shopkeeper).ok()
+    }
+
+    pub(crate) fn initiate_trade(
+        character: Entity,
+        shopkeeper: Entity,
+        state: &mut GameState,
+        view_buffer: &mut view::Buffer,
+    ) {
+        state
+            .world
+            .insert_one(character, IsTrading(shopkeeper))
+            .unwrap();
+
+        view_buffer.add_change_message(
+            "\"Welcome to the store. What do you want to buy?\"".to_owned(),
+            state,
+        );
     }
 }
 

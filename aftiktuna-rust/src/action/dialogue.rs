@@ -47,7 +47,7 @@ impl TalkAction {
                  view_context,
              }| {
                 topic.perform(performer, target, state, view_context.view_buffer);
-                None
+                Some(Ok(action::Success))
             },
         )
     }
