@@ -1,11 +1,12 @@
 {
-  "fuel_can": { "price": 3500 },
-  "food_ration": { "price": 500 },
+  "fuel_can": { "price": 3500, "extra_description": "Used to refuel the ship." },
+  "food_ration": { "price": 500, "extra_description": "May be eaten by crew members while travelling to their next location to recover health." },
   "crowbar": {
     "weapon": { "damage_mod": 3.0, "attack_set": "light" },
-    "price": 2000
+    "price": 2000,
+    "extra_description": "Used to force open doors that are stuck."
   },
-  "blowtorch": { "price": 6000 },
+  "blowtorch": { "price": 6000, "extra_description": "Used to cut apart any door that won't open." },
   "knife": {
     "weapon": { "damage_mod": 3.0, "attack_set": "quick" },
     "price": 300
@@ -18,9 +19,9 @@
     "weapon": { "damage_mod": 5.0, "attack_set": "quick" },
     "price": 5000
   },
-  "medkit": { "price": 4000 },
+  "medkit": { "price": 4000, "extra_description": "Used to recover some health of the user." },
   "meteor_chunk": { "price": 2500 },
   "ancient_coin": { "price": 500 },
-  "black_orb": { "price": 8000 },
-  "four_leaf_clover": {}
+  "black_orb": { "price": 8000, "extra_description": "A mysterious object that when used, might change the user in some way." },
+  "four_leaf_clover": { "extra_description": "A mysterious object said to bring luck to whoever finds it." }
 }

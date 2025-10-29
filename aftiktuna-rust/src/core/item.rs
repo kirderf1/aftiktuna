@@ -142,30 +142,15 @@ pub(crate) fn description(item_ref: EntityRef, assets: &GameAssets) -> Vec<Strin
     ));
 
     let item_type = item_ref.get::<&ItemTypeId>().unwrap();
+    let item_type_data = assets.item_type_map.get(&item_type);
 
-    if let Some(weapon_properties) = assets
-        .item_type_map
-        .get(&item_type)
-        .and_then(|data| data.weapon)
-    {
+    if let Some(weapon_properties) = item_type_data.and_then(|data| data.weapon) {
         messages.push(format!("Weapon value: {}", weapon_properties.damage_mod));
     }
 
-    if item_type.is_fuel_can() {
-        messages.push("Used to refuel the ship.".into());
-    } else if item_type.is_food_ration() {
-        messages.push("May be eaten by crew members while travelling to their next location to recover health.".into());
-    } else if item_type.is_crowbar() {
-        messages.push("Used to force open doors that are stuck.".into());
-    } else if item_type.is_blowtorch() {
-        messages.push("Used to cut apart any door that won't open.".into());
-    } else if item_type.is_medkit() {
-        messages.push("Used to recover some health of the user.".into());
-    } else if item_type.is_black_orb() {
-        messages
-            .push("A mysterious object that when used, might change the user in some way.".into());
-    } else if item_type.is_four_leaf_clover() {
-        messages.push("A mysterious object said to bring luck to whoever finds it.".into());
+    if let Some(extra_description) = item_type_data.and_then(|data| data.extra_description.as_ref())
+    {
+        messages.push(extra_description.into());
     }
 
     if item_ref.satisfies::<&Price>() {
