@@ -210,7 +210,6 @@ pub mod world {
 
         item::ItemTypeId, ItemType;
         item::CanWield, CanWield;
-        item::Price, Price;
 
         core::FortunaChest, FortunaChest;
         core::OpenedChest, OpenedChest;

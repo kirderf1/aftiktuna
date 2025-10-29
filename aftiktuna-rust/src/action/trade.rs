@@ -1,6 +1,6 @@
 use crate::action::{self, Error};
 use crate::core::inventory::{self, Held};
-use crate::core::item::{self, ItemTypeId, Price};
+use crate::core::item::{self, ItemTypeId};
 use crate::core::name::{self, NameData, NameIdData};
 use crate::core::store::{self, IsTrading, Points, Shopkeeper, StoreStock};
 use crate::core::{CrewMember, area};
@@ -44,13 +44,12 @@ pub fn buy(
 ) -> action::Result {
     let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
-    let (item_type, price) = try_buy(world, performer, &item_type, amount)?;
+    let item_type = try_buy(world, performer, &item_type, amount)?;
 
     for _ in 0..amount {
         item::spawn(
             world,
             &item_type,
-            Some(price),
             Held::in_inventory(performer),
             &context.view_context.view_buffer.assets.item_type_map,
         );
@@ -75,7 +74,7 @@ fn try_buy(
     performer: Entity,
     item_type: &ItemTypeId,
     amount: u16,
-) -> Result<(ItemTypeId, Price), String> {
+) -> Result<ItemTypeId, String> {
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
     let shopkeeper = world
         .get::<&IsTrading>(performer)
@@ -97,7 +96,7 @@ fn try_buy(
     )?;
     stock.quantity = new_quantity;
 
-    Ok((stock.item.clone(), stock.price))
+    Ok(stock.item.clone())
 }
 
 fn find_stock<'a>(
@@ -123,12 +122,17 @@ pub fn sell(
         let item_ref = world
             .entity(item)
             .map_err(|_| "One of the items being sold no longer exists.")?;
+        let item_type = item_ref
+            .get::<&ItemTypeId>()
+            .ok_or("Item to sell is not actully an item!")?;
         item_ref
             .get::<&Held>()
             .filter(|held| held.held_by(performer))
             .ok_or("Item to sell is not being held!")?;
-        value += item_ref
-            .get::<&Price>()
+        value += assets
+            .item_type_map
+            .get(&item_type)
+            .and_then(|data| data.price)
             .ok_or("That item can not be sold.")?
             .sell_price();
         is_selling_fuel |= item_ref

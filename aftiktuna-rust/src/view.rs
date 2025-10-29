@@ -25,7 +25,7 @@ mod store {
     use crate::core::area::{Area, BackgroundId};
     use crate::core::display::AftikColorId;
     use crate::core::inventory::Held;
-    use crate::core::item::{self, Price};
+    use crate::core::item::{self, ItemTypeId};
     use crate::core::name::{NameData, NameIdData, NameQuery, NounData};
     use crate::core::position::Pos;
     use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
@@ -79,11 +79,17 @@ mod store {
             .collect();
         let mut sellable_items_count = IndexMap::new();
         world
-            .query::<(&Held, NameQuery)>()
-            .with::<&Price>()
+            .query::<(&ItemTypeId, &Held, NameQuery)>()
             .iter()
-            .filter(|(_, (held, _))| held.held_by(character))
-            .map(|(_, (_, query))| NameIdData::from(query))
+            .filter(|(_, (item_type, held, _))| {
+                buffer
+                    .assets
+                    .item_type_map
+                    .get(item_type)
+                    .is_some_and(|data| data.price.is_some())
+                    && held.held_by(character)
+            })
+            .map(|(_, (_, _, query))| NameIdData::from(query))
             .for_each(|name_data| *sellable_items_count.entry(name_data).or_default() += 1);
         let sellable_items = sellable_items_count
             .into_iter()

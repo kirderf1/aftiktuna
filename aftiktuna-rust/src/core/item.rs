@@ -94,20 +94,13 @@ impl ItemTypeId {
         location: impl Component,
         item_type_map: &HashMap<ItemTypeId, ItemTypeData>,
     ) -> Entity {
-        spawn(
-            world,
-            self,
-            item_type_map.get(self).and_then(|data| data.price),
-            location,
-            item_type_map,
-        )
+        spawn(world, self, location, item_type_map)
     }
 }
 
 pub(crate) fn spawn(
     world: &mut World,
     item_type: &ItemTypeId,
-    price: Option<Price>,
     location: impl Component,
     item_type_map: &HashMap<ItemTypeId, ItemTypeData>,
 ) -> Entity {
@@ -118,9 +111,6 @@ pub(crate) fn spawn(
         .add::<ModelId>(item_type.model_id())
         .add::<NounId>(item_type.noun_id())
         .add(location);
-    if let Some(price) = price {
-        builder.add(price);
-    }
 
     if item_type_data.and_then(|data| data.weapon).is_some() {
         builder.add(CanWield);
@@ -153,7 +143,7 @@ pub(crate) fn description(item_ref: EntityRef, assets: &GameAssets) -> Vec<Strin
         messages.push(extra_description.into());
     }
 
-    if item_ref.satisfies::<&Price>() {
+    if item_type_data.is_some_and(|data| data.price.is_some()) {
         messages.push("Can be sold at a store.".into());
     }
     messages
