@@ -165,7 +165,7 @@ pub mod world {
         name::Name, Name;
         name::NounId, NounId;
         name::Adjective, Adjective;
-        display::ModelId, TextureType;
+        display::ModelId, ModelId;
         display::AftikColorId, AftikColor;
 
         status::Stats, Stats;
