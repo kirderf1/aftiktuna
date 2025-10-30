@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+## [v0.13.0] - 2025-10-30
+
 ### Added
 
 - Morale stat
