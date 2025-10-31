@@ -232,16 +232,16 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
                 fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
             })
         {
-            let speaker = *possible_speakers.choose(&mut state.rng).unwrap();
             state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
-
-            trigger_dialogue_by_name(
-                "obtained_enough_fuel",
-                speaker,
-                state.controlled,
-                state,
-                view_buffer,
-            );
+            if let Some(&speaker) = possible_speakers.choose(&mut state.rng) {
+                trigger_dialogue_by_name(
+                    "obtained_enough_fuel",
+                    speaker,
+                    state.controlled,
+                    state,
+                    view_buffer,
+                );
+            }
         }
 
         for speaker in possible_speakers {
