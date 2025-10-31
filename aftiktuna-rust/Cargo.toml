@@ -2,7 +2,7 @@
 members = ["aftiktuna-editor-three-d", "aftiktuna-three-d"]
 
 [workspace.package]
-version = "0.13.0"
+version = "0.13.1"
 
 [workspace.dependencies]
 indexmap = { version = "2.2.6", features = ["serde"] }
