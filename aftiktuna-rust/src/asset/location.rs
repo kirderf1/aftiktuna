@@ -205,7 +205,15 @@ pub type SymbolMap = IndexMap<char, SymbolData>;
 pub type DoorPairMap = IndexMap<String, DoorPairData>;
 
 #[derive(Serialize, Deserialize)]
+pub struct WeightedVariant {
+    pub id: String,
+    pub weight: u32,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct LocationData {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub variants: Vec<WeightedVariant>,
     pub areas: Vec<AreaData>,
     pub door_pairs: DoorPairMap,
 }
@@ -232,6 +240,8 @@ pub struct AreaData {
     #[serde(default, skip_serializing_if = "crate::is_default")]
     pub darkness: f32,
     pub objects: Vec<String>,
+    #[serde(default, skip_serializing_if = "IndexMap::is_empty")]
+    pub variant_objects: IndexMap<String, Vec<String>>,
     pub symbols: SymbolMap,
 }
 

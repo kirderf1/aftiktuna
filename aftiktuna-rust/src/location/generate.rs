@@ -26,7 +26,12 @@ pub fn build_location<'a, 'b>(
     location_data: LocationData,
     gen_context: &'a mut LocationGenContext<'b>,
 ) -> Result<LocationBuildData, String> {
-    let mut builder = Builder::new(gen_context, location_data.door_pairs);
+    let variant = location_data
+        .variants
+        .choose_weighted(&mut gen_context.rng, |variant| variant.weight)
+        .ok()
+        .map(|variant| variant.id.clone());
+    let mut builder = Builder::new(gen_context, variant, location_data.door_pairs);
     let base_symbols = asset::location::load_base_symbols()?;
 
     let mut spawned_areas = Vec::with_capacity(location_data.areas.len());
@@ -76,6 +81,28 @@ fn build_area(
             }
         }
     }
+
+    if let Some(variant) = builder.chosen_variant.as_ref()
+        && let Some(objects) = area_data.variant_objects.get(variant)
+    {
+        if objects.len() != area_data.objects.len() {
+            return Err(format!(
+                "Variant \"{variant}\" with objects size {} does not match area size {}",
+                objects.len(),
+                area_data.objects.len()
+            ));
+        }
+        for (coord, objects) in objects.iter().enumerate() {
+            let pos = Pos::new(area, coord as Coord, &builder.gen_context.world);
+            for symbol in objects.chars() {
+                match symbols.lookup(symbol) {
+                    Some(symbol_data) => place_symbol(symbol_data, pos, builder, base_symbols)?,
+                    None => Err(format!("Unknown symbol \"{symbol}\""))?,
+                }
+            }
+        }
+    }
+
     Ok(area)
 }
 
@@ -143,6 +170,7 @@ fn place_symbol(
 
 struct Builder<'a, 'b> {
     gen_context: &'a mut LocationGenContext<'b>,
+    chosen_variant: Option<String>,
     entry_positions: Vec<Pos>,
     food_deposit_pos: Option<Pos>,
     door_pair_builder: door::DoorPairsBuilder,
@@ -150,9 +178,14 @@ struct Builder<'a, 'b> {
 }
 
 impl<'a, 'b> Builder<'a, 'b> {
-    fn new(gen_context: &'a mut LocationGenContext<'b>, door_pair_data: DoorPairMap) -> Self {
+    fn new(
+        gen_context: &'a mut LocationGenContext<'b>,
+        chosen_variant: Option<String>,
+        door_pair_data: DoorPairMap,
+    ) -> Self {
         Self {
             gen_context,
+            chosen_variant,
             entry_positions: Vec::new(),
             food_deposit_pos: None,
             door_pair_builder: door::DoorPairsBuilder::init(door_pair_data),

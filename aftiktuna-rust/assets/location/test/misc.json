@@ -1,9 +1,17 @@
 {
+  "variants": [
+    { "id": "aftiks", "weight": 2 },
+    { "id": "no_aftiks", "weight": 10 }
+  ],
   "areas": [
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
-      "objects": [ "<A", "A", "A", "v", "", ">cA" ],
+      "objects": [ "<A", "", "", "v", "", ">c" ],
+      "variant_objects": {
+        "aftiks": [ "", "A", "A", "", "", "A" ],
+        "no_aftiks": [ "", "", "", "", "", "E" ]
+      },
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },

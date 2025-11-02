@@ -202,6 +202,7 @@ mod ui {
                     extra_background_layers: Vec::default(),
                     darkness: 0.,
                     objects: vec![String::default()],
+                    variant_objects: Default::default(),
                     symbols: SymbolMap::new(),
                 },
             );
