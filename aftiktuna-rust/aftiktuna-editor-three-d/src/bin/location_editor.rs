@@ -569,12 +569,16 @@ mod ui {
             SymbolData::Character(nps_spawn_data) => {
                 let NpcSpawnData {
                     profile,
+                    health,
                     tag,
                     interaction,
                     background_dialogue,
                     wielded_item,
                     direction,
                 } = nps_spawn_data.as_mut();
+                ui.label("Health:");
+                ui.add(egui::Slider::new(health, 0.0..=1.0));
+
                 aftiktuna_editor_three_d::option_direction_editor(
                     ui,
                     direction,

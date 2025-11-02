@@ -160,6 +160,8 @@ pub mod creature {
     pub struct NpcSpawnData {
         #[serde(default, skip_serializing_if = "ProfileOrRandom::is_default")]
         pub profile: ProfileOrRandom,
+        #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
+        pub health: f32,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub tag: Option<Tag>,
         pub interaction: CharacterInteraction,

@@ -14,7 +14,7 @@ use crate::core::status::{
     ChangedStats, CreatureAttribute, Health, Morale, Stamina, StatChanges, Stats, Trait, Traits,
 };
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{Species, inventory};
+use crate::core::{Species, Tag, inventory};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::{IndexedRandom, SliceRandom};
@@ -99,23 +99,33 @@ pub(super) fn place_npc(
     pos: Pos,
     gen_context: &mut LocationGenContext,
 ) -> Result<(), String> {
-    let Some(profile) = spawn_data.profile.clone().unwrap(
+    let NpcSpawnData {
+        profile,
+        health,
+        tag,
+        interaction,
+        background_dialogue,
+        wielded_item,
+        direction,
+    } = spawn_data;
+    let Some(profile) = profile.clone().unwrap(
         &mut gen_context.aftik_color_names,
         &mut gen_context.rng,
         &used_aftik_colors(&mut gen_context.world),
     ) else {
         return Ok(());
     };
-    let direction = spawn_data
-        .direction
-        .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
     let mut builder = aftik_builder_with_stats(profile, false, &mut gen_context.rng);
-    builder.add_bundle((pos, direction));
-    if let Some(tag) = spawn_data.tag.clone() {
-        builder.add(tag);
+    builder
+        .add::<Pos>(pos)
+        .add::<Direction>(direction)
+        .add(Health::from_fraction(*health));
+    if let Some(tag) = tag.clone() {
+        builder.add::<Tag>(tag);
     }
-    match &spawn_data.interaction {
+    match interaction {
         CharacterInteraction::Recruitable => {
             builder.add(Recruitable);
         }
@@ -139,12 +149,12 @@ pub(super) fn place_npc(
             }
         }
     }
-    if let Some(background_dialogue) = spawn_data.background_dialogue.clone() {
+    if let Some(background_dialogue) = background_dialogue.clone() {
         builder.add(background_dialogue);
     }
 
     let npc = gen_context.world.spawn(builder.build());
-    if let Some(item_type) = &spawn_data.wielded_item {
+    if let Some(item_type) = wielded_item {
         item_type.spawn(&mut gen_context.world, inventory::Held::in_hand(npc));
     }
 

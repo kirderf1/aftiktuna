@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Village ruin location variant
+
+### Contributors for this release
+
+- kirderf1
+
 
 ## [v0.13.1] - 2025-10-31
 
