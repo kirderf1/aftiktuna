@@ -60,6 +60,11 @@ mod ui {
                                 for objects in &mut area.objects {
                                     *objects = objects.replace(old_char, &new_char.to_string());
                                 }
+                                for variant in area.variant_objects.values_mut() {
+                                    for objects in variant {
+                                        *objects = objects.replace(old_char, &new_char.to_string());
+                                    }
+                                }
                             }
                             editor_data.symbol_edit_data = None;
                         }
@@ -71,6 +76,24 @@ mod ui {
                 } else {
                     if ui.button("Swap View").clicked() {
                         editor_data.is_in_overview = !editor_data.is_in_overview;
+                    }
+                    if !editor_data.location_data.variants.is_empty() {
+                        egui::ComboBox::from_label("Location Variant")
+                            .selected_text(&editor_data.selected_variant)
+                            .show_ui(ui, |ui| {
+                                for variant in &editor_data.location_data.variants {
+                                    let mut response = ui.selectable_label(
+                                        editor_data.selected_variant == variant.id,
+                                        &variant.id,
+                                    );
+                                    if response.clicked()
+                                        && editor_data.selected_variant != variant.id
+                                    {
+                                        editor_data.selected_variant = variant.id.clone();
+                                        response.mark_changed();
+                                    }
+                                }
+                            });
                     }
 
                     if editor_data.is_in_overview {
@@ -100,6 +123,32 @@ mod ui {
                             );
                         }
                     });
+                    if let Some(objects) =
+                        area.variant_objects.get_mut(&editor_data.selected_variant)
+                    {
+                        ui.horizontal(|ui| {
+                            for symbols in objects {
+                                ui.add(
+                                    egui::TextEdit::singleline(symbols)
+                                        .desired_width(30.)
+                                        .font(egui::TextStyle::Monospace),
+                                );
+                            }
+                        });
+                    } else if editor_data
+                        .location_data
+                        .variants
+                        .iter()
+                        .any(|variant| variant.id == editor_data.selected_variant)
+                    {
+                        let response = ui.button("Add Variant");
+                        if response.clicked() {
+                            area.variant_objects.insert(
+                                editor_data.selected_variant.clone(),
+                                vec![String::new(); area.objects.len()],
+                            );
+                        }
+                    }
                 });
             }
         });
@@ -284,7 +333,10 @@ mod ui {
 
         ui.horizontal(|ui| {
             if ui.button("Add Left").clicked() {
-                area.objects.insert(0, String::default());
+                area.objects.insert(0, String::new());
+                for variant in &mut area.variant_objects.values_mut() {
+                    variant.insert(0, String::new());
+                }
                 if let Some(offset) = &mut area.background_offset {
                     *offset += 1;
                 }
@@ -293,12 +345,18 @@ mod ui {
                 }
             }
             if ui.button("Add Right").clicked() {
-                area.objects.push(String::default());
+                area.objects.push(String::new());
+                for variant in &mut area.variant_objects.values_mut() {
+                    variant.push(String::new());
+                }
             }
         });
         ui.horizontal(|ui| {
             if ui.button("Remove Left").clicked() {
                 area.objects.remove(0);
+                for variant in &mut area.variant_objects.values_mut() {
+                    variant.remove(0);
+                }
                 if let Some(offset) = &mut area.background_offset {
                     *offset -= 1;
                 }
@@ -308,6 +366,9 @@ mod ui {
             }
             if ui.button("Remove Right").clicked() {
                 area.objects.pop();
+                for variant in &mut area.variant_objects.values_mut() {
+                    variant.pop();
+                }
             }
         });
 
@@ -723,7 +784,7 @@ use std::collections::HashMap;
 use std::fs::{self, File};
 
 const SIDE_PANEL_WIDTH: u32 = 250;
-const BOTTOM_PANEL_HEIGHT: u32 = 30;
+const BOTTOM_PANEL_HEIGHT: u32 = 50;
 
 const SIZE: (u32, u32) = (
     dimensions::WINDOW_WIDTH as u32 + SIDE_PANEL_WIDTH,
@@ -741,10 +802,17 @@ fn main() {
         return;
     };
 
+    let location_data =
+        serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap()).unwrap();
+    let selected_variant = location_data
+        .variants
+        .first()
+        .map(|variant| variant.id.clone())
+        .unwrap_or_default();
     let mut editor_data = EditorData {
-        location_data: serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap())
-            .unwrap(),
+        location_data,
         is_ship: path.ends_with("assets/location/crew_ship.json"),
+        selected_variant,
         area_index: 0,
         selected_extra_background_layer: 0,
         symbol_edit_data: None,
@@ -863,6 +931,7 @@ fn main() {
 struct EditorData {
     location_data: LocationData,
     is_ship: bool,
+    selected_variant: String,
     area_index: usize,
     selected_extra_background_layer: usize,
     symbol_edit_data: Option<ui::SymbolEditData>,
@@ -931,8 +1000,15 @@ fn handle_overview_input(
                         let offset = area_offset(area);
                         let clicked_coord = mouse_x - area.pos_in_overview.0 - offset;
 
-                        if let Some(door_char) =
-                            area.objects[clicked_coord as usize].chars().find(|char| {
+                        if let Some(door_char) = area.objects[clicked_coord as usize]
+                            .chars()
+                            .chain(
+                                area.variant_objects
+                                    .get(&editor_data.selected_variant)
+                                    .into_iter()
+                                    .flat_map(|objects| objects[clicked_coord as usize].chars()),
+                            )
+                            .find(|char| {
                                 matches!(area.symbols.get(char), Some(SymbolData::Door(_)))
                             })
                         {
@@ -1079,7 +1155,12 @@ fn render_overview(
     for area in &location.areas {
         let symbol_lookup = SymbolLookup::new(base_symbols, &area.symbols);
         let offset = area_offset(area);
-        for (coord, objects) in area.objects.iter().enumerate() {
+        for (coord, objects) in area.objects.iter().enumerate().chain(
+            area.variant_objects
+                .get(&editor_data.selected_variant)
+                .into_iter()
+                .flat_map(|objects| objects.iter().enumerate()),
+        ) {
             for symbol in objects.chars() {
                 if let Some(SymbolData::Door(door_spawn_data)) = symbol_lookup.lookup(symbol)
                     && let Some(positions) = path_positions.get_mut(&door_spawn_data.pair_id)
@@ -1106,11 +1187,19 @@ fn render_overview(
             let selected = index == editor_data.area_index;
             let offset = area_offset(area);
 
-            area.objects
-                .iter()
+            let mut objects = area.objects.clone();
+            if let Some(variant_objects) = area.variant_objects.get(&editor_data.selected_variant) {
+                for (objects_source, objects_destination) in
+                    variant_objects.iter().zip(objects.iter_mut())
+                {
+                    objects_destination.push_str(objects_source);
+                }
+            }
+            objects
+                .into_iter()
                 .enumerate()
                 .map(move |(coord, objects)| {
-                    let color = color_for_pos(objects, selected, &symbol_lookup);
+                    let color = color_for_pos(&objects, selected, &symbol_lookup);
                     three_d::Gm::new(
                         three_d::Rectangle::new(
                             context,
@@ -1192,6 +1281,12 @@ fn render_game_view(
         .objects
         .iter()
         .enumerate()
+        .chain(
+            area.variant_objects
+                .get(&editor_data.selected_variant)
+                .into_iter()
+                .flat_map(|objects| objects.iter().enumerate()),
+        )
         .flat_map(|(coord, symbols)| {
             symbols
                 .chars()
