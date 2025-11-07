@@ -44,13 +44,11 @@ pub fn item_type_editor(
     item_type_list: &[ItemTypeId],
 ) {
     egui::ComboBox::new(id, "Item Type")
-        .selected_text(format!("{edited_type:?}"))
+        .selected_text(edited_type.to_string())
         .show_ui(ui, |ui| {
             for selectable_type in item_type_list {
-                let mut response = ui.selectable_label(
-                    edited_type == selectable_type,
-                    format!("{selectable_type:?}"),
-                );
+                let mut response = ui
+                    .selectable_label(edited_type == selectable_type, selectable_type.to_string());
                 if response.clicked() && edited_type != selectable_type {
                     *edited_type = selectable_type.clone();
                     response.mark_changed();
@@ -192,7 +190,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
         SymbolData::FortunaChest => "Fortuna Chest".to_string(),
         SymbolData::ShipControls { .. } => "Ship Controls".to_string(),
         SymbolData::FoodDeposit => "Food Deposit".to_string(),
-        SymbolData::Item { item } => format!("Item ({item:?})"),
+        SymbolData::Item { item } => format!("Item ({item})"),
         SymbolData::Loot { table } => format!("Loot ({})", table.0),
         SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
         SymbolData::Inanimate { model, .. } => format!("Object ({})", model.0),

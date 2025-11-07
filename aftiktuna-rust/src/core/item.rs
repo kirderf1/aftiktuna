@@ -4,6 +4,7 @@ use crate::core::name::NounId;
 use crate::view::text;
 use hecs::{Component, Entity, EntityBuilder, EntityRef, World};
 use serde::{Deserialize, Serialize};
+use std::fmt::Display;
 
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub enum Tool {
@@ -93,6 +94,12 @@ impl ItemTypeId {
             .add(location);
 
         world.spawn(builder.build())
+    }
+}
+
+impl Display for ItemTypeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
