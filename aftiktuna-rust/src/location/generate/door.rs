@@ -106,7 +106,7 @@ impl DoorPairsBuilder {
     pub(super) fn verify_all_doors_placed(&self) -> Result<(), String> {
         for (pair_id, (_, status)) in &self.0 {
             match status {
-                DoorPairStatus::Placed => {}
+                DoorPairStatus::Placed | DoorPairStatus::None => {}
                 _ => return Err(format!("Door pair was not fully placed: {pair_id}")),
             }
         }
