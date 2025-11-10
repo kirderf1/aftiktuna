@@ -25,97 +25,130 @@ mod ui {
         egui_context: &egui::Context,
     ) -> bool {
         editor_data.hovered_door_pair = None;
-        let mut save = false;
-        side_panel(egui_context, |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
-                    let area = &mut editor_data.location_data.areas[editor_data.area_index];
-                    let old_char = symbol_edit_data.old_char;
-                    let action = symbol_editor_ui(
-                        ui,
-                        symbol_edit_data,
-                        |new_char| {
-                            if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
-                                SymbolStatus::Conflicting
-                            } else if assets.base_symbols.contains_key(&new_char) {
-                                SymbolStatus::Overriding
-                            } else {
-                                SymbolStatus::Unique
-                            }
-                        },
-                        &assets.aftik_colors,
-                        &assets.item_type_list,
-                    );
+        let save = egui::SidePanel::right("side")
+            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+            .resizable(false)
+            .exact_width(crate::SIDE_PANEL_WIDTH as f32)
+            .show(egui_context, |ui| {
+                egui::ScrollArea::vertical()
+                    .show(ui, |ui| side_panel_content(ui, editor_data, assets))
+                    .inner
+            })
+            .inner;
 
-                    match action {
-                        Some(SymbolEditAction::Done) => {
-                            let new_char = symbol_edit_data.new_char.chars().next().unwrap();
-                            area.symbols
-                                .insert(new_char, symbol_edit_data.symbol_data.clone());
-
-                            if let Some(old_char) = symbol_edit_data.old_char
-                                && old_char != new_char
-                            {
-                                area.symbols.swap_remove(&old_char);
-                                for objects in &mut area.objects {
-                                    *objects = objects.replace(old_char, &new_char.to_string());
-                                }
-                                for variant in area.variant_objects.values_mut() {
-                                    for objects in variant {
-                                        *objects = objects.replace(old_char, &new_char.to_string());
-                                    }
-                                }
-                            }
-                            editor_data.symbol_edit_data = None;
-                        }
-                        Some(SymbolEditAction::Cancel) => {
-                            editor_data.symbol_edit_data = None;
-                        }
-                        None => {}
-                    }
-                } else {
-                    if ui.button("Swap View").clicked() {
-                        editor_data.is_in_overview = !editor_data.is_in_overview;
-                    }
-                    if !editor_data.location_data.variants.is_empty() {
-                        egui::ComboBox::from_label("Location Variant")
-                            .selected_text(&editor_data.selected_variant)
-                            .show_ui(ui, |ui| {
-                                for variant in &editor_data.location_data.variants {
-                                    let mut response = ui.selectable_label(
-                                        editor_data.selected_variant == variant.id,
-                                        &variant.id,
-                                    );
-                                    if response.clicked()
-                                        && editor_data.selected_variant != variant.id
-                                    {
-                                        editor_data.selected_variant = variant.id.clone();
-                                        response.mark_changed();
-                                    }
-                                }
-                            });
-                    }
-
-                    if editor_data.is_in_overview {
-                        ui.separator();
-                        overview_ui(editor_data, ui);
-                    } else {
-                        ui.separator();
-                        area_view_ui(ui, editor_data, assets);
-                    }
-
-                    ui.separator();
-                    save = ui.button("Save").clicked();
-                }
+        egui::TopBottomPanel::bottom("bottom")
+            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+            .resizable(false)
+            .exact_height(crate::BOTTOM_PANEL_HEIGHT as f32)
+            .show(egui_context, |ui| {
+                bottom_panel_content(ui, editor_data);
             });
-        });
 
-        let area = { &mut editor_data.location_data.areas[editor_data.area_index] };
-        bottom_panel(egui_context, |ui| {
-            if !editor_data.is_in_overview {
-                ui.add_enabled_ui(editor_data.symbol_edit_data.is_none(), |ui| {
+        save
+    }
+
+    fn side_panel_content(
+        ui: &mut egui::Ui,
+        editor_data: &mut super::EditorData,
+        assets: &super::Assets,
+    ) -> bool {
+        let mut save = false;
+        if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
+            let area = &mut editor_data.location_data.areas[editor_data.area_index];
+            let old_char = symbol_edit_data.old_char;
+            let action = symbol_editor_ui(
+                ui,
+                symbol_edit_data,
+                |new_char| {
+                    if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
+                        SymbolStatus::Conflicting
+                    } else if assets.base_symbols.contains_key(&new_char) {
+                        SymbolStatus::Overriding
+                    } else {
+                        SymbolStatus::Unique
+                    }
+                },
+                &assets.aftik_colors,
+                &assets.item_type_list,
+            );
+
+            match action {
+                Some(SymbolEditAction::Done) => {
+                    let new_char = symbol_edit_data.new_char.chars().next().unwrap();
+                    area.symbols
+                        .insert(new_char, symbol_edit_data.symbol_data.clone());
+
+                    if let Some(old_char) = symbol_edit_data.old_char
+                        && old_char != new_char
+                    {
+                        area.symbols.swap_remove(&old_char);
+                        for objects in &mut area.objects {
+                            *objects = objects.replace(old_char, &new_char.to_string());
+                        }
+                        for variant in area.variant_objects.values_mut() {
+                            for objects in variant {
+                                *objects = objects.replace(old_char, &new_char.to_string());
+                            }
+                        }
+                    }
+                    editor_data.symbol_edit_data = None;
+                }
+                Some(SymbolEditAction::Cancel) => {
+                    editor_data.symbol_edit_data = None;
+                }
+                None => {}
+            }
+        } else {
+            if ui.button("Swap View").clicked() {
+                editor_data.is_in_overview = !editor_data.is_in_overview;
+            }
+            if !editor_data.location_data.variants.is_empty() {
+                egui::ComboBox::from_label("Location Variant")
+                    .selected_text(&editor_data.selected_variant)
+                    .show_ui(ui, |ui| {
+                        for variant in &editor_data.location_data.variants {
+                            let mut response = ui.selectable_label(
+                                editor_data.selected_variant == variant.id,
+                                &variant.id,
+                            );
+                            if response.clicked() && editor_data.selected_variant != variant.id {
+                                editor_data.selected_variant = variant.id.clone();
+                                response.mark_changed();
+                            }
+                        }
+                    });
+            }
+
+            if editor_data.is_in_overview {
+                ui.separator();
+                overview_ui(editor_data, ui);
+            } else {
+                ui.separator();
+                area_view_ui(ui, editor_data, assets);
+            }
+
+            ui.separator();
+            save = ui.button("Save").clicked();
+        }
+        save
+    }
+
+    fn bottom_panel_content(ui: &mut egui::Ui, editor_data: &mut super::EditorData) {
+        let area = &mut editor_data.location_data.areas[editor_data.area_index];
+        if !editor_data.is_in_overview {
+            ui.add_enabled_ui(editor_data.symbol_edit_data.is_none(), |ui| {
+                ui.horizontal(|ui| {
+                    for symbols in &mut area.objects {
+                        ui.add(
+                            egui::TextEdit::singleline(symbols)
+                                .desired_width(30.)
+                                .font(egui::TextStyle::Monospace),
+                        );
+                    }
+                });
+                if let Some(objects) = area.variant_objects.get_mut(&editor_data.selected_variant) {
                     ui.horizontal(|ui| {
-                        for symbols in &mut area.objects {
+                        for symbols in objects {
                             ui.add(
                                 egui::TextEdit::singleline(symbols)
                                     .desired_width(30.)
@@ -123,53 +156,22 @@ mod ui {
                             );
                         }
                     });
-                    if let Some(objects) =
-                        area.variant_objects.get_mut(&editor_data.selected_variant)
-                    {
-                        ui.horizontal(|ui| {
-                            for symbols in objects {
-                                ui.add(
-                                    egui::TextEdit::singleline(symbols)
-                                        .desired_width(30.)
-                                        .font(egui::TextStyle::Monospace),
-                                );
-                            }
-                        });
-                    } else if editor_data
-                        .location_data
-                        .variants
-                        .iter()
-                        .any(|variant| variant.id == editor_data.selected_variant)
-                    {
-                        let response = ui.button("Add Variant");
-                        if response.clicked() {
-                            area.variant_objects.insert(
-                                editor_data.selected_variant.clone(),
-                                vec![String::new(); area.objects.len()],
-                            );
-                        }
+                } else if editor_data
+                    .location_data
+                    .variants
+                    .iter()
+                    .any(|variant| variant.id == editor_data.selected_variant)
+                {
+                    let response = ui.button("Add Variant");
+                    if response.clicked() {
+                        area.variant_objects.insert(
+                            editor_data.selected_variant.clone(),
+                            vec![String::new(); area.objects.len()],
+                        );
                     }
-                });
-            }
-        });
-
-        save
-    }
-
-    fn side_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
-        egui::SidePanel::right("side")
-            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
-            .resizable(false)
-            .exact_width(crate::SIDE_PANEL_WIDTH as f32)
-            .show(egui_context, panel_contents);
-    }
-
-    fn bottom_panel(egui_context: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
-        egui::TopBottomPanel::bottom("bottom")
-            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
-            .resizable(false)
-            .exact_height(crate::BOTTOM_PANEL_HEIGHT as f32)
-            .show(egui_context, panel_contents);
+                }
+            });
+        }
     }
 
     fn overview_ui(editor_data: &mut super::EditorData, ui: &mut egui::Ui) {
@@ -372,6 +374,14 @@ mod ui {
             }
         });
 
+        local_symbols_editor(ui, area, assets)
+    }
+
+    fn local_symbols_editor(
+        ui: &mut egui::Ui,
+        area: &mut AreaData,
+        assets: &crate::Assets,
+    ) -> Option<SymbolEditData> {
         ui.collapsing("Local Symbols", |ui| {
             let mut symbol_edit_data = None;
             let mut char_to_delete = None;
