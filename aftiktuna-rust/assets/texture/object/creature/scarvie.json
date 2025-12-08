@@ -20,13 +20,23 @@
           "animation_length": 3.0,
           "children": [
             {
-              "offset": { "x": -14.0, "y": -7.0 },
-              "anchor": { "x": 3.0, "y": 27.0 },
+              "if_variant": "male",
+              "offset": { "x": 3.0, "y": 21.0 },
+              "texture": "creature/scarvie/horn"
+            },
+            {
+              "offset": { "x": -15.0, "y": -5.0 },
+              "anchor": { "x": 1.0, "y": 27.0 },
               "rotation": [ 3.0, -7.0 ],
               "animation_length": 3.0,
               "texture": "creature/scarvie/ear"
             },
-            { "texture": "creature/scarvie/head" }
+            { "texture": "creature/scarvie/head" },
+            {
+              "if_variant": "male",
+              "offset": { "x": 9.0, "y": 20.0 },
+              "texture": "creature/scarvie/horn"
+            }
           ]
         },
         { "texture": "creature/scarvie/body" }
@@ -44,13 +54,23 @@
           "animation_length": 3.0,
           "children": [
             {
-              "offset": { "x": -14.0, "y": -7.0 },
-              "anchor": { "x": 3.0, "y": 27.0 },
+              "if_variant": "male",
+              "offset": { "x": 3.0, "y": 21.0 },
+              "texture": "creature/scarvie/horn"
+            },
+            {
+              "offset": { "x": -15.0, "y": -5.0 },
+              "anchor": { "x": 1.0, "y": 27.0 },
               "rotation": [ -2.0, 8.0 ],
               "animation_length": 3.0,
               "texture": "creature/scarvie/ear"
             },
-            { "texture": "creature/scarvie/head_wounded" }
+            { "texture": "creature/scarvie/head_wounded" },
+            {
+              "if_variant": "male",
+              "offset": { "x": 9.0, "y": 20.0 },
+              "texture": "creature/scarvie/horn"
+            }
           ]
         },
         { "texture": "creature/scarvie/body_wounded" }
@@ -63,6 +83,12 @@
       "rotation": [ -5.0, 5.0 ],
       "animation_length": 4.5,
       "texture": "creature/scarvie/arm"
+    },
+    {
+      "if_alive": false,
+      "if_variant": "male",
+      "offset": { "x": 35.0, "y": 34.0 },
+      "texture": "creature/scarvie/corpse_horns"
     },
     {
       "if_alive": false,

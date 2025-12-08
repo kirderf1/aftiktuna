@@ -1,6 +1,6 @@
 use super::TextureLoader;
 use super::color::ColorSource;
-use crate::core::display::{DialogueExpression, ModelId};
+use crate::core::display::{CreatureVariant, DialogueExpression, ModelId};
 use crate::view::area::ObjectProperties;
 use crate::{Range, Vec2};
 use indexmap::IndexMap;
@@ -217,6 +217,8 @@ pub struct LayerCondition {
     pub if_hurt: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub if_expression: Option<DialogueExpression>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub if_variant: Option<CreatureVariant>,
 }
 
 impl LayerCondition {
@@ -225,6 +227,10 @@ impl LayerCondition {
             && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
             && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
             && (self.if_expression.is_none() || self.if_expression == Some(properties.expression))
+            && self
+                .if_variant
+                .as_ref()
+                .is_none_or(|variant| properties.creature_variant_set.0.contains(variant))
     }
 }
 

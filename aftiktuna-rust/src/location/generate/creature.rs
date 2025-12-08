@@ -7,7 +7,7 @@ use crate::asset::{self, AftikProfile, GameAssets};
 use crate::core::behavior::{
     Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
-use crate::core::display::AftikColorId;
+use crate::core::display::{AftikColorId, CreatureVariant, CreatureVariantSet};
 use crate::core::name::Name;
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{
@@ -63,7 +63,7 @@ pub(super) fn place_creature(
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
     let mut stats = stats.clone().unwrap_or(creature.species().default_stats());
 
-    let mut builder = species_builder_base(creature.species());
+    let mut builder = species_builder_base(creature.species(), &mut gen_context.rng);
     if let Some(attribute) = attribute {
         attribute.adjust_stats(&mut stats);
         builder.add(attribute);
@@ -181,7 +181,7 @@ pub(super) fn place_corpse(
         .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
     gen_context.world.spawn(
-        species_builder_base(Species::Aftik)
+        species_builder_base(Species::Aftik, &mut gen_context.rng)
             .add_bundle((color, Health::from_fraction(0.), pos, direction))
             .build(),
     );
@@ -201,7 +201,7 @@ pub(crate) fn aftik_builder_with_stats(
     let traits = traits.unwrap_or_else(|| random_traits(rng));
     let stats = stats
         .unwrap_or_else(|| random_stats_from_base(Species::Aftik.default_stats(), &traits, rng));
-    let mut builder = species_builder_base(Species::Aftik);
+    let mut builder = species_builder_base(Species::Aftik, rng);
     builder
         .add::<AftikColorId>(color)
         .add_bundle((
@@ -299,13 +299,21 @@ fn adjust_random_stat(stats: &mut Stats, amount: i16, rng: &mut impl Rng) {
     }
 }
 
-fn species_builder_base(species: Species) -> EntityBuilder {
+fn species_builder_base(species: Species, rng: &mut impl Rng) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
     builder.add_bundle((
         species,
         species.model_id(),
         species.noun_id(),
         Direction::default(),
+        CreatureVariantSet(
+            [if rng.random_bool(0.5) {
+                CreatureVariant::Female
+            } else {
+                CreatureVariant::Male
+            }]
+            .into(),
+        ),
     ));
     if species.is_large() {
         builder.add(Large);

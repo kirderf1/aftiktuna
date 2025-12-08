@@ -167,6 +167,7 @@ pub mod world {
         name::Adjective, Adjective;
         display::ModelId, ModelId;
         display::AftikColorId, AftikColor;
+        display::CreatureVariantSet, CreatureVariantSet;
 
         status::Stats, Stats;
         status::CreatureAttribute, CreatureAttribute;

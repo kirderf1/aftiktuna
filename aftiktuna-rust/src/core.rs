@@ -8,9 +8,9 @@ pub mod position;
 pub mod status;
 
 pub mod display {
-    use std::path::Path;
-
     use serde::{Deserialize, Serialize};
+    use std::collections::HashSet;
+    use std::path::Path;
 
     #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
     pub struct ModelId(pub String);
@@ -87,6 +87,16 @@ pub mod display {
             &[Neutral, Excited, Sad]
         }
     }
+
+    #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum CreatureVariant {
+        Female,
+        Male,
+    }
+
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+    pub struct CreatureVariantSet(pub HashSet<CreatureVariant>);
 }
 
 pub mod store {

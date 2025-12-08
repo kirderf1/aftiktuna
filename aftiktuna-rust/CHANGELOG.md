@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Village ruin location variant
+- Scarvie visual variant without horns
+
+### Changed
+
+- Small tweaks to scarvie model
 
 ### Contributors for this release
 

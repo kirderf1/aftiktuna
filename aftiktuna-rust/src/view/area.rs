@@ -3,7 +3,7 @@ use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, DialogueExpression, ModelId};
+use crate::core::display::{AftikColorId, CreatureVariantSet, DialogueExpression, ModelId};
 use crate::core::inventory::{self, Held};
 use crate::core::item::ItemTypeId;
 use crate::core::name::{NameData, NameWithAttribute};
@@ -89,6 +89,7 @@ pub struct ObjectProperties {
     pub is_alive: bool,
     pub is_badly_hurt: bool,
     pub expression: DialogueExpression,
+    pub creature_variant_set: CreatureVariantSet,
 }
 
 impl Default for ObjectProperties {
@@ -100,6 +101,7 @@ impl Default for ObjectProperties {
             is_alive: true,
             is_badly_hurt: false,
             expression: DialogueExpression::Neutral,
+            creature_variant_set: CreatureVariantSet::default(),
         }
     }
 }
@@ -192,6 +194,11 @@ fn build_object_data(
         } else {
             DialogueExpression::Neutral
         },
+        creature_variant_set: entity_ref
+            .get::<&CreatureVariantSet>()
+            .as_deref()
+            .cloned()
+            .unwrap_or_default(),
     };
     ObjectRenderData {
         coord: pos.get_coord(),
