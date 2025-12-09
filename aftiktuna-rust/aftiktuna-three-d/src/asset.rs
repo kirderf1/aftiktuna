@@ -243,7 +243,7 @@ fn layer_list_render_rect(
 ) -> Rect {
     layer_list
         .iter()
-        .filter(|&layer| layer.conditions.meets_conditions(properties))
+        .filter(|&layer| layer.condition.test(properties))
         .fold(Rect::new(pos.x, pos.y, 0., 0.), |rect, layer| {
             rect.combine(layer_render_rect(layer, pos, direction_mod, properties))
         })

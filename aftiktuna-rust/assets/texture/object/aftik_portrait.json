@@ -1,8 +1,10 @@
 {
   "layers": [
     {
-      "if_hurt": false,
-      "if_expression": "neutral",
+      "condition": [
+        { "hurt": false },
+        { "expression": "neutral" }
+      ],
       "offset": [
         { "x": 0.0, "y": 0.0 },
         { "x": 0.0, "y": -6.0 }
@@ -35,8 +37,10 @@
       ]
     },
     {
-      "if_hurt": false,
-      "if_expression": "excited",
+      "condition": [
+        { "hurt": false },
+        { "expression": "excited" }
+      ],
       "offset": [
         { "x": 0.0, "y": 0.0 },
         { "x": 0.0, "y": -10.0 }
@@ -69,8 +73,10 @@
       ]
     },
     {
-      "if_hurt": false,
-      "if_expression": "sad",
+      "condition": [
+        { "hurt": false },
+        { "expression": "sad" }
+      ],
       "offset": [
         { "x": 0.0, "y": 0.0 },
         { "x": 0.0, "y": -4.0 }
@@ -103,7 +109,7 @@
       ]
     },
     {
-      "if_hurt": true,
+      "condition": { "hurt": true },
       "offset": [
         { "x": 0.0, "y": 0.0 },
         { "x": 0.0, "y": -4.0 }

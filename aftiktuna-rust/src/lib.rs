@@ -37,6 +37,13 @@ enum OneOrTwo<T> {
     Two(T, T),
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+enum OneOrList<T> {
+    One(T),
+    List(Vec<T>),
+}
+
 fn try_combine_adjacent<T>(items: Vec<T>, combine: impl Fn(T, T) -> OneOrTwo<T>) -> Vec<T> {
     let mut output = Vec::new();
     let mut iter = items.into_iter();

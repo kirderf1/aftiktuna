@@ -1,8 +1,10 @@
 {
   "layers": [
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": { "x": 8.0, "y": 0.0 },
       "children": [
         {
@@ -31,8 +33,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": { "x": 8.0, "y": 0.0 },
       "children": [
         {
@@ -60,7 +64,10 @@
         }
       ]
     },
-    { "if_alive": false, "texture": "creature/azureclops/corpse" }
+    {
+      "condition": { "alive": false },
+      "texture": "creature/azureclops/corpse"
+    }
   ],
   "order_weight": 8,
   "z_displacement": 20

@@ -1,8 +1,10 @@
 {
   "layers": [
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": { "x": 25.0, "y": 66.0 },
       "anchor": { "x": -9.0, "y": 4.0 },
       "rotation": [ -2.0, 4.0 ],
@@ -10,8 +12,10 @@
       "texture": "creature/eyesaur/head"
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": { "x": 25.0, "y": 66.0 },
       "anchor": { "x": -9.0, "y": 4.0 },
       "rotation": [ -4.0, 1.0 ],
@@ -19,8 +23,10 @@
       "texture": "creature/eyesaur/head_wounded"
     },
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": [
         { "x": -6.0, "y": 35.0 },
         { "x": -6.0, "y": 36.0 }
@@ -38,8 +44,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": [
         { "x": -6.0, "y": 35.0 },
         { "x": -6.0, "y": 36.0 }
@@ -57,12 +65,12 @@
       ]
     },
     {
-      "if_alive": true,
+      "condition": { "alive": true },
       "offset": { "x": -9.0, "y": 0.0 },
       "texture": "creature/eyesaur/legs"
     },
     {
-      "if_alive": false,
+      "condition": { "alive": false },
       "offset": { "x": 0.0, "y": -10.0 },
       "texture": "creature/eyesaur/corpse"
     }

@@ -1,15 +1,23 @@
 {
   "layers": [
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": { "x": 4.0, "y": 82.0 },
       "anchor": { "x": -5.0, "y": 5.0 },
       "rotation": [ 0.0, -2.0 ],
       "animation_length": 4.0,
       "children": [
-        { "if_expression": "neutral", "texture": "creature/aftik/head_details" },
-        { "if_expression": "sad", "texture": "creature/aftik/head_details_sad" },
+        {
+          "condition": { "expression": "neutral" },
+          "texture": "creature/aftik/head_details"
+        },
+        {
+          "condition": { "expression": "sad" },
+          "texture": "creature/aftik/head_details_sad"
+        },
         {
           "texture": [
             [ "secondary", "creature/aftik/head_secondary" ],
@@ -19,8 +27,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": { "x": 4.0, "y": 82.0 },
       "anchor": { "x": -5.0, "y": 5.0 },
       "rotation": [ 0.0, -2.0 ],
@@ -33,7 +43,7 @@
       ]
     },
     {
-      "if_alive": true,
+      "condition": { "alive": true },
       "offset": { "x": -6.0, "y": 43.0 },
       "texture": [
         [ "uncolored", "creature/aftik/scarf_details" ],
@@ -41,7 +51,7 @@
       ]
     },
     {
-      "if_alive": true,
+      "condition": { "alive": true },
       "offset": { "x": -3.0, "y": 0.0 },
       "texture": [
         [ "uncolored", "creature/aftik/body_details" ],
@@ -49,8 +59,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": { "x": -23.0, "y": 15.0 },
       "anchor": { "x": 20.0, "y": 25.0 },
       "rotation": [ 0.0, -15.0 ],
@@ -62,8 +74,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": { "x": -23.0, "y": 15.0 },
       "anchor": { "x": 20.0, "y": 25.0 },
       "rotation": [ 5.0, 15.0 ],
@@ -75,7 +89,7 @@
       ]
     },
     {
-      "if_alive": false,
+      "condition": { "alive": false },
       "children": [
         {
           "offset": { "x": 46.0, "y": 0.0 },

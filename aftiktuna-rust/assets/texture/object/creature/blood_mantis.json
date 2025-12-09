@@ -1,8 +1,10 @@
 {
   "layers": [
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": { "x": -68.0, "y": 0.0 },
       "children": [
         {
@@ -30,8 +32,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": { "x": -68.0, "y": 0.0 },
       "children": [
         {
@@ -59,7 +63,7 @@
       ]
     },
     {
-      "if_alive": false,
+      "condition": { "alive": false },
       "offset": { "x": -22.0, "y": 0.0 },
       "texture": "creature/blood_mantis/corpse"
     }

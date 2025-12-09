@@ -1,5 +1,5 @@
 use aftiktuna::asset::color::{AftikColorData, RGBColor};
-use aftiktuna::asset::model::{self, Model, ModelAccess, TexturesOrChildren};
+use aftiktuna::asset::model::{self, LayerCondition, Model, ModelAccess, TexturesOrChildren};
 use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
@@ -204,25 +204,31 @@ fn model_editor_ui(
     ui.checkbox(&mut editor_data.indoors, "Indoors");
     aftiktuna_editor_three_d::direction_editor(ui, &mut editor_data.direction, "view direction");
 
-    if model
-        .layers
-        .iter()
-        .any(|layer| layer.conditions.if_alive.is_some())
-    {
+    if model.layers.iter().any(|layer| {
+        layer
+            .condition
+            .0
+            .iter()
+            .any(|condition| matches!(condition, LayerCondition::Alive(_)))
+    }) {
         ui.checkbox(&mut editor_data.show_alive, "Show Alive");
     }
-    if model
-        .layers
-        .iter()
-        .any(|layer| layer.conditions.if_hurt.is_some())
-    {
+    if model.layers.iter().any(|layer| {
+        layer
+            .condition
+            .0
+            .iter()
+            .any(|condition| matches!(condition, LayerCondition::Hurt(_)))
+    }) {
         ui.checkbox(&mut editor_data.show_hurt, "Show Hurt");
     }
-    if model
-        .layers
-        .iter()
-        .any(|layer| layer.conditions.if_cut.is_some())
-    {
+    if model.layers.iter().any(|layer| {
+        layer
+            .condition
+            .0
+            .iter()
+            .any(|condition| matches!(condition, LayerCondition::Cut(_)))
+    }) {
         ui.checkbox(&mut editor_data.show_cut, "Show Cut");
     }
 
@@ -288,14 +294,6 @@ fn model_editor_ui(
     }
 
     let layer = &mut model.layers[editor_data.selected_layer];
-
-    ui.separator();
-
-    ui.collapsing("Conditions", |ui| {
-        add_option_condition_combo_box("If Cut", &mut layer.conditions.if_cut, ui);
-        add_option_condition_combo_box("If Alive", &mut layer.conditions.if_alive, ui);
-        add_option_condition_combo_box("If Hurt", &mut layer.conditions.if_hurt, ui);
-    });
 
     ui.separator();
 
@@ -366,28 +364,6 @@ fn model_editor_ui(
     ui.separator();
 
     ui.button("Save").clicked()
-}
-
-fn option_condition_text(condition: Option<bool>) -> &'static str {
-    match condition {
-        None => "Irregardless",
-        Some(true) => "True",
-        Some(false) => "False",
-    }
-}
-
-fn add_option_condition_combo_box(
-    label: &str,
-    current_value: &mut Option<bool>,
-    ui: &mut egui::Ui,
-) {
-    egui::ComboBox::from_label(label)
-        .selected_text(option_condition_text(*current_value))
-        .show_ui(ui, |ui| {
-            for value in [None, Some(true), Some(false)] {
-                ui.selectable_value(current_value, value, option_condition_text(value));
-            }
-        });
 }
 
 const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {

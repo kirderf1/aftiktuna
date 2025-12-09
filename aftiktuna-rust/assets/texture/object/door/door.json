@@ -1,8 +1,11 @@
 {
   "layers": [
-    { "if_cut": false, "texture": "door/door" },
     {
-      "if_cut": true,
+      "condition": { "cut": false },
+      "texture": "door/door"
+    },
+    {
+      "condition": { "cut": true },
       "offset": { "x": 0.0, "y": -15.0 },
       "texture": "door/cut_door"
     }

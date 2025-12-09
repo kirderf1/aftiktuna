@@ -2,7 +2,7 @@ use super::TextureLoader;
 use super::color::ColorSource;
 use crate::core::display::{CreatureVariant, DialogueExpression, ModelId};
 use crate::view::area::ObjectProperties;
-use crate::{Range, Vec2};
+use crate::{OneOrList, Range, Vec2};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
 use std::path::Path;
@@ -70,8 +70,8 @@ impl Model<String> {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TextureLayer<T> {
-    #[serde(flatten)]
-    pub conditions: LayerCondition,
+    #[serde(default, skip_serializing_if = "LayerConditionList::is_empty")]
+    pub condition: LayerConditionList,
     #[serde(flatten)]
     pub positioning: LayerPositioning,
     #[serde(flatten)]
@@ -84,7 +84,7 @@ impl TextureLayer<String> {
         Ok(TextureLayer {
             textures_or_children,
             positioning: self.positioning.clone(),
-            conditions: self.conditions.clone(),
+            condition: self.condition.clone(),
         })
     }
 }
@@ -207,30 +207,62 @@ pub struct LayerPositioning {
     pub animation_length: f32,
 }
 
+#[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(from = "OneOrList<LayerCondition>", into = "OneOrList<LayerCondition>")]
+pub struct LayerConditionList(pub Vec<LayerCondition>);
+
+impl LayerConditionList {
+    pub fn test(&self, properties: &ObjectProperties) -> bool {
+        self.0.iter().all(|condition| condition.test(properties))
+    }
+
+    fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+impl From<OneOrList<LayerCondition>> for LayerConditionList {
+    fn from(value: OneOrList<LayerCondition>) -> Self {
+        match value {
+            OneOrList::One(condition) => Self(vec![condition]),
+            OneOrList::List(list) => Self(list),
+        }
+    }
+}
+
+impl From<LayerConditionList> for OneOrList<LayerCondition> {
+    fn from(value: LayerConditionList) -> Self {
+        if value.0.len() == 1 {
+            Self::One(value.0.into_iter().next().unwrap())
+        } else {
+            Self::List(value.0)
+        }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
-pub struct LayerCondition {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_cut: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_alive: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_hurt: Option<bool>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_expression: Option<DialogueExpression>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub if_variant: Option<CreatureVariant>,
+#[serde(rename_all = "snake_case")]
+pub enum LayerCondition {
+    Cut(bool),
+    Alive(bool),
+    Hurt(bool),
+    Expression(DialogueExpression),
+    Variant(CreatureVariant),
 }
 
 impl LayerCondition {
-    pub fn meets_conditions(&self, properties: &ObjectProperties) -> bool {
-        (self.if_cut.is_none() || self.if_cut == Some(properties.is_cut))
-            && (self.if_alive.is_none() || self.if_alive == Some(properties.is_alive))
-            && (self.if_hurt.is_none() || self.if_hurt == Some(properties.is_badly_hurt))
-            && (self.if_expression.is_none() || self.if_expression == Some(properties.expression))
-            && self
-                .if_variant
-                .as_ref()
-                .is_none_or(|variant| properties.creature_variant_set.0.contains(variant))
+    fn test(&self, properties: &ObjectProperties) -> bool {
+        match self {
+            LayerCondition::Cut(if_cut) => *if_cut == properties.is_cut,
+            LayerCondition::Alive(if_alive) => *if_alive == properties.is_alive,
+            LayerCondition::Hurt(if_hurt) => *if_hurt == properties.is_badly_hurt,
+            LayerCondition::Expression(dialogue_expression) => {
+                *dialogue_expression == properties.expression
+            }
+            LayerCondition::Variant(creature_variant) => {
+                properties.creature_variant_set.0.contains(creature_variant)
+            }
+        }
     }
 }
 

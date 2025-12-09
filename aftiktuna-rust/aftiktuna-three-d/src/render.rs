@@ -179,7 +179,7 @@ fn get_render_objects_for_layer(
     time: f32,
     context: &three_d::Context,
 ) -> Vec<RenderObject> {
-    if !layer.conditions.meets_conditions(properties.object) {
+    if !layer.condition.test(properties.object) {
         return vec![];
     }
 

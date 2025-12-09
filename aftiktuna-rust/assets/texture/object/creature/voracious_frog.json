@@ -1,8 +1,10 @@
 {
   "layers": [
     {
-      "if_alive": true,
-      "if_hurt": false,
+      "condition": [
+        { "alive": true },
+        { "hurt": false }
+      ],
       "offset": { "x": -50.0, "y": 0.0 },
       "children": [
         { "texture": "creature/voracious_frog/body" },
@@ -17,8 +19,10 @@
       ]
     },
     {
-      "if_alive": true,
-      "if_hurt": true,
+      "condition": [
+        { "alive": true },
+        { "hurt": true }
+      ],
       "offset": { "x": -50.0, "y": 0.0 },
       "children": [
         { "texture": "creature/voracious_frog/body_wounded" },
@@ -33,7 +37,7 @@
       ]
     },
     {
-      "if_alive": false,
+      "condition": { "alive": false },
       "offset": { "x": -50.0, "y": 5.0 },
       "texture": "creature/voracious_frog/corpse"
     }
