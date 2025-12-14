@@ -188,6 +188,7 @@ pub mod world {
         behavior::Wandering, Wandering;
         behavior::ObservationTarget, ObservationTarget;
         behavior::Intention, Intention;
+        behavior::BackgroundId, BackgroundId;
         behavior::RepeatingAction, RepeatingAction;
         behavior::Waiting, Waiting;
         behavior::CrewLossMemory, CrewLossMemory;

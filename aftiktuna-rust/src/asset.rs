@@ -68,7 +68,7 @@ pub mod color {
 }
 
 pub(crate) mod dialogue {
-    use crate::core::behavior::CrewLossMemory;
+    use crate::core::behavior::{self, CrewLossMemory};
     use crate::core::display::DialogueExpression;
     use crate::core::name::Name;
     use crate::core::position::Pos;
@@ -97,6 +97,8 @@ pub(crate) mod dialogue {
         pub has_crew_loss_memory: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub has_recent_crew_loss_memory: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub has_background: Option<behavior::BackgroundId>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub morale_is_at_least: Option<MoraleState>,
         pub expression: DialogueExpression,

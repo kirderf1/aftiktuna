@@ -236,6 +236,7 @@
         "A": {
           "type": "character",
           "health": 0.4,
+          "background": "village_attack_survivor",
           "interaction": { "type": "recruitable" }
         },
         "T": { "type": "inanimate", "model": "environment/table" },

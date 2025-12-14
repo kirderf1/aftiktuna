@@ -6,7 +6,7 @@ use crate::asset::location::creature::{
 };
 use crate::asset::profile::{self, AftikProfile};
 use crate::core::behavior::{
-    Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
+    self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
 use crate::core::display::{AftikColorId, CreatureVariantSet};
 use crate::core::name::Name;
@@ -104,6 +104,7 @@ pub(super) fn place_npc(
         profile,
         health,
         tag,
+        background,
         interaction,
         background_dialogue,
         wielded_item,
@@ -125,6 +126,9 @@ pub(super) fn place_npc(
         .add(Health::from_fraction(*health));
     if let Some(tag) = tag.clone() {
         builder.add::<Tag>(tag);
+    }
+    if let Some(background) = background.clone() {
+        builder.add::<behavior::BackgroundId>(background);
     }
     match interaction {
         CharacterInteraction::Recruitable => {

@@ -3,6 +3,8 @@
     "expression": "neutral",
     "message": "Hi! Do you like to join me in the search for Fortuna?",
     "reply": [
+      { "known_name": false, "has_background": "village_attack_survivor", "expression": "sad", "message": "Sure. That would surely be better than staying here. By the way, my name is {name}." },
+      { "has_background": "village_attack_survivor", "expression": "sad", "message": "Sure. That would surely be better than staying here." },
       { "known_name": false, "expression": "excited", "message": "Sure, I'll join you! My name is {name}." },
       { "expression": "excited", "message": "Sure, I'll join you!" }
     ]

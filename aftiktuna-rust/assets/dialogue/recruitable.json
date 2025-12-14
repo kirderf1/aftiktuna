@@ -1,3 +1,4 @@
 [
+  { "has_background": "village_attack_survivor", "expression": "sad", "message": "After what happened around here, I don't think there's a point to me staying in this village anymore." },
   { "expression": "neutral", "message": "I wish I could leave this place and go on an adventure." }
 ]

@@ -39,6 +39,9 @@ pub enum Intention {
     UseMedkit(hecs::Entity),
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackgroundId(String);
+
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub enum RepeatingAction {
     TakeAll,

@@ -642,6 +642,7 @@ mod ui {
                     profile,
                     health,
                     tag,
+                    background,
                     interaction,
                     background_dialogue,
                     wielded_item,

@@ -1,7 +1,9 @@
 pub mod creature {
     use crate::asset::dialogue::ConditionedDialogueNode;
     use crate::asset::profile::ProfileOrRandom;
-    use crate::core::behavior::{BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward};
+    use crate::core::behavior::{
+        self, BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward,
+    };
     use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemTypeId};
     use crate::core::position::Direction;
@@ -164,6 +166,8 @@ pub mod creature {
         pub health: f32,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub tag: Option<Tag>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub background: Option<behavior::BackgroundId>,
         pub interaction: CharacterInteraction,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub background_dialogue: Option<BackgroundDialogue>,
