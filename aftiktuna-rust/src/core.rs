@@ -93,10 +93,47 @@ pub mod display {
     pub enum CreatureVariant {
         Female,
         Male,
+        PoseA,
+        PoseB,
+        PoseC,
+        PoseD,
     }
 
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     pub struct CreatureVariantSet(pub HashSet<CreatureVariant>);
+
+    impl CreatureVariantSet {
+        pub(crate) fn random_for_species(
+            species: super::Species,
+            rng: &mut impl rand::Rng,
+        ) -> Self {
+            use rand::seq::IteratorRandom;
+            let mut variant_set = Self::default();
+            for variant_group in species.variant_groups() {
+                if let Some(variant) = variant_group.into_iter().choose(rng) {
+                    variant_set.0.insert(variant);
+                }
+            }
+            variant_set
+        }
+
+        pub(crate) fn insert_missing_variants(
+            &mut self,
+            species: super::Species,
+            rng: &mut impl rand::Rng,
+        ) {
+            use rand::seq::IteratorRandom;
+            for variant_group in species.variant_groups() {
+                if variant_group
+                    .iter()
+                    .all(|variant| !self.0.contains(variant))
+                    && let Some(variant) = variant_group.into_iter().choose(rng)
+                {
+                    self.0.insert(variant);
+                }
+            }
+        }
+    }
 }
 
 pub mod store {
@@ -284,6 +321,20 @@ impl Species {
             attack_set: self.attack_set(),
             stun_attack: false,
         }
+    }
+
+    pub fn variant_groups(self) -> Vec<Vec<display::CreatureVariant>> {
+        use display::CreatureVariant;
+        let mut variant_groups = vec![vec![CreatureVariant::Female, CreatureVariant::Male]];
+        if self == Self::Eyesaur {
+            variant_groups.push(vec![
+                CreatureVariant::PoseA,
+                CreatureVariant::PoseB,
+                CreatureVariant::PoseC,
+                CreatureVariant::PoseD,
+            ]);
+        }
+        variant_groups
     }
 }
 

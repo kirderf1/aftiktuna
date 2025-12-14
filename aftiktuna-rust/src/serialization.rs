@@ -1,4 +1,7 @@
+use crate::core::Species;
+use crate::core::display::CreatureVariantSet;
 use crate::game_interface::{Game, SerializedState};
+use crate::game_loop::GameState;
 use hecs::World;
 use rmp_serde::{decode, encode};
 use serde::{Deserialize, Serialize};
@@ -308,7 +311,31 @@ pub(crate) fn load_game(reader: impl Read) -> Result<SerializedState, LoadError>
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
-    Ok(SerializedState::deserialize(&mut deserializer)?)
+    let mut state = SerializedState::deserialize(&mut deserializer)?;
+    inject_update_data(&mut state.state);
+    Ok(state)
+}
+
+fn inject_update_data(state: &mut GameState) {
+    for (_, (species, variant_set)) in state
+        .world
+        .query_mut::<(&Species, &mut CreatureVariantSet)>()
+    {
+        variant_set.insert_missing_variants(*species, &mut state.rng);
+    }
+
+    let mut buffer = hecs::CommandBuffer::new();
+    for (entity, species) in state
+        .world
+        .query_mut::<&Species>()
+        .without::<&CreatureVariantSet>()
+    {
+        buffer.insert_one(
+            entity,
+            CreatureVariantSet::random_for_species(*species, &mut state.rng),
+        );
+    }
+    buffer.run_on(&mut state.world);
 }
 
 pub fn check_world_components(world: &World) {

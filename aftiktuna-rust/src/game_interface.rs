@@ -59,7 +59,7 @@ pub struct Game {
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SerializedState {
     phase: Phase,
-    state: GameState,
+    pub(crate) state: GameState,
     frame_cache: FrameCache,
 }
 

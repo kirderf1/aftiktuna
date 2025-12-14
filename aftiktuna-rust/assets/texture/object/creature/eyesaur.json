@@ -39,7 +39,24 @@
           "anchor": { "x": -5.0, "y": 4.0 },
           "rotation": [ 0.0, 10.0 ],
           "animation_length": 3.5,
-          "texture": "creature/eyesaur/tail"
+          "children": [
+            {
+              "condition": { "variant": "pose_a" },
+              "texture": "creature/eyesaur/tail_a"
+            },
+            {
+              "condition": { "variant": "pose_b" },
+              "texture": "creature/eyesaur/tail_b"
+            },
+            {
+              "condition": { "variant": "pose_c" },
+              "texture": "creature/eyesaur/tail_c"
+            },
+            {
+              "condition": { "variant": "pose_d" },
+              "texture": "creature/eyesaur/tail_d"
+            }
+          ]
         }
       ]
     },
@@ -60,7 +77,24 @@
           "anchor": { "x": -5.0, "y": 4.0 },
           "rotation": [ 0.0, 10.0 ],
           "animation_length": 3.5,
-          "texture": "creature/eyesaur/tail"
+          "children": [
+            {
+              "condition": { "variant": "pose_a" },
+              "texture": "creature/eyesaur/tail_a"
+            },
+            {
+              "condition": { "variant": "pose_b" },
+              "texture": "creature/eyesaur/tail_b"
+            },
+            {
+              "condition": { "variant": "pose_c" },
+              "texture": "creature/eyesaur/tail_c"
+            },
+            {
+              "condition": { "variant": "pose_d" },
+              "texture": "creature/eyesaur/tail_d"
+            }
+          ]
         }
       ]
     },

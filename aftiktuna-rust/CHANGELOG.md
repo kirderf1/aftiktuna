@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Village ruin location variant
-- Scarvie visual variant without horns
+- Minor visual variants for scarvies and eyesaurs
 
 ### Changed
 

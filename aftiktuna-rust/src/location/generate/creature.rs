@@ -7,7 +7,7 @@ use crate::asset::{self, AftikProfile, GameAssets};
 use crate::core::behavior::{
     Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
-use crate::core::display::{AftikColorId, CreatureVariant, CreatureVariantSet};
+use crate::core::display::{AftikColorId, CreatureVariantSet};
 use crate::core::name::Name;
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{
@@ -301,19 +301,13 @@ fn adjust_random_stat(stats: &mut Stats, amount: i16, rng: &mut impl Rng) {
 
 fn species_builder_base(species: Species, rng: &mut impl Rng) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
+
     builder.add_bundle((
         species,
         species.model_id(),
         species.noun_id(),
         Direction::default(),
-        CreatureVariantSet(
-            [if rng.random_bool(0.5) {
-                CreatureVariant::Female
-            } else {
-                CreatureVariant::Male
-            }]
-            .into(),
-        ),
+        CreatureVariantSet::random_for_species(species, rng),
     ));
     if species.is_large() {
         builder.add(Large);
