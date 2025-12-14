@@ -1,6 +1,6 @@
 pub mod creature {
-    use crate::asset::ProfileOrRandom;
     use crate::asset::dialogue::ConditionedDialogueNode;
+    use crate::asset::profile::ProfileOrRandom;
     use crate::core::behavior::{BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward};
     use crate::core::display::AftikColorId;
     use crate::core::item::{self, ItemTypeId};

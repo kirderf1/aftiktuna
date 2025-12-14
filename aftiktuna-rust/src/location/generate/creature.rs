@@ -1,9 +1,10 @@
 use super::LocationGenContext;
+use crate::asset::GameAssets;
 use crate::asset::location::creature::{
     AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     StockDefinition,
 };
-use crate::asset::{self, AftikProfile, GameAssets};
+use crate::asset::profile::{self, AftikProfile};
 use crate::core::behavior::{
     Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
@@ -167,7 +168,7 @@ pub(super) fn place_corpse(
     gen_context: &mut LocationGenContext,
 ) {
     let Some(color) = spawn_data.color.clone().or_else(|| {
-        asset::random_profile(
+        profile::random_profile(
             &mut gen_context.aftik_color_names,
             &mut gen_context.rng,
             &used_aftik_colors(&mut gen_context.world),

@@ -246,13 +246,117 @@ pub mod loot {
     }
 }
 
+pub mod profile {
+    use crate::core::display::AftikColorId;
+    use crate::core::status::{Stats, Traits};
+    use rand::Rng;
+    use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
+
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+    #[serde(tag = "type", rename_all = "snake_case")]
+    pub enum StatsOrRandom {
+        #[default]
+        Random,
+        #[serde(untagged)]
+        Stats(Stats),
+    }
+
+    impl StatsOrRandom {
+        pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Stats) -> Stats {
+            match self {
+                Self::Random => random_selection(),
+                Self::Stats(stats) => stats,
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+    #[serde(tag = "type", rename_all = "snake_case")]
+    pub enum TraitsOrRandom {
+        #[default]
+        Random,
+        #[serde(untagged)]
+        Traits(Traits),
+    }
+
+    impl TraitsOrRandom {
+        pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Traits) -> Traits {
+            match self {
+                Self::Random => random_selection(),
+                Self::Traits(traits) => traits,
+            }
+        }
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct AftikProfile {
+        pub name: String,
+        pub color: AftikColorId,
+        pub stats: StatsOrRandom,
+        pub traits: TraitsOrRandom,
+    }
+
+    #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+    #[serde(tag = "type", rename_all = "snake_case")]
+    pub enum ProfileOrRandom {
+        #[default]
+        Random,
+        #[serde(untagged)]
+        Profile(AftikProfile),
+    }
+
+    impl ProfileOrRandom {
+        pub(crate) fn is_default(&self) -> bool {
+            matches!(self, Self::Random)
+        }
+
+        pub(crate) fn unwrap(
+            self,
+            aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
+            rng: &mut impl Rng,
+            used_aftik_colors: &[&AftikColorId],
+        ) -> Option<AftikProfile> {
+            match self {
+                ProfileOrRandom::Random => {
+                    random_profile(aftik_color_names, rng, used_aftik_colors)
+                }
+                ProfileOrRandom::Profile(profile) => Some(profile),
+            }
+        }
+    }
+
+    pub(crate) fn random_profile(
+        aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
+        rng: &mut impl Rng,
+        used_aftik_colors: &[&AftikColorId],
+    ) -> Option<AftikProfile> {
+        use rand::seq::IteratorRandom;
+        let chosen_color = aftik_color_names
+            .iter()
+            .filter(|(color, names)| !used_aftik_colors.contains(color) && !names.is_empty())
+            .map(|(color, _)| color)
+            .choose_stable(rng)
+            .cloned();
+        let Some(chosen_color) = chosen_color else {
+            eprintln!("Tried picking a random name and color, but there were none left to choose.");
+            return None;
+        };
+        let name_choices = aftik_color_names.get_mut(&chosen_color).unwrap();
+        let chosen_name = name_choices.swap_remove(rng.random_range(0..name_choices.len()));
+        Some(AftikProfile {
+            name: chosen_name,
+            color: chosen_color,
+            stats: StatsOrRandom::Random,
+            traits: TraitsOrRandom::Random,
+        })
+    }
+}
+
 use crate::core::combat::WeaponProperties;
 use crate::core::display::AftikColorId;
 use crate::core::item::{ItemTypeId, Price};
 use crate::core::name::{Adjective, NounData, NounId};
-use crate::core::status::{Stats, Traits};
-use rand::Rng;
-use rand::seq::IteratorRandom;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -301,102 +405,6 @@ pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Res
     Ok(object)
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum StatsOrRandom {
-    #[default]
-    Random,
-    #[serde(untagged)]
-    Stats(Stats),
-}
-
-impl StatsOrRandom {
-    pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Stats) -> Stats {
-        match self {
-            Self::Random => random_selection(),
-            Self::Stats(stats) => stats,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum TraitsOrRandom {
-    #[default]
-    Random,
-    #[serde(untagged)]
-    Traits(Traits),
-}
-
-impl TraitsOrRandom {
-    pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Traits) -> Traits {
-        match self {
-            Self::Random => random_selection(),
-            Self::Traits(traits) => traits,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AftikProfile {
-    pub name: String,
-    pub color: AftikColorId,
-    pub stats: StatsOrRandom,
-    pub traits: TraitsOrRandom,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum ProfileOrRandom {
-    #[default]
-    Random,
-    #[serde(untagged)]
-    Profile(AftikProfile),
-}
-
-impl ProfileOrRandom {
-    pub(crate) fn is_default(&self) -> bool {
-        matches!(self, Self::Random)
-    }
-
-    pub(crate) fn unwrap(
-        self,
-        aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
-        rng: &mut impl Rng,
-        used_aftik_colors: &[&AftikColorId],
-    ) -> Option<AftikProfile> {
-        match self {
-            ProfileOrRandom::Random => random_profile(aftik_color_names, rng, used_aftik_colors),
-            ProfileOrRandom::Profile(profile) => Some(profile),
-        }
-    }
-}
-
-pub(crate) fn random_profile(
-    aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
-    rng: &mut impl Rng,
-    used_aftik_colors: &[&AftikColorId],
-) -> Option<AftikProfile> {
-    let chosen_color = aftik_color_names
-        .iter()
-        .filter(|(color, names)| !used_aftik_colors.contains(color) && !names.is_empty())
-        .map(|(color, _)| color)
-        .choose_stable(rng)
-        .cloned();
-    let Some(chosen_color) = chosen_color else {
-        eprintln!("Tried picking a random name and color, but there were none left to choose.");
-        return None;
-    };
-    let name_choices = aftik_color_names.get_mut(&chosen_color).unwrap();
-    let chosen_name = name_choices.swap_remove(rng.random_range(0..name_choices.len()));
-    Some(AftikProfile {
-        name: chosen_name,
-        color: chosen_color,
-        stats: StatsOrRandom::Random,
-        traits: TraitsOrRandom::Random,
-    })
-}
-
 pub(crate) fn load_aftik_color_names() -> Result<HashMap<AftikColorId, Vec<String>>, Error> {
     load_json_asset("selectable_aftik_color_names.json")
 }
@@ -404,7 +412,7 @@ pub(crate) fn load_aftik_color_names() -> Result<HashMap<AftikColorId, Vec<Strin
 #[derive(Debug, Deserialize)]
 pub(crate) struct CrewData {
     pub points: i32,
-    pub crew: Vec<ProfileOrRandom>,
+    pub crew: Vec<profile::ProfileOrRandom>,
 }
 
 impl CrewData {

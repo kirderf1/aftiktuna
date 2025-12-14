@@ -1,7 +1,8 @@
+use aftiktuna::asset::background;
 use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
-use aftiktuna::asset::{ProfileOrRandom, background};
+use aftiktuna::asset::profile::ProfileOrRandom;
 use aftiktuna::core::Species;
 use aftiktuna::core::display::{AftikColorId, ModelId};
 use aftiktuna::core::item::ItemTypeId;
