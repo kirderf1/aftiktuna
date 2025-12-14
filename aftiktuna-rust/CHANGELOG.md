@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Village ruin location variant
 - Minor visual variants for scarvies and eyesaurs
+- New command "ask about \<item\>" that can be used in stores
 
 ### Changed
 

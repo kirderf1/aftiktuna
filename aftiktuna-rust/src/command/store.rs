@@ -71,6 +71,13 @@ pub fn parse(
                 )
             )
         }),
+        parse.literal("ask about", |parse| {
+                    parse.match_against(
+                        store_entries(shopkeeper, 1, &assets.noun_data_map),
+                        |parse, stock| parse.done_or_err(|| command::action_result(Action::AskAbout(stock.item.clone()))),
+                        |input| Err(format!("\"{input}\" does not match an item in the store.")),
+                    )
+        }),
         parse.literal("exit", |parse| {
             parse.done_or_err(|| command::action_result(Action::ExitTrade))
         }),

@@ -1,4 +1,5 @@
 use crate::action::{self, Error};
+use crate::core::display::DialogueExpression;
 use crate::core::inventory::{self, Held};
 use crate::core::item::ItemTypeId;
 use crate::core::name::{self, NameData, NameIdData};
@@ -167,6 +168,52 @@ pub fn sell(
         ),
         context.state,
     );
+    Ok(action::Success)
+}
+
+pub(super) fn ask_about(
+    context: &mut action::Context,
+    performer: Entity,
+    item_type: &ItemTypeId,
+) -> action::Result {
+    let shopkeeper = context
+        .state
+        .world
+        .get::<&IsTrading>(performer)
+        .map_err(|_| "Tried to interact with a store while not trading.")?
+        .0;
+
+    context.view_context.view_buffer.push_dialogue(
+        &context.state.world,
+        performer,
+        DialogueExpression::Neutral,
+        format!(
+            "What is that {}?",
+            context
+                .view_context
+                .view_buffer
+                .assets
+                .noun_data_map
+                .lookup(&item_type.noun_id())
+                .singular()
+        ),
+    );
+    let response = context
+        .view_context
+        .view_buffer
+        .assets
+        .item_type_map
+        .get(item_type)
+        .and_then(|item_data| item_data.shop_description.as_ref())
+        .map(String::as_str)
+        .unwrap_or("I am not sure. But if it interests you, how about you buy it and find out?");
+    context.view_context.view_buffer.push_dialogue(
+        &context.state.world,
+        shopkeeper,
+        DialogueExpression::Neutral,
+        response,
+    );
+
     Ok(action::Success)
 }
 

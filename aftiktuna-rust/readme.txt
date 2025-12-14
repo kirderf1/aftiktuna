@@ -38,6 +38,7 @@ When interacting with a store, there are the following commands:
 - sell <item>
 - sell <number> <items>
 - sell all <items>
+- ask about <item>
 - exit
 - status
 

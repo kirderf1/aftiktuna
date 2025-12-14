@@ -255,6 +255,7 @@ pub fn for_store(
         && !clicked_stock.quantity.is_zero()
     {
         suggestions.push(simple!("buy {}", clicked_stock.item_noun.singular()));
+        suggestions.push(simple!("ask about {}", clicked_stock.item_noun.singular()));
     }
     suggestions
 }

@@ -1,25 +1,28 @@
 {
-  "fuel_can": { "price": 3500, "extra_description": "Used to refuel the ship." },
-  "food_ration": { "price": 500, "extra_description": "May be eaten by crew members while travelling to their next location to recover health." },
+  "fuel_can": { "price": 3500, "extra_description": "Used to refuel the ship.", "shop_description": "That is a standard unit of fuel used for your average spaceship." },
+  "food_ration": { "price": 500, "extra_description": "May be eaten by crew members while travelling to their next location to recover health.", "shop_description": "Ah, that is just a standard food ration. Nothing fancy." },
   "crowbar": {
     "weapon": { "damage_mod": 3.0, "attack_set": "light" },
     "price": 2000,
     "extra_description": "Used to force open doors that are stuck."
   },
-  "blowtorch": { "price": 6000, "extra_description": "Used to cut apart any door that won't open." },
+  "blowtorch": { "price": 6000, "extra_description": "Used to cut apart any door that won't open.", "shop_description": "A blowtorch such as this is great for cutting tough things apart. I have heard that some people use it to explore abandoned buildings." },
   "knife": {
     "weapon": { "damage_mod": 3.0, "attack_set": "quick" },
-    "price": 300
+    "price": 300,
+    "shop_description": "That's a regular knife. Not the sharpest, but you can still cut things with it."
   },
   "bat": {
     "weapon": { "damage_mod": 3.0, "attack_set": "intense", "stun_attack": true },
-    "price": 1000
+    "price": 1000,
+    "shop_description": "You would normally use one of these to hit balls in a game of sport. I guess you could hit other things with it too."
   },
   "sword": {
     "weapon": { "damage_mod": 5.0, "attack_set": "quick" },
-    "price": 5000
+    "price": 5000,
+    "shop_description": "A quite priced possesion of mine. If you're going somewhere with danger, then you definitely want this sword to defend yourself!"
   },
-  "medkit": { "price": 4000, "extra_description": "Used to recover some health of the user." },
+  "medkit": { "price": 4000, "extra_description": "Used to recover some health of the user.", "shop_description": "Well, if you're hurt, then you can use a medkit to patch up your wounds. Really good if you're going somewhere dangerous!" },
   "meteor_chunk": { "price": 2500 },
   "ancient_coin": { "price": 500 },
   "black_orb": { "price": 8000, "extra_description": "A mysterious object that when used, might change the user in some way." },

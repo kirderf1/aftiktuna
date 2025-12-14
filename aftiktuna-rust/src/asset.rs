@@ -447,6 +447,8 @@ pub struct ItemTypeData {
     pub(crate) price: Option<Price>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) extra_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) shop_description: Option<String>,
 }
 
 pub fn load_item_type_map() -> Result<HashMap<ItemTypeId, ItemTypeData>, Error> {
