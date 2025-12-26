@@ -1,4 +1,8 @@
 {
+  "variants": [
+    { "id": "attacked_camp", "weight": 1 },
+    { "id": "survivor_camp", "weight": 1 }
+  ],
   "areas": [
     {
       "name": "Field in front of a forest",
@@ -42,9 +46,11 @@
       "background": "forest",
       "background_offset": 3,
       "objects": [ "E", "<", "#E", "E", ">", "" ],
+      "variant_objects": {
+        "survivor_camp": [ "", "E", "", "", "E", "E" ]
+      },
       "symbols": {
         "<": { "type": "door", "pair_id": "left2", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "", "display_type": "path", "adjective": "middle" },
         ">": { "type": "door", "pair_id": "left3", "display_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" },
         "E": {
@@ -116,20 +122,37 @@
           "offset": { "x": 956, "y": 286 }
         }
       ],
-      "objects": [ "", "\\", "-", "-e", "-#", "-Ec", "-Aa", "-t", "/", "" ],
+      "objects": [ "", "\\", "-", "-", "-#", "-", "-", "-", "/", "" ],
+      "variant_objects": {
+        "attacked_camp": [ "", "", "", "e", "", "Ec", "Ta", "t", "", "" ],
+        "survivor_camp": [ "", "", "", "", "", "A", "O", "", "", "" ]
+      },
       "symbols": {
         "\\": { "type": "door", "pair_id": "right2", "display_type": "left_path", "adjective": "left" },
         "e": { "type": "creature", "creature": "eyesaur", "health": 0.4 },
         "c": { "type": "creature", "creature": "eyesaur", "health": 0.0, "attribute": "none", "direction": "right" },
+        "A": {
+          "type": "character",
+          "background": "forest_ship_crash",
+          "interaction": { "type": "recruitable" },
+          "wielded_item": "crowbar"
+        },
         "a": { "type": "aftik_corpse", "direction": "left" },
         ".": { "type": "inanimate", "model": "path/right_end" },
         "#": { "type": "inanimate", "model": "environment/campfire" },
-        "A": {
+        "T": {
           "type": "container",
           "container_type": "tent",
           "content": [
-            { "type": "item", "item": "food_ration" }
+            { "type": "item", "item": "food_ration" },
+            { "type": "loot", "table": "resource" }
           ],
+          "direction": "left"
+        },
+        "O": {
+          "type": "container",
+          "container_type": "tent",
+          "content": [],
           "direction": "left"
         },
         "/": { "type": "door", "pair_id": "crash_site_path", "display_type": "right_path", "adjective": "right" }
@@ -165,7 +188,10 @@
       "pos_in_overview": [ 17, 17 ],
       "background": "forest",
       "background_offset": -1,
-      "objects": [ "", "<", "", "E", "C", "#", ">", "" ],
+      "objects": [ "#", "<", "", "", "C", "", ">", "" ],
+      "variant_objects": {
+        "attacked_camp": [ "", "", "", "E", "", "", "", "" ]
+      },
       "symbols": {
         "<": { "type": "door", "pair_id": "crash_site_path", "display_type": "path", "adjective": "left" },
         ",": { "type": "inanimate", "model": "path/right_corner" },
@@ -174,8 +200,7 @@
           "container_type": "crashed_ship",
           "content": [
             { "type": "item", "item": "fuel_can" },
-            { "type": "item", "item": "fuel_can" },
-            { "type": "loot", "table": "resource" }
+            { "type": "item", "item": "fuel_can" }
           ],
           "direction": "right"
         },

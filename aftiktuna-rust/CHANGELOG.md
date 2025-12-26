@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Village ruin location variant
+- Forest campsite location variant
 - Minor visual variants for scarvies and eyesaurs
 - New command "ask about \<item\>" that can be used in stores
 - Dialogue system addition: npc background id

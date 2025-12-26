@@ -1,4 +1,5 @@
 [
   { "has_background": "village_attack_survivor", "expression": "sad", "message": "After what happened around here, I don't think there's a point to me staying in this village anymore." },
+  { "has_background": "forest_ship_crash", "expression": "sad", "message": "You see that crashed ship back there? That's how I ended up here. You don't happen to have space on your ship to bring me along?" },
   { "expression": "neutral", "message": "I wish I could leave this place and go on an adventure." }
 ]
