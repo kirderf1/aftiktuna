@@ -61,8 +61,12 @@ impl ItemTypeId {
     pub fn is_food_ration(&self) -> bool {
         self.0 == Self::FOOD_RATION
     }
+    const CROWBAR: &'static str = "crowbar";
+    pub fn crowbar() -> Self {
+        Self(Self::CROWBAR.into())
+    }
     pub fn is_crowbar(&self) -> bool {
-        self.0 == "crowbar"
+        self.0 == Self::CROWBAR
     }
     pub fn is_blowtorch(&self) -> bool {
         self.0 == "blowtorch"

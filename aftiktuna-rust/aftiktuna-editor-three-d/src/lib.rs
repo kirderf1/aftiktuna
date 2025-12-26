@@ -358,7 +358,10 @@ pub fn object_from_symbol(
             hash: 0,
             is_controlled: false,
             name_data: None,
-            wielded_item: None,
+            wielded_item: npc_spawn_data
+                .wielded_item
+                .as_ref()
+                .map(ItemTypeId::model_id),
             interactions: Vec::default(),
             properties: ObjectProperties {
                 direction: npc_spawn_data

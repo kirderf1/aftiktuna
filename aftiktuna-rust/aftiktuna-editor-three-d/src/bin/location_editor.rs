@@ -651,6 +651,23 @@ mod ui {
                 ui.label("Health:");
                 ui.add(egui::Slider::new(health, 0.0..=1.0));
 
+                let mut wielding_item = wielded_item.is_some();
+                if ui.checkbox(&mut wielding_item, "Wielding item").changed() {
+                    *wielded_item = if wielding_item {
+                        Some(ItemTypeId::crowbar())
+                    } else {
+                        None
+                    };
+                }
+                if let Some(wielded_item) = wielded_item {
+                    aftiktuna_editor_three_d::item_type_editor(
+                        ui,
+                        wielded_item,
+                        "character_wielded",
+                        item_type_list,
+                    );
+                }
+
                 aftiktuna_editor_three_d::option_direction_editor(
                     ui,
                     direction,
@@ -787,6 +804,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::AftikColorId;
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Coord;
+use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -1323,7 +1341,7 @@ fn render_game_view(
                 .as_ref()
                 .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
                 .unwrap_or(color::DEFAULT_COLOR);
-            render::get_render_objects_for_entity_with_color(
+            let mut render_objects = render::get_render_objects_for_entity_with_color(
                 assets.models.lookup_model(&object.model_id),
                 pos.into(),
                 RenderProperties {
@@ -1332,7 +1350,28 @@ fn render_game_view(
                 },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
-            )
+            );
+            if let Some(item_model_id) = object.wielded_item {
+                let item_model = assets.models.lookup_model(&item_model_id);
+                let offset = aftiktuna_three_d::to_vec(
+                    item_model.wield_offset,
+                    object.properties.direction.into(),
+                );
+                render_objects.extend(render::get_render_objects_for_entity_with_color(
+                    item_model,
+                    three_d::Vec2::from(pos) + offset,
+                    RenderProperties {
+                        object: &ObjectProperties {
+                            direction: object.properties.direction,
+                            ..ObjectProperties::default()
+                        },
+                        aftik_color: color::DEFAULT_COLOR,
+                    },
+                    frame_input.accumulated_time as f32,
+                    &frame_input.context,
+                ));
+            }
+            render_objects
         })
         .collect::<Vec<_>>();
 
