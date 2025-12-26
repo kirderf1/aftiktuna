@@ -39,7 +39,7 @@ pub enum Intention {
     UseMedkit(hecs::Entity),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BackgroundId(String);
 
 #[derive(Clone, Copy, Serialize, Deserialize)]

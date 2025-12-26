@@ -154,6 +154,14 @@ pub(crate) mod dialogue {
                                 .get::<&CrewLossMemory>(speaker)
                                 .is_ok_and(|crew_loss_memory| crew_loss_memory.recent)
                     })
+                && self
+                    .has_background
+                    .as_ref()
+                    .is_none_or(|expected_background| {
+                        world.get::<&behavior::BackgroundId>(speaker).is_ok_and(
+                            |checked_background| *checked_background == *expected_background,
+                        )
+                    })
                 && self.morale_is_at_least.is_none_or(|morale_state| {
                     morale_state
                         <= world
