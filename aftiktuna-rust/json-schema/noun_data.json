@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^[a-z_0-9]+$": {
+      "type": "object",
+      "properties": {
+        "singular": { "type": "string" },
+        "plural": { "type": "string" },
+        "article": {
+          "enum": [ "a", "an" ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "singular", "plural", "article" ]
+    }
+  },
+  "additionalProperties": false
+}

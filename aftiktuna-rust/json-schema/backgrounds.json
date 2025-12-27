@@ -1,0 +1,55 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^[a-z_0-9]+$": {
+      "type": "object",
+      "oneOf": [
+        {
+          "properties": {
+            "texture": { "$ref": "./parts/name_path.json" },
+            "move_factor": { "type": "number" },
+            "is_looping": { "type": "boolean" },
+            "offset": { "$ref": "./parts/background_layer_offset.json" },
+            "portrait_color": { "$ref": "./parts/array_color.json" }
+          },
+          "additionalProperties": false,
+          "required": [ "texture", "portrait_color" ]
+        },
+        {
+          "properties": {
+            "texture": { "$ref": "./parts/name_path.json" },
+            "move_factor": { "type": "number" },
+            "is_looping": { "type": "boolean" },
+            "offset": { "$ref": "./parts/background_layer_offset.json" },
+            "portrait_texture": { "$ref": "./parts/name_path.json" }
+          },
+          "additionalProperties": false,
+          "required": [ "texture", "portrait_texture" ]
+        },
+        {
+          "properties": {
+            "layers": {
+              "type": "array",
+              "items": { "$ref": "./parts/background_layer.json"}
+            },
+            "portrait_color": { "$ref": "./parts/array_color.json" }
+          },
+          "additionalProperties": false,
+          "required": [ "layers", "portrait_color" ]
+        },
+        {
+          "properties": {
+            "layers": {
+              "type": "array",
+              "items": { "$ref": "./parts/background_layer.json"}
+            },
+            "portrait_texture": { "$ref": "./parts/name_path.json" }
+          },
+          "additionalProperties": false,
+          "required": [ "layers", "portrait_texture" ]
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

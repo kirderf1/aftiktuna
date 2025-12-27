@@ -1,0 +1,12 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "item": { "$ref": "./parts/name_id.json" },
+      "weight": { "type": "integer", "minimum": 1 }
+    },
+    "additionalProperties": false,
+    "required": [ "item", "weight" ]
+  }
+}

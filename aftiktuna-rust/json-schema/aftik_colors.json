@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^[a-z_0-9]+$": {
+      "type": "object",
+      "properties": {
+        "adjective": { "type": "string" },
+        "primary_color": { "$ref": "./parts/rgb_color.json" },
+        "secondary_color": { "$ref": "./parts/rgb_color.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "adjective", "primary_color", "secondary_color" ]
+    }
+  },
+  "additionalProperties": false
+}

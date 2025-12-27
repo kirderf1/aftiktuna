@@ -8,6 +8,30 @@
         },
         {
             "fileMatch": [
+                "/assets/aftik_colors.json"
+            ],
+            "url": "/json-schema/aftik_colors.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/texture/background/backgrounds.json"
+            ],
+            "url": "/json-schema/backgrounds.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/dialogue/**/*.json"
+            ],
+            "url": "/json-schema/dialogue.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/item_types.json"
+            ],
+            "url": "/json-schema/item_types.json"
+        },
+        {
+            "fileMatch": [
                 "/assets/location/**/*.json"
             ],
             "url": "/json-schema/location.json"
@@ -17,6 +41,30 @@
                 "/assets/locations.json"
             ],
             "url": "/json-schema/locations.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/loot_table/**/*.json"
+            ],
+            "url": "/json-schema/loot_table.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/noun_data.json"
+            ],
+            "url": "/json-schema/noun_data.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/selectable_aftik_color_names.json"
+            ],
+            "url": "/json-schema/selectable_aftik_color_names.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/starting_crew.json"
+            ],
+            "url": "/json-schema/crew_data.json"
         },
         {
             "fileMatch": [

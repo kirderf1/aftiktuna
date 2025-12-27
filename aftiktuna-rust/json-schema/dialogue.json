@@ -1,0 +1,4 @@
+{
+  "type": "array",
+  "items": { "$ref": "./parts/conditioned_dialogue_node.json" }
+}

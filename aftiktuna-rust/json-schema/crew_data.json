@@ -1,0 +1,12 @@
+{
+  "type": "object",
+  "properties": {
+    "points": { "type": "integer", "minimum": 0 },
+    "crew": {
+      "type": "array",
+      "items": { "$ref": "./parts/profile_or_random.json" }
+    }
+  },
+  "additionalProperties": false,
+  "required": [ "points", "crew" ]
+}

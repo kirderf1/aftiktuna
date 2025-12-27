@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^[a-z_0-9]+$": {
+      "type": "object",
+      "properties": {
+        "weapon": {
+          "type": "object",
+          "properties": {
+            "damage_mod": { "type": "number", "minimum": 2 },
+            "attack_set": {
+              "enum": [ "light", "quick", "slow", "intense", "varied" ]
+            },
+            "stun_attack": { "type": "boolean" }
+          },
+          "additionalProperties": false,
+          "required": [ "damage_mod", "attack_set" ]
+        },
+        "price": { "type": "integer", "minimum": 0 },
+        "extra_description": { "type": "string" },
+        "shop_description": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
