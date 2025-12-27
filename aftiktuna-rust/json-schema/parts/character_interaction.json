@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "type": { "const": "recruitable" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": { "const": "talk" },
+        "expression": { "$ref": "./dialogue_expression.json" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": [ "expression", "message" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "gives_hunt_reward" },
+        "target_tag": { "$ref": "./name_id.json" },
+        "target_label": { "type": "string" },
+        "task_dialogue": { "$ref": "./conditioned_dialogue_node.json" },
+        "already_completed_dialogue": { "$ref": "./conditioned_dialogue_node.json" },
+        "reward_dialogue": { "$ref": "./conditioned_dialogue_node.json" },
+        "reward": {
+          "type": "object",
+          "properties": {
+            "points": { "type": "integer", "minimum": 0 },
+            "items": {
+              "type": "array",
+              "items": { "$ref": "./name_id.json" }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "target_tag", "target_label", "task_dialogue", "already_completed_dialogue", "reward_dialogue", "reward" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "shopkeeper" },
+        "stock": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "item": { "$ref": "./name_id.json" },
+              "price": { "type": "integer", "minimum": 0 },
+              "quantity": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": false,
+            "required": [ "item" ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "stock" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "hostile" },
+        "encounter_dialogue": { "$ref": "./dialogue_node.json" }
+      },
+      "additionalProperties": false
+    }
+  ],
+  "required": [ "type" ]
+}

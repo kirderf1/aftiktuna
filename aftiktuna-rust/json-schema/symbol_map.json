@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "patternProperties": {
+    "^.$": { "$ref": "./parts/location_symbol.json" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "properties": {
+    "variants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "./parts/name_id.json" },
+          "weight": { "type": "integer", "minimum": 1 }
+        },
+        "additionalProperties": false,
+        "required": [ "id", "weight" ]
+      }
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "pos_in_overview": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "tag": { "$ref": "./parts/name_id.json" },
+          "background": { "$ref": "./parts/name_id.json" },
+          "background_offset": { "type": "integer" },
+          "extra_background_layers": {
+            "type": "array",
+            "items": { "$ref": "./parts/background_layer.json" }
+          },
+          "darkness": { "type": "number", "minimum": 0, "maximum": 1 },
+          "objects": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "variant_objects": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-z_0-9]+$": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            },
+            "additionalProperties": false
+          },
+          "symbols": { "$ref": "./symbol_map.json" }
+        },
+        "additionalProperties": false,
+        "required": [ "name", "objects", "symbols" ]
+      }
+    },
+    "door_pairs": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z_0-9]+$": {
+          "type": "object",
+          "properties": {
+            "block_type": {
+              "enum": [ "stuck", "sealed" ]
+            },
+            "is_cut": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "required": [ "areas", "door_pairs" ]
+}

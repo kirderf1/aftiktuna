@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "texture": { "$ref": "./name_path.json" },
+    "move_factor": { "type": "number" },
+    "is_looping": { "type": "boolean" },
+    "offset": { "$ref": "./background_layer_offset.json" }
+  },
+  "additionalProperties": false,
+  "required": [ "texture" ]
+}

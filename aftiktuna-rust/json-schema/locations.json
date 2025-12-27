@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "location_names": {
+            "type": "array",
+            "items": { "$ref": "./parts/name_path.json" }
+          }
+        },
+        "additionalProperties": false,
+        "required": [ "name", "description", "location_names" ]
+      }
+    },
+    "fortuna_locations": {
+      "type": "array",
+      "items": { "$ref": "./parts/name_path.json" }
+    }
+  },
+  "additionalProperties": false,
+  "required": [ "categories", "fortuna_locations" ]
+}

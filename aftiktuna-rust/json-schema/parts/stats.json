@@ -1,0 +1,11 @@
+{
+  "type": "object",
+  "properties": {
+    "strength": { "type": "integer", "minimum": 1 },
+    "endurance": { "type": "integer", "minimum": 1 },
+    "agility": { "type": "integer", "minimum": 1 },
+    "luck": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false,
+  "required": [ "strength", "endurance", "agility", "luck" ]
+}

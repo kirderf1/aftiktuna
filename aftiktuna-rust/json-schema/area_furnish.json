@@ -1,0 +1,15 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "objects": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "symbols": { "$ref": "./symbol_map.json" }
+    },
+    "additionalProperties": false,
+    "required": [ "objects", "symbols" ]
+  }
+}

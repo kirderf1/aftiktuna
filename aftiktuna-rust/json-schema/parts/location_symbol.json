@@ -1,0 +1,174 @@
+{
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "type": { "const": "location_entry" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": { "const": "fortuna_chest" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": { "const": "ship_controls" },
+        "direction": { "$ref": "./direction.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "direction" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "food_deposit" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": { "const": "item" },
+        "item": { "$ref": "./name_id.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "item" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "loot" },
+        "table": { "$ref": "./name_path.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "table" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "door" },
+        "pair_id": { "$ref": "./name_id.json" },
+        "display_type": {
+          "enum": [ "door", "doorway", "upward_stairs", "downward_stairs", "shack", "house", "store", "path", "left_path", "right_path", "crossroad_path" ]
+        },
+        "adjective": {
+          "enum": [ "left", "middle", "right" ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "pair_id", "display_type" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "inanimate" },
+        "model": { "$ref": "./name_path.json" },
+        "direction": { "$ref": "./direction.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "model" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "container" },
+        "container_type": {
+          "enum": [ "tent", "cabinet", "drawer", "crate", "chest", "crashed_ship" ]
+        },
+        "content": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "oneOf": [
+              {
+                "properties": {
+                  "type": { "const": "item" },
+                  "item": { "$ref": "./name_id.json" }
+                },
+                "additionalProperties": false,
+                "required": [ "type", "item" ]
+              },
+              {
+                "properties": {
+                  "type": { "const": "loot" },
+                  "table": { "$ref": "./name_path.json" }
+                },
+                "additionalProperties": false,
+                "required": [ "type", "table" ]
+              }
+            ]
+          }
+        },
+        "direction": { "$ref": "./direction.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "container_type", "content" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "creature" },
+        "creature": {
+          "enum": [ "goblin", "eyesaur", "azureclops", "scarvie", "voracious_frog", "blood_mantis" ]
+        },
+        "name": { "type": "string" },
+        "health": { "type": "number", "minimum": 0, "maximum": 1 },
+        "stats": { "$ref": "./stats.json" },
+        "attribute": {
+          "enum": [ "none", "random", "muscular", "bulky", "agile" ]
+        },
+        "aggressive": { "type": "boolean" },
+        "wandering": {
+          "type": "object",
+          "properties": {
+            "area_tag": { "$ref": "./name_id.json" }
+          },
+          "additionalProperties": false
+        },
+        "tag": { "$ref": "./name_id.json" },
+        "direction": { "$ref": "./direction.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "creature" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "character" },
+        "profile": { "$ref": "./profile_or_random.json" },
+        "health": { "type": "number", "minimum": 0, "maximum": 1 },
+        "tag": { "$ref": "./name_id.json" },
+        "background": { "$ref": "./name_id.json" },
+        "interaction": { "$ref": "./character_interaction.json" },
+        "background_dialogue": {
+          "type": "object",
+          "properties": {
+            "target": { "$ref": "./name_id.json" },
+            "dialogue": {
+              "type": "array",
+              "items": { "$ref": "./dialogue_node.json" }
+            }
+          },
+          "additionalProperties": false,
+          "required": [ "target", "dialogue" ]
+        },
+        "wielded_item": { "$ref": "./name_id.json" },
+        "direction": { "$ref": "./direction.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "interaction" ]
+    },
+    {
+      "properties": {
+        "type": { "const": "aftik_corpse" },
+        "color": { "$ref": "./name_id.json" },
+        "direction": { "$ref": "./direction.json" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
+        "type": { "const": "furnish" },
+        "template": { "$ref": "./name_path.json" }
+      },
+      "additionalProperties": false,
+      "required": [ "template" ]
+    }
+  ],
+  "required": [ "type" ]
+}

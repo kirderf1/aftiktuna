@@ -1,0 +1,38 @@
+{
+  "oneOf": [
+    {
+      "const": { "type": "random" }
+    },
+    {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "color": { "$ref": "./name_id.json" },
+        "stats": {
+          "oneOf": [
+            {
+              "const": { "type": "random" }
+            },
+            { "$ref": "./stats.json" }
+          ]
+        },
+        "traits": {
+          "oneOf": [
+            {
+              "const": { "type": "random" }
+            },
+            {
+              "type": "array",
+              "items": {
+                "enum": [ "good_dodger", "fast_healer", "fragile", "big_eater" ]
+              },
+              "uniqueItems": true
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "name", "color", "stats", "traits" ]
+    }
+  ]
+}

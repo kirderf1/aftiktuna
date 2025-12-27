@@ -1,0 +1,28 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/assets/area_furnish/**/*.json"
+            ],
+            "url": "/json-schema/area_furnish.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/location/**/*.json"
+            ],
+            "url": "/json-schema/location.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/locations.json"
+            ],
+            "url": "/json-schema/locations.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/symbols.json"
+            ],
+            "url": "/json-schema/symbol_map.json"
+        }
+    ]
+}
