@@ -21,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Small tweaks to scarvie model
 - Adapted format of layer conditions in model files
 
+### Fixed
+
+- Fixed transparency rendering issue with certain platforms (detected and verified on archlinux)
+
 ### Contributors for this release
 
 - kirderf1

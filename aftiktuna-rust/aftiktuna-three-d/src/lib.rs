@@ -83,7 +83,7 @@ pub mod dimensions {
 
 pub use camera::Camera;
 
-const TRANSPARENCY_BLEND: three_d::Blend = three_d::Blend::STANDARD_TRANSPARENCY;
+const TRANSPARENCY_BLEND: three_d::Blend = three_d::Blend::TRANSPARENCY;
 
 pub struct Rect {
     left: f32,
