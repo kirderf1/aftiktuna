@@ -306,7 +306,7 @@ pub fn color_material(color: three_d::Vec4) -> impl three_d::Material {
         three_d::ColorMaterial {
             render_states: three_d::RenderStates {
                 write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                blend: crate::TRANSPARENCY_BLEND,
                 ..Default::default()
             },
             ..Default::default()
@@ -320,7 +320,7 @@ fn texture_material(texture: &three_d::Texture2DRef) -> impl three_d::Material +
         texture: Some(texture.clone()),
         render_states: three_d::RenderStates {
             write_mask: three_d::WriteMask::COLOR,
-            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            blend: crate::TRANSPARENCY_BLEND,
             ..Default::default()
         },
         ..Default::default()
@@ -336,7 +336,7 @@ fn texture_color_material(
             texture: Some(texture.clone()),
             render_states: three_d::RenderStates {
                 write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                blend: crate::TRANSPARENCY_BLEND,
                 ..Default::default()
             },
             ..Default::default()
@@ -394,7 +394,7 @@ pub fn render_darkness(
         intensity,
         render_states: three_d::RenderStates {
             write_mask: three_d::WriteMask::COLOR,
-            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            blend: crate::TRANSPARENCY_BLEND,
             ..Default::default()
         },
     };

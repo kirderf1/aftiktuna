@@ -212,7 +212,7 @@ fn draw_camera_arrows(
         texture: Some(arrow_texture.clone()),
         render_states: three_d::RenderStates {
             write_mask: three_d::WriteMask::COLOR,
-            blend: three_d::Blend::STANDARD_TRANSPARENCY,
+            blend: crate::TRANSPARENCY_BLEND,
             ..Default::default()
         },
         ..Default::default()

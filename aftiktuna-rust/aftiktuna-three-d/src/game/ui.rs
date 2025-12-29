@@ -287,7 +287,7 @@ pub fn draw_frame_click_icon(
             texture: Some(icon.clone()),
             render_states: three_d::RenderStates {
                 write_mask: three_d::WriteMask::COLOR,
-                blend: three_d::Blend::STANDARD_TRANSPARENCY,
+                blend: crate::TRANSPARENCY_BLEND,
                 ..Default::default()
             },
             ..Default::default()
