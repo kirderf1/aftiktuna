@@ -1,4 +1,4 @@
-use aftiktuna::asset::color::{AftikColorData, RGBColor};
+use aftiktuna::asset::color::{RGBColor, SpeciesColorData};
 use aftiktuna::asset::model::{self, LayerCondition, Model, ModelAccess, TexturesOrChildren};
 use aftiktuna::asset::{TextureLoader, background, placement};
 use aftiktuna::core::Species;
@@ -366,7 +366,7 @@ fn model_editor_ui(
     ui.button("Save").clicked()
 }
 
-const DEFAULT_AFTIK_COLOR: AftikColorData = AftikColorData {
+const DEFAULT_AFTIK_COLOR: SpeciesColorData = SpeciesColorData {
     primary_color: RGBColor::new(148, 216, 0),
     secondary_color: RGBColor::new(255, 238, 153),
 };
@@ -505,7 +505,7 @@ fn draw_examples(
                 pos,
                 RenderProperties {
                     object: &data.properties,
-                    aftik_color: DEFAULT_AFTIK_COLOR,
+                    species_color: DEFAULT_AFTIK_COLOR,
                 },
                 time,
                 context,
@@ -522,7 +522,7 @@ fn draw_examples(
                             direction: data.properties.direction,
                             ..Default::default()
                         },
-                        aftik_color: DEFAULT_AFTIK_COLOR,
+                        species_color: DEFAULT_AFTIK_COLOR,
                     },
                     time,
                     context,

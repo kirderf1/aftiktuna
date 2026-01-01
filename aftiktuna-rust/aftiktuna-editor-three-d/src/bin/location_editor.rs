@@ -1,5 +1,5 @@
 mod ui {
-    use aftiktuna::asset::color::AftikColorData;
+    use aftiktuna::asset::color::SpeciesColorData;
     use aftiktuna::asset::location::creature::{
         self, AftikCorpseData, AttributeChoice, CreatureSpawnData, NpcSpawnData, Wandering,
     };
@@ -9,7 +9,7 @@ mod ui {
     };
     use aftiktuna::core::BlockType;
     use aftiktuna::core::area::BackgroundId;
-    use aftiktuna::core::display::{AftikColorId, ModelId};
+    use aftiktuna::core::display::{ModelId, SpeciesColorId};
     use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
     use aftiktuna_editor_three_d::name_from_symbol;
@@ -512,7 +512,7 @@ mod ui {
         ui: &mut egui::Ui,
         symbol_edit_data: &mut SymbolEditData,
         symbol_lookup: impl FnOnce(char) -> SymbolStatus,
-        aftik_colors: &IndexMap<AftikColorId, AftikColorData>,
+        aftik_colors: &IndexMap<SpeciesColorId, SpeciesColorData>,
         item_type_list: &[ItemTypeId],
     ) -> Option<SymbolEditAction> {
         ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
@@ -794,14 +794,15 @@ mod ui {
     }
 }
 
-use aftiktuna::asset::color::{self, AftikColorData};
+use aftiktuna::asset::color::{self, SpeciesColorData};
 use aftiktuna::asset::location::{
     self, AreaData, LocationData, SymbolData, SymbolLookup, SymbolMap,
 };
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, placement};
+use aftiktuna::core::Species;
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::AftikColorId;
+use aftiktuna::core::display::SpeciesColorId;
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Coord;
 use aftiktuna::view::area::ObjectProperties;
@@ -870,7 +871,7 @@ fn main() {
         base_symbols: location::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
         aftik_colors: serde_json::from_reader::<_, _>(
-            File::open(color::AFTIK_COLORS_PATH).unwrap(),
+            File::open(color::colors_path(Species::Aftik)).unwrap(),
         )
         .unwrap(),
         item_type_list: aftiktuna::asset::load_item_type_map()
@@ -977,7 +978,7 @@ struct Assets {
     background_map: asset::BackgroundMap,
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
-    aftik_colors: IndexMap<AftikColorId, AftikColorData>,
+    aftik_colors: IndexMap<SpeciesColorId, SpeciesColorData>,
     item_type_list: Vec<ItemTypeId>,
 }
 
@@ -1335,18 +1336,18 @@ fn render_game_view(
     let objects = objects
         .into_iter()
         .flat_map(|(pos, object)| {
-            let aftik_color = object
+            let species_color = object
                 .properties
-                .aftik_color
+                .species_color
                 .as_ref()
-                .and_then(|color_id| assets.aftik_colors.get(color_id).copied())
+                .and_then(|(species, color_id)| assets.aftik_colors.get(color_id).copied())
                 .unwrap_or(color::DEFAULT_COLOR);
             let mut render_objects = render::get_render_objects_for_entity_with_color(
                 assets.models.lookup_model(&object.model_id),
                 pos.into(),
                 RenderProperties {
                     object: &object.properties,
-                    aftik_color,
+                    species_color,
                 },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
@@ -1365,7 +1366,7 @@ fn render_game_view(
                             direction: object.properties.direction,
                             ..ObjectProperties::default()
                         },
-                        aftik_color: color::DEFAULT_COLOR,
+                        species_color: color::DEFAULT_COLOR,
                     },
                     frame_input.accumulated_time as f32,
                     &frame_input.context,

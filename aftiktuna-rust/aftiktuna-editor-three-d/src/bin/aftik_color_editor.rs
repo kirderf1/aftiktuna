@@ -1,8 +1,7 @@
-use aftiktuna::asset::color::{self, AftikColorData, AftikColorEntry, RGBColor};
+use aftiktuna::asset::color::{self, RGBColor, SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::model::{self, Model};
 use aftiktuna::core::Species;
-use aftiktuna::core::display::{AftikColorId, ModelId};
-use aftiktuna::core::name::Adjective;
+use aftiktuna::core::display::{ModelId, SpeciesColorId};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -13,10 +12,11 @@ use three_d::{FrameInput, egui};
 
 const SIZE: (u32, u32) = (800, 600);
 
-type AftikColorMap = IndexMap<AftikColorId, AftikColorEntry>;
+type AftikColorMap = IndexMap<SpeciesColorId, SpeciesColorEntry>;
 
 fn main() {
     let mut aftik_colors = load_aftik_colors_ordered();
+    assert!(!aftik_colors.is_empty());
 
     let window = three_d::Window::new(three_d::WindowSettings {
         title: "Aftiktuna: Aftik Color Editor".to_string(),
@@ -39,14 +39,6 @@ fn main() {
 
     let mut selected_index = 0;
     let mut new_color_name = String::new();
-
-    if aftik_colors.is_empty() {
-        init_new_color(
-            AftikColorId::new("mint"),
-            &mut selected_index,
-            &mut aftik_colors,
-        );
-    }
 
     window.render_loop(move |mut frame_input| {
         let mut save = false;
@@ -94,12 +86,13 @@ fn main() {
 }
 
 fn load_aftik_colors_ordered() -> AftikColorMap {
-    let file = File::open(color::AFTIK_COLORS_PATH).expect("Unable to open aftik color file");
+    let file =
+        File::open(color::colors_path(Species::Aftik)).expect("Unable to open aftik color file");
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load aftik color data")
 }
 
 fn draw_examples(
-    aftik_color_data: AftikColorData,
+    aftik_color_data: SpeciesColorData,
     aftik_model: &Model<three_d::Texture2DRef>,
     portrait_model: &Model<three_d::Texture2DRef>,
     frame_input: &FrameInput,
@@ -156,7 +149,7 @@ fn draw_examples(
                 pos,
                 RenderProperties {
                     object: &properties,
-                    aftik_color: aftik_color_data,
+                    species_color: aftik_color_data,
                 },
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
@@ -185,7 +178,7 @@ fn side_panel(
 
             if ui.button("Add").clicked() && !new_color_name.is_empty() {
                 init_new_color(
-                    AftikColorId(take(new_color_name)),
+                    SpeciesColorId(take(new_color_name)),
                     selected_index,
                     aftik_colors,
                 );
@@ -196,7 +189,7 @@ fn side_panel(
                 selected_index,
                 aftik_colors.len(),
                 |index| {
-                    let (AftikColorId(name), _) = aftik_colors.get_index(index).unwrap();
+                    let (SpeciesColorId(name), _) = aftik_colors.get_index(index).unwrap();
                     name.to_owned()
                 },
             );
@@ -221,17 +214,16 @@ fn side_panel(
 }
 
 fn init_new_color(
-    new_id: AftikColorId,
+    new_id: SpeciesColorId,
     selected_index: &mut usize,
     aftik_colors: &mut AftikColorMap,
 ) {
     if !aftik_colors.contains_key(&new_id) {
-        let adjective = Adjective(new_id.0.clone());
         *selected_index = aftik_colors
             .insert_full(
                 new_id,
-                AftikColorEntry {
-                    adjective,
+                SpeciesColorEntry {
+                    adjective: None,
                     color_data: color::DEFAULT_COLOR,
                 },
             )
@@ -246,6 +238,6 @@ fn color_picker(ui: &mut egui::Ui, color: &mut RGBColor) {
 }
 
 fn save_map(aftik_colors: &AftikColorMap) {
-    let file = File::create(color::AFTIK_COLORS_PATH).unwrap();
+    let file = File::create(color::colors_path(Species::Aftik)).unwrap();
     serde_json_pretty::to_writer(file, aftik_colors).unwrap();
 }

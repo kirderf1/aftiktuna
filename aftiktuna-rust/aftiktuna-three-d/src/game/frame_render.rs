@@ -5,6 +5,7 @@ use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
+use aftiktuna::core::Species;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
 use aftiktuna::view::{self, Frame, StoreStockView};
 use rand::{Rng, SeedableRng};
@@ -59,12 +60,15 @@ pub fn render_frame(
                 three_d::vec2(x, 0.),
                 &ObjectProperties {
                     direction: data.direction,
-                    aftik_color: data.color.clone(),
+                    species_color: data
+                        .color
+                        .clone()
+                        .map(|color_id| (Species::Aftik, color_id)),
                     is_badly_hurt: data.is_badly_hurt,
                     expression: data.expression,
                     ..ObjectProperties::default()
                 },
-                &mut assets.aftik_colors,
+                &mut assets.species_colors,
                 frame_input.accumulated_time as f32,
                 &frame_input.context,
             );
@@ -133,7 +137,7 @@ fn draw_area_view(
                 assets.models.lookup_model(&object.model_id),
                 *pos,
                 &object.properties,
-                &mut assets.aftik_colors,
+                &mut assets.species_colors,
                 frame_input.accumulated_time as f32 + time_offset,
                 &frame_input.context,
             );
@@ -149,7 +153,7 @@ fn draw_area_view(
                             direction: object.properties.direction,
                             ..ObjectProperties::default()
                         },
-                        &mut assets.aftik_colors,
+                        &mut assets.species_colors,
                         frame_input.accumulated_time as f32,
                         &frame_input.context,
                     ));
@@ -273,10 +277,13 @@ fn draw_store_view(
         three_d::vec2(dimensions::WINDOW_WIDTH_F - 200., 0.),
         &ObjectProperties {
             direction: Direction::Left,
-            aftik_color: view.shopkeeper_color.clone(),
+            species_color: view
+                .shopkeeper_color
+                .clone()
+                .map(|color_id| (Species::Aftik, color_id)),
             ..ObjectProperties::default()
         },
-        &mut assets.aftik_colors,
+        &mut assets.species_colors,
         frame_input.accumulated_time as f32,
         &frame_input.context,
     );

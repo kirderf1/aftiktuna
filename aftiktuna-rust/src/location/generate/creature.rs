@@ -8,7 +8,7 @@ use crate::asset::profile::{self, AftikProfile};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
-use crate::core::display::{AftikColorId, CreatureVariantSet};
+use crate::core::display::{CreatureVariantSet, SpeciesColorId};
 use crate::core::name::Name;
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{
@@ -18,7 +18,7 @@ use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{Species, Tag, inventory};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
-use rand::seq::{IndexedRandom, SliceRandom};
+use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
 use std::collections::HashSet;
 
 fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<CreatureAttribute> {
@@ -65,6 +65,16 @@ pub(super) fn place_creature(
     let mut stats = stats.clone().unwrap_or(creature.species().default_stats());
 
     let mut builder = species_builder_base(creature.species(), &mut gen_context.rng);
+
+    if let Some(color_id) = gen_context
+        .assets
+        .color_map
+        .available_ids(creature.species())
+        .choose_stable(&mut gen_context.rng)
+    {
+        builder.add::<SpeciesColorId>(color_id.clone());
+    }
+
     if let Some(attribute) = attribute {
         attribute.adjust_stats(&mut stats);
         builder.add(attribute);
@@ -113,7 +123,7 @@ pub(super) fn place_npc(
     let Some(profile) = profile.clone().unwrap(
         &mut gen_context.aftik_color_names,
         &mut gen_context.rng,
-        &used_aftik_colors(&mut gen_context.world),
+        &used_species_colors(&mut gen_context.world, Species::Aftik),
     ) else {
         return Ok(());
     };
@@ -175,7 +185,7 @@ pub(super) fn place_corpse(
         profile::random_profile(
             &mut gen_context.aftik_color_names,
             &mut gen_context.rng,
-            &used_aftik_colors(&mut gen_context.world),
+            &used_species_colors(&mut gen_context.world, Species::Aftik),
         )
         .map(|profile| profile.color)
     }) else {
@@ -208,7 +218,7 @@ pub(crate) fn aftik_builder_with_stats(
         .unwrap_or_else(|| random_stats_from_base(Species::Aftik.default_stats(), &traits, rng));
     let mut builder = species_builder_base(Species::Aftik, rng);
     builder
-        .add::<AftikColorId>(color)
+        .add::<SpeciesColorId>(color)
         .add_bundle((
             Name {
                 name,
@@ -356,10 +366,14 @@ pub(super) fn align_aggressiveness(world: &mut World) {
     }
 }
 
-pub(crate) fn used_aftik_colors(world: &mut World) -> Vec<&AftikColorId> {
+pub(crate) fn used_species_colors(
+    world: &mut World,
+    expected_species: Species,
+) -> Vec<&SpeciesColorId> {
     world
-        .query_mut::<&AftikColorId>()
+        .query_mut::<(&SpeciesColorId, &Species)>()
         .into_iter()
-        .map(|(_, color)| color)
+        .filter(|&(_, (_, checked_species))| checked_species == &expected_species)
+        .map(|(_, (color, _))| color)
         .collect()
 }

@@ -12,8 +12,8 @@ use std::io;
 use std::io::{Read, Write};
 
 pub const SAVE_FILE_NAME: &str = "SAVE_FILE";
-const MAJOR_VERSION: u16 = 5;
-const MINOR_VERSION: u16 = 1;
+const MAJOR_VERSION: u16 = 6;
+const MINOR_VERSION: u16 = 0;
 
 fn verify_version(major: u16, minor: u16) -> Result<(), LoadError> {
     if major != MAJOR_VERSION || minor > MINOR_VERSION {
@@ -169,7 +169,7 @@ pub mod world {
         name::NounId, NounId;
         name::Adjective, Adjective;
         display::ModelId, ModelId;
-        display::AftikColorId, AftikColor;
+        display::SpeciesColorId, AftikColor;
         display::CreatureVariantSet, CreatureVariantSet;
 
         status::Stats, Stats;

@@ -64,11 +64,11 @@ pub mod display {
     }
 
     #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    pub struct AftikColorId(pub String);
+    pub struct SpeciesColorId(pub String);
 
-    impl AftikColorId {
+    impl SpeciesColorId {
         pub fn new(name: &str) -> Self {
-            AftikColorId(name.to_owned())
+            SpeciesColorId(name.to_owned())
         }
     }
 
@@ -132,6 +132,12 @@ pub mod display {
                     self.0.insert(variant);
                 }
             }
+        }
+    }
+
+    impl<T: IntoIterator<Item = CreatureVariant>> From<T> for CreatureVariantSet {
+        fn from(value: T) -> Self {
+            Self(value.into_iter().collect())
         }
     }
 }
@@ -225,7 +231,7 @@ pub const CREW_SIZE_LIMIT: usize = 3;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Species {
     Aftik,
     Goblin,
@@ -237,20 +243,20 @@ pub enum Species {
 }
 
 impl Species {
-    pub fn model_id(self) -> display::ModelId {
-        let name = match self {
-            Self::Aftik => "aftik",
-            Self::Goblin => "goblin",
-            Self::Eyesaur => "eyesaur",
-            Self::Azureclops => "azureclops",
-            Self::Scarvie => "scarvie",
-            Self::VoraciousFrog => "voracious_frog",
-            Self::BloodMantis => "blood_mantis",
-        };
-        display::ModelId(format!("creature/{name}"))
+    pub fn variants() -> &'static [Self] {
+        use Species::*;
+        &[
+            Aftik,
+            Goblin,
+            Eyesaur,
+            Azureclops,
+            Scarvie,
+            VoraciousFrog,
+            BloodMantis,
+        ]
     }
 
-    pub fn noun_id(self) -> name::NounId {
+    pub fn id(self) -> &'static str {
         match self {
             Self::Aftik => "aftik",
             Self::Goblin => "goblin",
@@ -260,7 +266,14 @@ impl Species {
             Self::VoraciousFrog => "voracious_frog",
             Self::BloodMantis => "blood_mantis",
         }
-        .into()
+    }
+
+    pub fn model_id(self) -> display::ModelId {
+        display::ModelId(format!("creature/{name}", name = self.id()))
+    }
+
+    pub fn noun_id(self) -> name::NounId {
+        self.id().into()
     }
 
     pub fn default_stats(self) -> Stats {

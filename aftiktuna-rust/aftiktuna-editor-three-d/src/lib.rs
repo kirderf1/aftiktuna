@@ -4,7 +4,7 @@ use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::profile::ProfileOrRandom;
 use aftiktuna::core::Species;
-use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::display::{ModelId, SpeciesColorId};
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
@@ -102,16 +102,16 @@ pub fn item_or_loot_editor(
     }
 }
 
-pub fn color_editor<'a, I: Iterator<Item = &'a AftikColorId>>(
+pub fn color_editor<'a, I: Iterator<Item = &'a SpeciesColorId>>(
     ui: &mut egui::Ui,
-    edited_color: &mut AftikColorId,
+    edited_color: &mut SpeciesColorId,
     id: impl Hash,
-    aftik_colors: I,
+    species_colors: I,
 ) {
     egui::ComboBox::new(id, "Color")
         .selected_text(&edited_color.0)
         .show_ui(ui, |ui| {
-            for selectable in aftik_colors {
+            for selectable in species_colors {
                 ui.selectable_value(edited_color, selectable.clone(), &selectable.0);
             }
         });
@@ -367,7 +367,7 @@ pub fn object_from_symbol(
                 direction: npc_spawn_data
                     .direction
                     .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
-                aftik_color: color_from_profile(&npc_spawn_data.profile),
+                species_color: color_from_profile(&npc_spawn_data.profile),
                 ..Default::default()
             },
         },
@@ -383,7 +383,10 @@ pub fn object_from_symbol(
                 direction: aftik_corpse_data
                     .direction
                     .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
-                aftik_color: aftik_corpse_data.color.clone(),
+                species_color: aftik_corpse_data
+                    .color
+                    .clone()
+                    .map(|color_id| (Species::Aftik, color_id)),
                 is_alive: false,
                 is_badly_hurt: true,
                 ..Default::default()
@@ -402,9 +405,11 @@ pub fn object_from_symbol(
     }
 }
 
-fn color_from_profile(profile: &ProfileOrRandom) -> Option<AftikColorId> {
+fn color_from_profile(profile: &ProfileOrRandom) -> Option<(Species, SpeciesColorId)> {
     match profile {
         ProfileOrRandom::Random => None,
-        ProfileOrRandom::Profile(aftik_profile) => Some(aftik_profile.color.clone()),
+        ProfileOrRandom::Profile(aftik_profile) => {
+            Some((Species::Aftik, aftik_profile.color.clone()))
+        }
     }
 }

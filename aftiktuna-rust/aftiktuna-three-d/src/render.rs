@@ -1,10 +1,8 @@
 use crate::dimensions;
 use aftiktuna::asset::background::{BGData, ParallaxLayer, PortraitBGData};
-use aftiktuna::asset::color::{self, AftikColorData};
+use aftiktuna::asset::color::{self, SpeciesColorData, SpeciesColorMap};
 use aftiktuna::asset::model::{Model, TextureLayer};
-use aftiktuna::core::display::AftikColorId;
 use aftiktuna::view::area::ObjectProperties;
-use std::collections::HashMap;
 
 pub fn render_objects_for_primary_background(
     background: &BGData<three_d::Texture2DRef>,
@@ -100,43 +98,31 @@ pub fn get_render_objects_for_entity(
     model: &Model<three_d::Texture2DRef>,
     pos: three_d::Vec2,
     properties: &ObjectProperties,
-    aftik_colors: &mut HashMap<AftikColorId, AftikColorData>,
+    species_colors: &mut SpeciesColorMap,
     time: f32,
     context: &three_d::Context,
 ) -> Vec<impl three_d::Object> {
-    let aftik_color = properties
-        .aftik_color
+    let species_color = properties
+        .species_color
         .as_ref()
-        .map_or(color::DEFAULT_COLOR, |aftik_color| {
-            lookup_or_log_aftik_color(aftik_color, aftik_colors)
-        });
+        .and_then(|(species, color_id)| species_colors.get(*species, color_id))
+        .map_or(color::DEFAULT_COLOR, |entry| entry.color_data);
     get_render_objects_for_entity_with_color(
         model,
         pos,
         RenderProperties {
             object: properties,
-            aftik_color,
+            species_color,
         },
         time,
         context,
     )
 }
 
-fn lookup_or_log_aftik_color(
-    color_id: &AftikColorId,
-    aftik_colors_map: &mut HashMap<AftikColorId, AftikColorData>,
-) -> AftikColorData {
-    aftik_colors_map.get(color_id).copied().unwrap_or_else(|| {
-        eprintln!("Missing aftik color data for color {color_id:?}!");
-        aftik_colors_map.insert(color_id.clone(), color::DEFAULT_COLOR);
-        color::DEFAULT_COLOR
-    })
-}
-
 #[derive(Clone, Copy)]
 pub struct RenderProperties<'a> {
     pub object: &'a ObjectProperties,
-    pub aftik_color: AftikColorData,
+    pub species_color: SpeciesColorData,
 }
 
 pub fn get_render_objects_for_entity_with_color(
@@ -225,7 +211,7 @@ fn get_render_objects_for_layer(
                         height,
                     );
 
-                    let color = color_source.get_color(&properties.aftik_color);
+                    let color = color_source.get_color(&properties.species_color);
                     let material = texture_color_material(
                         texture,
                         three_d::vec4(

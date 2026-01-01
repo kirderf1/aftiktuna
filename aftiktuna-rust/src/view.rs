@@ -5,7 +5,7 @@ use self::text::{IntoMessage, Messages};
 use crate::StopType;
 use crate::asset::GameAssets;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, DialogueExpression};
+use crate::core::display::{DialogueExpression, SpeciesColorId};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::store::IsTrading;
@@ -23,7 +23,7 @@ mod store {
     use super::{Buffer, Frame, StatusCache, status};
     use crate::asset::NounDataMap;
     use crate::core::area::{Area, BackgroundId};
-    use crate::core::display::AftikColorId;
+    use crate::core::display::SpeciesColorId;
     use crate::core::inventory::Held;
     use crate::core::item::{self, ItemTypeId};
     use crate::core::name::{NameData, NameIdData, NameQuery, NounData};
@@ -37,7 +37,7 @@ mod store {
     #[derive(Clone, Serialize, Deserialize)]
     pub struct StoreView {
         pub items: Vec<StoreStockView>,
-        pub shopkeeper_color: Option<AftikColorId>,
+        pub shopkeeper_color: Option<SpeciesColorId>,
         pub background: BackgroundId,
         pub points: i32,
         pub sellable_items: Vec<(NameData, u16)>,
@@ -99,7 +99,10 @@ mod store {
         Frame::StoreView {
             view: StoreView {
                 items,
-                shopkeeper_color: world.get::<&AftikColorId>(shopkeeper).ok().map(deref_clone),
+                shopkeeper_color: world
+                    .get::<&SpeciesColorId>(shopkeeper)
+                    .ok()
+                    .map(deref_clone),
                 background: world.get::<&Area>(area).unwrap().background.clone(),
                 points,
                 sellable_items,
@@ -284,7 +287,7 @@ impl Frame {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DialogueFrameData {
     pub background: BackgroundId,
-    pub color: Option<AftikColorId>,
+    pub color: Option<SpeciesColorId>,
     pub direction: Direction,
     pub is_badly_hurt: bool,
     pub darkness: f32,
@@ -298,7 +301,7 @@ impl DialogueFrameData {
         let area = world.get::<&Area>(area).unwrap();
         Self {
             background: area.background.clone(),
-            color: character_ref.get::<&AftikColorId>().as_deref().cloned(),
+            color: character_ref.get::<&SpeciesColorId>().as_deref().cloned(),
             direction: character_ref
                 .get::<&Direction>()
                 .as_deref()

@@ -3,14 +3,14 @@ use crate::asset::background::ParallaxLayer;
 use crate::command::suggestion;
 use crate::command::suggestion::InteractionType;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{AftikColorId, CreatureVariantSet, DialogueExpression, ModelId};
+use crate::core::display::{CreatureVariantSet, DialogueExpression, ModelId, SpeciesColorId};
 use crate::core::inventory::{self, Held};
 use crate::core::item::ItemTypeId;
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health, Morale};
 use crate::core::store::Shopkeeper;
-use crate::core::{BlockType, Door, IsCut};
+use crate::core::{BlockType, Door, IsCut, Species};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::text;
@@ -84,7 +84,7 @@ fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ObjectProperties {
     pub direction: Direction,
-    pub aftik_color: Option<AftikColorId>,
+    pub species_color: Option<(Species, SpeciesColorId)>,
     pub is_cut: bool,
     pub is_alive: bool,
     pub is_badly_hurt: bool,
@@ -96,7 +96,7 @@ impl Default for ObjectProperties {
     fn default() -> Self {
         Self {
             direction: Direction::Right,
-            aftik_color: None,
+            species_color: None,
             is_cut: false,
             is_alive: true,
             is_badly_hurt: false,
@@ -181,7 +181,10 @@ fn build_object_data(
             .get::<&Direction>()
             .map(deref_clone)
             .unwrap_or_default(),
-        aftik_color: entity_ref.get::<&AftikColorId>().map(deref_clone),
+        species_color: entity_ref
+            .query::<(&Species, &SpeciesColorId)>()
+            .get()
+            .map(|(species, color_id)| (*species, color_id.clone())),
         is_cut: entity_ref.satisfies::<&IsCut>(),
         is_alive: entity_ref
             .get::<&Health>()

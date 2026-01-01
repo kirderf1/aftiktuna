@@ -1,6 +1,8 @@
-use super::display::AftikColorId;
+use super::display::SpeciesColorId;
 use super::status::CreatureAttribute;
 use crate::asset::GameAssets;
+use crate::asset::color::SpeciesColorMap;
+use crate::core::Species;
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -10,16 +12,16 @@ use std::ops::Deref;
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub(crate) enum AdjectiveData {
     Adjective(Adjective),
-    Color(AftikColorId),
+    Color(Species, SpeciesColorId),
 }
 
 impl AdjectiveData {
-    fn lookup(self, color_adjective_map: &HashMap<AftikColorId, Adjective>) -> Adjective {
+    fn lookup(self, color_map: &SpeciesColorMap) -> Option<Adjective> {
         match self {
-            AdjectiveData::Adjective(adjective) => adjective,
-            AdjectiveData::Color(aftik_color_id) => {
-                color_adjective_or_default(color_adjective_map.get(&aftik_color_id))
-            }
+            AdjectiveData::Adjective(adjective) => Some(adjective),
+            AdjectiveData::Color(species, species_color_id) => color_map
+                .get(species, &species_color_id)
+                .and_then(|entry| entry.adjective.clone()),
         }
     }
 }
@@ -35,7 +37,7 @@ impl NameIdData {
         match self {
             Self::Name(name) => NameData::Name(name),
             Self::Noun(adjective, noun_id) => NameData::Noun(
-                adjective.map(|data| data.lookup(&assets.color_adjective_map)),
+                adjective.and_then(|data| data.lookup(&assets.color_map)),
                 assets.noun_data_map.lookup(&noun_id).clone(),
             ),
         }
@@ -53,9 +55,11 @@ impl NameIdData {
                         .get::<&Adjective>()
                         .map(|adjective| AdjectiveData::Adjective(adjective.deref().clone()))
                         .or_else(|| {
-                            entity_ref
-                                .get::<&AftikColorId>()
-                                .map(|color_id| AdjectiveData::Color(color_id.deref().clone()))
+                            entity_ref.query::<(&Species, &SpeciesColorId)>().get().map(
+                                |(species, color_id)| {
+                                    AdjectiveData::Color(*species, color_id.clone())
+                                },
+                            )
                         }),
                     noun_id.deref().clone(),
                 )
@@ -92,7 +96,11 @@ impl<'a> From<NameQuery<'a>> for NameIdData {
                         adjective
                             .cloned()
                             .map(AdjectiveData::Adjective)
-                            .or_else(|| color_id.cloned().map(AdjectiveData::Color)),
+                            .or_else(|| {
+                                color_id.map(|(species, color_id)| {
+                                    AdjectiveData::Color(*species, color_id.clone())
+                                })
+                            }),
                         noun_id.clone(),
                     )
                 })
@@ -152,11 +160,15 @@ impl NameData {
                         .as_deref()
                         .cloned()
                         .or_else(|| {
-                            entity_ref.get::<&AftikColorId>().map(|color_id| {
-                                color_adjective_or_default(
-                                    assets.color_adjective_map.get(&color_id),
-                                )
-                            })
+                            entity_ref
+                                .query::<(&Species, &SpeciesColorId)>()
+                                .get()
+                                .and_then(|(species, color_id)| {
+                                    assets
+                                        .color_map
+                                        .get(*species, color_id)
+                                        .and_then(|entry| entry.adjective.clone())
+                                })
                         }),
                     assets.noun_data_map.lookup(&noun_id).clone(),
                 )
@@ -187,8 +199,11 @@ impl NameData {
                 .map(|noun_id| {
                     Self::Noun(
                         adjective.cloned().or_else(|| {
-                            color_id.map(|color_id| {
-                                color_adjective_or_default(assets.color_adjective_map.get(color_id))
+                            color_id.and_then(|(species, color_id)| {
+                                assets
+                                    .color_map
+                                    .get(*species, color_id)
+                                    .and_then(|entry| entry.adjective.clone())
                             })
                         }),
                         assets.noun_data_map.lookup(noun_id).clone(),
@@ -265,7 +280,7 @@ pub(crate) type NameQuery<'a> = (
     Option<&'a Name>,
     Option<&'a NounId>,
     Option<&'a Adjective>,
-    Option<&'a AftikColorId>,
+    Option<(&'a Species, &'a SpeciesColorId)>,
 );
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -455,7 +470,7 @@ pub(crate) fn names_with_counts(
         .chain(nouns.into_iter().map(|((adjective_data, noun_id), count)| {
             assets.noun_data_map.lookup(&noun_id).with_count(
                 adjective_data
-                    .map(|data| data.lookup(&assets.color_adjective_map))
+                    .and_then(|data| data.lookup(&assets.color_map))
                     .as_ref(),
                 count,
                 article,
@@ -463,10 +478,4 @@ pub(crate) fn names_with_counts(
             )
         }))
         .collect::<Vec<String>>()
-}
-
-fn color_adjective_or_default(color_adjective: Option<&Adjective>) -> Adjective {
-    color_adjective
-        .cloned()
-        .unwrap_or_else(|| Adjective("???-colored".to_string()))
 }

@@ -1,12 +1,12 @@
 use crate::Rect;
 use aftiktuna::asset::background::{self, BGData, ParallaxLayer};
-use aftiktuna::asset::color::{self, AftikColorData};
+use aftiktuna::asset::color::SpeciesColorMap;
 use aftiktuna::asset::model::{
     self, ColoredTextures, LayerPositioning, Model, ModelAccess, TextureLayer,
 };
 use aftiktuna::asset::{self as asset_base, TextureLoader};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::{AftikColorId, ModelId};
+use aftiktuna::core::display::ModelId;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -198,7 +198,7 @@ impl ModelAccess<three_d::Texture2DRef> for LazilyLoadedModels {
 pub struct Assets {
     pub backgrounds: BackgroundMap,
     pub models: LazilyLoadedModels,
-    pub aftik_colors: HashMap<AftikColorId, AftikColorData>,
+    pub species_colors: SpeciesColorMap,
     pub left_mouse_icon: three_d::Texture2DRef,
     pub side_arrow_texture: three_d::Texture2DRef,
     pub builtin_fonts: Rc<BuiltinFonts>,
@@ -211,10 +211,7 @@ impl Assets {
         Ok(Self {
             backgrounds: BackgroundMap::load(context.clone())?,
             models: LazilyLoadedModels::new(context)?,
-            aftik_colors: color::load_aftik_color_data()?
-                .into_iter()
-                .map(|(id, entry)| (id, entry.color_data))
-                .collect(),
+            species_colors: SpeciesColorMap::load()?,
             left_mouse_icon,
             side_arrow_texture,
             builtin_fonts,

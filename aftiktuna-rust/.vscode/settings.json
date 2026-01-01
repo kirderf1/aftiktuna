@@ -8,12 +8,6 @@
         },
         {
             "fileMatch": [
-                "/assets/aftik_colors.json"
-            ],
-            "url": "/json-schema/aftik_colors.json"
-        },
-        {
-            "fileMatch": [
                 "/assets/texture/background/backgrounds.json"
             ],
             "url": "/json-schema/backgrounds.json"
@@ -65,6 +59,12 @@
                 "/assets/selectable_aftik_color_names.json"
             ],
             "url": "/json-schema/selectable_aftik_color_names.json"
+        },
+        {
+            "fileMatch": [
+                "/assets/species_color/*.json"
+            ],
+            "url": "/json-schema/species_colors.json"
         },
         {
             "fileMatch": [

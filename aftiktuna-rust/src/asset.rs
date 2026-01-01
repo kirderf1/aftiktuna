@@ -5,20 +5,28 @@ pub mod placement;
 
 pub mod color {
     use super::Error;
-    use crate::core::display::AftikColorId;
+    use crate::core::Species;
+    use crate::core::display::SpeciesColorId;
     use crate::core::name::Adjective;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
+    use std::path::Path;
 
-    pub const DEFAULT_COLOR: AftikColorData = AftikColorData {
+    pub const DEFAULT_COLOR: SpeciesColorData = SpeciesColorData {
         primary_color: RGBColor::new(255, 255, 255),
         secondary_color: RGBColor::new(0, 0, 0),
     };
 
     #[derive(Clone, Copy, Serialize, Deserialize)]
-    pub struct AftikColorData {
+    pub struct SpeciesColorData {
         pub primary_color: RGBColor,
         pub secondary_color: RGBColor,
+    }
+
+    impl Default for SpeciesColorData {
+        fn default() -> Self {
+            DEFAULT_COLOR
+        }
     }
 
     #[derive(Clone, Copy, Serialize, Deserialize)]
@@ -34,17 +42,76 @@ pub mod color {
         }
     }
 
-    #[derive(Clone, Serialize, Deserialize)]
-    pub struct AftikColorEntry {
-        pub adjective: Adjective,
+    #[derive(Clone, Default, Serialize, Deserialize)]
+    pub struct SpeciesColorEntry {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub adjective: Option<Adjective>,
         #[serde(flatten)]
-        pub color_data: AftikColorData,
+        pub color_data: SpeciesColorData,
     }
 
-    pub const AFTIK_COLORS_PATH: &str = "assets/aftik_colors.json";
+    pub fn colors_path(species: Species) -> impl AsRef<Path> {
+        format!("assets/species_color/{}.json", species.id())
+    }
 
-    pub fn load_aftik_color_data() -> Result<HashMap<AftikColorId, AftikColorEntry>, Error> {
-        super::load_from_json(AFTIK_COLORS_PATH)
+    pub fn load_species_color_data(
+        species: Species,
+    ) -> Result<HashMap<SpeciesColorId, SpeciesColorEntry>, Error> {
+        super::load_from_json(colors_path(species))
+    }
+
+    pub struct SpeciesColorMap(HashMap<Species, HashMap<SpeciesColorId, SpeciesColorEntry>>);
+
+    impl SpeciesColorMap {
+        pub fn load() -> Result<Self, Error> {
+            let mut map = HashMap::new();
+            for &species in Species::variants() {
+                match load_species_color_data(species) {
+                    Ok(color_data) => {
+                        map.insert(species, color_data);
+                    }
+                    Err(error) => {
+                        if !matches!(&error, Error::IO(_, io_error) if io_error.kind() == std::io::ErrorKind::NotFound)
+                        {
+                            return Err(error);
+                        }
+                    }
+                }
+            }
+            Ok(Self(map))
+        }
+
+        pub fn get(
+            &self,
+            species: Species,
+            color_id: &SpeciesColorId,
+        ) -> Option<&SpeciesColorEntry> {
+            self.0.get(&species)?.get(color_id)
+        }
+
+        pub fn available_ids(&self, species: Species) -> impl Iterator<Item = &SpeciesColorId> {
+            self.0.get(&species).map(HashMap::keys).unwrap_or_default()
+        }
+    }
+    pub fn load_all_species_color_data()
+    -> Result<HashMap<(Species, SpeciesColorId), SpeciesColorEntry>, Error> {
+        let mut map = HashMap::new();
+        for &species in Species::variants() {
+            match load_species_color_data(species) {
+                Ok(color_data) => {
+                    for (id, entry) in color_data {
+                        map.insert((species, id), entry);
+                    }
+                }
+                Err(error) => {
+                    if !matches!(&error, Error::IO(_, io_error) if io_error.kind() == std::io::ErrorKind::NotFound)
+                    {
+                        return Err(error);
+                    }
+                }
+            }
+        }
+        Ok(map)
     }
 
     #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -57,11 +124,11 @@ pub mod color {
     }
 
     impl ColorSource {
-        pub fn get_color(self, aftik_color_data: &AftikColorData) -> RGBColor {
+        pub fn get_color(self, color_data: &SpeciesColorData) -> RGBColor {
             match self {
                 ColorSource::Uncolored => RGBColor::new(255, 255, 255),
-                ColorSource::Primary => aftik_color_data.primary_color,
-                ColorSource::Secondary => aftik_color_data.secondary_color,
+                ColorSource::Primary => color_data.primary_color,
+                ColorSource::Secondary => color_data.secondary_color,
             }
         }
     }
@@ -257,7 +324,7 @@ pub mod loot {
 }
 
 pub mod profile {
-    use crate::core::display::AftikColorId;
+    use crate::core::display::SpeciesColorId;
     use crate::core::status::{Stats, Traits};
     use rand::Rng;
     use serde::{Deserialize, Serialize};
@@ -302,7 +369,7 @@ pub mod profile {
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct AftikProfile {
         pub name: String,
-        pub color: AftikColorId,
+        pub color: SpeciesColorId,
         pub stats: StatsOrRandom,
         pub traits: TraitsOrRandom,
     }
@@ -323,9 +390,9 @@ pub mod profile {
 
         pub(crate) fn unwrap(
             self,
-            aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
+            aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
             rng: &mut impl Rng,
-            used_aftik_colors: &[&AftikColorId],
+            used_aftik_colors: &[&SpeciesColorId],
         ) -> Option<AftikProfile> {
             match self {
                 ProfileOrRandom::Random => {
@@ -337,9 +404,9 @@ pub mod profile {
     }
 
     pub(crate) fn random_profile(
-        aftik_color_names: &mut HashMap<AftikColorId, Vec<String>>,
+        aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
         rng: &mut impl Rng,
-        used_aftik_colors: &[&AftikColorId],
+        used_aftik_colors: &[&SpeciesColorId],
     ) -> Option<AftikProfile> {
         use rand::seq::IteratorRandom;
         let chosen_color = aftik_color_names
@@ -364,9 +431,9 @@ pub mod profile {
 }
 
 use crate::core::combat::WeaponProperties;
-use crate::core::display::AftikColorId;
+use crate::core::display::SpeciesColorId;
 use crate::core::item::{ItemTypeId, Price};
-use crate::core::name::{Adjective, NounData, NounId};
+use crate::core::name::{NounData, NounId};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -415,7 +482,7 @@ pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Res
     Ok(object)
 }
 
-pub(crate) fn load_aftik_color_names() -> Result<HashMap<AftikColorId, Vec<String>>, Error> {
+pub(crate) fn load_aftik_color_names() -> Result<HashMap<SpeciesColorId, Vec<String>>, Error> {
     load_json_asset("selectable_aftik_color_names.json")
 }
 
@@ -467,7 +534,7 @@ pub fn load_item_type_map() -> Result<HashMap<ItemTypeId, ItemTypeData>, Error> 
 
 pub struct GameAssets {
     pub(crate) noun_data_map: NounDataMap,
-    pub(crate) color_adjective_map: HashMap<AftikColorId, Adjective>,
+    pub(crate) color_map: color::SpeciesColorMap,
     pub(crate) item_type_map: HashMap<ItemTypeId, ItemTypeData>,
 }
 
@@ -475,10 +542,7 @@ impl GameAssets {
     pub fn load() -> Result<Self, Error> {
         Ok(Self {
             noun_data_map: NounDataMap::load()?,
-            color_adjective_map: color::load_aftik_color_data()?
-                .into_iter()
-                .map(|(id, entry)| (id, entry.adjective))
-                .collect(),
+            color_map: color::SpeciesColorMap::load()?,
             item_type_map: load_item_type_map()?,
         })
     }

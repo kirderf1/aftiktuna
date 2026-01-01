@@ -218,7 +218,7 @@ fn draw_example_content(
             pos.into(),
             RenderProperties {
                 object: &ObjectProperties::default(),
-                aftik_color: color::DEFAULT_COLOR,
+                species_color: color::DEFAULT_COLOR,
             },
             frame_input.accumulated_time as f32,
             &frame_input.context,

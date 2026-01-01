@@ -7,7 +7,7 @@ use crate::asset::profile::AftikProfile;
 use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::behavior::{ObservationTarget, Waiting};
-use crate::core::display::{AftikColorId, ModelId};
+use crate::core::display::{ModelId, SpeciesColorId};
 use crate::core::name::NounId;
 use crate::core::position::{self, Direction, Pos};
 use crate::core::status::Morale;
@@ -33,7 +33,7 @@ enum TrackedState {
 pub struct GenerationState {
     locations: Locations,
     state: TrackedState,
-    aftik_color_names: HashMap<AftikColorId, Vec<String>>,
+    aftik_color_names: HashMap<SpeciesColorId, Vec<String>>,
 }
 
 impl GenerationState {
@@ -383,7 +383,7 @@ pub(crate) fn setup_location_into_game(
 
 pub struct LocationGenContext<'a> {
     world: World,
-    aftik_color_names: HashMap<AftikColorId, Vec<String>>,
+    aftik_color_names: HashMap<SpeciesColorId, Vec<String>>,
     assets: &'a GameAssets,
     rng: ThreadRng,
 }

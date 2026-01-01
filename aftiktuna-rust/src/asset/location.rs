@@ -4,7 +4,7 @@ pub mod creature {
     use crate::core::behavior::{
         self, BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward,
     };
-    use crate::core::display::AftikColorId;
+    use crate::core::display::SpeciesColorId;
     use crate::core::item::{self, ItemTypeId};
     use crate::core::position::Direction;
     use crate::core::status::{CreatureAttribute, Stats};
@@ -180,7 +180,7 @@ pub mod creature {
     #[derive(Clone, Serialize, Deserialize)]
     pub struct AftikCorpseData {
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub color: Option<AftikColorId>,
+        pub color: Option<SpeciesColorId>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub direction: Option<Direction>,
     }
