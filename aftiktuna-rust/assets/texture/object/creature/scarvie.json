@@ -6,7 +6,11 @@
       "anchor": { "x": -6.0, "y": 18.0 },
       "rotation": [ -5.0, 5.0 ],
       "animation_length": 4.5,
-      "texture": "creature/scarvie/arm"
+      "texture": [
+        [ "uncolored", "creature/scarvie/arm" ],
+        [ "secondary", "creature/scarvie/arm_secondary" ],
+        [ "primary", "creature/scarvie/arm_primary" ]
+      ]
     },
     {
       "condition": [
@@ -33,7 +37,13 @@
               "animation_length": 3.0,
               "texture": "creature/scarvie/ear"
             },
-            { "texture": "creature/scarvie/head" },
+            {
+              "texture": [
+                [ "uncolored", "creature/scarvie/head" ],
+                [ "secondary", "creature/scarvie/head_secondary" ],
+                [ "primary", "creature/scarvie/head_primary" ]
+              ]
+            },
             {
               "condition": { "variant": "male" },
               "offset": { "x": 9.0, "y": 20.0 },
@@ -41,7 +51,13 @@
             }
           ]
         },
-        { "texture": "creature/scarvie/body" }
+        {
+          "texture": [
+            [ "uncolored", "creature/scarvie/body" ],
+            [ "secondary", "creature/scarvie/body_secondary" ],
+            [ "primary", "creature/scarvie/body_primary" ]
+          ]
+        }
       ]
     },
     {
@@ -69,7 +85,13 @@
               "animation_length": 3.0,
               "texture": "creature/scarvie/ear"
             },
-            { "texture": "creature/scarvie/head_wounded" },
+            {
+              "texture": [
+                [ "uncolored", "creature/scarvie/head_wounded" ],
+                [ "secondary", "creature/scarvie/head_secondary" ],
+                [ "primary", "creature/scarvie/head_primary" ]
+              ]
+            },
             {
               "condition": { "variant": "male" },
               "offset": { "x": 9.0, "y": 20.0 },
@@ -77,7 +99,13 @@
             }
           ]
         },
-        { "texture": "creature/scarvie/body_wounded" }
+        {
+          "texture": [
+            [ "uncolored", "creature/scarvie/body_wounded" ],
+            [ "secondary", "creature/scarvie/body_secondary" ],
+            [ "primary", "creature/scarvie/body_primary" ]
+          ]
+        }
       ]
     },
     {
@@ -86,7 +114,11 @@
       "anchor": { "x": -6.0, "y": 18.0 },
       "rotation": [ -5.0, 5.0 ],
       "animation_length": 4.5,
-      "texture": "creature/scarvie/arm"
+      "texture": [
+        [ "uncolored", "creature/scarvie/arm" ],
+        [ "secondary", "creature/scarvie/arm_secondary" ],
+        [ "primary", "creature/scarvie/arm_primary" ]
+      ]
     },
     {
       "condition": [
@@ -99,7 +131,11 @@
     {
       "condition": { "alive": false },
       "offset": { "x": 0.0, "y": -5.0 },
-      "texture": "creature/scarvie/corpse"
+      "texture": [
+        [ "uncolored", "creature/scarvie/corpse" ],
+        [ "secondary", "creature/scarvie/corpse_secondary" ],
+        [ "primary", "creature/scarvie/corpse_primary" ]
+      ]
     }
   ],
   "order_weight": 2
