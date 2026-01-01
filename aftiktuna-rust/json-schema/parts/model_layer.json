@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "properties": {
+    "condition": {
+      "oneOf": [
+        { "$ref": "./model_layer_condition.json" },
+        {
+          "type": "array",
+          "items": { "$ref": "./model_layer_condition.json" }
+        }
+      ]
+    },
+    "size": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "offset": {
+      "oneOf": [
+        {"$ref": "./vec2.json" },
+        {
+          "type": "array",
+          "items": { "$ref": "./vec2.json" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "anchor": { "$ref": "./vec2.json" },
+    "rotation": {
+      "oneOf": [
+        { "type": "number" },
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      ]
+    },
+    "animation_length": { "type": "number", "minimum": 0 },
+    "texture": {
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "enum": [ "uncolored", "primary", "secondary" ]
+              },
+              { "$ref": "./name_path.json" }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      ]
+    },
+    "children": {
+      "type": "array",
+      "items": { "$ref": "./model_layer.json" }
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [ "texture" ]
+    },
+    {
+      "required": [ "children" ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "properties": {
+    "layers": {
+      "type": "array",
+      "items": { "$ref": "./parts/model_layer.json" }
+    },
+    "wield_offset": { "$ref": "./parts/vec2.json" },
+    "z_offset": { "type": "integer" },
+    "order_weight": { "type": "integer" },
+    "fixed_orientation": { "type": "boolean" },
+    "has_x_displacement": { "type": "boolean" },
+    "z_displacement": { "type": "integer" },
+    "large_displacement": { "type": "boolean" },
+    "group_placement": {
+      "type": "object",
+      "patternProperties": {
+        "[1-9][0-9]*": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "integer" },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "1" ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [ "layers" ]
+}

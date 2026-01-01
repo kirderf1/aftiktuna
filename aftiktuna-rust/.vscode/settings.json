@@ -50,6 +50,12 @@
         },
         {
             "fileMatch": [
+                "/assets/texture/object/**/*.json"
+            ],
+            "url": "/json-schema/model.json"
+        },
+        {
+            "fileMatch": [
                 "/assets/noun_data.json"
             ],
             "url": "/json-schema/noun_data.json"

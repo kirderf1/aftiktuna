@@ -1,0 +1,32 @@
+{
+  "type": "object",
+  "properties": {
+    "cut": { "type": "boolean" },
+    "alive": { "type": "boolean" },
+    "hurt": { "type": "boolean" },
+    "expression": {
+      "enum": [ "neutral", "excited", "sad" ]
+    },
+    "variant": {
+      "enum": [ "female", "male", "pose_a", "pose_b", "pose_c", "pose_d" ]
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [ "cut" ]
+    },
+    {
+      "required": [ "alive" ]
+    },
+    {
+      "required": [ "hurt" ]
+    },
+    {
+      "required": [ "expression" ]
+    },
+    {
+      "required": [ "variant" ]
+    }
+  ]
+}
