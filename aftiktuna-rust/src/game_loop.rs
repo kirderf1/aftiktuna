@@ -113,7 +113,7 @@ fn run_step(
         }
         Step::PrepareTick => {
             view_buffer.flush_hint(state);
-            ai::prepare_intentions(&mut state.world, view_buffer.assets);
+            ai::prepare_intentions(state, view_buffer.assets);
             Ok(Step::Tick(
                 ai::controlled_character_action(state)
                     .map(|action| (action, command::Target::Controlled)),
@@ -160,11 +160,29 @@ fn tick_and_check(
         .get::<&Pos>(state.controlled)
         .unwrap()
         .get_area();
+    let prev_ship_status = state
+        .world
+        .get::<&ShipState>(state.ship_core)
+        .map(|state| state.status)
+        .ok();
+
     tick(chosen_action, state, view_buffer);
 
     if let Err(stop_type) = check_player_state(state, view_buffer) {
         view_buffer.push_ending_frame(&state.world, state.controlled, stop_type);
         return Err(Phase::Stopped(stop_type));
+    }
+
+    if let Some(ShipStatus::NeedFuel(FuelAmount::TwoCans)) = prev_ship_status
+        && let Some(ShipStatus::NeedFuel(FuelAmount::OneCan)) = state
+            .world
+            .get::<&ShipState>(state.ship_core)
+            .map(|state| state.status)
+            .ok()
+    {
+        view_buffer
+            .messages
+            .add("The ship still needs one more fuel can to be refueled.");
     }
 
     dialogue::trigger_encounter_dialogue(state, view_buffer);

@@ -20,6 +20,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Save format version 6.0, making it incompatible with previous save files
 - Changes coloring system making it available for any species
+- Crew will now refuel the ship unprompted
 - Small tweaks to scarvie model
 - Adapted format of layer conditions in model files
 

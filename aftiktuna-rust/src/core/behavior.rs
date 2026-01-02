@@ -37,6 +37,7 @@ pub enum Intention {
         assisted: hecs::Entity,
     },
     UseMedkit(hecs::Entity),
+    Refuel,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

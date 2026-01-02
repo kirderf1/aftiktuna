@@ -1,6 +1,7 @@
 use crate::action::item::UseAction;
 use crate::action::{Action, ForceDoorAction, TalkAction};
 use crate::asset::GameAssets;
+use crate::core::area::{self, ShipControls, ShipState, ShipStatus};
 use crate::core::behavior::{
     self, BadlyHurtBehavior, Character, GivesHuntRewardData, Hostile, Intention, ObservationTarget,
     RepeatingAction, Waiting, Wandering,
@@ -9,7 +10,7 @@ use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemTypeId;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
-use crate::core::{CrewMember, Door, Species, Tag, area, inventory, status};
+use crate::core::{CrewMember, Door, Species, Tag, inventory, status};
 use crate::dialogue::TalkTopic;
 use crate::game_loop::GameState;
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
@@ -18,36 +19,43 @@ use rand::seq::{IndexedRandom, IteratorRandom};
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 
-pub fn prepare_intentions(world: &mut World, assets: &GameAssets) {
+pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
 
-    for (crew_member, _) in world
+    for (crew_member, _) in state
+        .world
         .query::<()>()
         .with::<(&CrewMember, &Character)>()
         .iter()
     {
-        if let Some(intention) = pick_intention(crew_member, world, assets) {
+        if let Some(intention) = pick_intention(crew_member, state, assets) {
             buffer.insert_one(crew_member, intention);
         };
     }
 
-    for (crew_member, action) in world
+    for (crew_member, action) in state
+        .world
         .query::<&RepeatingAction>()
         .with::<&CrewMember>()
         .iter()
     {
         if action.cancel_if_unsafe()
-            && let Ok(pos) = world.get::<&Pos>(crew_member)
-            && !behavior::is_safe(world, pos.get_area())
+            && let Ok(pos) = state.world.get::<&Pos>(crew_member)
+            && !behavior::is_safe(&state.world, pos.get_area())
         {
             buffer.remove_one::<RepeatingAction>(crew_member);
         };
     }
 
-    buffer.run_on(world);
+    buffer.run_on(&mut state.world);
 }
 
-fn pick_intention(crew_member: Entity, world: &World, assets: &GameAssets) -> Option<Intention> {
+fn pick_intention(
+    crew_member: Entity,
+    state: &GameState,
+    assets: &GameAssets,
+) -> Option<Intention> {
+    let world = &state.world;
     if world
         .get::<&status::Health>(crew_member)
         .is_ok_and(|health| health.is_badly_hurt())
@@ -74,6 +82,27 @@ fn pick_intention(crew_member: Entity, world: &World, assets: &GameAssets) -> Op
         {
             return Some(Intention::Wield(item));
         }
+    }
+
+    let area = world.get::<&Pos>(crew_member).unwrap().get_area();
+    if area::is_ship(area, world)
+        && world
+            .get::<&ShipState>(state.ship_core)
+            .is_ok_and(|ship_state| matches!(ship_state.status, ShipStatus::NeedFuel(_)))
+        && inventory::get_inventory(world, crew_member)
+            .into_iter()
+            .any(|item| {
+                world
+                    .get::<&ItemTypeId>(item)
+                    .is_ok_and(|item_type| item_type.is_fuel_can())
+            })
+        && world
+            .query::<&Pos>()
+            .with::<&ShipControls>()
+            .iter()
+            .any(|(_, pos)| pos.is_in(area))
+    {
+        return Some(Intention::Refuel);
     }
 
     None
@@ -331,6 +360,7 @@ fn pick_crew_action(
                     .into(),
                 );
             }
+            Intention::Refuel => return Some(Action::Refuel),
             _ => {}
         };
     }

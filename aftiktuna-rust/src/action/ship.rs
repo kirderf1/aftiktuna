@@ -23,7 +23,7 @@ pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Resul
         ShipStatus::NeedFuel(amount) => match try_refuel(amount, &mut state.world, performer) {
             RefuelResult::Incomplete(amount) => (
                 ShipStatus::NeedFuel(amount),
-                incomplete_refuel_message(amount, &name),
+                format!("{name} refueled the ship."),
             ),
             RefuelResult::Complete => (ShipStatus::Refueled, format!("{name} refueled the ship.")),
         },
@@ -99,9 +99,13 @@ fn refuel_then_launch(
 ) -> (ShipStatus, String) {
     let name = NameData::find(&state.world, performer, assets).definite();
     match try_refuel(amount, &mut state.world, performer) {
-        RefuelResult::Incomplete(amount) => (
-            ShipStatus::NeedFuel(amount),
-            incomplete_refuel_message(amount, &name),
+        RefuelResult::Incomplete(new_amount) => (
+            ShipStatus::NeedFuel(new_amount),
+            if new_amount != amount {
+                format!("{name} refueled the ship.")
+            } else {
+                incomplete_refuel_message(new_amount, &name)
+            },
         ),
         RefuelResult::Complete => {
             let absent_crew = state
