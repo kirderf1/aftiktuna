@@ -2,11 +2,11 @@ use crate::action::{self, Error};
 use crate::asset::GameAssets;
 use crate::core::area::{self, FuelAmount, ShipControls, ShipState, ShipStatus};
 use crate::core::item::ItemTypeId;
-use crate::core::name::{NameData, NameQuery};
+use crate::core::name::{NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
 use crate::core::{CrewMember, inventory};
 use crate::game_loop::GameState;
-use crate::view::text;
+use crate::view::text::{self, CombinableMsgType};
 use hecs::{Entity, World};
 
 pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Result {
@@ -18,18 +18,22 @@ pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Resul
 
     position::move_adjacent_placement(&mut state.world, performer, controls_placement, assets)?;
 
-    let name = NameData::find(&state.world, performer, assets).definite();
+    let name_id = NameIdData::find(&state.world, performer);
     let (new_status, message) = match status {
         ShipStatus::NeedFuel(amount) => match try_refuel(amount, &mut state.world, performer) {
             RefuelResult::Incomplete(amount) => (
                 ShipStatus::NeedFuel(amount),
-                format!("{name} refueled the ship."),
+                CombinableMsgType::Refuel.message(name_id),
             ),
-            RefuelResult::Complete => (ShipStatus::Refueled, format!("{name} refueled the ship.")),
+            RefuelResult::Complete => (
+                ShipStatus::Refueled,
+                CombinableMsgType::Refuel.message(name_id),
+            ),
         },
         ShipStatus::Refueled => {
             return Err(Error::visible(format!(
-                "{name} goes to refuel the ship, but sees that it is already refueled."
+                "{} goes to refuel the ship, but sees that it is already refueled.",
+                name_id.lookup(assets).definite()
             )));
         }
         ShipStatus::Launching => return Ok(action::Success),

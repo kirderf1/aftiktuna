@@ -45,6 +45,7 @@ pub(crate) enum CombinableMsgType {
     PickUp(NameIdData),
     Threatening,
     Attacking,
+    Refuel,
 }
 
 impl CombinableMsgType {
@@ -150,6 +151,17 @@ impl CombinableMsgType {
                         ))),
                     )
                 }
+            }
+            Refuel => {
+                format!(
+                    "{the_characters} refueled the ship.",
+                    the_characters = capitalize(join_elements(name::names_with_counts(
+                        entities,
+                        name::ArticleKind::The,
+                        name::CountFormat::Text,
+                        assets,
+                    )))
+                )
             }
         }
     }
