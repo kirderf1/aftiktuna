@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Crew will now refuel the ship unprompted
 - Small tweaks to scarvie model
 - Adapted format of layer conditions in model files
+- Location-specific dialogue is no longer defined directly in the location asset
 
 ### Fixed
 

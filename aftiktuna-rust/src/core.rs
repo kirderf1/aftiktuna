@@ -418,3 +418,6 @@ impl BlockType {
         }
     }
 }
+
+/// Represents a dialogue asset path, starting from the dialogue directory and without the file ending.
+pub type DialogueId = String;

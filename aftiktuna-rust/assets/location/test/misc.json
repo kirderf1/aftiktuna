@@ -1,52 +1,22 @@
 {
-  "variants": [
-    { "id": "aftiks", "weight": 2 },
-    { "id": "no_aftiks", "weight": 10 }
-  ],
   "areas": [
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
       "objects": [ "<A", "", "", "v", "", ">c" ],
-      "variant_objects": {
-        "aftiks": [ "", "A", "A", "", "", "A" ],
-        "no_aftiks": [ "", "", "", "", "", "E" ]
-      },
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
-        "c": { "type": "item", "item": "crowbar" },
-        "A": {
-          "type": "character",
-          "interaction": { "type": "talk", "expression": "sad", "message": "That is all there is for me to say right now." }
-        }
+        "c": { "type": "item", "item": "crowbar" }
       }
     },
     {
       "name": "Side Room",
       "pos_in_overview": [ -2, 14 ],
-      "objects": [ "1", "2", "<", ">", "f", "f" ],
+      "objects": [ "", "", "<", ">", "f", "f" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
-        "2": {
-          "type": "character",
-          "interaction": { "type": "talk", "expression": "neutral", "message": "I hope you didn't steal the fuel cans." },
-          "background_dialogue": {
-            "target": "fuel_dialogue_target",
-            "dialogue": [
-              { "expression": "excited", "message": "We really should make sure that no one takes these fuel cans." },
-              { "expression": "neutral", "message": "Sure, whatever you say." },
-              { "expression": "sad", "message": "Come on, I am serious!" },
-              { "expression": "neutral", "message": "Yeah, yeah." }
-            ]
-          }
-        },
-        "1": {
-          "type": "character",
-          "tag": "fuel_dialogue_target",
-          "interaction": { "type": "talk", "expression": "excited", "message": "I don't actually care if you steal the fuel cans." }
-        }
+        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" }
       }
     },
     {

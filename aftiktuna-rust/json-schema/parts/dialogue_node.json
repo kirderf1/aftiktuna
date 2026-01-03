@@ -1,9 +1,0 @@
-{
-  "type": "object",
-  "properties": {
-    "expression": { "$ref": "./dialogue_expression.json" },
-    "message": { "type": "string" }
-  },
-  "additionalProperties": false,
-  "required": [ "expression", "message" ]
-}

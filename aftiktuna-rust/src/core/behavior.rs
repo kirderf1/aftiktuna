@@ -1,9 +1,7 @@
-use super::display::DialogueExpression;
 use super::inventory::Held;
 use super::item::ItemTypeId;
 use super::position::Pos;
-use super::{CrewMember, Tag, status, store};
-use crate::asset::dialogue::ConditionedDialogueNode;
+use super::{CrewMember, DialogueId, Tag, status, store};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -73,15 +71,15 @@ pub struct Recruitable;
 
 /// Dialogue that appears after the greeting as a response to the talk action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Talk(pub DialogueNode);
+pub struct Talk(pub DialogueId);
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GivesHuntRewardData {
     pub target_tag: Tag,
     pub target_label: String,
-    pub task_dialogue: ConditionedDialogueNode,
-    pub already_completed_dialogue: ConditionedDialogueNode,
-    pub reward_dialogue: ConditionedDialogueNode,
+    pub task_dialogue: DialogueId,
+    pub already_completed_dialogue: DialogueId,
+    pub reward_dialogue: DialogueId,
     pub reward: Reward,
     pub presented: bool,
 }
@@ -92,23 +90,17 @@ impl GivesHuntRewardData {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DialogueNode {
-    pub expression: DialogueExpression,
-    pub message: String,
-}
-
 /// Dialogue between npcs triggered by encounter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BackgroundDialogue {
     /// The tag is expected to only match one other entity.
     pub target: Tag,
-    pub dialogue: Vec<DialogueNode>,
+    pub dialogue: DialogueId,
 }
 
 /// Dialogue towards the player triggered by encounter.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EncounterDialogue(pub DialogueNode);
+pub struct EncounterDialogue(pub DialogueId);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Reward {

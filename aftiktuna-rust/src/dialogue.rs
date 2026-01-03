@@ -66,14 +66,10 @@ fn prompt_npc_dialogue(
         let mut gives_hunt_reward = gives_hunt_reward.unwrap();
 
         if !gives_hunt_reward.is_fulfilled(&state.world) {
-            run_dialogue_node(
-                &gives_hunt_reward.task_dialogue,
-                npc,
-                crew_member,
-                state,
-                view_buffer,
-            );
             gives_hunt_reward.presented = true;
+            let dialogue_id = gives_hunt_reward.task_dialogue.clone();
+            drop(gives_hunt_reward);
+            trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
         } else {
             drop(gives_hunt_reward);
             let GivesHuntRewardData {
@@ -82,7 +78,7 @@ fn prompt_npc_dialogue(
                 ..
             } = state.world.remove_one::<GivesHuntRewardData>(npc).unwrap();
 
-            run_dialogue_node(
+            trigger_dialogue_by_name(
                 &already_completed_dialogue,
                 npc,
                 crew_member,
@@ -92,14 +88,15 @@ fn prompt_npc_dialogue(
 
             reward.give_reward_to(crew_member, &mut state.world);
         }
-    } else if let Some(talk) = npc_ref.get::<&Talk>() {
-        view_buffer.push_dialogue(&state.world, npc, talk.0.expression, &talk.0.message);
-    } else if npc_ref.has::<Recruitable>() {
+    } else {
         drop(gives_hunt_reward);
-        trigger_dialogue_by_name("recruitable", npc, crew_member, state, view_buffer);
-    } else if npc_ref.has::<Shopkeeper>() {
-        drop(gives_hunt_reward);
-        store::initiate_trade(crew_member, npc, state, view_buffer);
+        if let Some(talk) = npc_ref.get::<&Talk>().map(crate::deref_clone) {
+            trigger_dialogue_by_name(&talk.0, npc, crew_member, state, view_buffer);
+        } else if npc_ref.has::<Recruitable>() {
+            trigger_dialogue_by_name("recruitable", npc, crew_member, state, view_buffer);
+        } else if npc_ref.has::<Shopkeeper>() {
+            store::initiate_trade(crew_member, npc, state, view_buffer);
+        }
     }
 }
 
@@ -116,7 +113,7 @@ fn complete_hunt_quest(
         ..
     } = state.world.remove_one::<GivesHuntRewardData>(npc).unwrap();
 
-    run_dialogue_node(&reward_dialogue, crew_member, npc, state, view_buffer);
+    trigger_dialogue_by_name(&reward_dialogue, crew_member, npc, state, view_buffer);
 
     reward.give_reward_to(crew_member, &mut state.world);
 }
@@ -179,16 +176,11 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
             view_buffer.capture_view_before_dialogue(state);
 
             position::turn_towards(&state.world, speaker, player_pos);
-            let EncounterDialogue(dialogue_node) = state
+            let EncounterDialogue(dialogue_id) = state
                 .world
                 .remove_one::<EncounterDialogue>(speaker)
                 .unwrap();
-            view_buffer.push_dialogue(
-                &state.world,
-                speaker,
-                dialogue_node.expression,
-                dialogue_node.message,
-            );
+            trigger_dialogue_by_name(&dialogue_id, speaker, state.controlled, state, view_buffer);
         }
     }
 
@@ -291,20 +283,13 @@ fn trigger_background_dialogue(
     if target_pos.is_in(speaker_pos.get_area())
         && state.world.satisfies::<&Character>(target).unwrap()
     {
-        view_buffer.capture_view_before_dialogue(state);
-
-        position::turn_towards(&state.world, speaker, target_pos);
-        position::turn_towards(&state.world, target, speaker_pos);
-        let speakers = [speaker, target];
-        for i in 0..background_dialogue.dialogue.len() {
-            let dialogue_node = &background_dialogue.dialogue[i];
-            view_buffer.push_dialogue(
-                &state.world,
-                speakers[i % 2],
-                dialogue_node.expression,
-                &dialogue_node.message,
-            );
-        }
+        trigger_dialogue_by_name(
+            &background_dialogue.dialogue,
+            speaker,
+            target,
+            state,
+            view_buffer,
+        );
     }
 }
 

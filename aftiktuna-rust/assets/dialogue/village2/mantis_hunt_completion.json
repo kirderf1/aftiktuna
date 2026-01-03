@@ -1,0 +1,9 @@
+[
+  {
+    "expression": "neutral",
+    "message": "We have taken care of the bounty. The mantis is dead.",
+    "reply": [
+      { "expression": "excited", "message": "Wonderful! Here is the 5000p reward." }
+    ]
+  }
+]

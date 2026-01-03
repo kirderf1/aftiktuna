@@ -161,19 +161,12 @@
         "1": {
           "type": "character",
           "tag": "dialogue_target",
-          "interaction": { "type": "talk", "expression": "excited", "message": "And here I was planning to head out. I guess I'll have to wait until it is safer.." }
+          "interaction": { "type": "talk", "dialogue": "village2/talk_planned_travel" }
         },
         "2": {
           "type": "character",
-          "interaction": { "type": "talk", "expression": "sad", "message": "You be careful too if you're planning to head out into the forest!" },
-          "background_dialogue": {
-            "target": "dialogue_target",
-            "dialogue": [
-              { "expression": "excited", "message": "Be careful going out into the forest right now!" },
-              { "expression": "neutral", "message": "Why is that?" },
-              { "expression": "sad", "message": "There's large bug-monster-thing out there!" }
-            ]
-          }
+          "interaction": { "type": "talk", "dialogue": "village2/talk_caution" },
+          "background_dialogue": { "target": "dialogue_target", "dialogue": "village2/forest_warning" }
         }
       }
     },
@@ -273,21 +266,9 @@
             "type": "gives_hunt_reward",
             "target_tag": "forest_mantis",
             "target_label": "the Blood Mantis",
-            "task_dialogue": {
-              "expression": "neutral",
-              "message": "Are you interested in earning some points? A Blood Mantis has wandered into the nearby forest, and that makes ther forest quite dangerous! I have put out a bounty on the mantis for 5000p.",
-              "reply": [
-                { "expression": "neutral", "message": "Alright, we'll keep it in mind." }
-              ]
-            },
-            "already_completed_dialogue": { "expression": "excited", "message": "You took out the mantis out in the forest? Wonderful! I happened to have a bounty out for it. Here's 5000p as the reward." },
-            "reward_dialogue": {
-              "expression": "neutral",
-              "message": "We have taken care of the bounty. The mantis is dead.",
-              "reply": [
-                { "expression": "excited", "message": "Wonderful! Here is the 5000p reward." }
-              ]
-            },
+            "task_dialogue": "village2/mantis_hunt_mission",
+            "already_completed_dialogue": "village2/mantis_hunt_already_completed",
+            "reward_dialogue": "village2/mantis_hunt_completion",
             "reward": { "points": 5000 }
           }
         }

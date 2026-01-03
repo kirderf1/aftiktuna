@@ -10,20 +10,19 @@
     {
       "properties": {
         "type": { "const": "talk" },
-        "expression": { "$ref": "./dialogue_expression.json" },
-        "message": { "type": "string" }
+        "dialogue": { "$ref": "./name_path.json" }
       },
       "additionalProperties": false,
-      "required": [ "expression", "message" ]
+      "required": [ "dialogue" ]
     },
     {
       "properties": {
         "type": { "const": "gives_hunt_reward" },
         "target_tag": { "$ref": "./name_id.json" },
         "target_label": { "type": "string" },
-        "task_dialogue": { "$ref": "./conditioned_dialogue_node.json" },
-        "already_completed_dialogue": { "$ref": "./conditioned_dialogue_node.json" },
-        "reward_dialogue": { "$ref": "./conditioned_dialogue_node.json" },
+        "task_dialogue": { "$ref": "./name_path.json" },
+        "already_completed_dialogue": { "$ref": "./name_path.json" },
+        "reward_dialogue": { "$ref": "./name_path.json" },
         "reward": {
           "type": "object",
           "properties": {
@@ -62,7 +61,7 @@
     {
       "properties": {
         "type": { "const": "hostile" },
-        "encounter_dialogue": { "$ref": "./dialogue_node.json" }
+        "encounter_dialogue": { "$ref": "./name_path.json" }
       },
       "additionalProperties": false
     }

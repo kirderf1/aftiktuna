@@ -28,10 +28,7 @@
     "symbols": {
       "A": {
         "type": "character",
-        "interaction": {
-          "type": "hostile",
-          "encounter_dialogue": { "expression": "excited", "message": "Hey! We found this place first. The chest is ours. We're going to bat you down now!" }
-        },
+        "interaction": { "type": "hostile", "encounter_dialogue": "fortuna_hostile_encounter" },
         "wielded_item": "bat",
         "direction": "right"
       },

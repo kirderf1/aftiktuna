@@ -139,10 +139,7 @@
           "type": "object",
           "properties": {
             "target": { "$ref": "./name_id.json" },
-            "dialogue": {
-              "type": "array",
-              "items": { "$ref": "./dialogue_node.json" }
-            }
+            "dialogue": { "$ref": "./name_path.json" }
           },
           "additionalProperties": false,
           "required": [ "target", "dialogue" ]

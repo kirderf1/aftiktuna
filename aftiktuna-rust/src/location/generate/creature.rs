@@ -144,8 +144,8 @@ pub(super) fn place_npc(
         CharacterInteraction::Recruitable => {
             builder.add(Recruitable);
         }
-        CharacterInteraction::Talk(dialogue_node) => {
-            builder.add(Talk(dialogue_node.clone()));
+        CharacterInteraction::Talk { dialogue } => {
+            builder.add(Talk(dialogue.clone()));
         }
         CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
             builder.add::<GivesHuntRewardData>(gives_hunt_reward.cloned_data());

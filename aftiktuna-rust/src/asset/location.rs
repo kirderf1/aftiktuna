@@ -1,15 +1,12 @@
 pub mod creature {
-    use crate::asset::dialogue::ConditionedDialogueNode;
     use crate::asset::profile::ProfileOrRandom;
-    use crate::core::behavior::{
-        self, BackgroundDialogue, DialogueNode, GivesHuntRewardData, Reward,
-    };
+    use crate::core::behavior::{self, BackgroundDialogue, GivesHuntRewardData, Reward};
     use crate::core::display::SpeciesColorId;
     use crate::core::item::{self, ItemTypeId};
     use crate::core::position::Direction;
     use crate::core::status::{CreatureAttribute, Stats};
     use crate::core::store::StockQuantity;
-    use crate::core::{Species, Tag};
+    use crate::core::{DialogueId, Species, Tag};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -115,9 +112,9 @@ pub mod creature {
     pub struct GivesHuntReward {
         pub target_tag: Tag,
         pub target_label: String,
-        pub task_dialogue: ConditionedDialogueNode,
-        pub already_completed_dialogue: ConditionedDialogueNode,
-        pub reward_dialogue: ConditionedDialogueNode,
+        pub task_dialogue: DialogueId,
+        pub already_completed_dialogue: DialogueId,
+        pub reward_dialogue: DialogueId,
         pub reward: Reward,
     }
 
@@ -147,14 +144,16 @@ pub mod creature {
     #[serde(tag = "type", rename_all = "snake_case")]
     pub enum CharacterInteraction {
         Recruitable,
-        Talk(DialogueNode),
+        Talk {
+            dialogue: DialogueId,
+        },
         GivesHuntReward(Box<GivesHuntReward>),
         Shopkeeper {
             stock: Vec<StockDefinition>,
         },
         Hostile {
             #[serde(default, skip_serializing_if = "Option::is_none")]
-            encounter_dialogue: Option<DialogueNode>,
+            encounter_dialogue: Option<DialogueId>,
         },
     }
 

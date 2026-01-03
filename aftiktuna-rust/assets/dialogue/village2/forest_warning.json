@@ -1,0 +1,15 @@
+[
+  {
+    "expression": "excited",
+    "message": "Be careful going out into the forest right now!",
+    "reply": [
+      {
+        "expression": "neutral",
+        "message": "Why is that?",
+        "reply": [
+          { "expression": "sad", "message": "There's large bug-monster-thing out there!" }
+        ]
+      }
+    ]
+  }
+]
