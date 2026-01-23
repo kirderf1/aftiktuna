@@ -1,4 +1,4 @@
-use crate::asset::{self, GameAssets};
+use crate::asset::GameAssets;
 use crate::command::{self, CommandResult};
 use crate::game_loop::{self, GameState, Step};
 use crate::location::{self, GenerationState};
@@ -19,23 +19,24 @@ pub fn load() -> Result<Game, LoadError> {
     })
 }
 
-pub fn setup_new() -> Result<Game, asset::Error> {
-    Ok(setup_new_with(GenerationState::load_new(3)?))
+pub fn setup_new() -> Result<Game, String> {
+    let locations = GenerationState::load_new(3).map_err(|error| error.to_string())?;
+    setup_new_with(locations)
 }
 
-pub fn setup_new_with(locations: GenerationState) -> Game {
-    let assets = GameAssets::load().unwrap();
+pub fn setup_new_with(locations: GenerationState) -> Result<Game, String> {
+    let assets = GameAssets::load().map_err(|error| error.to_string())?;
     let mut game = Game {
         serialized_state: SerializedState {
             phase: Phase::Invalid,
-            state: game_loop::setup(locations, &assets),
+            state: game_loop::setup(locations, &assets)?,
             frame_cache: FrameCache::new(vec![Frame::Introduction]),
         },
         is_in_error_state: false,
         assets,
     };
     game.run_from_step(Step::PrepareNextLocation);
-    game
+    Ok(game)
 }
 
 pub enum GameResult<'a> {

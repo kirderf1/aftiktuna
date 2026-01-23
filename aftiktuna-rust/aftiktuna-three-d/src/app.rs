@@ -1,6 +1,6 @@
 use aftiktuna::serialization::LoadError;
 use aftiktuna::{game_interface, serialization};
-use aftiktuna_three_d::asset::{self, Assets, BuiltinFonts};
+use aftiktuna_three_d::asset::{Assets, BuiltinFonts};
 use aftiktuna_three_d::game::{self, GameAction};
 use aftiktuna_three_d::{dimensions, render};
 use std::env;
@@ -77,7 +77,7 @@ impl App {
                                 Err(error) => {
                                     self.error_messages = crate::split_screen_text_lines(
                                         &self.builtin_fonts.text_gen_size_16,
-                                        vec![format!("Unable to load assets:"), format!("{error}")],
+                                        vec![format!("Unable to load assets:"), error],
                                     );
                                 }
                             }
@@ -165,11 +165,9 @@ struct LoadedApp {
 }
 
 impl LoadedApp {
-    fn load(
-        context: &three_d::Context,
-        builtin_fonts: Rc<BuiltinFonts>,
-    ) -> Result<Self, asset::Error> {
-        let mut assets = Assets::load(context.clone(), builtin_fonts)?;
+    fn load(context: &three_d::Context, builtin_fonts: Rc<BuiltinFonts>) -> Result<Self, String> {
+        let mut assets =
+            Assets::load(context.clone(), builtin_fonts).map_err(|error| error.to_string())?;
 
         let disable_autosave = env::args().any(|arg| arg.eq("--disable-autosave"));
         let new_game = env::args().any(|arg| arg.eq("--new-game"));
@@ -221,7 +219,7 @@ impl LoadedApp {
                         Err(error) => {
                             return (
                                 AppAction::Continue,
-                                vec![format!("Unable to load assets:"), format!("{error}")],
+                                vec![format!("Unable to load assets:"), error],
                             );
                         }
                     },

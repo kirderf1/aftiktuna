@@ -17,7 +17,8 @@ fn main() {
     let location = &args[1];
     let game = game_interface::setup_new_with(
         GenerationState::single(location.to_owned()).expect("Unable to initialize game"),
-    );
+    )
+    .expect("Unable to initialize game");
 
     let window = three_d::Window::new(three_d::WindowSettings {
         title: format!("Aftiktuna: {location}"),

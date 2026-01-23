@@ -33,19 +33,21 @@ pub struct GameState {
     pub has_introduced_controlled: bool,
 }
 
-pub fn setup(mut generation_state: GenerationState, assets: &GameAssets) -> GameState {
+pub fn setup(
+    mut generation_state: GenerationState,
+    assets: &GameAssets,
+) -> Result<GameState, String> {
     let InitialSpawnData {
         world,
         controlled_character,
         ship_core,
     } = location::spawn_starting_crew_and_ship(
-        CrewData::load_starting_crew().expect("Unable to set up game"),
+        CrewData::load_starting_crew().map_err(|error| error.to_string())?,
         &mut generation_state,
         assets,
-    )
-    .unwrap();
+    )?;
 
-    GameState {
+    Ok(GameState {
         world,
         rng: rand::rng(),
         generation_state,
@@ -53,7 +55,7 @@ pub fn setup(mut generation_state: GenerationState, assets: &GameAssets) -> Game
         controlled: controlled_character,
         status_cache: StatusCache::default(),
         has_introduced_controlled: false,
-    }
+    })
 }
 
 pub enum Step {
