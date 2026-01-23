@@ -212,6 +212,7 @@
           "type": "character",
           "profile": {
             "name": "Pistachio",
+            "species": "aftik",
             "color": "softgreen_nonrandom",
             "stats": { "type": "random" },
             "traits": []

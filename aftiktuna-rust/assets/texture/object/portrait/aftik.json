@@ -14,24 +14,24 @@
         {
           "offset": { "x": 0.0, "y": 214.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/head_details" ],
-            [ "secondary", "aftik_portrait/head_secondary" ],
-            [ "primary", "aftik_portrait/head_primary" ]
+            [ "uncolored", "portrait/aftik/head_details" ],
+            [ "secondary", "portrait/aftik/head_secondary" ],
+            [ "primary", "portrait/aftik/head_primary" ]
           ]
         },
         {
           "offset": { "x": -32.0, "y": 63.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/scarf_details" ],
-            [ "primary", "aftik_portrait/scarf_primary" ]
+            [ "uncolored", "portrait/aftik/scarf_details" ],
+            [ "primary", "portrait/aftik/scarf_primary" ]
           ]
         },
         {
           "offset": { "x": -43.0, "y": 0.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/body_details" ],
-            [ "secondary", "aftik_portrait/body_secondary" ],
-            [ "primary", "aftik_portrait/body_primary" ]
+            [ "uncolored", "portrait/aftik/body_details" ],
+            [ "secondary", "portrait/aftik/body_secondary" ],
+            [ "primary", "portrait/aftik/body_primary" ]
           ]
         }
       ]
@@ -50,24 +50,24 @@
         {
           "offset": { "x": 0.0, "y": 214.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/head_details" ],
-            [ "secondary", "aftik_portrait/head_secondary" ],
-            [ "primary", "aftik_portrait/head_primary" ]
+            [ "uncolored", "portrait/aftik/head_details" ],
+            [ "secondary", "portrait/aftik/head_secondary" ],
+            [ "primary", "portrait/aftik/head_primary" ]
           ]
         },
         {
           "offset": { "x": -32.0, "y": 63.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/scarf_details" ],
-            [ "primary", "aftik_portrait/scarf_primary" ]
+            [ "uncolored", "portrait/aftik/scarf_details" ],
+            [ "primary", "portrait/aftik/scarf_primary" ]
           ]
         },
         {
           "offset": { "x": -43.0, "y": 0.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/body_details" ],
-            [ "secondary", "aftik_portrait/body_secondary" ],
-            [ "primary", "aftik_portrait/body_primary" ]
+            [ "uncolored", "portrait/aftik/body_details" ],
+            [ "secondary", "portrait/aftik/body_secondary" ],
+            [ "primary", "portrait/aftik/body_primary" ]
           ]
         }
       ]
@@ -86,24 +86,24 @@
         {
           "offset": { "x": 0.0, "y": 214.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/head_details_sad" ],
-            [ "secondary", "aftik_portrait/head_secondary" ],
-            [ "primary", "aftik_portrait/head_primary" ]
+            [ "uncolored", "portrait/aftik/head_details_sad" ],
+            [ "secondary", "portrait/aftik/head_secondary" ],
+            [ "primary", "portrait/aftik/head_primary" ]
           ]
         },
         {
           "offset": { "x": -32.0, "y": 63.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/scarf_details" ],
-            [ "primary", "aftik_portrait/scarf_primary" ]
+            [ "uncolored", "portrait/aftik/scarf_details" ],
+            [ "primary", "portrait/aftik/scarf_primary" ]
           ]
         },
         {
           "offset": { "x": -43.0, "y": 0.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/body_details" ],
-            [ "secondary", "aftik_portrait/body_secondary" ],
-            [ "primary", "aftik_portrait/body_primary" ]
+            [ "uncolored", "portrait/aftik/body_details" ],
+            [ "secondary", "portrait/aftik/body_secondary" ],
+            [ "primary", "portrait/aftik/body_primary" ]
           ]
         }
       ]
@@ -119,24 +119,24 @@
         {
           "offset": { "x": 0.0, "y": 214.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/head_details_wounded" ],
-            [ "secondary", "aftik_portrait/head_secondary" ],
-            [ "primary", "aftik_portrait/head_primary" ]
+            [ "uncolored", "portrait/aftik/head_details_wounded" ],
+            [ "secondary", "portrait/aftik/head_secondary" ],
+            [ "primary", "portrait/aftik/head_primary" ]
           ]
         },
         {
           "offset": { "x": -32.0, "y": 63.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/scarf_details" ],
-            [ "primary", "aftik_portrait/scarf_primary" ]
+            [ "uncolored", "portrait/aftik/scarf_details" ],
+            [ "primary", "portrait/aftik/scarf_primary" ]
           ]
         },
         {
           "offset": { "x": -43.0, "y": 0.0 },
           "texture": [
-            [ "uncolored", "aftik_portrait/body_details_wounded" ],
-            [ "secondary", "aftik_portrait/body_secondary" ],
-            [ "primary", "aftik_portrait/body_primary" ]
+            [ "uncolored", "portrait/aftik/body_details_wounded" ],
+            [ "secondary", "portrait/aftik/body_secondary" ],
+            [ "primary", "portrait/aftik/body_primary" ]
           ]
         }
       ]

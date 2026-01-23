@@ -4,7 +4,7 @@ use crate::asset::location::creature::{
     AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     StockDefinition,
 };
-use crate::asset::profile::{self, AftikProfile};
+use crate::asset::profile::{self, CharacterProfile};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
@@ -129,7 +129,7 @@ pub(super) fn place_npc(
     };
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
-    let mut builder = aftik_builder_with_stats(profile, false, &mut gen_context.rng);
+    let mut builder = character_builder_with_stats(profile, false, &mut gen_context.rng);
     builder
         .add::<Pos>(pos)
         .add::<Direction>(direction)
@@ -202,21 +202,22 @@ pub(super) fn place_corpse(
     );
 }
 
-pub(crate) fn aftik_builder_with_stats(
-    profile: AftikProfile,
+pub(crate) fn character_builder_with_stats(
+    profile: CharacterProfile,
     is_name_known: bool,
     rng: &mut impl Rng,
 ) -> EntityBuilder {
-    let AftikProfile {
+    let CharacterProfile {
         name,
+        species,
         color,
         stats,
         traits,
     } = profile;
     let traits = traits.unwrap_or_else(|| random_traits(rng));
     let stats = stats
-        .unwrap_or_else(|| random_stats_from_base(Species::Aftik.default_stats(), &traits, rng));
-    let mut builder = species_builder_base(Species::Aftik, rng);
+        .unwrap_or_else(|| random_stats_from_base(species.species().default_stats(), &traits, rng));
+    let mut builder = species_builder_base(species.species(), rng);
     builder
         .add::<SpeciesColorId>(color)
         .add_bundle((

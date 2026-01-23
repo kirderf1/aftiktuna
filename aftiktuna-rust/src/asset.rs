@@ -324,11 +324,26 @@ pub mod loot {
 }
 
 pub mod profile {
+    use crate::core::Species;
     use crate::core::display::SpeciesColorId;
     use crate::core::status::{Stats, Traits};
     use rand::Rng;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
+
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum CharacterSpecies {
+        Aftik,
+    }
+
+    impl CharacterSpecies {
+        pub fn species(self) -> Species {
+            match self {
+                Self::Aftik => Species::Aftik,
+            }
+        }
+    }
 
     #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     #[serde(tag = "type", rename_all = "snake_case")]
@@ -367,8 +382,9 @@ pub mod profile {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct AftikProfile {
+    pub struct CharacterProfile {
         pub name: String,
+        pub species: CharacterSpecies,
         pub color: SpeciesColorId,
         pub stats: StatsOrRandom,
         pub traits: TraitsOrRandom,
@@ -380,7 +396,7 @@ pub mod profile {
         #[default]
         Random,
         #[serde(untagged)]
-        Profile(AftikProfile),
+        Profile(CharacterProfile),
     }
 
     impl ProfileOrRandom {
@@ -393,7 +409,7 @@ pub mod profile {
             aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
             rng: &mut impl Rng,
             used_aftik_colors: &[&SpeciesColorId],
-        ) -> Option<AftikProfile> {
+        ) -> Option<CharacterProfile> {
             match self {
                 ProfileOrRandom::Random => {
                     random_profile(aftik_color_names, rng, used_aftik_colors)
@@ -407,7 +423,7 @@ pub mod profile {
         aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
         rng: &mut impl Rng,
         used_aftik_colors: &[&SpeciesColorId],
-    ) -> Option<AftikProfile> {
+    ) -> Option<CharacterProfile> {
         use rand::seq::IteratorRandom;
         let chosen_color = aftik_color_names
             .iter()
@@ -421,8 +437,9 @@ pub mod profile {
         };
         let name_choices = aftik_color_names.get_mut(&chosen_color).unwrap();
         let chosen_name = name_choices.swap_remove(rng.random_range(0..name_choices.len()));
-        Some(AftikProfile {
+        Some(CharacterProfile {
             name: chosen_name,
+            species: CharacterSpecies::Aftik,
             color: chosen_color,
             stats: StatsOrRandom::Random,
             traits: TraitsOrRandom::Random,

@@ -1,7 +1,7 @@
 use aftiktuna::asset::color::{self, RGBColor, SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::model::{self, Model};
 use aftiktuna::core::Species;
-use aftiktuna::core::display::{ModelId, SpeciesColorId};
+use aftiktuna::core::display::SpeciesColorId;
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -32,10 +32,11 @@ fn main() {
         .expect("Unable to load aftik model")
         .load(&mut texture_loader)
         .unwrap();
-    let portrait_model = model::load_raw_model_from_path(ModelId::portrait().file_path())
-        .expect("Unable to load portrait model")
-        .load(&mut texture_loader)
-        .unwrap();
+    let portrait_model =
+        model::load_raw_model_from_path(Species::Aftik.portrait_model_id().file_path())
+            .expect("Unable to load portrait model")
+            .load(&mut texture_loader)
+            .unwrap();
 
     let mut selected_index = 0;
     let mut new_color_name = String::new();

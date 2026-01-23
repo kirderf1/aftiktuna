@@ -3,7 +3,7 @@ pub mod generate;
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
 use crate::asset::location::{DoorPairData, DoorType, LocationData};
-use crate::asset::profile::AftikProfile;
+use crate::asset::profile::CharacterProfile;
 use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::behavior::{ObservationTarget, Waiting};
@@ -274,7 +274,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
     },));
     let crew = world.spawn((Points(crew_data.points),));
 
-    let mut crew_profiles = Vec::<AftikProfile>::new();
+    let mut crew_profiles = Vec::<CharacterProfile>::new();
     for profile in crew_data.crew {
         if let Some(profile) = profile.unwrap(
             &mut generation_state.aftik_color_names,
@@ -294,7 +294,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         .next()
         .ok_or_else(|| "Crew must not be empty".to_string())?;
     let controlled_character = world.spawn(
-        creature::aftik_builder_with_stats(controlled_character, true, &mut rng)
+        creature::character_builder_with_stats(controlled_character, true, &mut rng)
             .add_bundle((CrewMember(crew), iter_pos))
             .build(),
     );
@@ -310,7 +310,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
             iter_pos = new_pos;
         }
         world.spawn(
-            creature::aftik_builder_with_stats(profile, true, &mut rng)
+            creature::character_builder_with_stats(profile, true, &mut rng)
                 .add_bundle((CrewMember(crew), iter_pos))
                 .build(),
         );

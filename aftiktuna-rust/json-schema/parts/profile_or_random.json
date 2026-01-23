@@ -7,6 +7,9 @@
       "type": "object",
       "properties": {
         "name": { "type": "string" },
+        "species": {
+          "enum": [ "aftik" ]
+        },
         "color": { "$ref": "./name_id.json" },
         "stats": {
           "oneOf": [
@@ -32,7 +35,7 @@
         }
       },
       "additionalProperties": false,
-      "required": [ "name", "color", "stats", "traits" ]
+      "required": [ "name", "species", "color", "stats", "traits" ]
     }
   ]
 }

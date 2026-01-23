@@ -23,10 +23,6 @@ pub mod display {
             Self::new("small_unknown")
         }
 
-        pub fn portrait() -> Self {
-            Self::new("aftik_portrait")
-        }
-
         pub fn fortuna_chest() -> Self {
             Self::new("container/fortuna_chest")
         }
@@ -270,6 +266,10 @@ impl Species {
 
     pub fn model_id(self) -> display::ModelId {
         display::ModelId(format!("creature/{name}", name = self.id()))
+    }
+
+    pub fn portrait_model_id(self) -> display::ModelId {
+        display::ModelId(format!("portrait/{name}", name = self.id()))
     }
 
     pub fn noun_id(self) -> name::NounId {

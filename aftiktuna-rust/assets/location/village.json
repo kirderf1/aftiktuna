@@ -148,6 +148,7 @@
           "type": "character",
           "profile": {
             "name": "Jade",
+            "species": "aftik",
             "color": "green_nonrandom",
             "stats": { "type": "random" },
             "traits": []

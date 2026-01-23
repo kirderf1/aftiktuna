@@ -3,7 +3,6 @@ use crate::{dimensions, render, Camera};
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::Direction;
 use aftiktuna::core::Species;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
@@ -56,7 +55,7 @@ pub fn render_frame(
                 Direction::Right => 300.,
             };
             let objects = render::get_render_objects_for_entity(
-                assets.models.lookup_model(&ModelId::portrait()),
+                assets.models.lookup_model(&data.portrait_model),
                 three_d::vec2(x, 0.),
                 &ObjectProperties {
                     direction: data.direction,
@@ -273,7 +272,7 @@ fn draw_store_view(
     );
 
     let objects = render::get_render_objects_for_entity(
-        assets.models.lookup_model(&ModelId::portrait()),
+        assets.models.lookup_model(&view.shopkeeper_model),
         three_d::vec2(dimensions::WINDOW_WIDTH_F - 200., 0.),
         &ObjectProperties {
             direction: Direction::Left,
