@@ -9,9 +9,9 @@ Contains crew data used when starting a new game.
 
 Defines certain properties of species. Note that this file cannot be used to add new species.
 
-## `assets/aftik_colors.json`
+## `assets/species_color/*.json`
 
-Contains a list of aftik color definitions.
+Each file contains a list of color definitions for the corresponding species.
 
 ## `assets/selectable_aftik_color_names.json`
 

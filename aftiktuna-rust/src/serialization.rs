@@ -170,7 +170,7 @@ pub mod world {
         name::NounId, NounId;
         name::Adjective, Adjective;
         display::ModelId, ModelId;
-        display::SpeciesColorId, AftikColor;
+        display::SpeciesColorId, SpeciesColorId;
         display::CreatureVariantSet, CreatureVariantSet;
 
         status::Stats, Stats;
