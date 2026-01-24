@@ -10,12 +10,13 @@ use std::fs::File;
 use std::mem;
 
 pub fn load() -> Result<Game, LoadError> {
+    let assets = GameAssets::load()?;
     let file = File::open(serialization::SAVE_FILE_NAME)?;
-    let serialized_state = serialization::load_game(file)?;
+    let serialized_state = serialization::load_game(file, &assets)?;
     Ok(Game {
         serialized_state,
         is_in_error_state: false,
-        assets: GameAssets::load().unwrap(),
+        assets,
     })
 }
 

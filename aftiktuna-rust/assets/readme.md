@@ -5,6 +5,10 @@ There are different kinds of data filees in here.
 
 Contains crew data used when starting a new game.
 
+## `assets/species_data.json`
+
+Defines certain properties of species. Note that this file cannot be used to add new species.
+
 ## `assets/aftik_colors.json`
 
 Contains a list of aftik color definitions.

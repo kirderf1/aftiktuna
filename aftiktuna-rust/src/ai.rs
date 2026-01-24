@@ -1,6 +1,6 @@
 use crate::action::item::UseAction;
 use crate::action::{Action, ForceDoorAction, TalkAction};
-use crate::asset::GameAssets;
+use crate::asset::{GameAssets, SpeciesDataMap};
 use crate::core::area::{self, ShipControls, ShipState, ShipStatus};
 use crate::core::behavior::{
     self, BadlyHurtBehavior, Character, GivesHuntRewardData, Hostile, Intention, ObservationTarget,
@@ -221,8 +221,11 @@ fn pick_foe_action(
     rng: &mut impl Rng,
     assets: &GameAssets,
 ) -> Option<Action> {
-    if has_behavior(entity_ref, BadlyHurtBehavior::Fearful)
-        && let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
+    if has_behavior(
+        entity_ref,
+        BadlyHurtBehavior::Fearful,
+        &assets.species_data_map,
+    ) && let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
     {
         return Some(Action::EnterDoor(path));
     }
@@ -284,7 +287,11 @@ fn pick_crew_action(
 ) -> Option<Action> {
     let entity_pos = *entity_ref.get::<&Pos>()?;
 
-    if has_behavior(entity_ref, BadlyHurtBehavior::Fearful) {
+    if has_behavior(
+        entity_ref,
+        BadlyHurtBehavior::Fearful,
+        &assets.species_data_map,
+    ) {
         let is_area_safe =
             area::is_in_ship(entity_pos, world) && behavior::is_safe(world, entity_pos.get_area());
         if !is_area_safe {
@@ -379,8 +386,11 @@ pub fn pick_attack_kind(
             .attack_set
             .available_kinds();
 
-    if has_behavior(attacker_ref, BadlyHurtBehavior::Determined)
-        && available_kinds.contains(&AttackKind::Rash)
+    if has_behavior(
+        attacker_ref,
+        BadlyHurtBehavior::Determined,
+        &assets.species_data_map,
+    ) && available_kinds.contains(&AttackKind::Rash)
     {
         AttackKind::Rash
     } else {
@@ -416,13 +426,18 @@ fn find_random_unblocked_path(
         .map(|(path, _)| path)
 }
 
-fn has_behavior(entity_ref: EntityRef, behavior: BadlyHurtBehavior) -> bool {
+fn has_behavior(
+    entity_ref: EntityRef,
+    behavior: BadlyHurtBehavior,
+    species_map: &SpeciesDataMap,
+) -> bool {
     entity_ref
         .get::<&status::Health>()
         .is_some_and(|health| health.is_badly_hurt())
         && entity_ref
             .get::<&Species>()
-            .and_then(|species| species.badly_hurt_behavior())
+            .and_then(|species| species_map.get(&species))
+            .and_then(|species_data| species_data.badly_hurt_behavior)
             == Some(behavior)
 }
 

@@ -21,7 +21,8 @@ pub struct Wandering {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ObservationTarget;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum BadlyHurtBehavior {
     Fearful,
     Determined,

@@ -294,9 +294,14 @@ pub(crate) fn spawn_starting_crew_and_ship(
         .next()
         .ok_or_else(|| "Crew must not be empty".to_string())?;
     let controlled_character = world.spawn(
-        creature::character_builder_with_stats(controlled_character, true, &mut rng)
-            .add_bundle((CrewMember(crew), iter_pos))
-            .build(),
+        creature::character_builder_with_stats(
+            controlled_character,
+            true,
+            &assets.species_data_map,
+            &mut rng,
+        )?
+        .add_bundle((CrewMember(crew), iter_pos))
+        .build(),
     );
 
     'add_crew: for profile in crew_iter {
@@ -310,9 +315,14 @@ pub(crate) fn spawn_starting_crew_and_ship(
             iter_pos = new_pos;
         }
         world.spawn(
-            creature::character_builder_with_stats(profile, true, &mut rng)
-                .add_bundle((CrewMember(crew), iter_pos))
-                .build(),
+            creature::character_builder_with_stats(
+                profile,
+                true,
+                &assets.species_data_map,
+                &mut rng,
+            )?
+            .add_bundle((CrewMember(crew), iter_pos))
+            .build(),
         );
     }
 

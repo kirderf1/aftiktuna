@@ -1,10 +1,10 @@
 use super::LocationGenContext;
-use crate::asset::GameAssets;
 use crate::asset::location::creature::{
     AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     StockDefinition,
 };
 use crate::asset::profile::{self, CharacterProfile};
+use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
@@ -45,7 +45,7 @@ pub(super) fn place_creature(
     spawn_data: &CreatureSpawnData,
     pos: Pos,
     gen_context: &mut LocationGenContext,
-) {
+) -> Result<(), String> {
     let CreatureSpawnData {
         creature,
         name,
@@ -57,14 +57,19 @@ pub(super) fn place_creature(
         tag,
         direction,
     } = spawn_data;
+    let species_data = gen_context
+        .assets
+        .species_data_map
+        .get(&creature.species())
+        .ok_or_else(|| format!("Missing data for species: {}", creature.species()))?;
     let health = Health::from_fraction(*health);
     let attribute = evaluate_attribute(*attribute, &mut gen_context.rng);
     let is_alive = health.is_alive();
     let aggressive = aggressive.unwrap_or_else(|| creature.is_aggressive_by_default());
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
-    let mut stats = stats.clone().unwrap_or(creature.species().default_stats());
+    let mut stats = stats.unwrap_or(species_data.default_stats);
 
-    let mut builder = species_builder_base(creature.species(), &mut gen_context.rng);
+    let mut builder = species_builder_base(creature.species(), species_data, &mut gen_context.rng);
 
     if let Some(color_id) = gen_context
         .assets
@@ -103,6 +108,7 @@ pub(super) fn place_creature(
     }
 
     gen_context.world.spawn(builder.build());
+    Ok(())
 }
 
 pub(super) fn place_npc(
@@ -129,7 +135,12 @@ pub(super) fn place_npc(
     };
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
-    let mut builder = character_builder_with_stats(profile, false, &mut gen_context.rng);
+    let mut builder = character_builder_with_stats(
+        profile,
+        false,
+        &gen_context.assets.species_data_map,
+        &mut gen_context.rng,
+    )?;
     builder
         .add::<Pos>(pos)
         .add::<Direction>(direction)
@@ -180,33 +191,41 @@ pub(super) fn place_corpse(
     spawn_data: &AftikCorpseData,
     pos: Pos,
     gen_context: &mut LocationGenContext,
-) {
+) -> Result<(), String> {
+    let species = Species::Aftik;
+    let species_data = gen_context
+        .assets
+        .species_data_map
+        .get(&species)
+        .ok_or_else(|| format!("Missing data for species: {}", species))?;
     let Some(color) = spawn_data.color.clone().or_else(|| {
         profile::random_profile(
             &mut gen_context.aftik_color_names,
             &mut gen_context.rng,
-            &used_species_colors(&mut gen_context.world, Species::Aftik),
+            &used_species_colors(&mut gen_context.world, species),
         )
         .map(|profile| profile.color)
     }) else {
-        return;
+        return Ok(());
     };
     let direction = spawn_data
         .direction
         .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
     gen_context.world.spawn(
-        species_builder_base(Species::Aftik, &mut gen_context.rng)
+        species_builder_base(species, species_data, &mut gen_context.rng)
             .add_bundle((color, Health::from_fraction(0.), pos, direction))
             .build(),
     );
+    Ok(())
 }
 
 pub(crate) fn character_builder_with_stats(
     profile: CharacterProfile,
     is_name_known: bool,
+    species_map: &SpeciesDataMap,
     rng: &mut impl Rng,
-) -> EntityBuilder {
+) -> Result<EntityBuilder, String> {
     let CharacterProfile {
         name,
         species,
@@ -214,10 +233,13 @@ pub(crate) fn character_builder_with_stats(
         stats,
         traits,
     } = profile;
+    let species_data = species_map
+        .get(&species.species())
+        .ok_or_else(|| format!("Missing data for species: {}", species.species()))?;
     let traits = traits.unwrap_or_else(|| random_traits(rng));
-    let stats = stats
-        .unwrap_or_else(|| random_stats_from_base(species.species().default_stats(), &traits, rng));
-    let mut builder = species_builder_base(species.species(), rng);
+    let stats =
+        stats.unwrap_or_else(|| random_stats_from_base(species_data.default_stats, &traits, rng));
+    let mut builder = species_builder_base(species.species(), species_data, rng);
     builder
         .add::<SpeciesColorId>(color)
         .add_bundle((
@@ -234,7 +256,7 @@ pub(crate) fn character_builder_with_stats(
         ))
         .add::<Stats>(stats)
         .add::<Traits>(traits);
-    builder
+    Ok(builder)
 }
 
 fn random_traits(rng: &mut impl Rng) -> Traits {
@@ -315,7 +337,11 @@ fn adjust_random_stat(stats: &mut Stats, amount: i16, rng: &mut impl Rng) {
     }
 }
 
-fn species_builder_base(species: Species, rng: &mut impl Rng) -> EntityBuilder {
+fn species_builder_base(
+    species: Species,
+    species_data: &SpeciesData,
+    rng: &mut impl Rng,
+) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
 
     builder.add_bundle((
@@ -323,9 +349,9 @@ fn species_builder_base(species: Species, rng: &mut impl Rng) -> EntityBuilder {
         species.model_id(),
         species.noun_id(),
         Direction::default(),
-        CreatureVariantSet::random_for_species(species, rng),
+        CreatureVariantSet::random_for_species(species_data, rng),
     ));
-    if species.is_large() {
+    if species_data.is_large {
         builder.add(Large);
     }
     builder

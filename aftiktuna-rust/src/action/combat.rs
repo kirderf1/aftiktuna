@@ -189,9 +189,11 @@ fn perform_attack(
             ),
             "hits",
         )
-    } else if let Ok(unarmed_type) = world
+    } else if let Some(unarmed_type) = world
         .get::<&Species>(attacker)
-        .map(|species| species.unarmed_type())
+        .ok()
+        .and_then(|species| assets.species_data_map.get(&species))
+        .map(|species_data| species_data.unarmed)
     {
         let attack_verb = unarmed_type.attack_verb();
         (

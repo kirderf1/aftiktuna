@@ -38,7 +38,8 @@ impl AttackKind {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum UnarmedType {
     Bite,
     Scratch,
@@ -97,6 +98,16 @@ pub struct WeaponProperties {
     pub stun_attack: bool,
 }
 
+impl Default for WeaponProperties {
+    fn default() -> Self {
+        Self {
+            damage_mod: 2.,
+            attack_set: AttackSet::Varied,
+            stun_attack: false,
+        }
+    }
+}
+
 pub fn get_active_weapon_properties(
     world: &hecs::World,
     attacker: hecs::Entity,
@@ -110,10 +121,11 @@ pub fn get_active_weapon_properties(
                 .and_then(|item_type| assets.item_type_map.get(&item_type))
                 .and_then(|data| data.weapon)
         })
-        .unwrap_or_else(|| {
-            world
-                .get::<&Species>(attacker)
-                .unwrap()
-                .unarmed_properties()
+        .or_else(|| {
+            assets
+                .species_data_map
+                .get(&world.get::<&Species>(attacker).unwrap())
+                .map(|species_data| species_data.unarmed_properties())
         })
+        .unwrap_or_default()
 }

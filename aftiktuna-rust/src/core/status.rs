@@ -11,7 +11,7 @@ use std::cmp::min;
 use std::collections::HashSet;
 use std::fmt::Display;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Stats {
     pub strength: i16,
     pub endurance: i16,
@@ -566,7 +566,8 @@ pub(crate) fn detect_low_health(
                 view_buffer.messages.add(
                     match entity_ref
                         .get::<&Species>()
-                        .and_then(|species| species.badly_hurt_behavior())
+                        .and_then(|species| view_buffer.assets.species_data_map.get(&species))
+                        .and_then(|species_data| species_data.badly_hurt_behavior)
                     {
                         Some(BadlyHurtBehavior::Fearful) => {
                             format!("{the_entity} is badly hurt, and turns to flee.")

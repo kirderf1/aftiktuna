@@ -150,11 +150,11 @@ fn place_symbol(
         }
         SymbolData::Container(container_data) => place_container(container_data, pos, builder)?,
         SymbolData::Creature(creature_data) => {
-            creature::place_creature(creature_data, pos, builder.gen_context)
+            creature::place_creature(creature_data, pos, builder.gen_context)?
         }
         SymbolData::Character(npc_data) => creature::place_npc(npc_data, pos, builder.gen_context)?,
         SymbolData::AftikCorpse(aftik_corpse_data) => {
-            creature::place_corpse(aftik_corpse_data, pos, builder.gen_context)
+            creature::place_corpse(aftik_corpse_data, pos, builder.gen_context)?
         }
         SymbolData::Furnish { template } => {
             let template_list = FurnishTemplate::load_list(template)?;

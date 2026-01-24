@@ -447,10 +447,13 @@ pub mod profile {
     }
 }
 
-use crate::core::combat::WeaponProperties;
-use crate::core::display::SpeciesColorId;
+use crate::core::Species;
+use crate::core::behavior::BadlyHurtBehavior;
+use crate::core::combat::{AttackSet, UnarmedType, WeaponProperties};
+use crate::core::display::{CreatureVariant, SpeciesColorId};
 use crate::core::item::{ItemTypeId, Price};
 use crate::core::name::{NounData, NounId};
+use crate::core::status::Stats;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -549,8 +552,44 @@ pub fn load_item_type_map() -> Result<HashMap<ItemTypeId, ItemTypeData>, Error> 
     load_json_asset::<HashMap<ItemTypeId, ItemTypeData>>("item_types.json")
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WeightedVariant {
+    pub variant: CreatureVariant,
+    pub weight: u16,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SpeciesData {
+    pub default_stats: Stats,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub is_large: bool,
+    pub unarmed: UnarmedType,
+    pub attack_set: AttackSet,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub badly_hurt_behavior: Option<BadlyHurtBehavior>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub variant_groups: Vec<Vec<WeightedVariant>>,
+}
+
+impl SpeciesData {
+    pub fn unarmed_properties(&self) -> WeaponProperties {
+        WeaponProperties {
+            damage_mod: 2.0,
+            attack_set: self.attack_set,
+            stun_attack: false,
+        }
+    }
+}
+
+pub type SpeciesDataMap = HashMap<Species, SpeciesData>;
+
+pub fn load_species_map() -> Result<SpeciesDataMap, Error> {
+    load_json_asset::<SpeciesDataMap>("species_data.json")
+}
+
 pub struct GameAssets {
     pub(crate) noun_data_map: NounDataMap,
+    pub(crate) species_data_map: SpeciesDataMap,
     pub(crate) color_map: color::SpeciesColorMap,
     pub(crate) item_type_map: HashMap<ItemTypeId, ItemTypeData>,
 }
@@ -559,6 +598,7 @@ impl GameAssets {
     pub fn load() -> Result<Self, Error> {
         Ok(Self {
             noun_data_map: NounDataMap::load()?,
+            species_data_map: load_species_map()?,
             color_map: color::SpeciesColorMap::load()?,
             item_type_map: load_item_type_map()?,
         })

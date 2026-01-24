@@ -8,6 +8,8 @@ pub mod position;
 pub mod status;
 
 pub mod display {
+    use crate::asset::{SpeciesData, WeightedVariant};
+    use rand::distr::Distribution;
     use serde::{Deserialize, Serialize};
     use std::collections::HashSet;
     use std::path::Path;
@@ -100,13 +102,12 @@ pub mod display {
 
     impl CreatureVariantSet {
         pub(crate) fn random_for_species(
-            species: super::Species,
+            species_data: &SpeciesData,
             rng: &mut impl rand::Rng,
         ) -> Self {
-            use rand::seq::IteratorRandom;
             let mut variant_set = Self::default();
-            for variant_group in species.variant_groups() {
-                if let Some(variant) = variant_group.into_iter().choose(rng) {
+            for variant_group in &species_data.variant_groups {
+                if let Some(variant) = pick_creature_variant(variant_group, rng) {
                     variant_set.0.insert(variant);
                 }
             }
@@ -115,20 +116,34 @@ pub mod display {
 
         pub(crate) fn insert_missing_variants(
             &mut self,
-            species: super::Species,
+            species_data: &SpeciesData,
             rng: &mut impl rand::Rng,
         ) {
-            use rand::seq::IteratorRandom;
-            for variant_group in species.variant_groups() {
+            for variant_group in &species_data.variant_groups {
                 if variant_group
                     .iter()
-                    .all(|variant| !self.0.contains(variant))
-                    && let Some(variant) = variant_group.into_iter().choose(rng)
+                    .all(|entry| !self.0.contains(&entry.variant))
+                    && let Some(variant) = pick_creature_variant(variant_group, rng)
                 {
                     self.0.insert(variant);
                 }
             }
         }
+    }
+
+    fn pick_creature_variant(
+        variant_group: &[WeightedVariant],
+        rng: &mut impl rand::Rng,
+    ) -> Option<CreatureVariant> {
+        let weight_distribution = rand::distr::weighted::WeightedIndex::new(
+            variant_group.iter().map(|variant| variant.weight),
+        )
+        .ok()?;
+        Some(
+            variant_group[weight_distribution.sample(rng)]
+                .variant
+                .clone(),
+        )
     }
 
     impl<T: IntoIterator<Item = CreatureVariant>> From<T> for CreatureVariantSet {
@@ -216,9 +231,6 @@ pub mod store {
     }
 }
 
-use self::behavior::BadlyHurtBehavior;
-use self::combat::{AttackSet, UnarmedType, WeaponProperties};
-use self::status::Stats;
 use hecs::Entity;
 use serde::{Deserialize, Serialize};
 
@@ -228,6 +240,7 @@ pub const CREW_SIZE_LIMIT: usize = 3;
 pub struct CrewMember(pub Entity);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Species {
     Aftik,
     Goblin,
@@ -275,79 +288,11 @@ impl Species {
     pub fn noun_id(self) -> name::NounId {
         self.id().into()
     }
+}
 
-    pub fn default_stats(self) -> Stats {
-        match self {
-            Self::Aftik => Stats::new(10, 1, 10, 1),
-            Self::Goblin => Stats::new(2, 4, 10, 2),
-            Self::Eyesaur => Stats::new(7, 7, 4, 2),
-            Self::Azureclops => Stats::new(15, 10, 4, 2),
-            Self::Scarvie => Stats::new(3, 2, 8, 1),
-            Self::VoraciousFrog => Stats::new(8, 8, 3, 3),
-            Self::BloodMantis => Stats::new(15, 5, 10, 5),
-        }
-    }
-
-    pub fn is_large(self) -> bool {
-        matches!(self, Self::VoraciousFrog | Self::BloodMantis)
-    }
-
-    pub fn unarmed_type(self) -> UnarmedType {
-        match self {
-            Self::Aftik => UnarmedType::Scratch,
-            Self::Goblin => UnarmedType::Scratch,
-            Self::Eyesaur => UnarmedType::Bite,
-            Self::Azureclops => UnarmedType::Punch,
-            Self::Scarvie => UnarmedType::Bite,
-            Self::VoraciousFrog => UnarmedType::Pounce,
-            Self::BloodMantis => UnarmedType::Slash,
-        }
-    }
-
-    pub fn attack_set(self) -> AttackSet {
-        match self {
-            Self::Aftik => AttackSet::Quick,
-            Self::Goblin => AttackSet::Light,
-            Self::Eyesaur => AttackSet::Quick,
-            Self::Azureclops => AttackSet::Varied,
-            Self::Scarvie => AttackSet::Light,
-            Self::VoraciousFrog => AttackSet::Slow,
-            Self::BloodMantis => AttackSet::Quick,
-        }
-    }
-
-    pub fn badly_hurt_behavior(self) -> Option<BadlyHurtBehavior> {
-        match self {
-            Self::Aftik => None,
-            Self::Goblin => Some(BadlyHurtBehavior::Fearful),
-            Self::Eyesaur => None,
-            Self::Azureclops => Some(BadlyHurtBehavior::Determined),
-            Self::Scarvie => Some(BadlyHurtBehavior::Fearful),
-            Self::VoraciousFrog => None,
-            Self::BloodMantis => Some(BadlyHurtBehavior::Determined),
-        }
-    }
-
-    pub fn unarmed_properties(self) -> WeaponProperties {
-        WeaponProperties {
-            damage_mod: 2.0,
-            attack_set: self.attack_set(),
-            stun_attack: false,
-        }
-    }
-
-    pub fn variant_groups(self) -> Vec<Vec<display::CreatureVariant>> {
-        use display::CreatureVariant;
-        let mut variant_groups = vec![vec![CreatureVariant::Female, CreatureVariant::Male]];
-        if self == Self::Eyesaur {
-            variant_groups.push(vec![
-                CreatureVariant::PoseA,
-                CreatureVariant::PoseB,
-                CreatureVariant::PoseC,
-                CreatureVariant::PoseD,
-            ]);
-        }
-        variant_groups
+impl std::fmt::Display for Species {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.id().fmt(f)
     }
 }
 

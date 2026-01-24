@@ -68,6 +68,12 @@
         },
         {
             "fileMatch": [
+                "/assets/species_data.json"
+            ],
+            "url": "/json-schema/species_data.json"
+        },
+        {
+            "fileMatch": [
                 "/assets/starting_crew.json"
             ],
             "url": "/json-schema/crew_data.json"

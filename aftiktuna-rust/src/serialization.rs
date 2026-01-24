@@ -1,3 +1,4 @@
+use crate::asset::{self, GameAssets};
 use crate::core::Species;
 use crate::core::display::CreatureVariantSet;
 use crate::game_interface::{Game, SerializedState};
@@ -279,10 +280,12 @@ pub enum LoadError {
     UnsupportedVersion(u16, u16),
     Decode(decode::Error),
     Io(io::Error),
+    Asset(asset::Error),
 }
 
 from!(decode::Error => LoadError, LoadError::Decode);
 from!(io::Error => LoadError, LoadError::Io);
+from!(asset::Error => LoadError, LoadError::Asset);
 
 impl Display for LoadError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -293,6 +296,7 @@ impl Display for LoadError {
             ),
             LoadError::Decode(error) => Display::fmt(error, f),
             LoadError::Io(error) => Display::fmt(error, f),
+            LoadError::Asset(error) => Display::fmt(error, f),
         }
     }
 }
@@ -308,21 +312,26 @@ fn serialize_game(state: &SerializedState, writer: impl Write) -> Result<(), Sav
     Ok(())
 }
 
-pub(crate) fn load_game(reader: impl Read) -> Result<SerializedState, LoadError> {
+pub(crate) fn load_game(
+    reader: impl Read,
+    assets: &GameAssets,
+) -> Result<SerializedState, LoadError> {
     let mut deserializer = rmp_serde::Deserializer::new(reader);
     let (major, minor) = <(u16, u16)>::deserialize(&mut deserializer)?;
     verify_version(major, minor)?;
     let mut state = SerializedState::deserialize(&mut deserializer)?;
-    inject_update_data(&mut state.state);
+    inject_update_data(&mut state.state, assets);
     Ok(state)
 }
 
-fn inject_update_data(state: &mut GameState) {
+fn inject_update_data(state: &mut GameState, assets: &GameAssets) {
     for (_, (species, variant_set)) in state
         .world
         .query_mut::<(&Species, &mut CreatureVariantSet)>()
     {
-        variant_set.insert_missing_variants(*species, &mut state.rng);
+        if let Some(species_data) = assets.species_data_map.get(species) {
+            variant_set.insert_missing_variants(species_data, &mut state.rng);
+        }
     }
 
     let mut buffer = hecs::CommandBuffer::new();
@@ -331,10 +340,12 @@ fn inject_update_data(state: &mut GameState) {
         .query_mut::<&Species>()
         .without::<&CreatureVariantSet>()
     {
-        buffer.insert_one(
-            entity,
-            CreatureVariantSet::random_for_species(*species, &mut state.rng),
-        );
+        if let Some(species_data) = assets.species_data_map.get(species) {
+            buffer.insert_one(
+                entity,
+                CreatureVariantSet::random_for_species(species_data, &mut state.rng),
+            );
+        }
     }
     buffer.run_on(&mut state.world);
 }

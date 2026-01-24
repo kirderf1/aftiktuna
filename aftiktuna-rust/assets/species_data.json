@@ -1,0 +1,57 @@
+{
+  "aftik": {
+    "default_stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 },
+    "unarmed": "scratch",
+    "attack_set": "quick"
+  },
+  "goblin": {
+    "default_stats": { "strength": 2, "endurance": 4, "agility": 10, "luck": 2 },
+    "unarmed": "scratch",
+    "attack_set": "light",
+    "badly_hurt_behavior": "fearful"
+  },
+  "eyesaur": {
+    "default_stats": { "strength": 7, "endurance": 7, "agility": 4, "luck": 2 },
+    "unarmed": "bite",
+    "attack_set": "quick",
+    "variant_groups": [
+      [
+        { "variant": "pose_a", "weight": 1 },
+        { "variant": "pose_b", "weight": 1 },
+        { "variant": "pose_c", "weight": 1 },
+        { "variant": "pose_d", "weight": 1 }
+      ]
+    ]
+  },
+  "azureclops": {
+    "default_stats": { "strength": 15, "endurance": 10, "agility": 4, "luck": 2 },
+    "unarmed": "punch",
+    "attack_set": "varied",
+    "badly_hurt_behavior": "determined"
+  },
+  "scarvie": {
+    "default_stats": { "strength": 3, "endurance": 2, "agility": 8, "luck": 1 },
+    "unarmed": "bite",
+    "attack_set": "light",
+    "badly_hurt_behavior": "fearful",
+    "variant_groups": [
+      [
+        { "variant": "female", "weight": 1 },
+        { "variant": "male", "weight": 1 }
+      ]
+    ]
+  },
+  "voracious_frog": {
+    "default_stats": { "strength": 8, "endurance": 8, "agility": 3, "luck": 3 },
+    "is_large": true,
+    "unarmed": "pounce",
+    "attack_set": "slow"
+  },
+  "blood_mantis": {
+    "default_stats": { "strength": 15, "endurance": 5, "agility": 10, "luck": 5 },
+    "is_large": true,
+    "unarmed": "slash",
+    "attack_set": "quick",
+    "badly_hurt_behavior": "determined"
+  }
+}
