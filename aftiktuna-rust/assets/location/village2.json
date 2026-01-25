@@ -75,7 +75,7 @@
         ">": { "type": "door", "pair_id": "house1b", "display_type": "door", "adjective": "right" },
         "A": {
           "type": "character",
-          "profile": { "type": "random", "species": "aftik" },
+          "profile": { "type": "random", "species": "pagepoh" },
           "interaction": { "type": "recruitable" },
           "direction": "left"
         },

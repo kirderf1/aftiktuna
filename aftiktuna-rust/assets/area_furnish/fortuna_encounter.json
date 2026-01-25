@@ -35,7 +35,7 @@
       },
       "a": {
         "type": "character",
-        "profile": { "type": "random", "species": "aftik" },
+        "profile": { "type": "random", "species": "pagepoh" },
         "interaction": { "type": "hostile" },
         "wielded_item": "bat",
         "direction": "right"
