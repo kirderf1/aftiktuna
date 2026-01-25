@@ -6,7 +6,7 @@ use crate::StopType;
 use crate::asset::GameAssets;
 use crate::core::Species;
 use crate::core::area::{Area, BackgroundId};
-use crate::core::display::{DialogueExpression, ModelId, SpeciesColorId};
+use crate::core::display::{DialogueExpression, SpeciesColorId};
 use crate::core::position::{Direction, Pos};
 use crate::core::status::Health;
 use crate::core::store::IsTrading;
@@ -25,7 +25,7 @@ mod store {
     use crate::asset::NounDataMap;
     use crate::core::Species;
     use crate::core::area::{Area, BackgroundId};
-    use crate::core::display::{ModelId, SpeciesColorId};
+    use crate::core::display::SpeciesColorId;
     use crate::core::inventory::Held;
     use crate::core::item::{self, ItemTypeId};
     use crate::core::name::{NameData, NameIdData, NameQuery, NounData};
@@ -39,7 +39,7 @@ mod store {
     #[derive(Clone, Serialize, Deserialize)]
     pub struct StoreView {
         pub items: Vec<StoreStockView>,
-        pub shopkeeper_model: ModelId,
+        pub species: Species,
         pub shopkeeper_color: Option<SpeciesColorId>,
         pub background: BackgroundId,
         pub points: i32,
@@ -102,10 +102,7 @@ mod store {
         Frame::StoreView {
             view: StoreView {
                 items,
-                shopkeeper_model: world
-                    .get::<&Species>(shopkeeper)
-                    .unwrap()
-                    .portrait_model_id(),
+                species: *world.get::<&Species>(shopkeeper).unwrap(),
                 shopkeeper_color: world
                     .get::<&SpeciesColorId>(shopkeeper)
                     .ok()
@@ -294,7 +291,7 @@ impl Frame {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DialogueFrameData {
     pub background: BackgroundId,
-    pub portrait_model: ModelId,
+    pub species: Species,
     pub color: Option<SpeciesColorId>,
     pub direction: Direction,
     pub is_badly_hurt: bool,
@@ -309,7 +306,7 @@ impl DialogueFrameData {
         let area = world.get::<&Area>(area).unwrap();
         Self {
             background: area.background.clone(),
-            portrait_model: character_ref.get::<&Species>().unwrap().portrait_model_id(),
+            species: *character_ref.get::<&Species>().unwrap(),
             color: character_ref.get::<&SpeciesColorId>().as_deref().cloned(),
             direction: character_ref
                 .get::<&Direction>()

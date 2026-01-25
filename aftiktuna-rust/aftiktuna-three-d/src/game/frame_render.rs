@@ -4,7 +4,6 @@ use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::position::Direction;
-use aftiktuna::core::Species;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData, RenderData};
 use aftiktuna::view::{self, Frame, StoreStockView};
 use rand::{Rng, SeedableRng};
@@ -55,14 +54,13 @@ pub fn render_frame(
                 Direction::Right => 300.,
             };
             let objects = render::get_render_objects_for_entity(
-                assets.models.lookup_model(&data.portrait_model),
+                assets
+                    .models
+                    .lookup_model(&data.species.portrait_model_id()),
                 three_d::vec2(x, 0.),
                 &ObjectProperties {
                     direction: data.direction,
-                    species_color: data
-                        .color
-                        .clone()
-                        .map(|color_id| (Species::Aftik, color_id)),
+                    species_color: data.color.clone().map(|color_id| (data.species, color_id)),
                     is_badly_hurt: data.is_badly_hurt,
                     expression: data.expression,
                     ..ObjectProperties::default()
@@ -272,14 +270,16 @@ fn draw_store_view(
     );
 
     let objects = render::get_render_objects_for_entity(
-        assets.models.lookup_model(&view.shopkeeper_model),
+        assets
+            .models
+            .lookup_model(&view.species.portrait_model_id()),
         three_d::vec2(dimensions::WINDOW_WIDTH_F - 200., 0.),
         &ObjectProperties {
             direction: Direction::Left,
             species_color: view
                 .shopkeeper_color
                 .clone()
-                .map(|color_id| (Species::Aftik, color_id)),
+                .map(|color_id| (view.species, color_id)),
             ..ObjectProperties::default()
         },
         &mut assets.species_colors,
