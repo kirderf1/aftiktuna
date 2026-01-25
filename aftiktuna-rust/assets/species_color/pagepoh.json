@@ -1,0 +1,37 @@
+{
+  "yellow": {
+    "adjective": "yellow",
+    "primary_color": { "r": 125, "g": 126, "b": 118 },
+    "secondary_color": { "r": 211, "g": 225, "b": 0 }
+  },
+  "yellowishgreen": {
+    "adjective": "yellowish-green",
+    "primary_color": { "r": 71, "g": 72, "b": 58 },
+    "secondary_color": { "r": 140, "g": 182, "b": 0 }
+  },
+  "green": {
+    "adjective": "green",
+    "primary_color": { "r": 66, "g": 67, "b": 65 },
+    "secondary_color": { "r": 50, "g": 192, "b": 81 }
+  },
+  "darkgreen": {
+    "adjective": "dark-green",
+    "primary_color": { "r": 111, "g": 111, "b": 111 },
+    "secondary_color": { "r": 38, "g": 95, "b": 48 }
+  },
+  "cyan": {
+    "adjective": "cyan",
+    "primary_color": { "r": 88, "g": 88, "b": 88 },
+    "secondary_color": { "r": 30, "g": 154, "b": 150 }
+  },
+  "lightblue": {
+    "adjective": "light-blue",
+    "primary_color": { "r": 77, "g": 82, "b": 85 },
+    "secondary_color": { "r": 139, "g": 163, "b": 225 }
+  },
+  "blue": {
+    "adjective": "blue",
+    "primary_color": { "r": 99, "g": 102, "b": 121 },
+    "secondary_color": { "r": 88, "g": 142, "b": 205 }
+  }
+}

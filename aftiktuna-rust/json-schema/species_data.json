@@ -1,13 +1,14 @@
 {
   "type": "object",
   "properties": {
-    "aftik": { "$ref": "./parts/species_data.json"},
-    "goblin": { "$ref": "./parts/species_data.json"},
-    "eyesaur": { "$ref": "./parts/species_data.json"},
-    "azureclops": { "$ref": "./parts/species_data.json"},
-    "scarvie": { "$ref": "./parts/species_data.json"},
-    "voracious_frog": { "$ref": "./parts/species_data.json"},
-    "blood_mantis": { "$ref": "./parts/species_data.json"}
+    "aftik": { "$ref": "./parts/species_data.json" },
+    "pagepoh": { "$ref": "./parts/species_data.json" },
+    "goblin": { "$ref": "./parts/species_data.json" },
+    "eyesaur": { "$ref": "./parts/species_data.json" },
+    "azureclops": { "$ref": "./parts/species_data.json" },
+    "scarvie": { "$ref": "./parts/species_data.json" },
+    "voracious_frog": { "$ref": "./parts/species_data.json" },
+    "blood_mantis": { "$ref": "./parts/species_data.json" }
   },
   "additionalProperties": false
 }

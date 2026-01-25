@@ -4,6 +4,11 @@
     "unarmed": "scratch",
     "attack_set": "quick"
   },
+  "pagepoh": {
+    "default_stats": { "strength": 5, "endurance": 1, "agility": 1, "luck": 1 },
+    "unarmed": "punch",
+    "attack_set": "varied"
+  },
   "goblin": {
     "default_stats": { "strength": 2, "endurance": 4, "agility": 10, "luck": 2 },
     "unarmed": "scratch",

@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- New character species: Pagepoh
 - Village ruin location variant
 - Forest campsite location variant
 - Minor visual variants for scarvies and eyesaurs

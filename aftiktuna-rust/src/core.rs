@@ -250,6 +250,7 @@ pub struct CrewMember(pub Entity);
 #[serde(rename_all = "snake_case")]
 pub enum Species {
     Aftik,
+    Pagepoh,
     Goblin,
     Eyesaur,
     Azureclops,
@@ -263,6 +264,7 @@ impl Species {
         use Species::*;
         &[
             Aftik,
+            Pagepoh,
             Goblin,
             Eyesaur,
             Azureclops,
@@ -275,6 +277,7 @@ impl Species {
     pub fn id(self) -> &'static str {
         match self {
             Self::Aftik => "aftik",
+            Self::Pagepoh => "pagepoh",
             Self::Goblin => "goblin",
             Self::Eyesaur => "eyesaur",
             Self::Azureclops => "azureclops",

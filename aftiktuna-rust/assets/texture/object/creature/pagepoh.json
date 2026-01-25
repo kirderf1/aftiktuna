@@ -1,0 +1,94 @@
+{
+  "layers": [
+    {
+      "condition": [
+        { "alive": true },
+        { "expression": "neutral" }
+      ],
+      "offset": { "x": 14.0, "y": 69.0 },
+      "anchor": { "x": -6.0, "y": 7.0 },
+      "rotation": [ 0.0, 6.0 ],
+      "animation_length": 5.0,
+      "children": [
+        {
+          "condition": { "hurt": true },
+          "texture": "creature/pagepoh/head_wounds"
+        },
+        {
+          "texture": [
+            [ "uncolored", "creature/pagepoh/head_details_neutral" ],
+            [ "primary", "creature/pagepoh/head_primary_neutral" ],
+            [ "uncolored", "creature/pagepoh/head_details" ],
+            [ "secondary", "creature/pagepoh/head_secondary" ],
+            [ "primary", "creature/pagepoh/head_primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "condition": [
+        { "alive": true },
+        { "expression": "sad" }
+      ],
+      "offset": { "x": 14.0, "y": 69.0 },
+      "anchor": { "x": -6.0, "y": 7.0 },
+      "rotation": [ 0.0, -8.0 ],
+      "animation_length": 5.0,
+      "children": [
+        {
+          "condition": { "hurt": true },
+          "texture": "creature/pagepoh/head_wounds"
+        },
+        {
+          "texture": [
+            [ "uncolored", "creature/pagepoh/head_details_sad" ],
+            [ "primary", "creature/pagepoh/head_primary_sad" ],
+            [ "uncolored", "creature/pagepoh/head_details" ],
+            [ "secondary", "creature/pagepoh/head_secondary" ],
+            [ "primary", "creature/pagepoh/head_primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "condition": { "alive": true },
+      "children": [
+        {
+          "condition": { "hurt": false },
+          "texture": "creature/pagepoh/body_details"
+        },
+        {
+          "condition": { "hurt": true },
+          "texture": "creature/pagepoh/body_details_wounded"
+        },
+        {
+          "texture": [
+            [ "secondary", "creature/pagepoh/body_secondary" ],
+            [ "primary", "creature/pagepoh/body_primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "condition": { "alive": false },
+      "children": [
+        {
+          "offset": { "x": 61.0, "y": -6.0 },
+          "texture": [
+            [ "uncolored", "creature/pagepoh/head_details_dead" ],
+            [ "secondary", "creature/pagepoh/head_secondary_dead" ],
+            [ "primary", "creature/pagepoh/head_primary" ]
+          ]
+        },
+        {
+          "texture": [
+            [ "uncolored", "creature/pagepoh/corpse_details" ],
+            [ "secondary", "creature/pagepoh/corpse_secondary" ],
+            [ "primary", "creature/pagepoh/corpse_primary" ]
+          ]
+        }
+      ]
+    }
+  ],
+  "order_weight": 5
+}

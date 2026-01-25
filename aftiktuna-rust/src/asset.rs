@@ -335,12 +335,14 @@ pub mod profile {
     #[serde(rename_all = "snake_case")]
     pub enum CharacterSpecies {
         Aftik,
+        Pagepoh,
     }
 
     impl CharacterSpecies {
         pub fn species(self) -> Species {
             match self {
                 Self::Aftik => Species::Aftik,
+                Self::Pagepoh => Species::Pagepoh,
             }
         }
     }
@@ -490,10 +492,12 @@ pub trait TextureLoader<T, E> {
     fn load_texture(&mut self, name: String) -> Result<T, E>;
 }
 
+/// Loads json data from a path relative to the assets directory.
 pub(crate) fn load_json_asset<T: DeserializeOwned>(path: impl Display) -> Result<T, Error> {
     load_from_json(format!("assets/{path}"))
 }
 
+/// Loads json data from a direct path.
 pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, Error> {
     let path = path.as_ref();
     let file = File::open(path).map_err(|error| Error::IO(path.to_owned(), error))?;

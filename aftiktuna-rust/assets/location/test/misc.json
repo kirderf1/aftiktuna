@@ -3,7 +3,7 @@
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
-      "objects": [ "<A", "", "", "v", "", ">c" ],
+      "objects": [ "<", "", "", "v", "", ">c" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
@@ -13,10 +13,21 @@
     {
       "name": "Side Room",
       "pos_in_overview": [ -2, 14 ],
-      "objects": [ "", "", "<", ">", "f", "f" ],
+      "objects": [ "P", "", "<", ">", "f", "f" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" }
+        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
+        "P": {
+          "type": "character",
+          "profile": {
+            "name": "Pagepoh",
+            "species": "pagepoh",
+            "color": "green",
+            "stats": { "type": "random" },
+            "traits": []
+          },
+          "interaction": { "type": "recruitable" }
+        }
       }
     },
     {

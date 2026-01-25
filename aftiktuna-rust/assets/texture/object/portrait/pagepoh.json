@@ -1,0 +1,86 @@
+{
+  "layers": [
+    {
+      "condition": { "expression": "neutral" },
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -6.0 }
+      ],
+      "animation_length": 2.0,
+      "children": [
+        {
+          "condition": { "hurt": true },
+          "texture": "portrait/pagepoh/wounds"
+        },
+        {
+          "texture": [
+            [ "uncolored", "portrait/pagepoh/details_neutral" ],
+            [ "primary", "portrait/pagepoh/primary_neutral" ],
+            [ "uncolored", "portrait/pagepoh/details" ],
+            [ "secondary", "portrait/pagepoh/secondary" ],
+            [ "primary", "portrait/pagepoh/primary" ]
+          ]
+        }
+      ]
+    },
+    {
+      "condition": [
+        { "hurt": false },
+        { "expression": "excited" }
+      ],
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -6.0 }
+      ],
+      "animation_length": 1.2,
+      "texture": [
+        [ "uncolored", "portrait/pagepoh/details_excited" ],
+        [ "uncolored", "portrait/pagepoh/details" ],
+        [ "secondary", "portrait/pagepoh/secondary" ],
+        [ "primary", "portrait/pagepoh/primary" ]
+      ]
+    },
+    {
+      "condition": [
+        { "hurt": true },
+        { "expression": "excited" }
+      ],
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -6.0 }
+      ],
+      "animation_length": 2.0,
+      "texture": [
+        [ "uncolored", "portrait/pagepoh/wounds" ],
+        [ "uncolored", "portrait/pagepoh/details_neutral" ],
+        [ "primary", "portrait/pagepoh/primary_neutral" ],
+        [ "uncolored", "portrait/pagepoh/details" ],
+        [ "secondary", "portrait/pagepoh/secondary" ],
+        [ "primary", "portrait/pagepoh/primary" ]
+      ]
+    },
+    {
+      "condition": { "expression": "sad" },
+      "offset": [
+        { "x": 0.0, "y": 0.0 },
+        { "x": 0.0, "y": -6.0 }
+      ],
+      "animation_length": 3.0,
+      "children": [
+        {
+          "condition": { "hurt": true },
+          "texture": "portrait/pagepoh/wounds"
+        },
+        {
+          "texture": [
+            [ "uncolored", "portrait/pagepoh/details_sad" ],
+            [ "primary", "portrait/pagepoh/primary_sad" ],
+            [ "uncolored", "portrait/pagepoh/details" ],
+            [ "secondary", "portrait/pagepoh/secondary" ],
+            [ "primary", "portrait/pagepoh/primary" ]
+          ]
+        }
+      ]
+    }
+  ]
+}
