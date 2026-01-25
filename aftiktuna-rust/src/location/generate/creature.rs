@@ -282,18 +282,16 @@ fn random_traits(rng: &mut impl Rng) -> Traits {
 }
 
 fn random_stats_from_base(mut stats: Stats, traits: &Traits, rng: &mut impl Rng) -> Stats {
-    let change_from_traits = traits
+    let change_from_traits: i16 = traits
         .sorted_iter()
         .map(Trait::effect_on_generated_stats)
         .sum();
-    if change_from_traits > 0 {
-        for _ in 1..=change_from_traits {
-            adjust_random_stat(&mut stats, 1, rng);
-        }
-    } else if change_from_traits < 0 {
-        for _ in 1..=(-change_from_traits) {
-            adjust_random_stat(&mut stats, -1, rng);
-        }
+    let stats_sum_target = Stats::CHARACTER_STATS_SUM_TARGET + change_from_traits;
+    while stats.sum() < stats_sum_target {
+        adjust_random_stat(&mut stats, 1, rng);
+    }
+    while stats.sum() > stats_sum_target {
+        adjust_random_stat(&mut stats, -1, rng);
     }
 
     for _ in 1..=8 {

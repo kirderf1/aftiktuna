@@ -20,6 +20,7 @@ pub struct Stats {
 }
 
 impl Stats {
+    pub const CHARACTER_STATS_SUM_TARGET: i16 = 22;
     pub fn new(strength: i16, endurance: i16, agility: i16, luck: i16) -> Stats {
         Stats {
             strength,
@@ -27,6 +28,10 @@ impl Stats {
             agility,
             luck,
         }
+    }
+
+    pub fn sum(&self) -> i16 {
+        self.strength + self.endurance + self.agility + self.luck
     }
 
     pub fn try_change_in_bounds(
