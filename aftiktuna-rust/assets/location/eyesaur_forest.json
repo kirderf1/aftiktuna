@@ -138,7 +138,7 @@
           "interaction": { "type": "recruitable" },
           "wielded_item": "crowbar"
         },
-        "a": { "type": "aftik_corpse", "direction": "left" },
+        "a": { "type": "character_corpse", "species":"aftik", "direction": "left" },
         ".": { "type": "inanimate", "model": "path/right_end" },
         "#": { "type": "inanimate", "model": "environment/campfire" },
         "T": {

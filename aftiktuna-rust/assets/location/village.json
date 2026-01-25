@@ -166,7 +166,7 @@
             ]
           }
         },
-        "a": { "type": "aftik_corpse", "color": "green_nonrandom", "direction": "left" },
+        "a": { "type": "character_corpse", "species":"aftik", "color": "green_nonrandom", "direction": "left" },
         "E": { "type": "creature", "creature": "eyesaur", "aggressive": true },
         "T": { "type": "inanimate", "model": "environment/table" },
         "Y": { "type": "inanimate", "model": "environment/broken_table" },
@@ -269,7 +269,7 @@
       },
       "symbols": {
         "^": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door" },
-        "a": { "type": "aftik_corpse", "direction": "right" },
+        "a": { "type": "character_corpse", "species":"aftik", "direction": "right" },
         "B": { "type": "inanimate", "model": "environment/bed" },
         "T": { "type": "inanimate", "model": "environment/table" },
         "Y": { "type": "inanimate", "model": "environment/broken_table" },

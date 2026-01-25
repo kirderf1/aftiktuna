@@ -1,7 +1,7 @@
 mod ui {
     use aftiktuna::asset::color::SpeciesColorData;
     use aftiktuna::asset::location::creature::{
-        self, AftikCorpseData, AttributeChoice, CreatureSpawnData, NpcSpawnData, Wandering,
+        self, AttributeChoice, CharacterCorpseData, CreatureSpawnData, NpcSpawnData, Wandering,
     };
     use aftiktuna::asset::location::{
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
@@ -674,7 +674,11 @@ mod ui {
                     "character_direction",
                 );
             }
-            SymbolData::AftikCorpse(AftikCorpseData { color, direction }) => {
+            SymbolData::CharacterCorpse(CharacterCorpseData {
+                species,
+                color,
+                direction,
+            }) => {
                 egui::ComboBox::new("corpse_color", "Color")
                     .selected_text(
                         color

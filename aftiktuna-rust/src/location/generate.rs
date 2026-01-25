@@ -153,7 +153,7 @@ fn place_symbol(
             creature::place_creature(creature_data, pos, builder.gen_context)?
         }
         SymbolData::Character(npc_data) => creature::place_npc(npc_data, pos, builder.gen_context)?,
-        SymbolData::AftikCorpse(aftik_corpse_data) => {
+        SymbolData::CharacterCorpse(aftik_corpse_data) => {
             creature::place_corpse(aftik_corpse_data, pos, builder.gen_context)?
         }
         SymbolData::Furnish { template } => {

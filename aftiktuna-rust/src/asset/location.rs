@@ -1,5 +1,5 @@
 pub mod creature {
-    use crate::asset::profile::ProfileOrRandom;
+    use crate::asset::profile::{CharacterSpecies, ProfileOrRandom};
     use crate::core::behavior::{self, BackgroundDialogue, GivesHuntRewardData, Reward};
     use crate::core::display::SpeciesColorId;
     use crate::core::item::{self, ItemTypeId};
@@ -176,7 +176,8 @@ pub mod creature {
     }
 
     #[derive(Clone, Serialize, Deserialize)]
-    pub struct AftikCorpseData {
+    pub struct CharacterCorpseData {
+        pub species: CharacterSpecies,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub color: Option<SpeciesColorId>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -297,7 +298,7 @@ pub enum SymbolData {
     Container(ContainerData),
     Creature(creature::CreatureSpawnData),
     Character(Box<creature::NpcSpawnData>),
-    AftikCorpse(creature::AftikCorpseData),
+    CharacterCorpse(creature::CharacterCorpseData),
     Furnish {
         template: String,
     },

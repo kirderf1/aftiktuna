@@ -1,9 +1,9 @@
 use super::LocationGenContext;
 use crate::asset::location::creature::{
-    AftikCorpseData, AttributeChoice, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
+    AttributeChoice, CharacterCorpseData, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     StockDefinition,
 };
-use crate::asset::profile::{self, CharacterProfile};
+use crate::asset::profile::CharacterProfile;
 use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
@@ -190,29 +190,34 @@ pub(super) fn place_npc(
 }
 
 pub(super) fn place_corpse(
-    spawn_data: &AftikCorpseData,
+    spawn_data: &CharacterCorpseData,
     pos: Pos,
     gen_context: &mut LocationGenContext,
 ) -> Result<(), String> {
-    let species = Species::Aftik;
+    let CharacterCorpseData {
+        species,
+        color,
+        direction,
+    } = spawn_data;
+    let species = species.species();
     let species_data = gen_context
         .assets
         .species_data_map
         .get(&species)
         .ok_or_else(|| format!("Missing data for species: {}", species))?;
-    let Some(color) = spawn_data.color.clone().or_else(|| {
-        profile::random_aftik_profile(
-            &mut gen_context.aftik_color_names,
-            &mut gen_context.rng,
-            &used_species_colors(&mut gen_context.world, species),
-        )
-        .map(|profile| profile.color)
+    let Some(color) = color.clone().or_else(|| {
+        let used_colors = used_species_colors(&mut gen_context.world, species);
+        gen_context
+            .assets
+            .color_map
+            .available_ids(species)
+            .filter(|color| !used_colors.contains(color))
+            .choose_stable(&mut gen_context.rng)
+            .cloned()
     }) else {
         return Ok(());
     };
-    let direction = spawn_data
-        .direction
-        .unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
+    let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
     gen_context.world.spawn(
         species_builder_base(species, species_data, &mut gen_context.rng)

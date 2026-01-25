@@ -211,7 +211,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
             };
             format!("NCP ({interaction})")
         }
-        SymbolData::AftikCorpse(_) => "Aftik Corpse".to_string(),
+        SymbolData::CharacterCorpse(_) => "Character Corpse".to_string(),
         SymbolData::Furnish { .. } => "Furnish".to_string(),
     }
 }
@@ -371,22 +371,22 @@ pub fn object_from_symbol(
                 ..Default::default()
             },
         },
-        SymbolData::AftikCorpse(aftik_corpse_data) => ObjectRenderData {
+        SymbolData::CharacterCorpse(corpse_data) => ObjectRenderData {
             coord,
-            model_id: Species::Aftik.model_id(),
+            model_id: corpse_data.species.species().model_id(),
             hash: 0,
             is_controlled: false,
             name_data: None,
             wielded_item: None,
             interactions: Vec::default(),
             properties: ObjectProperties {
-                direction: aftik_corpse_data
+                direction: corpse_data
                     .direction
                     .unwrap_or_else(|| Direction::between_coords(coord, (area_size - 1) / 2)),
-                species_color: aftik_corpse_data
+                species_color: corpse_data
                     .color
                     .clone()
-                    .map(|color_id| (Species::Aftik, color_id)),
+                    .map(|color_id| (corpse_data.species.species(), color_id)),
                 is_alive: false,
                 is_badly_hurt: true,
                 ..Default::default()

@@ -152,11 +152,15 @@
     },
     {
       "properties": {
-        "type": { "const": "aftik_corpse" },
+        "type": { "const": "character_corpse" },
+        "species": {
+          "enum": [ "aftik", "pagepoh" ]
+        },
         "color": { "$ref": "./name_id.json" },
         "direction": { "$ref": "./direction.json" }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [ "species" ]
     },
     {
       "properties": {
