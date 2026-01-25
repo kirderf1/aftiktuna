@@ -354,7 +354,7 @@ pub fn object_from_symbol(
         }
         SymbolData::Character(npc_spawn_data) => ObjectRenderData {
             coord,
-            model_id: Species::Aftik.model_id(),
+            model_id: model_id_from_profile(&npc_spawn_data.profile),
             hash: 0,
             is_controlled: false,
             name_data: None,
@@ -407,9 +407,18 @@ pub fn object_from_symbol(
 
 fn color_from_profile(profile: &ProfileOrRandom) -> Option<(Species, SpeciesColorId)> {
     match profile {
-        ProfileOrRandom::Random => None,
+        ProfileOrRandom::Random { .. } => None,
         ProfileOrRandom::Profile(aftik_profile) => {
             Some((Species::Aftik, aftik_profile.color.clone()))
         }
     }
+}
+
+fn model_id_from_profile(profile: &ProfileOrRandom) -> ModelId {
+    match profile {
+        ProfileOrRandom::Random { species } => *species,
+        ProfileOrRandom::Profile(character_profile) => character_profile.species,
+    }
+    .species()
+    .model_id()
 }

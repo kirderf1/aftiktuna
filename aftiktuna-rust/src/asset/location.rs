@@ -159,7 +159,6 @@ pub mod creature {
 
     #[derive(Clone, Serialize, Deserialize)]
     pub struct NpcSpawnData {
-        #[serde(default, skip_serializing_if = "ProfileOrRandom::is_default")]
         pub profile: ProfileOrRandom,
         #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
         pub health: f32,

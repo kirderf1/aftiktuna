@@ -33,26 +33,26 @@ enum TrackedState {
 pub struct GenerationState {
     locations: Locations,
     state: TrackedState,
+    character_names: Vec<String>,
     aftik_color_names: HashMap<SpeciesColorId, Vec<String>>,
 }
 
 impl GenerationState {
     pub fn load_new(locations_before_fortuna: i32) -> Result<Self, asset::Error> {
-        Ok(Self {
-            locations: Locations::load_from_json()?,
-            state: TrackedState::BeforeFortuna {
-                remaining_locations_count: locations_before_fortuna,
-            },
-            aftik_color_names: asset::load_aftik_color_names()?,
-        })
+        Self::new(Locations::load_from_json()?, locations_before_fortuna)
     }
 
     pub fn single(location: String) -> Result<Self, asset::Error> {
+        Self::new(Locations::single(location), 1)
+    }
+
+    fn new(locations: Locations, locations_before_fortuna: i32) -> Result<Self, asset::Error> {
         Ok(Self {
-            locations: Locations::single(location),
+            locations,
             state: TrackedState::BeforeFortuna {
-                remaining_locations_count: 1,
+                remaining_locations_count: locations_before_fortuna,
             },
+            character_names: asset::load_json_asset::<Vec<String>>("character_names.json")?,
             aftik_color_names: asset::load_aftik_color_names()?,
         })
     }
@@ -241,21 +241,24 @@ pub(crate) fn spawn_starting_crew_and_ship(
     generation_state: &mut GenerationState,
     assets: &GameAssets,
 ) -> Result<InitialSpawnData, String> {
+    let ship_data = LocationData::load_from_json("crew_ship")?;
+
     let mut gen_context = LocationGenContext {
         world: World::new(),
+        character_names: generation_state.character_names.clone(),
         aftik_color_names: generation_state.aftik_color_names.clone(),
         assets,
         rng: rand::rng(),
     };
-    let ship_data = LocationData::load_from_json("crew_ship")?;
-
     let build_data = generate::build_location(ship_data, &mut gen_context)?;
     let LocationGenContext {
         mut world,
+        character_names,
         aftik_color_names,
         assets: _,
         mut rng,
     } = gen_context;
+    generation_state.character_names = character_names;
     generation_state.aftik_color_names = aftik_color_names;
 
     let food_deposit_pos = build_data
@@ -277,12 +280,17 @@ pub(crate) fn spawn_starting_crew_and_ship(
     let mut crew_profiles = Vec::<CharacterProfile>::new();
     for profile in crew_data.crew {
         if let Some(profile) = profile.unwrap(
+            &mut generation_state.character_names,
             &mut generation_state.aftik_color_names,
+            &assets.color_map,
             &mut rng,
-            &crew_profiles
-                .iter()
-                .map(|profile| &profile.color)
-                .collect::<Vec<_>>(),
+            |species| {
+                crew_profiles
+                    .iter()
+                    .filter(|profile| profile.species == species)
+                    .map(|profile| &profile.color)
+                    .collect::<Vec<_>>()
+            },
         ) {
             crew_profiles.push(profile);
         }
@@ -393,6 +401,7 @@ pub(crate) fn setup_location_into_game(
 
 pub struct LocationGenContext<'a> {
     world: World,
+    character_names: Vec<String>,
     aftik_color_names: HashMap<SpeciesColorId, Vec<String>>,
     assets: &'a GameAssets,
     rng: ThreadRng,
@@ -403,6 +412,7 @@ impl<'a> LocationGenContext<'a> {
         Self {
             world: serialization::world::serialize_clone(&state.world)
                 .expect("Unexpected error when cloning world"),
+            character_names: state.generation_state.character_names.clone(),
             aftik_color_names: state.generation_state.aftik_color_names.clone(),
             assets,
             rng: rand::rng(),
@@ -412,6 +422,7 @@ impl<'a> LocationGenContext<'a> {
     pub fn dummy(assets: &'a GameAssets) -> Self {
         Self {
             world: World::new(),
+            character_names: Default::default(),
             aftik_color_names: Default::default(),
             assets,
             rng: rand::rng(),
@@ -420,6 +431,7 @@ impl<'a> LocationGenContext<'a> {
 
     fn apply_to_game_state(self, game_state: &mut GameState) {
         game_state.world = self.world;
+        game_state.generation_state.character_names = self.character_names;
         game_state.generation_state.aftik_color_names = self.aftik_color_names;
     }
 }

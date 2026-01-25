@@ -127,9 +127,11 @@ pub(super) fn place_npc(
         direction,
     } = spawn_data;
     let Some(profile) = profile.clone().unwrap(
+        &mut gen_context.character_names,
         &mut gen_context.aftik_color_names,
+        &gen_context.assets.color_map,
         &mut gen_context.rng,
-        &used_species_colors(&mut gen_context.world, Species::Aftik),
+        |species| used_species_colors(&mut gen_context.world, species.species()),
     ) else {
         return Ok(());
     };
@@ -199,7 +201,7 @@ pub(super) fn place_corpse(
         .get(&species)
         .ok_or_else(|| format!("Missing data for species: {}", species))?;
     let Some(color) = spawn_data.color.clone().or_else(|| {
-        profile::random_profile(
+        profile::random_aftik_profile(
             &mut gen_context.aftik_color_names,
             &mut gen_context.rng,
             &used_species_colors(&mut gen_context.world, species),

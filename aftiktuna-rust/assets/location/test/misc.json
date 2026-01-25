@@ -19,13 +19,7 @@
         ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
         "P": {
           "type": "character",
-          "profile": {
-            "name": "Pagepoh",
-            "species": "pagepoh",
-            "color": "green",
-            "stats": { "type": "random" },
-            "traits": []
-          },
+          "profile": { "type": "random", "species": "pagepoh" },
           "interaction": { "type": "recruitable" }
         }
       }

@@ -148,7 +148,7 @@
         "direction": { "$ref": "./direction.json" }
       },
       "additionalProperties": false,
-      "required": [ "interaction" ]
+      "required": [ "profile", "interaction" ]
     },
     {
       "properties": {

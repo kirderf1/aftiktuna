@@ -68,6 +68,7 @@
         ",": { "type": "inanimate", "model": "path/right_corner" },
         "A": {
           "type": "character",
+          "profile": { "type": "random", "species": "aftik" },
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "house_azureclops",
@@ -112,6 +113,7 @@
         "<": { "type": "door", "pair_id": "aftik_house2", "display_type": "door", "adjective": "left" },
         "A": {
           "type": "character",
+          "profile": { "type": "random", "species": "aftik" },
           "interaction": { "type": "recruitable" }
         },
         "T": { "type": "inanimate", "model": "environment/table" },
@@ -147,8 +149,8 @@
         "S": {
           "type": "character",
           "profile": {
-            "name": "Jade",
             "species": "aftik",
+            "name": "Jade",
             "color": "green_nonrandom",
             "stats": { "type": "random" },
             "traits": []
@@ -224,6 +226,7 @@
         },
         "A": {
           "type": "character",
+          "profile": { "type": "random", "species": "aftik" },
           "health": 0.4,
           "background": "village_attack_survivor",
           "interaction": { "type": "recruitable" }

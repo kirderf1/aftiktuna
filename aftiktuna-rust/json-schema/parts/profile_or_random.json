@@ -1,15 +1,23 @@
 {
   "oneOf": [
     {
-      "const": { "type": "random" }
+      "type": "object",
+      "properties": {
+        "type": { "const": "random" },
+        "species": {
+          "enum": [ "aftik", "pagepoh" ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [ "type", "species" ]
     },
     {
       "type": "object",
       "properties": {
-        "name": { "type": "string" },
         "species": {
           "enum": [ "aftik", "pagepoh" ]
         },
+        "name": { "type": "string" },
         "color": { "$ref": "./name_id.json" },
         "stats": {
           "oneOf": [

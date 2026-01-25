@@ -28,12 +28,14 @@
     "symbols": {
       "A": {
         "type": "character",
+        "profile": { "type": "random", "species": "aftik" },
         "interaction": { "type": "hostile", "encounter_dialogue": "fortuna_hostile_encounter" },
         "wielded_item": "bat",
         "direction": "right"
       },
       "a": {
         "type": "character",
+        "profile": { "type": "random", "species": "aftik" },
         "interaction": { "type": "hostile" },
         "wielded_item": "bat",
         "direction": "right"
