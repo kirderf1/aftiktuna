@@ -94,7 +94,7 @@ fn draw_examples(
             ObjectProperties {
                 is_alive: true,
                 is_badly_hurt: false,
-                creature_variant_set: CreatureVariantSet::from([CreatureVariant::Female]),
+                creature_variant_set: CreatureVariantSet::from([CreatureVariant::female()]),
                 ..Default::default()
             },
         ),
@@ -104,7 +104,7 @@ fn draw_examples(
             ObjectProperties {
                 is_alive: true,
                 is_badly_hurt: true,
-                creature_variant_set: CreatureVariantSet::from([CreatureVariant::Female]),
+                creature_variant_set: CreatureVariantSet::from([CreatureVariant::female()]),
                 ..Default::default()
             },
         ),
@@ -113,7 +113,7 @@ fn draw_examples(
             three_d::vec2(400., 450.),
             ObjectProperties {
                 is_alive: false,
-                creature_variant_set: CreatureVariantSet::from([CreatureVariant::Female]),
+                creature_variant_set: CreatureVariantSet::from([CreatureVariant::female()]),
                 ..Default::default()
             },
         ),
@@ -123,7 +123,7 @@ fn draw_examples(
             ObjectProperties {
                 is_alive: true,
                 is_badly_hurt: false,
-                creature_variant_set: CreatureVariantSet::from([CreatureVariant::Male]),
+                creature_variant_set: CreatureVariantSet::from([CreatureVariant::male()]),
                 ..Default::default()
             },
         ),
@@ -133,7 +133,7 @@ fn draw_examples(
             ObjectProperties {
                 is_alive: true,
                 is_badly_hurt: true,
-                creature_variant_set: CreatureVariantSet::from([CreatureVariant::Male]),
+                creature_variant_set: CreatureVariantSet::from([CreatureVariant::male()]),
                 ..Default::default()
             },
         ),
@@ -142,7 +142,7 @@ fn draw_examples(
             three_d::vec2(400., 250.),
             ObjectProperties {
                 is_alive: false,
-                creature_variant_set: CreatureVariantSet::from([CreatureVariant::Male]),
+                creature_variant_set: CreatureVariantSet::from([CreatureVariant::male()]),
                 ..Default::default()
             },
         ),

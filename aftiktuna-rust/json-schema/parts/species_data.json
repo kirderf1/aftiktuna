@@ -19,9 +19,7 @@
         "items": {
           "type": "object",
           "properties": {
-            "variant": {
-              "enum": [ "female", "male", "pose_a", "pose_b", "pose_c", "pose_d" ]
-            },
+            "variant": { "$ref": "./name_id.json" },
             "weight": { "type": "integer", "minimum": 0 }
           },
           "additionalProperties": false,

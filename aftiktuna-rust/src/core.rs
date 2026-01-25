@@ -87,14 +87,21 @@ pub mod display {
     }
 
     #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    pub enum CreatureVariant {
-        Female,
-        Male,
-        PoseA,
-        PoseB,
-        PoseC,
-        PoseD,
+    pub struct CreatureVariant(String);
+
+    impl CreatureVariant {
+        pub fn female() -> Self {
+            Self("female".to_owned())
+        }
+        pub fn male() -> Self {
+            Self("male".to_owned())
+        }
+    }
+
+    impl std::fmt::Display for CreatureVariant {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(f)
+        }
     }
 
     #[derive(Clone, Debug, Default, Serialize, Deserialize)]

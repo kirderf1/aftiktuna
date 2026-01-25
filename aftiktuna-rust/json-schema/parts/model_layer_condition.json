@@ -7,9 +7,7 @@
     "expression": {
       "enum": [ "neutral", "excited", "sad" ]
     },
-    "variant": {
-      "enum": [ "female", "male", "pose_a", "pose_b", "pose_c", "pose_d" ]
-    }
+    "variant": { "$ref": "./name_id.json" }
   },
   "additionalProperties": false,
   "oneOf": [
