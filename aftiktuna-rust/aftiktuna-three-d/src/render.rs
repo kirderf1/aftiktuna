@@ -227,6 +227,7 @@ fn get_render_objects_for_layer(
         }
         aftiktuna::asset::model::TexturesOrChildren::Children(texture_layers) => {
             let pos = pos + offset;
+            let pos = anchor + three_d::Mat2::from_angle(rotation_angle) * (pos - anchor);
             texture_layers
                 .iter()
                 .flat_map(|layer| {

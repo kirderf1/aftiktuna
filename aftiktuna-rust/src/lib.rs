@@ -99,7 +99,7 @@ impl<T: PartialEq> From<Range<T>> for OneOrTwo<T> {
     }
 }
 
-#[derive(Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
 pub struct Vec2 {
     pub x: f32,
     pub y: f32,

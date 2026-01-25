@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 
 - Fixed transparency rendering issue with certain platforms (detected and verified on archlinux)
+- Fixed an issue with anchor-based rotation in rendering
 
 ### Contributors for this release
 
