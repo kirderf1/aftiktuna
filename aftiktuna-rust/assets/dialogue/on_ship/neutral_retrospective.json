@@ -1,0 +1,17 @@
+[
+  {
+    "is_badly_hurt": false,
+    "is_target_badly_hurt": true,
+    "expression": "neutral",
+    "message": "That worked out in the end, right?",
+    "reply": [
+      {
+        "expression": "neutral",
+        "message": "I guess so. But can we go somewhere safer next?",
+        "reply": [
+          { "expression": "neutral", "message": "I don't know. Let's see what our options are." }
+        ]
+      }
+    ]
+  }
+]

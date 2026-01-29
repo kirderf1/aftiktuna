@@ -1,0 +1,10 @@
+[
+  {
+    "is_badly_hurt": true,
+    "expression": "neutral",
+    "message": "Will we be able to go somewhere safer next?",
+    "reply": [
+      { "expression": "neutral", "message": "I don't know. Let's see what our options are." }
+    ]
+  }
+]

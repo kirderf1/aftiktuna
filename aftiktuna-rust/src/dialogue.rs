@@ -118,6 +118,25 @@ fn complete_hunt_quest(
     reward.give_reward_to(crew_member, &mut state.world);
 }
 
+#[derive(Debug, Clone, Copy)]
+enum ShipDialogue {
+    ApproachingFortuna,
+    CrewLoss,
+    Worry,
+    NeutralRetrospective,
+}
+
+impl ShipDialogue {
+    fn dialogue_id(self) -> &'static str {
+        match self {
+            ShipDialogue::ApproachingFortuna => "on_ship/approaching_fortuna",
+            ShipDialogue::CrewLoss => "on_ship/crew_loss",
+            ShipDialogue::Worry => "on_ship/worry",
+            ShipDialogue::NeutralRetrospective => "on_ship/neutral_retrospective",
+        }
+    }
+}
+
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let mut crew_characters = state
         .world
@@ -136,23 +155,30 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
             .world
             .insert_one(character2, Pos::new(area, 1, &state.world))
             .unwrap();
-        if state.generation_state.locations_before_fortuna() == 0 {
-            trigger_dialogue_by_name(
-                "on_ship/approaching_fortuna",
-                character1,
-                character2,
-                state,
-                view_buffer,
-            );
+
+        let character1_ref = state.world.entity(character1).unwrap();
+        let ship_dialogue = if state.generation_state.locations_before_fortuna() == 0 {
+            ShipDialogue::ApproachingFortuna
+        } else if let Some(crew_loss_memory) = character1_ref.get::<&CrewLossMemory>()
+            && crew_loss_memory.recent
+        {
+            ShipDialogue::CrewLoss
+        } else if character1_ref
+            .get::<&Health>()
+            .is_some_and(|health| health.is_badly_hurt())
+        {
+            ShipDialogue::Worry
         } else {
-            trigger_dialogue_by_name(
-                "on_ship/approaching_location",
-                character1,
-                character2,
-                state,
-                view_buffer,
-            );
-        }
+            ShipDialogue::NeutralRetrospective
+        };
+
+        trigger_dialogue_by_name(
+            ship_dialogue.dialogue_id(),
+            character1,
+            character2,
+            state,
+            view_buffer,
+        );
     }
 }
 
