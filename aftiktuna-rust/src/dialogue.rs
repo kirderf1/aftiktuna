@@ -1,11 +1,12 @@
 use crate::asset::dialogue::ConditionedDialogueNode;
+use crate::core::area::ShipState;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntRewardData,
     Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
 };
-use crate::core::name::Name;
+use crate::core::name::{Name, NameData};
 use crate::core::position::{self, Pos};
-use crate::core::status::Health;
+use crate::core::status::{Health, Morale};
 use crate::core::store::{self, Shopkeeper};
 use crate::core::{self, CrewMember, area, inventory};
 use crate::game_loop::GameState;
@@ -146,16 +147,6 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
         .choose_multiple(&mut state.rng, 2);
     crew_characters.shuffle(&mut state.rng);
     if let [(character1, ()), (character2, ())] = crew_characters[..] {
-        let area = state.world.get::<&Pos>(character1).unwrap().get_area();
-        state
-            .world
-            .insert_one(character1, Pos::new(area, 0, &state.world))
-            .unwrap();
-        state
-            .world
-            .insert_one(character2, Pos::new(area, 1, &state.world))
-            .unwrap();
-
         let character1_ref = state.world.entity(character1).unwrap();
         let ship_dialogue = if state.generation_state.locations_before_fortuna() == 0 {
             ShipDialogue::ApproachingFortuna
@@ -172,13 +163,39 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
             ShipDialogue::NeutralRetrospective
         };
 
-        trigger_dialogue_by_name(
+        let [pos1, pos2] = state
+            .world
+            .get::<&ShipState>(state.ship_core)
+            .unwrap()
+            .dialogue_pos;
+        state.world.insert_one(character1, pos1).unwrap();
+        state.world.insert_one(character2, pos2).unwrap();
+        position::turn_towards(&state.world, character1, pos2);
+        position::turn_towards(&state.world, character2, pos1);
+
+        let result = trigger_dialogue_by_name(
             ship_dialogue.dialogue_id(),
             character1,
             character2,
             state,
             view_buffer,
         );
+
+        if !result {
+            view_buffer.messages.add(format!(
+                "{} chatted with {} about their journey.",
+                NameData::find(&state.world, character1, view_buffer.assets).definite(),
+                NameData::find(&state.world, character2, view_buffer.assets).definite(),
+            ));
+            view_buffer.capture_view(state, false);
+        }
+
+        if let Ok(mut morale) = state.world.get::<&mut Morale>(character1) {
+            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
+        }
+        if let Ok(mut morale) = state.world.get::<&mut Morale>(character2) {
+            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
+        }
     }
 }
 
@@ -362,15 +379,21 @@ pub fn trigger_dialogue_by_name(
     target: Entity,
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
-) {
+) -> bool {
     match asset::dialogue::load_dialogue_data(name) {
         Ok(dialogue) => {
             if let Some(dialogue_node) = dialogue.select_node(speaker, target, state) {
                 view_buffer.capture_view_before_dialogue(state);
                 run_dialogue_node(dialogue_node, speaker, target, state, view_buffer);
+                true
+            } else {
+                false
             }
         }
-        Err(error) => println!("Failed to load dialogue {name}: {error}"),
+        Err(error) => {
+            println!("Failed to load dialogue {name}: {error}");
+            false
+        }
     }
 }
 

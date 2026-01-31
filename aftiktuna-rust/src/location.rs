@@ -263,7 +263,13 @@ pub(crate) fn spawn_starting_crew_and_ship(
 
     let food_deposit_pos = build_data
         .food_deposit_pos
-        .ok_or_else(|| "Expected ship location to have food deposit".to_string())?;
+        .ok_or("Expected ship location to have food deposit")?;
+    let ship_dialogue_pos1 = build_data
+        .ship_dialogue_spot
+        .ok_or("Expected ship location to have ship dialogue pos")?;
+    let ship_dialogue_pos2 = ship_dialogue_pos1
+        .try_offset(1, &world)
+        .ok_or("There is not enough space to the right of the ship dialogue spot")?;
     for &room in &build_data.spawned_areas {
         world
             .insert_one(room, ShipRoom)
@@ -274,6 +280,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         status: ShipStatus::NeedFuel(FuelAmount::TwoCans),
         exit_pos: build_data.entry_pos,
         item_pos: food_deposit_pos,
+        dialogue_pos: [ship_dialogue_pos1, ship_dialogue_pos2],
     },));
     let crew = world.spawn((Points(crew_data.points),));
 

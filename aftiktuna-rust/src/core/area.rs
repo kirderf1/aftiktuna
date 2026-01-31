@@ -39,6 +39,7 @@ pub struct ShipState {
     pub status: ShipStatus,
     pub exit_pos: Pos,
     pub item_pos: Pos,
+    pub dialogue_pos: [Pos; 2],
 }
 
 #[derive(Serialize, Deserialize)]

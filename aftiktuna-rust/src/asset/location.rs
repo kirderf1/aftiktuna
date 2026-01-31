@@ -283,6 +283,7 @@ pub enum SymbolData {
         direction: Direction,
     },
     FoodDeposit,
+    ShipDialogueSpot,
     Item {
         item: ItemTypeId,
     },

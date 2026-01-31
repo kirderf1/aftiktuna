@@ -548,7 +548,7 @@ mod ui {
                     "ship_controls_direction",
                 );
             }
-            SymbolData::FoodDeposit => {}
+            SymbolData::FoodDeposit | SymbolData::ShipDialogueSpot => {}
             SymbolData::Item { item } => {
                 aftiktuna_editor_three_d::item_type_editor(ui, item, "item", item_type_list);
             }

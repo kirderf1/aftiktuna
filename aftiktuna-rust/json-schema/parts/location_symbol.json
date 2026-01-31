@@ -29,6 +29,12 @@
     },
     {
       "properties": {
+        "type": { "const": "ship_dialogue_spot" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
         "type": { "const": "item" },
         "item": { "$ref": "./name_id.json" }
       },

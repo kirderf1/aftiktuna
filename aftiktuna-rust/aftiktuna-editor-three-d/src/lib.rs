@@ -191,6 +191,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
         SymbolData::FortunaChest => "Fortuna Chest".to_string(),
         SymbolData::ShipControls { .. } => "Ship Controls".to_string(),
         SymbolData::FoodDeposit => "Food Deposit".to_string(),
+        SymbolData::ShipDialogueSpot => "Ship Dialogue Spot".to_string(),
         SymbolData::Item { item } => format!("Item ({item})"),
         SymbolData::Loot { table } => format!("Loot ({})", table.0),
         SymbolData::Door(door_spawn_data) => format!("Door ({})", door_spawn_data.pair_id),
@@ -261,7 +262,7 @@ pub fn object_from_symbol(
                 ..Default::default()
             },
         },
-        SymbolData::FoodDeposit => ObjectRenderData {
+        SymbolData::FoodDeposit | SymbolData::ShipDialogueSpot => ObjectRenderData {
             coord,
             model_id: ModelId::small_unknown(),
             hash: 0,

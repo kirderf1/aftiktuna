@@ -35,9 +35,10 @@
       "name": "Ship Quarters",
       "pos_in_overview": [ 1, -4 ],
       "background": "facility_size4",
-      "objects": [ "B", ":", "^", "p" ],
+      "objects": [ "B", "=:", "^", "p" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "quarters", "display_type": "door" },
+        "=": { "type": "ship_dialogue_spot" },
         "B": { "type": "inanimate", "model": "environment/bed" },
         ":": { "type": "furnish", "template": "poster" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }

@@ -24,7 +24,9 @@ fn main() {
         "crew_ship",
         |build_data| {
             if build_data.food_deposit_pos.is_none() {
-                Err("Missing food deposit in ship".to_string())
+                Err("Missing food deposit in ship".to_owned())
+            } else if build_data.ship_dialogue_spot.is_none() {
+                Err("Missing ship dialogue pos in ship".to_owned())
             } else {
                 Ok(())
             }

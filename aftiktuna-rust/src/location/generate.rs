@@ -20,6 +20,7 @@ pub struct LocationBuildData {
     pub spawned_areas: Vec<Entity>,
     pub entry_pos: Pos,
     pub food_deposit_pos: Option<Pos>,
+    pub ship_dialogue_spot: Option<Pos>,
 }
 
 pub fn build_location<'a, 'b>(
@@ -50,6 +51,7 @@ pub fn build_location<'a, 'b>(
         spawned_areas,
         entry_pos,
         food_deposit_pos: builder.food_deposit_pos,
+        ship_dialogue_spot: builder.ship_dialogue_spot,
     })
 }
 
@@ -126,9 +128,16 @@ fn place_symbol(
         }
         SymbolData::FoodDeposit => {
             if builder.food_deposit_pos.is_some() {
-                return Err("Can only place one food deposit per location".to_string());
+                return Err("Can only place one food deposit per location".to_owned());
             } else {
                 builder.food_deposit_pos = Some(pos);
+            }
+        }
+        SymbolData::ShipDialogueSpot => {
+            if builder.ship_dialogue_spot.is_some() {
+                return Err("Can only place one ship dialogue spot per location".to_owned());
+            } else {
+                builder.ship_dialogue_spot = Some(pos);
             }
         }
         SymbolData::Item { item } => {
@@ -173,6 +182,7 @@ struct Builder<'a, 'b> {
     chosen_variant: Option<String>,
     entry_positions: Vec<Pos>,
     food_deposit_pos: Option<Pos>,
+    ship_dialogue_spot: Option<Pos>,
     door_pair_builder: door::DoorPairsBuilder,
     loot_table_cache: loot::LootTableCache,
 }
@@ -188,6 +198,7 @@ impl<'a, 'b> Builder<'a, 'b> {
             chosen_variant,
             entry_positions: Vec::new(),
             food_deposit_pos: None,
+            ship_dialogue_spot: None,
             door_pair_builder: door::DoorPairsBuilder::init(door_pair_data),
             loot_table_cache: loot::LootTableCache::default(),
         }
