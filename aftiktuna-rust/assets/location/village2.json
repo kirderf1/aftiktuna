@@ -91,7 +91,7 @@
       "objects": [ "B", ":", "#", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "house1b", "display_type": "door" },
-        "B": { "type": "inanimate", "model": "environment/bed" },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         "#": {
           "type": "container",
           "container_type": "chest",
@@ -125,7 +125,7 @@
       "objects": [ "^", "p", "", "B" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "house2b", "display_type": "door" },
-        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
     },
@@ -193,7 +193,7 @@
       "objects": [ "B", ":", "#", "^" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "house3b", "display_type": "door" },
-        "B": { "type": "inanimate", "model": "environment/bed" },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         "#": {
           "type": "container",
           "container_type": "drawer",

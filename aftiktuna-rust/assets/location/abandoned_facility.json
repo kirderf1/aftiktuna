@@ -163,7 +163,7 @@
           ],
           "direction": "left"
         },
-        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
         ":": { "type": "inanimate", "model": "environment/planet_poster" }
       }
     },

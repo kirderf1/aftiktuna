@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Fixed transparency rendering issue with certain platforms (detected and verified on archlinux)
 - Fixed an issue with anchor-based rotation in rendering
+- Improved rendering-related placement for some furnitures
 
 ### Contributors for this release
 

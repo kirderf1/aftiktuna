@@ -248,7 +248,7 @@
           ],
           "direction": "right"
         },
-        "B": { "type": "inanimate", "model": "environment/bed" }
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" }
       }
     }
   ],

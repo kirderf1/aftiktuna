@@ -128,7 +128,7 @@
       "objects": [ "^", "p", ":", "B" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "aftik_house2", "display_type": "door" },
-        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
+        "B": { "type": "inanimate", "model": "environment/bed" },
         ":": { "type": "inanimate", "model": "environment/aftik_poster" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
@@ -166,7 +166,7 @@
             ]
           }
         },
-        "a": { "type": "character_corpse", "species":"aftik", "color": "green_nonrandom", "direction": "left" },
+        "a": { "type": "character_corpse", "species": "aftik", "color": "green_nonrandom", "direction": "left" },
         "E": { "type": "creature", "creature": "eyesaur", "aggressive": true },
         "T": { "type": "inanimate", "model": "environment/table" },
         "Y": { "type": "inanimate", "model": "environment/broken_table" },
@@ -269,8 +269,8 @@
       },
       "symbols": {
         "^": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door" },
-        "a": { "type": "character_corpse", "species":"aftik", "direction": "right" },
-        "B": { "type": "inanimate", "model": "environment/bed" },
+        "a": { "type": "character_corpse", "species": "aftik", "direction": "right" },
+        "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         "T": { "type": "inanimate", "model": "environment/table" },
         "Y": { "type": "inanimate", "model": "environment/broken_table" },
         ":": { "type": "inanimate", "model": "environment/planet_poster" }
