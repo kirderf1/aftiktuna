@@ -176,7 +176,40 @@ impl ShipDialogue {
     }
 }
 
-pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
+fn pick_ship_dialogue_topic(state: &mut GameState) -> Option<(ShipDialogue, Entity, Entity)> {
+    if state.generation_state.locations_before_fortuna() == 0 {
+        let mut crew_characters = state
+            .world
+            .query::<()>()
+            .with::<(&CrewMember, &Character)>()
+            .iter()
+            .choose_multiple(&mut state.rng, 2);
+        crew_characters.shuffle(&mut state.rng);
+        let [(character1, ()), (character2, ())] = crew_characters[..] else {
+            return None;
+        };
+
+        return Some((ShipDialogue::ApproachingFortuna, character1, character2));
+    }
+
+    if let Some((crew_loss_character, _)) = state
+        .world
+        .query::<&CrewLossMemory>()
+        .with::<(&CrewMember, &Character)>()
+        .iter()
+        .filter(|(_, crew_loss_memory)| crew_loss_memory.recent)
+        .choose(&mut state.rng)
+        && let Some((other_character, ())) = state
+            .world
+            .query::<()>()
+            .with::<(&CrewMember, &Character)>()
+            .iter()
+            .filter(|(entity, ())| *entity != crew_loss_character)
+            .choose(&mut state.rng)
+    {
+        return Some((ShipDialogue::CrewLoss, crew_loss_character, other_character));
+    }
+
     let mut crew_characters = state
         .world
         .query::<()>()
@@ -184,23 +217,24 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
         .iter()
         .choose_multiple(&mut state.rng, 2);
     crew_characters.shuffle(&mut state.rng);
-    if let [(character1, ()), (character2, ())] = crew_characters[..] {
-        let character1_ref = state.world.entity(character1).unwrap();
-        let ship_dialogue = if state.generation_state.locations_before_fortuna() == 0 {
-            ShipDialogue::ApproachingFortuna
-        } else if let Some(crew_loss_memory) = character1_ref.get::<&CrewLossMemory>()
-            && crew_loss_memory.recent
-        {
-            ShipDialogue::CrewLoss
-        } else if character1_ref
-            .get::<&Health>()
-            .is_some_and(|health| health.is_badly_hurt())
-        {
-            ShipDialogue::Worry
-        } else {
-            ShipDialogue::NeutralRetrospective
-        };
+    let [(character1, ()), (character2, ())] = crew_characters[..] else {
+        return None;
+    };
 
+    let ship_dialogue = if state
+        .world
+        .get::<&Health>(character1)
+        .is_ok_and(|health| health.is_badly_hurt())
+    {
+        ShipDialogue::Worry
+    } else {
+        ShipDialogue::NeutralRetrospective
+    };
+    Some((ship_dialogue, character1, character2))
+}
+
+pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
+    if let Some((ship_dialogue, character1, character2)) = pick_ship_dialogue_topic(state) {
         let [pos1, pos2] = state
             .world
             .get::<&ShipState>(state.ship_core)
