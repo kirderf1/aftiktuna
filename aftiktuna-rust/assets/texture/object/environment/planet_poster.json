@@ -6,7 +6,7 @@
     }
   ],
   "z_offset": -30,
-  "order_weight": 50,
+  "order_weight": 70,
   "fixed_orientation": true,
   "has_x_displacement": false,
   "z_displacement": 0
