@@ -1,3 +1,4 @@
+use crate::asset::GameAssets;
 use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::area::ShipState;
 use crate::core::behavior::{
@@ -136,6 +137,43 @@ impl ShipDialogue {
             ShipDialogue::NeutralRetrospective => "on_ship/neutral_retrospective",
         }
     }
+
+    fn dialogue_description(
+        self,
+        world: &World,
+        character1: Entity,
+        character2: Entity,
+        assets: &GameAssets,
+    ) -> String {
+        let name1 = NameData::find(world, character1, assets).definite();
+        let name2 = NameData::find(world, character2, assets).definite();
+        match self {
+            ShipDialogue::ApproachingFortuna => {
+                format!("{name1} and {name2} talked about their approach to Fortuna.")
+            }
+            ShipDialogue::CrewLoss => {
+                let crew_loss_name = world
+                    .get::<&CrewLossMemory>(character1)
+                    .map_or_else(|_| "???".to_owned(), |memory| memory.name.clone());
+                format!("{name1}talked with {name2} about the loss of {crew_loss_name}.")
+            }
+            ShipDialogue::Worry => {
+                format!("{name1} talked to {name2} and expressed worry about their journey.")
+            }
+            ShipDialogue::NeutralRetrospective => {
+                format!("{name1} and {name2} chatted about their journey.")
+            }
+        }
+    }
+
+    fn apply_effects(self, world: &World, character1: Entity, character2: Entity) {
+        if let Ok(mut morale) = world.get::<&mut Morale>(character1) {
+            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
+        }
+        if let Ok(mut morale) = world.get::<&mut Morale>(character2) {
+            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
+        }
+    }
 }
 
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
@@ -182,20 +220,16 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
         );
 
         if !result {
-            view_buffer.messages.add(format!(
-                "{} chatted with {} about their journey.",
-                NameData::find(&state.world, character1, view_buffer.assets).definite(),
-                NameData::find(&state.world, character2, view_buffer.assets).definite(),
+            view_buffer.messages.add(ship_dialogue.dialogue_description(
+                &state.world,
+                character1,
+                character2,
+                view_buffer.assets,
             ));
             view_buffer.capture_view(state, false);
         }
 
-        if let Ok(mut morale) = state.world.get::<&mut Morale>(character1) {
-            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
-        }
-        if let Ok(mut morale) = state.world.get::<&mut Morale>(character2) {
-            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
-        }
+        ship_dialogue.apply_effects(&state.world, character1, character2);
     }
 }
 
