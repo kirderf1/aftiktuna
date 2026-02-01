@@ -1,17 +1,18 @@
 mod ui {
     use aftiktuna::asset::color::SpeciesColorData;
     use aftiktuna::asset::location::creature::{
-        self, AttributeChoice, CharacterCorpseData, CreatureSpawnData, NpcSpawnData, Wandering,
+        AttributeChoice, CharacterCorpseData, CreatureSpawnData, NpcSpawnData,
     };
     use aftiktuna::asset::location::{
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
         SymbolData, SymbolMap,
     };
-    use aftiktuna::core::BlockType;
     use aftiktuna::core::area::BackgroundId;
+    use aftiktuna::core::behavior::Wandering;
     use aftiktuna::core::display::{ModelId, SpeciesColorId};
     use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
+    use aftiktuna::core::{BlockType, SpeciesId};
     use aftiktuna_editor_three_d::name_from_symbol;
     use indexmap::IndexMap;
     use std::mem;
@@ -453,7 +454,7 @@ mod ui {
                         old_char: None,
                         new_char: String::new(),
                         symbol_data: SymbolData::Creature(CreatureSpawnData {
-                            creature: creature::Type::Goblin,
+                            creature: SpeciesId::from("goblin"),
                             name: None,
                             health: 1.,
                             stats: None,
@@ -737,13 +738,6 @@ mod ui {
             direction,
         }: &mut CreatureSpawnData,
     ) {
-        egui::ComboBox::from_label("Creature Type")
-            .selected_text(format!("{creature:?}"))
-            .show_ui(ui, |ui| {
-                for selectable_type in creature::Type::variants() {
-                    ui.selectable_value(creature, *selectable_type, format!("{selectable_type:?}"));
-                }
-            });
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
 
@@ -804,7 +798,7 @@ use aftiktuna::asset::location::{
 };
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, placement};
-use aftiktuna::core::Species;
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::SpeciesColorId;
 use aftiktuna::core::item::ItemTypeId;
@@ -875,7 +869,7 @@ fn main() {
         base_symbols: location::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
         aftik_colors: serde_json::from_reader::<_, _>(
-            File::open(color::colors_path(Species::Aftik)).unwrap(),
+            File::open(color::colors_path(SpeciesId::from("aftik"))).unwrap(),
         )
         .unwrap(),
         item_type_list: aftiktuna::asset::load_item_type_map()

@@ -60,7 +60,10 @@ pub fn render_frame(
                 three_d::vec2(x, 0.),
                 &ObjectProperties {
                     direction: data.direction,
-                    species_color: data.color.clone().map(|color_id| (data.species, color_id)),
+                    species_color: data
+                        .color
+                        .clone()
+                        .map(|color_id| (data.species.clone(), color_id)),
                     is_badly_hurt: data.is_badly_hurt,
                     expression: data.expression,
                     ..ObjectProperties::default()
@@ -279,7 +282,7 @@ fn draw_store_view(
             species_color: view
                 .shopkeeper_color
                 .clone()
-                .map(|color_id| (view.species, color_id)),
+                .map(|color_id| (view.species.clone(), color_id)),
             ..ObjectProperties::default()
         },
         &mut assets.species_colors,

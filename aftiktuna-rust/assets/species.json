@@ -1,0 +1,12 @@
+{
+  "aftik": {
+    "default_stats": { "strength": 10, "endurance": 1, "agility": 10, "luck": 1 },
+    "unarmed": "scratch",
+    "attack_set": "quick"
+  },
+  "pagepoh": {
+    "default_stats": { "strength": 5, "endurance": 1, "agility": 1, "luck": 1 },
+    "unarmed": "punch",
+    "attack_set": "varied"
+  }
+}

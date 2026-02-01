@@ -20,6 +20,12 @@
         },
         {
             "fileMatch": [
+                "/assets/fauna.json"
+            ],
+            "url": "/json-schema/fauna.json"
+        },
+        {
+            "fileMatch": [
                 "/assets/item_types.json"
             ],
             "url": "/json-schema/item_types.json"
@@ -62,15 +68,15 @@
         },
         {
             "fileMatch": [
-                "/assets/species_color/*.json"
+                "/assets/species.json"
             ],
-            "url": "/json-schema/species_colors.json"
+            "url": "/json-schema/species.json"
         },
         {
             "fileMatch": [
-                "/assets/species_data.json"
+                "/assets/species_color/*.json"
             ],
-            "url": "/json-schema/species_data.json"
+            "url": "/json-schema/species_colors.json"
         },
         {
             "fileMatch": [

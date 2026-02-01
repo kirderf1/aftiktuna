@@ -1,0 +1,3 @@
+{
+  "enum": [ "light", "quick", "slow", "intense", "varied" ]
+}

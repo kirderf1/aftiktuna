@@ -10,7 +10,7 @@ use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{Coord, Direction, Pos};
 use crate::core::status::{self, Health, Morale};
 use crate::core::store::Shopkeeper;
-use crate::core::{BlockType, Door, IsCut, Species};
+use crate::core::{BlockType, Door, IsCut, SpeciesId};
 use crate::deref_clone;
 use crate::game_loop::GameState;
 use crate::view::text;
@@ -84,7 +84,7 @@ fn get_extended_name(name: &str, entity_ref: EntityRef, world: &World) -> String
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ObjectProperties {
     pub direction: Direction,
-    pub species_color: Option<(Species, SpeciesColorId)>,
+    pub species_color: Option<(SpeciesId, SpeciesColorId)>,
     pub is_cut: bool,
     pub is_alive: bool,
     pub is_badly_hurt: bool,
@@ -182,9 +182,9 @@ fn build_object_data(
             .map(deref_clone)
             .unwrap_or_default(),
         species_color: entity_ref
-            .query::<(&Species, &SpeciesColorId)>()
+            .query::<(&SpeciesId, &SpeciesColorId)>()
             .get()
-            .map(|(species, color_id)| (*species, color_id.clone())),
+            .map(|(species_id, color_id)| (species_id.clone(), color_id.clone())),
         is_cut: entity_ref.satisfies::<&IsCut>(),
         is_alive: entity_ref
             .get::<&Health>()

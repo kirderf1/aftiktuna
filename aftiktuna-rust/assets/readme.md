@@ -5,13 +5,21 @@ There are different kinds of data filees in here.
 
 Contains crew data used when starting a new game.
 
-## `assets/species_data.json`
+## `assets/fauna.json`
 
-Defines certain properties of species. Note that this file cannot be used to add new species.
+Defines available fauna and their properties.
+
+## `assets/species.json`
+
+Defines available species and their properties.
 
 ## `assets/species_color/*.json`
 
-Each file contains a list of color definitions for the corresponding species.
+Each file contains a list of color definitions for the corresponding fauna or species.
+
+## `assets/character_names.json`
+
+Contains a list of names that may be used for randomly-generated characters.
 
 ## `assets/selectable_aftik_color_names.json`
 

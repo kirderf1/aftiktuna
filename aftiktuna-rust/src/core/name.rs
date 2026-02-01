@@ -2,7 +2,7 @@ use super::display::SpeciesColorId;
 use super::status::CreatureAttribute;
 use crate::asset::GameAssets;
 use crate::asset::color::SpeciesColorMap;
-use crate::core::Species;
+use crate::core::SpeciesId;
 use hecs::{Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -12,15 +12,15 @@ use std::ops::Deref;
 #[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub(crate) enum AdjectiveData {
     Adjective(Adjective),
-    Color(Species, SpeciesColorId),
+    Color(SpeciesId, SpeciesColorId),
 }
 
 impl AdjectiveData {
     fn lookup(self, color_map: &SpeciesColorMap) -> Option<Adjective> {
         match self {
             AdjectiveData::Adjective(adjective) => Some(adjective),
-            AdjectiveData::Color(species, species_color_id) => color_map
-                .get(species, &species_color_id)
+            AdjectiveData::Color(species_id, species_color_id) => color_map
+                .get(&species_id, &species_color_id)
                 .and_then(|entry| entry.adjective.clone()),
         }
     }
@@ -55,11 +55,12 @@ impl NameIdData {
                         .get::<&Adjective>()
                         .map(|adjective| AdjectiveData::Adjective(adjective.deref().clone()))
                         .or_else(|| {
-                            entity_ref.query::<(&Species, &SpeciesColorId)>().get().map(
-                                |(species, color_id)| {
-                                    AdjectiveData::Color(*species, color_id.clone())
-                                },
-                            )
+                            entity_ref
+                                .query::<(&SpeciesId, &SpeciesColorId)>()
+                                .get()
+                                .map(|(species_id, color_id)| {
+                                    AdjectiveData::Color(species_id.clone(), color_id.clone())
+                                })
                         }),
                     noun_id.deref().clone(),
                 )
@@ -97,8 +98,8 @@ impl<'a> From<NameQuery<'a>> for NameIdData {
                             .cloned()
                             .map(AdjectiveData::Adjective)
                             .or_else(|| {
-                                color_id.map(|(species, color_id)| {
-                                    AdjectiveData::Color(*species, color_id.clone())
+                                color_id.map(|(species_id, color_id)| {
+                                    AdjectiveData::Color(species_id.clone(), color_id.clone())
                                 })
                             }),
                         noun_id.clone(),
@@ -161,12 +162,12 @@ impl NameData {
                         .cloned()
                         .or_else(|| {
                             entity_ref
-                                .query::<(&Species, &SpeciesColorId)>()
+                                .query::<(&SpeciesId, &SpeciesColorId)>()
                                 .get()
-                                .and_then(|(species, color_id)| {
+                                .and_then(|(species_id, color_id)| {
                                     assets
                                         .color_map
-                                        .get(*species, color_id)
+                                        .get(species_id, color_id)
                                         .and_then(|entry| entry.adjective.clone())
                                 })
                         }),
@@ -199,10 +200,10 @@ impl NameData {
                 .map(|noun_id| {
                     Self::Noun(
                         adjective.cloned().or_else(|| {
-                            color_id.and_then(|(species, color_id)| {
+                            color_id.and_then(|(species_id, color_id)| {
                                 assets
                                     .color_map
-                                    .get(*species, color_id)
+                                    .get(species_id, color_id)
                                     .and_then(|entry| entry.adjective.clone())
                             })
                         }),
@@ -280,7 +281,7 @@ pub(crate) type NameQuery<'a> = (
     Option<&'a Name>,
     Option<&'a NounId>,
     Option<&'a Adjective>,
-    Option<(&'a Species, &'a SpeciesColorId)>,
+    Option<(&'a SpeciesId, &'a SpeciesColorId)>,
 );
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

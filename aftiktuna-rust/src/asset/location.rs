@@ -1,12 +1,12 @@
 pub mod creature {
-    use crate::asset::profile::{CharacterSpecies, ProfileOrRandom};
-    use crate::core::behavior::{self, BackgroundDialogue, GivesHuntRewardData, Reward};
+    use crate::asset::profile::ProfileOrRandom;
+    use crate::core::behavior::{self, BackgroundDialogue, GivesHuntRewardData, Reward, Wandering};
     use crate::core::display::SpeciesColorId;
     use crate::core::item::{self, ItemTypeId};
     use crate::core::position::Direction;
     use crate::core::status::{CreatureAttribute, Stats};
     use crate::core::store::StockQuantity;
-    use crate::core::{DialogueId, Species, Tag};
+    use crate::core::{DialogueId, SpeciesId, Tag};
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -30,58 +30,9 @@ pub mod creature {
         }
     }
 
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    pub enum Type {
-        Goblin,
-        Eyesaur,
-        Azureclops,
-        Scarvie,
-        VoraciousFrog,
-        BloodMantis,
-    }
-
-    impl Type {
-        pub fn variants() -> &'static [Self] {
-            use Type::*;
-            &[
-                Goblin,
-                Eyesaur,
-                Azureclops,
-                Scarvie,
-                VoraciousFrog,
-                BloodMantis,
-            ]
-        }
-
-        pub fn species(self) -> Species {
-            match self {
-                Self::Goblin => Species::Goblin,
-                Self::Eyesaur => Species::Eyesaur,
-                Self::Azureclops => Species::Azureclops,
-                Self::Scarvie => Species::Scarvie,
-                Self::VoraciousFrog => Species::VoraciousFrog,
-                Self::BloodMantis => Species::BloodMantis,
-            }
-        }
-
-        pub fn is_aggressive_by_default(self) -> bool {
-            match self {
-                Self::Goblin | Self::Eyesaur | Self::Scarvie => false,
-                Self::Azureclops | Self::VoraciousFrog | Self::BloodMantis => true,
-            }
-        }
-
-        pub fn is_tameable(self) -> bool {
-            matches!(self, Self::Eyesaur | Self::Scarvie)
-        }
-    }
-
-    pub use crate::core::behavior::Wandering;
-
     #[derive(Clone, Serialize, Deserialize)]
     pub struct CreatureSpawnData {
-        pub creature: Type,
+        pub creature: SpeciesId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub name: Option<String>,
         #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
@@ -177,7 +128,7 @@ pub mod creature {
 
     #[derive(Clone, Serialize, Deserialize)]
     pub struct CharacterCorpseData {
-        pub species: CharacterSpecies,
+        pub species: SpeciesId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub color: Option<SpeciesColorId>,
         #[serde(default, skip_serializing_if = "Option::is_none")]

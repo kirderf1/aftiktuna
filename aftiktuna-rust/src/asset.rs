@@ -5,12 +5,13 @@ pub mod placement;
 
 pub mod color {
     use super::Error;
-    use crate::core::Species;
+    use crate::core::SpeciesId;
     use crate::core::display::SpeciesColorId;
     use crate::core::name::Adjective;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use std::path::Path;
+    use std::fs;
+    use std::path::{Path, PathBuf};
 
     pub const DEFAULT_COLOR: SpeciesColorData = SpeciesColorData {
         primary_color: RGBColor::new(255, 255, 255),
@@ -50,32 +51,31 @@ pub mod color {
         pub color_data: SpeciesColorData,
     }
 
-    pub fn colors_path(species: Species) -> impl AsRef<Path> {
-        format!("assets/species_color/{}.json", species.id())
+    pub fn colors_path(species: SpeciesId) -> impl AsRef<Path> {
+        format!("assets/species_color/{species}.json")
     }
 
     pub fn load_species_color_data(
-        species: Species,
+        species: SpeciesId,
     ) -> Result<HashMap<SpeciesColorId, SpeciesColorEntry>, Error> {
         super::load_from_json(colors_path(species))
     }
 
-    pub struct SpeciesColorMap(HashMap<Species, HashMap<SpeciesColorId, SpeciesColorEntry>>);
+    pub struct SpeciesColorMap(HashMap<SpeciesId, HashMap<SpeciesColorId, SpeciesColorEntry>>);
 
     impl SpeciesColorMap {
         pub fn load() -> Result<Self, Error> {
             let mut map = HashMap::new();
-            for &species in Species::variants() {
-                match load_species_color_data(species) {
-                    Ok(color_data) => {
-                        map.insert(species, color_data);
-                    }
-                    Err(error) => {
-                        if !matches!(&error, Error::IO(_, io_error) if io_error.kind() == std::io::ErrorKind::NotFound)
-                        {
-                            return Err(error);
-                        }
-                    }
+            for entry in fs::read_dir("assets/species_color")
+                .map_err(|error| Error::IO(PathBuf::from("assets/species_color"), error))?
+            {
+                if let Ok(entry) = entry
+                    && let Ok(file_name) = entry.file_name().into_string()
+                    && let [file_name, "json"] = file_name.split('.').collect::<Vec<_>>()[..]
+                {
+                    let species_id = SpeciesId::from(file_name);
+                    let species_colors = super::load_from_json(entry.path())?;
+                    map.insert(species_id, species_colors);
                 }
             }
             Ok(Self(map))
@@ -83,35 +83,21 @@ pub mod color {
 
         pub fn get(
             &self,
-            species: Species,
+            species_id: &SpeciesId,
             color_id: &SpeciesColorId,
         ) -> Option<&SpeciesColorEntry> {
-            self.0.get(&species)?.get(color_id)
+            self.0.get(species_id)?.get(color_id)
         }
 
-        pub fn available_ids(&self, species: Species) -> impl Iterator<Item = &SpeciesColorId> {
-            self.0.get(&species).map(HashMap::keys).unwrap_or_default()
+        pub fn available_ids(
+            &self,
+            species_id: &SpeciesId,
+        ) -> impl Iterator<Item = &SpeciesColorId> {
+            self.0
+                .get(species_id)
+                .map(HashMap::keys)
+                .unwrap_or_default()
         }
-    }
-    pub fn load_all_species_color_data()
-    -> Result<HashMap<(Species, SpeciesColorId), SpeciesColorEntry>, Error> {
-        let mut map = HashMap::new();
-        for &species in Species::variants() {
-            match load_species_color_data(species) {
-                Ok(color_data) => {
-                    for (id, entry) in color_data {
-                        map.insert((species, id), entry);
-                    }
-                }
-                Err(error) => {
-                    if !matches!(&error, Error::IO(_, io_error) if io_error.kind() == std::io::ErrorKind::NotFound)
-                    {
-                        return Err(error);
-                    }
-                }
-            }
-        }
-        Ok(map)
     }
 
     #[derive(Debug, Copy, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -325,28 +311,12 @@ pub mod loot {
 
 pub mod profile {
     use crate::asset::color::SpeciesColorMap;
-    use crate::core::Species;
+    use crate::core::SpeciesId;
     use crate::core::display::SpeciesColorId;
     use crate::core::status::{Stats, Traits};
     use rand::Rng;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-
-    #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize)]
-    #[serde(rename_all = "snake_case")]
-    pub enum CharacterSpecies {
-        Aftik,
-        Pagepoh,
-    }
-
-    impl CharacterSpecies {
-        pub fn species(self) -> Species {
-            match self {
-                Self::Aftik => Species::Aftik,
-                Self::Pagepoh => Species::Pagepoh,
-            }
-        }
-    }
 
     #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     #[serde(tag = "type", rename_all = "snake_case")]
@@ -386,7 +356,7 @@ pub mod profile {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct CharacterProfile {
-        pub species: CharacterSpecies,
+        pub species: SpeciesId,
         pub name: String,
         pub color: SpeciesColorId,
         pub stats: StatsOrRandom,
@@ -397,7 +367,7 @@ pub mod profile {
     #[serde(tag = "type", rename_all = "snake_case")]
     pub enum ProfileOrRandom {
         Random {
-            species: CharacterSpecies,
+            species: SpeciesId,
         },
         #[serde(untagged)]
         Profile(CharacterProfile),
@@ -410,36 +380,39 @@ pub mod profile {
             aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
             color_map: &SpeciesColorMap,
             rng: &mut impl Rng,
-            query_used_colors: impl FnOnce(CharacterSpecies) -> Vec<&'a SpeciesColorId>,
+            query_used_colors: impl FnOnce(&SpeciesId) -> Vec<&'a SpeciesColorId>,
         ) -> Option<CharacterProfile> {
             match self {
-                ProfileOrRandom::Random { species } => random_profile(
-                    species,
-                    &query_used_colors(species),
-                    character_names,
-                    aftik_color_names,
-                    color_map,
-                    rng,
-                ),
+                ProfileOrRandom::Random { species } => {
+                    let used_colors = query_used_colors(&species);
+                    random_profile(
+                        species,
+                        &used_colors,
+                        character_names,
+                        aftik_color_names,
+                        color_map,
+                        rng,
+                    )
+                }
                 ProfileOrRandom::Profile(profile) => Some(profile),
             }
         }
     }
 
     pub(crate) fn random_profile(
-        species: CharacterSpecies,
+        species_id: SpeciesId,
         used_colors: &[&SpeciesColorId],
         character_names: &mut Vec<String>,
         aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
         color_map: &SpeciesColorMap,
         rng: &mut impl Rng,
     ) -> Option<CharacterProfile> {
-        if species == CharacterSpecies::Aftik {
-            random_aftik_profile(aftik_color_names, rng, used_colors)
+        let (name, color) = if species_id.is_aftik() {
+            random_aftik_profile(aftik_color_names, rng, used_colors)?
         } else {
             use rand::seq::IteratorRandom;
             let chosen_color = color_map
-                .available_ids(species.species())
+                .available_ids(&species_id)
                 .filter(|color| !used_colors.contains(color))
                 .choose_stable(rng)
                 .cloned();
@@ -453,21 +426,22 @@ pub mod profile {
             }
             let chosen_name =
                 character_names.swap_remove(rng.random_range(0..character_names.len()));
-            Some(CharacterProfile {
-                species,
-                name: chosen_name,
-                color: chosen_color,
-                stats: StatsOrRandom::Random,
-                traits: TraitsOrRandom::Random,
-            })
-        }
+            (chosen_name, chosen_color)
+        };
+        Some(CharacterProfile {
+            species: species_id,
+            name,
+            color,
+            stats: StatsOrRandom::Random,
+            traits: TraitsOrRandom::Random,
+        })
     }
 
     pub(crate) fn random_aftik_profile(
         aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
         rng: &mut impl Rng,
         used_aftik_colors: &[&SpeciesColorId],
-    ) -> Option<CharacterProfile> {
+    ) -> Option<(String, SpeciesColorId)> {
         use rand::seq::IteratorRandom;
         let chosen_color = aftik_color_names
             .iter()
@@ -481,17 +455,11 @@ pub mod profile {
         };
         let name_choices = aftik_color_names.get_mut(&chosen_color).unwrap();
         let chosen_name = name_choices.swap_remove(rng.random_range(0..name_choices.len()));
-        Some(CharacterProfile {
-            name: chosen_name,
-            species: CharacterSpecies::Aftik,
-            color: chosen_color,
-            stats: StatsOrRandom::Random,
-            traits: TraitsOrRandom::Random,
-        })
+        Some((chosen_name, chosen_color))
     }
 }
 
-use crate::core::Species;
+use crate::core::SpeciesId;
 use crate::core::behavior::BadlyHurtBehavior;
 use crate::core::combat::{AttackSet, UnarmedType, WeaponProperties};
 use crate::core::display::{CreatureVariant, SpeciesColorId};
@@ -509,6 +477,7 @@ use std::path::{Path, PathBuf};
 pub enum Error {
     IO(PathBuf, std::io::Error),
     Json(PathBuf, serde_json::Error),
+    Validation(String),
 }
 
 impl Display for Error {
@@ -525,6 +494,9 @@ impl Display for Error {
                     "Problem parsing \"{file}\": {error}",
                     file = file.display()
                 )
+            }
+            Error::Validation(error) => {
+                write!(f, "Problem validating assets: {error}")
             }
         }
     }
@@ -604,16 +576,23 @@ pub struct WeightedVariant {
     pub weight: u16,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
+pub enum SpeciesKind {
+    CharacterSpecies,
+    Fauna {
+        agressive_by_default: bool,
+        tameable: bool,
+    },
+}
+
+#[derive(Debug)]
 pub struct SpeciesData {
+    pub kind: SpeciesKind,
     pub default_stats: Stats,
-    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub is_large: bool,
     pub unarmed: UnarmedType,
     pub attack_set: AttackSet,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub badly_hurt_behavior: Option<BadlyHurtBehavior>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub variant_groups: Vec<Vec<WeightedVariant>>,
 }
 
@@ -627,10 +606,107 @@ impl SpeciesData {
     }
 }
 
-pub type SpeciesDataMap = HashMap<Species, SpeciesData>;
+#[derive(Debug, Serialize, Deserialize)]
+struct CharacterSpeciesData {
+    default_stats: Stats,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    is_large: bool,
+    unarmed: UnarmedType,
+    attack_set: AttackSet,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    badly_hurt_behavior: Option<BadlyHurtBehavior>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    variant_groups: Vec<Vec<WeightedVariant>>,
+}
+
+impl From<CharacterSpeciesData> for SpeciesData {
+    fn from(value: CharacterSpeciesData) -> Self {
+        let CharacterSpeciesData {
+            default_stats,
+            is_large,
+            unarmed,
+            attack_set,
+            badly_hurt_behavior,
+            variant_groups,
+        } = value;
+        Self {
+            kind: SpeciesKind::CharacterSpecies,
+            default_stats,
+            is_large,
+            unarmed,
+            attack_set,
+            badly_hurt_behavior,
+            variant_groups,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct FaunaData {
+    default_stats: Stats,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    is_large: bool,
+    unarmed: UnarmedType,
+    attack_set: AttackSet,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    badly_hurt_behavior: Option<BadlyHurtBehavior>,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    agressive_by_default: bool,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    tameable: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    variant_groups: Vec<Vec<WeightedVariant>>,
+}
+
+impl From<FaunaData> for SpeciesData {
+    fn from(value: FaunaData) -> Self {
+        let FaunaData {
+            default_stats,
+            is_large,
+            unarmed,
+            attack_set,
+            badly_hurt_behavior,
+            agressive_by_default,
+            tameable,
+            variant_groups,
+        } = value;
+        Self {
+            kind: SpeciesKind::Fauna {
+                agressive_by_default,
+                tameable,
+            },
+            default_stats,
+            is_large,
+            unarmed,
+            attack_set,
+            badly_hurt_behavior,
+            variant_groups,
+        }
+    }
+}
+
+pub type SpeciesDataMap = HashMap<SpeciesId, SpeciesData>;
 
 pub fn load_species_map() -> Result<SpeciesDataMap, Error> {
-    load_json_asset::<SpeciesDataMap>("species_data.json")
+    let character_species_map =
+        load_json_asset::<HashMap<SpeciesId, CharacterSpeciesData>>("species.json")?;
+    let fauna_map = load_json_asset::<HashMap<SpeciesId, FaunaData>>("fauna.json")?;
+    let mut species_map = SpeciesDataMap::new();
+    for (species, data) in fauna_map {
+        species_map.insert(species, data.into());
+    }
+    for (species_id, data) in character_species_map {
+        if species_map
+            .insert(species_id.clone(), data.into())
+            .is_some()
+        {
+            return Err(Error::Validation(format!(
+                "\"{species_id}\" has been defined as both species and fauna."
+            )));
+        }
+    }
+
+    Ok(species_map)
 }
 
 pub struct GameAssets {

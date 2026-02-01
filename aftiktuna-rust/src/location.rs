@@ -291,10 +291,10 @@ pub(crate) fn spawn_starting_crew_and_ship(
             &mut generation_state.aftik_color_names,
             &assets.color_map,
             &mut rng,
-            |species| {
+            |species_id| {
                 crew_profiles
                     .iter()
-                    .filter(|profile| profile.species == species)
+                    .filter(|profile| &profile.species == species_id)
                     .map(|profile| &profile.color)
                     .collect::<Vec<_>>()
             },

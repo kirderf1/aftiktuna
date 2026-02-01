@@ -2,7 +2,7 @@ use super::behavior::{BadlyHurtBehavior, Character, CrewLossMemory, TalkState};
 use super::item::ItemTypeId;
 use super::name::NameWithAttribute;
 use super::position::Pos;
-use super::{CrewMember, Species};
+use super::{CrewMember, SpeciesId};
 use crate::asset::GameAssets;
 use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
@@ -570,7 +570,7 @@ pub(crate) fn detect_low_health(
                     NameWithAttribute::lookup_by_ref(entity_ref, view_buffer.assets).definite();
                 view_buffer.messages.add(
                     match entity_ref
-                        .get::<&Species>()
+                        .get::<&SpeciesId>()
                         .and_then(|species| view_buffer.assets.species_data_map.get(&species))
                         .and_then(|species_data| species_data.badly_hurt_behavior)
                     {

@@ -1,6 +1,6 @@
 use aftiktuna::asset::color::{self, RGBColor, SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::model::{self, Model};
-use aftiktuna::core::Species;
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{DialogueExpression, SpeciesColorId};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
@@ -28,12 +28,13 @@ fn main() {
 
     let mut gui = three_d::GUI::new(&window.gl());
     let mut texture_loader = CachedLoader::new(window.gl());
-    let pagepoh_model = model::load_raw_model_from_path(Species::Pagepoh.model_id().file_path())
-        .expect("Unable to load pahepoh model")
-        .load(&mut texture_loader)
-        .unwrap();
+    let pagepoh_model =
+        model::load_raw_model_from_path(SpeciesId::from("pagepoh").model_id().file_path())
+            .expect("Unable to load pahepoh model")
+            .load(&mut texture_loader)
+            .unwrap();
     let portrait_model =
-        model::load_raw_model_from_path(Species::Pagepoh.portrait_model_id().file_path())
+        model::load_raw_model_from_path(SpeciesId::from("pagepoh").portrait_model_id().file_path())
             .expect("Unable to load portrait model")
             .load(&mut texture_loader)
             .unwrap();
@@ -87,7 +88,7 @@ fn main() {
 }
 
 fn load_colors_ordered() -> ColorMap {
-    let file = File::open(color::colors_path(Species::Pagepoh))
+    let file = File::open(color::colors_path(SpeciesId::from("pagepoh")))
         .expect("Unable to open pagepoh color file");
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load pagepoh color data")
 }
@@ -233,6 +234,6 @@ fn color_picker(ui: &mut egui::Ui, color: &mut RGBColor) {
 }
 
 fn save_map(colors: &ColorMap) {
-    let file = File::create(color::colors_path(Species::Pagepoh)).unwrap();
+    let file = File::create(color::colors_path(SpeciesId::from("pagepoh"))).unwrap();
     serde_json_pretty::to_writer(file, colors).unwrap();
 }

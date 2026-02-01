@@ -5,7 +5,7 @@ use crate::core::combat::{self, AttackKind};
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{self, OccupiesSpace, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, Morale, Stamina, Stats};
-use crate::core::{Species, inventory};
+use crate::core::{SpeciesId, inventory};
 use hecs::{Entity, EntityRef, World};
 use rand::Rng;
 use std::cmp::Ordering;
@@ -190,7 +190,7 @@ fn perform_attack(
             "hits",
         )
     } else if let Some(unarmed_type) = world
-        .get::<&Species>(attacker)
+        .get::<&SpeciesId>(attacker)
         .ok()
         .and_then(|species| assets.species_data_map.get(&species))
         .map(|species_data| species_data.unarmed)

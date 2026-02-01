@@ -8,9 +8,7 @@
           "type": "object",
           "properties": {
             "damage_mod": { "type": "number", "minimum": 2 },
-            "attack_set": {
-              "enum": [ "light", "quick", "slow", "intense", "varied" ]
-            },
+            "attack_set": { "$ref": "./parts/attack_set.json" },
             "stun_attack": { "type": "boolean" }
           },
           "additionalProperties": false,

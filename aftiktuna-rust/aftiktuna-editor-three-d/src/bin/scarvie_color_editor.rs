@@ -1,6 +1,6 @@
 use aftiktuna::asset::color::{self, RGBColor, SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::model::{self, Model};
-use aftiktuna::core::Species;
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{CreatureVariant, CreatureVariantSet, SpeciesColorId};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
@@ -28,10 +28,11 @@ fn main() {
 
     let mut gui = three_d::GUI::new(&window.gl());
     let mut texture_loader = CachedLoader::new(window.gl());
-    let scarvie_model = model::load_raw_model_from_path(Species::Scarvie.model_id().file_path())
-        .expect("Unable to load scarvie model")
-        .load(&mut texture_loader)
-        .unwrap();
+    let scarvie_model =
+        model::load_raw_model_from_path(SpeciesId::from("scarvie").model_id().file_path())
+            .expect("Unable to load scarvie model")
+            .load(&mut texture_loader)
+            .unwrap();
 
     let mut selected_index = 0;
     let mut new_color_name = String::new();
@@ -65,7 +66,7 @@ fn main() {
         screen.write(|| gui.render()).unwrap();
 
         if save {
-            save_map(Species::Scarvie, &scarvie_colors);
+            save_map(SpeciesId::from("scarvie"), &scarvie_colors);
             three_d::FrameOutput {
                 exit: true,
                 ..Default::default()
@@ -77,7 +78,7 @@ fn main() {
 }
 
 fn load_scarvie_colors_ordered() -> SpeciesColorMap {
-    let file = File::open(color::colors_path(Species::Scarvie))
+    let file = File::open(color::colors_path(SpeciesId::from("scarvie")))
         .expect("Unable to open scarvie color file");
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load scarvie color data")
 }
@@ -237,7 +238,7 @@ fn color_picker(ui: &mut egui::Ui, color: &mut RGBColor) {
     *color = RGBColor::new(color32.r(), color32.g(), color32.b());
 }
 
-fn save_map(species: Species, species_colors: &SpeciesColorMap) {
+fn save_map(species: SpeciesId, species_colors: &SpeciesColorMap) {
     let file = File::create(color::colors_path(species)).unwrap();
     serde_json_pretty::to_writer(file, species_colors).unwrap();
 }

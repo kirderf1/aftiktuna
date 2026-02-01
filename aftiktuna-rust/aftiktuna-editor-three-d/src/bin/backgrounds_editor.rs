@@ -3,7 +3,7 @@ use aftiktuna::asset::color;
 use aftiktuna::asset::location::DoorType;
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::placement::Positioner;
-use aftiktuna::core::Species;
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
@@ -242,13 +242,13 @@ fn draw_example_content(
             }
         }
         ExampleContentType::BigObjectsOnEdges => {
-            let frog = Species::VoraciousFrog.model_id();
+            let frog = SpeciesId::from("voracious_frog").model_id();
             draw_model(0, &frog);
             if area_size > 1 {
                 draw_model(area_size - 1, &frog);
             }
             if area_size > 2 {
-                let azureclops = Species::Azureclops.model_id();
+                let azureclops = SpeciesId::from("azureclops").model_id();
                 draw_model(area_size / 2, &azureclops);
             }
         }

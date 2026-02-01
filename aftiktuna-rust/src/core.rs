@@ -1,5 +1,5 @@
 pub mod area;
-pub(crate) mod behavior;
+pub mod behavior;
 pub(crate) mod combat;
 pub(crate) mod inventory;
 pub mod item;
@@ -58,6 +58,12 @@ pub mod display {
     impl Default for ModelId {
         fn default() -> Self {
             Self::unknown()
+        }
+    }
+
+    impl std::fmt::Display for ModelId {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(f)
         }
     }
 
@@ -246,63 +252,35 @@ pub const CREW_SIZE_LIMIT: usize = 3;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Species {
-    Aftik,
-    Pagepoh,
-    Goblin,
-    Eyesaur,
-    Azureclops,
-    Scarvie,
-    VoraciousFrog,
-    BloodMantis,
-}
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SpeciesId(String);
 
-impl Species {
-    pub fn variants() -> &'static [Self] {
-        use Species::*;
-        &[
-            Aftik,
-            Pagepoh,
-            Goblin,
-            Eyesaur,
-            Azureclops,
-            Scarvie,
-            VoraciousFrog,
-            BloodMantis,
-        ]
+impl SpeciesId {
+    pub fn is_aftik(&self) -> bool {
+        self.0 == "aftik"
+    }
+    pub fn model_id(&self) -> display::ModelId {
+        display::ModelId(format!("creature/{self}"))
     }
 
-    pub fn id(self) -> &'static str {
-        match self {
-            Self::Aftik => "aftik",
-            Self::Pagepoh => "pagepoh",
-            Self::Goblin => "goblin",
-            Self::Eyesaur => "eyesaur",
-            Self::Azureclops => "azureclops",
-            Self::Scarvie => "scarvie",
-            Self::VoraciousFrog => "voracious_frog",
-            Self::BloodMantis => "blood_mantis",
-        }
+    pub fn portrait_model_id(&self) -> display::ModelId {
+        display::ModelId(format!("portrait/{self}"))
     }
 
-    pub fn model_id(self) -> display::ModelId {
-        display::ModelId(format!("creature/{name}", name = self.id()))
-    }
-
-    pub fn portrait_model_id(self) -> display::ModelId {
-        display::ModelId(format!("portrait/{name}", name = self.id()))
-    }
-
-    pub fn noun_id(self) -> name::NounId {
-        self.id().into()
+    pub fn noun_id(&self) -> name::NounId {
+        name::NounId(self.0.clone())
     }
 }
 
-impl std::fmt::Display for Species {
+impl From<&str> for SpeciesId {
+    fn from(value: &str) -> Self {
+        Self(value.to_owned())
+    }
+}
+
+impl std::fmt::Display for SpeciesId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.id().fmt(f)
+        self.0.fmt(f)
     }
 }
 

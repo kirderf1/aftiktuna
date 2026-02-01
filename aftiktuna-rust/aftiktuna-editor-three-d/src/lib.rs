@@ -3,7 +3,7 @@ use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::profile::ProfileOrRandom;
-use aftiktuna::core::Species;
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{ModelId, SpeciesColorId};
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::{Coord, Direction};
@@ -200,7 +200,7 @@ pub fn name_from_symbol(symbol_data: &SymbolData) -> String {
             format!("Container ({:?})", container_data.container_type)
         }
         SymbolData::Creature(creature_spawn_data) => {
-            format!("Creature ({:?})", creature_spawn_data.creature.species())
+            format!("Creature ({})", creature_spawn_data.creature)
         }
         SymbolData::Character(npc_spawn_data) => {
             let interaction = match &npc_spawn_data.interaction {
@@ -337,7 +337,7 @@ pub fn object_from_symbol(
             let health = Health::from_fraction(creature_spawn_data.health);
             ObjectRenderData {
                 coord,
-                model_id: creature_spawn_data.creature.species().model_id(),
+                model_id: creature_spawn_data.creature.model_id(),
                 hash: 0,
                 is_controlled: false,
                 name_data: None,
@@ -374,7 +374,7 @@ pub fn object_from_symbol(
         },
         SymbolData::CharacterCorpse(corpse_data) => ObjectRenderData {
             coord,
-            model_id: corpse_data.species.species().model_id(),
+            model_id: corpse_data.species.model_id(),
             hash: 0,
             is_controlled: false,
             name_data: None,
@@ -387,7 +387,7 @@ pub fn object_from_symbol(
                 species_color: corpse_data
                     .color
                     .clone()
-                    .map(|color_id| (corpse_data.species.species(), color_id)),
+                    .map(|color_id| (corpse_data.species.clone(), color_id)),
                 is_alive: false,
                 is_badly_hurt: true,
                 ..Default::default()
@@ -406,20 +406,17 @@ pub fn object_from_symbol(
     }
 }
 
-fn color_from_profile(profile: &ProfileOrRandom) -> Option<(Species, SpeciesColorId)> {
+fn color_from_profile(profile: &ProfileOrRandom) -> Option<(SpeciesId, SpeciesColorId)> {
     match profile {
         ProfileOrRandom::Random { .. } => None,
-        ProfileOrRandom::Profile(aftik_profile) => {
-            Some((Species::Aftik, aftik_profile.color.clone()))
-        }
+        ProfileOrRandom::Profile(profile) => Some((profile.species.clone(), profile.color.clone())),
     }
 }
 
 fn model_id_from_profile(profile: &ProfileOrRandom) -> ModelId {
     match profile {
-        ProfileOrRandom::Random { species } => *species,
-        ProfileOrRandom::Profile(character_profile) => character_profile.species,
+        ProfileOrRandom::Random { species } => species,
+        ProfileOrRandom::Profile(character_profile) => &character_profile.species,
     }
-    .species()
     .model_id()
 }

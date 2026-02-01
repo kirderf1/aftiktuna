@@ -1,6 +1,6 @@
 use aftiktuna::asset::color::{self, RGBColor, SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::model::{self, Model};
-use aftiktuna::core::Species;
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::SpeciesColorId;
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
@@ -28,12 +28,13 @@ fn main() {
 
     let mut gui = three_d::GUI::new(&window.gl());
     let mut texture_loader = CachedLoader::new(window.gl());
-    let aftik_model = model::load_raw_model_from_path(Species::Aftik.model_id().file_path())
-        .expect("Unable to load aftik model")
-        .load(&mut texture_loader)
-        .unwrap();
+    let aftik_model =
+        model::load_raw_model_from_path(SpeciesId::from("aftik").model_id().file_path())
+            .expect("Unable to load aftik model")
+            .load(&mut texture_loader)
+            .unwrap();
     let portrait_model =
-        model::load_raw_model_from_path(Species::Aftik.portrait_model_id().file_path())
+        model::load_raw_model_from_path(SpeciesId::from("aftik").portrait_model_id().file_path())
             .expect("Unable to load portrait model")
             .load(&mut texture_loader)
             .unwrap();
@@ -87,8 +88,8 @@ fn main() {
 }
 
 fn load_aftik_colors_ordered() -> AftikColorMap {
-    let file =
-        File::open(color::colors_path(Species::Aftik)).expect("Unable to open aftik color file");
+    let file = File::open(color::colors_path(SpeciesId::from("aftik")))
+        .expect("Unable to open aftik color file");
     serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load aftik color data")
 }
 
@@ -239,6 +240,6 @@ fn color_picker(ui: &mut egui::Ui, color: &mut RGBColor) {
 }
 
 fn save_map(aftik_colors: &AftikColorMap) {
-    let file = File::create(color::colors_path(Species::Aftik)).unwrap();
+    let file = File::create(color::colors_path(SpeciesId::from("aftik"))).unwrap();
     serde_json_pretty::to_writer(file, aftik_colors).unwrap();
 }

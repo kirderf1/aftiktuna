@@ -4,7 +4,7 @@ use crate::asset::location::creature::{
     StockDefinition,
 };
 use crate::asset::profile::CharacterProfile;
-use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap};
+use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap, SpeciesKind};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
@@ -15,7 +15,7 @@ use crate::core::status::{
     ChangedStats, CreatureAttribute, Health, Morale, Stamina, StatChanges, Stats, Trait, Traits,
 };
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
-use crate::core::{Species, Tag, inventory};
+use crate::core::{SpeciesId, Tag, inventory};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
 use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
@@ -60,21 +60,31 @@ pub(super) fn place_creature(
     let species_data = gen_context
         .assets
         .species_data_map
-        .get(&creature.species())
-        .ok_or_else(|| format!("Missing data for species: {}", creature.species()))?;
+        .get(creature)
+        .ok_or_else(|| format!("Missing data for species: {creature}"))?;
+    let &SpeciesKind::Fauna {
+        agressive_by_default,
+        tameable,
+    } = &species_data.kind
+    else {
+        return Err(format!(
+            "Tried spawning fauna with non-fauna species: {creature}"
+        ));
+    };
+
     let health = Health::from_fraction(*health);
     let attribute = evaluate_attribute(*attribute, &mut gen_context.rng);
     let is_alive = health.is_alive();
-    let aggressive = aggressive.unwrap_or_else(|| creature.is_aggressive_by_default());
+    let aggressive = aggressive.unwrap_or(agressive_by_default);
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
     let mut stats = stats.unwrap_or(species_data.default_stats);
 
-    let mut builder = species_builder_base(creature.species(), species_data, &mut gen_context.rng);
+    let mut builder = species_builder_base(creature.clone(), species_data, &mut gen_context.rng);
 
     if let Some(color_id) = gen_context
         .assets
         .color_map
-        .available_ids(creature.species())
+        .available_ids(creature)
         .choose_stable(&mut gen_context.rng)
     {
         builder.add::<SpeciesColorId>(color_id.clone());
@@ -103,7 +113,7 @@ pub(super) fn place_creature(
         builder.add(wandering);
     }
 
-    if creature.is_tameable() {
+    if tameable {
         builder.add(Recruitable);
     }
 
@@ -131,7 +141,7 @@ pub(super) fn place_npc(
         &mut gen_context.aftik_color_names,
         &gen_context.assets.color_map,
         &mut gen_context.rng,
-        |species| used_species_colors(&mut gen_context.world, species.species()),
+        |species| used_species_colors(&mut gen_context.world, species),
     ) else {
         return Ok(());
     };
@@ -199,12 +209,17 @@ pub(super) fn place_corpse(
         color,
         direction,
     } = spawn_data;
-    let species = species.species();
     let species_data = gen_context
         .assets
         .species_data_map
-        .get(&species)
+        .get(species)
         .ok_or_else(|| format!("Missing data for species: {}", species))?;
+    if !matches!(species_data.kind, SpeciesKind::CharacterSpecies) {
+        return Err(format!(
+            "Tried spawning character with non-character species: {species}"
+        ));
+    }
+
     let Some(color) = color.clone().or_else(|| {
         let used_colors = used_species_colors(&mut gen_context.world, species);
         gen_context
@@ -220,7 +235,7 @@ pub(super) fn place_corpse(
     let direction = direction.unwrap_or_else(|| Direction::towards_center(pos, &gen_context.world));
 
     gen_context.world.spawn(
-        species_builder_base(species, species_data, &mut gen_context.rng)
+        species_builder_base(species.clone(), species_data, &mut gen_context.rng)
             .add_bundle((color, Health::from_fraction(0.), pos, direction))
             .build(),
     );
@@ -241,12 +256,18 @@ pub(crate) fn character_builder_with_stats(
         traits,
     } = profile;
     let species_data = species_map
-        .get(&species.species())
-        .ok_or_else(|| format!("Missing data for species: {}", species.species()))?;
+        .get(&species)
+        .ok_or_else(|| format!("Missing data for species: {species}"))?;
+    let SpeciesKind::CharacterSpecies = &species_data.kind else {
+        return Err(format!(
+            "Tried spawning character with non-character species: {species}"
+        ));
+    };
+
     let traits = traits.unwrap_or_else(|| random_traits(rng));
     let stats =
         stats.unwrap_or_else(|| random_stats_from_base(species_data.default_stats, &traits, rng));
-    let mut builder = species_builder_base(species.species(), species_data, rng);
+    let mut builder = species_builder_base(species, species_data, rng);
     builder
         .add::<SpeciesColorId>(color)
         .add_bundle((
@@ -343,16 +364,18 @@ fn adjust_random_stat(stats: &mut Stats, amount: i16, rng: &mut impl Rng) {
 }
 
 fn species_builder_base(
-    species: Species,
+    species_id: SpeciesId,
     species_data: &SpeciesData,
     rng: &mut impl Rng,
 ) -> EntityBuilder {
     let mut builder = EntityBuilder::new();
 
+    let model_id = species_id.model_id();
+    let noun_id = species_id.noun_id();
     builder.add_bundle((
-        species,
-        species.model_id(),
-        species.noun_id(),
+        species_id,
+        model_id,
+        noun_id,
         Direction::default(),
         CreatureVariantSet::random_for_species(species_data, rng),
     ));
@@ -398,14 +421,14 @@ pub(super) fn align_aggressiveness(world: &mut World) {
     }
 }
 
-pub(crate) fn used_species_colors(
-    world: &mut World,
-    expected_species: Species,
-) -> Vec<&SpeciesColorId> {
+pub(crate) fn used_species_colors<'a>(
+    world: &'a mut World,
+    expected_species: &SpeciesId,
+) -> Vec<&'a SpeciesColorId> {
     world
-        .query_mut::<(&SpeciesColorId, &Species)>()
+        .query_mut::<(&SpeciesColorId, &SpeciesId)>()
         .into_iter()
-        .filter(|&(_, (_, checked_species))| checked_species == &expected_species)
+        .filter(|&(_, (_, checked_species))| checked_species == expected_species)
         .map(|(_, (color, _))| color)
         .collect()
 }

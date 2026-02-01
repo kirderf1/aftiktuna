@@ -105,7 +105,7 @@ pub fn get_render_objects_for_entity(
     let species_color = properties
         .species_color
         .as_ref()
-        .and_then(|(species, color_id)| species_colors.get(*species, color_id))
+        .and_then(|(species_id, color_id)| species_colors.get(species_id, color_id))
         .map_or(color::DEFAULT_COLOR, |entry| entry.color_data);
     get_render_objects_for_entity_with_color(
         model,

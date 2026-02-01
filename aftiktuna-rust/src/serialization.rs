@@ -1,5 +1,5 @@
 use crate::asset::{self, GameAssets};
-use crate::core::Species;
+use crate::core::SpeciesId;
 use crate::core::display::CreatureVariantSet;
 use crate::game_interface::{Game, SerializedState};
 use crate::game_loop::GameState;
@@ -164,7 +164,7 @@ pub mod world {
         position::Large, Large;
         position::OccupiesSpace, OccupiesSpace;
 
-        core::Species, Species;
+        core::SpeciesId, SpeciesId;
 
         name::Name, Name;
         name::NounId, NounId;
@@ -325,22 +325,22 @@ pub(crate) fn load_game(
 }
 
 fn inject_update_data(state: &mut GameState, assets: &GameAssets) {
-    for (_, (species, variant_set)) in state
+    for (_, (species_id, variant_set)) in state
         .world
-        .query_mut::<(&Species, &mut CreatureVariantSet)>()
+        .query_mut::<(&SpeciesId, &mut CreatureVariantSet)>()
     {
-        if let Some(species_data) = assets.species_data_map.get(species) {
+        if let Some(species_data) = assets.species_data_map.get(species_id) {
             variant_set.insert_missing_variants(species_data, &mut state.rng);
         }
     }
 
     let mut buffer = hecs::CommandBuffer::new();
-    for (entity, species) in state
+    for (entity, species_id) in state
         .world
-        .query_mut::<&Species>()
+        .query_mut::<&SpeciesId>()
         .without::<&CreatureVariantSet>()
     {
-        if let Some(species_data) = assets.species_data_map.get(species) {
+        if let Some(species_data) = assets.species_data_map.get(species_id) {
             buffer.insert_one(
                 entity,
                 CreatureVariantSet::random_for_species(species_data, &mut state.rng),

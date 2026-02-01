@@ -4,7 +4,7 @@ pub(crate) use self::status::get_full_status;
 use self::text::{IntoMessage, Messages};
 use crate::StopType;
 use crate::asset::GameAssets;
-use crate::core::Species;
+use crate::core::SpeciesId;
 use crate::core::area::{Area, BackgroundId};
 use crate::core::display::{DialogueExpression, SpeciesColorId};
 use crate::core::position::{Direction, Pos};
@@ -15,6 +15,7 @@ use crate::location::Choice;
 use hecs::{Entity, World};
 use serde::{Deserialize, Serialize};
 use std::mem::take;
+use std::ops::Deref;
 
 pub mod area;
 mod status;
@@ -23,7 +24,7 @@ pub mod text;
 mod store {
     use super::{Buffer, Frame, StatusCache, status};
     use crate::asset::NounDataMap;
-    use crate::core::Species;
+    use crate::core::SpeciesId;
     use crate::core::area::{Area, BackgroundId};
     use crate::core::display::SpeciesColorId;
     use crate::core::inventory::Held;
@@ -35,11 +36,12 @@ mod store {
     use hecs::{Entity, World};
     use indexmap::IndexMap;
     use serde::{Deserialize, Serialize};
+    use std::ops::Deref;
 
     #[derive(Clone, Serialize, Deserialize)]
     pub struct StoreView {
         pub items: Vec<StoreStockView>,
-        pub species: Species,
+        pub species: SpeciesId,
         pub shopkeeper_color: Option<SpeciesColorId>,
         pub background: BackgroundId,
         pub points: i32,
@@ -102,7 +104,7 @@ mod store {
         Frame::StoreView {
             view: StoreView {
                 items,
-                species: *world.get::<&Species>(shopkeeper).unwrap(),
+                species: world.get::<&SpeciesId>(shopkeeper).unwrap().deref().clone(),
                 shopkeeper_color: world
                     .get::<&SpeciesColorId>(shopkeeper)
                     .ok()
@@ -291,7 +293,7 @@ impl Frame {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DialogueFrameData {
     pub background: BackgroundId,
-    pub species: Species,
+    pub species: SpeciesId,
     pub color: Option<SpeciesColorId>,
     pub direction: Direction,
     pub is_badly_hurt: bool,
@@ -306,7 +308,7 @@ impl DialogueFrameData {
         let area = world.get::<&Area>(area).unwrap();
         Self {
             background: area.background.clone(),
-            species: *character_ref.get::<&Species>().unwrap(),
+            species: character_ref.get::<&SpeciesId>().unwrap().deref().clone(),
             color: character_ref.get::<&SpeciesColorId>().as_deref().cloned(),
             direction: character_ref
                 .get::<&Direction>()

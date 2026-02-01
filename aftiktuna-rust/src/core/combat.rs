@@ -1,5 +1,5 @@
 use super::item::ItemTypeId;
-use super::{Species, inventory};
+use super::{SpeciesId, inventory};
 use crate::asset::GameAssets;
 use serde::{Deserialize, Serialize};
 
@@ -124,7 +124,7 @@ pub fn get_active_weapon_properties(
         .or_else(|| {
             assets
                 .species_data_map
-                .get(&world.get::<&Species>(attacker).unwrap())
+                .get(&world.get::<&SpeciesId>(attacker).unwrap())
                 .map(|species_data| species_data.unarmed_properties())
         })
         .unwrap_or_default()

@@ -10,7 +10,7 @@ use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemTypeId;
 use crate::core::name::NameData;
 use crate::core::position::{self, Pos};
-use crate::core::{CrewMember, Door, Species, Tag, inventory, status};
+use crate::core::{CrewMember, Door, SpeciesId, Tag, inventory, status};
 use crate::dialogue::TalkTopic;
 use crate::game_loop::GameState;
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
@@ -435,8 +435,8 @@ fn has_behavior(
         .get::<&status::Health>()
         .is_some_and(|health| health.is_badly_hurt())
         && entity_ref
-            .get::<&Species>()
-            .and_then(|species| species_map.get(&species))
+            .get::<&SpeciesId>()
+            .and_then(|species_id| species_map.get(&species_id))
             .and_then(|species_data| species_data.badly_hurt_behavior)
             == Some(behavior)
 }
