@@ -1,0 +1,7 @@
+{
+  "layers": [
+    { "texture": "item/cursed_nail" }
+  ],
+  "wield_offset": { "x": 10.0, "y": 40.0 },
+  "order_weight": 1
+}

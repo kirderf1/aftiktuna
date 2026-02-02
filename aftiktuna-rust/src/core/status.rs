@@ -298,6 +298,14 @@ impl Health {
         }
     }
 
+    pub fn apply_cursed_nail_effect(&mut self) {
+        if self.value < 0.5 {
+            self.value = 0.0;
+        } else {
+            self.value = 0.3;
+        }
+    }
+
     pub fn restore_fraction(&mut self, fraction: f32, entity_ref: EntityRef) {
         let was_badly_hurt = self.is_badly_hurt();
 

@@ -2,6 +2,7 @@ use crate::action::{self, Error};
 use crate::asset::GameAssets;
 use crate::core::behavior::{self, Hostile, RepeatingAction};
 use crate::core::combat::{self, AttackKind};
+use crate::core::item::ItemTypeId;
 use crate::core::name::{NameData, NameWithAttribute};
 use crate::core::position::{self, OccupiesSpace, Placement, PlacementQuery, Pos};
 use crate::core::status::{self, Health, Morale, Stamina, Stats};
@@ -240,6 +241,18 @@ fn perform_attack(
             );
         }
         HitType::DirectHit => {
+            let cursed_nail = inventory::get_wielded(world, attacker).filter(|item| {
+                world
+                    .get::<&ItemTypeId>(*item)
+                    .is_ok_and(|id| id.is_cursed_nail())
+            });
+
+            if cursed_nail.is_some()
+                && let Ok(mut target_health) = world.get::<&mut Health>(target)
+            {
+                target_health.apply_cursed_nail_effect();
+            }
+
             let effect = perform_attack_hit(
                 true,
                 attacker,
@@ -258,6 +271,15 @@ fn perform_attack(
                 format!("{attack_text} and directly {hit_verb} them{effect_text}."),
                 context.state,
             );
+
+            if let Some(cursed_nail) = cursed_nail {
+                context.state.world.despawn(cursed_nail).unwrap();
+                context.view_context.add_message_at(
+                    attacker_area,
+                    "The used nail breaks in two.",
+                    context.state,
+                );
+            }
         }
     }
 

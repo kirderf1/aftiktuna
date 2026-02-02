@@ -4,5 +4,6 @@
   { "item": "medkit", "weight": 4 },
   { "item": "black_orb", "weight": 2 },
   { "item": "four_leaf_clover", "weight": 2 },
-  { "item": "odd_hand_mirror", "weight": 2 }
+  { "item": "odd_hand_mirror", "weight": 2 },
+  { "item": "cursed_nail", "weight": 2 }
 ]

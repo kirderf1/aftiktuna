@@ -3,7 +3,7 @@
     {
       "name": "Armory",
       "pos_in_overview": [ 0, -1 ],
-      "objects": [ "Ks", "<", "v", "^", ">", "cB" ],
+      "objects": [ "Ks", "<nn", "v", "^", ">", "cB" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "goblin", "display_type": "door", "adjective": "left" },
         "^": { "type": "door", "pair_id": "eyesaur", "display_type": "door", "adjective": "middle" },
@@ -11,7 +11,8 @@
         "c": { "type": "item", "item": "crowbar" },
         "K": { "type": "item", "item": "knife" },
         "B": { "type": "item", "item": "bat" },
-        "s": { "type": "item", "item": "sword" }
+        "s": { "type": "item", "item": "sword" },
+        "n": { "type": "item", "item": "cursed_nail" }
       }
     },
     {

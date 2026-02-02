@@ -33,6 +33,7 @@
   "black_orb": { "singular": "black orb", "plural": "black orbs", "article": "a" },
   "blowtorch": { "singular": "blowtorch", "plural": "blowtorches", "article": "a" },
   "crowbar": { "singular": "crowbar", "plural": "crowbars", "article": "a" },
+  "cursed_nail": { "singular": "cursed nail", "plural": "cursed nails", "article": "a" },
   "food_ration": { "singular": "food ration", "plural": "food rations", "article": "a" },
   "four_leaf_clover": { "singular": "four-leaf clover", "plural": "four-leaf clovers", "article": "a" },
   "fuel_can": { "singular": "fuel can", "plural": "fuel cans", "article": "a" },

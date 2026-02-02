@@ -83,6 +83,9 @@ impl ItemTypeId {
     pub fn is_odd_hand_mirror(&self) -> bool {
         self.0 == "odd_hand_mirror"
     }
+    pub fn is_cursed_nail(&self) -> bool {
+        self.0 == "cursed_nail"
+    }
     pub fn is_usable(&self) -> bool {
         self.is_medkit() || self.is_black_orb() || self.is_odd_hand_mirror()
     }
