@@ -4,7 +4,7 @@ use crate::core::inventory::{self, Held};
 use crate::core::item::ItemTypeId;
 use crate::core::name::{self, ArticleKind, CountFormat, NameData, NameIdData, NameQuery};
 use crate::core::position::{self, Placement, PlacementQuery, Pos};
-use crate::core::status::{self, Health, StatChanges};
+use crate::core::status::{self, Health, StatChanges, Stats};
 use crate::dialogue;
 use crate::view::text::{self, CombinableMsgType};
 use hecs::Entity;
@@ -361,6 +361,48 @@ impl UseAction {
                         "{performer_name} holds up and inspects the orb. \
                      {performer_name} gets a sensation of hardiness when suddenly, \
                      the orb cracks and falls apart into worthless pieces! (Stats have changed)"
+                    ),
+                    context.state,
+                );
+                Ok(action::Success)
+            }
+            Some(item_type) if item_type.is_odd_hand_mirror() => {
+                let Some(action::Success) =
+                    performer_ref.get::<&mut Stats>().and_then(|mut stats| {
+                        let target_sum = stats.sum() + 1;
+
+                        use rand::seq::IteratorRandom;
+                        let rng = &mut context.state.rng;
+                        let mut random_stats = Stats {
+                            strength: (1..=10).choose(rng).unwrap(),
+                            endurance: (1..=10).choose(rng).unwrap(),
+                            agility: (1..=10).choose(rng).unwrap(),
+                            luck: (0..=10).choose(rng).unwrap(),
+                        };
+                        while random_stats.sum() < target_sum {
+                            random_stats.adjust_random_in_bounds(1, rng).ok()?;
+                        }
+                        while random_stats.sum() > target_sum {
+                            random_stats.adjust_random_in_bounds(-1, rng).ok()?;
+                        }
+
+                        *stats = random_stats;
+                        Some(action::Success)
+                    })
+                else {
+                    context.view_context.add_message_at(area, format!(
+                        "{performer_name} gazes into the mirror, but nothing seems to come from doing so."
+                    ), context.state);
+                    return Ok(action::Success);
+                };
+
+                world.despawn(self.item).unwrap();
+
+                context.view_context.add_message_at(
+                    area,
+                    format!(
+                        "{performer_name} holds up and gazes into the mirror. After a few moments, the glass suddenly cracks! \
+                     Turning away from the broken mirror, {performer_name} gives off a different vibe from just a moment ago. (Stats have changed)"
                     ),
                     context.state,
                 );

@@ -12,13 +12,13 @@ use crate::core::display::{CreatureVariantSet, SpeciesColorId};
 use crate::core::name::Name;
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{
-    ChangedStats, CreatureAttribute, Health, Morale, Stamina, StatChanges, Stats, Trait, Traits,
+    ChangedStats, CreatureAttribute, Health, Morale, Stamina, Stats, Trait, Traits,
 };
 use crate::core::store::{Shopkeeper, StockQuantity, StoreStock};
 use crate::core::{SpeciesId, Tag, inventory};
 use hecs::{EntityBuilder, World};
 use rand::Rng;
-use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
+use rand::seq::{IndexedRandom, IteratorRandom};
 use std::collections::HashSet;
 
 fn evaluate_attribute(choice: AttributeChoice, rng: &mut impl Rng) -> Option<CreatureAttribute> {
@@ -314,53 +314,24 @@ fn random_stats_from_base(mut stats: Stats, traits: &Traits, rng: &mut impl Rng)
         .sum();
     let stats_sum_target = Stats::CHARACTER_STATS_SUM_TARGET + change_from_traits;
     while stats.sum() < stats_sum_target {
-        adjust_random_stat(&mut stats, 1, rng);
+        let Ok(ChangedStats) = stats.adjust_random_in_bounds(1, rng) else {
+            break;
+        };
     }
     while stats.sum() > stats_sum_target {
-        adjust_random_stat(&mut stats, -1, rng);
+        let Ok(ChangedStats) = stats.adjust_random_in_bounds(-1, rng) else {
+            break;
+        };
     }
 
     for _ in 1..=8 {
-        adjust_random_stat(&mut stats, -1, rng);
-        adjust_random_stat(&mut stats, 1, rng);
+        let Ok(ChangedStats) = stats.adjust_random_in_bounds(-1, rng) else {
+            break;
+        };
+        stats.adjust_random_in_bounds(1, rng).unwrap();
     }
 
     stats
-}
-
-fn adjust_random_stat(stats: &mut Stats, amount: i16, rng: &mut impl Rng) {
-    let mut stat_changes = [
-        StatChanges {
-            strength: amount,
-            endurance: 0,
-            agility: 0,
-            luck: 0,
-        },
-        StatChanges {
-            strength: 0,
-            endurance: amount,
-            agility: 0,
-            luck: 0,
-        },
-        StatChanges {
-            strength: 0,
-            endurance: 0,
-            agility: amount,
-            luck: 0,
-        },
-        StatChanges {
-            strength: 0,
-            endurance: 0,
-            agility: 0,
-            luck: amount,
-        },
-    ];
-    stat_changes.shuffle(rng);
-    for attempted_change in stat_changes {
-        if let Ok(ChangedStats) = stats.try_change_in_bounds(attempted_change) {
-            return;
-        }
-    }
 }
 
 fn species_builder_base(

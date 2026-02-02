@@ -38,6 +38,7 @@
   "fuel_can": { "singular": "fuel can", "plural": "fuel cans", "article": "a" },
   "knife": { "singular": "knife", "plural": "knives", "article": "a" },
   "medkit": { "singular": "medkit", "plural": "medkits", "article": "a" },
+  "odd_hand_mirror": { "singular": "odd hand mirror", "plural": "odd hand mirrors", "article": "an" },
   "meteor_chunk": { "singular": "meteor chunk", "plural": "meteor chunks", "article": "a" },
   "sword": { "singular": "sword", "plural": "swords", "article": "a" }
 }

@@ -80,6 +80,12 @@ impl ItemTypeId {
     pub fn is_four_leaf_clover(&self) -> bool {
         self.0 == "four_leaf_clover"
     }
+    pub fn is_odd_hand_mirror(&self) -> bool {
+        self.0 == "odd_hand_mirror"
+    }
+    pub fn is_usable(&self) -> bool {
+        self.is_medkit() || self.is_black_orb() || self.is_odd_hand_mirror()
+    }
 
     pub fn noun_id(&self) -> NounId {
         NounId(self.0.clone())

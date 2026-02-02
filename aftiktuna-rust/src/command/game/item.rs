@@ -249,15 +249,13 @@ fn use_item(item: Entity, state: &GameState, assets: &GameAssets) -> Result<Comm
 
     if item_type.is_fuel_can() {
         super::refuel_ship(state, assets)
-    } else if item_type.is_medkit() {
-        if !world.get::<&Health>(character).unwrap().is_hurt() {
+    } else if item_type.is_usable() {
+        if item_type.is_medkit() && !world.get::<&Health>(character).unwrap().is_hurt() {
             return Err(format!(
                 "{} is not hurt, and does not need to use the medkit.",
                 NameData::find(world, character, assets).definite(),
             ));
         }
-        command::action_result(UseAction { item })
-    } else if item_type.is_black_orb() {
         command::action_result(UseAction { item })
     } else if assets
         .item_type_map

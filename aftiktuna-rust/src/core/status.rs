@@ -52,6 +52,47 @@ impl Stats {
         Ok(ChangedStats)
     }
 
+    pub fn adjust_random_in_bounds(
+        &mut self,
+        amount: i16,
+        rng: &mut impl rand::Rng,
+    ) -> Result<ChangedStats, OutsideBounds> {
+        let mut stat_changes = [
+            StatChanges {
+                strength: amount,
+                endurance: 0,
+                agility: 0,
+                luck: 0,
+            },
+            StatChanges {
+                strength: 0,
+                endurance: amount,
+                agility: 0,
+                luck: 0,
+            },
+            StatChanges {
+                strength: 0,
+                endurance: 0,
+                agility: amount,
+                luck: 0,
+            },
+            StatChanges {
+                strength: 0,
+                endurance: 0,
+                agility: 0,
+                luck: amount,
+            },
+        ];
+        use rand::seq::SliceRandom;
+        stat_changes.shuffle(rng);
+        for attempted_change in stat_changes {
+            if let Ok(ChangedStats) = self.try_change_in_bounds(attempted_change) {
+                return Ok(ChangedStats);
+            }
+        }
+        Err(OutsideBounds)
+    }
+
     pub fn agility_for_dodging(&self, entity_ref: EntityRef) -> i16 {
         let morale = entity_ref
             .get::<&Morale>()
@@ -70,6 +111,7 @@ impl Stats {
 
 pub struct ChangedStats;
 
+#[derive(Debug)]
 pub struct OutsideBounds;
 
 #[derive(Debug, Clone, Copy, Default)]

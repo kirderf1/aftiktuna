@@ -26,5 +26,6 @@
   "meteor_chunk": { "price": 2500 },
   "ancient_coin": { "price": 500 },
   "black_orb": { "price": 8000, "extra_description": "A mysterious object that when used, might change the user in some way." },
-  "four_leaf_clover": { "extra_description": "A mysterious object said to bring luck to whoever finds it." }
+  "four_leaf_clover": { "extra_description": "A mysterious object said to bring luck to whoever finds it." },
+  "odd_hand_mirror": { "extra_description": "Some sort of artifact in the shape of a hand mirror. Might change whoever looks into it." }
 }

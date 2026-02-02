@@ -3,11 +3,12 @@
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
-      "objects": [ "<", "", "", "v", "", ">c" ],
+      "objects": [ "<", "", "", "v", "###", ">c" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
-        "c": { "type": "item", "item": "crowbar" }
+        "c": { "type": "item", "item": "crowbar" },
+        "#": { "type": "item", "item": "odd_hand_mirror" }
       }
     },
     {
