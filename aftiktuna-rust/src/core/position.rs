@@ -378,8 +378,18 @@ pub(crate) fn turn_towards(world: &World, entity: Entity, target_pos: Pos) {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
-pub struct OccupiesSpace;
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct OccupiesSpace {
+    pub(crate) blocks_opponent: bool,
+}
+
+impl Default for OccupiesSpace {
+    fn default() -> Self {
+        Self {
+            blocks_opponent: true,
+        }
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Blockage {
@@ -493,9 +503,12 @@ fn find_blocking_in_range<Q: hecs::Query>(
     range: impl RangeBounds<Coord>,
 ) -> Option<Entity> {
     world
-        .query::<PlacementQuery>()
-        .with::<(Q, &OccupiesSpace)>()
+        .query::<(PlacementQuery, &OccupiesSpace)>()
+        .with::<Q>()
         .iter()
-        .find(|&(_, query)| Placement::from(query).overlaps_with_range(area, &range))
+        .find(|&(_, (query, occupies_space))| {
+            occupies_space.blocks_opponent
+                && Placement::from(query).overlaps_with_range(area, &range)
+        })
         .map(|(entity, _)| entity)
 }

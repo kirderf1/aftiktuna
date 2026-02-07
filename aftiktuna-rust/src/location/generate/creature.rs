@@ -106,7 +106,7 @@ pub(super) fn place_creature(
     }
 
     if is_alive {
-        builder.add_bundle((OccupiesSpace, Hostile { aggressive }));
+        builder.add_bundle((OccupiesSpace::default(), Hostile { aggressive }));
     }
 
     if let Some(wandering) = wandering.clone() {
@@ -279,7 +279,7 @@ pub(crate) fn character_builder_with_stats(
             Stamina::with_max(&stats),
             Morale::default(),
             TalkState::default(),
-            OccupiesSpace,
+            OccupiesSpace::default(),
             Character,
         ))
         .add::<Stats>(stats)

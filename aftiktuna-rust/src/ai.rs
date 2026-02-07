@@ -9,7 +9,7 @@ use crate::core::behavior::{
 use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemTypeId;
 use crate::core::name::NameData;
-use crate::core::position::{self, Pos};
+use crate::core::position::{self, OccupiesSpace, Pos};
 use crate::core::{CrewMember, Door, SpeciesId, Tag, inventory, status};
 use crate::dialogue::TalkTopic;
 use crate::game_loop::GameState;
@@ -19,8 +19,17 @@ use rand::seq::{IndexedRandom, IteratorRandom};
 use std::collections::{HashMap, HashSet};
 use std::ops::Deref;
 
+/// Prepares data for character behavior before the decision to take player action input.
 pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
+
+    for (entity, occupies_space) in state.world.query::<&mut OccupiesSpace>().iter() {
+        occupies_space.blocks_opponent = !has_behavior(
+            state.world.entity(entity).unwrap(),
+            BadlyHurtBehavior::Fearful,
+            &assets.species_data_map,
+        );
+    }
 
     for (crew_member, _) in state
         .world
