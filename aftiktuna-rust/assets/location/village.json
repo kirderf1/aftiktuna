@@ -11,12 +11,12 @@
       "background_offset": 2,
       "extra_background_layers": [
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 330, "y": 219 }
         },
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 940, "y": 219 }
         }
@@ -38,17 +38,17 @@
       "background_offset": 3,
       "extra_background_layers": [
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 550, "y": 219 }
         },
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 1190, "y": 219 }
         },
         {
-          "texture": "distant_forest",
+          "texture": "object/distant_forest",
           "move_factor": 0.9,
           "offset": { "x": 141, "y": 280 }
         }

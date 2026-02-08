@@ -43,7 +43,7 @@
       "background_offset": 2,
       "extra_background_layers": [
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 190, "y": 275 }
         }
@@ -115,7 +115,7 @@
       "background_offset": 1,
       "extra_background_layers": [
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 320, "y": 275 }
         }
@@ -135,7 +135,7 @@
       "background_offset": 1,
       "extra_background_layers": [
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 370, "y": 275 }
         }

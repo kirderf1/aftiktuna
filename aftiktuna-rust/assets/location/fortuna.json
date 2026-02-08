@@ -17,7 +17,7 @@
       "background_offset": 0,
       "extra_background_layers": [
         {
-          "texture": "crashed_ship",
+          "texture": "object/crashed_ship",
           "move_factor": 0.9,
           "offset": { "x": 800, "y": 284 }
         }

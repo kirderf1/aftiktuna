@@ -6,17 +6,17 @@
       "background": "field",
       "extra_background_layers": [
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 104, "y": 270 }
         },
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 168, "y": 270 }
         },
         {
-          "texture": "distant_forest",
+          "texture": "object/distant_forest",
           "move_factor": 0.89,
           "offset": { "x": 123, "y": 281 }
         }
@@ -35,22 +35,22 @@
       "background_offset": 2,
       "extra_background_layers": [
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 924, "y": 218 }
         },
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 334, "y": 218 }
         },
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 186, "y": 267 }
         },
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 752, "y": 269 }
         }
@@ -136,17 +136,17 @@
       "background_offset": -4,
       "extra_background_layers": [
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": -66, "y": 220 }
         },
         {
-          "texture": "facility_outside",
+          "texture": "object/facility_outside",
           "move_factor": 1.0,
           "offset": { "x": 578, "y": 215 }
         },
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 414, "y": 270 }
         }
@@ -248,12 +248,12 @@
       "background_offset": 4,
       "extra_background_layers": [
         {
-          "texture": "building",
+          "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 354, "y": 220 }
         },
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 850, "y": 270 }
         }
@@ -309,7 +309,7 @@
       "background_offset": -1,
       "extra_background_layers": [
         {
-          "texture": "distant_shack",
+          "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 362, "y": 270 }
         }

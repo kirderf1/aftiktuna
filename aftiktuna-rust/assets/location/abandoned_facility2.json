@@ -7,7 +7,7 @@
       "background_offset": 0,
       "extra_background_layers": [
         {
-          "texture": "facility_outside",
+          "texture": "object/facility_outside",
           "move_factor": 1.0,
           "offset": { "x": 146, "y": 218 }
         }
@@ -27,7 +27,7 @@
       "background_offset": 3,
       "extra_background_layers": [
         {
-          "texture": "facility_outside",
+          "texture": "object/facility_outside",
           "move_factor": 1.0,
           "offset": { "x": -214, "y": 218 }
         }

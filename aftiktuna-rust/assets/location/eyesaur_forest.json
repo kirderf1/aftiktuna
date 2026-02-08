@@ -68,7 +68,7 @@
       "background_offset": 6,
       "extra_background_layers": [
         {
-          "texture": "crashed_ship",
+          "texture": "object/crashed_ship",
           "move_factor": 0.9,
           "offset": { "x": 55, "y": 286 }
         }
@@ -98,7 +98,7 @@
       "background_offset": 4,
       "extra_background_layers": [
         {
-          "texture": "crashed_ship",
+          "texture": "object/crashed_ship",
           "move_factor": 0.9,
           "offset": { "x": 295, "y": 274 }
         }
@@ -117,7 +117,7 @@
       "background_offset": -1,
       "extra_background_layers": [
         {
-          "texture": "crashed_ship",
+          "texture": "object/crashed_ship",
           "move_factor": 0.9,
           "offset": { "x": 956, "y": 286 }
         }
