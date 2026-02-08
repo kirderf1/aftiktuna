@@ -19,6 +19,11 @@
           "texture": "object/building",
           "move_factor": 1.0,
           "offset": { "x": 940, "y": 219 }
+        },
+        {
+          "texture": "object/store_sign",
+          "move_factor": 1.0,
+          "offset": { "x": 995, "y": 330 }
         }
       ],
       "objects": [ "", ".v", "-", "-", "-", "^<", "-", "|", "-", ">,", "" ],

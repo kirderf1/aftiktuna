@@ -149,6 +149,11 @@
           "texture": "object/distant_shack",
           "move_factor": 0.9,
           "offset": { "x": 414, "y": 270 }
+        },
+        {
+          "texture": "object/store_sign",
+          "move_factor": 1.0,
+          "offset": { "x": 935, "y": 330 }
         }
       ],
       "objects": [ "", ".<", "-1", "-2", "^", "-", "-:", ",>", "" ],
