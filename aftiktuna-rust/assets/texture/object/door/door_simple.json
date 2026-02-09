@@ -1,0 +1,18 @@
+{
+  "layers": [
+    {
+      "condition": { "cut": false },
+      "texture": "door/door_simple"
+    },
+    {
+      "condition": { "cut": true },
+      "offset": { "x": 0.0, "y": -15.0 },
+      "texture": "door/cut_door_simple"
+    }
+  ],
+  "z_offset": -30,
+  "order_weight": 80,
+  "fixed_orientation": true,
+  "has_x_displacement": false,
+  "z_displacement": 0
+}

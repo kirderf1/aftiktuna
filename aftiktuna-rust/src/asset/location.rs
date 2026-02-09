@@ -268,12 +268,15 @@ pub struct DoorPairData {
 #[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
+    DoorSimple,
     Doorway,
     UpwardStairs,
     DownwardStairs,
     Shack,
     House,
+    HouseSimple,
     Store,
+    StoreSimple,
     Path,
     LeftPath,
     RightPath,
@@ -284,6 +287,9 @@ impl From<DoorType> for ModelId {
     fn from(value: DoorType) -> Self {
         ModelId::new(match value {
             DoorType::Door | DoorType::House | DoorType::Store => "door/door",
+            DoorType::DoorSimple | DoorType::HouseSimple | DoorType::StoreSimple => {
+                "door/door_simple"
+            }
             DoorType::Doorway => "door/doorway",
             DoorType::UpwardStairs => "door/upward_stairs",
             DoorType::DownwardStairs => "door/downward_stairs",
@@ -300,12 +306,15 @@ impl From<DoorType> for DoorKind {
     fn from(value: DoorType) -> Self {
         match value {
             DoorType::Door
+            | DoorType::DoorSimple
             | DoorType::Doorway
             | DoorType::UpwardStairs
             | DoorType::DownwardStairs
             | DoorType::Shack
             | DoorType::House
-            | DoorType::Store => DoorKind::Door,
+            | DoorType::HouseSimple
+            | DoorType::Store
+            | DoorType::StoreSimple => DoorKind::Door,
             DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
                 DoorKind::Path
             }
@@ -318,12 +327,15 @@ impl DoorType {
         use DoorType::*;
         &[
             Door,
+            DoorSimple,
             Doorway,
             UpwardStairs,
             DownwardStairs,
             Shack,
             House,
+            HouseSimple,
             Store,
+            StoreSimple,
             Path,
             LeftPath,
             RightPath,
@@ -333,13 +345,13 @@ impl DoorType {
 
     pub fn noun_id(self) -> NounId {
         match self {
-            Self::Door => "door",
+            Self::Door | Self::DoorSimple => "door",
             Self::Doorway => "doorway",
             Self::UpwardStairs => "upward_stairs",
             Self::DownwardStairs => "downward_stairs",
             Self::Shack => "shack",
-            Self::House => "house",
-            Self::Store => "store",
+            Self::House | Self::HouseSimple => "house",
+            Self::Store | Self::StoreSimple => "store",
             Self::Path | Self::LeftPath | Self::RightPath | Self::CrossroadPath => "path",
         }
         .into()

@@ -23,7 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 6.0, making it incompatible with previous save files
-- Changes coloring system making it available for any species
+- Changes to coloring system making it available for any species
+- Visual changes to village buildings and doors
 - Crew will now refuel the ship unprompted
 - Small tweaks to scarvie model
 - Adapted format of layer conditions in model files

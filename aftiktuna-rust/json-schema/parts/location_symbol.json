@@ -54,7 +54,7 @@
         "type": { "const": "door" },
         "pair_id": { "$ref": "./name_id.json" },
         "display_type": {
-          "enum": [ "door", "doorway", "upward_stairs", "downward_stairs", "shack", "house", "store", "path", "left_path", "right_path", "crossroad_path" ]
+          "enum": [ "door", "door_simple", "doorway", "upward_stairs", "downward_stairs", "shack", "house", "house_simple", "store", "store_simple", "path", "left_path", "right_path", "crossroad_path" ]
         },
         "adjective": {
           "enum": [ "left", "middle", "right" ]

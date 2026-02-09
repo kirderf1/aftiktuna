@@ -35,14 +35,14 @@
       "background_offset": 2,
       "extra_background_layers": [
         {
-          "texture": "object/building",
+          "texture": "object/building_2",
           "move_factor": 1.0,
-          "offset": { "x": 924, "y": 218 }
+          "offset": { "x": 951, "y": 217 }
         },
         {
           "texture": "object/building",
           "move_factor": 1.0,
-          "offset": { "x": 334, "y": 218 }
+          "offset": { "x": 294, "y": 218 }
         },
         {
           "texture": "object/distant_shack",
@@ -60,8 +60,8 @@
         ">": { "type": "door", "pair_id": "village_entrance", "display_type": "right_path", "adjective": "right" },
         "^": { "type": "door", "pair_id": "village_road", "display_type": "crossroad_path", "adjective": "middle" },
         "<": { "type": "door", "pair_id": "village_road2", "display_type": "left_path", "adjective": "left" },
-        "L": { "type": "door", "pair_id": "house2a", "display_type": "house", "adjective": "left" },
-        "R": { "type": "door", "pair_id": "house1a", "display_type": "house", "adjective": "right" },
+        "L": { "type": "door", "pair_id": "house2a", "display_type": "house_simple", "adjective": "left" },
+        "R": { "type": "door", "pair_id": "house1a", "display_type": "house_simple", "adjective": "right" },
         ":": { "type": "inanimate", "model": "path/crossroad" }
       }
     },
@@ -71,8 +71,8 @@
       "background": "shack",
       "objects": [ "Tp", "AC", "<", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "house1a", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "house1b", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "house1a", "display_type": "door_simple", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "house1b", "display_type": "door_simple", "adjective": "right" },
         "A": {
           "type": "character",
           "profile": { "type": "random", "species": "pagepoh" },
@@ -90,7 +90,7 @@
       "background": "shack",
       "objects": [ "B", ":", "#", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "house1b", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "house1b", "display_type": "door_simple" },
         "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         "#": {
           "type": "container",
@@ -107,8 +107,8 @@
       "background": "shack",
       "objects": [ "<", ">", "T", "#" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "house2b", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "house2a", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "house2b", "display_type": "door_simple", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "house2a", "display_type": "door_simple", "adjective": "right" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -124,7 +124,7 @@
       "background": "shack",
       "objects": [ "^", "p", "", "B" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "house2b", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "house2b", "display_type": "door_simple" },
         "B": { "type": "inanimate", "model": "environment/bed" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }
       }
@@ -138,12 +138,12 @@
         {
           "texture": "object/building",
           "move_factor": 1.0,
-          "offset": { "x": -66, "y": 220 }
+          "offset": { "x": -142, "y": 220 }
         },
         {
           "texture": "object/facility_outside",
           "move_factor": 1.0,
-          "offset": { "x": 578, "y": 215 }
+          "offset": { "x": 626, "y": 218 }
         },
         {
           "texture": "object/distant_shack",
@@ -159,7 +159,7 @@
       "objects": [ "", ".<", "-1", "-2", "^", "-", "-:", ",>", "" ],
       "symbols": {
         "^": { "type": "door", "pair_id": "village_road", "display_type": "crossroad_path" },
-        "<": { "type": "door", "pair_id": "house3a", "display_type": "house" },
+        "<": { "type": "door", "pair_id": "house3a", "display_type": "house_simple" },
         ">": { "type": "door", "pair_id": "store", "display_type": "store" },
         ".": { "type": "inanimate", "model": "path/left_corner" },
         ",": { "type": "inanimate", "model": "path/right_corner" },
@@ -184,8 +184,8 @@
       "background": "shack",
       "objects": [ "TC", "p", "<", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "house3a", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "house3b", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "house3a", "display_type": "door_simple", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "house3b", "display_type": "door_simple", "adjective": "right" },
         "T": { "type": "inanimate", "model": "environment/table" },
         "C": { "type": "inanimate", "model": "environment/chair" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }
@@ -197,7 +197,7 @@
       "background": "shack",
       "objects": [ "B", ":", "#", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "house3b", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "house3b", "display_type": "door_simple" },
         "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         "#": {
           "type": "container",
@@ -253,9 +253,9 @@
       "background_offset": 4,
       "extra_background_layers": [
         {
-          "texture": "object/building",
+          "texture": "object/building_2",
           "move_factor": 1.0,
-          "offset": { "x": 354, "y": 220 }
+          "offset": { "x": 354, "y": 218 }
         },
         {
           "texture": "object/distant_shack",
@@ -267,7 +267,7 @@
       "symbols": {
         ">": { "type": "door", "pair_id": "village_road2", "display_type": "right_path", "adjective": "right" },
         "<": { "type": "door", "pair_id": "forest1", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "house4", "display_type": "house" },
+        "^": { "type": "door", "pair_id": "house4", "display_type": "house_simple" },
         ":": { "type": "inanimate", "model": "path/left_corner" },
         "A": {
           "type": "character",
@@ -290,7 +290,7 @@
       "background": "shack",
       "objects": [ ":", "T", "^", "#" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "house4", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "house4", "display_type": "door_simple" },
         "#": {
           "type": "container",
           "container_type": "crate",

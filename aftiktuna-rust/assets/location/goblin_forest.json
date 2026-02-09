@@ -84,7 +84,7 @@
       "background": "shack",
       "objects": [ "¤f", "fE", "", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "shack", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "shack", "display_type": "door_simple" },
         "E": { "type": "creature", "creature": "eyesaur", "attribute": "bulky", "aggressive": true },
         "¤": {
           "type": "container",

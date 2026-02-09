@@ -16,9 +16,14 @@
           "offset": { "x": 330, "y": 219 }
         },
         {
-          "texture": "object/building",
+          "texture": "object/building_3",
           "move_factor": 1.0,
-          "offset": { "x": 940, "y": 219 }
+          "offset": { "x": 961, "y": 219 }
+        },
+        {
+          "texture": "object/window",
+          "move_factor": 1.0,
+          "offset": { "x": 1236, "y": 285 }
         },
         {
           "texture": "object/store_sign",
@@ -28,9 +33,9 @@
       ],
       "objects": [ "", ".v", "-", "-", "-", "^<", "-", "|", "-", ">,", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "aftik_house", "display_type": "house" },
+        "<": { "type": "door", "pair_id": "aftik_house", "display_type": "house_simple" },
         "|": { "type": "door", "pair_id": "road", "display_type": "crossroad_path" },
-        ">": { "type": "door", "pair_id": "store", "display_type": "store" },
+        ">": { "type": "door", "pair_id": "store", "display_type": "store_simple" },
         ".": { "type": "inanimate", "model": "path/left_end" },
         ",": { "type": "inanimate", "model": "path/right_corner" },
         "^": { "type": "inanimate", "model": "path/crossroad" }
@@ -43,14 +48,19 @@
       "background_offset": 3,
       "extra_background_layers": [
         {
-          "texture": "object/building",
+          "texture": "object/rain_pipe",
           "move_factor": 1.0,
-          "offset": { "x": 550, "y": 219 }
+          "offset": { "x": 608, "y": 222 }
+        },
+        {
+          "texture": "object/building_3",
+          "move_factor": 1.0,
+          "offset": { "x": 629, "y": 219 }
         },
         {
           "texture": "object/building",
           "move_factor": 1.0,
-          "offset": { "x": 1190, "y": 219 }
+          "offset": { "x": 1190, "y": 218 }
         },
         {
           "texture": "object/distant_forest",
@@ -66,9 +76,9 @@
       "symbols": {
         "\\": { "type": "door", "pair_id": "side", "display_type": "left_path", "adjective": "left" },
         "|": { "type": "door", "pair_id": "road", "display_type": "crossroad_path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "stuck_house", "display_type": "house", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "azureclops_house", "display_type": "house", "adjective": "right" },
-        "/": { "type": "door", "pair_id": "azureclops_house_broken", "display_type": "house", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "stuck_house", "display_type": "house_simple", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "azureclops_house", "display_type": "house_simple", "adjective": "right" },
+        "/": { "type": "door", "pair_id": "azureclops_house_broken", "display_type": "house_simple", "adjective": "right" },
         ".": { "type": "inanimate", "model": "path/crossroad" },
         ",": { "type": "inanimate", "model": "path/right_corner" },
         "A": {
@@ -114,8 +124,8 @@
         "ruins": [ "", "Y", "", "" ]
       },
       "symbols": {
-        ">": { "type": "door", "pair_id": "aftik_house", "display_type": "door", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "aftik_house2", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "aftik_house", "display_type": "door_simple", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "aftik_house2", "display_type": "door_simple", "adjective": "left" },
         "A": {
           "type": "character",
           "profile": { "type": "random", "species": "aftik" },
@@ -132,7 +142,7 @@
       "background": "shack",
       "objects": [ "^", "p", ":", "B" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "aftik_house2", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "aftik_house2", "display_type": "door_simple" },
         "B": { "type": "inanimate", "model": "environment/bed" },
         ":": { "type": "inanimate", "model": "environment/aftik_poster" },
         "p": { "type": "inanimate", "model": "environment/potted_plant" }
@@ -148,9 +158,9 @@
         "ruins": [ "", "", "YE", ">at" ]
       },
       "symbols": {
-        "^": { "type": "door", "pair_id": "store", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "storage", "display_type": "door", "adjective": "right" },
-        ".": { "type": "inanimate", "model": "door/door" },
+        "^": { "type": "door", "pair_id": "store", "display_type": "door_simple", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "storage", "display_type": "door_simple", "adjective": "right" },
+        ".": { "type": "inanimate", "model": "door/door_simple" },
         "S": {
           "type": "character",
           "profile": {
@@ -188,7 +198,7 @@
         "ruins": [ "I", "#", "T", "^" ]
       },
       "symbols": {
-        "^": { "type": "door", "pair_id": "storage", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "storage", "display_type": "door_simple" },
         "I": {
           "type": "container",
           "container_type": "cabinet",
@@ -219,7 +229,7 @@
         "ruins": [ "", "", "T", "A" ]
       },
       "symbols": {
-        "^": { "type": "door", "pair_id": "stuck_house", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "stuck_house", "display_type": "door_simple" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -250,9 +260,9 @@
         "ruins": [ "/", "", "z", "" ]
       },
       "symbols": {
-        "<": { "type": "door", "pair_id": "azureclops_house", "display_type": "door", "adjective": "left" },
-        "/": { "type": "door", "pair_id": "azureclops_house_broken", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "azureclops_house", "display_type": "door_simple", "adjective": "left" },
+        "/": { "type": "door", "pair_id": "azureclops_house_broken", "display_type": "door_simple", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door_simple", "adjective": "right" },
         "Z": { "type": "creature", "creature": "azureclops", "attribute": "agile", "tag": "house_azureclops" },
         "z": {
           "type": "creature",
@@ -273,7 +283,7 @@
         "ruins": [ "", "a", "Y", "" ]
       },
       "symbols": {
-        "^": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "azureclops_house2", "display_type": "door_simple" },
         "a": { "type": "character_corpse", "species": "aftik", "direction": "right" },
         "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         "T": { "type": "inanimate", "model": "environment/table" },
@@ -287,7 +297,7 @@
       "background": "shack",
       "objects": [ "^", "p", "T", "¤" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "shack", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "shack", "display_type": "door_simple" },
         "¤": {
           "type": "container",
           "container_type": "chest",
