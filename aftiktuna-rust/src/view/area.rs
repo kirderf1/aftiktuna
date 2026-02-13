@@ -126,7 +126,8 @@ impl ItemProfile {
             is_wielded: item.get::<&Held>().is_some_and(|held| held.is_in_hand()),
             is_usable: item
                 .get::<&ItemTypeId>()
-                .is_some_and(|item_type| item_type.is_usable()),
+                .and_then(|id| assets.item_type_map.get(&id))
+                .is_some_and(|data| data.usage.is_some()),
         }
     }
 

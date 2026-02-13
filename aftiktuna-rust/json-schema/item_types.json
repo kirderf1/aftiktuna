@@ -14,6 +14,36 @@
           "additionalProperties": false,
           "required": [ "damage_mod", "attack_set" ]
         },
+        "usage": {
+          "type": "object",
+          "oneOf": [
+            {
+              "properties": {
+                "type": { "const": "medkit" },
+                "restore_fraction": { "type": "number", "minimum": 0, "maximum": 1 }
+              },
+              "additionalProperties": false,
+              "required": [ "restore_fraction" ]
+            },
+            {
+              "properties": {
+                "type": { "const": "black_orb" },
+                "change": { "$ref": "./parts/stat_changes.json" }
+              },
+              "additionalProperties": false,
+              "required": [ "change" ]
+            },
+            {
+              "properties": {
+                "type": { "const": "odd_hand_mirror" },
+                "sum_change": { "type": "integer" }
+              },
+              "additionalProperties": false,
+              "required": [ "sum_change" ]
+            }
+          ],
+          "required": [ "type" ]
+        },
         "price": { "type": "integer", "minimum": 0 },
         "extra_description": { "type": "string" },
         "shop_description": { "type": "string" }

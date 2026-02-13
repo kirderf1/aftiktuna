@@ -246,22 +246,21 @@ fn use_item(item: Entity, state: &GameState, assets: &GameAssets) -> Result<Comm
     let character = state.controlled;
     let item_ref = world.entity(item).unwrap();
     let item_type = item_ref.get::<&ItemTypeId>().unwrap();
+    let item_data = assets.item_type_map.get(&item_type);
 
     if item_type.is_fuel_can() {
         super::refuel_ship(state, assets)
-    } else if item_type.is_usable() {
-        if item_type.is_medkit() && !world.get::<&Health>(character).unwrap().is_hurt() {
+    } else if let Some(usage) = item_data.and_then(|data| data.usage.as_ref()) {
+        if matches!(usage, crate::asset::ItemUseType::Medkit { .. })
+            && !world.get::<&Health>(character).unwrap().is_hurt()
+        {
             return Err(format!(
                 "{} is not hurt, and does not need to use the medkit.",
                 NameData::find(world, character, assets).definite(),
             ));
         }
         command::action_result(UseAction { item })
-    } else if assets
-        .item_type_map
-        .get(&item_type)
-        .is_some_and(|data| data.weapon.is_some())
-    {
+    } else if item_data.is_some_and(|data| data.weapon.is_some()) {
         if item_ref
             .get::<&Held>()
             .is_some_and(|held| held.is_in_hand())

@@ -1,0 +1,10 @@
+{
+  "type": "object",
+  "properties": {
+    "strength": { "type": "integer" },
+    "endurance": { "type": "integer" },
+    "agility": { "type": "integer" },
+    "luck": { "type": "integer" }
+  },
+  "additionalProperties": false
+}

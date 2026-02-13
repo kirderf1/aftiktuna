@@ -1,4 +1,5 @@
 use crate::action::{self, Context, Error};
+use crate::asset::ItemUseType;
 use crate::core::behavior::{self, RepeatingAction};
 use crate::core::inventory::{self, Held};
 use crate::core::item::ItemTypeId;
@@ -323,10 +324,18 @@ impl UseAction {
             .ok_or_else(|| format!("{performer_name} tried using an item not held by them."))?;
         let item_name = NameData::find_by_ref(item_ref, assets).definite();
 
-        let item_type = item_ref.get::<&ItemTypeId>().as_deref().cloned();
+        let item_use_type = item_ref
+            .get::<&ItemTypeId>()
+            .and_then(|id| assets.item_type_map.get(&id))
+            .and_then(|data| data.usage.as_ref())
+            .ok_or_else(|| {
+                Error::private(format!(
+                    "{performer_name} tried to use {item_name}, but it is not usable."
+                ))
+            })?;
 
-        match item_type {
-            Some(item_type) if item_type.is_medkit() => {
+        match *item_use_type {
+            ItemUseType::Medkit { restore_fraction } => {
                 let mut health = performer_ref.get::<&mut Health>().unwrap();
                 if !health.is_hurt() {
                     return Err(Error::private(format!(
@@ -334,7 +343,7 @@ impl UseAction {
                     )));
                 }
 
-                health.restore_fraction(0.5, performer_ref);
+                health.restore_fraction(restore_fraction, performer_ref);
                 drop(health);
                 world.despawn(self.item).unwrap();
 
@@ -345,8 +354,8 @@ impl UseAction {
                 );
                 Ok(action::Success)
             }
-            Some(item_type) if item_type.is_black_orb() => {
-                let Some(_) = BLACK_ORB_EFFECT.try_apply(performer_ref) else {
+            ItemUseType::BlackOrb { change } => {
+                let Some(_) = change.try_apply(performer_ref) else {
                     context.view_context.add_message_at(area, format!(
                         "{performer_name} holds up and inspects the orb, but can't figure out what it is."
                     ), context.state);
@@ -366,10 +375,10 @@ impl UseAction {
                 );
                 Ok(action::Success)
             }
-            Some(item_type) if item_type.is_odd_hand_mirror() => {
+            ItemUseType::OddHandMirror { sum_change } => {
                 let Some(action::Success) =
                     performer_ref.get::<&mut Stats>().and_then(|mut stats| {
-                        let target_sum = stats.sum() + 1;
+                        let target_sum = stats.sum() + sum_change;
 
                         use rand::seq::IteratorRandom;
                         let rng = &mut context.state.rng;
@@ -408,19 +417,9 @@ impl UseAction {
                 );
                 Ok(action::Success)
             }
-            _ => Err(Error::private(format!(
-                "{performer_name} tried to use {item_name}, but it is not usable."
-            ))),
         }
     }
 }
-
-const BLACK_ORB_EFFECT: StatChanges = StatChanges {
-    endurance: 3,
-    agility: -1,
-    luck: -1,
-    ..StatChanges::DEFAULT
-};
 
 pub const FOUR_LEAF_CLOVER_EFFECT: StatChanges = StatChanges {
     luck: 2,

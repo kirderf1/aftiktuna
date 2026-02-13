@@ -3,7 +3,7 @@ use super::item::ItemTypeId;
 use super::name::NameWithAttribute;
 use super::position::Pos;
 use super::{CrewMember, SpeciesId};
-use crate::asset::GameAssets;
+use crate::asset::{GameAssets, ItemTypeData};
 use crate::view;
 use hecs::{CommandBuffer, Entity, EntityRef, World};
 use serde::{Deserialize, Serialize};
@@ -114,11 +114,15 @@ pub struct ChangedStats;
 #[derive(Debug)]
 pub struct OutsideBounds;
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
 pub struct StatChanges {
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub strength: i16,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub endurance: i16,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub agility: i16,
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub luck: i16,
 }
 
@@ -569,7 +573,12 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     let medkit_count = world
         .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, item_type)| item_type.is_medkit())
+        .filter(|&(_, id)| {
+            assets
+                .item_type_map
+                .get(id)
+                .is_some_and(ItemTypeData::is_medkit)
+        })
         .count();
     if medkit_count >= 1 {
         crew_positive_effect += Morale::SMALL_INTENSITY;

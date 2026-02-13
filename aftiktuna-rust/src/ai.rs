@@ -1,6 +1,6 @@
 use crate::action::item::UseAction;
 use crate::action::{Action, ForceDoorAction, TalkAction};
-use crate::asset::{GameAssets, SpeciesDataMap};
+use crate::asset::{GameAssets, ItemTypeData, SpeciesDataMap};
 use crate::core::area::{self, ShipControls, ShipState, ShipStatus};
 use crate::core::behavior::{
     self, BadlyHurtBehavior, Character, GivesHuntRewardData, Hostile, Intention, ObservationTarget,
@@ -72,7 +72,9 @@ fn pick_intention(
         for item in inventory::get_inventory(world, crew_member) {
             if world
                 .get::<&ItemTypeId>(item)
-                .is_ok_and(|item_type| item_type.is_medkit())
+                .ok()
+                .and_then(|id| assets.item_type_map.get(&id))
+                .is_some_and(ItemTypeData::is_medkit)
             {
                 return Some(Intention::UseMedkit(item));
             }

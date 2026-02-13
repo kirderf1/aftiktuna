@@ -465,7 +465,7 @@ use crate::core::combat::{AttackSet, UnarmedType, WeaponProperties};
 use crate::core::display::{CreatureVariant, SpeciesColorId};
 use crate::core::item::{ItemTypeId, Price};
 use crate::core::name::{NounData, NounId};
-use crate::core::status::Stats;
+use crate::core::status::{StatChanges, Stats};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -555,15 +555,31 @@ impl NounDataMap {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub(crate) enum ItemUseType {
+    Medkit { restore_fraction: f32 },
+    BlackOrb { change: StatChanges },
+    OddHandMirror { sum_change: i16 },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ItemTypeData {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) weapon: Option<WeaponProperties>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub(crate) usage: Option<ItemUseType>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) price: Option<Price>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) extra_description: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub(crate) shop_description: Option<String>,
+}
+
+impl ItemTypeData {
+    pub fn is_medkit(&self) -> bool {
+        matches!(self.usage, Some(ItemUseType::Medkit { .. }))
+    }
 }
 
 pub fn load_item_type_map() -> Result<HashMap<ItemTypeId, ItemTypeData>, Error> {

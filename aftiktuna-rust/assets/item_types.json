@@ -22,12 +22,27 @@
     "price": 5000,
     "shop_description": "A quite priced possesion of mine. If you're going somewhere with danger, then you definitely want this sword to defend yourself!"
   },
-  "medkit": { "price": 4000, "extra_description": "Used to recover some health of the user.", "shop_description": "Well, if you're hurt, then you can use a medkit to patch up your wounds. Really good if you're going somewhere dangerous!" },
+  "medkit": {
+    "usage": { "type": "medkit", "restore_fraction": 0.5 },
+    "price": 4000,
+    "extra_description": "Used to recover some health of the user.",
+    "shop_description": "Well, if you're hurt, then you can use a medkit to patch up your wounds. Really good if you're going somewhere dangerous!"
+  },
   "meteor_chunk": { "price": 2500 },
   "ancient_coin": { "price": 500 },
-  "black_orb": { "price": 8000, "extra_description": "A mysterious object that when used, might change the user in some way." },
+  "black_orb": {
+    "usage": {
+      "type": "black_orb",
+      "change": { "endurance": 3, "agility": -1, "luck": -1 }
+    },
+    "price": 8000,
+    "extra_description": "A mysterious object that when used, might change the user in some way."
+  },
   "four_leaf_clover": { "extra_description": "A mysterious object said to bring luck to whoever finds it." },
-  "odd_hand_mirror": { "extra_description": "Some sort of artifact in the shape of a hand mirror. Might change whoever looks into it." },
+  "odd_hand_mirror": {
+    "usage": { "type": "odd_hand_mirror", "sum_change": 1 },
+    "extra_description": "Some sort of artifact in the shape of a hand mirror. Might change whoever looks into it."
+  },
   "cursed_nail": {
     "weapon": { "damage_mod": 2.0, "attack_set": "intense" },
     "extra_description": "A large and rusted nail. While dented and fragile, it also has a menacing air around it."

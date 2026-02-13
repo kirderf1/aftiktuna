@@ -71,23 +71,11 @@ impl ItemTypeId {
     pub fn is_blowtorch(&self) -> bool {
         self.0 == "blowtorch"
     }
-    pub fn is_medkit(&self) -> bool {
-        self.0 == "medkit"
-    }
-    pub fn is_black_orb(&self) -> bool {
-        self.0 == "black_orb"
-    }
     pub fn is_four_leaf_clover(&self) -> bool {
         self.0 == "four_leaf_clover"
     }
-    pub fn is_odd_hand_mirror(&self) -> bool {
-        self.0 == "odd_hand_mirror"
-    }
     pub fn is_cursed_nail(&self) -> bool {
         self.0 == "cursed_nail"
-    }
-    pub fn is_usable(&self) -> bool {
-        self.is_medkit() || self.is_black_orb() || self.is_odd_hand_mirror()
     }
 
     pub fn noun_id(&self) -> NounId {
