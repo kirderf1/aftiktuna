@@ -49,12 +49,13 @@ pub enum RepeatingAction {
     TakeAll,
     Rest,
     GoToShip,
+    UseItem { item: hecs::Entity, use_time: u16 },
     ChargedAttack(hecs::Entity),
 }
 
 impl RepeatingAction {
     pub fn cancel_if_unsafe(self) -> bool {
-        !matches!(self, Self::ChargedAttack(_))
+        !matches!(self, Self::ChargedAttack(_)) && !matches!(self, Self::UseItem { .. })
     }
 }
 

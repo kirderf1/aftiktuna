@@ -557,9 +557,16 @@ impl NounDataMap {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub(crate) enum ItemUseType {
-    Medkit { restore_fraction: f32 },
-    BlackOrb { change: StatChanges },
-    OddHandMirror { sum_change: i16 },
+    Medkit {
+        restore_fraction: f32,
+        use_duration: u16,
+    },
+    BlackOrb {
+        change: StatChanges,
+    },
+    OddHandMirror {
+        sum_change: i16,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize)]

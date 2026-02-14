@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 
 - Save format version 6.0, making it incompatible with previous save files
+- Tweaks to the medkit item, lowering its value and adjusting its availability
 - Changes to coloring system making it available for any species
 - Visual changes to village buildings and doors
 - Crew will now refuel the ship unprompted

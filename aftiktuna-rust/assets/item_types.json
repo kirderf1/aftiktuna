@@ -23,8 +23,8 @@
     "shop_description": "A quite priced possesion of mine. If you're going somewhere with danger, then you definitely want this sword to defend yourself!"
   },
   "medkit": {
-    "usage": { "type": "medkit", "restore_fraction": 0.5 },
-    "price": 4000,
+    "usage": { "type": "medkit", "restore_fraction": 0.33, "use_duration": 3 },
+    "price": 2000,
     "extra_description": "Used to recover some health of the user.",
     "shop_description": "Well, if you're hurt, then you can use a medkit to patch up your wounds. Really good if you're going somewhere dangerous!"
   },

@@ -259,7 +259,7 @@ fn use_item(item: Entity, state: &GameState, assets: &GameAssets) -> Result<Comm
                 NameData::find(world, character, assets).definite(),
             ));
         }
-        command::action_result(UseAction { item })
+        command::action_result(UseAction { item, use_time: 0 })
     } else if item_data.is_some_and(|data| data.weapon.is_some()) {
         if item_ref
             .get::<&Held>()

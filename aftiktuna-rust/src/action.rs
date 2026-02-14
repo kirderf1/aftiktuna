@@ -5,6 +5,7 @@ pub mod item;
 mod ship;
 mod trade;
 
+use crate::action::item::UseAction;
 use crate::core::behavior::{Hostile, Recruitable, RepeatingAction};
 use crate::core::combat::AttackKind;
 use crate::core::item::ItemTypeId;
@@ -60,6 +61,7 @@ impl From<RepeatingAction> for Action {
             RepeatingAction::TakeAll => Action::TakeAll,
             RepeatingAction::Rest => Action::Rest(false),
             RepeatingAction::GoToShip => Action::GoToShip,
+            RepeatingAction::UseItem { item, use_time } => UseAction { item, use_time }.into(),
             RepeatingAction::ChargedAttack(target) => Action::ChargedAttack(target),
         }
     }

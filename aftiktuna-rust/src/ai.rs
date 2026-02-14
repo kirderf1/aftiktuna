@@ -68,6 +68,8 @@ fn pick_intention(
     if world
         .get::<&status::Health>(crew_member)
         .is_ok_and(|health| health.is_badly_hurt())
+        && let Ok(pos) = state.world.get::<&Pos>(crew_member)
+        && behavior::is_safe(world, pos.get_area())
     {
         for item in inventory::get_inventory(world, crew_member) {
             if world
@@ -326,7 +328,7 @@ fn pick_crew_action(
 
     let intention = entity_ref.get::<&Intention>();
     if let Some(&Intention::UseMedkit(item)) = intention.as_deref() {
-        return Some(UseAction { item }.into());
+        return Some(UseAction { item, use_time: 0 }.into());
     }
 
     if entity_ref
@@ -414,7 +416,7 @@ pub fn pick_attack_kind(
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
     world
-        .satisfies::<hecs::Or<&Intention, &status::IsStunned>>(entity)
+        .satisfies::<hecs::Or<hecs::Or<&Intention, &RepeatingAction>, &status::IsStunned>>(entity)
         .unwrap_or(false)
 }
 

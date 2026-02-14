@@ -296,6 +296,7 @@ pub(super) fn wield(
 #[derive(Debug, Clone)]
 pub struct UseAction {
     pub item: Entity,
+    pub use_time: u16,
 }
 
 impl From<UseAction> for super::Action {
@@ -335,7 +336,10 @@ impl UseAction {
             })?;
 
         match *item_use_type {
-            ItemUseType::Medkit { restore_fraction } => {
+            ItemUseType::Medkit {
+                restore_fraction,
+                use_duration,
+            } => {
                 let mut health = performer_ref.get::<&mut Health>().unwrap();
                 if !health.is_hurt() {
                     return Err(Error::private(format!(
@@ -343,15 +347,28 @@ impl UseAction {
                     )));
                 }
 
-                health.restore_fraction(restore_fraction, performer_ref);
-                drop(health);
-                world.despawn(self.item).unwrap();
+                if use_duration > self.use_time + 1 {
+                    drop(health);
+                    world
+                        .insert_one(
+                            performer,
+                            RepeatingAction::UseItem {
+                                item: self.item,
+                                use_time: self.use_time + 1,
+                            },
+                        )
+                        .unwrap();
+                } else {
+                    health.restore_fraction(restore_fraction, performer_ref);
+                    drop(health);
+                    world.despawn(self.item).unwrap();
 
-                context.view_context.add_message_at(
-                    area,
-                    format!("{performer_name} used a medkit and recovered some health."),
-                    context.state,
-                );
+                    context.view_context.add_message_at(
+                        area,
+                        format!("{performer_name} used a medkit and recovered some health."),
+                        context.state,
+                    );
+                }
                 Ok(action::Success)
             }
             ItemUseType::BlackOrb { change } => {

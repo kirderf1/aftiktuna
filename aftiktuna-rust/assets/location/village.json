@@ -177,6 +177,7 @@
               { "item": "bat", "quantity": 2 },
               { "item": "sword", "quantity": 1 },
               { "item": "black_orb", "quantity": 1 },
+              { "item": "medkit", "quantity": 1 },
               { "item": "food_ration", "quantity": 10 }
             ]
           }
