@@ -7,7 +7,7 @@
       "background_offset": 1,
       "objects": [ "", ".v", "-", "-", "/", "#", "" ],
       "symbols": {
-        "/": { "type": "door", "pair_id": "entrance", "display_type": "right_path" },
+        "/": { "type": "door", "pair_id": "entrance", "door_type": "path", "model": "path/right_corner" },
         ".": { "type": "inanimate", "model": "path/left_end" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" }
       }
@@ -19,9 +19,9 @@
       "background_offset": -1,
       "objects": [ "", "\\", "-", "/", "", ">", "" ],
       "symbols": {
-        "\\": { "type": "door", "pair_id": "path1", "display_type": "left_path", "adjective": "left" },
-        "/": { "type": "door", "pair_id": "entrance", "display_type": "right_path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "alt_path_a1", "display_type": "path", "adjective": "right" }
+        "\\": { "type": "door", "pair_id": "path1", "door_type": "path", "model": "path/left_corner", "adjective": "left" },
+        "/": { "type": "door", "pair_id": "entrance", "door_type": "path", "model": "path/right_corner", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a1", "door_type": "path", "adjective": "right" }
       }
     },
     {
@@ -31,9 +31,9 @@
       "background_offset": 4,
       "objects": [ "", "<", "-", "^G", "-", ">", "" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "path1", "display_type": "right_path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "path2", "display_type": "left_path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a10", "display_type": "crossroad_path", "adjective": "middle" }
+        ">": { "type": "door", "pair_id": "path1", "door_type": "path", "model": "path/right_corner", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "path2", "door_type": "path", "model": "path/left_corner", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a10", "door_type": "path", "model": "path/crossroad", "adjective": "middle" }
       }
     },
     {
@@ -50,9 +50,9 @@
       ],
       "objects": [ "G", "<", "-#G", "^", "-", ">", "" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "path2", "display_type": "right_path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "path3", "display_type": "left_path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_b1", "display_type": "crossroad_path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "path2", "door_type": "path", "model": "path/right_corner", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "path3", "door_type": "path", "model": "path/left_corner", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_b1", "door_type": "path", "model": "path/crossroad", "adjective": "middle" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -70,12 +70,12 @@
       "background_offset": 4,
       "objects": [ "#", "<", "", ".v", "-", "^", "-", "-", ">", "" ],
       "symbols": {
-        "v": { "type": "door", "pair_id": "shack", "display_type": "shack" },
-        "^": { "type": "door", "pair_id": "alt_path_b2", "display_type": "crossroad_path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "path3", "display_type": "right_path", "adjective": "right" },
+        "v": { "type": "door", "pair_id": "shack", "door_type": "shack" },
+        "^": { "type": "door", "pair_id": "alt_path_b2", "door_type": "path", "model": "path/crossroad", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "path3", "door_type": "path", "model": "path/right_corner", "adjective": "right" },
         ".": { "type": "inanimate", "model": "path/left_corner" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" },
-        "<": { "type": "door", "pair_id": "alt_path_b4", "display_type": "path", "adjective": "left" }
+        "<": { "type": "door", "pair_id": "alt_path_b4", "door_type": "path", "adjective": "left" }
       }
     },
     {
@@ -84,7 +84,7 @@
       "background": "shack",
       "objects": [ "¤f", "fE", "", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "shack", "display_type": "door_simple" },
+        "^": { "type": "door", "pair_id": "shack", "door_type": "door", "model": "door/door_simple" },
         "E": { "type": "creature", "creature": "eyesaur", "attribute": "bulky", "aggressive": true },
         "¤": {
           "type": "container",
@@ -103,8 +103,8 @@
       "background_offset": -1,
       "objects": [ "", "<", "", "#", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a1", "display_type": "path", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "alt_path_a2", "display_type": "path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "alt_path_a1", "door_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "alt_path_a2", "door_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/mossy_rock" }
       }
     },
@@ -122,8 +122,8 @@
       ],
       "objects": [ "#c", "S", "<", "", ">", "" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "alt_path_b3", "display_type": "path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "alt_path_b4", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "alt_path_b3", "door_type": "path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "alt_path_b4", "door_type": "path", "adjective": "left" },
         "#": { "type": "inanimate", "model": "environment/tree_stump" },
         "c": { "type": "item", "item": "crowbar" }
       }
@@ -142,10 +142,10 @@
       ],
       "objects": [ "", "<", "#", "^", ">", "G", "%" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "alt_path_b1", "display_type": "path", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "alt_path_b3", "display_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "alt_path_b1", "door_type": "path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "alt_path_b3", "door_type": "path", "adjective": "left" },
         "#": { "type": "inanimate", "model": "environment/mossy_rock" },
-        "^": { "type": "door", "pair_id": "alt_path_b2", "display_type": "path", "adjective": "middle" }
+        "^": { "type": "door", "pair_id": "alt_path_b2", "door_type": "path", "adjective": "middle" }
       }
     },
     {
@@ -155,9 +155,9 @@
       "background_offset": 1,
       "objects": [ "", "<", "^", "", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a3", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a2", "display_type": "path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "alt_path_a4", "display_type": "path", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "alt_path_a3", "door_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a2", "door_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a4", "door_type": "path", "adjective": "right" }
       }
     },
     {
@@ -167,9 +167,9 @@
       "background_offset": 2,
       "objects": [ "", "<", "", "^", "", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a5", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a4", "display_type": "path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "alt_path_a6", "display_type": "path", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "alt_path_a5", "door_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a4", "door_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a6", "door_type": "path", "adjective": "right" }
       }
     },
     {
@@ -179,9 +179,9 @@
       "background_offset": 3,
       "objects": [ "", "<", "^", "", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a8", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a3", "display_type": "path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "alt_path_a5", "display_type": "path", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "alt_path_a8", "door_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a3", "door_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a5", "door_type": "path", "adjective": "right" }
       }
     },
     {
@@ -191,9 +191,9 @@
       "background_offset": 4,
       "objects": [ "", "<", "", "^", "", ">", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a9", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a7", "display_type": "path", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "alt_path_a6", "display_type": "path", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "alt_path_a9", "door_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a7", "door_type": "path", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "alt_path_a6", "door_type": "path", "adjective": "right" }
       }
     },
     {
@@ -203,8 +203,8 @@
       "background_offset": 1,
       "objects": [ "G", "<", "G", ">", "#G" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a8", "display_type": "path", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "alt_path_a7", "display_type": "path", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "alt_path_a8", "door_type": "path", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "alt_path_a7", "door_type": "path", "adjective": "right" },
         "#": { "type": "inanimate", "model": "environment/mossy_rock" },
         "G": {
           "type": "creature",
@@ -220,8 +220,8 @@
       "background_offset": 4,
       "objects": [ "", "<", "", "^", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "alt_path_a9", "display_type": "path", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "alt_path_a10", "display_type": "path", "adjective": "middle" }
+        "<": { "type": "door", "pair_id": "alt_path_a9", "door_type": "path", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "alt_path_a10", "door_type": "path", "adjective": "middle" }
       }
     }
   ],

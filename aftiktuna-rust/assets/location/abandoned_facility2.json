@@ -14,8 +14,8 @@
       ],
       "objects": [ "\\", "-", "-", ".^", ",", "v" ],
       "symbols": {
-        "\\": { "type": "door", "pair_id": "path", "display_type": "left_path" },
-        "^": { "type": "door", "pair_id": "entrance", "display_type": "door" },
+        "\\": { "type": "door", "pair_id": "path", "door_type": "path", "model": "path/left_corner" },
+        "^": { "type": "door", "pair_id": "entrance", "door_type": "door" },
         ".": { "type": "inanimate", "model": "path/crossroad" },
         ",": { "type": "inanimate", "model": "path/right_end" }
       }
@@ -34,8 +34,8 @@
       ],
       "objects": [ ".^", "-", "-v", "-", "/" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "side", "display_type": "door" },
-        "/": { "type": "door", "pair_id": "path", "display_type": "right_path" },
+        "^": { "type": "door", "pair_id": "side", "door_type": "door" },
+        "/": { "type": "door", "pair_id": "path", "door_type": "path", "model": "path/right_corner" },
         ".": { "type": "inanimate", "model": "path/left_corner" }
       }
     },
@@ -46,9 +46,9 @@
       "darkness": 0.35,
       "objects": [ "<", "E", "p", "^", "=", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway" },
-        "^": { "type": "door", "pair_id": "entrance", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "room1", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "corridor1", "door_type": "doorway" },
+        "^": { "type": "door", "pair_id": "entrance", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "room1", "door_type": "door", "adjective": "right" },
         "=": {
           "type": "container",
           "container_type": "drawer",
@@ -67,9 +67,9 @@
       "darkness": 0.35,
       "objects": [ "<", "E", "=", "^", "", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "corridor2", "display_type": "doorway", "adjective": "right" },
-        ">": { "type": "door", "pair_id": "room2", "display_type": "door" },
+        "<": { "type": "door", "pair_id": "corridor1", "door_type": "doorway", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "corridor2", "door_type": "doorway", "adjective": "right" },
+        ">": { "type": "door", "pair_id": "room2", "door_type": "door" },
         "=": {
           "type": "container",
           "container_type": "drawer",
@@ -87,9 +87,9 @@
       "darkness": 0.35,
       "objects": [ "<", "p", "^", "", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "corridor2", "display_type": "doorway" },
-        ">": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "side", "door_type": "door", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "corridor2", "door_type": "doorway" },
+        ">": { "type": "door", "pair_id": "room3", "door_type": "door", "adjective": "right" },
         "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }
       }
     },
@@ -100,9 +100,9 @@
       "darkness": 0.35,
       "objects": [ "^", "", "v", "T%" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "room1", "door_type": "door" },
         "T": { "type": "inanimate", "model": "environment/table" },
-        "v": { "type": "door", "pair_id": "stairs", "display_type": "downward_stairs" }
+        "v": { "type": "door", "pair_id": "stairs", "door_type": "downward_stairs" }
       }
     },
     {
@@ -112,7 +112,7 @@
       "darkness": 0.35,
       "objects": [ "^", ">", "", "" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "room2", "door_type": "door" },
         ">": { "type": "furnish", "template": "utility_room_x3" }
       }
     },
@@ -123,8 +123,8 @@
       "darkness": 0.35,
       "objects": [ "<", "G", "#", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "storage", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "room3", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "storage", "door_type": "door", "adjective": "right" },
         "#": {
           "type": "container",
           "container_type": "chest",
@@ -143,7 +143,7 @@
       "darkness": 0.5,
       "objects": [ "^", "%", "#" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "storage", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "storage", "door_type": "door" },
         "#": {
           "type": "container",
           "container_type": "chest",
@@ -161,8 +161,8 @@
       "darkness": 0.6,
       "objects": [ "<", "", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "stairs", "display_type": "upward_stairs" },
-        "<": { "type": "door", "pair_id": "basement_entrance", "display_type": "door" }
+        "^": { "type": "door", "pair_id": "stairs", "door_type": "upward_stairs" },
+        "<": { "type": "door", "pair_id": "basement_entrance", "door_type": "door" }
       }
     },
     {
@@ -172,9 +172,9 @@
       "darkness": 0.6,
       "objects": [ "<", "^", "CM", ":T", "c", ">" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "basement_entrance", "display_type": "door", "adjective": "right" },
-        "^": { "type": "door", "pair_id": "basement_side", "display_type": "doorway" },
-        "<": { "type": "door", "pair_id": "basement1", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "basement_entrance", "door_type": "door", "adjective": "right" },
+        "^": { "type": "door", "pair_id": "basement_side", "door_type": "doorway" },
+        "<": { "type": "door", "pair_id": "basement1", "door_type": "door", "adjective": "left" },
         "M": {
           "type": "creature",
           "creature": "blood_mantis",
@@ -193,7 +193,7 @@
       "darkness": 0.6,
       "objects": [ "^", "#", "I" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "basement_side", "display_type": "doorway" },
+        "^": { "type": "door", "pair_id": "basement_side", "door_type": "doorway" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -220,8 +220,8 @@
       "darkness": 0.6,
       "objects": [ "<", "=E", "E", ">" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "basement1", "display_type": "door", "adjective": "right" },
-        "<": { "type": "door", "pair_id": "basement2", "display_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "basement1", "door_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "basement2", "door_type": "door", "adjective": "left" },
         "=": {
           "type": "container",
           "container_type": "drawer",
@@ -239,7 +239,7 @@
       "darkness": 0.6,
       "objects": [ "B", "", "^", "#" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "basement2", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "basement2", "door_type": "door" },
         "#": {
           "type": "container",
           "container_type": "chest",

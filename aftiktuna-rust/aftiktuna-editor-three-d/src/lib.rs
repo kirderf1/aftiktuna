@@ -294,7 +294,10 @@ pub fn object_from_symbol(
         },
         SymbolData::Door(door_spawn_data) => ObjectRenderData {
             coord,
-            model_id: door_spawn_data.display_type.into(),
+            model_id: door_spawn_data
+                .model
+                .clone()
+                .unwrap_or_else(|| door_spawn_data.door_type.into()),
             hash: 0,
             is_controlled: false,
             name_data: None,

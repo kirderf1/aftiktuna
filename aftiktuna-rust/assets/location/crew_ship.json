@@ -8,8 +8,8 @@
       "objects": [ "#", "", "v", "<", ">" ],
       "symbols": {
         "#": { "type": "ship_controls", "direction": "right" },
-        "<": { "type": "door", "pair_id": "storage", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "quarters", "display_type": "door", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "storage", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "quarters", "door_type": "door", "adjective": "right" }
       }
     },
     {
@@ -18,7 +18,7 @@
       "background": "facility_size3",
       "objects": [ "=%", "^", "#" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "storage", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "storage", "door_type": "door" },
         "=": { "type": "food_deposit" },
         "#": {
           "type": "container",
@@ -37,7 +37,7 @@
       "background": "facility_size4",
       "objects": [ "B", "=:", "^", "p" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "quarters", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "quarters", "door_type": "door" },
         "=": { "type": "ship_dialogue_spot" },
         "B": { "type": "inanimate", "model": "environment/bed", "direction": "left" },
         ":": { "type": "furnish", "template": "poster" },

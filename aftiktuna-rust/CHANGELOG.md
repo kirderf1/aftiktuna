@@ -35,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Tweaks to ship dialogue and how it is handled
 - Fleeing entities no longer actively block opponents
 - Item usage is now declared in `item_types.json`, making it one step less hardcoded
+- Changes to door symbol data display types
 
 ### Fixed
 

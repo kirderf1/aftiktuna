@@ -122,15 +122,16 @@ pub(super) fn place(
     {
         let DoorSpawnData {
             pair_id,
-            display_type,
+            door_type,
+            model,
             adjective,
         } = spawn_data;
 
         let door_info = DoorInfo {
             pos,
-            model_id: ModelId::from(*display_type),
-            kind: DoorKind::from(*display_type),
-            noun: display_type.noun_id(),
+            model_id: model.clone().unwrap_or_else(|| ModelId::from(*door_type)),
+            kind: DoorKind::from(*door_type),
+            noun: door_type.noun_id(),
             adjective: adjective.map(|adjective| Adjective(adjective.word().to_owned())),
         };
 

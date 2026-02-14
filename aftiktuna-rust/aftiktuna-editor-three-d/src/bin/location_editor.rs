@@ -433,7 +433,8 @@ mod ui {
                         new_char: String::new(),
                         symbol_data: SymbolData::Door(DoorSpawnData {
                             pair_id: String::default(),
-                            display_type: DoorType::Door,
+                            door_type: DoorType::Door,
+                            model: None,
                             adjective: None,
                         }),
                     })
@@ -559,15 +560,16 @@ mod ui {
             }
             SymbolData::Door(DoorSpawnData {
                 pair_id: _,
-                display_type,
+                door_type,
+                model,
                 adjective,
             }) => {
                 egui::ComboBox::from_label("Door Type")
-                    .selected_text(format!("{display_type:?}"))
+                    .selected_text(format!("{door_type:?}"))
                     .show_ui(ui, |ui| {
                         for selectable_type in DoorType::variants() {
                             ui.selectable_value(
-                                display_type,
+                                door_type,
                                 *selectable_type,
                                 format!("{selectable_type:?}"),
                             );

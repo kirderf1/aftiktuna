@@ -5,9 +5,9 @@
       "pos_in_overview": [ 0, -1 ],
       "objects": [ "Ks", "<nn", "v", "^", ">", "cB" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "goblin", "display_type": "door", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "eyesaur", "display_type": "door", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "azureclops", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "goblin", "door_type": "door", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "eyesaur", "door_type": "door", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "azureclops", "door_type": "door", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
         "K": { "type": "item", "item": "knife" },
         "B": { "type": "item", "item": "bat" },
@@ -20,7 +20,7 @@
       "pos_in_overview": [ -8, 2 ],
       "objects": [ "G", "", "^", "G", "" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "goblin", "display_type": "door" }
+        "^": { "type": "door", "pair_id": "goblin", "door_type": "door" }
       }
     },
     {
@@ -28,7 +28,7 @@
       "pos_in_overview": [ 0, 3 ],
       "objects": [ "", "", "^", "", "E" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "eyesaur", "display_type": "door" }
+        "^": { "type": "door", "pair_id": "eyesaur", "door_type": "door" }
       }
     },
     {
@@ -36,7 +36,7 @@
       "pos_in_overview": [ 8, 2 ],
       "objects": [ "", "", "^", "", "Z" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "azureclops", "display_type": "door" }
+        "^": { "type": "door", "pair_id": "azureclops", "door_type": "door" }
       }
     }
   ],

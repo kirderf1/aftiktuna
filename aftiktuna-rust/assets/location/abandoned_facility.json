@@ -14,7 +14,7 @@
       ],
       "objects": [ ".v", "-", ":^", "-", "-v", "," ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "entrance", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "entrance", "door_type": "door" },
         ".": { "type": "inanimate", "model": "path/left_end" },
         ",": { "type": "inanimate", "model": "path/right_end" },
         ":": { "type": "inanimate", "model": "path/crossroad" }
@@ -27,9 +27,9 @@
       "darkness": 0.35,
       "objects": [ "#", "<", ":", "^", "", ">", "p" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "sealed", "display_type": "door", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "corridor1", "display_type": "doorway" },
-        ">": { "type": "door", "pair_id": "entrance", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "sealed", "door_type": "door", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "corridor1", "door_type": "doorway" },
+        ">": { "type": "door", "pair_id": "entrance", "door_type": "door", "adjective": "right" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -49,9 +49,9 @@
       "darkness": 0.35,
       "objects": [ "<", "", "^", "E", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "corridor1", "display_type": "doorway", "adjective": "left" },
-        "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
-        ">": { "type": "door", "pair_id": "corridor2", "display_type": "doorway", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "corridor1", "door_type": "doorway", "adjective": "left" },
+        "^": { "type": "door", "pair_id": "room1", "door_type": "door" },
+        ">": { "type": "door", "pair_id": "corridor2", "door_type": "doorway", "adjective": "right" }
       }
     },
     {
@@ -61,9 +61,9 @@
       "darkness": 0.35,
       "objects": [ "<", "", "^", "", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "corridor2", "display_type": "doorway" },
-        "^": { "type": "door", "pair_id": "room2", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "room3", "display_type": "door", "adjective": "right" }
+        "<": { "type": "door", "pair_id": "corridor2", "door_type": "doorway" },
+        "^": { "type": "door", "pair_id": "room2", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "room3", "door_type": "door", "adjective": "right" }
       }
     },
     {
@@ -73,7 +73,7 @@
       "darkness": 0.35,
       "objects": [ ">", "", "", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "room1", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "room1", "door_type": "door" },
         ">": { "type": "furnish", "template": "utility_room_x3" }
       }
     },
@@ -84,7 +84,7 @@
       "darkness": 0.35,
       "objects": [ ">", "", "", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "room2", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "room2", "door_type": "door" },
         ">": { "type": "furnish", "template": "utility_room_x3" }
       }
     },
@@ -95,7 +95,7 @@
       "darkness": 0.35,
       "objects": [ "^", "p", "E", "f=" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "room3", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "room3", "door_type": "door" },
         "=": {
           "type": "container",
           "container_type": "drawer",
@@ -114,7 +114,7 @@
       "darkness": 0.35,
       "objects": [ "v", "T", "^", "#" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "sealed", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "sealed", "door_type": "door" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -123,7 +123,7 @@
           ],
           "direction": "right"
         },
-        "v": { "type": "door", "pair_id": "stairs", "display_type": "downward_stairs" },
+        "v": { "type": "door", "pair_id": "stairs", "door_type": "downward_stairs" },
         "T": { "type": "inanimate", "model": "environment/broken_table" }
       }
     },
@@ -134,10 +134,10 @@
       "darkness": 0.6,
       "objects": [ "", "^", "<", "Z", "*", "F", ">" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "stairs", "display_type": "upward_stairs" },
-        "<": { "type": "door", "pair_id": "basement_a", "display_type": "door", "adjective": "left" },
-        "*": { "type": "door", "pair_id": "basement_b1", "display_type": "door", "adjective": "middle" },
-        ">": { "type": "door", "pair_id": "basement_c", "display_type": "door", "adjective": "right" },
+        "^": { "type": "door", "pair_id": "stairs", "door_type": "upward_stairs" },
+        "<": { "type": "door", "pair_id": "basement_a", "door_type": "door", "adjective": "left" },
+        "*": { "type": "door", "pair_id": "basement_b1", "door_type": "door", "adjective": "middle" },
+        ">": { "type": "door", "pair_id": "basement_c", "door_type": "door", "adjective": "right" },
         "Z": {
           "type": "creature",
           "creature": "azureclops",
@@ -153,7 +153,7 @@
       "darkness": 0.6,
       "objects": [ "#", "", ":B", "", "B", "^" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "basement_a", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "basement_a", "door_type": "door" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -174,8 +174,8 @@
       "darkness": 0.6,
       "objects": [ "", "<", "TZ", ":c", ">" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "basement_b1", "display_type": "door" },
-        ">": { "type": "door", "pair_id": "basement_b2", "display_type": "doorway" },
+        "<": { "type": "door", "pair_id": "basement_b1", "door_type": "door" },
+        ">": { "type": "door", "pair_id": "basement_b2", "door_type": "doorway" },
         "T": { "type": "inanimate", "model": "environment/broken_table" },
         "c": { "type": "inanimate", "model": "environment/chair", "direction": "left" },
         ":": { "type": "inanimate", "model": "environment/aftik_poster" }
@@ -188,7 +188,7 @@
       "darkness": 0.6,
       "objects": [ "#", "^", "f" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "basement_b2", "display_type": "doorway" },
+        "^": { "type": "door", "pair_id": "basement_b2", "door_type": "doorway" },
         "#": {
           "type": "container",
           "container_type": "crate",
@@ -206,7 +206,7 @@
       "darkness": 0.6,
       "objects": [ "G", "^", "G", "I!" ],
       "symbols": {
-        "^": { "type": "door", "pair_id": "basement_c", "display_type": "door" },
+        "^": { "type": "door", "pair_id": "basement_c", "door_type": "door" },
         "I": {
           "type": "container",
           "container_type": "cabinet",

@@ -53,15 +53,16 @@
       "properties": {
         "type": { "const": "door" },
         "pair_id": { "$ref": "./name_id.json" },
-        "display_type": {
-          "enum": [ "door", "door_simple", "doorway", "upward_stairs", "downward_stairs", "shack", "house", "house_simple", "store", "store_simple", "path", "left_path", "right_path", "crossroad_path" ]
+        "door_type": {
+          "enum": [ "door", "doorway", "upward_stairs", "downward_stairs", "shack", "house", "store", "path" ]
         },
+        "model": { "$ref": "./name_path.json" },
         "adjective": {
           "enum": [ "left", "middle", "right" ]
         }
       },
       "additionalProperties": false,
-      "required": [ "pair_id", "display_type" ]
+      "required": [ "pair_id", "door_type" ]
     },
     {
       "properties": {

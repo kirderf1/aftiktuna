@@ -279,36 +279,24 @@ pub struct DoorPairData {
 #[serde(rename_all = "snake_case")]
 pub enum DoorType {
     Door,
-    DoorSimple,
     Doorway,
     UpwardStairs,
     DownwardStairs,
     Shack,
     House,
-    HouseSimple,
     Store,
-    StoreSimple,
     Path,
-    LeftPath,
-    RightPath,
-    CrossroadPath,
 }
 
 impl From<DoorType> for ModelId {
     fn from(value: DoorType) -> Self {
         ModelId::new(match value {
             DoorType::Door | DoorType::House | DoorType::Store => "door/door",
-            DoorType::DoorSimple | DoorType::HouseSimple | DoorType::StoreSimple => {
-                "door/door_simple"
-            }
             DoorType::Doorway => "door/doorway",
             DoorType::UpwardStairs => "door/upward_stairs",
             DoorType::DownwardStairs => "door/downward_stairs",
             DoorType::Shack => "door/shack",
             DoorType::Path => "path",
-            DoorType::LeftPath => "path/left_corner",
-            DoorType::RightPath => "path/right_corner",
-            DoorType::CrossroadPath => "path/crossroad",
         })
     }
 }
@@ -317,18 +305,13 @@ impl From<DoorType> for DoorKind {
     fn from(value: DoorType) -> Self {
         match value {
             DoorType::Door
-            | DoorType::DoorSimple
             | DoorType::Doorway
             | DoorType::UpwardStairs
             | DoorType::DownwardStairs
             | DoorType::Shack
             | DoorType::House
-            | DoorType::HouseSimple
-            | DoorType::Store
-            | DoorType::StoreSimple => DoorKind::Door,
-            DoorType::Path | DoorType::LeftPath | DoorType::RightPath | DoorType::CrossroadPath => {
-                DoorKind::Path
-            }
+            | DoorType::Store => DoorKind::Door,
+            DoorType::Path => DoorKind::Path,
         }
     }
 }
@@ -338,32 +321,26 @@ impl DoorType {
         use DoorType::*;
         &[
             Door,
-            DoorSimple,
             Doorway,
             UpwardStairs,
             DownwardStairs,
             Shack,
             House,
-            HouseSimple,
             Store,
-            StoreSimple,
             Path,
-            LeftPath,
-            RightPath,
-            CrossroadPath,
         ]
     }
 
     pub fn noun_id(self) -> NounId {
         match self {
-            Self::Door | Self::DoorSimple => "door",
+            Self::Door => "door",
             Self::Doorway => "doorway",
             Self::UpwardStairs => "upward_stairs",
             Self::DownwardStairs => "downward_stairs",
             Self::Shack => "shack",
-            Self::House | Self::HouseSimple => "house",
-            Self::Store | Self::StoreSimple => "store",
-            Self::Path | Self::LeftPath | Self::RightPath | Self::CrossroadPath => "path",
+            Self::House => "house",
+            Self::Store => "store",
+            Self::Path => "path",
         }
         .into()
     }
@@ -395,7 +372,9 @@ impl DoorAdjective {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct DoorSpawnData {
     pub pair_id: String,
-    pub display_type: DoorType,
+    pub door_type: DoorType,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<ModelId>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub adjective: Option<DoorAdjective>,
 }

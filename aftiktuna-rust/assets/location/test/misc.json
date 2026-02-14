@@ -5,8 +5,8 @@
       "pos_in_overview": [ -1, 2 ],
       "objects": [ "<", "", "", "v", "###", ">c" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "left", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "right", "door_type": "door", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
         "#": { "type": "item", "item": "odd_hand_mirror" }
       }
@@ -16,8 +16,8 @@
       "pos_in_overview": [ -2, 14 ],
       "objects": [ "P", "", "<", ">", "f", "f" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "left", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "left", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "side", "door_type": "door", "adjective": "right" },
         "P": {
           "type": "character",
           "profile": { "type": "random", "species": "pagepoh" },
@@ -30,8 +30,8 @@
       "pos_in_overview": [ 5, 6 ],
       "objects": [ "b", "", "", "G", "", "<", "", "", ">", "", "", "" ],
       "symbols": {
-        "<": { "type": "door", "pair_id": "right", "display_type": "door", "adjective": "left" },
-        ">": { "type": "door", "pair_id": "side", "display_type": "door", "adjective": "right" },
+        "<": { "type": "door", "pair_id": "right", "door_type": "door", "adjective": "left" },
+        ">": { "type": "door", "pair_id": "side", "door_type": "door", "adjective": "right" },
         "b": { "type": "item", "item": "blowtorch" }
       }
     }

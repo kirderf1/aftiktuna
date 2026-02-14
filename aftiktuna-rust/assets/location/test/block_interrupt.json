@@ -5,7 +5,7 @@
       "pos_in_overview": [ -4, -2 ],
       "objects": [ "v", "", "kc<", ">" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "stuck", "display_type": "door" },
+        ">": { "type": "door", "pair_id": "stuck", "door_type": "door" },
         "c": { "type": "item", "item": "crowbar" }
       }
     },
@@ -14,7 +14,7 @@
       "pos_in_overview": [ -2, 2 ],
       "objects": [ "<", "K>", "E", "G" ],
       "symbols": {
-        ">": { "type": "door", "pair_id": "stuck", "display_type": "door" },
+        ">": { "type": "door", "pair_id": "stuck", "door_type": "door" },
         "K": { "type": "item", "item": "knife" }
       }
     }
