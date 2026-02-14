@@ -231,6 +231,7 @@
               { "item": "fuel_can" },
               { "item": "bat", "quantity": 2 },
               { "item": "blowtorch", "quantity": 1 },
+              { "loot_table": "store_artefact", "quantity": 1 },
               { "item": "medkit", "quantity": 2 },
               { "item": "food_ration", "quantity": 10 }
             ]

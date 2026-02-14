@@ -1,8 +1,7 @@
 [
-  { "item": "blowtorch", "weight": 3 },
   { "item": "sword", "weight": 2 },
   { "item": "black_orb", "weight": 2 },
-  { "item": "four_leaf_clover", "weight": 2 },
+  { "item": "four_leaf_clover", "weight": 4 },
   { "item": "odd_hand_mirror", "weight": 2 },
   { "item": "cursed_nail", "weight": 2 }
 ]

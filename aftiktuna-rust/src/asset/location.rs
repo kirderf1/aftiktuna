@@ -1,4 +1,5 @@
 pub mod creature {
+    use crate::asset::loot::LootTableId;
     use crate::asset::profile::ProfileOrRandom;
     use crate::core::behavior::{self, BackgroundDialogue, GivesHuntRewardData, Reward, Wandering};
     use crate::core::display::SpeciesColorId;
@@ -136,8 +137,16 @@ pub mod creature {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum ItemOrLootTable {
+        Item(ItemTypeId),
+        LootTable(LootTableId),
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct StockDefinition {
-        pub item: ItemTypeId,
+        #[serde(flatten)]
+        pub item_or_loot_table: ItemOrLootTable,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub price: Option<item::Price>,
         #[serde(default, skip_serializing_if = "Option::is_none")]

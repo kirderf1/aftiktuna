@@ -1,8 +1,9 @@
 use super::LocationGenContext;
 use crate::asset::location::creature::{
-    AttributeChoice, CharacterCorpseData, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
-    StockDefinition,
+    AttributeChoice, CharacterCorpseData, CharacterInteraction, CreatureSpawnData, ItemOrLootTable,
+    NpcSpawnData, StockDefinition,
 };
+use crate::asset::loot::LootTableCache;
 use crate::asset::profile::CharacterProfile;
 use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap, SpeciesKind};
 use crate::core::behavior::{
@@ -125,6 +126,7 @@ pub(super) fn place_npc(
     spawn_data: &NpcSpawnData,
     pos: Pos,
     gen_context: &mut LocationGenContext,
+    loot_table_cache: &mut LootTableCache,
 ) -> Result<(), String> {
     let NpcSpawnData {
         profile,
@@ -176,7 +178,14 @@ pub(super) fn place_npc(
         CharacterInteraction::Shopkeeper { stock } => {
             let stock = stock
                 .iter()
-                .map(|stock| build_stock(stock, gen_context.assets))
+                .map(|stock| {
+                    build_stock(
+                        stock,
+                        &mut gen_context.rng,
+                        loot_table_cache,
+                        gen_context.assets,
+                    )
+                })
                 .collect::<Result<Vec<_>, String>>()?;
             builder.add(Shopkeeper(stock));
         }
@@ -358,12 +367,20 @@ fn species_builder_base(
 
 fn build_stock(
     StockDefinition {
-        item,
+        item_or_loot_table,
         price,
         quantity,
     }: &StockDefinition,
+    rng: &mut impl Rng,
+    loot_table_cache: &mut LootTableCache,
     assets: &GameAssets,
 ) -> Result<StoreStock, String> {
+    let item = match item_or_loot_table {
+        ItemOrLootTable::Item(item) => item,
+        ItemOrLootTable::LootTable(loot_table_id) => loot_table_cache
+            .get_or_load(loot_table_id)?
+            .pick_loot_item(rng),
+    };
     let price = price
         .or_else(|| assets.item_type_map.get(item).and_then(|data| data.price))
         .ok_or_else(|| {

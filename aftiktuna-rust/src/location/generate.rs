@@ -161,7 +161,12 @@ fn place_symbol(
         SymbolData::Creature(creature_data) => {
             creature::place_creature(creature_data, pos, builder.gen_context)?
         }
-        SymbolData::Character(npc_data) => creature::place_npc(npc_data, pos, builder.gen_context)?,
+        SymbolData::Character(npc_data) => creature::place_npc(
+            npc_data,
+            pos,
+            builder.gen_context,
+            &mut builder.loot_table_cache,
+        )?,
         SymbolData::CharacterCorpse(aftik_corpse_data) => {
             creature::place_corpse(aftik_corpse_data, pos, builder.gen_context)?
         }

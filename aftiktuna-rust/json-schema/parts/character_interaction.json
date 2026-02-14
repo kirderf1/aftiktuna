@@ -45,13 +45,26 @@
           "type": "array",
           "items": {
             "type": "object",
-            "properties": {
-              "item": { "$ref": "./name_id.json" },
-              "price": { "type": "integer", "minimum": 0 },
-              "quantity": { "type": "integer", "minimum": 0 }
-            },
-            "additionalProperties": false,
-            "required": [ "item" ]
+            "oneOf": [
+              {
+                "properties": {
+                  "item": { "$ref": "./name_id.json" },
+                  "price": { "type": "integer", "minimum": 0 },
+                  "quantity": { "type": "integer", "minimum": 0 }
+                },
+                "additionalProperties": false,
+                "required": [ "item" ]
+              },
+              {
+                "properties": {
+                  "loot_table": { "$ref": "./name_path.json" },
+                  "price": { "type": "integer", "minimum": 0 },
+                  "quantity": { "type": "integer", "minimum": 0 }
+                },
+                "additionalProperties": false,
+                "required": [ "loot_table" ]
+              }
+            ]
           }
         }
       },

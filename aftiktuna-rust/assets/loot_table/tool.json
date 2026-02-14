@@ -1,5 +1,6 @@
 [
   { "item": "crowbar", "weight": 3 },
-  { "item": "knife", "weight": 7 },
+  { "item": "blowtorch", "weight": 1 },
+  { "item": "knife", "weight": 5 },
   { "item": "bat", "weight": 4 }
 ]

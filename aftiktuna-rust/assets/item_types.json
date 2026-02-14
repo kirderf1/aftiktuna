@@ -6,7 +6,7 @@
     "price": 2000,
     "extra_description": "Used to force open doors that are stuck."
   },
-  "blowtorch": { "price": 6000, "extra_description": "Used to cut apart any door that won't open.", "shop_description": "A blowtorch such as this is great for cutting tough things apart. I have heard that some people use it to explore abandoned buildings." },
+  "blowtorch": { "price": 4000, "extra_description": "Used to cut apart any door that won't open.", "shop_description": "A blowtorch such as this is great for cutting tough things apart. I have heard that some people use it to explore abandoned buildings." },
   "knife": {
     "weapon": { "damage_mod": 3.0, "attack_set": "quick" },
     "price": 300,
@@ -33,7 +33,7 @@
   "black_orb": {
     "usage": {
       "type": "black_orb",
-      "change": { "endurance": 3, "agility": -1, "luck": -1 }
+      "change": { "endurance": 4, "agility": -1, "luck": -1 }
     },
     "price": 8000,
     "extra_description": "A mysterious object that when used, might change the user in some way."
@@ -41,10 +41,14 @@
   "four_leaf_clover": { "extra_description": "A mysterious object said to bring luck to whoever finds it." },
   "odd_hand_mirror": {
     "usage": { "type": "odd_hand_mirror", "sum_change": 1 },
-    "extra_description": "Some sort of artifact in the shape of a hand mirror. Might change whoever looks into it."
+    "price": 6000,
+    "extra_description": "Some sort of artifact in the shape of a hand mirror. Might change whoever looks into it.",
+    "shop_description": "It's not your usual hand mirror. It is some sort of artefact, so it ought to have some special property to it!"
   },
   "cursed_nail": {
     "weapon": { "damage_mod": 2.0, "attack_set": "intense" },
-    "extra_description": "A large and rusted nail. While dented and fragile, it also has a menacing air around it."
+    "price": 4000,
+    "extra_description": "A large and rusted nail. While dented and fragile, it also has a menacing air around it.",
+    "shop_description": "While it looks like a piece of trash, it actually has some magical influences! I'm sure you can find some use for it."
   }
 }
