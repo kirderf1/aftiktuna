@@ -9,7 +9,7 @@ use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap, SpeciesKind};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };
-use crate::core::display::{CreatureVariantSet, SpeciesColorId};
+use crate::core::display::{CreatureVariantSet, ModelId, SpeciesColorId};
 use crate::core::name::Name;
 use crate::core::position::{Direction, Large, OccupiesSpace, Pos};
 use crate::core::status::{
@@ -50,6 +50,7 @@ pub(super) fn place_creature(
     let CreatureSpawnData {
         creature,
         name,
+        custom_model,
         health,
         stats,
         attribute,
@@ -100,6 +101,9 @@ pub(super) fn place_creature(
 
     if let Some(name) = name {
         builder.add(Name::known(name));
+    }
+    if let Some(model) = custom_model {
+        builder.add::<ModelId>(model.clone());
     }
 
     if let Some(tag) = tag.clone() {

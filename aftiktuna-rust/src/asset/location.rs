@@ -2,7 +2,7 @@ pub mod creature {
     use crate::asset::loot::LootTableId;
     use crate::asset::profile::ProfileOrRandom;
     use crate::core::behavior::{self, BackgroundDialogue, GivesHuntRewardData, Reward, Wandering};
-    use crate::core::display::SpeciesColorId;
+    use crate::core::display::{ModelId, SpeciesColorId};
     use crate::core::item::{self, ItemTypeId};
     use crate::core::position::Direction;
     use crate::core::status::{CreatureAttribute, Stats};
@@ -36,6 +36,8 @@ pub mod creature {
         pub creature: SpeciesId,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub name: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub custom_model: Option<ModelId>,
         #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
         pub health: f32,
         #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -114,6 +114,7 @@
           "enum": [ "goblin", "eyesaur", "azureclops", "scarvie", "voracious_frog", "blood_mantis" ]
         },
         "name": { "type": "string" },
+        "custom_model": { "$ref": "./name_path.json" },
         "health": { "type": "number", "minimum": 0, "maximum": 1 },
         "stats": { "$ref": "./stats.json" },
         "attribute": {

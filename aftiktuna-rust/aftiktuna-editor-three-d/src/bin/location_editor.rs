@@ -456,6 +456,7 @@ mod ui {
                         symbol_data: SymbolData::Creature(CreatureSpawnData {
                             creature: SpeciesId::from("goblin"),
                             name: None,
+                            custom_model: None,
                             health: 1.,
                             stats: None,
                             attribute: AttributeChoice::Random,
@@ -729,6 +730,7 @@ mod ui {
         CreatureSpawnData {
             creature,
             name,
+            custom_model,
             health,
             stats,
             attribute,

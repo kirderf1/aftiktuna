@@ -337,7 +337,10 @@ pub fn object_from_symbol(
             let health = Health::from_fraction(creature_spawn_data.health);
             ObjectRenderData {
                 coord,
-                model_id: creature_spawn_data.creature.model_id(),
+                model_id: creature_spawn_data
+                    .custom_model
+                    .clone()
+                    .unwrap_or_else(|| creature_spawn_data.creature.model_id()),
                 hash: 0,
                 is_controlled: false,
                 name_data: None,
