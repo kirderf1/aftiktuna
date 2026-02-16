@@ -1,11 +1,12 @@
 use super::LocationGenContext;
+use crate::asset::GameAssets;
 use crate::asset::location::creature::{
     AttributeChoice, CharacterCorpseData, CharacterInteraction, CreatureSpawnData, ItemOrLootTable,
     NpcSpawnData, StockDefinition,
 };
 use crate::asset::loot::LootTableCache;
 use crate::asset::profile::CharacterProfile;
-use crate::asset::{GameAssets, SpeciesData, SpeciesDataMap, SpeciesKind};
+use crate::asset::species::{SpeciesData, SpeciesDataMap, SpeciesKind};
 use crate::core::behavior::{
     self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
 };

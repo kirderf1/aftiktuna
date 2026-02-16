@@ -1,6 +1,7 @@
 use crate::action::item::UseAction;
 use crate::action::{Action, ForceDoorAction, TalkAction};
-use crate::asset::{GameAssets, ItemTypeData, SpeciesDataMap};
+use crate::asset::species::SpeciesDataMap;
+use crate::asset::{GameAssets, ItemTypeData};
 use crate::core::area::{self, ShipControls, ShipState, ShipStatus};
 use crate::core::behavior::{
     self, BadlyHurtBehavior, Character, GivesHuntRewardData, Hostile, Intention, ObservationTarget,

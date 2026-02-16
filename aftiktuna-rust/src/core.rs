@@ -8,7 +8,7 @@ pub mod position;
 pub mod status;
 
 pub mod display {
-    use crate::asset::{SpeciesData, WeightedVariant};
+    use crate::asset::species::{SpeciesData, WeightedVariant};
     use rand::distr::Distribution;
     use serde::{Deserialize, Serialize};
     use std::collections::HashSet;
