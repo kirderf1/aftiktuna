@@ -19,7 +19,7 @@
     "primary_color": { "r": 191, "g": 192, "b": 87 },
     "secondary_color": { "r": 102, "g": 169, "b": 100 }
   },
-  "brightgreen_nonrandom": {
+  "brightgreen": {
     "adjective": "bright-green",
     "primary_color": { "r": 148, "g": 216, "b": 0 },
     "secondary_color": { "r": 255, "g": 238, "b": 153 }
@@ -39,7 +39,7 @@
     "primary_color": { "r": 173, "g": 210, "b": 101 },
     "secondary_color": { "r": 177, "g": 255, "b": 181 }
   },
-  "blue_nonrandom": {
+  "blue": {
     "adjective": "blue",
     "primary_color": { "r": 84, "g": 141, "b": 197 },
     "secondary_color": { "r": 153, "g": 223, "b": 255 }

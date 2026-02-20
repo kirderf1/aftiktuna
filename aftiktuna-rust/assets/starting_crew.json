@@ -1,19 +1,7 @@
 {
   "points": 10000,
   "crew": [
-    {
-      "species": "aftik",
-      "name": "Mint",
-      "color": "brightgreen_nonrandom",
-      "stats": { "strength": 10, "endurance": 3, "agility": 8, "luck": 1 },
-      "traits": [ "good_dodger", "fragile" ]
-    },
-    {
-      "species": "aftik",
-      "name": "Cerulean",
-      "color": "blue_nonrandom",
-      "stats": { "strength": 8, "endurance": 2, "agility": 10, "luck": 2 },
-      "traits": []
-    }
+    { "type": "random", "species": "aftik" },
+    { "type": "random", "species": "aftik" }
   ]
 }
