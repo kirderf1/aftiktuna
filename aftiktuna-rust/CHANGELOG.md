@@ -30,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Starting crew is now randomized
 - Visual changes to village buildings and doors
 - Crew will now refuel the ship unprompted
+- More aftik names for random selection
 - Small tweaks to scarvie model
 - Adapted format of layer conditions in model files
 - Location-specific dialogue is no longer defined directly in the location asset

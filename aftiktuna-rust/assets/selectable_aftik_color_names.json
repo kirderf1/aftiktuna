@@ -1,14 +1,14 @@
 {
-  "red": [ "Tomato" ],
-  "yellow": [ "Amber", "Sunny" ],
-  "softyellow": [ "Tangerine" ],
-  "gold": [ "Pear", "Olive" ],
-  "brightgreen": [ "Mint" ],
-  "turquoisegreen": [ "Moss", "Celadon" ],
-  "blue": [ "Cerulean" ],
-  "cyan": [ "Sky" ],
-  "purple": [ "Plum", "Lilac" ],
-  "softpurple": [ "Amethyst" ],
-  "brown": [ "Cinnamon", "Chocolate" ],
-  "grey": [ "Smoke", "Rock" ]
+  "red": [ "Tomato", "Scarlet", "Cherry" ],
+  "yellow": [ "Amber", "Sunny", "Lemon" ],
+  "softyellow": [ "Tangerine", "Egg", "Parmesan" ],
+  "gold": [ "Pear", "Olive", "Fern" ],
+  "brightgreen": [ "Mint", "Lime", "Basil" ],
+  "turquoisegreen": [ "Moss", "Celadon", "Ocean" ],
+  "blue": [ "Cerulean", "Sapphire", "Lapis" ],
+  "cyan": [ "Sky", "Celeste", "Maya" ],
+  "purple": [ "Plum", "Lilac", "Violet" ],
+  "softpurple": [ "Amethyst", "Iris", "Lavender" ],
+  "brown": [ "Cinnamon", "Chocolate", "Cedar" ],
+  "grey": [ "Smoke", "Rock", "Ash" ]
 }
