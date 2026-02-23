@@ -421,7 +421,7 @@ fn color_from_profile(profile: &ProfileOrRandom) -> Option<(SpeciesId, SpeciesCo
 
 fn model_id_from_profile(profile: &ProfileOrRandom) -> ModelId {
     match profile {
-        ProfileOrRandom::Random { species } => species,
+        ProfileOrRandom::Random { species, .. } => species,
         ProfileOrRandom::Profile(character_profile) => &character_profile.species,
     }
     .model_id()

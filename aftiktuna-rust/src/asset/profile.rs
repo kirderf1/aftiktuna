@@ -6,21 +6,29 @@ use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum StatsOrRandom {
-    #[default]
-    Random,
+    Random {
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        stats_bonus: i16,
+    },
     #[serde(untagged)]
     Stats(Stats),
 }
 
 impl StatsOrRandom {
-    pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce() -> Stats) -> Stats {
+    pub(crate) fn unwrap_or_else(self, random_selection: impl FnOnce(i16) -> Stats) -> Stats {
         match self {
-            Self::Random => random_selection(),
+            Self::Random { stats_bonus } => random_selection(stats_bonus),
             Self::Stats(stats) => stats,
         }
+    }
+}
+
+impl Default for StatsOrRandom {
+    fn default() -> Self {
+        Self::Random { stats_bonus: 0 }
     }
 }
 
@@ -56,6 +64,8 @@ pub struct CharacterProfile {
 pub enum ProfileOrRandom {
     Random {
         species: SpeciesId,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        stats_bonus: i16,
     },
     #[serde(untagged)]
     Profile(CharacterProfile),
@@ -71,10 +81,14 @@ impl ProfileOrRandom {
         query_used_colors: impl FnOnce(&SpeciesId) -> Vec<&'a SpeciesColorId>,
     ) -> Option<CharacterProfile> {
         match self {
-            ProfileOrRandom::Random { species } => {
+            ProfileOrRandom::Random {
+                species,
+                stats_bonus,
+            } => {
                 let used_colors = query_used_colors(&species);
                 random_profile(
                     species,
+                    StatsOrRandom::Random { stats_bonus },
                     &used_colors,
                     character_names,
                     aftik_color_names,
@@ -89,6 +103,7 @@ impl ProfileOrRandom {
 
 pub(crate) fn random_profile(
     species_id: SpeciesId,
+    stats: StatsOrRandom,
     used_colors: &[&SpeciesColorId],
     character_names: &mut Vec<String>,
     aftik_color_names: &mut HashMap<SpeciesColorId, Vec<String>>,
@@ -119,7 +134,7 @@ pub(crate) fn random_profile(
         species: species_id,
         name,
         color,
-        stats: StatsOrRandom::Random,
+        stats,
         traits: TraitsOrRandom::Random,
     })
 }

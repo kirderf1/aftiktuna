@@ -6,7 +6,8 @@
         "type": { "const": "random" },
         "species": {
           "enum": [ "aftik", "pagepoh" ]
-        }
+        },
+        "stats_bonus": { "type": "integer" }
       },
       "additionalProperties": false,
       "required": [ "type", "species" ]
@@ -30,7 +31,13 @@
         "traits": {
           "oneOf": [
             {
-              "const": { "type": "random" }
+              "type": "object",
+              "properties": {
+                "type": { "const": "random" },
+                "stats_bonus": { "type": "integer" }
+              },
+              "additionalProperties": false,
+              "required": [ "type" ]
             },
             {
               "type": "array",

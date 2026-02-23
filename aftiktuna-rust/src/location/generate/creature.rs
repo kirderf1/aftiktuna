@@ -279,8 +279,9 @@ pub(crate) fn character_builder_with_stats(
     };
 
     let traits = traits.unwrap_or_else(|| random_traits(rng));
-    let stats =
-        stats.unwrap_or_else(|| random_stats_from_base(species_data.default_stats, &traits, rng));
+    let stats = stats.unwrap_or_else(|stats_bonus| {
+        random_stats_from_base(species_data.default_stats, stats_bonus, &traits, rng)
+    });
     let mut builder = species_builder_base(species, species_data, rng);
     builder
         .add::<SpeciesColorId>(color)
@@ -321,12 +322,19 @@ fn random_traits(rng: &mut impl Rng) -> Traits {
     traits.into()
 }
 
-fn random_stats_from_base(mut stats: Stats, traits: &Traits, rng: &mut impl Rng) -> Stats {
+fn random_stats_from_base(
+    mut stats: Stats,
+    stats_bonus: i16,
+    traits: &Traits,
+    rng: &mut impl Rng,
+) -> Stats {
     let change_from_traits: i16 = traits
         .sorted_iter()
         .map(Trait::effect_on_generated_stats)
         .sum();
-    let stats_sum_target = Stats::CHARACTER_STATS_SUM_TARGET + change_from_traits;
+    let stats_sum_target = Stats::CHARACTER_STATS_SUM_TARGET
+        .saturating_add(change_from_traits)
+        .saturating_add(stats_bonus);
     while stats.sum() < stats_sum_target {
         let Ok(ChangedStats) = stats.adjust_random_in_bounds(1, rng) else {
             break;

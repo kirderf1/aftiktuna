@@ -133,7 +133,7 @@
         "c": { "type": "creature", "creature": "eyesaur", "health": 0.0, "attribute": "none", "direction": "right" },
         "A": {
           "type": "character",
-          "profile": { "type": "random", "species": "aftik" },
+          "profile": { "type": "random", "species": "aftik", "stats_bonus": 2 },
           "background": "forest_ship_crash",
           "interaction": { "type": "recruitable" },
           "wielded_item": "crowbar"
