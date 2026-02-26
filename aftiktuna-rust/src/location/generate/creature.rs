@@ -136,6 +136,7 @@ pub(super) fn place_npc(
     let NpcSpawnData {
         profile,
         health,
+        morale,
         tag,
         background,
         interaction,
@@ -163,7 +164,8 @@ pub(super) fn place_npc(
     builder
         .add::<Pos>(pos)
         .add::<Direction>(direction)
-        .add(Health::from_fraction(*health));
+        .add(Health::from_fraction(*health))
+        .add(Morale::init(*morale));
     if let Some(tag) = tag.clone() {
         builder.add::<Tag>(tag);
     }

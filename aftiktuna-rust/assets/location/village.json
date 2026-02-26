@@ -244,6 +244,7 @@
           "type": "character",
           "profile": { "type": "random", "species": "aftik", "stats_bonus": 3 },
           "health": 0.4,
+          "morale": -10,
           "background": "village_attack_survivor",
           "interaction": { "type": "recruitable" }
         },

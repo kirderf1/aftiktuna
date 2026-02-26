@@ -140,6 +140,7 @@
         "type": { "const": "character" },
         "profile": { "$ref": "./profile_or_random.json" },
         "health": { "type": "number", "minimum": 0, "maximum": 1 },
+        "morale": { "type": "number" },
         "tag": { "$ref": "./name_id.json" },
         "background": { "$ref": "./name_id.json" },
         "interaction": { "$ref": "./character_interaction.json" },

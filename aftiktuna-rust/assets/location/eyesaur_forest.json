@@ -134,6 +134,7 @@
         "A": {
           "type": "character",
           "profile": { "type": "random", "species": "aftik", "stats_bonus": 2 },
+          "morale": -6,
           "background": "forest_ship_crash",
           "interaction": { "type": "recruitable" },
           "wielded_item": "crowbar"

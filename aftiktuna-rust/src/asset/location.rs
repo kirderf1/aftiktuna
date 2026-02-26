@@ -116,6 +116,8 @@ pub mod creature {
         pub profile: ProfileOrRandom,
         #[serde(default = "full_health", skip_serializing_if = "is_full_health")]
         pub health: f32,
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub morale: f32,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub tag: Option<Tag>,
         #[serde(default, skip_serializing_if = "Option::is_none")]

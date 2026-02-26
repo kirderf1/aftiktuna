@@ -400,6 +400,20 @@ impl Morale {
     pub const MEDIUM_DEPTH: f32 = 5.;
     pub const DEEP_DEPTH: f32 = 10.;
 
+    pub fn init(value: f32) -> Self {
+        if value >= 0. {
+            Self {
+                positive_value: value,
+                negative_value: 0.,
+            }
+        } else {
+            Self {
+                positive_value: 0.,
+                negative_value: -value,
+            }
+        }
+    }
+
     pub fn value(&self) -> f32 {
         self.positive_value - self.negative_value
     }

@@ -645,6 +645,7 @@ mod ui {
                 let NpcSpawnData {
                     profile,
                     health,
+                    morale,
                     tag,
                     background,
                     interaction,
@@ -654,6 +655,9 @@ mod ui {
                 } = nps_spawn_data.as_mut();
                 ui.label("Health:");
                 ui.add(egui::Slider::new(health, 0.0..=1.0));
+
+                ui.label("Morale:");
+                ui.add(egui::Slider::new(morale, -10.0..=10.0));
 
                 let mut wielding_item = wielded_item.is_some();
                 if ui.checkbox(&mut wielding_item, "Wielding item").changed() {
