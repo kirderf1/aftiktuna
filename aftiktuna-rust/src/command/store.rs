@@ -121,10 +121,10 @@ fn buy(stock: &StoreStock, amount: u16, noun_map: &NounDataMap) -> Result<Comman
 
 fn held_items(world: &World, character: Entity, assets: &GameAssets) -> Vec<(String, Entity)> {
     let mut items = world
-        .query::<(NameQuery, &Held)>()
+        .query::<(Entity, NameQuery, &Held)>()
         .iter()
-        .filter(|(_, (_, held))| held.held_by(character))
-        .map(|(entity, (query, held))| {
+        .filter(|(_, _, held)| held.held_by(character))
+        .map(|(entity, query, held)| {
             (
                 NameData::from_query(query, assets).base(),
                 entity,
@@ -148,10 +148,10 @@ fn held_item_lists_by_plurality(
 ) -> HashMap<String, Vec<Entity>> {
     let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
     world
-        .query::<(NameQuery, &Held)>()
+        .query::<(Entity, NameQuery, &Held)>()
         .iter()
-        .filter(|&(_, (_, held))| held.held_by(character))
-        .for_each(|(entity, (name_query, _))| {
+        .filter(|&(_, _, held)| held.held_by(character))
+        .for_each(|(entity, name_query, _)| {
             let name_data = NameData::from_query(name_query, assets);
             let name = if plural {
                 name_data.plural()

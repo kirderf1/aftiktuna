@@ -195,7 +195,7 @@ impl ForceDoorAction {
                 world.remove_one::<BlockType>(door_pair).unwrap();
                 if tool == Tool::Blowtorch {
                     let doors = world
-                        .query::<&Door>()
+                        .query::<(Entity, &Door)>()
                         .iter()
                         .filter(|&(_, door)| door.door_pair == door_pair)
                         .map(|(entity, _)| entity)
@@ -224,7 +224,7 @@ fn on_door_failure(state: &mut GameState, performer: Entity, door: Entity, block
     }
 
     let crew_member = world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<(&CrewMember, &Character)>()
         .iter()
         .find(|&(crew_member, pos)| {

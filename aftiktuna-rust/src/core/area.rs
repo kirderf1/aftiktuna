@@ -66,14 +66,12 @@ pub fn is_in_ship(pos: Pos, world: &World) -> bool {
 }
 
 pub fn is_ship(area: Entity, world: &World) -> bool {
-    world
-        .satisfies::<hecs::Or<&ShipState, &ShipRoom>>(area)
-        .unwrap_or(false)
+    world.satisfies::<hecs::Or<&ShipState, &ShipRoom>>(area)
 }
 
 pub fn fuel_needed_to_launch(world: &World) -> Option<usize> {
     let mut query = world.query::<&ShipState>();
-    let (_, ship_state) = query.iter().next()?;
+    let ship_state = query.iter().next()?;
     let ShipStatus::NeedFuel(fuel_amount) = ship_state.status else {
         return None;
     };

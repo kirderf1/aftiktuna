@@ -108,7 +108,7 @@ pub fn parse(input: &str, state: &GameState, assets: &GameAssets) -> Result<Comm
 
 fn crew_character_targets(world: &World, assets: &GameAssets) -> Vec<(String, Entity)> {
     world
-        .query::<NameQuery>()
+        .query::<(Entity, NameQuery)>()
         .with::<(&CrewMember, &Character)>()
         .iter()
         .map(|(entity, query)| (NameData::from_query(query, assets).base(), entity))
@@ -125,7 +125,7 @@ fn targets_in_room<Q: Query>(
     assets: &GameAssets,
 ) -> Vec<(String, Entity)> {
     world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<Q>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(area))
@@ -143,7 +143,7 @@ fn targets_by_proximity<Q: Query>(
     assets: &GameAssets,
 ) -> Vec<(String, Entity)> {
     let mut targets_with_pos = world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<Q>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(compare_pos.get_area()))
@@ -204,7 +204,7 @@ fn rest(world: &World, character: Entity) -> Result<CommandResult, String> {
         .query::<(&status::Stamina, &Pos)>()
         .with::<&CrewMember>()
         .iter()
-        .any(|(_, (stamina, pos))| pos.is_in(area) && stamina.need_rest());
+        .any(|(stamina, pos)| pos.is_in(area) && stamina.need_rest());
 
     if !need_rest {
         return Err("The crew is already rested.".to_string());
@@ -219,7 +219,7 @@ fn refuel_ship(state: &GameState, assets: &GameAssets) -> Result<CommandResult, 
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let ship_controls = world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&ShipControls>()
         .iter()
         .find(|(_, pos)| pos.is_in(area) && area::is_ship(area, world))
@@ -258,7 +258,7 @@ fn launch_ship(state: &GameState, assets: &GameAssets) -> Result<CommandResult, 
 
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let ship_controls = world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&ShipControls>()
         .iter()
         .find(|(_, pos)| pos.is_in(area) && area::is_ship(area, world))
@@ -301,11 +301,11 @@ fn fortuna_chest_targets(
 ) -> Vec<(String, Entity)> {
     let character_pos = *world.get::<&Pos>(character).unwrap();
     world
-        .query::<(NameQuery, &Pos)>()
+        .query::<(Entity, NameQuery, &Pos)>()
         .with::<&FortunaChest>()
         .iter()
-        .filter(|&(_, (_, pos))| pos.is_in(character_pos.get_area()))
-        .map(|(entity, (query, _))| (NameData::from_query(query, assets).base(), entity))
+        .filter(|&(_, _, pos)| pos.is_in(character_pos.get_area()))
+        .map(|(entity, query, _)| (NameData::from_query(query, assets).base(), entity))
         .collect()
 }
 
@@ -337,19 +337,19 @@ fn placed_item_targets(
 ) -> Vec<(String, Entity)> {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     world
-        .query::<(&Pos, NameQuery)>()
+        .query::<(Entity, &Pos, NameQuery)>()
         .iter()
-        .filter(|&(_, (pos, _))| pos.is_in(area))
-        .map(|(entity, (_, query))| (NameData::from_query(query, assets).base(), entity))
+        .filter(|&(_, pos, _)| pos.is_in(area))
+        .map(|(entity, _, query)| (NameData::from_query(query, assets).base(), entity))
         .collect()
 }
 
 fn held_item_targets(world: &World, holder: Entity, assets: &GameAssets) -> Vec<(String, Entity)> {
     world
-        .query::<(&Held, NameQuery)>()
+        .query::<(Entity, &Held, NameQuery)>()
         .iter()
-        .filter(|&(_, (held, _))| held.held_by(holder))
-        .map(|(entity, (_, query))| (NameData::from_query(query, assets).base(), entity))
+        .filter(|&(_, held, _)| held.held_by(holder))
+        .map(|(entity, _, query)| (NameData::from_query(query, assets).base(), entity))
         .collect()
 }
 
@@ -492,9 +492,8 @@ fn check_adjacent_accessible(
     let target_placement = Placement::from(
         world
             .query_one::<PlacementQuery>(target)
-            .unwrap()
             .get()
-            .ok_or(Inaccessible::NotHere)?,
+            .map_err(|_| Inaccessible::NotHere)?,
     );
     if !character_pos.is_in(target_placement.area()) {
         return Err(Inaccessible::NotHere);

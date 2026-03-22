@@ -416,10 +416,10 @@ pub(super) fn align_aggressiveness(world: &mut World) {
     let areas_with_aggressive_creatures = world
         .query::<(&Pos, &Hostile)>()
         .iter()
-        .filter(|&(_, (_, hostile))| hostile.aggressive)
-        .map(|(_, (pos, _))| pos.get_area())
+        .filter(|&(_, hostile)| hostile.aggressive)
+        .map(|(pos, _)| pos.get_area())
         .collect::<HashSet<_>>();
-    for (_, (pos, hostile)) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
+    for (pos, hostile) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
         hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
 }
@@ -431,7 +431,7 @@ pub(crate) fn used_species_colors<'a>(
     world
         .query_mut::<(&SpeciesColorId, &SpeciesId)>()
         .into_iter()
-        .filter(|&(_, (_, checked_species))| checked_species == expected_species)
-        .map(|(_, (color, _))| color)
+        .filter(|&(_, checked_species)| checked_species == expected_species)
+        .map(|(color, _)| color)
         .collect()
 }

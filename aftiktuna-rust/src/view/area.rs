@@ -142,7 +142,7 @@ pub(super) fn prepare_render_data(state: &GameState, assets: &GameAssets) -> Ren
 
     let objects: Vec<ObjectRenderData> = state
         .world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .iter()
         .filter(|&(_, pos)| pos.is_in(character_pos.get_area()))
         .map(|(entity, pos)| build_object_data(state, entity, pos, assets))
@@ -185,6 +185,7 @@ fn build_object_data(
         species_color: entity_ref
             .query::<(&SpeciesId, &SpeciesColorId)>()
             .get()
+            .ok()
             .map(|(species_id, color_id)| (species_id.clone(), color_id.clone())),
         is_cut: entity_ref.satisfies::<&IsCut>(),
         is_alive: entity_ref

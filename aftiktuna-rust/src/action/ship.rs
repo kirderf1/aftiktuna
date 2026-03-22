@@ -117,8 +117,8 @@ fn refuel_then_launch(
                 .query::<(&Pos, NameQuery)>()
                 .with::<&CrewMember>()
                 .iter()
-                .filter(|&(_, (pos, _))| !area::is_in_ship(*pos, &state.world))
-                .map(|(_, (_, query))| NameData::from_query(query, assets).definite())
+                .filter(|&(pos, _)| !area::is_in_ship(*pos, &state.world))
+                .map(|(_, query)| NameData::from_query(query, assets).definite())
                 .collect::<Vec<_>>();
             if absent_crew.is_empty() {
                 (
@@ -150,7 +150,7 @@ fn lookup_ship_state(state: &GameState, area: Entity) -> Result<(ShipStatus, Pla
         .query::<PlacementQuery>()
         .with::<&ShipControls>()
         .iter()
-        .map(|(_, query)| Placement::from(query))
+        .map(Placement::from)
         .find(|placement| placement.pos.is_in(area) && area::is_ship(area, &state.world))
         .ok_or_else(|| "Must be in the ship control room to do this.".to_string())?;
 

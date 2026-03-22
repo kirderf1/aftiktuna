@@ -199,7 +199,7 @@ pub(crate) mod dialogue {
                 && self
                     .has_crew_loss_memory
                     .is_none_or(|has_crew_loss_memory| {
-                        has_crew_loss_memory == world.satisfies::<&CrewLossMemory>(speaker).unwrap()
+                        has_crew_loss_memory == world.satisfies::<&CrewLossMemory>(speaker)
                     })
                 && self
                     .has_recent_crew_loss_memory

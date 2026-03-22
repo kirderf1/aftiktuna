@@ -358,13 +358,7 @@ pub(crate) fn push_and_move(
 
 /// Expects entity to have both a Pos and a Direction.
 pub(crate) fn turn_towards(world: &World, entity: Entity, target_pos: Pos) {
-    let placement = Placement::from(
-        world
-            .query_one::<PlacementQuery>(entity)
-            .unwrap()
-            .get()
-            .unwrap(),
-    );
+    let placement = Placement::from(world.query_one::<PlacementQuery>(entity).get().unwrap());
     let new_direction = Direction::between(placement.pos, target_pos);
     if placement.direction != new_direction {
         *world.get::<&mut Direction>(entity).unwrap() = new_direction;
@@ -422,7 +416,7 @@ impl Blockage {
         };
         let entity = entities
             .into_iter()
-            .find(|&entity| world.satisfies::<&CrewMember>(entity).unwrap_or(false))
+            .find(|&entity| world.satisfies::<&CrewMember>(entity))
             .ok_or(PushError)?;
         let pos = world
             .get::<&Pos>(entity)
@@ -479,7 +473,7 @@ pub(crate) fn check_is_pos_blocked(
     world: &World,
 ) -> Result<(), Blockage> {
     let entities_at_target = world
-        .query::<PlacementQuery>()
+        .query::<(Entity, PlacementQuery)>()
         .with::<&OccupiesSpace>()
         .iter()
         .filter(|&(entity, query)| {
@@ -503,12 +497,12 @@ fn find_blocking_in_range<Q: hecs::Query>(
     range: impl RangeBounds<Coord>,
 ) -> Option<Entity> {
     world
-        .query::<(PlacementQuery, &OccupiesSpace)>()
+        .query::<(Entity, PlacementQuery, &OccupiesSpace)>()
         .with::<Q>()
         .iter()
-        .find(|&(_, (query, occupies_space))| {
+        .find(|&(_, query, occupies_space)| {
             occupies_space.blocks_opponent
                 && Placement::from(query).overlaps_with_range(area, &range)
         })
-        .map(|(entity, _)| entity)
+        .map(|(entity, _, _)| entity)
 }

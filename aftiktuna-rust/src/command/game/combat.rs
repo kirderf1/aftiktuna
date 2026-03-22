@@ -34,7 +34,7 @@ fn attack_any(
 ) -> Result<CommandResult, String> {
     let area = performer_ref.get::<&Pos>().unwrap().get_area();
     let foes = world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&Hostile>()
         .iter()
         .filter(|&(entity, pos)| pos.is_in(area) && status::is_alive(entity, world))
@@ -59,7 +59,7 @@ pub fn hostile_targets(
     let pos = *world.get::<&Pos>(character).unwrap();
     let mut map: HashMap<String, Vec<Entity>> = HashMap::new();
     world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&Hostile>()
         .iter()
         .filter(|&(entity, target_pos)| {

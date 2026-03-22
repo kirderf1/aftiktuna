@@ -25,7 +25,7 @@ impl TalkAction {
         if !status::is_alive(target, &context.state.world) {
             return Ok(action::Success);
         }
-        if context.state.world.satisfies::<&Hostile>(target).unwrap() {
+        if context.state.world.satisfies::<&Hostile>(target) {
             return Err(Error::private(format!(
                 "{the_target} is not interested in talking.",
                 the_target = NameData::find(
@@ -71,7 +71,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
              state,
              view_context,
          }| {
-            if state.world.satisfies::<&Recruitable>(target).unwrap() {
+            if state.world.satisfies::<&Recruitable>(target) {
                 dialogue::trigger_dialogue_by_name(
                     "recruit",
                     performer,
@@ -83,7 +83,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
                 if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
                     morale.journey_start_effect();
                 }
-                for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+                for morale in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
                     morale.new_crew_member_effect();
                 }
                 state.world.remove_one::<Recruitable>(target).unwrap();
@@ -111,7 +111,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
 
 pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) -> action::Result {
     if !status::is_alive(target, &context.state.world)
-        || context.state.world.satisfies::<&Waiting>(target).unwrap()
+        || context.state.world.satisfies::<&Waiting>(target)
     {
         return Ok(action::Success);
     }
@@ -185,7 +185,7 @@ pub(super) fn tell_to_follow(
     target: Entity,
 ) -> action::Result {
     if !status::is_alive(target, &context.state.world)
-        || !context.state.world.satisfies::<&Waiting>(target).unwrap()
+        || !context.state.world.satisfies::<&Waiting>(target)
     {
         return Ok(action::Success);
     }

@@ -325,7 +325,7 @@ pub(crate) fn load_game(
 }
 
 fn inject_update_data(state: &mut GameState, assets: &GameAssets) {
-    for (_, (species_id, variant_set)) in state
+    for (species_id, variant_set) in state
         .world
         .query_mut::<(&SpeciesId, &mut CreatureVariantSet)>()
     {
@@ -337,7 +337,7 @@ fn inject_update_data(state: &mut GameState, assets: &GameAssets) {
     let mut buffer = hecs::CommandBuffer::new();
     for (entity, species_id) in state
         .world
-        .query_mut::<&SpeciesId>()
+        .query_mut::<(hecs::Entity, &SpeciesId)>()
         .without::<&CreatureVariantSet>()
     {
         if let Some(species_data) = assets.species_data_map.get(species_id) {

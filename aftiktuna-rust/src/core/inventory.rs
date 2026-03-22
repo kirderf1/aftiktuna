@@ -45,14 +45,14 @@ pub fn is_holding(
     world
         .query::<(&ItemTypeId, &Held)>()
         .iter()
-        .any(|(_, (item_type, held))| held.held_by(holder) && item_type_matcher(item_type))
+        .any(|(item_type, held)| held.held_by(holder) && item_type_matcher(item_type))
 }
 
 pub fn is_holding_tool(world: &World, holder: Entity, requested_tool: Tool) -> bool {
     world
         .query::<(&ItemTypeId, &Held)>()
         .iter()
-        .any(|(_, (item_type, held))| held.held_by(holder) && requested_tool.matches(item_type))
+        .any(|(item_type, held)| held.held_by(holder) && requested_tool.matches(item_type))
 }
 
 pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
@@ -64,7 +64,7 @@ pub fn is_in_inventory(world: &World, item: Entity, holder: Entity) -> bool {
 
 pub fn get_held(world: &World, holder: Entity) -> Vec<Entity> {
     world
-        .query::<&Held>()
+        .query::<(Entity, &Held)>()
         .iter()
         .filter(|(_, held)| held.held_by(holder))
         .map(|(entity, _)| entity)
@@ -73,7 +73,7 @@ pub fn get_held(world: &World, holder: Entity) -> Vec<Entity> {
 
 pub fn get_inventory(world: &World, holder: Entity) -> Vec<Entity> {
     world
-        .query::<&Held>()
+        .query::<(Entity, &Held)>()
         .iter()
         .filter(|(_, held)| held.is_in_inventory(holder))
         .map(|(entity, _)| entity)
@@ -82,7 +82,7 @@ pub fn get_inventory(world: &World, holder: Entity) -> Vec<Entity> {
 
 pub fn get_wielded(world: &World, holder: Entity) -> Option<Entity> {
     world
-        .query::<&Held>()
+        .query::<(Entity, &Held)>()
         .iter()
         .find(|(_, held)| held.held_by(holder) && held.in_hand)
         .map(|(item, _)| item)
@@ -93,10 +93,10 @@ pub fn consume_one(
     world: &mut World,
     holder: Entity,
 ) -> Option<()> {
-    let (item, _) = world
-        .query::<(&ItemTypeId, &Held)>()
+    let (item, _, _) = world
+        .query::<(Entity, &ItemTypeId, &Held)>()
         .iter()
-        .find(|&(_, (item_type, held))| held.held_by(holder) && item_type_matcher(item_type))?;
+        .find(|&(_, item_type, held)| held.held_by(holder) && item_type_matcher(item_type))?;
     world.despawn(item).ok()
 }
 
@@ -104,8 +104,8 @@ pub fn unwield_if_needed(world: &mut World, holder: Entity) {
     world
         .query_mut::<&mut Held>()
         .into_iter()
-        .filter(|(_, held)| held.held_by(holder))
-        .for_each(|(_, held)| held.in_hand = false);
+        .filter(|held| held.held_by(holder))
+        .for_each(|held| held.in_hand = false);
 }
 
 pub fn drop_all_items(world: &mut World, entity: Entity) {
@@ -118,14 +118,12 @@ pub fn drop_all_items(world: &mut World, entity: Entity) {
 
 pub fn fuel_cans_held_by_crew(world: &World, excluding_items: &[Entity]) -> usize {
     world
-        .query::<(&ItemTypeId, &Held)>()
+        .query::<(Entity, &ItemTypeId, &Held)>()
         .iter()
-        .filter(|&(item, (item_type, held))| {
+        .filter(|&(item, item_type, held)| {
             item_type.is_fuel_can()
                 && !excluding_items.contains(&item)
-                && world
-                    .satisfies::<&super::CrewMember>(held.holder)
-                    .unwrap_or(false)
+                && world.satisfies::<&super::CrewMember>(held.holder)
         })
         .count()
 }

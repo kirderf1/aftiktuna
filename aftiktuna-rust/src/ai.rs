@@ -24,7 +24,7 @@ use std::ops::Deref;
 pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
 
-    for (entity, occupies_space) in state.world.query::<&mut OccupiesSpace>().iter() {
+    for (entity, occupies_space) in state.world.query::<(Entity, &mut OccupiesSpace)>().iter() {
         occupies_space.blocks_opponent = !has_behavior(
             state.world.entity(entity).unwrap(),
             BadlyHurtBehavior::Fearful,
@@ -32,9 +32,9 @@ pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
         );
     }
 
-    for (crew_member, _) in state
+    for crew_member in state
         .world
-        .query::<()>()
+        .query::<Entity>()
         .with::<(&CrewMember, &Character)>()
         .iter()
     {
@@ -45,7 +45,7 @@ pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
 
     for (crew_member, action) in state
         .world
-        .query::<&RepeatingAction>()
+        .query::<(Entity, &RepeatingAction)>()
         .with::<&CrewMember>()
         .iter()
     {
@@ -114,7 +114,7 @@ fn pick_intention(
             .query::<&Pos>()
             .with::<&ShipControls>()
             .iter()
-            .any(|(_, pos)| pos.is_in(area))
+            .any(|pos| pos.is_in(area))
     {
         return Some(Intention::Refuel);
     }
@@ -123,10 +123,7 @@ fn pick_intention(
 }
 
 pub(crate) fn controlled_character_action(state: &GameState) -> Option<Action> {
-    if state
-        .world
-        .satisfies::<&RepeatingAction>(state.controlled)
-        .unwrap()
+    if state.world.satisfies::<&RepeatingAction>(state.controlled)
         || !behavior::is_safe(
             &state.world,
             state
@@ -144,11 +141,11 @@ pub(crate) fn controlled_character_action(state: &GameState) -> Option<Action> {
         .get::<&Pos>(state.controlled)
         .unwrap()
         .get_area();
-    if let Some((target, _)) = state
+    if let Some((target, _, _)) = state
         .world
-        .query::<(&Pos, &GivesHuntRewardData)>()
+        .query::<(Entity, &Pos, &GivesHuntRewardData)>()
         .iter()
-        .find(|(_, (pos, gives_hunt_reward))| {
+        .find(|(_, pos, gives_hunt_reward)| {
             pos.is_in(area)
                 && gives_hunt_reward.presented
                 && gives_hunt_reward.is_fulfilled(&state.world)
@@ -171,7 +168,7 @@ pub(crate) fn controlled_character_action(state: &GameState) -> Option<Action> {
 fn is_wait_requested(world: &World, controlled: Entity) -> bool {
     let area = world.get::<&Pos>(controlled).unwrap().get_area();
     world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&CrewMember>()
         .iter()
         .filter(|(entity, pos)| *entity != controlled && pos.is_in(area))
@@ -186,8 +183,8 @@ pub fn tick(
 ) {
     let mut buffer = CommandBuffer::new();
 
-    for (entity, _) in world
-        .query::<()>()
+    for entity in world
+        .query::<Entity>()
         .with::<Or<&CrewMember, &Hostile>>()
         .iter()
     {
@@ -205,10 +202,10 @@ pub fn tick(
     }
 
     world
-        .query::<()>()
+        .query::<Entity>()
         .with::<&Intention>()
         .iter()
-        .for_each(|(entity, _)| buffer.remove_one::<Intention>(entity));
+        .for_each(|entity| buffer.remove_one::<Intention>(entity));
 
     buffer.run_on(world);
 }
@@ -248,7 +245,7 @@ fn pick_foe_action(
         let area = entity_ref.get::<&Pos>()?.get_area();
 
         let targets = world
-            .query::<&Pos>()
+            .query::<(Entity, &Pos)>()
             .with::<&CrewMember>()
             .iter()
             .filter(|&(crew, crew_pos)| crew_pos.is_in(area) && status::is_alive(crew, world))
@@ -266,7 +263,7 @@ fn pick_foe_action(
         let area = entity_ref.get::<&Pos>()?.get_area();
 
         let observation_targets = world
-            .query::<&Pos>()
+            .query::<(Entity, &Pos)>()
             .with::<&ObservationTarget>()
             .iter()
             .filter(|&(_, pos)| pos.is_in(area))
@@ -351,14 +348,14 @@ fn pick_crew_action(
     }
 
     let foes = world
-        .query::<(&Pos, &Hostile)>()
+        .query::<(Entity, &Pos, &Hostile)>()
         .iter()
-        .filter(|&(foe, (foe_pos, hostile))| {
+        .filter(|&(foe, foe_pos, hostile)| {
             foe_pos.is_in(entity_pos.get_area())
                 && status::is_alive(foe, world)
                 && hostile.aggressive
         })
-        .map(|(entity, _)| entity)
+        .map(|(entity, _, _)| entity)
         .collect::<Vec<_>>();
     if !foes.is_empty() {
         return Some(Action::Attack(
@@ -416,9 +413,7 @@ pub fn pick_attack_kind(
 }
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
-    world
-        .satisfies::<hecs::Or<hecs::Or<&Intention, &RepeatingAction>, &status::IsStunned>>(entity)
-        .unwrap_or(false)
+    world.satisfies::<hecs::Or<hecs::Or<&Intention, &RepeatingAction>, &status::IsStunned>>(entity)
 }
 
 fn find_random_unblocked_path(
@@ -429,15 +424,15 @@ fn find_random_unblocked_path(
 ) -> Option<Entity> {
     let entity_pos = *entity_ref.get::<&Pos>()?;
     world
-        .query::<(&Pos, &Door)>()
+        .query::<(Entity, &Pos, &Door)>()
         .iter()
-        .filter(|&(_, (path_pos, door))| {
+        .filter(|&(_, path_pos, door)| {
             path_pos.is_in(entity_pos.get_area())
                 && position::check_is_blocked(world, entity_ref, entity_pos, *path_pos).is_ok()
                 && destination_area_filter(door.destination.get_area())
         })
         .choose(rng)
-        .map(|(path, _)| path)
+        .map(|(path, _, _)| path)
 }
 
 fn has_behavior(
@@ -482,10 +477,10 @@ pub fn find_path_towards(
     predicate: impl Fn(Entity) -> bool,
 ) -> Option<Entity> {
     let mut entries = world
-        .query::<(&Pos, &Door)>()
+        .query::<(Entity, &Pos, &Door)>()
         .iter()
-        .filter(|&(_, (pos, _))| pos.is_in(area))
-        .map(|(entity, (_, path))| PathSearchEntry::start(entity, path))
+        .filter(|&(_, pos, _)| pos.is_in(area))
+        .map(|(entity, _, path)| PathSearchEntry::start(entity, path))
         .collect::<Vec<_>>();
     let mut checked_areas = HashSet::from([area]);
 
@@ -500,8 +495,8 @@ pub fn find_path_towards(
                     world
                         .query::<(&Pos, &Door)>()
                         .iter()
-                        .filter(|&(_, (pos, _))| pos.is_in(entry.area))
-                        .map(|(_, (_, path))| entry.next(path)),
+                        .filter(|&(pos, _)| pos.is_in(entry.area))
+                        .map(|(_, path)| entry.next(path)),
                 );
             }
         }

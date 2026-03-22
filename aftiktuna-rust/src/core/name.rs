@@ -58,6 +58,7 @@ impl NameIdData {
                             entity_ref
                                 .query::<(&SpeciesId, &SpeciesColorId)>()
                                 .get()
+                                .ok()
                                 .map(|(species_id, color_id)| {
                                     AdjectiveData::Color(species_id.clone(), color_id.clone())
                                 })
@@ -164,6 +165,7 @@ impl NameData {
                             entity_ref
                                 .query::<(&SpeciesId, &SpeciesColorId)>()
                                 .get()
+                                .ok()
                                 .and_then(|(species_id, color_id)| {
                                     assets
                                         .color_map

@@ -14,12 +14,12 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
     let world = &mut context.state.world;
     let aftik_pos = *world.get::<&Pos>(aftik).unwrap();
     let (item, name) = world
-        .query::<(&Pos, NameQuery)>()
+        .query::<(Entity, &Pos, NameQuery)>()
         .with::<&ItemTypeId>()
         .iter()
-        .filter(|(_, (pos, _))| pos.is_in(aftik_pos.get_area()))
-        .min_by_key(|(_, (pos, _))| pos.distance_to(aftik_pos))
-        .map(|(item, (_, query))| {
+        .filter(|(_, pos, _)| pos.is_in(aftik_pos.get_area()))
+        .min_by_key(|(_, pos, _)| pos.distance_to(aftik_pos))
+        .map(|(item, _, query)| {
             (
                 item,
                 NameData::from_query(query, context.view_context.view_buffer.assets),
@@ -36,7 +36,7 @@ pub(super) fn take_all(context: &mut Context, aftik: Entity) -> action::Result {
         .with::<NameQuery>()
         .with::<&ItemTypeId>()
         .iter()
-        .any(|(_, pos)| pos.is_in(aftik_pos.get_area()))
+        .any(|pos| pos.is_in(aftik_pos.get_area()))
     {
         context
             .state
@@ -124,10 +124,7 @@ impl SearchAction {
             .get::<&Pos>(container)
             .map_err(|_| format!("{performer_name} lost track of {container_name}."))?;
 
-        if !world
-            .satisfies::<&inventory::Container>(container)
-            .unwrap_or(false)
-        {
+        if !world.satisfies::<&inventory::Container>(container) {
             return Err(Error::private(format!(
                 "{container_name} is not a searchable container."
             )));

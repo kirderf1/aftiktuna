@@ -141,14 +141,14 @@ pub struct TalkState {
 
 pub fn is_safe(world: &hecs::World, area: hecs::Entity) -> bool {
     world
-        .query::<&Pos>()
+        .query::<(hecs::Entity, &Pos)>()
         .with::<&Hostile>()
         .iter()
         .all(|(entity, pos)| !pos.is_in(area) || !status::is_alive(entity, world))
 }
 
 pub fn trigger_aggression_in_area(world: &mut hecs::World, area: hecs::Entity) {
-    for (_, (pos, hostile)) in world.query_mut::<(&Pos, &mut Hostile)>() {
+    for (pos, hostile) in world.query_mut::<(&Pos, &mut Hostile)>() {
         if pos.is_in(area) {
             hostile.aggressive = true;
         }

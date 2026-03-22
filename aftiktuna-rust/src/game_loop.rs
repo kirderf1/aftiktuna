@@ -194,7 +194,7 @@ fn tick_and_check(
     if is_ship_launching(state) {
         leave_location(state, view_buffer);
         dialogue::trigger_ship_dialogue(state, view_buffer);
-        for (_, memory) in state.world.query::<&mut CrewLossMemory>().iter() {
+        for memory in state.world.query::<&mut CrewLossMemory>().iter() {
             memory.recent = false;
         }
         Ok(Step::PrepareNextLocation)
@@ -215,7 +215,6 @@ fn should_take_user_input(state: &GameState) -> bool {
     !state
         .world
         .satisfies::<hecs::Or<&RepeatingAction, &status::IsStunned>>(state.controlled)
-        .unwrap()
 }
 
 fn tick(
@@ -225,10 +224,9 @@ fn tick(
 ) {
     let stun_recovering_entities = state
         .world
-        .query::<()>()
+        .query::<Entity>()
         .with::<&status::IsStunned>()
         .into_iter()
-        .map(|(entity, ())| entity)
         .collect::<Vec<Entity>>();
 
     let mut action_map = HashMap::new();
@@ -274,11 +272,11 @@ fn tick(
         ))
     }
 
-    for (item, (_, held)) in state
+    for (item, _, held) in state
         .world
-        .query::<(&ItemTypeId, &Held)>()
+        .query::<(Entity, &ItemTypeId, &Held)>()
         .into_iter()
-        .filter(|&(_, (item_type, _))| item_type.is_four_leaf_clover())
+        .filter(|&(_, item_type, _)| item_type.is_four_leaf_clover())
     {
         let Ok(holder_ref) = state.world.entity(held.holder) else {
             continue;
@@ -294,7 +292,7 @@ fn tick(
     }
     buffer.run_on(&mut state.world);
 
-    for (_, stamina) in state.world.query_mut::<&mut Stamina>() {
+    for stamina in state.world.query_mut::<&mut Stamina>() {
         stamina.tick();
     }
 }
@@ -315,12 +313,12 @@ fn insert_command_action(
                 .get::<&Pos>(state.controlled)
                 .unwrap()
                 .get_area();
-            for (entity, _) in state
+            for (entity, _, _) in state
                 .world
-                .query::<(&Pos, Satisfies<&Waiting>)>()
+                .query::<(Entity, &Pos, Satisfies<&Waiting>)>()
                 .with::<&CrewMember>()
                 .iter()
-                .filter(|&(entity, (pos, is_waiting))| {
+                .filter(|&(entity, pos, is_waiting)| {
                     pos.is_in(area) && (entity == state.controlled || !is_waiting)
                 })
             {
@@ -333,7 +331,7 @@ fn insert_command_action(
 fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let dead_crew = state
         .world
-        .query::<&Health>()
+        .query::<(Entity, &Health)>()
         .with::<&CrewMember>()
         .iter()
         .filter(|(_, health)| health.is_dead())
@@ -355,11 +353,11 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let mut buffer = CommandBuffer::new();
     for character in dead_crew {
         state.world.remove_one::<CrewMember>(character).unwrap();
-        for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+        for morale in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
             morale.crew_death_effect();
         }
         if let Ok(Name { name, .. }) = state.world.get::<&Name>(character).as_deref() {
-            for (crew_member, ()) in state.world.query::<()>().with::<&CrewMember>().iter() {
+            for crew_member in state.world.query::<Entity>().with::<&CrewMember>().iter() {
                 buffer.insert_one(
                     crew_member,
                     CrewLossMemory {
@@ -375,7 +373,7 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
 fn drop_objects_held_by_the_dead(world: &mut World) {
     let mut buffer = CommandBuffer::new();
-    for (entity, held) in world.query::<&Held>().iter() {
+    for (entity, held) in world.query::<(Entity, &Held)>().iter() {
         let Ok(holder_ref) = world.entity(held.holder) else {
             buffer.despawn(entity);
             continue;
@@ -401,9 +399,9 @@ fn check_player_state(
     view_buffer: &mut view::Buffer,
 ) -> Result<(), StopType> {
     if state.world.get::<&CrewMember>(state.controlled).is_err() {
-        let (next_character, _) = state
+        let next_character = state
             .world
-            .query::<()>()
+            .query::<Entity>()
             .with::<(&CrewMember, &Character)>()
             .iter()
             .next()
@@ -424,10 +422,9 @@ fn handle_was_waiting(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
     let entities = state
         .world
-        .query::<()>()
+        .query::<Entity>()
         .with::<&action::WasWaiting>()
         .iter()
-        .map(|(entity, _)| entity)
         .collect::<Vec<_>>();
     for entity in entities {
         let pos = *state.world.get::<&Pos>(entity).unwrap();
@@ -475,17 +472,17 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .messages
         .add("The ship leaves for the next planet.");
 
-    for (_, (_, query)) in state
+    for (_, query) in state
         .world
         .query::<(&Pos, NameQuery)>()
         .with::<&CrewMember>()
         .iter()
-        .filter(|&(_, (pos, _))| !area::is_in_ship(*pos, &state.world))
+        .filter(|&(pos, _)| !area::is_in_ship(*pos, &state.world))
     {
         let name = NameData::from_query(query, view_buffer.assets).definite();
         view_buffer.messages.add(format!("{name} was left behind."));
     }
-    for (_, morale) in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+    for morale in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
         morale.dampen(0.6);
     }
 
@@ -493,7 +490,7 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
         .world
         .query::<(&ItemTypeId, &Pos)>()
         .iter()
-        .filter(|&(_, (item_type, pos))| {
+        .filter(|&(item_type, pos)| {
             item_type.is_food_ration() && area::is_in_ship(*pos, &state.world)
         })
         .count();
@@ -521,7 +518,7 @@ fn leave_location(state: &mut GameState, view_buffer: &mut view::Buffer) {
 fn deposit_items_to_ship(state: &mut GameState) {
     let crew_in_ship = state
         .world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&CrewMember>()
         .iter()
         .filter(|&(_, pos)| area::is_in_ship(*pos, &state.world))
@@ -529,12 +526,12 @@ fn deposit_items_to_ship(state: &mut GameState) {
         .collect::<Vec<_>>();
     let items = state
         .world
-        .query::<(&ItemTypeId, &Held)>()
+        .query::<(Entity, &ItemTypeId, &Held)>()
         .iter()
-        .filter(|&(_, (item_type, held))| {
+        .filter(|&(_, item_type, held)| {
             item_type.is_food_ration() && crew_in_ship.iter().any(|&entity| held.held_by(entity))
         })
-        .map(|(entity, _)| entity)
+        .map(|(entity, _, _)| entity)
         .collect::<Vec<_>>();
     let item_pos = state
         .world
@@ -549,7 +546,7 @@ fn deposit_items_to_ship(state: &mut GameState) {
 fn consume_rations_healing(state: &mut GameState, view_buffer: &mut view::Buffer) {
     let mut crew_candidates = state
         .world
-        .query::<&Health>()
+        .query::<(Entity, &Health)>()
         .with::<&CrewMember>()
         .iter()
         .filter(|&(_, health)| health.is_hurt())
@@ -567,13 +564,13 @@ fn consume_rations_healing(state: &mut GameState, view_buffer: &mut view::Buffer
         };
         let rations = state
             .world
-            .query::<(&ItemTypeId, &Pos)>()
+            .query::<(Entity, &ItemTypeId, &Pos)>()
             .iter()
-            .filter(|&(_, (item_type, pos))| {
+            .filter(|&(_, item_type, pos)| {
                 item_type.is_food_ration() && area::is_in_ship(*pos, &state.world)
             })
             .take(usize::from(rations_to_eat))
-            .map(|(entity, _)| entity)
+            .map(|(entity, _, _)| entity)
             .collect::<Vec<_>>();
         if !rations.is_empty() {
             let rations_factor = f32::from(rations.len() as u16) / f32::from(rations_to_eat);

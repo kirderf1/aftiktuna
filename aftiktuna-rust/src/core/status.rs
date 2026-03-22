@@ -538,7 +538,7 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     let rations_after_eating = world
         .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, item_type)| item_type.is_food_ration())
+        .filter(|&item_type| item_type.is_food_ration())
         .count();
     if rations_before_eating == 0 {
         crew_negative_effect += Morale::SMALL_INTENSITY;
@@ -550,7 +550,7 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     let mut weapon_values = world
         .query::<&ItemTypeId>()
         .iter()
-        .filter_map(|(_, item_type)| {
+        .filter_map(|item_type| {
             assets
                 .item_type_map
                 .get(item_type)
@@ -578,7 +578,7 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     let fuel_can_count = world
         .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, item_type)| item_type.is_fuel_can())
+        .filter(|&item_type| item_type.is_fuel_can())
         .count();
     if fuel_can_count >= 1 {
         crew_positive_effect += Morale::SMALL_INTENSITY;
@@ -587,7 +587,7 @@ pub(crate) fn apply_morale_effects_from_crew_state(
     let medkit_count = world
         .query::<&ItemTypeId>()
         .iter()
-        .filter(|&(_, id)| {
+        .filter(|&id| {
             assets
                 .item_type_map
                 .get(id)
@@ -598,7 +598,7 @@ pub(crate) fn apply_morale_effects_from_crew_state(
         crew_positive_effect += Morale::SMALL_INTENSITY;
     }
 
-    for (_, (morale, health, memory)) in world
+    for (morale, health, memory) in world
         .query_mut::<(&mut Morale, Option<&Health>, Option<&CrewLossMemory>)>()
         .with::<&CrewMember>()
     {
@@ -629,7 +629,7 @@ pub(crate) fn detect_low_health(
 ) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
-    for (entity, (pos, health)) in world.query::<(&Pos, &Health)>().iter() {
+    for (entity, pos, health) in world.query::<(Entity, &Pos, &Health)>().iter() {
         let entity_ref = world.entity(entity).unwrap();
         let has_tag = entity_ref.has::<SeenWithLowHealth>();
         let visible_low_health = pos.is_in(area) && health.is_badly_hurt();
@@ -674,7 +674,8 @@ pub(crate) fn detect_low_stamina(
 ) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
-    for (entity, (pos, stamina, health)) in world.query::<(&Pos, &Stamina, &Health)>().iter() {
+    for (entity, pos, stamina, health) in world.query::<(Entity, &Pos, &Stamina, &Health)>().iter()
+    {
         let entity_ref = world.entity(entity).unwrap();
         let has_tag = entity_ref.has::<SeenWithLowStamina>();
         let visible_low_stamina = pos.is_in(area) && stamina.as_fraction() < 0.6;

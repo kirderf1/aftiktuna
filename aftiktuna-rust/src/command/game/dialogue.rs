@@ -85,7 +85,7 @@ fn talk_targets(state: &GameState, assets: &GameAssets) -> Vec<(String, Entity)>
     let character_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
     state
         .world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&Character>()
         .iter()
         .filter(|(_, pos)| pos.is_in(character_pos.get_area()))
@@ -106,7 +106,7 @@ fn talk_to(
 
     super::check_adjacent_accessible_with_message(target, state.controlled, &state.world, assets)?;
 
-    if state.world.satisfies::<&Shopkeeper>(target).unwrap() {
+    if state.world.satisfies::<&Shopkeeper>(target) {
         return command::action_result(Action::Trade(target));
     }
 
@@ -166,7 +166,7 @@ fn ask_to_join(
 ) -> Result<CommandResult, String> {
     check_is_valid_talk_target(target, state, assets)?;
 
-    if state.world.satisfies::<&CrewMember>(target).unwrap() {
+    if state.world.satisfies::<&CrewMember>(target) {
         return Err(format!(
             "{the_target} is already part of the crew.",
             the_target = NameData::find(&state.world, target, assets).definite(),
@@ -218,7 +218,7 @@ fn tell_to_wait(
         ));
     }
 
-    if state.world.satisfies::<&Waiting>(target).unwrap_or(false) {
+    if state.world.satisfies::<&Waiting>(target) {
         return Err(format!(
             "{} is already waiting.",
             NameData::find(&state.world, target, assets).definite()
@@ -248,9 +248,7 @@ fn tell_to_wait_at_ship(
             NameData::find(&state.world, target, assets).definite()
         ));
     }
-    if area::is_in_ship(target_pos, &state.world)
-        && state.world.satisfies::<&Waiting>(target).unwrap_or(false)
-    {
+    if area::is_in_ship(target_pos, &state.world) && state.world.satisfies::<&Waiting>(target) {
         return Err(format!(
             "{} is already waiting at the ship.",
             NameData::find(&state.world, target, assets).definite()

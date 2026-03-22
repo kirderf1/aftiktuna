@@ -66,7 +66,7 @@ pub fn get_full_status(state: &GameState, assets: &GameAssets) -> FullStatus {
         .world
         .query::<(&ItemTypeId, &Pos)>()
         .iter()
-        .filter(|&(_, (item_type, pos))| {
+        .filter(|&(item_type, pos)| {
             item_type.is_food_ration() && area::is_in_ship(*pos, &state.world)
         })
         .count();
@@ -74,15 +74,15 @@ pub fn get_full_status(state: &GameState, assets: &GameAssets) -> FullStatus {
 
     let crew = state
         .world
-        .query::<()>()
+        .query::<Entity>()
         .with::<&CrewMember>()
         .iter()
-        .map(|(character, _)| {
+        .map(|character| {
             let mut character_messages = Messages::default();
 
             character_messages.add(
-                if let Ok(mut query) = state.world.query_one::<(&Name, &NounId)>(character)
-                    && let Some((name, noun_id)) = query.get()
+                if let Ok((name, noun_id)) =
+                    state.world.query_one::<(&Name, &NounId)>(character).get()
                 {
                     format!(
                         "{} ({}):",

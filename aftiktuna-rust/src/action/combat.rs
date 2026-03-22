@@ -28,8 +28,8 @@ pub(super) fn attack(
         .flat_map(|entity| {
             world
                 .query_one::<PlacementQuery>(entity)
-                .ok()
-                .and_then(|mut query| query.get().map(|query| (entity, Placement::from(query))))
+                .get()
+                .map(|query| (entity, Placement::from(query)))
         })
         .filter(|(entity, other_placement)| {
             pos.is_in(other_placement.area()) && status::is_alive(*entity, world)
@@ -327,7 +327,7 @@ fn perform_attack_hit(
         return Some(AttackEffect::Killed);
     }
     if is_direct_hit
-        && !world.satisfies::<&status::IsStunned>(target).unwrap()
+        && !world.satisfies::<&status::IsStunned>(target)
         && combat::get_active_weapon_properties(world, attacker, assets).stun_attack
     {
         let successful_stun = roll_stun(

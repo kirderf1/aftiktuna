@@ -341,7 +341,7 @@ pub(crate) fn spawn_starting_crew_and_ship(
         );
     }
 
-    for (_, morale) in world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+    for morale in world.query_mut::<&mut Morale>().with::<&CrewMember>() {
         morale.journey_start_effect();
     }
 
@@ -446,10 +446,9 @@ impl<'a> LocationGenContext<'a> {
 fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
     let world = &mut state.world;
     let mut crew_members = world
-        .query::<()>()
+        .query::<Entity>()
         .with::<&CrewMember>()
         .iter()
-        .map(|pair| pair.0)
         .collect::<Vec<_>>();
 
     let controlled_index = crew_members
@@ -474,15 +473,15 @@ struct Keep;
 
 pub fn despawn_all_except_ship(world: &mut World) {
     let mut buffer = CommandBuffer::new();
-    for (entity, _) in world
-        .query::<()>()
+    for entity in world
+        .query::<Entity>()
         .with::<hecs::Or<&ShipState, &ShipRoom>>()
         .iter()
     {
         buffer.insert_one(entity, Keep);
     }
     for (entity, _) in world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .iter()
         .filter(|&(_, pos)| area::is_in_ship(*pos, world))
     {
@@ -513,7 +512,7 @@ pub fn despawn_all_except_ship(world: &mut World) {
     buffer.run_on(world);
 
     let mut buffer = CommandBuffer::new();
-    for (entity, keep) in world.query_mut::<Satisfies<&Keep>>() {
+    for (entity, keep) in world.query_mut::<(Entity, Satisfies<&Keep>)>() {
         if !keep {
             buffer.despawn(entity);
         } else {

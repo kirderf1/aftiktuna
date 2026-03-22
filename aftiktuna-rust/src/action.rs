@@ -225,11 +225,11 @@ impl<'a, 'b> ViewContext<'a, 'b> {
             .world
             .query::<(&Door, &Pos, NameQuery)>()
             .iter()
-            .filter(|(_, (door, pos, _))| {
+            .filter(|(door, pos, _)| {
                 noise_source_areas.contains(&door.destination.get_area())
                     && !noise_source_areas.contains(&pos.get_area())
             })
-            .map(|(_, (_, pos, name_query))| (pos.get_area(), NameIdData::from(name_query)))
+            .map(|(_, pos, name_query)| (pos.get_area(), NameIdData::from(name_query)))
             .collect::<Vec<_>>();
         for (door_area, door_name) in noise_targets {
             self.add_message_at(
@@ -259,7 +259,7 @@ fn rest(context: &mut Context, performer: Entity, first_turn_resting: bool) -> R
         .query::<(&status::Stamina, &Pos)>()
         .with::<&CrewMember>()
         .iter()
-        .any(|(_, (stamina, pos))| pos.is_in(area) && stamina.need_more_rest());
+        .any(|(stamina, pos)| pos.is_in(area) && stamina.need_more_rest());
 
     if need_more_rest {
         world.insert_one(performer, RepeatingAction::Rest).unwrap();
@@ -324,11 +324,8 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
     }
 
     {
-        let mut query = world
-            .query_one::<&Hostile>(target)
-            .unwrap()
-            .with::<&Recruitable>();
-        let Some(hostile) = query.get() else {
+        let mut query = world.query_one::<&Hostile>(target).with::<&Recruitable>();
+        let Ok(hostile) = query.get() else {
             return Err(Error::private(format!(
                 "{target_name} is not a tameable creature."
             )));
@@ -344,7 +341,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
         .query::<&Pos>()
         .with::<&Hostile>()
         .iter()
-        .filter(|(_, pos)| pos.is_in(target_placement.area()))
+        .filter(|pos| pos.is_in(target_placement.area()))
         .count();
     if creature_count > 1 {
         return Err(Error::private(format!(

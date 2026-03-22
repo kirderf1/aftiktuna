@@ -180,12 +180,12 @@ fn pick_ship_dialogue_topic(state: &mut GameState) -> Option<(ShipDialogue, Enti
     if state.generation_state.locations_before_fortuna() == 0 {
         let mut crew_characters = state
             .world
-            .query::<()>()
+            .query::<Entity>()
             .with::<(&CrewMember, &Character)>()
             .iter()
             .choose_multiple(&mut state.rng, 2);
         crew_characters.shuffle(&mut state.rng);
-        let [(character1, ()), (character2, ())] = crew_characters[..] else {
+        let [character1, character2] = crew_characters[..] else {
             return None;
         };
 
@@ -194,17 +194,17 @@ fn pick_ship_dialogue_topic(state: &mut GameState) -> Option<(ShipDialogue, Enti
 
     if let Some((crew_loss_character, _)) = state
         .world
-        .query::<&CrewLossMemory>()
+        .query::<(Entity, &CrewLossMemory)>()
         .with::<(&CrewMember, &Character)>()
         .iter()
         .filter(|(_, crew_loss_memory)| crew_loss_memory.recent)
         .choose(&mut state.rng)
-        && let Some((other_character, ())) = state
+        && let Some(other_character) = state
             .world
-            .query::<()>()
+            .query::<Entity>()
             .with::<(&CrewMember, &Character)>()
             .iter()
-            .filter(|(entity, ())| *entity != crew_loss_character)
+            .filter(|entity| *entity != crew_loss_character)
             .choose(&mut state.rng)
     {
         return Some((ShipDialogue::CrewLoss, crew_loss_character, other_character));
@@ -212,12 +212,12 @@ fn pick_ship_dialogue_topic(state: &mut GameState) -> Option<(ShipDialogue, Enti
 
     let mut crew_characters = state
         .world
-        .query::<()>()
+        .query::<Entity>()
         .with::<(&CrewMember, &Character)>()
         .iter()
         .choose_multiple(&mut state.rng, 2);
     crew_characters.shuffle(&mut state.rng);
-    let [(character1, ()), (character2, ())] = crew_characters[..] else {
+    let [character1, character2] = crew_characters[..] else {
         return None;
     };
 
@@ -277,7 +277,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
     };
     let entities_with_encounter_dialogue = state
         .world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&EncounterDialogue>()
         .into_iter()
         .map(|(entity, pos)| (entity, *pos))
@@ -297,7 +297,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
 
     let entities_with_background_dialogue = state
         .world
-        .query::<&Pos>()
+        .query::<(Entity, &Pos)>()
         .with::<&BackgroundDialogue>()
         .into_iter()
         .map(|(entity, pos)| (entity, *pos))
@@ -320,17 +320,14 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
     if behavior::is_safe(&state.world, player_pos.get_area()) {
         let possible_speakers = state
             .world
-            .query_mut::<&Pos>()
+            .query_mut::<(Entity, &Pos)>()
             .with::<(&CrewMember, &Character)>()
             .into_iter()
             .filter(|&(entity, pos)| entity != state.controlled && pos.is_in(player_pos.get_area()))
             .map(|(entity, _)| entity)
             .collect::<Vec<_>>();
         let crew = state.world.get::<&CrewMember>(state.controlled).unwrap().0;
-        if !state
-            .world
-            .satisfies::<&TalkedAboutEnoughFuel>(crew)
-            .unwrap()
+        if !state.world.satisfies::<&TalkedAboutEnoughFuel>(crew)
             && area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
                 fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
             })
@@ -391,9 +388,7 @@ fn trigger_background_dialogue(
         return;
     };
 
-    if target_pos.is_in(speaker_pos.get_area())
-        && state.world.satisfies::<&Character>(target).unwrap()
-    {
+    if target_pos.is_in(speaker_pos.get_area()) && state.world.satisfies::<&Character>(target) {
         trigger_dialogue_by_name(
             &background_dialogue.dialogue,
             speaker,
@@ -408,7 +403,7 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
     let player_pos = *state.world.get::<&Pos>(state.controlled).unwrap();
     let Some(speaker) = state
         .world
-        .query_mut::<&Pos>()
+        .query_mut::<(Entity, &Pos)>()
         .with::<(&CrewMember, &Character)>()
         .into_iter()
         .find(|&(entity, pos)| entity != state.controlled && pos.is_in(player_pos.get_area()))

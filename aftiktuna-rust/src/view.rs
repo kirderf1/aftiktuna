@@ -86,7 +86,7 @@ mod store {
         world
             .query::<(&ItemTypeId, &Held, NameQuery)>()
             .iter()
-            .filter(|(_, (item_type, held, _))| {
+            .filter(|(item_type, held, _)| {
                 buffer
                     .assets
                     .item_type_map
@@ -94,7 +94,7 @@ mod store {
                     .is_some_and(|data| data.price.is_some())
                     && held.held_by(character)
             })
-            .map(|(_, (_, _, query))| NameIdData::from(query))
+            .map(|(_, _, query)| NameIdData::from(query))
             .for_each(|name_data| *sellable_items_count.entry(name_data).or_default() += 1);
         let sellable_items = sellable_items_count
             .into_iter()

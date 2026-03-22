@@ -104,7 +104,7 @@ pub fn commands(
 
 fn inventory_items(character: Entity, world: &World, assets: &GameAssets) -> Vec<(String, Entity)> {
     world
-        .query::<&Held>()
+        .query::<(Entity, &Held)>()
         .with::<&ItemTypeId>()
         .iter()
         .filter(|&(_, held)| held.is_in_inventory(character))
@@ -118,7 +118,7 @@ fn inventory_items(character: Entity, world: &World, assets: &GameAssets) -> Vec
 
 fn items_in_hand(character: Entity, world: &World, assets: &GameAssets) -> Vec<(String, Entity)> {
     world
-        .query::<&Held>()
+        .query::<(Entity, &Held)>()
         .with::<&ItemTypeId>()
         .iter()
         .filter(|&(_, held)| held.held_by(character) && held.is_in_hand())
@@ -137,7 +137,7 @@ fn take_all(state: &GameState) -> Result<CommandResult, String> {
         .query::<&Pos>()
         .with::<&ItemTypeId>()
         .iter()
-        .any(|(_, pos)| pos.is_in(character_pos.get_area()))
+        .any(|pos| pos.is_in(character_pos.get_area()))
     {
         return Err("There are no items to take here.".to_string());
     }
