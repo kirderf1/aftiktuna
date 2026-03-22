@@ -1,5 +1,4 @@
 mod ui {
-    use aftiktuna::asset::color::SpeciesColorData;
     use aftiktuna::asset::location::creature::{
         AttributeChoice, CharacterCorpseData, CreatureSpawnData, NpcSpawnData,
     };
@@ -9,12 +8,11 @@ mod ui {
     };
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::behavior::Wandering;
-    use aftiktuna::core::display::{ModelId, SpeciesColorId};
+    use aftiktuna::core::display::ModelId;
     use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
     use aftiktuna::core::{BlockType, SpeciesId};
     use aftiktuna_editor_three_d::name_from_symbol;
-    use indexmap::IndexMap;
     use std::mem;
     use three_d::egui;
 
@@ -22,7 +20,7 @@ mod ui {
 
     pub fn editor_panels(
         editor_data: &mut super::EditorData,
-        assets: &super::Assets,
+        assets: &mut super::Assets,
         egui_context: &egui::Context,
     ) -> bool {
         editor_data.hovered_door_pair = None;
@@ -51,7 +49,7 @@ mod ui {
     fn side_panel_content(
         ui: &mut egui::Ui,
         editor_data: &mut super::EditorData,
-        assets: &super::Assets,
+        assets: &mut super::Assets,
     ) -> bool {
         let mut save = false;
         if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
@@ -69,7 +67,7 @@ mod ui {
                         SymbolStatus::Unique
                     }
                 },
-                &assets.aftik_colors,
+                &mut assets.species_colors,
                 &assets.item_type_list,
             );
 
@@ -515,7 +513,7 @@ mod ui {
         ui: &mut egui::Ui,
         symbol_edit_data: &mut SymbolEditData,
         symbol_lookup: impl FnOnce(char) -> SymbolStatus,
-        aftik_colors: &IndexMap<SpeciesColorId, SpeciesColorData>,
+        species_colors: &mut super::SpeciesColors,
         item_type_list: &[ItemTypeId],
     ) -> Option<SymbolEditAction> {
         ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
@@ -696,7 +694,7 @@ mod ui {
                     )
                     .show_ui(ui, |ui| {
                         ui.selectable_value(color, None, "random");
-                        for selectable in aftik_colors.keys() {
+                        for selectable in species_colors.keys(species) {
                             ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
                         }
                     });
@@ -800,22 +798,19 @@ mod ui {
     }
 }
 
-use aftiktuna::asset::color::{self, SpeciesColorData};
 use aftiktuna::asset::location::{
     self, AreaData, LocationData, SymbolData, SymbolLookup, SymbolMap,
 };
 use aftiktuna::asset::model::ModelAccess;
-use aftiktuna::asset::{background, placement};
-use aftiktuna::core::SpeciesId;
+use aftiktuna::asset::{background, color, placement};
 use aftiktuna::core::area::BackgroundId;
-use aftiktuna::core::display::SpeciesColorId;
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Coord;
 use aftiktuna::view::area::ObjectProperties;
+use aftiktuna_editor_three_d::SpeciesColors;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
-use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fs::{self, File};
 
@@ -876,10 +871,7 @@ fn main() {
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
         base_symbols: location::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
-        aftik_colors: serde_json::from_reader::<_, _>(
-            File::open(color::colors_path(SpeciesId::from("aftik"))).unwrap(),
-        )
-        .unwrap(),
+        species_colors: SpeciesColors::default(),
         item_type_list: aftiktuna::asset::load_item_type_map()
             .unwrap()
             .into_keys()
@@ -904,7 +896,7 @@ fn main() {
             frame_input.viewport,
             frame_input.device_pixel_ratio,
             |egui_context| {
-                save = ui::editor_panels(&mut editor_data, &assets, egui_context);
+                save = ui::editor_panels(&mut editor_data, &mut assets, egui_context);
             },
         );
 
@@ -984,7 +976,7 @@ struct Assets {
     background_map: asset::BackgroundMap,
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
-    aftik_colors: IndexMap<SpeciesColorId, SpeciesColorData>,
+    species_colors: SpeciesColors,
     item_type_list: Vec<ItemTypeId>,
 }
 
@@ -1346,7 +1338,7 @@ fn render_game_view(
                 .properties
                 .species_color
                 .as_ref()
-                .and_then(|(species, color_id)| assets.aftik_colors.get(color_id).copied())
+                .and_then(|(species, color_id)| assets.species_colors.lookup(species, color_id))
                 .unwrap_or(color::DEFAULT_COLOR);
             let mut render_objects = render::get_render_objects_for_entity_with_color(
                 assets.models.lookup_model(&object.model_id),

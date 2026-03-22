@@ -53,12 +53,12 @@ pub mod color {
         pub color_data: SpeciesColorData,
     }
 
-    pub fn colors_path(species: SpeciesId) -> impl AsRef<Path> {
+    pub fn colors_path(species: &SpeciesId) -> impl AsRef<Path> {
         format!("assets/species_color/{species}.json")
     }
 
     pub fn load_species_color_data(
-        species: SpeciesId,
+        species: &SpeciesId,
     ) -> Result<HashMap<SpeciesColorId, SpeciesColorEntry>, Error> {
         super::load_from_json(colors_path(species))
     }

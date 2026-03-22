@@ -1,4 +1,5 @@
 use aftiktuna::asset::background;
+use aftiktuna::asset::color::SpeciesColorData;
 use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
@@ -9,10 +10,41 @@ use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
+use indexmap::IndexMap;
+use std::collections::HashMap;
 use std::fs;
 use std::hash::Hash;
 use std::path::PathBuf;
 use three_d::egui;
+
+#[derive(Default)]
+pub struct SpeciesColors(HashMap<SpeciesId, IndexMap<SpeciesColorId, SpeciesColorData>>);
+
+impl SpeciesColors {
+    pub fn lookup(
+        &mut self,
+        species_id: &SpeciesId,
+        color_id: &SpeciesColorId,
+    ) -> Option<SpeciesColorData> {
+        self.find_or_load(species_id).get(color_id).copied()
+    }
+
+    pub fn keys(&mut self, species_id: &SpeciesId) -> impl Iterator<Item = &SpeciesColorId> {
+        self.find_or_load(species_id).keys()
+    }
+
+    fn find_or_load(
+        &mut self,
+        species_id: &SpeciesId,
+    ) -> &IndexMap<SpeciesColorId, SpeciesColorData> {
+        self.0.entry(species_id.clone()).or_insert_with(|| {
+            std::fs::File::open(aftiktuna::asset::color::colors_path(species_id))
+                .map(|file| serde_json::from_reader::<_, _>(file).unwrap())
+                .ok()
+                .unwrap_or_default()
+        })
+    }
+}
 
 pub fn direction_editor(ui: &mut egui::Ui, direction: &mut Direction, id: impl Hash) {
     egui::ComboBox::new(id, "Direction")
