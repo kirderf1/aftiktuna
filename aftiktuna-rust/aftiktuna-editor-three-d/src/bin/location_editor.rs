@@ -573,6 +573,11 @@ mod ui {
                             );
                         }
                     });
+
+                aftiktuna_editor_three_d::custom_model_editor(ui, model, || {
+                    ModelId::from(*door_type)
+                });
+
                 fn adjective_name(adjective: Option<DoorAdjective>) -> &'static str {
                     adjective.map(DoorAdjective::word).unwrap_or("none")
                 }
@@ -744,6 +749,8 @@ mod ui {
             direction,
         }: &mut CreatureSpawnData,
     ) {
+        aftiktuna_editor_three_d::custom_model_editor(ui, custom_model, || creature.model_id());
+
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
 

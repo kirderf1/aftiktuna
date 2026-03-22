@@ -149,6 +149,50 @@ pub fn color_editor<'a, I: Iterator<Item = &'a SpeciesColorId>>(
         });
 }
 
+pub fn model_id_editor(ui: &mut egui::Ui, model_id: &mut ModelId) {
+    if ui.button("Select Model").clicked() {
+        let objects_directory = fs::canonicalize("./assets/texture/object").unwrap();
+        let path = rfd::FileDialog::new()
+            .set_title("Pick a model file")
+            .add_filter("JSON", &["json"])
+            .set_directory(&objects_directory)
+            .pick_file();
+
+        if let Some(path) = path {
+            let mut path = fs::canonicalize(path).unwrap();
+            path.set_extension("");
+            if let Ok(path) = path
+                .strip_prefix(&objects_directory)
+                .inspect_err(|error| eprintln!("Got error preparing path: {error}"))
+            {
+                model_id.0 = path.to_str().unwrap().to_owned();
+            }
+        } else {
+            println!("No valid path")
+        }
+    }
+
+    ui.text_edit_singleline(&mut model_id.0);
+}
+
+pub fn custom_model_editor(
+    ui: &mut egui::Ui,
+    custom_model: &mut Option<ModelId>,
+    default: impl FnOnce() -> ModelId,
+) {
+    let mut has_custom_model = custom_model.is_some();
+    if ui.checkbox(&mut has_custom_model, "Custom model").changed() {
+        *custom_model = if has_custom_model {
+            Some(default())
+        } else {
+            None
+        };
+    }
+    if let Some(model_id) = custom_model {
+        model_id_editor(ui, model_id);
+    }
+}
+
 pub fn background_layer_list_editor(
     ui: &mut egui::Ui,
     selected_layer: &mut usize,
