@@ -69,6 +69,8 @@ mod ui {
                 },
                 &mut assets.species_colors,
                 &assets.item_type_list,
+                &assets.species,
+                &assets.fauna,
             );
 
             match action {
@@ -515,6 +517,8 @@ mod ui {
         symbol_lookup: impl FnOnce(char) -> SymbolStatus,
         species_colors: &mut super::SpeciesColors,
         item_type_list: &[ItemTypeId],
+        species_list: &[SpeciesId],
+        fauna_list: &[SpeciesId],
     ) -> Option<SymbolEditAction> {
         ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
 
@@ -642,7 +646,7 @@ mod ui {
                 });
             }
             SymbolData::Creature(creature_spawn_data) => {
-                creature_spawn_data_editor(ui, creature_spawn_data);
+                creature_spawn_data_editor(ui, creature_spawn_data, fauna_list);
             }
             SymbolData::Character(nps_spawn_data) => {
                 let NpcSpawnData {
@@ -656,6 +660,20 @@ mod ui {
                     wielded_item,
                     direction,
                 } = nps_spawn_data.as_mut();
+
+                let species = match profile {
+                    aftiktuna::asset::profile::ProfileOrRandom::Random { species, .. } => species,
+                    aftiktuna::asset::profile::ProfileOrRandom::Profile(character_profile) => {
+                        &mut character_profile.species
+                    }
+                };
+                aftiktuna_editor_three_d::species_editor(
+                    ui,
+                    species,
+                    "character_species",
+                    species_list,
+                );
+
                 ui.label("Health:");
                 ui.add(egui::Slider::new(health, 0.0..=1.0));
 
@@ -690,6 +708,13 @@ mod ui {
                 color,
                 direction,
             }) => {
+                aftiktuna_editor_three_d::species_editor(
+                    ui,
+                    species,
+                    "corpse_species",
+                    species_list,
+                );
+
                 egui::ComboBox::new("corpse_color", "Color")
                     .selected_text(
                         color
@@ -748,7 +773,10 @@ mod ui {
             tag,
             direction,
         }: &mut CreatureSpawnData,
+        fauna_list: &[SpeciesId],
     ) {
+        aftiktuna_editor_three_d::species_editor(ui, creature, "fauna", fauna_list);
+
         aftiktuna_editor_three_d::custom_model_editor(ui, custom_model, || creature.model_id());
 
         ui.label("Health:");
@@ -810,6 +838,7 @@ use aftiktuna::asset::location::{
 };
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::{background, color, placement};
+use aftiktuna::core::SpeciesId;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Coord;
@@ -878,6 +907,8 @@ fn main() {
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
         base_symbols: location::load_base_symbols().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
+        species: aftiktuna::asset::species::load_species_list().unwrap(),
+        fauna: aftiktuna::asset::species::load_fauna_list().unwrap(),
         species_colors: SpeciesColors::default(),
         item_type_list: aftiktuna::asset::load_item_type_map()
             .unwrap()
@@ -983,6 +1014,8 @@ struct Assets {
     background_map: asset::BackgroundMap,
     base_symbols: SymbolMap,
     models: LazilyLoadedModels,
+    species: Vec<SpeciesId>,
+    fauna: Vec<SpeciesId>,
     species_colors: SpeciesColors,
     item_type_list: Vec<ItemTypeId>,
 }

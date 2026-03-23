@@ -3,6 +3,7 @@ use crate::core::behavior::BadlyHurtBehavior;
 use crate::core::combat::{AttackSet, UnarmedType, WeaponProperties};
 use crate::core::display::CreatureVariant;
 use crate::core::status::Stats;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -143,4 +144,22 @@ pub(super) fn load_species_map() -> Result<SpeciesDataMap, super::Error> {
     }
 
     Ok(species_map)
+}
+
+/// Loads species.json and discards the data to return just the species ids, excluding fauna.
+pub fn load_species_list() -> Result<Vec<SpeciesId>, super::Error> {
+    Ok(
+        super::load_json_asset::<IndexMap<SpeciesId, CharacterSpeciesData>>("species.json")?
+            .into_keys()
+            .collect(),
+    )
+}
+
+/// Loads fauna.json and discards the data to return just the species ids of fauna only.
+pub fn load_fauna_list() -> Result<Vec<SpeciesId>, super::Error> {
+    Ok(
+        super::load_json_asset::<IndexMap<SpeciesId, CharacterSpeciesData>>("fauna.json")?
+            .into_keys()
+            .collect(),
+    )
 }

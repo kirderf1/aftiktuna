@@ -70,6 +70,26 @@ pub fn option_direction_editor(
         });
 }
 
+pub fn species_editor(
+    ui: &mut egui::Ui,
+    edited_id: &mut SpeciesId,
+    id: impl Hash,
+    species_id_list: &[SpeciesId],
+) {
+    egui::ComboBox::new(id, "Species")
+        .selected_text(edited_id.to_string())
+        .show_ui(ui, |ui| {
+            for selectable_id in species_id_list {
+                let mut response =
+                    ui.selectable_label(edited_id == selectable_id, selectable_id.to_string());
+                if response.clicked() && edited_id != selectable_id {
+                    *edited_id = selectable_id.clone();
+                    response.mark_changed();
+                }
+            }
+        });
+}
+
 pub fn item_type_editor(
     ui: &mut egui::Ui,
     edited_type: &mut ItemTypeId,
