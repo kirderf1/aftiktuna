@@ -3,48 +3,49 @@
   "patternProperties": {
     "^[a-z_0-9]+$": {
       "type": "object",
-      "oneOf": [
+      "allOf": [
         {
-          "properties": {
-            "texture": { "$ref": "./parts/name_path.json" },
-            "move_factor": { "type": "number" },
-            "is_looping": { "type": "boolean" },
-            "offset": { "$ref": "./parts/background_layer_offset.json" },
-            "portrait_color": { "$ref": "./parts/array_color.json" },
-            "portrait_texture": { "$ref": "./parts/name_path.json" }
-          },
-          "additionalProperties": false,
-          "required": [ "texture" ],
+          "title": "General background data",
           "oneOf": [
             {
-              "required": [ "portrait_color" ]
+              "properties": {
+                "texture": { "$ref": "./parts/name_path.json" },
+                "move_factor": { "type": "number" },
+                "is_looping": { "type": "boolean" },
+                "offset": { "$ref": "./parts/background_layer_offset.json" }
+              },
+              "required": [ "texture" ]
             },
             {
-              "required": [ "portrait_texture" ]
+              "properties": {
+                "layers": {
+                  "type": "array",
+                  "items": { "$ref": "./parts/background_layer.json"}
+                }
+              },
+              "required": [ "layers" ]
             }
           ]
         },
         {
-          "properties": {
-            "layers": {
-              "type": "array",
-              "items": { "$ref": "./parts/background_layer.json"}
-            },
-            "portrait_color": { "$ref": "./parts/array_color.json" },
-            "portrait_texture": { "$ref": "./parts/name_path.json" }
-          },
-          "additionalProperties": false,
-          "required": [ "layers" ],
+          "title": "Portrait background data",
           "oneOf": [
             {
+              "properties": {
+                "portrait_color": { "$ref": "./parts/array_color.json" }
+              },
               "required": [ "portrait_color" ]
             },
             {
+              "properties": {
+                "portrait_texture": { "$ref": "./parts/name_path.json" }
+              },
               "required": [ "portrait_texture" ]
             }
           ]
         }
-      ]
+      ],
+      "unevaluatedProperties": false
     }
   },
   "additionalProperties": false
