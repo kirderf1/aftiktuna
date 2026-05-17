@@ -3,7 +3,7 @@
     "expression": "neutral",
     "message": "Your house should be safe now. We took care of the Azureclops for you.",
     "reply": [
-      { "expression": "excited", "message": "Thank you! Here is a fuel can for your effort." }
+      { "expression": "excited", "message": "Thank you! Here is {hunt_reward} for your effort." }
     ]
   }
 ]

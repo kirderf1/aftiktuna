@@ -128,6 +128,22 @@ impl Reward {
             item_type.spawn(world, Held::in_inventory(target));
         }
     }
+
+    pub fn as_text(&self, assets: &crate::asset::GameAssets) -> String {
+        let mut elements = Vec::new();
+        if self.points != 0 {
+            elements.push(format!("{}p", self.points));
+        }
+        elements.append(&mut super::name::names_with_counts(
+            self.items
+                .iter()
+                .map(|item_type| item_type.noun_id().into()),
+            super::name::ArticleKind::A,
+            super::name::CountFormat::Text,
+            assets,
+        ));
+        crate::view::text::join_elements(elements)
+    }
 }
 
 /// Assigned to crew entity when any crew member have brought up that the crew has sufficient fuel to leave.

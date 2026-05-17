@@ -111,6 +111,12 @@ impl<'a> From<NameQuery<'a>> for NameIdData {
     }
 }
 
+impl From<NounId> for NameIdData {
+    fn from(value: NounId) -> Self {
+        Self::Noun(None, value)
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub enum NameData {
     Name(String),

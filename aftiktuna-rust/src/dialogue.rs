@@ -1,7 +1,8 @@
 mod context {
     use std::collections::HashMap;
 
-    use crate::core::behavior::CrewLossMemory;
+    use crate::asset::GameAssets;
+    use crate::core::behavior::{CrewLossMemory, GivesHuntRewardData};
     use crate::core::name::Name;
 
     #[derive(Default)]
@@ -26,6 +27,7 @@ mod context {
                     if let Some(resolver) = self.resolver_map.get(key) {
                         result.push_str(&resolver());
                     } else {
+                        eprintln!("Unknown dialogue text key: \"{key}\"");
                         result.push_str("???");
                     }
 
@@ -42,6 +44,7 @@ mod context {
     pub(super) fn setup_context<'a>(
         world: &'a hecs::World,
         speaker: hecs::Entity,
+        assets: &'a GameAssets,
     ) -> TextResolutionContext<'a> {
         let mut context = TextResolutionContext::default();
 
@@ -50,6 +53,7 @@ mod context {
                 name.is_known = true;
                 name.name.clone()
             } else {
+                eprintln!("Missing name for dialogue");
                 "???".to_owned()
             }
         });
@@ -58,6 +62,16 @@ mod context {
             if let Ok(crew_loss_memory) = world.get::<&CrewLossMemory>(speaker) {
                 crew_loss_memory.name.clone()
             } else {
+                eprintln!("Missing crew loss memory for dialogue");
+                "???".to_owned()
+            }
+        });
+
+        context.add_resolver("hunt_reward", move || {
+            if let Ok(data) = world.get::<&GivesHuntRewardData>(speaker) {
+                data.reward.as_text(assets)
+            } else {
+                eprintln!("Missing hunt mission data for dialogue");
                 "???".to_owned()
             }
         });
@@ -67,10 +81,14 @@ mod context {
 
     #[cfg(test)]
     mod tests {
-        use crate::core::{behavior::CrewLossMemory, name::Name};
+        use crate::{
+            asset::GameAssets,
+            core::{behavior::CrewLossMemory, name::Name},
+        };
 
         #[test]
         fn resolve() {
+            let assets = GameAssets::load().unwrap();
             let mut world = hecs::World::new();
             let speaker = world.spawn((
                 Name {
@@ -82,7 +100,8 @@ mod context {
                     recent: false,
                 },
             ));
-            let context = super::setup_context(&world, speaker);
+            let context = super::setup_context(&world, speaker, &assets);
+
             assert_eq!(
                 context.resolve("a {name} b {crew_loss_memory_name}"),
                 "a foo b bar"
@@ -108,6 +127,7 @@ use crate::game_loop::GameState;
 use crate::{asset, view};
 use hecs::{Entity, World};
 use rand::seq::{IndexedRandom, IteratorRandom, SliceRandom};
+use std::ops::Deref;
 
 #[derive(Clone, Debug)]
 pub enum TalkTopic {
@@ -165,24 +185,18 @@ fn prompt_npc_dialogue(
             gives_hunt_reward.presented = true;
             let dialogue_id = gives_hunt_reward.task_dialogue.clone();
             drop(gives_hunt_reward);
+
             trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
         } else {
+            let dialogue_id = gives_hunt_reward.already_completed_dialogue.clone();
+            let reward = gives_hunt_reward.reward.clone();
             drop(gives_hunt_reward);
-            let GivesHuntRewardData {
-                already_completed_dialogue,
-                reward,
-                ..
-            } = state.world.remove_one::<GivesHuntRewardData>(npc).unwrap();
 
-            trigger_dialogue_by_name(
-                &already_completed_dialogue,
-                npc,
-                crew_member,
-                state,
-                view_buffer,
-            );
+            trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
 
             reward.give_reward_to(crew_member, &mut state.world);
+
+            let _ = state.world.remove_one::<GivesHuntRewardData>(npc);
         }
     } else {
         drop(gives_hunt_reward);
@@ -207,11 +221,18 @@ fn complete_hunt_quest(
         reward_dialogue,
         reward,
         ..
-    } = state.world.remove_one::<GivesHuntRewardData>(npc).unwrap();
+    } = state
+        .world
+        .get::<&GivesHuntRewardData>(npc)
+        .unwrap()
+        .deref()
+        .clone();
 
     trigger_dialogue_by_name(&reward_dialogue, crew_member, npc, state, view_buffer);
 
     reward.give_reward_to(crew_member, &mut state.world);
+
+    let _ = state.world.remove_one::<GivesHuntRewardData>(npc);
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -562,7 +583,7 @@ fn run_dialogue_node(
     view_buffer: &mut view::Buffer,
 ) {
     let world = &state.world;
-    let context = context::setup_context(world, speaker);
+    let context = context::setup_context(world, speaker, view_buffer.assets);
     let target_pos = *world.get::<&Pos>(target).unwrap();
     position::turn_towards(world, speaker, target_pos);
 
