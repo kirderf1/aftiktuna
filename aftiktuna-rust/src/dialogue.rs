@@ -1,3 +1,97 @@
+mod context {
+    use std::collections::HashMap;
+
+    use crate::core::behavior::CrewLossMemory;
+    use crate::core::name::Name;
+
+    #[derive(Default)]
+    pub(super) struct TextResolutionContext<'a> {
+        resolver_map: HashMap<&'static str, Box<dyn Fn() -> String + 'a>>,
+    }
+
+    impl<'a> TextResolutionContext<'a> {
+        pub fn add_resolver(&mut self, key: &'static str, resolver: impl Fn() -> String + 'a) {
+            self.resolver_map.insert(key, Box::new(resolver));
+        }
+
+        pub(super) fn resolve(&self, mut text: &str) -> String {
+            let mut result = String::new();
+            while !text.is_empty() {
+                if let Some(start) = text.find("{")
+                    && let Some(length) = text[start..].find("}")
+                {
+                    result.push_str(&text[..start]);
+
+                    let key = &text[(start + 1)..(start + length)];
+                    if let Some(resolver) = self.resolver_map.get(key) {
+                        result.push_str(&resolver());
+                    } else {
+                        result.push_str("???");
+                    }
+
+                    text = text.split_at(start + length + 1).1;
+                } else {
+                    result.push_str(text);
+                    break;
+                }
+            }
+            result
+        }
+    }
+
+    pub(super) fn setup_context<'a>(
+        world: &'a hecs::World,
+        speaker: hecs::Entity,
+    ) -> TextResolutionContext<'a> {
+        let mut context = TextResolutionContext::default();
+
+        context.add_resolver("name", move || {
+            if let Ok(mut name) = world.get::<&mut Name>(speaker) {
+                name.is_known = true;
+                name.name.clone()
+            } else {
+                "???".to_owned()
+            }
+        });
+
+        context.add_resolver("crew_loss_memory_name", move || {
+            if let Ok(crew_loss_memory) = world.get::<&CrewLossMemory>(speaker) {
+                crew_loss_memory.name.clone()
+            } else {
+                "???".to_owned()
+            }
+        });
+
+        context
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use crate::core::{behavior::CrewLossMemory, name::Name};
+
+        #[test]
+        fn resolve() {
+            let mut world = hecs::World::new();
+            let speaker = world.spawn((
+                Name {
+                    name: "foo".to_owned(),
+                    is_known: false,
+                },
+                CrewLossMemory {
+                    name: "bar".to_owned(),
+                    recent: false,
+                },
+            ));
+            let context = super::setup_context(&world, speaker);
+            assert_eq!(
+                context.resolve("a {name} b {crew_loss_memory_name}"),
+                "a foo b bar"
+            );
+            assert_eq!(context.resolve("{unknown}"), "???");
+        }
+    }
+}
+
 use crate::asset::GameAssets;
 use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::area::ShipState;
@@ -468,23 +562,11 @@ fn run_dialogue_node(
     view_buffer: &mut view::Buffer,
 ) {
     let world = &state.world;
+    let context = context::setup_context(world, speaker);
     let target_pos = *world.get::<&Pos>(target).unwrap();
     position::turn_towards(world, speaker, target_pos);
 
-    let message = if dialogue_node.message.contains("{name}")
-        && let Ok(mut name) = world.get::<&mut Name>(speaker)
-    {
-        name.is_known = true;
-        dialogue_node.message.replace("{name}", &name.name)
-    } else if dialogue_node.message.contains("{crew_loss_memory_name}")
-        && let Ok(crew_loss_memory) = world.get::<&CrewLossMemory>(speaker)
-    {
-        dialogue_node
-            .message
-            .replace("{crew_loss_memory_name}", &crew_loss_memory.name)
-    } else {
-        dialogue_node.message.clone()
-    };
+    let message = context.resolve(&dialogue_node.message);
 
     view_buffer.push_dialogue(world, speaker, dialogue_node.expression, message);
 
