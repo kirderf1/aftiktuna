@@ -67,9 +67,12 @@ pub mod creature {
         pub target_tag: Tag,
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub target_label: String,
-        pub task_dialogue: DialogueId,
-        pub already_completed_dialogue: DialogueId,
-        pub reward_dialogue: DialogueId,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub task_dialogue: Option<DialogueId>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub already_completed_dialogue: Option<DialogueId>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reward_dialogue: Option<DialogueId>,
         pub reward: Reward,
     }
 

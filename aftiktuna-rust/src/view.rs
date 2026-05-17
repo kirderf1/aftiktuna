@@ -186,6 +186,8 @@ impl<'a> Buffer<'a> {
         }
     }
 
+    /// Add a message and give a hint to capture the view if several messages have been built up.
+    /// Meant to be used when describing the result of an action.
     pub fn add_change_message(&mut self, message: impl IntoMessage, state: &mut GameState) {
         self.messages.add(message);
         self.flush_hint(state);

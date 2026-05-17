@@ -81,9 +81,9 @@ pub struct Talk(pub DialogueId);
 pub struct GivesHuntRewardData {
     pub target_tag: Tag,
     pub target_label: String,
-    pub task_dialogue: DialogueId,
-    pub already_completed_dialogue: DialogueId,
-    pub reward_dialogue: DialogueId,
+    pub task_dialogue: Option<DialogueId>,
+    pub already_completed_dialogue: Option<DialogueId>,
+    pub reward_dialogue: Option<DialogueId>,
     pub reward: Reward,
     pub presented: bool,
 }

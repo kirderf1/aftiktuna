@@ -3,12 +3,21 @@
     {
       "name": "Room",
       "pos_in_overview": [ -1, 2 ],
-      "objects": [ "<", "", "", "v", "###", ">c" ],
+      "objects": [ "<", "a", "", "v", "###", ">c" ],
       "symbols": {
         "<": { "type": "door", "pair_id": "left", "door_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "right", "door_type": "door", "adjective": "right" },
         "c": { "type": "item", "item": "crowbar" },
-        "#": { "type": "item", "item": "odd_hand_mirror" }
+        "#": { "type": "item", "item": "odd_hand_mirror" },
+        "a": {
+          "type": "character",
+          "profile": { "type": "random", "species": "pagepoh" },
+          "interaction": {
+            "type": "gives_hunt_reward",
+            "target_tag": "target",
+            "reward": { "points": 1 }
+          }
+        }
       }
     },
     {
@@ -32,7 +41,8 @@
       "symbols": {
         "<": { "type": "door", "pair_id": "right", "door_type": "door", "adjective": "left" },
         ">": { "type": "door", "pair_id": "side", "door_type": "door", "adjective": "right" },
-        "b": { "type": "item", "item": "blowtorch" }
+        "b": { "type": "item", "item": "blowtorch" },
+        "G": { "type": "creature", "creature": "goblin", "tag": "target" }
       }
     }
   ],

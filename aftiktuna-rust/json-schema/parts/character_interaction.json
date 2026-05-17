@@ -36,7 +36,7 @@
         }
       },
       "additionalProperties": false,
-      "required": [ "target_tag", "task_dialogue", "already_completed_dialogue", "reward_dialogue", "reward" ]
+      "required": [ "target_tag", "reward" ]
     },
     {
       "properties": {

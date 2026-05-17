@@ -183,16 +183,42 @@ fn prompt_npc_dialogue(
 
         if !gives_hunt_reward.is_fulfilled(&state.world) {
             gives_hunt_reward.presented = true;
-            let dialogue_id = gives_hunt_reward.task_dialogue.clone();
-            drop(gives_hunt_reward);
 
-            trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
+            if let Some(dialogue_id) = &gives_hunt_reward.task_dialogue {
+                let dialogue_id = dialogue_id.clone();
+                drop(gives_hunt_reward);
+                trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
+            } else {
+                let message = format!(
+                    "{the_npc} asks {the_character} to hunt down {the_target} nearby and offers {a_reward} as reward.",
+                    the_npc = NameData::find(&state.world, npc, view_buffer.assets).definite(),
+                    the_character =
+                        NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
+                    the_target = gives_hunt_reward.target_label,
+                    a_reward = gives_hunt_reward.reward.as_text(view_buffer.assets)
+                );
+                drop(gives_hunt_reward);
+                view_buffer.add_change_message(message, state);
+            }
         } else {
             let dialogue_id = gives_hunt_reward.already_completed_dialogue.clone();
             let reward = gives_hunt_reward.reward.clone();
-            drop(gives_hunt_reward);
 
-            trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
+            if let Some(dialogue_id) = dialogue_id {
+                drop(gives_hunt_reward);
+                trigger_dialogue_by_name(&dialogue_id, npc, crew_member, state, view_buffer);
+            } else {
+                let message = format!(
+                    "{the_npc} was going to ask for help with {the_target}, but since it has already been taken care of, {the_npc} gives {the_character} {a_reward} as reward.",
+                    the_npc = NameData::find(&state.world, npc, view_buffer.assets).definite(),
+                    the_character =
+                        NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
+                    the_target = gives_hunt_reward.target_label,
+                    a_reward = reward.as_text(view_buffer.assets)
+                );
+                drop(gives_hunt_reward);
+                view_buffer.add_change_message(message, state);
+            }
 
             reward.give_reward_to(crew_member, &mut state.world);
 
@@ -218,6 +244,7 @@ fn complete_hunt_quest(
     view_buffer: &mut view::Buffer,
 ) {
     let GivesHuntRewardData {
+        target_label,
         reward_dialogue,
         reward,
         ..
@@ -228,7 +255,19 @@ fn complete_hunt_quest(
         .deref()
         .clone();
 
-    trigger_dialogue_by_name(&reward_dialogue, crew_member, npc, state, view_buffer);
+    if let Some(reward_dialogue) = reward_dialogue {
+        trigger_dialogue_by_name(&reward_dialogue, crew_member, npc, state, view_buffer);
+    } else {
+        let message = format!(
+            "{the_npc} gives {the_character} {a_reward} as reward for helping out with {the_target}.",
+            the_npc = NameData::find(&state.world, npc, view_buffer.assets).definite(),
+            the_character =
+                NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
+            the_target = target_label,
+            a_reward = reward.as_text(view_buffer.assets),
+        );
+        view_buffer.add_change_message(message, state);
+    }
 
     reward.give_reward_to(crew_member, &mut state.world);
 
