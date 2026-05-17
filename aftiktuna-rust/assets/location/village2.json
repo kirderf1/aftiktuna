@@ -276,7 +276,6 @@
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "forest_mantis",
-            "target_label": "the Blood Mantis",
             "task_dialogue": "village2/mantis_hunt_mission",
             "already_completed_dialogue": "village2/mantis_hunt_already_completed",
             "reward_dialogue": "village2/mantis_hunt_completion",

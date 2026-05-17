@@ -6,13 +6,15 @@ use crate::asset::location::{
     AreaData, ContainerData, DoorPairMap, FurnishTemplate, ItemOrLoot, LocationData, SymbolData,
     SymbolLookup, SymbolMap,
 };
-use crate::asset::{self, loot};
-use crate::core::FortunaChest;
+use crate::asset::{self, GameAssets, loot};
 use crate::core::area::{Area, ShipControls};
+use crate::core::behavior::GivesHuntRewardData;
 use crate::core::display::ModelId;
 use crate::core::inventory::{Container, Held};
-use crate::core::name::NounId;
+use crate::core::name::{NameIdData, NameQuery, NounId};
 use crate::core::position::{Coord, Pos};
+use crate::core::{FortunaChest, Tag, name};
+use crate::view::text;
 use hecs::{Entity, World};
 use rand::seq::IndexedRandom;
 
@@ -42,6 +44,8 @@ pub fn build_location<'a, 'b>(
     }
 
     builder.door_pair_builder.verify_all_doors_placed()?;
+
+    resolve_references(&builder.gen_context.world, builder.gen_context.assets);
 
     creature::align_aggressiveness(&mut builder.gen_context.world);
 
@@ -283,4 +287,24 @@ fn furnish(
         }
     }
     Ok(())
+}
+
+fn resolve_references(world: &World, assets: &GameAssets) {
+    for data in world.query::<&mut GivesHuntRewardData>().iter() {
+        if data.target_label.is_empty() {
+            let targets = world
+                .query::<(&Tag, NameQuery)>()
+                .iter()
+                .filter(|&(tag, _)| tag == &data.target_tag)
+                .map(|(_, query)| NameIdData::from(query))
+                .collect::<Vec<_>>();
+
+            data.target_label = text::join_elements(name::names_with_counts(
+                targets,
+                name::ArticleKind::The,
+                name::CountFormat::Text,
+                assets,
+            ));
+        }
+    }
 }

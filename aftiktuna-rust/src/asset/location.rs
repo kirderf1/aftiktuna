@@ -65,6 +65,7 @@ pub mod creature {
     #[derive(Clone, Serialize, Deserialize)]
     pub struct GivesHuntReward {
         pub target_tag: Tag,
+        #[serde(default, skip_serializing_if = "String::is_empty")]
         pub target_label: String,
         pub task_dialogue: DialogueId,
         pub already_completed_dialogue: DialogueId,

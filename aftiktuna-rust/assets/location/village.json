@@ -87,7 +87,6 @@
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "house_azureclops",
-            "target_label": "the Azureclops",
             "task_dialogue": "village/hunt_mission",
             "already_completed_dialogue": "village/hunt_already_completed",
             "reward_dialogue": "village/hunt_completion",
