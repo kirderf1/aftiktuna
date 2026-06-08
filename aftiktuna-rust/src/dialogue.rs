@@ -229,7 +229,7 @@ fn prompt_npc_dialogue(
         if let Some(talk) = npc_ref.get::<&Talk>().map(crate::deref_clone) {
             trigger_dialogue_by_name(&talk.0, npc, crew_member, state, view_buffer);
         } else if npc_ref.has::<Recruitable>() {
-            trigger_dialogue_by_name("recruitable", npc, crew_member, state, view_buffer);
+            trigger_dialogue_by_name("recruit/hint", npc, crew_member, state, view_buffer);
         } else if npc_ref.has::<Shopkeeper>() {
             store::initiate_trade(crew_member, npc, state, view_buffer);
         }
