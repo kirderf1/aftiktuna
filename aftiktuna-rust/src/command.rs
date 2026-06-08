@@ -3,9 +3,10 @@ mod parse;
 mod store;
 pub mod suggestion;
 
-use crate::action::Action;
+use crate::action::{Action, AnswerRecruitmentAction};
 use crate::asset::GameAssets;
 use crate::core;
+use crate::core::behavior::Decision;
 use crate::core::name::NameData;
 use crate::core::status::CreatureAttribute;
 use crate::game_loop::GameState;
@@ -58,12 +59,35 @@ pub fn try_parse_input(
     state: &GameState,
     assets: &GameAssets,
 ) -> Result<CommandResult, String> {
-    if let Some(shopkeeper) = core::store::get_shop_info(&state.world, state.controlled) {
+    if let Ok(decision) = state.world.get::<&Decision>(state.controlled) {
+        parse_decision_command(input, &decision)
+    } else if let Some(shopkeeper) = core::store::get_shop_info(&state.world, state.controlled) {
         store::parse(input, shopkeeper.deref(), state, assets)
     } else {
         game::parse(input, state, assets)
     }
     .map_err(text::capitalize)
+}
+
+fn parse_decision_command(input: &str, decision: &Decision) -> Result<CommandResult, String> {
+    match decision {
+        Decision::Recruit(_) => {
+            let decision = parse_yes_no(input)?;
+            action_result(AnswerRecruitmentAction {
+                accept_recruitment: decision,
+            })
+        }
+    }
+}
+
+fn parse_yes_no(input: &str) -> Result<bool, String> {
+    if ["yes", "y", "sure"].contains(&input) {
+        Ok(true)
+    } else if ["no", "n"].contains(&input) {
+        Ok(false)
+    } else {
+        Err("Input does not match \"yes\" or \"no\".".to_owned())
+    }
 }
 
 fn status(state: &GameState, assets: &GameAssets) -> Result<CommandResult, String> {

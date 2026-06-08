@@ -115,8 +115,8 @@ use crate::asset::GameAssets;
 use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::area::ShipState;
 use crate::core::behavior::{
-    self, BackgroundDialogue, Character, CrewLossMemory, EncounterDialogue, GivesHuntRewardData,
-    Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
+    self, BackgroundDialogue, Character, CrewLossMemory, Decision, EncounterDialogue,
+    GivesHuntRewardData, Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
 };
 use crate::core::name::{Name, NameData};
 use crate::core::position::{self, Pos};
@@ -228,8 +228,16 @@ fn prompt_npc_dialogue(
         drop(gives_hunt_reward);
         if let Some(talk) = npc_ref.get::<&Talk>().map(crate::deref_clone) {
             trigger_dialogue_by_name(&talk.0, npc, crew_member, state, view_buffer);
-        } else if npc_ref.has::<Recruitable>() {
-            trigger_dialogue_by_name("recruit/hint", npc, crew_member, state, view_buffer);
+        } else if let Some(recruitable) = npc_ref.get::<&Recruitable>().map(crate::deref_clone) {
+            if recruitable.will_request {
+                trigger_dialogue_by_name("recruit/request", npc, crew_member, state, view_buffer);
+                state
+                    .world
+                    .insert_one(crew_member, Decision::Recruit(npc))
+                    .unwrap();
+            } else {
+                trigger_dialogue_by_name("recruit/hint", npc, crew_member, state, view_buffer);
+            }
         } else if npc_ref.has::<Shopkeeper>() {
             store::initiate_trade(crew_member, npc, state, view_buffer);
         }

@@ -120,7 +120,7 @@ pub(super) fn place_creature(
     }
 
     if tameable {
-        builder.add(Recruitable);
+        builder.add(Recruitable::default());
     }
 
     gen_context.world.spawn(builder.build());
@@ -173,8 +173,8 @@ pub(super) fn place_npc(
         builder.add::<behavior::BackgroundId>(background);
     }
     match interaction {
-        CharacterInteraction::Recruitable => {
-            builder.add(Recruitable);
+        &CharacterInteraction::Recruitable { will_request } => {
+            builder.add(Recruitable { will_request });
         }
         CharacterInteraction::Talk { dialogue } => {
             builder.add(Talk(dialogue.clone()));

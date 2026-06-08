@@ -193,6 +193,7 @@ pub mod world {
         behavior::RepeatingAction, RepeatingAction;
         behavior::Waiting, Waiting;
         behavior::CrewLossMemory, CrewLossMemory;
+        behavior::Decision, Decision;
 
         behavior::Recruitable, Recruitable;
         behavior::Talk, Talk;

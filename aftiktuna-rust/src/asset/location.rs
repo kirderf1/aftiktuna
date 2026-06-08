@@ -101,7 +101,10 @@ pub mod creature {
     #[derive(Clone, Serialize, Deserialize)]
     #[serde(tag = "type", rename_all = "snake_case")]
     pub enum CharacterInteraction {
-        Recruitable,
+        Recruitable {
+            #[serde(default, skip_serializing_if = "crate::is_default")]
+            will_request: bool,
+        },
         Talk {
             dialogue: DialogueId,
         },

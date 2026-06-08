@@ -70,8 +70,10 @@ pub struct CrewLossMemory {
     pub recent: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Recruitable;
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize)]
+pub struct Recruitable {
+    pub will_request: bool,
+}
 
 /// Dialogue that appears after the greeting as a response to the talk action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -153,6 +155,12 @@ pub struct TalkedAboutEnoughFuel;
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TalkState {
     pub talked_about_badly_hurt: bool,
+}
+
+/// Assigned to the controlled character when the player is given a choice to make.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum Decision {
+    Recruit(hecs::Entity),
 }
 
 pub fn is_safe(world: &hecs::World, area: hecs::Entity) -> bool {

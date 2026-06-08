@@ -3,7 +3,8 @@
   "oneOf": [
     {
       "properties": {
-        "type": { "const": "recruitable" }
+        "type": { "const": "recruitable" },
+        "will_request": { "type": "boolean" }
       },
       "additionalProperties": false
     },

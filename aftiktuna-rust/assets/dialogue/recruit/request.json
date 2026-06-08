@@ -1,0 +1,4 @@
+[
+  { "has_background": "forest_ship_crash", "expression": "sad", "message": "You see that crashed ship back there? That's how I ended up here. You don't happen to have space on your ship to bring me along?" },
+  { "expression": "excited", "message": "You're going on an adventure, right? May I come with?" }
+]

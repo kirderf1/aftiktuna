@@ -2,7 +2,7 @@ use crate::action::{self, Action};
 use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::behavior::{
-    Character, CrewLossMemory, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
+    Character, CrewLossMemory, Decision, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
 };
 use crate::core::inventory::Held;
 use crate::core::item::ItemTypeId;
@@ -153,7 +153,7 @@ fn tick_and_check(
     view_buffer: &mut view::Buffer,
 ) -> Result<Step, Phase> {
     if chosen_action.is_none() && should_take_user_input(state) {
-        view_buffer.capture_view(state, true);
+        view_buffer.capture_view(state, !state.world.satisfies::<&Decision>(state.controlled));
         return Err(Phase::CommandInput);
     }
 

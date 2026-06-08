@@ -1,5 +1,5 @@
 use crate::action::{self, Context, Error};
-use crate::core::behavior::{Hostile, Recruitable, Waiting};
+use crate::core::behavior::{Decision, Hostile, Recruitable, Waiting};
 use crate::core::name::NameData;
 use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
@@ -129,6 +129,129 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
             }
         },
     )
+}
+
+/// Action to answer a request by npc to be recruited.
+#[derive(Debug, Clone)]
+pub struct AnswerRecruitmentAction {
+    pub accept_recruitment: bool,
+}
+
+impl From<AnswerRecruitmentAction> for super::Action {
+    fn from(value: AnswerRecruitmentAction) -> Self {
+        Self::AnswerRecruitment(value)
+    }
+}
+
+impl AnswerRecruitmentAction {
+    pub(super) fn run(self, context: Context, performer: Entity) -> action::Result {
+        let Self { accept_recruitment } = self;
+        let Ok(Decision::Recruit(target)) = context.state.world.remove_one::<Decision>(performer)
+        else {
+            return Err(Error::private(format!(
+                "{} lost track of who to recruit.",
+                NameData::find(
+                    &context.state.world,
+                    performer,
+                    context.view_context.view_buffer.assets
+                )
+                .definite()
+            )));
+        };
+
+        if accept_recruitment {
+            check_crew_size(&context.state.world)?;
+
+            full_dialogue_action(
+                context,
+                performer,
+                target,
+                true,
+                |Context {
+                     state,
+                     view_context,
+                 }| {
+                    if state.world.satisfies::<&Recruitable>(target) {
+                        let result = dialogue::trigger_dialogue_by_name(
+                            "recruit/accept_request",
+                            performer,
+                            target,
+                            state,
+                            view_context.view_buffer,
+                        );
+                        if !result {
+                            view_context.view_buffer.messages.add(format!(
+                                "{the_performer} accepts {the_target}'s request to join the crew.",
+                                the_performer = NameData::find(
+                                    &state.world,
+                                    performer,
+                                    view_context.view_buffer.assets
+                                )
+                                .definite(),
+                                the_target = NameData::find(
+                                    &state.world,
+                                    target,
+                                    view_context.view_buffer.assets
+                                )
+                                .definite(),
+                            ));
+                        }
+
+                        perform_recruitment_success(target, state, view_context.view_buffer);
+                        Some(Ok(action::Success))
+                    } else {
+                        Some(Err(Error::private(format!(
+                            "{the_target} is no longer receptive to being recruited.",
+                            the_target = NameData::find(
+                                &state.world,
+                                target,
+                                view_context.view_buffer.assets
+                            )
+                            .definite(),
+                        ))))
+                    }
+                },
+            )
+        } else {
+            full_dialogue_action(
+                context,
+                performer,
+                target,
+                false,
+                |Context {
+                     state,
+                     view_context,
+                 }| {
+                    let result = dialogue::trigger_dialogue_by_name(
+                        "recruit/reject_request",
+                        performer,
+                        target,
+                        state,
+                        view_context.view_buffer,
+                    );
+                    if !result {
+                        view_context.view_buffer.messages.add(format!(
+                            "{the_performer} rejects {the_target}'s request to join the crew.",
+                            the_performer = NameData::find(
+                                &state.world,
+                                performer,
+                                view_context.view_buffer.assets
+                            )
+                            .definite(),
+                            the_target = NameData::find(
+                                &state.world,
+                                target,
+                                view_context.view_buffer.assets
+                            )
+                            .definite(),
+                        ));
+                    }
+
+                    Some(Ok(action::Success))
+                },
+            )
+        }
+    }
 }
 
 pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) -> action::Result {
