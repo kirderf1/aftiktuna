@@ -5,6 +5,8 @@ use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
 use crate::core::{self, CrewMember, position, status};
 use crate::dialogue::{self, TalkTopic};
+use crate::game_loop::GameState;
+use crate::view;
 use hecs::Entity;
 
 #[derive(Clone, Debug)]
@@ -53,14 +55,39 @@ impl TalkAction {
     }
 }
 
-pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> action::Result {
-    let crew = context.state.world.get::<&CrewMember>(performer).unwrap().0;
-    let crew_size = context.state.world.query::<&CrewMember>().iter().count();
+fn check_crew_size(world: &hecs::World) -> Result<(), Error> {
+    let crew_size = world.query::<&CrewMember>().iter().count();
     if crew_size >= core::CREW_SIZE_LIMIT {
-        return Err(Error::private(
+        Err(Error::private(
             "There is not enough room for another crew member.",
-        ));
+        ))
+    } else {
+        Ok(())
     }
+}
+
+fn perform_recruitment_success(
+    target: Entity,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer,
+) {
+    let crew = state.world.get::<&CrewMember>(state.controlled).unwrap().0;
+
+    if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
+        morale.journey_start_effect();
+    }
+    for morale in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
+        morale.new_crew_member_effect();
+    }
+    state.world.remove_one::<Recruitable>(target).unwrap();
+    let name = NameData::find(&state.world, target, view_buffer.assets).definite();
+    state.world.insert_one(target, CrewMember(crew)).unwrap();
+
+    view_buffer.add_change_message(format!("{name} joined the crew!"), state);
+}
+
+pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> action::Result {
+    check_crew_size(&context.state.world)?;
 
     full_dialogue_action(
         context,
@@ -71,35 +98,30 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
              state,
              view_context,
          }| {
+            dialogue::trigger_dialogue_by_name(
+                "recruit/ask",
+                performer,
+                target,
+                state,
+                view_context.view_buffer,
+            );
+
             if state.world.satisfies::<&Recruitable>(target) {
                 dialogue::trigger_dialogue_by_name(
-                    "recruit",
-                    performer,
+                    "recruit/reply_accept",
                     target,
+                    performer,
                     state,
                     view_context.view_buffer,
                 );
 
-                if let Ok(mut morale) = state.world.get::<&mut Morale>(target) {
-                    morale.journey_start_effect();
-                }
-                for morale in state.world.query_mut::<&mut Morale>().with::<&CrewMember>() {
-                    morale.new_crew_member_effect();
-                }
-                state.world.remove_one::<Recruitable>(target).unwrap();
-                let name = NameData::find(&state.world, target, view_context.view_buffer.assets)
-                    .definite();
-                state.world.insert_one(target, CrewMember(crew)).unwrap();
-
-                view_context
-                    .view_buffer
-                    .add_change_message(format!("{name} joined the crew!"), state);
+                perform_recruitment_success(target, state, view_context.view_buffer);
                 Some(Ok(action::Success))
             } else {
                 dialogue::trigger_dialogue_by_name(
-                    "recruit_fail",
-                    performer,
+                    "recruit/reply_reject",
                     target,
+                    performer,
                     state,
                     view_context.view_buffer,
                 );
