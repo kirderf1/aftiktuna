@@ -93,7 +93,8 @@ impl App {
     fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> AppAction {
         if !self.error_messages.is_empty() {
             let clicked = aftiktuna_three_d::check_clicked_anywhere(&mut frame_input.events);
-            let pressed_enter = aftiktuna_three_d::check_pressed_enter(&mut frame_input.events);
+            let pressed_enter =
+                aftiktuna_three_d::check_pressed_key(&mut frame_input.events, three_d::Key::Enter);
 
             let screen = frame_input.screen();
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));

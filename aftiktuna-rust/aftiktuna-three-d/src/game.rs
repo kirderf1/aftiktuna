@@ -70,7 +70,7 @@ impl State {
             self.request_input_focus = true;
         }
 
-        let pressed_enter = crate::check_pressed_enter(&mut frame_input.events);
+        let pressed_enter = crate::check_pressed_key(&mut frame_input.events, three_d::Key::Enter);
 
         if matches!(self.game.next_result(), GameResult::Stop) {
             let clicked = ui_result.clicked_text_box
@@ -138,6 +138,13 @@ impl State {
                 self.camera.handle_inputs(&mut frame_input.events);
                 self.camera.clamp(render_data.area_size);
             }
+        }
+
+        if crate::check_pressed_key(&mut frame_input.events, three_d::Key::Escape)
+            && action.is_none()
+        {
+            self.save_game_if_enabled();
+            action = Some(GameAction::ExitGame);
         }
 
         let screen = frame_input.screen();

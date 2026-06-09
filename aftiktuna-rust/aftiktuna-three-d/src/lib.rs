@@ -158,11 +158,11 @@ pub fn make_text_obj(
     )
 }
 
-pub fn check_pressed_enter(events: &mut [three_d::Event]) -> bool {
+pub fn check_pressed_key(events: &mut [three_d::Event], key: three_d::Key) -> bool {
     let mut pressed = false;
     for event in events {
         if let three_d::Event::KeyPress { kind, handled, .. } = event {
-            if !*handled && *kind == three_d::Key::Enter {
+            if !*handled && *kind == key {
                 *handled = true;
                 pressed = true;
             }

@@ -42,7 +42,7 @@ When interacting with a store, there are the following commands:
 - exit
 - status
 
-You can at any time give the command "exit game" to quit and return to the main menu.
+You can at any time give the command "exit game" or press Esc to quit and return to the main menu.
 
 Notes:
 - "rest" doesn't recover health, instead it waits until stamina (a stat that helps with dodging attacks) has recovered for the crew.
