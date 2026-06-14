@@ -27,7 +27,7 @@ mod ui {
         let save = egui::Panel::right("side")
             .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
             .resizable(false)
-            .exact_size(crate::SIDE_PANEL_WIDTH as f32)
+            .exact_size(super::SIDE_PANEL_WIDTH as f32)
             .show_inside(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .show(ui, |ui| side_panel_content(ui, editor_data, assets))
@@ -38,7 +38,7 @@ mod ui {
         egui::Panel::bottom("bottom")
             .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
             .resizable(false)
-            .exact_size(crate::BOTTOM_PANEL_HEIGHT as f32)
+            .exact_size(super::BOTTOM_PANEL_HEIGHT as f32)
             .show_inside(ui, |ui| {
                 bottom_panel_content(ui, editor_data);
             });
@@ -381,7 +381,7 @@ mod ui {
     fn local_symbols_editor(
         ui: &mut egui::Ui,
         area: &mut AreaData,
-        assets: &crate::Assets,
+        assets: &super::Assets,
     ) -> Option<SymbolEditData> {
         ui.collapsing("Local Symbols", |ui| {
             let mut symbol_edit_data = None;
@@ -848,7 +848,7 @@ use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
 use std::collections::HashMap;
-use std::fs::{self, File};
+use std::fs::File;
 
 const SIDE_PANEL_WIDTH: u32 = 250;
 const BOTTOM_PANEL_HEIGHT: u32 = 50;
@@ -858,19 +858,9 @@ const SIZE: (u32, u32) = (
     dimensions::WINDOW_HEIGHT as u32 + BOTTOM_PANEL_HEIGHT,
 );
 
-fn main() {
-    let locations_directory = fs::canonicalize("./assets/location").unwrap();
-    let path = rfd::FileDialog::new()
-        .set_title("Pick a location file")
-        .add_filter("JSON", &["json"])
-        .set_directory(locations_directory)
-        .pick_file();
-    let Some(path) = path else {
-        return;
-    };
-
+pub fn run(file_path: std::path::PathBuf) {
     let location_data =
-        serde_json::from_reader::<_, LocationData>(File::open(&path).unwrap()).unwrap();
+        serde_json::from_reader::<_, LocationData>(File::open(&file_path).unwrap()).unwrap();
     let selected_variant = location_data
         .variants
         .first()
@@ -878,7 +868,7 @@ fn main() {
         .unwrap_or_default();
     let mut editor_data = EditorData {
         location_data,
-        is_ship: path.ends_with("assets/location/crew_ship.json"),
+        is_ship: file_path.ends_with("assets/location/crew_ship.json"),
         selected_variant,
         area_index: 0,
         selected_extra_background_layer: 0,
@@ -981,7 +971,7 @@ fn main() {
         screen.write(|| gui.render()).unwrap();
 
         if save {
-            let file = File::create(&path).unwrap();
+            let file = File::create(&file_path).unwrap();
             serde_json_pretty::to_writer(file, &editor_data.location_data).unwrap();
 
             three_d::FrameOutput {

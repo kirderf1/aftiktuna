@@ -9,7 +9,7 @@ use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
-use std::fs::{self, File};
+use std::fs::File;
 use three_d::{Texture2DRef, egui};
 
 const SIDE_PANEL_WIDTH: u32 = 200;
@@ -19,18 +19,8 @@ const SIZE: (u32, u32) = (
     dimensions::WINDOW_HEIGHT as u32,
 );
 
-fn main() {
-    let objects_directory = fs::canonicalize("./assets/texture/object").unwrap();
-    let path = rfd::FileDialog::new()
-        .set_title("Pick a Model file")
-        .add_filter("JSON", &["json"])
-        .set_directory(objects_directory)
-        .pick_file();
-    let Some(path) = path else {
-        return;
-    };
-
-    let selected_model = model::load_raw_model_from_path(&path).unwrap();
+pub fn run(file_path: std::path::PathBuf) {
+    let selected_model = model::load_raw_model_from_path(&file_path).unwrap();
     assert!(
         !selected_model.layers.is_empty(),
         "Layers must not be empty"
@@ -131,7 +121,7 @@ fn main() {
         screen.write(|| gui.render()).unwrap();
 
         if save {
-            let file = File::create(&path).unwrap();
+            let file = File::create(&file_path).unwrap();
             serde_json_pretty::to_writer(file, &editor_data.model).unwrap();
 
             three_d::FrameOutput {

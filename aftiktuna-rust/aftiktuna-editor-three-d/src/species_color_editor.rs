@@ -8,7 +8,7 @@ use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_three_d::asset::CachedLoader;
 use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
-use std::fs::{self, File};
+use std::fs::File;
 use std::mem::take;
 use three_d::{FrameInput, egui};
 
@@ -16,17 +16,8 @@ const SIZE: (u32, u32) = (800, 600);
 
 type SpeciesColorMap = IndexMap<SpeciesColorId, SpeciesColorEntry>;
 
-fn main() {
-    let locations_directory = fs::canonicalize("./assets/species_color").unwrap();
-    let path = rfd::FileDialog::new()
-        .set_title("Pick a location file")
-        .add_filter("JSON", &["json"])
-        .set_directory(locations_directory)
-        .pick_file();
-    let Some(path) = path else {
-        return;
-    };
-    let [species_name, "json"] = path
+pub fn run(file_path: std::path::PathBuf) {
+    let [species_name, "json"] = file_path
         .file_name()
         .unwrap()
         .to_str()
@@ -44,7 +35,7 @@ fn main() {
         _ => panic!("No default for example setup"),
     };
 
-    let file = File::open(&path).expect("Unable to open color data file");
+    let file = File::open(&file_path).expect("Unable to open color data file");
     let mut color_map =
         serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load color data");
     assert!(!color_map.is_empty());
@@ -101,7 +92,7 @@ fn main() {
         screen.write(|| gui.render()).unwrap();
 
         if save {
-            let file = File::create(&path).unwrap();
+            let file = File::create(&file_path).unwrap();
             serde_json_pretty::to_writer(file, &color_map).unwrap();
             three_d::FrameOutput {
                 exit: true,

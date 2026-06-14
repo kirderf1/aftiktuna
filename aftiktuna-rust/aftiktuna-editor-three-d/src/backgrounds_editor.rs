@@ -22,7 +22,7 @@ const SIZE: (u32, u32) = (
     dimensions::WINDOW_HEIGHT as u32,
 );
 
-fn main() {
+pub fn run() {
     let mut backgrounds = background::load_index_map_backgrounds().unwrap();
     let mut selected_bg = 0;
     let mut selected_layer = 0;
