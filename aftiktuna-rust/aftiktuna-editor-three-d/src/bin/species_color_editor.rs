@@ -79,13 +79,8 @@ fn main() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |egui_context| {
-                save = side_panel(
-                    egui_context,
-                    &mut selected_index,
-                    &mut new_color_name,
-                    &mut color_map,
-                );
+            |ui| {
+                save = side_panel(ui, &mut selected_index, &mut new_color_name, &mut color_map);
             },
         );
 
@@ -307,16 +302,16 @@ fn draw_examples(
 }
 
 fn side_panel(
-    ctx: &egui::Context,
+    ui: &mut egui::Ui,
     selected_index: &mut usize,
     new_color_name: &mut String,
     species_colors: &mut SpeciesColorMap,
 ) -> bool {
-    egui::SidePanel::right("side")
-        .frame(egui::Frame::side_top_panel(&ctx.style()).inner_margin(8.))
+    egui::Panel::right("side")
+        .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
         .resizable(false)
-        .exact_width(200.)
-        .show(ctx, |ui| {
+        .exact_size(200.)
+        .show_inside(ui, |ui| {
             ui.text_edit_singleline(new_color_name);
 
             if ui.button("Add").clicked() && !new_color_name.is_empty() {

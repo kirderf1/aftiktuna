@@ -18,10 +18,10 @@ pub fn update_ui(
     state: &mut super::State,
     assets: &mut Assets,
 ) -> UiResult {
-    gui.context().style_mut(|style| {
+    gui.context().global_style_mut(|style| {
         style.spacing.menu_margin = egui::Margin::ZERO;
         style.spacing.item_spacing = egui::Vec2::ZERO;
-        style.visuals.menu_rounding = egui::Rounding::ZERO;
+        style.visuals.menu_corner_radius = egui::CornerRadius::ZERO;
         style.visuals.popup_shadow = egui::Shadow::NONE;
         style.visuals.window_fill = egui::Color32::TRANSPARENT;
         style.visuals.window_stroke = egui::Stroke::NONE;
@@ -33,8 +33,8 @@ pub fn update_ui(
         frame_input.accumulated_time,
         frame_input.viewport,
         frame_input.device_pixel_ratio,
-        |egui_context| {
-            egui_context.style_mut(|style| {
+        |ui| {
+            ui.global_style_mut(|style| {
                 style.visuals.override_text_color = None;
                 style.visuals.widgets.noninteractive.bg_stroke =
                     egui::Stroke::new(1., egui::Color32::from_gray(60));
@@ -44,24 +44,24 @@ pub fn update_ui(
                 &mut state.input_text,
                 state.game.ready_to_take_input() && state.displayed_status.is_none(),
                 std::mem::take(&mut state.request_input_focus),
-                egui_context,
+                ui,
             );
 
-            egui_context.style_mut(|style| {
+            ui.global_style_mut(|style| {
                 style.visuals.override_text_color = Some(egui::Color32::WHITE);
                 style.visuals.widgets.noninteractive.bg_stroke =
                     egui::Stroke::new(1., egui::Color32::WHITE);
             });
 
             if !state.text_box_text.is_empty() {
-                ui_result.clicked_text_box = text_box_panel(&state.text_box_text, egui_context);
+                ui_result.clicked_text_box = text_box_panel(&state.text_box_text, ui);
             }
 
             if let Some(status) = &state.displayed_status {
-                ui_result.closed_status_window = !show_status_screen(status, egui_context);
+                ui_result.closed_status_window = !show_status_screen(status, ui.ctx());
             } else {
                 ui_result.clicked_suggestion =
-                    show_tooltip_and_menu(state, &mut assets.models, egui_context);
+                    show_tooltip_and_menu(state, &mut assets.models, ui.ctx());
             }
         },
     );
@@ -93,7 +93,7 @@ fn show_status_screen(status: &FullStatus, egui_context: &egui::Context) -> bool
             .shrink2(STATUS_DISPLAY_OUTER_MARGIN),
         )
         .frame(egui::Frame {
-            inner_margin: egui::Margin::symmetric(12., 6.),
+            inner_margin: egui::Margin::symmetric(12, 6),
             fill: STATUS_DISPLAY_COLOR,
             stroke: egui::Stroke::new(1., egui::Color32::WHITE),
             ..Default::default()
@@ -134,9 +134,9 @@ fn show_tooltip_and_menu(
             |ui| {
                 let mut clicked_suggestion = None;
                 for suggestion in &command_tooltip.commands {
-                    let mut prepared = egui::Frame::none()
+                    let mut prepared = egui::Frame::new()
                         .outer_margin(egui::Margin::ZERO)
-                        .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
+                        .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1))
                         .begin(ui);
 
                     prepared.content_ui.label(suggestion.text());
@@ -157,6 +157,7 @@ fn show_tooltip_and_menu(
                 clicked_suggestion
             },
         )
+        .unwrap_or_default()
     } else {
         let tooltips_list = super::get_hovered_object_names(
             &state.cached_objects,
@@ -171,10 +172,10 @@ fn show_tooltip_and_menu(
                 state.mouse_pos,
                 |ui| {
                     for &line in &tooltips_list {
-                        egui::Frame::none()
+                        egui::Frame::new()
                             .outer_margin(egui::Margin::ZERO)
                             .fill(TEXT_BOX_COLOR)
-                            .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1.))
+                            .inner_margin(egui::Margin::symmetric(TEXT_BOX_MARGIN, 1))
                             .show(ui, |ui| {
                                 ui.label(line);
                             });
@@ -193,11 +194,11 @@ fn input_panel(
     input_text: &mut String,
     enabled: bool,
     request_focus: bool,
-    egui_context: &egui::Context,
+    ui: &mut egui::Ui,
 ) -> bool {
-    egui::TopBottomPanel::bottom("input")
-        .exact_height(INPUT_PANEL_HEIGHT)
-        .show(egui_context, |ui| {
+    egui::Panel::bottom("input")
+        .exact_size(INPUT_PANEL_HEIGHT)
+        .show_inside(ui, |ui| {
             let response = ui.add_enabled(
                 enabled,
                 egui::TextEdit::singleline(input_text)
@@ -229,22 +230,19 @@ const TEXT_BOX_HIGHLIGHT_COLOR: egui::Color32 = egui::Color32::from_rgba_premult
     (0.6 * 255.) as u8,
 );
 const TEXT_PANEL_HEIGHT: f32 = 100.;
-const TEXT_BOX_MARGIN: f32 = 12.;
+const TEXT_BOX_MARGIN: i8 = 12;
 const TEXT_BOX_FONT: egui::FontId = egui::FontId::monospace(11.0);
 
-fn text_box_panel<S: Into<String>>(
-    lines: impl IntoIterator<Item = S>,
-    egui_context: &egui::Context,
-) -> bool {
-    let response = egui::TopBottomPanel::bottom("text_box")
+fn text_box_panel<S: Into<String>>(lines: impl IntoIterator<Item = S>, ui: &mut egui::Ui) -> bool {
+    let response = egui::Panel::bottom("text_box")
         .frame(egui::Frame {
-            inner_margin: egui::Margin::symmetric(TEXT_BOX_MARGIN, 6.),
+            inner_margin: egui::Margin::symmetric(TEXT_BOX_MARGIN, 6),
             fill: TEXT_BOX_COLOR,
             ..Default::default()
         })
-        .exact_height(TEXT_PANEL_HEIGHT)
+        .exact_size(TEXT_PANEL_HEIGHT)
         .show_separator_line(false)
-        .show(egui_context, |ui| {
+        .show_inside(ui, |ui| {
             egui::ScrollArea::vertical()
                 .auto_shrink(false)
                 .show(ui, |ui| {
@@ -305,28 +303,28 @@ fn show_hovering<T>(
     egui_context: &egui::Context,
     pos: three_d::Vec2,
     content: impl Fn(&mut egui::Ui) -> T,
-) -> T {
-    egui::show_tooltip_at(
-        egui_context,
+) -> Option<T> {
+    egui::Tooltip::always_open(
+        egui_context.clone(),
         egui::LayerId::background(),
         id,
         egui::pos2(pos.x, dimensions::WINDOW_HEIGHT_F - pos.y - 4.),
-        |ui| {
-            ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-
-            let max_rect = {
-                let mut ui = ui.new_child(egui::UiBuilder::new().invisible());
-                content(&mut ui);
-                ui.min_rect()
-            };
-
-            ui.allocate_new_ui(
-                egui::UiBuilder::new()
-                    .max_rect(max_rect)
-                    .layout(egui::Layout::top_down_justified(egui::Align::Min)),
-                content,
-            )
-        },
     )
-    .inner
+    .show(|ui| {
+        ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+
+        let max_rect = {
+            let mut ui = ui.new_child(egui::UiBuilder::new().invisible());
+            content(&mut ui);
+            ui.min_rect()
+        };
+
+        ui.scope_builder(
+            egui::UiBuilder::new()
+                .max_rect(max_rect)
+                .layout(egui::Layout::top_down_justified(egui::Align::Min)),
+            content,
+        )
+    })
+    .map(|response| response.inner.inner)
 }

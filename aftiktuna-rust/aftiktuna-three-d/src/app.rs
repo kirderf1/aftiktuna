@@ -292,10 +292,10 @@ fn handle_menu_frame(
         frame_input.accumulated_time,
         frame_input.viewport,
         frame_input.device_pixel_ratio,
-        |egui_context| {
+        |ui| {
             egui::CentralPanel::default()
-                .frame(egui::Frame::none())
-                .show(egui_context, |ui| {
+                .frame(egui::Frame::NONE)
+                .show_inside(ui, |ui| {
                     ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                         ui.add_space(116.);
                         const TITLE_FONT: egui::FontId = egui::FontId::monospace(90.);

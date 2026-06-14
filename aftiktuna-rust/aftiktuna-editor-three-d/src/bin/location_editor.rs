@@ -21,25 +21,25 @@ mod ui {
     pub fn editor_panels(
         editor_data: &mut super::EditorData,
         assets: &mut super::Assets,
-        egui_context: &egui::Context,
+        ui: &mut egui::Ui,
     ) -> bool {
         editor_data.hovered_door_pair = None;
-        let save = egui::SidePanel::right("side")
-            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+        let save = egui::Panel::right("side")
+            .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
             .resizable(false)
-            .exact_width(crate::SIDE_PANEL_WIDTH as f32)
-            .show(egui_context, |ui| {
+            .exact_size(crate::SIDE_PANEL_WIDTH as f32)
+            .show_inside(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .show(ui, |ui| side_panel_content(ui, editor_data, assets))
                     .inner
             })
             .inner;
 
-        egui::TopBottomPanel::bottom("bottom")
-            .frame(egui::Frame::side_top_panel(&egui_context.style()).inner_margin(8.))
+        egui::Panel::bottom("bottom")
+            .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
             .resizable(false)
-            .exact_height(crate::BOTTOM_PANEL_HEIGHT as f32)
-            .show(egui_context, |ui| {
+            .exact_size(crate::BOTTOM_PANEL_HEIGHT as f32)
+            .show_inside(ui, |ui| {
                 bottom_panel_content(ui, editor_data);
             });
 
@@ -933,8 +933,8 @@ fn main() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |egui_context| {
-                save = ui::editor_panels(&mut editor_data, &mut assets, egui_context);
+            |ui| {
+                save = ui::editor_panels(&mut editor_data, &mut assets, ui);
             },
         );
 

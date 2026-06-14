@@ -52,8 +52,8 @@ fn main() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |egui_context| {
-                side_panel(egui_context, |ui| {
+            |ui| {
+                side_panel(ui, |ui| {
                     display_parameters_ui(
                         &mut area_size,
                         &mut offset,
@@ -124,12 +124,12 @@ fn main() {
     });
 }
 
-fn side_panel(ctx: &egui::Context, panel_contents: impl FnOnce(&mut egui::Ui)) {
-    egui::SidePanel::right("side")
-        .frame(egui::Frame::side_top_panel(&ctx.style()).inner_margin(8.))
+fn side_panel(ui: &mut egui::Ui, panel_contents: impl FnOnce(&mut egui::Ui)) {
+    egui::Panel::right("side")
+        .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
         .resizable(false)
-        .exact_width(SIDE_PANEL_WIDTH as f32)
-        .show(ctx, panel_contents);
+        .exact_size(SIDE_PANEL_WIDTH as f32)
+        .show_inside(ui, panel_contents);
 }
 
 fn display_parameters_ui(

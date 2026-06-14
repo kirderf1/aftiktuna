@@ -84,8 +84,8 @@ fn main() {
             frame_input.accumulated_time,
             frame_input.viewport,
             frame_input.device_pixel_ratio,
-            |egui_context| {
-                save |= side_panel(egui_context, &mut editor_data, &mut texture_loader);
+            |ui| {
+                save |= side_panel(ui, &mut editor_data, &mut texture_loader);
             },
         );
 
@@ -174,15 +174,15 @@ impl SettingType {
 }
 
 fn side_panel(
-    ctx: &egui::Context,
+    ui: &mut egui::Ui,
     editor_data: &mut EditorData,
     textures: &mut CachedLoader,
 ) -> bool {
-    egui::SidePanel::right("side")
-        .frame(egui::Frame::side_top_panel(&ctx.style()).inner_margin(8.))
+    egui::Panel::right("side")
+        .frame(egui::Frame::side_top_panel(ui.style()).inner_margin(8.))
         .resizable(false)
-        .exact_width(SIDE_PANEL_WIDTH as f32)
-        .show(ctx, |ui| {
+        .exact_size(SIDE_PANEL_WIDTH as f32)
+        .show_inside(ui, |ui| {
             egui::ScrollArea::vertical()
                 .show(ui, |ui| model_editor_ui(ui, editor_data, textures))
                 .inner

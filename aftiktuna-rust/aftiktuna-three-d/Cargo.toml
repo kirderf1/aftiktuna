@@ -5,8 +5,8 @@ version.workspace = true
 
 [dependencies]
 aftiktuna = { path = ".." }
-epaint_default_fonts = "0.29.1"
-rand = "0.9.2"
+epaint_default_fonts = "0.34.3"
+rand.workspace = true
 three-d.workspace = true
-three-d-asset = { version = "0.9.2", features = ["png"] }
+three-d-asset = { version = "0.10.0", features = ["png"] }
 winit = "0.28"
