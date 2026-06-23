@@ -1,3 +1,86 @@
+pub mod pathing {
+    use crate::core::Door;
+    use crate::core::position::{self, Pos};
+    use hecs::{Entity, EntityRef, World};
+    use rand::seq::IteratorRandom;
+    use std::collections::HashSet;
+
+    pub fn find_random_unblocked_path(
+        entity_ref: EntityRef,
+        world: &World,
+        rng: &mut impl rand::Rng,
+        destination_area_filter: impl Fn(Entity) -> bool,
+    ) -> Option<Entity> {
+        let entity_pos = *entity_ref.get::<&Pos>()?;
+        world
+            .query::<(Entity, &Pos, &Door)>()
+            .iter()
+            .filter(|&(_, path_pos, door)| {
+                path_pos.is_in(entity_pos.get_area())
+                    && position::check_is_blocked(world, entity_ref, entity_pos, *path_pos).is_ok()
+                    && destination_area_filter(door.destination.get_area())
+            })
+            .choose(rng)
+            .map(|(path, _, _)| path)
+    }
+
+    struct PathSearchEntry {
+        path: Entity,
+        area: Entity,
+    }
+
+    impl PathSearchEntry {
+        fn start(path_entity: Entity, path: &Door) -> Self {
+            Self {
+                path: path_entity,
+                area: path.destination.get_area(),
+            }
+        }
+
+        fn next(&self, path: &Door) -> Self {
+            Self {
+                path: self.path,
+                area: path.destination.get_area(),
+            }
+        }
+    }
+
+    pub fn find_path_towards(
+        world: &World,
+        area: Entity,
+        predicate: impl Fn(Entity) -> bool,
+    ) -> Option<Entity> {
+        let mut entries = world
+            .query::<(Entity, &Pos, &Door)>()
+            .iter()
+            .filter(|&(_, pos, _)| pos.is_in(area))
+            .map(|(entity, _, path)| PathSearchEntry::start(entity, path))
+            .collect::<Vec<_>>();
+        let mut checked_areas = HashSet::from([area]);
+
+        while !entries.is_empty() {
+            let mut new_entries = vec![];
+            for entry in entries {
+                if checked_areas.insert(entry.area) {
+                    if predicate(entry.area) {
+                        return Some(entry.path);
+                    }
+                    new_entries.extend(
+                        world
+                            .query::<(&Pos, &Door)>()
+                            .iter()
+                            .filter(|&(pos, _)| pos.is_in(entry.area))
+                            .map(|(_, path)| entry.next(path)),
+                    );
+                }
+            }
+            entries = new_entries;
+        }
+
+        None
+    }
+}
+
 use crate::action::item::UseAction;
 use crate::action::{Action, ForceDoorAction, TalkAction};
 use crate::asset::species::SpeciesDataMap;
@@ -11,13 +94,13 @@ use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemTypeId;
 use crate::core::name::NameData;
 use crate::core::position::{self, OccupiesSpace, Pos};
-use crate::core::{CrewMember, Door, SpeciesId, Tag, inventory, status};
+use crate::core::{CrewMember, SpeciesId, Tag, inventory, status};
 use crate::dialogue::TalkTopic;
 use crate::game_loop::GameState;
 use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
-use rand::seq::{IndexedRandom, IteratorRandom};
-use std::collections::{HashMap, HashSet};
+use rand::seq::IndexedRandom;
+use std::collections::HashMap;
 use std::ops::Deref;
 
 /// Prepares data for character behavior before the decision to take player action input.
@@ -260,7 +343,7 @@ fn pick_foe_action(
         entity_ref,
         BadlyHurtBehavior::Fearful,
         &assets.species_data_map,
-    ) && let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
+    ) && let Some(path) = pathing::find_random_unblocked_path(entity_ref, world, rng, |_| true)
     {
         return Some(Action::EnterDoor(path));
     }
@@ -299,7 +382,7 @@ fn pick_foe_action(
             return Some(Action::Examine(observation_target));
         } else if rng.random_bool(1. / 2.)
             && let Some(door) =
-                find_random_unblocked_path(entity_ref, world, rng, |destination_area| {
+                pathing::find_random_unblocked_path(entity_ref, world, rng, |destination_area| {
                     wandering.area_tag.as_ref().is_none_or(|area_tag| {
                         world
                             .get::<&Tag>(destination_area)
@@ -330,7 +413,7 @@ fn pick_crew_action(
         let is_area_safe =
             area::is_in_ship(entity_pos, world) && behavior::is_safe(world, entity_pos.get_area());
         if !is_area_safe {
-            if let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
+            if let Some(path) = pathing::find_path_towards(world, entity_pos.get_area(), |area| {
                 area::is_ship(area, world)
             }) && position::check_is_blocked(
                 world,
@@ -341,7 +424,8 @@ fn pick_crew_action(
             .is_ok()
             {
                 return Some(Action::EnterDoor(path));
-            } else if let Some(path) = find_random_unblocked_path(entity_ref, world, rng, |_| true)
+            } else if let Some(path) =
+                pathing::find_random_unblocked_path(entity_ref, world, rng, |_| true)
             {
                 return Some(Action::EnterDoor(path));
             }
@@ -357,7 +441,7 @@ fn pick_crew_action(
         .get::<&Waiting>()
         .is_some_and(|waiting| waiting.at_ship)
         && !area::is_in_ship(entity_pos, world)
-        && let Some(path) = find_path_towards(world, entity_pos.get_area(), |area| {
+        && let Some(path) = pathing::find_path_towards(world, entity_pos.get_area(), |area| {
             area::is_ship(area, world)
         })
         && position::check_is_blocked(
@@ -453,25 +537,6 @@ pub fn prepare_arriving_passengers(world: &mut World, is_society_location: bool)
     buffer.run_on(world);
 }
 
-fn find_random_unblocked_path(
-    entity_ref: EntityRef,
-    world: &World,
-    rng: &mut impl Rng,
-    destination_area_filter: impl Fn(Entity) -> bool,
-) -> Option<Entity> {
-    let entity_pos = *entity_ref.get::<&Pos>()?;
-    world
-        .query::<(Entity, &Pos, &Door)>()
-        .iter()
-        .filter(|&(_, path_pos, door)| {
-            path_pos.is_in(entity_pos.get_area())
-                && position::check_is_blocked(world, entity_ref, entity_pos, *path_pos).is_ok()
-                && destination_area_filter(door.destination.get_area())
-        })
-        .choose(rng)
-        .map(|(path, _, _)| path)
-}
-
 fn has_behavior(
     entity_ref: EntityRef,
     behavior: BadlyHurtBehavior,
@@ -485,60 +550,4 @@ fn has_behavior(
             .and_then(|species_id| species_map.get(&species_id))
             .and_then(|species_data| species_data.badly_hurt_behavior)
             == Some(behavior)
-}
-
-struct PathSearchEntry {
-    path: Entity,
-    area: Entity,
-}
-
-impl PathSearchEntry {
-    fn start(path_entity: Entity, path: &Door) -> Self {
-        Self {
-            path: path_entity,
-            area: path.destination.get_area(),
-        }
-    }
-
-    fn next(&self, path: &Door) -> Self {
-        Self {
-            path: self.path,
-            area: path.destination.get_area(),
-        }
-    }
-}
-
-pub fn find_path_towards(
-    world: &World,
-    area: Entity,
-    predicate: impl Fn(Entity) -> bool,
-) -> Option<Entity> {
-    let mut entries = world
-        .query::<(Entity, &Pos, &Door)>()
-        .iter()
-        .filter(|&(_, pos, _)| pos.is_in(area))
-        .map(|(entity, _, path)| PathSearchEntry::start(entity, path))
-        .collect::<Vec<_>>();
-    let mut checked_areas = HashSet::from([area]);
-
-    while !entries.is_empty() {
-        let mut new_entries = vec![];
-        for entry in entries {
-            if checked_areas.insert(entry.area) {
-                if predicate(entry.area) {
-                    return Some(entry.path);
-                }
-                new_entries.extend(
-                    world
-                        .query::<(&Pos, &Door)>()
-                        .iter()
-                        .filter(|&(pos, _)| pos.is_in(entry.area))
-                        .map(|(_, path)| entry.next(path)),
-                );
-            }
-        }
-        entries = new_entries;
-    }
-
-    None
 }

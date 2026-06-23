@@ -256,7 +256,7 @@ pub(super) fn go_to_ship(mut context: Context, performer: Entity) -> action::Res
         return Ok(action::Success);
     }
 
-    let path = ai::find_path_towards(world, area, |area| area::is_ship(area, world))
+    let path = ai::pathing::find_path_towards(world, area, |area| area::is_ship(area, world))
         .ok_or_else(|| "Could not find a path to the ship.".to_string())?;
 
     let result = enter_door(&mut context, performer, path);
