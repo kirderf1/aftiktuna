@@ -23,6 +23,7 @@ pub struct LocationBuildData {
     pub entry_pos: Pos,
     pub food_deposit_pos: Option<Pos>,
     pub ship_dialogue_spot: Option<Pos>,
+    pub is_society: bool,
 }
 
 pub fn build_location<'a, 'b>(
@@ -56,6 +57,7 @@ pub fn build_location<'a, 'b>(
         entry_pos,
         food_deposit_pos: builder.food_deposit_pos,
         ship_dialogue_spot: builder.ship_dialogue_spot,
+        is_society: location_data.is_society,
     })
 }
 

@@ -3,7 +3,7 @@ mod parse;
 mod store;
 pub mod suggestion;
 
-use crate::action::{Action, AnswerRecruitmentAction};
+use crate::action::{Action, AnswerYesNoDecisionAction};
 use crate::asset::GameAssets;
 use crate::core;
 use crate::core::behavior::Decision;
@@ -71,10 +71,10 @@ pub fn try_parse_input(
 
 fn parse_decision_command(input: &str, decision: &Decision) -> Result<CommandResult, String> {
     match decision {
-        Decision::Recruit(_) => {
+        Decision::Recruit(_) | Decision::Passenger(_) => {
             let decision = parse_yes_no(input)?;
-            action_result(AnswerRecruitmentAction {
-                accept_recruitment: decision,
+            action_result(AnswerYesNoDecisionAction {
+                decision_outcome: decision,
             })
         }
     }

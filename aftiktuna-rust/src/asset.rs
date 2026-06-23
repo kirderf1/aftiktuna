@@ -123,7 +123,7 @@ pub mod color {
 }
 
 pub(crate) mod dialogue {
-    use crate::core::behavior::{self, CrewLossMemory};
+    use crate::core::behavior::{self, CrewLossMemory, Passenger};
     use crate::core::display::DialogueExpression;
     use crate::core::name::Name;
     use crate::core::position::Pos;
@@ -146,6 +146,8 @@ pub(crate) mod dialogue {
         pub is_at_ship: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub is_at_fortuna: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub is_passenger: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub known_name: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -192,6 +194,9 @@ pub(crate) mod dialogue {
                 })
                 && self.is_at_fortuna.is_none_or(|is_at_fortuna| {
                     is_at_fortuna == state.generation_state.is_at_fortuna()
+                })
+                && self.is_passenger.is_none_or(|is_passenger| {
+                    is_passenger == world.satisfies::<&Passenger>(speaker)
                 })
                 && self.known_name.is_none_or(|known_name| {
                     Some(known_name) == world.get::<&Name>(speaker).ok().map(|name| name.is_known)

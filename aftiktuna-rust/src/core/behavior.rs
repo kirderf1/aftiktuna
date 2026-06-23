@@ -75,6 +75,18 @@ pub struct Recruitable {
     pub will_request: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct Passenger {
+    pub phase: PassengerPhase,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub(crate) enum PassengerPhase {
+    Requesting,
+    Travelling,
+    Leaving,
+}
+
 /// Dialogue that appears after the greeting as a response to the talk action.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Talk(pub DialogueId);
@@ -161,6 +173,7 @@ pub struct TalkState {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Decision {
     Recruit(hecs::Entity),
+    Passenger(hecs::Entity),
 }
 
 pub fn is_safe(world: &hecs::World, area: hecs::Entity) -> bool {

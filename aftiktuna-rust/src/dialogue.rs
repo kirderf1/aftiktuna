@@ -116,12 +116,13 @@ use crate::asset::dialogue::ConditionedDialogueNode;
 use crate::core::area::ShipState;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, Decision, EncounterDialogue,
-    GivesHuntRewardData, Recruitable, Talk, TalkState, TalkedAboutEnoughFuel,
+    GivesHuntRewardData, Passenger, PassengerPhase, Recruitable, Talk, TalkState,
+    TalkedAboutEnoughFuel,
 };
 use crate::core::name::{Name, NameData};
 use crate::core::position::{self, Pos};
 use crate::core::status::{Health, Morale};
-use crate::core::store::{self, Shopkeeper};
+use crate::core::store::{self, Points, Shopkeeper};
 use crate::core::{self, CrewMember, area, inventory};
 use crate::game_loop::GameState;
 use crate::{asset, view};
@@ -133,6 +134,7 @@ use std::ops::Deref;
 pub enum TalkTopic {
     AskName,
     CompleteHuntQuest,
+    CompletePassengerRoute,
 }
 
 impl TalkTopic {
@@ -164,6 +166,32 @@ impl TalkTopic {
             }
             TalkTopic::CompleteHuntQuest => {
                 complete_hunt_quest(performer, target, state, view_buffer)
+            }
+            TalkTopic::CompletePassengerRoute => {
+                let passenger = state
+                    .world
+                    .get::<&Passenger>(performer)
+                    .ok()
+                    .as_deref()
+                    .cloned();
+                if let Some(passenger) = passenger
+                    && passenger.phase == PassengerPhase::Leaving
+                {
+                    trigger_dialogue_by_name(
+                        "passenger/done",
+                        performer,
+                        target,
+                        state,
+                        view_buffer,
+                    );
+                    if state.world.satisfies::<&Recruitable>(performer)
+                        && core::check_crew_size(&state.world).is_ok()
+                    {
+                        trigger_recruit_request(performer, target, state, view_buffer);
+                    } else {
+                        trigger_passenger_reward(performer, target, false, state, view_buffer);
+                    }
+                }
             }
         }
     }
@@ -228,19 +256,94 @@ fn prompt_npc_dialogue(
         drop(gives_hunt_reward);
         if let Some(talk) = npc_ref.get::<&Talk>().map(crate::deref_clone) {
             trigger_dialogue_by_name(&talk.0, npc, crew_member, state, view_buffer);
+        } else if npc_ref
+            .get::<&Passenger>()
+            .is_some_and(|passenger| passenger.phase == PassengerPhase::Requesting)
+        {
+            trigger_dialogue_by_name("passenger/request", npc, crew_member, state, view_buffer);
+            state
+                .world
+                .insert_one(crew_member, Decision::Passenger(npc))
+                .unwrap();
         } else if let Some(recruitable) = npc_ref.get::<&Recruitable>().map(crate::deref_clone) {
             if recruitable.will_request {
-                trigger_dialogue_by_name("recruit/request", npc, crew_member, state, view_buffer);
-                state
-                    .world
-                    .insert_one(crew_member, Decision::Recruit(npc))
-                    .unwrap();
+                trigger_recruit_request(npc, crew_member, state, view_buffer);
             } else {
                 trigger_dialogue_by_name("recruit/hint", npc, crew_member, state, view_buffer);
             }
         } else if npc_ref.has::<Shopkeeper>() {
             store::initiate_trade(crew_member, npc, state, view_buffer);
         }
+    }
+}
+
+fn trigger_recruit_request(
+    npc: Entity,
+    crew_member: Entity,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer<'_>,
+) {
+    trigger_dialogue_by_name("recruit/request", npc, crew_member, state, view_buffer);
+    state
+        .world
+        .insert_one(crew_member, Decision::Recruit(npc))
+        .unwrap();
+}
+
+fn trigger_passenger_reward(
+    npc: Entity,
+    crew_member: Entity,
+    is_backup: bool,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer<'_>,
+) {
+    trigger_dialogue_by_name(
+        if is_backup {
+            "passenger/backup_reward"
+        } else {
+            "passenger/reward"
+        },
+        npc,
+        crew_member,
+        state,
+        view_buffer,
+    );
+    let crew = state.world.get::<&CrewMember>(crew_member).unwrap().0;
+    state.world.get::<&mut Points>(crew).unwrap().0 += 5000;
+    view_buffer.messages.add(format!(
+        "{} takes their leave.",
+        NameData::find(&state.world, npc, view_buffer.assets).definite()
+    ));
+    state.world.despawn(npc).unwrap();
+}
+
+pub(crate) fn trigger_reject_recruitment_request(
+    crew_member: Entity,
+    npc: Entity,
+    state: &mut GameState,
+    view_buffer: &mut view::Buffer<'_>,
+) {
+    let result = trigger_dialogue_by_name(
+        "recruit/reject_request",
+        crew_member,
+        npc,
+        state,
+        view_buffer,
+    );
+    if !result {
+        view_buffer.messages.add(format!(
+            "{the_performer} rejects {the_target}'s request to join the crew.",
+            the_performer =
+                NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
+            the_target = NameData::find(&state.world, npc, view_buffer.assets).definite(),
+        ));
+    }
+
+    let passenger = state.world.get::<&Passenger>(npc).ok().as_deref().cloned();
+    if let Some(passenger) = passenger
+        && passenger.phase == PassengerPhase::Leaving
+    {
+        trigger_passenger_reward(npc, crew_member, true, state, view_buffer);
     }
 }
 

@@ -4,8 +4,8 @@ use crate::asset::species::SpeciesDataMap;
 use crate::asset::{GameAssets, ItemTypeData};
 use crate::core::area::{self, ShipControls, ShipState, ShipStatus};
 use crate::core::behavior::{
-    self, BadlyHurtBehavior, Character, GivesHuntRewardData, Hostile, Intention, ObservationTarget,
-    RepeatingAction, Waiting, Wandering,
+    self, BadlyHurtBehavior, Character, Decision, GivesHuntRewardData, Hostile, Intention,
+    ObservationTarget, Passenger, PassengerPhase, Recruitable, RepeatingAction, Waiting, Wandering,
 };
 use crate::core::combat::{self, AttackKind};
 use crate::core::item::ItemTypeId;
@@ -38,7 +38,7 @@ pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
         .with::<(&CrewMember, &Character)>()
         .iter()
     {
-        if let Some(intention) = pick_intention(crew_member, state, assets) {
+        if let Some(intention) = pick_crew_member_intention(crew_member, state, assets) {
             buffer.insert_one(crew_member, intention);
         };
     }
@@ -60,7 +60,7 @@ pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
     buffer.run_on(&mut state.world);
 }
 
-fn pick_intention(
+fn pick_crew_member_intention(
     crew_member: Entity,
     state: &GameState,
     assets: &GameAssets,
@@ -123,7 +123,9 @@ fn pick_intention(
 }
 
 pub(crate) fn controlled_character_action(state: &GameState) -> Option<Action> {
-    if state.world.satisfies::<&RepeatingAction>(state.controlled)
+    if state
+        .world
+        .satisfies::<Or<&RepeatingAction, &Decision>>(state.controlled)
         || !behavior::is_safe(
             &state.world,
             state
@@ -173,56 +175,78 @@ fn is_wait_requested(world: &World, controlled: Entity) -> bool {
         .iter()
         .filter(|(entity, pos)| *entity != controlled && pos.is_in(area))
         .any(|(entity, _)| is_requesting_wait(world, entity))
+        || world
+            .query::<(&Passenger, &Pos)>()
+            .iter()
+            .any(|(passenger, pos)| passenger.phase == PassengerPhase::Leaving && pos.is_in(area))
 }
 
-pub fn tick(
-    action_map: &mut HashMap<Entity, Action>,
-    world: &mut World,
-    rng: &mut impl Rng,
-    assets: &GameAssets,
-) {
+pub fn tick(action_map: &mut HashMap<Entity, Action>, state: &mut GameState, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
 
-    for entity in world
+    for entity in state
+        .world
         .query::<Entity>()
-        .with::<Or<&CrewMember, &Hostile>>()
+        .with::<Or<Or<&CrewMember, &Hostile>, &Passenger>>()
         .iter()
     {
-        let entity_ref = world.entity(entity).unwrap();
+        let entity_ref = state.world.entity(entity).unwrap();
         if status::is_alive_ref(entity_ref) && !action_map.contains_key(&entity) {
             let action = if let Some(action) = entity_ref.get::<&RepeatingAction>() {
                 buffer.remove_one::<RepeatingAction>(entity);
                 Action::from(*action)
             } else {
-                pick_action(entity_ref, world, rng, assets).unwrap_or(Action::Wait)
+                pick_action(
+                    entity_ref,
+                    &state.world,
+                    state.controlled,
+                    &mut state.rng,
+                    assets,
+                )
+                .unwrap_or(Action::Wait)
             };
 
             action_map.insert(entity, action);
         };
     }
 
-    world
+    state
+        .world
         .query::<Entity>()
         .with::<&Intention>()
         .iter()
         .for_each(|entity| buffer.remove_one::<Intention>(entity));
 
-    buffer.run_on(world);
+    buffer.run_on(&mut state.world);
 }
 
 fn pick_action(
     entity_ref: EntityRef,
     world: &World,
+    controlled: Entity,
     rng: &mut impl Rng,
     assets: &GameAssets,
 ) -> Option<Action> {
     if let Some(hostile) = entity_ref.get::<&Hostile>() {
-        pick_foe_action(entity_ref, &hostile, world, rng, assets)
+        return pick_foe_action(entity_ref, &hostile, world, rng, assets);
     } else if entity_ref.satisfies::<&CrewMember>() {
-        pick_crew_action(entity_ref, world, rng, assets)
-    } else {
-        None
+        return pick_crew_action(entity_ref, world, rng, assets);
+    } else if let Some(passenger) = entity_ref.get::<&Passenger>() {
+        if passenger.phase == PassengerPhase::Leaving {
+            if !world.satisfies::<&Decision>(controlled) {
+                return Some(
+                    TalkAction {
+                        target: controlled,
+                        topic: TalkTopic::CompletePassengerRoute,
+                    }
+                    .into(),
+                );
+            }
+        } else if passenger.phase == PassengerPhase::Travelling {
+            return Some(Action::GoToShip);
+        }
     }
+    None
 }
 
 fn pick_foe_action(
@@ -414,6 +438,19 @@ pub fn pick_attack_kind(
 
 pub fn is_requesting_wait(world: &World, entity: Entity) -> bool {
     world.satisfies::<hecs::Or<hecs::Or<&Intention, &RepeatingAction>, &status::IsStunned>>(entity)
+}
+
+pub fn prepare_arriving_passengers(world: &mut World, is_society_location: bool) {
+    let mut buffer = CommandBuffer::new();
+    for (entity, passenger) in world.query_mut::<(Entity, &mut Passenger)>() {
+        if passenger.phase == PassengerPhase::Travelling {
+            if is_society_location {
+                passenger.phase = PassengerPhase::Leaving;
+            }
+            buffer.insert_one(entity, Recruitable { will_request: true });
+        }
+    }
+    buffer.run_on(world);
 }
 
 fn find_random_unblocked_path(

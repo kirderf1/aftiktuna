@@ -176,6 +176,11 @@ pub(super) fn place_npc(
         &CharacterInteraction::Recruitable { will_request } => {
             builder.add(Recruitable { will_request });
         }
+        CharacterInteraction::Passenger => {
+            builder.add(behavior::Passenger {
+                phase: behavior::PassengerPhase::Requesting,
+            });
+        }
         CharacterInteraction::Talk { dialogue } => {
             builder.add(Talk(dialogue.clone()));
         }

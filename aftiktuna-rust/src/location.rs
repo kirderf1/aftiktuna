@@ -6,7 +6,7 @@ use crate::asset::location::{DoorPairData, DoorType, LocationData};
 use crate::asset::profile::CharacterProfile;
 use crate::asset::{CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
-use crate::core::behavior::{ObservationTarget, Waiting};
+use crate::core::behavior::{ObservationTarget, Passenger, PassengerPhase, Waiting};
 use crate::core::display::{ModelId, SpeciesColorId};
 use crate::core::name::NounId;
 use crate::core::position::{self, Direction, Pos};
@@ -357,7 +357,7 @@ pub(crate) fn setup_location_into_game(
     messages: &mut Messages,
     state: &mut GameState,
     assets: &GameAssets,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     let mut gen_context = LocationGenContext::clone_from(state, assets);
 
     let build_data = LocationData::load_from_json(location_name)
@@ -394,7 +394,7 @@ pub(crate) fn setup_location_into_game(
         .insert_one(ship_entity, ObservationTarget)
         .unwrap();
 
-    deploy_crew_at_new_location(build_data.entry_pos, state);
+    deploy_crew_and_passengers_at_new_location(build_data.entry_pos, build_data.is_society, state);
 
     if state.generation_state.is_at_fortuna() {
         messages.add(
@@ -403,7 +403,7 @@ pub(crate) fn setup_location_into_game(
     } else {
         messages.add("The ship arrives at a new location, and the crew exit the ship.");
     }
-    Ok(())
+    Ok(build_data.is_society)
 }
 
 pub struct LocationGenContext<'a> {
@@ -443,21 +443,35 @@ impl<'a> LocationGenContext<'a> {
     }
 }
 
-fn deploy_crew_at_new_location(start_pos: Pos, state: &mut GameState) {
+fn deploy_crew_and_passengers_at_new_location(
+    start_pos: Pos,
+    is_society: bool,
+    state: &mut GameState,
+) {
     let world = &mut state.world;
-    let mut crew_members = world
+    let crew_members_minus_controlled = world
         .query::<Entity>()
         .with::<&CrewMember>()
         .iter()
+        .filter(|&entity| entity != state.controlled)
         .collect::<Vec<_>>();
+    let passengers = if is_society {
+        world
+            .query::<(Entity, &Passenger)>()
+            .iter()
+            .filter(|(_, passenger)| passenger.phase == PassengerPhase::Travelling)
+            .map(|(entity, _)| entity)
+            .collect()
+    } else {
+        Vec::default()
+    };
 
-    let controlled_index = crew_members
-        .iter()
-        .position(|&entity| entity == state.controlled)
-        .expect("Controlled character should exist and be a crew member");
-    crew_members.swap(0, controlled_index);
     let direction = Direction::towards_center(start_pos, world);
-    for character in crew_members {
+    for character in [state.controlled]
+        .into_iter()
+        .chain(passengers)
+        .chain(crew_members_minus_controlled)
+    {
         if let Err(blockage) = position::check_is_pos_blocked(Some(character), start_pos, world) {
             let push_result = blockage.try_push(direction, world);
             if push_result.is_err() {

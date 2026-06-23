@@ -94,6 +94,16 @@ pub const CREW_SIZE_LIMIT: usize = 3;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CrewMember(pub Entity);
 
+/// Checks if the crew has space for one more recruitment and indicates the outcome in the result.
+pub(crate) fn check_crew_size(world: &hecs::World) -> Result<(), &'static str> {
+    let crew_size = world.query::<&CrewMember>().iter().count();
+    if crew_size >= CREW_SIZE_LIMIT {
+        Err("There is not enough room for another crew member.")
+    } else {
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SpeciesId(String);
 

@@ -1,6 +1,7 @@
 {
   "type": "object",
   "properties": {
+    "is_society": { "type": "boolean" },
     "variants": {
       "type": "array",
       "items": {

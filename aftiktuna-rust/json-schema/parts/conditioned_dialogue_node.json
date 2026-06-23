@@ -6,6 +6,7 @@
     "has_enough_fuel": { "type": "boolean" },
     "is_at_ship": { "type": "boolean" },
     "is_at_fortuna": { "type": "boolean" },
+    "is_passenger": { "type": "boolean" },
     "known_name": { "type": "boolean" },
     "has_crew_loss_memory": { "type": "boolean" },
     "has_recent_crew_loss_memory": { "type": "boolean" },

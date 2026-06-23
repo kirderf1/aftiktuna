@@ -196,6 +196,7 @@ pub mod world {
         behavior::Decision, Decision;
 
         behavior::Recruitable, Recruitable;
+        behavior::Passenger, Passenger;
         behavior::Talk, Talk;
         behavior::GivesHuntRewardData, GivesHuntReward;
         behavior::BackgroundDialogue, BackgroundDialogue;

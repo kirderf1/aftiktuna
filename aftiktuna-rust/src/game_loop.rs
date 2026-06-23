@@ -94,7 +94,7 @@ fn run_step(
     match phase {
         Step::PrepareNextLocation => Ok(prepare_next_location(state, view_buffer)?),
         Step::LoadLocation(location) => {
-            location::setup_location_into_game(
+            let is_society_location = location::setup_location_into_game(
                 &location,
                 &mut view_buffer.messages,
                 state,
@@ -111,6 +111,7 @@ fn run_step(
 
             view_buffer.capture_view(state, false);
             dialogue::trigger_landing_dialogue(state, view_buffer);
+            ai::prepare_arriving_passengers(&mut state.world, is_society_location);
             Ok(Step::PrepareTick)
         }
         Step::PrepareTick => {
@@ -235,12 +236,7 @@ fn tick(
         insert_command_action(&mut action_map, action, target, state);
     }
 
-    ai::tick(
-        &mut action_map,
-        &mut state.world,
-        &mut state.rng,
-        view_buffer.assets,
-    );
+    ai::tick(&mut action_map, state, view_buffer.assets);
 
     action::tick(action_map, state, view_buffer);
 

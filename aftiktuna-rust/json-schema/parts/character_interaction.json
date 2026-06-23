@@ -10,6 +10,12 @@
     },
     {
       "properties": {
+        "type": { "const": "passenger" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "properties": {
         "type": { "const": "talk" },
         "dialogue": { "$ref": "./name_path.json" }
       },

@@ -105,6 +105,7 @@ pub mod creature {
             #[serde(default, skip_serializing_if = "crate::is_default")]
             will_request: bool,
         },
+        Passenger,
         Talk {
             dialogue: DialogueId,
         },
@@ -188,6 +189,8 @@ pub struct WeightedVariant {
 
 #[derive(Serialize, Deserialize)]
 pub struct LocationData {
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub is_society: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub variants: Vec<WeightedVariant>,
     pub areas: Vec<AreaData>,

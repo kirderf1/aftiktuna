@@ -1,4 +1,5 @@
 {
+  "is_society": true,
   "variants": [
     { "id": "normal", "weight": 10 },
     { "id": "ruins", "weight": 3 }
@@ -128,7 +129,7 @@
         "A": {
           "type": "character",
           "profile": { "type": "random", "species": "aftik" },
-          "interaction": { "type": "recruitable" }
+          "interaction": { "type": "recruitable", "will_request": true }
         },
         "T": { "type": "inanimate", "model": "environment/table" },
         "Y": { "type": "inanimate", "model": "environment/broken_table" },
@@ -245,7 +246,7 @@
           "health": 0.4,
           "morale": -10,
           "background": "village_attack_survivor",
-          "interaction": { "type": "recruitable" }
+          "interaction": { "type": "recruitable", "will_request": true }
         },
         "T": { "type": "inanimate", "model": "environment/table" },
         "p": { "type": "inanimate", "model": "environment/dead_potted_plant" }

@@ -19,7 +19,7 @@ use hecs::{Entity, World};
 use std::collections::HashMap;
 use std::result;
 
-pub use dialogue::{AnswerRecruitmentAction, TalkAction};
+pub use dialogue::{AnswerYesNoDecisionAction, TalkAction};
 pub use door::ForceDoorAction;
 
 #[derive(Clone)]
@@ -42,7 +42,7 @@ pub enum Action {
     Launch,
     TalkTo(TalkAction),
     Recruit(Entity),
-    AnswerRecruitment(AnswerRecruitmentAction),
+    AnswerYesNoDecision(AnswerYesNoDecisionAction),
     TellToWait(Entity),
     TellToWaitAtShip(Entity),
     TellToFollow(Entity),
@@ -162,7 +162,7 @@ fn perform(
         Launch => ship::launch(&mut context, performer),
         TalkTo(talk_action) => talk_action.run(context, performer),
         Recruit(target) => dialogue::recruit(context, performer, target),
-        AnswerRecruitment(action) => action.run(context, performer),
+        AnswerYesNoDecision(action) => action.run(context, performer),
         TellToWait(target) => dialogue::tell_to_wait(context, performer, target),
         TellToWaitAtShip(target) => dialogue::tell_to_wait_at_ship(context, performer, target),
         TellToFollow(target) => dialogue::tell_to_follow(context, performer, target),
@@ -308,12 +308,7 @@ fn tame(context: &mut Context, performer: Entity, target: Entity) -> Result {
     let assets = context.view_context.view_buffer.assets;
     let world = &mut context.state.world;
     let crew = world.get::<&CrewMember>(performer).unwrap().0;
-    let crew_size = world.query::<&CrewMember>().iter().count();
-    if crew_size >= core::CREW_SIZE_LIMIT {
-        return Err(Error::private(
-            "There is not enough room for another crew member.",
-        ));
-    }
+    core::check_crew_size(world)?;
 
     let performer_name = NameData::find(world, performer, assets).definite();
     let target_name = NameData::find(world, target, assets).definite();
