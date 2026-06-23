@@ -293,6 +293,14 @@ pub(crate) fn move_adjacent_placement(
     target_placement: Placement,
     assets: &GameAssets,
 ) -> Result<(), String> {
+    if !world
+        .get::<&Pos>(entity)
+        .unwrap()
+        .is_in(target_placement.area())
+    {
+        return Err("The target left before it could be approached.".to_string());
+    }
+
     let movement = prepare_move_adjacent_placement(world, entity, target_placement)
         .map_err(|blockage| blockage.into_message(world, assets))?;
     movement.perform(world).unwrap();
@@ -313,6 +321,7 @@ pub(crate) fn prepare_move(
     Ok(Movement::init(entity, position, destination))
 }
 
+/// Expects positions to be in the same area.
 pub(crate) fn prepare_move_adjacent_placement(
     world: &World,
     entity: Entity,
