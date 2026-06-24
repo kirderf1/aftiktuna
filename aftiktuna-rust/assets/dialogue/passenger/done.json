@@ -1,3 +1,5 @@
-[
-  { "expression": "excited", "message": "Thanks for bringing me here!" }
-]
+{
+  "dialogue": [
+    { "expression": "excited", "message": "Thanks for bringing me here!" }
+  ]
+}

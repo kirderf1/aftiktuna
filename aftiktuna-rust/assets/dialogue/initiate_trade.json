@@ -1,3 +1,5 @@
-[
-  { "expression": "neutral", "message": "Hello! I'd like to see what you are selling." }
-]
+{
+  "dialogue": [
+    { "expression": "neutral", "message": "Hello! I'd like to see what you are selling." }
+  ]
+}

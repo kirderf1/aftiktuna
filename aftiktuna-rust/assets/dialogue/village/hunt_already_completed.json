@@ -1,3 +1,5 @@
-[
-  { "expression": "excited", "message": "Oh, you took out the Azureclops that had occupied my home? Thank you! I simply must give you {hunt_reward} as a thanks." }
-]
+{
+  "dialogue": [
+    { "expression": "excited", "message": "Oh, you took out the Azureclops that had occupied my home? Thank you! I simply must give you {hunt_reward} as a thanks." }
+  ]
+}

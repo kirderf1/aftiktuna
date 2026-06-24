@@ -1,3 +1,5 @@
-[
-  { "expression": "neutral", "message": "Hi! Would you like to join me in the search for Fortuna?" }
-]
+{
+  "dialogue": [
+    { "expression": "neutral", "message": "Hi! Would you like to join me in the search for Fortuna?" }
+  ]
+}

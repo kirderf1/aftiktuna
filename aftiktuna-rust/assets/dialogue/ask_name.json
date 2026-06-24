@@ -1,9 +1,10 @@
-[
-  {
-    "expression": "neutral",
-    "message": "Hi! What is your name?",
-    "reply": [
+{
+  "dialogue": [
+    { "expression": "neutral", "message": "Hi! What is your name?" }
+  ],
+  "reply": {
+    "dialogue": [
       { "expression": "neutral", "message": "My name is {name}." }
     ]
   }
-]
+}

@@ -122,7 +122,7 @@ pub mod color {
     }
 }
 
-pub(crate) mod dialogue {
+pub mod dialogue {
     use crate::core::behavior::{self, CrewLossMemory, Passenger};
     use crate::core::display::DialogueExpression;
     use crate::core::name::Name;
@@ -134,8 +134,7 @@ pub(crate) mod dialogue {
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Serialize, Deserialize)]
-    #[serde(deny_unknown_fields)]
-    pub struct ConditionedDialogueNode {
+    pub struct ConditionedDialogue {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub is_badly_hurt: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -160,12 +159,15 @@ pub(crate) mod dialogue {
         pub morale_is_at_least: Option<MoraleState>,
         pub expression: DialogueExpression,
         pub message: String,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub reply: Option<DialogueList>,
     }
 
-    impl ConditionedDialogueNode {
-        pub fn is_available(&self, speaker: Entity, target: Entity, state: &GameState) -> bool {
+    impl ConditionedDialogue {
+        pub(crate) fn is_available(
+            &self,
+            speaker: Entity,
+            target: Entity,
+            state: &GameState,
+        ) -> bool {
             let world = &state.world;
             self.is_badly_hurt.is_none_or(|is_badly_hurt| {
                 is_badly_hurt
@@ -233,10 +235,18 @@ pub(crate) mod dialogue {
     }
 
     #[derive(Clone, Serialize, Deserialize)]
+    pub struct ConditionedDialogueNode {
+        #[serde(flatten)]
+        pub dialogue: ConditionedDialogue,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reply: Option<DialogueList>,
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
     pub struct DialogueList(Vec<ConditionedDialogueNode>);
 
     impl DialogueList {
-        pub fn select_node(
+        pub(crate) fn select_node(
             &self,
             speaker: Entity,
             target: Entity,
@@ -244,11 +254,29 @@ pub(crate) mod dialogue {
         ) -> Option<&ConditionedDialogueNode> {
             self.0
                 .iter()
-                .find(|node| node.is_available(speaker, target, state))
+                .find(|node| node.dialogue.is_available(speaker, target, state))
         }
     }
 
-    pub fn load_dialogue_data(name: &str) -> Result<DialogueList, super::Error> {
+    #[derive(Clone, Serialize, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct V2DialogueData {
+        #[serde(default, skip_serializing_if = "String::is_empty")]
+        pub description: String,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub dialogue: Vec<ConditionedDialogue>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reply: Option<Box<V2DialogueData>>,
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    #[serde(untagged)]
+    pub enum DialogueData {
+        V1(DialogueList),
+        V2(V2DialogueData),
+    }
+
+    pub fn load_dialogue_data(name: &str) -> Result<DialogueData, super::Error> {
         super::load_json_asset(format!("dialogue/{name}.json"))
     }
 }

@@ -1,3 +1,5 @@
-[
-  { "expression": "excited", "message": "You took out the mantis out in the forest? Wonderful! I happened to have a bounty out for it. Here's {hunt_reward} as the reward." }
-]
+{
+  "dialogue": [
+    { "expression": "excited", "message": "You took out the mantis out in the forest? Wonderful! I happened to have a bounty out for it. Here's {hunt_reward} as the reward." }
+  ]
+}

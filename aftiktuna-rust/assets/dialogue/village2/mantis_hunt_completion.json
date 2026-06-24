@@ -1,9 +1,10 @@
-[
-  {
-    "expression": "neutral",
-    "message": "We have taken care of the bounty. The mantis is dead.",
-    "reply": [
+{
+  "dialogue": [
+    { "expression": "neutral", "message": "We have taken care of the bounty. The mantis is dead." }
+  ],
+  "reply": {
+    "dialogue": [
       { "expression": "excited", "message": "Wonderful! Here is the {hunt_reward} reward." }
     ]
   }
-]
+}

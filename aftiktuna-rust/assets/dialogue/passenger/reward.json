@@ -1,3 +1,5 @@
-[
-  { "expression": "neutral", "message": "Here's 5000p as thanks for helping me." }
-]
+{
+  "dialogue": [
+    { "expression": "neutral", "message": "Here's 5000p as thanks for helping me." }
+  ]
+}

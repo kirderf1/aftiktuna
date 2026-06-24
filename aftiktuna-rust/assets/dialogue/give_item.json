@@ -1,3 +1,5 @@
-[
-  { "expression": "neutral", "message": "Here, hold on to this." }
-]
+{
+  "dialogue": [
+    { "expression": "neutral", "message": "Here, hold on to this." }
+  ]
+}
