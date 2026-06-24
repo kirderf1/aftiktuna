@@ -678,14 +678,22 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
         return;
     };
 
-    if area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
+    if state.generation_state.is_at_fortuna() {
+        trigger_dialogue_by_name(
+            "landing/at_fortuna",
+            speaker,
+            state.controlled,
+            state,
+            view_buffer,
+        );
+    } else if area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
         fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
     }) {
         let crew = state.world.get::<&CrewMember>(speaker).unwrap().0;
         state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
 
         trigger_dialogue_by_name(
-            "landing_with_fuel",
+            "landing/with_fuel",
             speaker,
             state.controlled,
             state,
@@ -693,7 +701,7 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
         );
     } else {
         trigger_dialogue_by_name(
-            "landing_without_enough_fuel",
+            "landing/without_enough_fuel",
             speaker,
             state.controlled,
             state,
