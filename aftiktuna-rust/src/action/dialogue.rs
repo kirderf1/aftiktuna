@@ -178,30 +178,13 @@ fn handle_recruit_decision(
                  view_context,
              }| {
                 if state.world.satisfies::<&Recruitable>(target) {
-                    let result = dialogue::trigger_dialogue_by_name(
+                    dialogue::trigger_dialogue_by_name(
                         "recruit/accept_request",
                         performer,
                         target,
                         state,
                         view_context.view_buffer,
                     );
-                    if !result {
-                        view_context.view_buffer.messages.add(format!(
-                            "{the_performer} accepts {the_target}'s request to join the crew.",
-                            the_performer = NameData::find(
-                                &state.world,
-                                performer,
-                                view_context.view_buffer.assets
-                            )
-                            .definite(),
-                            the_target = NameData::find(
-                                &state.world,
-                                target,
-                                view_context.view_buffer.assets
-                            )
-                            .definite(),
-                        ));
-                    }
 
                     perform_recruitment_success(target, state, view_context.view_buffer);
                     Some(Ok(action::Success))
@@ -259,27 +242,13 @@ fn handle_passenger_decision(
                     .get::<&mut Passenger>(target)
                     .expect("Unexpected state for responding to passenger")
                     .phase = PassengerPhase::Travelling;
-                let result = dialogue::trigger_dialogue_by_name(
+                dialogue::trigger_dialogue_by_name(
                     "passenger/accept_request",
                     performer,
                     target,
                     state,
                     view_context.view_buffer,
                 );
-                if !result {
-                    view_context.view_buffer.messages.add(format!(
-                        "{the_performer} accepts {the_target}'s request to follow along.",
-                        the_performer = NameData::find(
-                            &state.world,
-                            performer,
-                            view_context.view_buffer.assets
-                        )
-                        .definite(),
-                        the_target =
-                            NameData::find(&state.world, target, view_context.view_buffer.assets)
-                                .definite(),
-                    ));
-                }
 
                 Some(Ok(action::Success))
             },
@@ -294,27 +263,13 @@ fn handle_passenger_decision(
                  state,
                  view_context,
              }| {
-                let result = dialogue::trigger_dialogue_by_name(
+                dialogue::trigger_dialogue_by_name(
                     "passenger/reject_request",
                     performer,
                     target,
                     state,
                     view_context.view_buffer,
                 );
-                if !result {
-                    view_context.view_buffer.messages.add(format!(
-                        "{the_performer} rejects {the_target}'s request to follow along.",
-                        the_performer = NameData::find(
-                            &state.world,
-                            performer,
-                            view_context.view_buffer.assets
-                        )
-                        .definite(),
-                        the_target =
-                            NameData::find(&state.world, target, view_context.view_buffer.assets)
-                                .definite(),
-                    ));
-                }
 
                 Some(Ok(action::Success))
             },

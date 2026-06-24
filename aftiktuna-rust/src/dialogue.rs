@@ -3,7 +3,7 @@ mod context {
 
     use crate::asset::GameAssets;
     use crate::core::behavior::{CrewLossMemory, GivesHuntRewardData};
-    use crate::core::name::Name;
+    use crate::core::name::{Name, NameData};
 
     #[derive(Default)]
     pub(super) struct TextResolutionContext<'a> {
@@ -44,6 +44,7 @@ mod context {
     pub(super) fn setup_context<'a>(
         world: &'a hecs::World,
         speaker: hecs::Entity,
+        target: hecs::Entity,
         assets: &'a GameAssets,
     ) -> TextResolutionContext<'a> {
         let mut context = TextResolutionContext::default();
@@ -56,6 +57,14 @@ mod context {
                 eprintln!("Missing name for dialogue");
                 "???".to_owned()
             }
+        });
+
+        context.add_resolver("the_speaker", move || {
+            NameData::find(world, speaker, assets).definite()
+        });
+
+        context.add_resolver("the_target", move || {
+            NameData::find(world, target, assets).definite()
         });
 
         context.add_resolver("crew_loss_memory_name", move || {
@@ -100,7 +109,7 @@ mod context {
                     recent: false,
                 },
             ));
-            let context = super::setup_context(&world, speaker, &assets);
+            let context = super::setup_context(&world, speaker, speaker, &assets);
 
             assert_eq!(
                 context.resolve("a {name} b {crew_loss_memory_name}"),
@@ -323,21 +332,13 @@ pub(crate) fn trigger_reject_recruitment_request(
     state: &mut GameState,
     view_buffer: &mut view::Buffer<'_>,
 ) {
-    let result = trigger_dialogue_by_name(
+    trigger_dialogue_by_name(
         "recruit/reject_request",
         crew_member,
         npc,
         state,
         view_buffer,
     );
-    if !result {
-        view_buffer.messages.add(format!(
-            "{the_performer} rejects {the_target}'s request to join the crew.",
-            the_performer =
-                NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
-            the_target = NameData::find(&state.world, npc, view_buffer.assets).definite(),
-        ));
-    }
 
     let passenger = state.world.get::<&Passenger>(npc).ok().as_deref().cloned();
     if let Some(passenger) = passenger
@@ -420,7 +421,7 @@ impl ShipDialogue {
                 let crew_loss_name = world
                     .get::<&CrewLossMemory>(character1)
                     .map_or_else(|_| "???".to_owned(), |memory| memory.name.clone());
-                format!("{name1}talked with {name2} about the loss of {crew_loss_name}.")
+                format!("{name1} talked with {name2} about the loss of {crew_loss_name}.")
             }
             ShipDialogue::Worry => {
                 format!("{name1} talked to {name2} and expressed worry about their journey.")
@@ -726,6 +727,9 @@ pub fn trigger_dialogue_by_name(
         },
         Err(error) => {
             println!("Failed to load dialogue {name}: {error}");
+            view_buffer
+                .messages
+                .add(format!("System: Unable to load dialogue \"{name}\"."));
             false
         }
     }
@@ -739,7 +743,7 @@ fn run_dialogue_node(
     view_buffer: &mut view::Buffer,
 ) {
     let world = &state.world;
-    let context = context::setup_context(world, speaker, view_buffer.assets);
+    let context = context::setup_context(world, speaker, target, view_buffer.assets);
     let target_pos = *world.get::<&Pos>(target).unwrap();
     position::turn_towards(world, speaker, target_pos);
 
@@ -767,12 +771,12 @@ fn run_dialogue(
         .find(|dialogue| dialogue.is_available(speaker, target, state))
     {
         view_buffer.capture_view_before_dialogue(state);
-        let context = context::setup_context(&state.world, speaker, view_buffer.assets);
+        let context = context::setup_context(&state.world, speaker, target, view_buffer.assets);
 
         let message = context.resolve(&dialogue.message);
         view_buffer.push_dialogue(&state.world, speaker, dialogue.expression, message);
     } else if !dialogue_data.description.is_empty() {
-        let context = context::setup_context(&state.world, speaker, view_buffer.assets);
+        let context = context::setup_context(&state.world, speaker, target, view_buffer.assets);
 
         view_buffer
             .messages
