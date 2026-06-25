@@ -24,7 +24,7 @@ pub fn trade(context: action::Context, performer: Entity, shopkeeper: Entity) ->
                 .expect("Expected target of trade action to be a shopkeeper.");
 
             crate::dialogue::trigger_dialogue_by_name(
-                "initiate_trade",
+                "core/initiate_trade",
                 performer,
                 shopkeeper,
                 state,

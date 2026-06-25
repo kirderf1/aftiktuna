@@ -221,7 +221,7 @@ pub(super) fn give_item(
     movement.perform(&mut state.world).unwrap();
 
     dialogue::trigger_dialogue_by_name(
-        "give_item",
+        "core/give_item",
         performer,
         receiver,
         state,

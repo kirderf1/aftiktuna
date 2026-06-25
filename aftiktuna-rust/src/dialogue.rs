@@ -169,7 +169,7 @@ impl TalkTopic {
     ) {
         match self {
             TalkTopic::AskName => {
-                trigger_dialogue_by_name("ask_name", performer, target, state, view_buffer);
+                trigger_dialogue_by_name("core/ask_name", performer, target, state, view_buffer);
                 prompt_npc_dialogue(performer, target, state, view_buffer);
             }
             TalkTopic::CompleteHuntQuest => {
@@ -186,7 +186,7 @@ impl TalkTopic {
                     && passenger.phase == PassengerPhase::Leaving
                 {
                     trigger_dialogue_by_name(
-                        "passenger/done",
+                        "core/passenger/done",
                         performer,
                         target,
                         state,
@@ -268,7 +268,13 @@ fn prompt_npc_dialogue(
             .get::<&Passenger>()
             .is_some_and(|passenger| passenger.phase == PassengerPhase::Requesting)
         {
-            trigger_dialogue_by_name("passenger/request", npc, crew_member, state, view_buffer);
+            trigger_dialogue_by_name(
+                "core/passenger/request",
+                npc,
+                crew_member,
+                state,
+                view_buffer,
+            );
             state
                 .world
                 .insert_one(crew_member, Decision::Passenger(npc))
@@ -277,7 +283,7 @@ fn prompt_npc_dialogue(
             if recruitable.will_request {
                 trigger_recruit_request(npc, crew_member, state, view_buffer);
             } else {
-                trigger_dialogue_by_name("recruit/hint", npc, crew_member, state, view_buffer);
+                trigger_dialogue_by_name("core/recruit/hint", npc, crew_member, state, view_buffer);
             }
         } else if npc_ref.has::<Shopkeeper>() {
             store::initiate_trade(crew_member, npc, state, view_buffer);
@@ -291,7 +297,7 @@ fn trigger_recruit_request(
     state: &mut GameState,
     view_buffer: &mut view::Buffer<'_>,
 ) {
-    trigger_dialogue_by_name("recruit/request", npc, crew_member, state, view_buffer);
+    trigger_dialogue_by_name("core/recruit/request", npc, crew_member, state, view_buffer);
     state
         .world
         .insert_one(crew_member, Decision::Recruit(npc))
@@ -307,9 +313,9 @@ fn trigger_passenger_reward(
 ) {
     trigger_dialogue_by_name(
         if is_backup {
-            "passenger/backup_reward"
+            "core/passenger/backup_reward"
         } else {
-            "passenger/reward"
+            "core/passenger/reward"
         },
         npc,
         crew_member,
@@ -332,7 +338,7 @@ pub(crate) fn trigger_reject_recruitment_request(
     view_buffer: &mut view::Buffer<'_>,
 ) {
     trigger_dialogue_by_name(
-        "recruit/reject_request",
+        "core/recruit/reject_request",
         crew_member,
         npc,
         state,
@@ -396,10 +402,10 @@ enum ShipDialogue {
 impl ShipDialogue {
     fn dialogue_id(self) -> &'static str {
         match self {
-            ShipDialogue::ApproachingFortuna => "on_ship/approaching_fortuna",
-            ShipDialogue::CrewLoss => "on_ship/crew_loss",
-            ShipDialogue::Worry => "on_ship/worry",
-            ShipDialogue::NeutralRetrospective => "on_ship/neutral_retrospective",
+            ShipDialogue::ApproachingFortuna => "core/on_ship/approaching_fortuna",
+            ShipDialogue::CrewLoss => "core/on_ship/crew_loss",
+            ShipDialogue::Worry => "core/on_ship/worry",
+            ShipDialogue::NeutralRetrospective => "core/on_ship/neutral_retrospective",
         }
     }
 
@@ -564,7 +570,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
             state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
             if let Some(&speaker) = possible_speakers.choose(&mut state.rng) {
                 trigger_dialogue_by_name(
-                    "obtained_enough_fuel",
+                    "core/obtained_enough_fuel",
                     speaker,
                     state.controlled,
                     state,
@@ -591,7 +597,7 @@ pub fn trigger_encounter_dialogue(state: &mut GameState, view_buffer: &mut view:
                     .unwrap()
                     .talked_about_badly_hurt = true;
                 trigger_dialogue_by_name(
-                    "badly_hurt_after_battle",
+                    "core/badly_hurt_after_battle",
                     speaker,
                     state.controlled,
                     state,
@@ -643,7 +649,7 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
 
     if state.generation_state.is_at_fortuna() {
         trigger_dialogue_by_name(
-            "landing/at_fortuna",
+            "core/landing/at_fortuna",
             speaker,
             state.controlled,
             state,
@@ -656,7 +662,7 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
         state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
 
         trigger_dialogue_by_name(
-            "landing/with_fuel",
+            "core/landing/with_fuel",
             speaker,
             state.controlled,
             state,
@@ -664,7 +670,7 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
         );
     } else {
         trigger_dialogue_by_name(
-            "landing/without_enough_fuel",
+            "core/landing/without_enough_fuel",
             speaker,
             state.controlled,
             state,

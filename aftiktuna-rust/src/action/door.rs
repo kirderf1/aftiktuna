@@ -171,7 +171,7 @@ impl ForceDoorAction {
         movement.perform(&mut state.world).unwrap();
         if let Some(assisted) = assisting {
             dialogue::trigger_dialogue_by_name(
-                "help_force_door",
+                "core/help_force_door",
                 performer,
                 assisted,
                 state,

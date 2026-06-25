@@ -89,7 +89,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
              view_context,
          }| {
             dialogue::trigger_dialogue_by_name(
-                "recruit/ask",
+                "core/recruit/ask",
                 performer,
                 target,
                 state,
@@ -98,7 +98,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
 
             if state.world.satisfies::<&Recruitable>(target) {
                 dialogue::trigger_dialogue_by_name(
-                    "recruit/reply_accept",
+                    "core/recruit/reply_accept",
                     target,
                     performer,
                     state,
@@ -109,7 +109,7 @@ pub(super) fn recruit(context: Context, performer: Entity, target: Entity) -> ac
                 Some(Ok(action::Success))
             } else {
                 dialogue::trigger_dialogue_by_name(
-                    "recruit/reply_reject",
+                    "core/recruit/reply_reject",
                     target,
                     performer,
                     state,
@@ -179,7 +179,7 @@ fn handle_recruit_decision(
              }| {
                 if state.world.satisfies::<&Recruitable>(target) {
                     dialogue::trigger_dialogue_by_name(
-                        "recruit/accept_request",
+                        "core/recruit/accept_request",
                         performer,
                         target,
                         state,
@@ -243,7 +243,7 @@ fn handle_passenger_decision(
                     .expect("Unexpected state for responding to passenger")
                     .phase = PassengerPhase::Travelling;
                 dialogue::trigger_dialogue_by_name(
-                    "passenger/accept_request",
+                    "core/passenger/accept_request",
                     performer,
                     target,
                     state,
@@ -264,7 +264,7 @@ fn handle_passenger_decision(
                  view_context,
              }| {
                 dialogue::trigger_dialogue_by_name(
-                    "passenger/reject_request",
+                    "core/passenger/reject_request",
                     performer,
                     target,
                     state,
@@ -294,7 +294,7 @@ pub(super) fn tell_to_wait(context: Context, performer: Entity, target: Entity) 
              view_context,
          }| {
             dialogue::trigger_dialogue_by_name(
-                "tell_to/wait",
+                "core/tell_to/wait",
                 performer,
                 target,
                 state,
@@ -330,7 +330,7 @@ pub(super) fn tell_to_wait_at_ship(
              view_context,
          }| {
             dialogue::trigger_dialogue_by_name(
-                "tell_to/wait_at_ship",
+                "core/tell_to/wait_at_ship",
                 performer,
                 target,
                 state,
@@ -368,7 +368,7 @@ pub(super) fn tell_to_follow(
              view_context,
          }| {
             dialogue::trigger_dialogue_by_name(
-                "tell_to/follow",
+                "core/tell_to/follow",
                 performer,
                 target,
                 state,

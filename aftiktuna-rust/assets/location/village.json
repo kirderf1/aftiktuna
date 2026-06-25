@@ -88,9 +88,9 @@
           "interaction": {
             "type": "gives_hunt_reward",
             "target_tag": "house_azureclops",
-            "task_dialogue": "village/hunt_mission",
-            "already_completed_dialogue": "village/hunt_already_completed",
-            "reward_dialogue": "village/hunt_completion",
+            "task_dialogue": "location/village/hunt_mission",
+            "already_completed_dialogue": "location/village/hunt_already_completed",
+            "reward_dialogue": "location/village/hunt_completion",
             "reward": {
               "items": [ "fuel_can" ]
             }
