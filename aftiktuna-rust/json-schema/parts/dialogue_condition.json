@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "properties": {
+    "is_badly_hurt": { "type": "boolean" },
+    "target_is_badly_hurt": { "type": "boolean" },
+    "has_enough_fuel": { "type": "boolean" },
+    "at_ship": { "type": "boolean" },
+    "at_fortuna": { "type": "boolean" },
+    "is_passenger": { "type": "boolean" },
+    "has_known_name": { "type": "boolean" },
+    "has_crew_loss_memory": { "type": "boolean" },
+    "has_recent_crew_loss_memory": { "type": "boolean" },
+    "has_background": { "$ref": "./name_id.json" },
+    "morale_is_at_least": {
+      "enum": [ "devestating", "poor", "neutral", "good", "excellent" ]
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [ "is_badly_hurt" ]
+    },
+    {
+      "required": [ "target_is_badly_hurt" ]
+    },
+    {
+      "required": [ "has_enough_fuel" ]
+    },
+    {
+      "required": [ "at_ship" ]
+    },
+    {
+      "required": [ "at_fortuna" ]
+    },
+    {
+      "required": [ "is_passenger" ]
+    },
+    {
+      "required": [ "has_known_name" ]
+    },
+    {
+      "required": [ "has_crew_loss_memory" ]
+    },
+    {
+      "required": [ "has_recent_crew_loss_memory" ]
+    },
+    {
+      "required": [ "has_background" ]
+    },
+    {
+      "required": [ "morale_is_at_least" ]
+    }
+  ]
+}

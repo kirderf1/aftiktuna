@@ -1,18 +1,14 @@
 {
   "type": "object",
   "properties": {
-    "is_badly_hurt": { "type": "boolean" },
-    "is_target_badly_hurt": { "type": "boolean" },
-    "has_enough_fuel": { "type": "boolean" },
-    "is_at_ship": { "type": "boolean" },
-    "is_at_fortuna": { "type": "boolean" },
-    "is_passenger": { "type": "boolean" },
-    "known_name": { "type": "boolean" },
-    "has_crew_loss_memory": { "type": "boolean" },
-    "has_recent_crew_loss_memory": { "type": "boolean" },
-    "has_background": { "$ref": "./name_id.json" },
-    "morale_is_at_least": {
-      "enum": [ "devestating", "poor", "neutral", "good", "excellent" ]
+    "condition": {
+      "oneOf": [
+        { "$ref": "./dialogue_condition.json" },
+        {
+          "type": "array",
+          "items": { "$ref": "./dialogue_condition.json" }
+        }
+      ]
     },
     "expression": { "$ref": "./dialogue_expression.json" },
     "message": { "type": "string" },

@@ -123,6 +123,7 @@ pub mod color {
 }
 
 pub mod dialogue {
+    use crate::OneOrList;
     use crate::core::behavior::{self, CrewLossMemory, Passenger};
     use crate::core::display::DialogueExpression;
     use crate::core::name::Name;
@@ -134,106 +135,127 @@ pub mod dialogue {
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Serialize, Deserialize)]
-    pub struct ConditionedDialogueNode {
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub is_badly_hurt: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub is_target_badly_hurt: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub has_enough_fuel: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub is_at_ship: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub is_at_fortuna: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub is_passenger: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub known_name: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub has_crew_loss_memory: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub has_recent_crew_loss_memory: Option<bool>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub has_background: Option<behavior::BackgroundId>,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub morale_is_at_least: Option<MoraleState>,
-        pub expression: DialogueExpression,
-        pub message: String,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub reply: Option<DialogueList>,
+    #[serde(rename_all = "snake_case")]
+    pub enum DialogueCondition {
+        IsBadlyHurt(bool),
+        TargetIsBadlyHurt(bool),
+        HasEnoughFuel(bool),
+        AtShip(bool),
+        AtFortuna(bool),
+        IsPassenger(bool),
+        HasKnownName(bool),
+        HasCrewLossMemory(bool),
+        HasRecentCrewLossMemory(bool),
+        HasBackground(behavior::BackgroundId),
+        MoraleIsAtLeast(MoraleState),
     }
 
-    impl ConditionedDialogueNode {
-        pub(crate) fn is_available(
-            &self,
-            speaker: Entity,
-            target: Entity,
-            state: &GameState,
-        ) -> bool {
+    impl DialogueCondition {
+        fn test(&self, speaker: Entity, target: Entity, state: &GameState) -> bool {
             let world = &state.world;
-            self.is_badly_hurt.is_none_or(|is_badly_hurt| {
-                is_badly_hurt
-                    == world
-                        .get::<&Health>(speaker)
-                        .is_ok_and(|health| health.is_badly_hurt())
-            }) && self
-                .is_target_badly_hurt
-                .is_none_or(|is_target_badly_hurt| {
-                    is_target_badly_hurt
+            match self {
+                &Self::IsBadlyHurt(is_badly_hurt) => {
+                    is_badly_hurt
+                        == world
+                            .get::<&Health>(speaker)
+                            .is_ok_and(|health| health.is_badly_hurt())
+                }
+                &Self::TargetIsBadlyHurt(target_is_badly_hurt) => {
+                    target_is_badly_hurt
                         == world
                             .get::<&Health>(target)
                             .is_ok_and(|health| health.is_badly_hurt())
-                })
-                && self.has_enough_fuel.is_none_or(|has_enough_fuel| {
+                }
+                &Self::HasEnoughFuel(has_enough_fuel) => {
                     has_enough_fuel
                         == area::fuel_needed_to_launch(world).is_some_and(|fuel_amount| {
                             fuel_amount <= inventory::fuel_cans_held_by_crew(world, &[])
                         })
-                })
-                && self.is_at_ship.is_none_or(|is_at_ship| {
-                    is_at_ship
+                }
+                &Self::AtShip(at_ship) => {
+                    at_ship
                         == world
                             .get::<&Pos>(speaker)
                             .is_ok_and(|pos| area::is_in_ship(*pos, world))
-                })
-                && self.is_at_fortuna.is_none_or(|is_at_fortuna| {
-                    is_at_fortuna == state.generation_state.is_at_fortuna()
-                })
-                && self.is_passenger.is_none_or(|is_passenger| {
+                }
+                &Self::AtFortuna(at_fortuna) => {
+                    at_fortuna == state.generation_state.is_at_fortuna()
+                }
+                &Self::IsPassenger(is_passenger) => {
                     is_passenger == world.satisfies::<&Passenger>(speaker)
-                })
-                && self.known_name.is_none_or(|known_name| {
-                    Some(known_name) == world.get::<&Name>(speaker).ok().map(|name| name.is_known)
-                })
-                && self
-                    .has_crew_loss_memory
-                    .is_none_or(|has_crew_loss_memory| {
-                        has_crew_loss_memory == world.satisfies::<&CrewLossMemory>(speaker)
-                    })
-                && self
-                    .has_recent_crew_loss_memory
-                    .is_none_or(|has_recent_crew_loss_memory| {
-                        has_recent_crew_loss_memory
-                            == world
-                                .get::<&CrewLossMemory>(speaker)
-                                .is_ok_and(|crew_loss_memory| crew_loss_memory.recent)
-                    })
-                && self
-                    .has_background
-                    .as_ref()
-                    .is_none_or(|expected_background| {
-                        world.get::<&behavior::BackgroundId>(speaker).is_ok_and(
-                            |checked_background| *checked_background == *expected_background,
-                        )
-                    })
-                && self.morale_is_at_least.is_none_or(|morale_state| {
+                }
+                &Self::HasKnownName(has_known_name) => world
+                    .get::<&Name>(speaker)
+                    .is_ok_and(|name| has_known_name == name.is_known),
+                &Self::HasCrewLossMemory(has_crew_loss_memory) => {
+                    has_crew_loss_memory == world.satisfies::<&CrewLossMemory>(speaker)
+                }
+                &Self::HasRecentCrewLossMemory(has_recent_crew_loss_memory) => {
+                    has_recent_crew_loss_memory
+                        == world
+                            .get::<&CrewLossMemory>(speaker)
+                            .is_ok_and(|crew_loss_memory| crew_loss_memory.recent)
+                }
+                Self::HasBackground(expected_background) => world
+                    .get::<&behavior::BackgroundId>(speaker)
+                    .is_ok_and(|checked_background| *checked_background == *expected_background),
+                &Self::MoraleIsAtLeast(morale_state) => {
                     morale_state
                         <= world
                             .get::<&Morale>(speaker)
                             .map(|morale| morale.state())
                             .unwrap_or_default()
-                })
+                }
+            }
         }
+    }
+
+    #[derive(Clone, Default, Serialize, Deserialize)]
+    #[serde(
+        from = "OneOrList<DialogueCondition>",
+        into = "OneOrList<DialogueCondition>"
+    )]
+    pub struct DialogueConditionList(pub Vec<DialogueCondition>);
+
+    impl DialogueConditionList {
+        pub fn test(&self, speaker: Entity, target: Entity, state: &GameState) -> bool {
+            self.0
+                .iter()
+                .all(|condition| condition.test(speaker, target, state))
+        }
+
+        fn is_empty(&self) -> bool {
+            self.0.is_empty()
+        }
+    }
+
+    impl From<OneOrList<DialogueCondition>> for DialogueConditionList {
+        fn from(value: OneOrList<DialogueCondition>) -> Self {
+            match value {
+                OneOrList::One(condition) => Self(vec![condition]),
+                OneOrList::List(list) => Self(list),
+            }
+        }
+    }
+
+    impl From<DialogueConditionList> for OneOrList<DialogueCondition> {
+        fn from(value: DialogueConditionList) -> Self {
+            if value.0.len() == 1 {
+                Self::One(value.0.into_iter().next().unwrap())
+            } else {
+                Self::List(value.0)
+            }
+        }
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    pub struct ConditionedDialogueNode {
+        #[serde(default, skip_serializing_if = "DialogueConditionList::is_empty")]
+        pub condition: DialogueConditionList,
+        pub expression: DialogueExpression,
+        pub message: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reply: Option<DialogueList>,
     }
 
     #[derive(Clone, Default, Serialize, Deserialize)]
@@ -248,7 +270,7 @@ pub mod dialogue {
         ) -> Option<&ConditionedDialogueNode> {
             self.0
                 .iter()
-                .find(|node| node.is_available(speaker, target, state))
+                .find(|node| node.condition.test(speaker, target, state))
         }
 
         fn is_empty(&self) -> bool {

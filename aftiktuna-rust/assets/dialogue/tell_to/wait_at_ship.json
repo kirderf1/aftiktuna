@@ -1,7 +1,7 @@
 {
   "dialogue": [
     {
-      "is_at_ship": true,
+      "condition": { "at_ship": true },
       "expression": "neutral",
       "message": "Please wait at the ship.",
       "reply": [
@@ -9,7 +9,7 @@
       ]
     },
     {
-      "is_at_ship": false,
+      "condition": { "at_ship": false },
       "expression": "neutral",
       "message": "Please go back and wait at the ship.",
       "reply": [

@@ -1,7 +1,15 @@
 {
   "dialogue": [
-    { "has_background": "village_attack_survivor", "expression": "sad", "message": "After what happened around here, I don't think there's a point to me staying in this village anymore. May I come along with you?" },
-    { "is_passenger": true, "expression": "neutral", "message": "From what I understood, you were heading to Fortuna? May I join you on this journey?" },
+    {
+      "condition": { "has_background": "village_attack_survivor" },
+      "expression": "sad",
+      "message": "After what happened around here, I don't think there's a point to me staying in this village anymore. May I come along with you?"
+    },
+    {
+      "condition": { "is_passenger": true },
+      "expression": "neutral",
+      "message": "From what I understood, you were heading to Fortuna? May I join you on this journey?"
+    },
     { "expression": "excited", "message": "You're going on an adventure, right? May I come with?" }
   ]
 }

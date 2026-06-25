@@ -2,8 +2,10 @@
   "description": "{the_speaker} and {the_target} chatted about their journey.",
   "dialogue": [
     {
-      "is_badly_hurt": false,
-      "is_target_badly_hurt": true,
+      "condition": [
+        { "is_badly_hurt": false },
+        { "target_is_badly_hurt": true }
+      ],
       "expression": "neutral",
       "message": "That worked out in the end, right?",
       "reply": [

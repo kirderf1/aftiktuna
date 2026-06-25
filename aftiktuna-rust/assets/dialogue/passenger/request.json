@@ -1,5 +1,9 @@
 {
   "dialogue": [
-    { "has_background": "forest_ship_crash", "expression": "sad", "message": "You see that crashed ship back there? That's how I ended up here. You don't happen to have space on your ship to bring me along to safety?" }
+    {
+      "condition": { "has_background": "forest_ship_crash" },
+      "expression": "sad",
+      "message": "You see that crashed ship back there? That's how I ended up here. You don't happen to have space on your ship to bring me along to safety?"
+    }
   ]
 }
