@@ -1,19 +1,22 @@
-[
-  {
-    "morale_is_at_least": "good",
-    "expression": "excited",
-    "message": "Looks like we are arriving at the Fortuna crash site next. Are you excited?",
-    "reply": [
-      { "has_crew_loss_memory": true, "expression": "sad", "message": "Yeah. I just wish {crew_loss_memory_name} was with us too." },
-      { "morale_is_at_least": "good", "expression": "excited", "message": "Yeah, I think so!" },
-      { "expression": "sad", "message": "Yeah, but I am also worried." }
-    ]
-  },
-  {
-    "expression": "neutral",
-    "message": "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
-    "reply": [
-      { "expression": "neutral", "message": "I hope so." }
-    ]
-  }
-]
+{
+  "description": "{the_speaker} and {the_target} talked about their approach to Fortuna.",
+  "dialogue": [
+    {
+      "morale_is_at_least": "good",
+      "expression": "excited",
+      "message": "Looks like we are arriving at the Fortuna crash site next. Are you excited?",
+      "reply": [
+        { "has_crew_loss_memory": true, "expression": "sad", "message": "Yeah. I just wish {crew_loss_memory_name} was with us too." },
+        { "morale_is_at_least": "good", "expression": "excited", "message": "Yeah, I think so!" },
+        { "expression": "sad", "message": "Yeah, but I am also worried." }
+      ]
+    },
+    {
+      "expression": "neutral",
+      "message": "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
+      "reply": [
+        { "expression": "neutral", "message": "I hope so." }
+      ]
+    }
+  ]
+}

@@ -1,10 +1,12 @@
-[
-  {
-    "expression": "sad",
-    "message": "I am sad that we lost {crew_loss_memory_name}. Do you think that we will make it?",
-    "reply": [
+{
+  "description": "{the_speaker} talked with {the_target} about the loss of {crew_loss_memory_name}.",
+  "dialogue": [
+    { "expression": "sad", "message": "I am sad that we lost {crew_loss_memory_name}. Do you think that we will make it?" }
+  ],
+  "reply": {
+    "dialogue": [
       { "morale_is_at_least": "good", "expression": "neutral", "message": "Don't worry. I'm sure we will." },
       { "expression": "sad", "message": "I am not sure, but I hope so." }
     ]
   }
-]
+}

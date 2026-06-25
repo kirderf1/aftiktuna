@@ -134,7 +134,7 @@ pub mod dialogue {
     use serde::{Deserialize, Serialize};
 
     #[derive(Clone, Serialize, Deserialize)]
-    pub struct ConditionedDialogue {
+    pub struct ConditionedDialogueNode {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         pub is_badly_hurt: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -159,9 +159,11 @@ pub mod dialogue {
         pub morale_is_at_least: Option<MoraleState>,
         pub expression: DialogueExpression,
         pub message: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub reply: Option<DialogueList>,
     }
 
-    impl ConditionedDialogue {
+    impl ConditionedDialogueNode {
         pub(crate) fn is_available(
             &self,
             speaker: Entity,
@@ -234,15 +236,7 @@ pub mod dialogue {
         }
     }
 
-    #[derive(Clone, Serialize, Deserialize)]
-    pub struct ConditionedDialogueNode {
-        #[serde(flatten)]
-        pub dialogue: ConditionedDialogue,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub reply: Option<DialogueList>,
-    }
-
-    #[derive(Clone, Serialize, Deserialize)]
+    #[derive(Clone, Default, Serialize, Deserialize)]
     pub struct DialogueList(Vec<ConditionedDialogueNode>);
 
     impl DialogueList {
@@ -254,26 +248,23 @@ pub mod dialogue {
         ) -> Option<&ConditionedDialogueNode> {
             self.0
                 .iter()
-                .find(|node| node.dialogue.is_available(speaker, target, state))
+                .find(|node| node.is_available(speaker, target, state))
+        }
+
+        fn is_empty(&self) -> bool {
+            self.0.is_empty()
         }
     }
 
     #[derive(Clone, Serialize, Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct V2DialogueData {
+    pub struct DialogueData {
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub description: String,
-        #[serde(default, skip_serializing_if = "Vec::is_empty")]
-        pub dialogue: Vec<ConditionedDialogue>,
+        #[serde(default, skip_serializing_if = "DialogueList::is_empty")]
+        pub dialogue: DialogueList,
         #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub reply: Option<Box<V2DialogueData>>,
-    }
-
-    #[derive(Clone, Serialize, Deserialize)]
-    #[serde(untagged)]
-    pub enum DialogueData {
-        V1(DialogueList),
-        V2(V2DialogueData),
+        pub reply: Option<Box<DialogueData>>,
     }
 
     pub fn load_dialogue_data(name: &str) -> Result<DialogueData, super::Error> {

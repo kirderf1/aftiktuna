@@ -120,8 +120,7 @@ mod context {
     }
 }
 
-use crate::asset::GameAssets;
-use crate::asset::dialogue::{ConditionedDialogueNode, DialogueData, V2DialogueData};
+use crate::asset::dialogue::{ConditionedDialogueNode, DialogueData};
 use crate::core::area::ShipState;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, Decision, EncounterDialogue,
@@ -404,34 +403,6 @@ impl ShipDialogue {
         }
     }
 
-    fn dialogue_description(
-        self,
-        world: &World,
-        character1: Entity,
-        character2: Entity,
-        assets: &GameAssets,
-    ) -> String {
-        let name1 = NameData::find(world, character1, assets).definite();
-        let name2 = NameData::find(world, character2, assets).definite();
-        match self {
-            ShipDialogue::ApproachingFortuna => {
-                format!("{name1} and {name2} talked about their approach to Fortuna.")
-            }
-            ShipDialogue::CrewLoss => {
-                let crew_loss_name = world
-                    .get::<&CrewLossMemory>(character1)
-                    .map_or_else(|_| "???".to_owned(), |memory| memory.name.clone());
-                format!("{name1} talked with {name2} about the loss of {crew_loss_name}.")
-            }
-            ShipDialogue::Worry => {
-                format!("{name1} talked to {name2} and expressed worry about their journey.")
-            }
-            ShipDialogue::NeutralRetrospective => {
-                format!("{name1} and {name2} chatted about their journey.")
-            }
-        }
-    }
-
     fn apply_effects(self, world: &World, character1: Entity, character2: Entity) {
         if let Ok(mut morale) = world.get::<&mut Morale>(character1) {
             morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
@@ -511,7 +482,7 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
         position::turn_towards(&state.world, character1, pos2);
         position::turn_towards(&state.world, character2, pos1);
 
-        let result = trigger_dialogue_by_name(
+        trigger_dialogue_by_name(
             ship_dialogue.dialogue_id(),
             character1,
             character2,
@@ -519,15 +490,7 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
             view_buffer,
         );
 
-        if !result {
-            view_buffer.messages.add(ship_dialogue.dialogue_description(
-                &state.world,
-                character1,
-                character2,
-                view_buffer.assets,
-            ));
-            view_buffer.capture_view(state, false);
-        }
+        view_buffer.capture_view(state, false);
 
         ship_dialogue.apply_effects(&state.world, character1, character2);
     }
@@ -716,29 +679,14 @@ pub fn trigger_dialogue_by_name(
     target: Entity,
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
-) -> bool {
+) {
     match asset::dialogue::load_dialogue_data(name) {
-        Ok(dialogue) => match dialogue {
-            DialogueData::V1(dialogue_list) => {
-                if let Some(dialogue_node) = dialogue_list.select_node(speaker, target, state) {
-                    view_buffer.capture_view_before_dialogue(state);
-                    run_dialogue_node(dialogue_node, speaker, target, state, view_buffer);
-                    true
-                } else {
-                    false
-                }
-            }
-            DialogueData::V2(v2_dialogue_data) => {
-                run_dialogue(&v2_dialogue_data, speaker, target, state, view_buffer);
-                true
-            }
-        },
+        Ok(dialogue_data) => run_dialogue(&dialogue_data, speaker, target, state, view_buffer),
         Err(error) => {
             println!("Failed to load dialogue {name}: {error}");
             view_buffer
                 .messages
                 .add(format!("System: Unable to load dialogue \"{name}\"."));
-            false
         }
     }
 }
@@ -755,9 +703,9 @@ fn run_dialogue_node(
     let target_pos = *world.get::<&Pos>(target).unwrap();
     position::turn_towards(world, speaker, target_pos);
 
-    let message = context.resolve(&dialogue_node.dialogue.message);
+    let message = context.resolve(&dialogue_node.message);
 
-    view_buffer.push_dialogue(world, speaker, dialogue_node.dialogue.expression, message);
+    view_buffer.push_dialogue(world, speaker, dialogue_node.expression, message);
 
     if let Some(reply) = &dialogue_node.reply
         && let Some(reply_node) = reply.select_node(target, speaker, state)
@@ -767,22 +715,15 @@ fn run_dialogue_node(
 }
 
 fn run_dialogue(
-    dialogue_data: &V2DialogueData,
+    dialogue_data: &DialogueData,
     speaker: Entity,
     target: Entity,
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
-    if let Some(dialogue) = dialogue_data
-        .dialogue
-        .iter()
-        .find(|dialogue| dialogue.is_available(speaker, target, state))
-    {
+    if let Some(dialogue) = dialogue_data.dialogue.select_node(speaker, target, state) {
         view_buffer.capture_view_before_dialogue(state);
-        let context = context::setup_context(&state.world, speaker, target, view_buffer.assets);
-
-        let message = context.resolve(&dialogue.message);
-        view_buffer.push_dialogue(&state.world, speaker, dialogue.expression, message);
+        run_dialogue_node(dialogue, speaker, target, state, view_buffer);
     } else if !dialogue_data.description.is_empty() {
         let context = context::setup_context(&state.world, speaker, target, view_buffer.assets);
 
