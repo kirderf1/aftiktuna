@@ -1,10 +1,10 @@
 use crate::OneOrList;
-use crate::core::behavior::{self, CrewLossMemory, Passenger};
+use crate::core::behavior::{self, CrewLossMemory, Passenger, TalkedAboutEnoughFuel};
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
 use crate::core::position::Pos;
 use crate::core::status::{Health, Morale, MoraleState};
-use crate::core::{DialogueId, area, inventory};
+use crate::core::{CrewMember, DialogueId, area, inventory};
 use crate::game_loop::GameState;
 use hecs::Entity;
 use serde::{Deserialize, Serialize};
@@ -155,7 +155,44 @@ impl DialogueList {
 #[serde(deny_unknown_fields)]
 pub struct DialogueEffect {
     #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub speaker_morale: (f32, f32),
+    #[serde(default, skip_serializing_if = "crate::is_default")]
+    pub target_morale: (f32, f32),
+    #[serde(default, skip_serializing_if = "crate::is_default")]
     pub set_talked_about_enough_fuel: bool,
+}
+
+impl DialogueEffect {
+    pub(crate) fn apply(&self, speaker: Entity, target: Entity, world: &mut hecs::World) {
+        fn try_apply_morale_effect(
+            entity: Entity,
+            (intensity, depth): (f32, f32),
+            world: &mut hecs::World,
+        ) {
+            if intensity != 0.
+                && let Ok(mut morale) = world.get::<&mut Morale>(entity)
+            {
+                if intensity < 0. {
+                    morale.apply_negative_effect(-intensity, depth);
+                } else {
+                    morale.apply_positive_effect(intensity, depth);
+                }
+            }
+        }
+
+        try_apply_morale_effect(speaker, self.speaker_morale, world);
+        try_apply_morale_effect(target, self.target_morale, world);
+
+        if self.set_talked_about_enough_fuel {
+            let crew = world
+                .get::<&CrewMember>(speaker)
+                .ok()
+                .map(|crew_member| crew_member.0);
+            if let Some(crew) = crew {
+                world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
+            }
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

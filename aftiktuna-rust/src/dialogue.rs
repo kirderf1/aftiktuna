@@ -129,7 +129,7 @@ use crate::core::behavior::{
 };
 use crate::core::name::{Name, NameData};
 use crate::core::position::{self, Pos};
-use crate::core::status::{Health, Morale};
+use crate::core::status::Health;
 use crate::core::store::{self, Points, Shopkeeper};
 use crate::core::{self, CrewMember, area, inventory};
 use crate::game_loop::GameState;
@@ -406,15 +406,6 @@ impl ShipDialogue {
             ShipDialogue::Regular => "core/on_ship/regular",
         }
     }
-
-    fn apply_effects(self, world: &World, character1: Entity, character2: Entity) {
-        if let Ok(mut morale) = world.get::<&mut Morale>(character1) {
-            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
-        }
-        if let Ok(mut morale) = world.get::<&mut Morale>(character2) {
-            morale.apply_positive_effect(Morale::SMALL_INTENSITY, Morale::DEEP_DEPTH);
-        }
-    }
 }
 
 fn pick_ship_dialogue_topic(state: &mut GameState) -> Option<(ShipDialogue, Entity, Entity)> {
@@ -486,8 +477,6 @@ pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buff
         );
 
         view_buffer.capture_view(state, false);
-
-        ship_dialogue.apply_effects(&state.world, character1, character2);
     }
 }
 
@@ -693,19 +682,6 @@ fn run_dialogue(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
-    if let Some(effect) = &dialogue_data.effect {
-        if effect.set_talked_about_enough_fuel {
-            let crew = state
-                .world
-                .get::<&CrewMember>(speaker)
-                .ok()
-                .map(|crew_member| crew_member.0);
-            if let Some(crew) = crew {
-                state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
-            }
-        }
-    }
-
     if let Some(dialogue) = dialogue_data.dialogue.select_node(speaker, target, state) {
         view_buffer.capture_view_before_dialogue(state);
         run_dialogue_node(dialogue, speaker, target, state, view_buffer);
@@ -715,6 +691,10 @@ fn run_dialogue(
         view_buffer
             .messages
             .add(context.resolve(&dialogue_data.description));
+    }
+
+    if let Some(effect) = &dialogue_data.effect {
+        effect.apply(speaker, target, &mut state.world);
     }
 
     if let Some(next) = &dialogue_data.next.iter().find(|next| match next.kind {

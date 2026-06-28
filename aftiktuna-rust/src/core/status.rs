@@ -458,6 +458,7 @@ impl Morale {
     }
 
     pub fn apply_positive_effect(&mut self, intensity: f32, depth: f32) {
+        assert!(intensity >= 0.);
         assert!(depth >= 1.);
         let prev_value = self.positive_value;
         if self.positive_value < (intensity * depth) {
@@ -467,6 +468,7 @@ impl Morale {
         println!("Bumped up PV: {} -> {}", prev_value, self.positive_value);
     }
     pub fn apply_negative_effect(&mut self, intensity: f32, depth: f32) {
+        assert!(intensity >= 0.);
         assert!(depth >= 1.);
         let prev_value = self.negative_value;
         if self.negative_value < (intensity * depth) {

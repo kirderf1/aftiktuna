@@ -1,4 +1,8 @@
 {
+  "effect": {
+    "speaker_morale": [ 1, 10 ],
+    "target_morale": [ 1, 10 ]
+  },
   "description": "{the_speaker} and {the_target} chatted about their journey.",
   "dialogue": [
     {
