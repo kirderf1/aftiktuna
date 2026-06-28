@@ -1,11 +1,12 @@
 {
   "description": "{the_speaker} talked to {the_target} and expressed worry about their journey.",
   "dialogue": [
-    { "expression": "neutral", "message": "Will we be able to go somewhere safer next?" }
-  ],
-  "reply": {
-    "dialogue": [
-      { "expression": "neutral", "message": "I don't know. Let's see what our options are." }
-    ]
-  }
+    {
+      "expression": "neutral",
+      "message": "Will we be able to go somewhere safer next?",
+      "reply": [
+        { "expression": "neutral", "message": "I don't know. Let's see what our options are." }
+      ]
+    }
+  ]
 }

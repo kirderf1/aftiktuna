@@ -1,0 +1,15 @@
+{
+  "next": [
+    {
+      "kind": "continuation",
+      "condition": { "at_fortuna": true },
+      "node": "core/landing/at_fortuna"
+    },
+    {
+      "kind": "continuation",
+      "condition": { "has_enough_fuel": true },
+      "node": "core/landing/with_fuel"
+    },
+    { "kind": "continuation", "node": "core/landing/without_enough_fuel" }
+  ]
+}

@@ -1,15 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "condition": {
-      "oneOf": [
-        { "$ref": "./dialogue_condition.json" },
-        {
-          "type": "array",
-          "items": { "$ref": "./dialogue_condition.json" }
-        }
-      ]
-    },
+    "condition": { "$ref": "./dialogue_condition_list.json" },
     "expression": { "$ref": "./dialogue_expression.json" },
     "message": { "type": "string" },
     "reply": {

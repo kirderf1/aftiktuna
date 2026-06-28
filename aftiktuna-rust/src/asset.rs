@@ -129,7 +129,7 @@ pub mod dialogue {
     use crate::core::name::Name;
     use crate::core::position::Pos;
     use crate::core::status::{Health, Morale, MoraleState};
-    use crate::core::{area, inventory};
+    use crate::core::{DialogueId, area, inventory};
     use crate::game_loop::GameState;
     use hecs::Entity;
     use serde::{Deserialize, Serialize};
@@ -278,15 +278,47 @@ pub mod dialogue {
         }
     }
 
+    #[derive(Clone, Default, Serialize, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct DialogueEffect {
+        #[serde(default, skip_serializing_if = "crate::is_default")]
+        pub set_talked_about_enough_fuel: bool,
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    #[serde(rename_all = "snake_case")]
+    pub enum NextDialogueKind {
+        Response,
+        Continuation,
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    #[serde(deny_unknown_fields)]
+    pub struct NextDialogueData {
+        pub kind: NextDialogueKind,
+        #[serde(default, skip_serializing_if = "DialogueConditionList::is_empty")]
+        pub condition: DialogueConditionList,
+        pub node: RefOrData,
+    }
+
     #[derive(Clone, Serialize, Deserialize)]
     #[serde(deny_unknown_fields)]
     pub struct DialogueData {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        pub effect: Option<DialogueEffect>,
         #[serde(default, skip_serializing_if = "String::is_empty")]
         pub description: String,
         #[serde(default, skip_serializing_if = "DialogueList::is_empty")]
         pub dialogue: DialogueList,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub reply: Option<Box<DialogueData>>,
+        #[serde(default, skip_serializing_if = "Vec::is_empty")]
+        pub next: Vec<NextDialogueData>,
+    }
+
+    #[derive(Clone, Serialize, Deserialize)]
+    #[serde(untagged)]
+    pub enum RefOrData {
+        Ref(DialogueId),
+        Data(DialogueData),
     }
 
     pub fn load_dialogue_data(name: &str) -> Result<DialogueData, super::Error> {

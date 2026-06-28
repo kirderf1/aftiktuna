@@ -1,12 +1,38 @@
 {
     "type": "object",
     "properties": {
+      "effect": {
+        "type": "object",
+        "properties": {
+          "set_talked_about_enough_fuel": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      },
       "description": { "type": "string" },
       "dialogue": {
         "type": "array",
         "items": { "$ref": "./parts/conditioned_dialogue_node.json" }
       },
-      "reply": { "$ref": "#" }
+      "next": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "enum": [ "response", "continuation"]
+            },
+            "condition": { "$ref": "./parts/dialogue_condition_list.json" },
+            "node": {
+              "oneOf": [
+                { "$ref": "./parts/name_path.json" },
+                { "$ref": "#" }
+              ]
+            }
+          },
+          "required": [ "kind", "node" ],
+          "additionalProperties": false
+        }
+      }
     },
     "additionalProperties": false
 }

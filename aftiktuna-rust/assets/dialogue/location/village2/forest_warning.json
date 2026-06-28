@@ -1,15 +1,17 @@
 {
   "dialogue": [
-    { "expression": "excited", "message": "Be careful going out into the forest right now!" }
-  ],
-  "reply": {
-    "dialogue": [
-      { "expression": "neutral", "message": "Why is that?" }
-    ],
-    "reply": {
-      "dialogue": [
-        { "expression": "sad", "message": "There's large bug-monster-thing out there!" }
+    {
+      "expression": "excited",
+      "message": "Be careful going out into the forest right now!",
+      "reply": [
+        {
+          "expression": "neutral",
+          "message": "Why is that?",
+          "reply": [
+            { "expression": "sad", "message": "There's large bug-monster-thing out there!" }
+          ]
+        }
       ]
     }
-  }
+  ]
 }

@@ -1,0 +1,10 @@
+{
+  "next": [
+    {
+      "kind": "continuation",
+      "condition": { "is_badly_hurt": true },
+      "node": "core/on_ship/worry"
+    },
+    { "kind": "continuation", "node": "core/on_ship/neutral_retrospective" }
+  ]
+}

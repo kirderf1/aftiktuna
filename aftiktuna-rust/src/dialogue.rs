@@ -120,7 +120,7 @@ mod context {
     }
 }
 
-use crate::asset::dialogue::{ConditionedDialogueNode, DialogueData};
+use crate::asset::dialogue::{ConditionedDialogueNode, DialogueData, NextDialogueKind};
 use crate::core::area::ShipState;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, Decision, EncounterDialogue,
@@ -395,8 +395,7 @@ fn complete_hunt_quest(
 enum ShipDialogue {
     ApproachingFortuna,
     CrewLoss,
-    Worry,
-    NeutralRetrospective,
+    Regular,
 }
 
 impl ShipDialogue {
@@ -404,8 +403,7 @@ impl ShipDialogue {
         match self {
             ShipDialogue::ApproachingFortuna => "core/on_ship/approaching_fortuna",
             ShipDialogue::CrewLoss => "core/on_ship/crew_loss",
-            ShipDialogue::Worry => "core/on_ship/worry",
-            ShipDialogue::NeutralRetrospective => "core/on_ship/neutral_retrospective",
+            ShipDialogue::Regular => "core/on_ship/regular",
         }
     }
 
@@ -464,16 +462,7 @@ fn pick_ship_dialogue_topic(state: &mut GameState) -> Option<(ShipDialogue, Enti
         return None;
     };
 
-    let ship_dialogue = if state
-        .world
-        .get::<&Health>(character1)
-        .is_ok_and(|health| health.is_badly_hurt())
-    {
-        ShipDialogue::Worry
-    } else {
-        ShipDialogue::NeutralRetrospective
-    };
-    Some((ship_dialogue, character1, character2))
+    Some((ShipDialogue::Regular, character1, character2))
 }
 
 pub fn trigger_ship_dialogue(state: &mut GameState, view_buffer: &mut view::Buffer) {
@@ -647,36 +636,13 @@ pub fn trigger_landing_dialogue(state: &mut GameState, view_buffer: &mut view::B
         return;
     };
 
-    if state.generation_state.is_at_fortuna() {
-        trigger_dialogue_by_name(
-            "core/landing/at_fortuna",
-            speaker,
-            state.controlled,
-            state,
-            view_buffer,
-        );
-    } else if area::fuel_needed_to_launch(&state.world).is_some_and(|fuel_amount| {
-        fuel_amount <= inventory::fuel_cans_held_by_crew(&state.world, &[])
-    }) {
-        let crew = state.world.get::<&CrewMember>(speaker).unwrap().0;
-        state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
-
-        trigger_dialogue_by_name(
-            "core/landing/with_fuel",
-            speaker,
-            state.controlled,
-            state,
-            view_buffer,
-        );
-    } else {
-        trigger_dialogue_by_name(
-            "core/landing/without_enough_fuel",
-            speaker,
-            state.controlled,
-            state,
-            view_buffer,
-        );
-    }
+    trigger_dialogue_by_name(
+        "core/landing/start",
+        speaker,
+        state.controlled,
+        state,
+        view_buffer,
+    );
 }
 
 pub fn trigger_dialogue_by_name(
@@ -727,6 +693,19 @@ fn run_dialogue(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
+    if let Some(effect) = &dialogue_data.effect {
+        if effect.set_talked_about_enough_fuel {
+            let crew = state
+                .world
+                .get::<&CrewMember>(speaker)
+                .ok()
+                .map(|crew_member| crew_member.0);
+            if let Some(crew) = crew {
+                state.world.insert_one(crew, TalkedAboutEnoughFuel).unwrap();
+            }
+        }
+    }
+
     if let Some(dialogue) = dialogue_data.dialogue.select_node(speaker, target, state) {
         view_buffer.capture_view_before_dialogue(state);
         run_dialogue_node(dialogue, speaker, target, state, view_buffer);
@@ -738,7 +717,21 @@ fn run_dialogue(
             .add(context.resolve(&dialogue_data.description));
     }
 
-    if let Some(reply) = &dialogue_data.reply {
-        run_dialogue(reply, target, speaker, state, view_buffer)
+    if let Some(next) = &dialogue_data.next.iter().find(|next| match next.kind {
+        NextDialogueKind::Response => next.condition.test(target, speaker, state),
+        NextDialogueKind::Continuation => next.condition.test(speaker, target, state),
+    }) {
+        let (next_speaker, next_target) = match next.kind {
+            NextDialogueKind::Response => (target, speaker),
+            NextDialogueKind::Continuation => (speaker, target),
+        };
+        match &next.node {
+            asset::dialogue::RefOrData::Ref(dialogue_id) => {
+                trigger_dialogue_by_name(dialogue_id, next_speaker, next_target, state, view_buffer)
+            }
+            asset::dialogue::RefOrData::Data(dialogue_data) => {
+                run_dialogue(dialogue_data, next_speaker, next_target, state, view_buffer)
+            }
+        }
     }
 }

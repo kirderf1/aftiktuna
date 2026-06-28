@@ -1,10 +1,11 @@
 {
   "dialogue": [
-    { "expression": "neutral", "message": "We do not have enough fuel to continue our journey, so we should really try to find some here." }
-  ],
-  "reply": {
-    "dialogue": [
-      { "expression": "neutral", "message": "Got it, that we will do." }
-    ]
-  }
+    {
+      "expression": "neutral",
+      "message": "We do not have enough fuel to continue our journey, so we should really try to find some here.",
+      "reply": [
+        { "expression": "neutral", "message": "Got it, that we will do." }
+      ]
+    }
+  ]
 }

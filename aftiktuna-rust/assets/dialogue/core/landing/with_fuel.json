@@ -1,4 +1,7 @@
 {
+  "effect": {
+    "set_talked_about_enough_fuel": true
+  },
   "dialogue": [
     {
       "condition": { "is_badly_hurt": true },
