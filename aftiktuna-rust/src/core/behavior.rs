@@ -98,7 +98,6 @@ pub struct GivesHuntRewardData {
     pub task_dialogue: Option<DialogueId>,
     pub already_completed_dialogue: Option<DialogueId>,
     pub reward_dialogue: Option<DialogueId>,
-    pub reward: Reward,
     pub presented: bool,
 }
 

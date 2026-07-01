@@ -8,7 +8,7 @@ use crate::asset::loot::LootTableCache;
 use crate::asset::profile::CharacterProfile;
 use crate::asset::species::{SpeciesData, SpeciesDataMap, SpeciesKind};
 use crate::core::behavior::{
-    self, Character, EncounterDialogue, GivesHuntRewardData, Hostile, Recruitable, Talk, TalkState,
+    self, Character, EncounterDialogue, Hostile, Recruitable, Talk, TalkState,
 };
 use crate::core::display::{CreatureVariantSet, ModelId, SpeciesColorId};
 use crate::core::name::Name;
@@ -185,7 +185,7 @@ pub(super) fn place_npc(
             builder.add(Talk(dialogue.clone()));
         }
         CharacterInteraction::GivesHuntReward(gives_hunt_reward) => {
-            builder.add::<GivesHuntRewardData>(gives_hunt_reward.cloned_data());
+            builder.add_bundle(gives_hunt_reward.components());
         }
         CharacterInteraction::Shopkeeper { stock } => {
             let stock = stock

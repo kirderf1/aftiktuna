@@ -199,6 +199,7 @@ pub mod world {
         behavior::Passenger, Passenger;
         behavior::Talk, Talk;
         behavior::GivesHuntRewardData, GivesHuntReward;
+        behavior::Reward, Reward;
         behavior::BackgroundDialogue, BackgroundDialogue;
         behavior::EncounterDialogue, EncounterDialogue;
         behavior::TalkedAboutEnoughFuel, TalkedAboutEnoughFuel;

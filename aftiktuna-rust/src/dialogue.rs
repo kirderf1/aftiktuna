@@ -1,9 +1,8 @@
 mod context {
-    use std::collections::HashMap;
-
     use crate::asset::GameAssets;
-    use crate::core::behavior::{CrewLossMemory, GivesHuntRewardData};
+    use crate::core::behavior::{CrewLossMemory, Reward};
     use crate::core::name::{Name, NameData};
+    use std::collections::HashMap;
 
     #[derive(Default)]
     pub(super) struct TextResolutionContext<'a> {
@@ -76,11 +75,11 @@ mod context {
             }
         });
 
-        context.add_resolver("hunt_reward", move || {
-            if let Ok(data) = world.get::<&GivesHuntRewardData>(speaker) {
-                data.reward.as_text(assets)
+        context.add_resolver("reward", move || {
+            if let Ok(reward) = world.get::<&Reward>(speaker) {
+                reward.as_text(assets)
             } else {
-                eprintln!("Missing hunt mission data for dialogue");
+                eprintln!("Missing reward for dialogue");
                 "???".to_owned()
             }
         });
@@ -124,7 +123,7 @@ use crate::asset::dialogue::{ConditionedDialogueNode, DialogueData, NextDialogue
 use crate::core::area::ShipState;
 use crate::core::behavior::{
     self, BackgroundDialogue, Character, CrewLossMemory, Decision, EncounterDialogue,
-    GivesHuntRewardData, Passenger, PassengerPhase, Recruitable, Talk, TalkState,
+    GivesHuntRewardData, Passenger, PassengerPhase, Recruitable, Reward, Talk, TalkState,
     TalkedAboutEnoughFuel,
 };
 use crate::core::name::{Name, NameData};
@@ -231,14 +230,16 @@ fn prompt_npc_dialogue(
                     the_character =
                         NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
                     the_target = gives_hunt_reward.target_label,
-                    a_reward = gives_hunt_reward.reward.as_text(view_buffer.assets)
+                    a_reward = npc_ref
+                        .get::<&Reward>()
+                        .map(|reward| reward.as_text(view_buffer.assets))
+                        .unwrap_or("???".to_owned()),
                 );
                 drop(gives_hunt_reward);
                 view_buffer.add_change_message(message, state);
             }
         } else {
             let dialogue_id = gives_hunt_reward.already_completed_dialogue.clone();
-            let reward = gives_hunt_reward.reward.clone();
 
             if let Some(dialogue_id) = dialogue_id {
                 drop(gives_hunt_reward);
@@ -250,13 +251,18 @@ fn prompt_npc_dialogue(
                     the_character =
                         NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
                     the_target = gives_hunt_reward.target_label,
-                    a_reward = reward.as_text(view_buffer.assets)
+                    a_reward = npc_ref
+                        .get::<&Reward>()
+                        .map(|reward| reward.as_text(view_buffer.assets))
+                        .unwrap_or("???".to_owned()),
                 );
                 drop(gives_hunt_reward);
                 view_buffer.add_change_message(message, state);
             }
 
-            reward.give_reward_to(crew_member, &mut state.world);
+            if let Ok(reward) = state.world.remove_one::<Reward>(npc) {
+                reward.give_reward_to(crew_member, &mut state.world);
+            }
 
             let _ = state.world.remove_one::<GivesHuntRewardData>(npc);
         }
@@ -363,7 +369,6 @@ fn complete_hunt_quest(
     let GivesHuntRewardData {
         target_label,
         reward_dialogue,
-        reward,
         ..
     } = state
         .world
@@ -381,12 +386,18 @@ fn complete_hunt_quest(
             the_character =
                 NameData::find(&state.world, crew_member, view_buffer.assets).definite(),
             the_target = target_label,
-            a_reward = reward.as_text(view_buffer.assets),
+            a_reward = state
+                .world
+                .get::<&Reward>(npc)
+                .map(|reward| reward.as_text(view_buffer.assets))
+                .unwrap_or("???".to_owned()),
         );
         view_buffer.add_change_message(message, state);
     }
 
-    reward.give_reward_to(crew_member, &mut state.world);
+    if let Ok(reward) = state.world.remove_one::<Reward>(npc) {
+        reward.give_reward_to(crew_member, &mut state.world);
+    }
 
     let _ = state.world.remove_one::<GivesHuntRewardData>(npc);
 }

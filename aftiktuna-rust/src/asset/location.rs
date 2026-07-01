@@ -77,7 +77,7 @@ pub mod creature {
     }
 
     impl GivesHuntReward {
-        pub(crate) fn cloned_data(&self) -> GivesHuntRewardData {
+        pub(crate) fn components(&self) -> impl hecs::DynamicBundle {
             let Self {
                 target_tag,
                 target_label,
@@ -86,15 +86,17 @@ pub mod creature {
                 reward_dialogue,
                 reward,
             } = self.clone();
-            GivesHuntRewardData {
-                target_tag,
-                target_label,
-                task_dialogue,
-                already_completed_dialogue,
-                reward_dialogue,
+            (
+                GivesHuntRewardData {
+                    target_tag,
+                    target_label,
+                    task_dialogue,
+                    already_completed_dialogue,
+                    reward_dialogue,
+                    presented: false,
+                },
                 reward,
-                presented: false,
-            }
+            )
         }
     }
 

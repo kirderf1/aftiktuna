@@ -4,7 +4,7 @@
       "expression": "neutral",
       "message": "We have taken care of the bounty. The mantis is dead.",
       "reply": [
-        { "expression": "excited", "message": "Wonderful! Here is the {hunt_reward} reward." }
+        { "expression": "excited", "message": "Wonderful! Here is the {reward} reward." }
       ]
     }
   ]
