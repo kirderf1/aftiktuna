@@ -129,7 +129,7 @@ use crate::core::behavior::{
 use crate::core::name::{Name, NameData};
 use crate::core::position::{self, Pos};
 use crate::core::status::Health;
-use crate::core::store::{self, Points, Shopkeeper};
+use crate::core::store::{self, Shopkeeper};
 use crate::core::{self, CrewMember, area, inventory};
 use crate::game_loop::GameState;
 use crate::{asset, view};
@@ -328,8 +328,9 @@ fn trigger_passenger_reward(
         state,
         view_buffer,
     );
-    let crew = state.world.get::<&CrewMember>(crew_member).unwrap().0;
-    state.world.get::<&mut Points>(crew).unwrap().0 += 5000;
+    if let Ok(reward) = state.world.remove_one::<Reward>(npc) {
+        reward.give_reward_to(crew_member, &mut state.world);
+    }
     view_buffer.messages.add(format!(
         "{} takes their leave.",
         NameData::find(&state.world, npc, view_buffer.assets).definite()

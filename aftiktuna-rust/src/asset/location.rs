@@ -107,7 +107,10 @@ pub mod creature {
             #[serde(default, skip_serializing_if = "crate::is_default")]
             will_request: bool,
         },
-        Passenger,
+        Passenger {
+            becomes_recruitable: bool,
+            reward: Reward,
+        },
         Talk {
             dialogue: DialogueId,
         },

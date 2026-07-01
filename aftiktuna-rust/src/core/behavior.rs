@@ -78,6 +78,7 @@ pub struct Recruitable {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct Passenger {
     pub phase: PassengerPhase,
+    pub becomes_recruitable: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

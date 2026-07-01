@@ -8,7 +8,7 @@ use crate::asset::loot::LootTableCache;
 use crate::asset::profile::CharacterProfile;
 use crate::asset::species::{SpeciesData, SpeciesDataMap, SpeciesKind};
 use crate::core::behavior::{
-    self, Character, EncounterDialogue, Hostile, Recruitable, Talk, TalkState,
+    self, Character, EncounterDialogue, Hostile, Recruitable, Reward, Talk, TalkState,
 };
 use crate::core::display::{CreatureVariantSet, ModelId, SpeciesColorId};
 use crate::core::name::Name;
@@ -176,10 +176,16 @@ pub(super) fn place_npc(
         &CharacterInteraction::Recruitable { will_request } => {
             builder.add(Recruitable { will_request });
         }
-        CharacterInteraction::Passenger => {
-            builder.add(behavior::Passenger {
-                phase: behavior::PassengerPhase::Requesting,
-            });
+        CharacterInteraction::Passenger {
+            becomes_recruitable,
+            reward,
+        } => {
+            builder
+                .add(behavior::Passenger {
+                    phase: behavior::PassengerPhase::Requesting,
+                    becomes_recruitable: *becomes_recruitable,
+                })
+                .add::<Reward>(reward.clone());
         }
         CharacterInteraction::Talk { dialogue } => {
             builder.add(Talk(dialogue.clone()));

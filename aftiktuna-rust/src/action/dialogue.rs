@@ -1,5 +1,7 @@
 use crate::action::{self, Context, Error};
-use crate::core::behavior::{Decision, Hostile, Passenger, PassengerPhase, Recruitable, Waiting};
+use crate::core::behavior::{
+    Decision, Hostile, Passenger, PassengerPhase, Recruitable, Reward, Waiting,
+};
 use crate::core::name::NameData;
 use crate::core::position::{Placement, PlacementQuery, Pos};
 use crate::core::status::Morale;
@@ -70,6 +72,7 @@ fn perform_recruitment_success(
     }
     state.world.remove_one::<Recruitable>(target).unwrap();
     let _ = state.world.remove_one::<Passenger>(target);
+    let _ = state.world.remove_one::<Reward>(target);
     state.world.insert_one(target, CrewMember(crew)).unwrap();
 
     let name = NameData::find(&state.world, target, view_buffer.assets).definite();

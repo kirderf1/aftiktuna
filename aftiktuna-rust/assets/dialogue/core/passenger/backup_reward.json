@@ -1,5 +1,5 @@
 {
   "dialogue": [
-    { "expression": "neutral", "message": "That's too bad. I still want to repay you in some way, so here's 5000p as thanks for helping me." }
+    { "expression": "neutral", "message": "That's too bad. I still want to repay you in some way, so here's {reward} as thanks for helping me." }
   ]
 }

@@ -10,9 +10,12 @@
     },
     {
       "properties": {
-        "type": { "const": "passenger" }
+        "type": { "const": "passenger" },
+        "becomes_recruitable": { "type": "boolean" },
+        "reward": { "$ref": "#/$defs/reward" }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [ "becomes_recruitable", "reward" ]
     },
     {
       "properties": {
@@ -30,17 +33,7 @@
         "task_dialogue": { "$ref": "./name_path.json" },
         "already_completed_dialogue": { "$ref": "./name_path.json" },
         "reward_dialogue": { "$ref": "./name_path.json" },
-        "reward": {
-          "type": "object",
-          "properties": {
-            "points": { "type": "integer", "minimum": 0 },
-            "items": {
-              "type": "array",
-              "items": { "$ref": "./name_id.json" }
-            }
-          },
-          "additionalProperties": false
-        }
+        "reward": { "$ref": "#/$defs/reward" }
       },
       "additionalProperties": false,
       "required": [ "target_tag", "reward" ]
@@ -86,5 +79,18 @@
       "additionalProperties": false
     }
   ],
-  "required": [ "type" ]
+  "required": [ "type" ],
+  "$defs": {
+    "reward": {
+      "type": "object",
+      "properties": {
+        "points": { "type": "integer", "minimum": 0 },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "./name_id.json" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }

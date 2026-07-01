@@ -531,7 +531,9 @@ pub fn prepare_arriving_passengers(world: &mut World, is_society_location: bool)
             if is_society_location {
                 passenger.phase = PassengerPhase::Leaving;
             }
-            buffer.insert_one(entity, Recruitable { will_request: true });
+            if passenger.becomes_recruitable {
+                buffer.insert_one(entity, Recruitable { will_request: true });
+            }
         }
     }
     buffer.run_on(world);

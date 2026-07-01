@@ -136,7 +136,11 @@
           "profile": { "type": "random", "species": "aftik", "stats_bonus": 2 },
           "morale": -6,
           "background": "forest_ship_crash",
-          "interaction": { "type": "passenger" },
+          "interaction": {
+            "type": "passenger",
+            "becomes_recruitable": true,
+            "reward": { "points": 5000 }
+          },
           "wielded_item": "crowbar"
         },
         "a": { "type": "character_corpse", "species":"aftik", "direction": "left" },
