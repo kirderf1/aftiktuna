@@ -1,6 +1,4 @@
 {
   "description": "{the_speaker} accepts {the_target}'s request to follow along.",
-  "dialogue": [
-    { "expression": "excited", "message": "Sure, you can join us!" }
-  ]
+  "dialogue": { "expression": "excited", "message": "Sure, you can join us!" }
 }

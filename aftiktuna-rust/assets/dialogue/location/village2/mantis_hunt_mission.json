@@ -1,11 +1,7 @@
 {
-  "dialogue": [
-    {
-      "expression": "neutral",
-      "message": "Are you interested in earning some points? A Blood Mantis has wandered into the nearby forest, and that makes the forest quite dangerous! I have put out a bounty on the mantis for {reward}.",
-      "reply": [
-        { "expression": "neutral", "message": "Alright, we'll keep it in mind." }
-      ]
-    }
-  ]
+  "dialogue": {
+    "expression": "neutral",
+    "message": "Are you interested in earning some points? A Blood Mantis has wandered into the nearby forest, and that makes the forest quite dangerous! I have put out a bounty on the mantis for {reward}.",
+    "reply": { "expression": "neutral", "message": "Alright, we'll keep it in mind." }
+  }
 }

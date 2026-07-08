@@ -26,9 +26,7 @@
     {
       "expression": "neutral",
       "message": "Looks like we are arriving at the Fortuna crash site next. Do you think that we will make it?",
-      "reply": [
-        { "expression": "neutral", "message": "I hope so." }
-      ]
+      "reply": { "expression": "neutral", "message": "I hope so." }
     }
   ]
 }

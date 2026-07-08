@@ -1,5 +1,3 @@
 {
-  "dialogue": [
-    { "expression": "sad", "message": "You be careful too if you're planning to head out into the forest!" }
-  ]
+  "dialogue": { "expression": "sad", "message": "You be careful too if you're planning to head out into the forest!" }
 }

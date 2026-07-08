@@ -1,5 +1,3 @@
 {
-  "dialogue": [
-    { "expression": "neutral", "message": "I'll help you get that door open." }
-  ]
+  "dialogue": { "expression": "neutral", "message": "I'll help you get that door open." }
 }

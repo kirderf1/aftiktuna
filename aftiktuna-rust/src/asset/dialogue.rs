@@ -132,6 +132,10 @@ pub struct ConditionedDialogueNode {
 }
 
 #[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(
+    from = "OneOrList<ConditionedDialogueNode>",
+    into = "OneOrList<ConditionedDialogueNode>"
+)]
 pub struct DialogueList(Vec<ConditionedDialogueNode>);
 
 impl DialogueList {
@@ -148,6 +152,25 @@ impl DialogueList {
 
     fn is_empty(&self) -> bool {
         self.0.is_empty()
+    }
+}
+
+impl From<OneOrList<ConditionedDialogueNode>> for DialogueList {
+    fn from(value: OneOrList<ConditionedDialogueNode>) -> Self {
+        match value {
+            OneOrList::One(node) => Self(vec![node]),
+            OneOrList::List(list) => Self(list),
+        }
+    }
+}
+
+impl From<DialogueList> for OneOrList<ConditionedDialogueNode> {
+    fn from(value: DialogueList) -> Self {
+        if value.0.len() == 1 {
+            Self::One(value.0.into_iter().next().unwrap())
+        } else {
+            Self::List(value.0)
+        }
     }
 }
 

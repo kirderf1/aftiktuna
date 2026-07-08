@@ -1,0 +1,9 @@
+{
+  "oneOf": [
+    { "$ref": "./conditioned_dialogue_node.json" },
+    {
+      "type": "array",
+      "items": { "$ref": "./conditioned_dialogue_node.json" }
+    }
+  ]
+}

@@ -4,10 +4,7 @@
     "condition": { "$ref": "./dialogue_condition_list.json" },
     "expression": { "$ref": "./dialogue_expression.json" },
     "message": { "type": "string" },
-    "reply": {
-      "type": "array",
-      "items": { "$ref": "./conditioned_dialogue_node.json" }
-    }
+    "reply": { "$ref": "./dialogue_list.json" }
   },
   "additionalProperties": false,
   "required": [ "expression", "message" ]

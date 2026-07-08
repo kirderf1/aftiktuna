@@ -1,6 +1,4 @@
 {
   "description": "{the_speaker} rejects {the_target}'s request to join the crew.",
-  "dialogue": [
-    { "expression": "sad", "message": "Sorry, but that's a no from me." }
-  ]
+  "dialogue": { "expression": "sad", "message": "Sorry, but that's a no from me." }
 }

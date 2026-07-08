@@ -11,10 +11,7 @@
       "additionalProperties": false
     },
     "description": { "type": "string" },
-    "dialogue": {
-      "type": "array",
-      "items": { "$ref": "./parts/conditioned_dialogue_node.json" }
-    },
+    "dialogue": { "$ref": "./parts/dialogue_list.json" },
     "next": {
       "type": "array",
       "items": {
