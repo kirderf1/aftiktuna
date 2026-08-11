@@ -37,7 +37,7 @@ pub fn update_ui(
             ui.global_style_mut(|style| {
                 style.visuals.override_text_color = None;
                 style.visuals.widgets.noninteractive.bg_stroke =
-                    egui::Stroke::new(1., egui::Color32::from_gray(60));
+                    egui::Stroke::new(1.0_f32, egui::Color32::from_gray(60));
             });
 
             ui_result.triggered_input = input_panel(
@@ -50,7 +50,7 @@ pub fn update_ui(
             ui.global_style_mut(|style| {
                 style.visuals.override_text_color = Some(egui::Color32::WHITE);
                 style.visuals.widgets.noninteractive.bg_stroke =
-                    egui::Stroke::new(1., egui::Color32::WHITE);
+                    egui::Stroke::new(1.0_f32, egui::Color32::WHITE);
             });
 
             if !state.text_box_text.is_empty() {
@@ -95,7 +95,7 @@ fn show_status_screen(status: &FullStatus, egui_context: &egui::Context) -> bool
         .frame(egui::Frame {
             inner_margin: egui::Margin::symmetric(12, 6),
             fill: STATUS_DISPLAY_COLOR,
-            stroke: egui::Stroke::new(1., egui::Color32::WHITE),
+            stroke: egui::Stroke::new(1.0_f32, egui::Color32::WHITE),
             ..Default::default()
         })
         .vscroll(true)
