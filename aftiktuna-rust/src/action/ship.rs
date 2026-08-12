@@ -11,7 +11,7 @@ use hecs::{Entity, World};
 
 pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Result {
     let assets = context.view_context.view_buffer.assets;
-    let state = &mut context.state;
+    let state = &mut *context.state;
     let area = state.world.get::<&Pos>(performer).unwrap().get_area();
 
     let (status, controls_placement) = lookup_ship_state(state, area)?;
@@ -54,7 +54,7 @@ pub fn refuel(context: &mut action::Context, performer: Entity) -> action::Resul
 
 pub fn launch(context: &mut action::Context, performer: Entity) -> action::Result {
     let assets = context.view_context.view_buffer.assets;
-    let state = &mut context.state;
+    let state = &mut *context.state;
     if state.generation_state.is_at_fortuna() {
         return Err(Error::private(
             "The crew won't leave until they find the treasure here.",

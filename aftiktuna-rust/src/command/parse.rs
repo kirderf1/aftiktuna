@@ -136,12 +136,7 @@ fn starts_with_ignore_ascii_case(input: &str, prefix: &str) -> Option<usize> {
             return None;
         }
     }
-    Some(
-        char_indices
-            .next()
-            .map(|(index, _)| index)
-            .unwrap_or(input.len()),
-    )
+    Some(char_indices.next().map_or(input.len(), |(index, _)| index))
 }
 
 macro_rules! first_match_or {

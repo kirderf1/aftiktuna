@@ -74,7 +74,7 @@ impl DoorPairsBuilder {
         Self(
             door_pairs
                 .into_iter()
-                .map(|(key, data)| (key.to_string(), (data, DoorPairStatus::None)))
+                .map(|(key, data)| (key.clone(), (data, DoorPairStatus::None)))
                 .collect(),
         )
     }

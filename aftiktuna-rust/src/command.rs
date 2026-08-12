@@ -12,7 +12,6 @@ use crate::core::status::CreatureAttribute;
 use crate::game_loop::GameState;
 use crate::view::{self, text};
 use hecs::{Entity, EntityRef};
-use std::ops::Deref;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Target {
@@ -62,7 +61,7 @@ pub fn try_parse_input(
     if let Ok(decision) = state.world.get::<&Decision>(state.controlled) {
         parse_decision_command(input, &decision)
     } else if let Some(shopkeeper) = core::store::get_shop_info(&state.world, state.controlled) {
-        store::parse(input, shopkeeper.deref(), state, assets)
+        store::parse(input, &shopkeeper, state, assets)
     } else {
         game::parse(input, state, assets)
     }

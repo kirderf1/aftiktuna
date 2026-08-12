@@ -101,13 +101,12 @@ use hecs::{CommandBuffer, Entity, EntityRef, Or, World};
 use rand::Rng;
 use rand::seq::IndexedRandom;
 use std::collections::HashMap;
-use std::ops::Deref;
 
 /// Prepares data for character behavior before the decision to take player action input.
 pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
 
-    for (entity, occupies_space) in state.world.query::<(Entity, &mut OccupiesSpace)>().iter() {
+    for (entity, occupies_space) in &mut state.world.query::<(Entity, &mut OccupiesSpace)>() {
         occupies_space.blocks_opponent = !has_behavior(
             state.world.entity(entity).unwrap(),
             BadlyHurtBehavior::Fearful,
@@ -115,29 +114,27 @@ pub fn prepare_intentions(state: &mut GameState, assets: &GameAssets) {
         );
     }
 
-    for crew_member in state
+    for crew_member in &mut state
         .world
         .query::<Entity>()
         .with::<(&CrewMember, &Character)>()
-        .iter()
     {
         if let Some(intention) = pick_crew_member_intention(crew_member, state, assets) {
             buffer.insert_one(crew_member, intention);
-        };
+        }
     }
 
-    for (crew_member, action) in state
+    for (crew_member, action) in &mut state
         .world
         .query::<(Entity, &RepeatingAction)>()
         .with::<&CrewMember>()
-        .iter()
     {
         if action.cancel_if_unsafe()
             && let Ok(pos) = state.world.get::<&Pos>(crew_member)
             && !behavior::is_safe(&state.world, pos.get_area())
         {
             buffer.remove_one::<RepeatingAction>(crew_member);
-        };
+        }
     }
 
     buffer.run_on(&mut state.world);
@@ -267,11 +264,10 @@ fn is_wait_requested(world: &World, controlled: Entity) -> bool {
 pub fn tick(action_map: &mut HashMap<Entity, Action>, state: &mut GameState, assets: &GameAssets) {
     let mut buffer = CommandBuffer::new();
 
-    for entity in state
+    for entity in &mut state
         .world
         .query::<Entity>()
         .with::<Or<Or<&CrewMember, &Hostile>, &Passenger>>()
-        .iter()
     {
         let entity_ref = state.world.entity(entity).unwrap();
         if status::is_alive_ref(entity_ref) && !action_map.contains_key(&entity) {
@@ -290,7 +286,7 @@ pub fn tick(action_map: &mut HashMap<Entity, Action>, state: &mut GameState, ass
             };
 
             action_map.insert(entity, action);
-        };
+        }
     }
 
     state
@@ -386,7 +382,7 @@ fn pick_foe_action(
                     wandering.area_tag.as_ref().is_none_or(|area_tag| {
                         world
                             .get::<&Tag>(destination_area)
-                            .is_ok_and(|destination_tag| destination_tag.deref() == area_tag)
+                            .is_ok_and(|destination_tag| &*destination_tag == area_tag)
                     })
                 })
         {
@@ -488,7 +484,7 @@ fn pick_crew_action(
             }
             Intention::Refuel => return Some(Action::Refuel),
             _ => {}
-        };
+        }
     }
 
     None

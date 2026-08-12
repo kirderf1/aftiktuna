@@ -487,10 +487,9 @@ struct Keep;
 
 pub fn despawn_all_except_ship(world: &mut World) {
     let mut buffer = CommandBuffer::new();
-    for entity in world
+    for entity in &mut world
         .query::<Entity>()
         .with::<hecs::Or<&ShipState, &ShipRoom>>()
-        .iter()
     {
         buffer.insert_one(entity, Keep);
     }

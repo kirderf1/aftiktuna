@@ -26,9 +26,9 @@ pub struct LocationBuildData {
     pub is_society: bool,
 }
 
-pub fn build_location<'a, 'b>(
+pub fn build_location(
     location_data: LocationData,
-    gen_context: &'a mut LocationGenContext<'b>,
+    gen_context: &mut LocationGenContext<'_>,
 ) -> Result<LocationBuildData, String> {
     let variant = location_data
         .variants
@@ -292,7 +292,7 @@ fn furnish(
 }
 
 fn resolve_references(world: &World, assets: &GameAssets) {
-    for data in world.query::<&mut GivesHuntRewardData>().iter() {
+    for data in &mut world.query::<&mut GivesHuntRewardData>() {
         if data.target_label.is_empty() {
             let targets = world
                 .query::<(&Tag, NameQuery)>()

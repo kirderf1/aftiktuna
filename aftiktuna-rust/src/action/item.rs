@@ -180,8 +180,7 @@ pub(super) fn give_item(
     if world
         .get::<&Held>(item)
         .ok()
-        .filter(|in_inv| in_inv.held_by(performer))
-        .is_none()
+        .is_none_or(|in_inv| !in_inv.held_by(performer))
     {
         return Err(Error::private(format!(
             "{performer_name} lost track of the item they were going to give."
@@ -392,25 +391,11 @@ impl UseAction {
             ItemUseType::OddHandMirror { sum_change } => {
                 let Some(action::Success) =
                     performer_ref.get::<&mut Stats>().and_then(|mut stats| {
-                        let target_sum = stats.sum() + sum_change;
-
-                        use rand::seq::IteratorRandom;
-                        let rng = &mut context.state.rng;
-                        let mut random_stats = Stats {
-                            strength: (1..=10).choose(rng).unwrap(),
-                            endurance: (1..=10).choose(rng).unwrap(),
-                            agility: (1..=10).choose(rng).unwrap(),
-                            luck: (0..=10).choose(rng).unwrap(),
-                        };
-                        while random_stats.sum() < target_sum {
-                            random_stats.adjust_random_in_bounds(1, rng).ok()?;
-                        }
-                        while random_stats.sum() > target_sum {
-                            random_stats.adjust_random_in_bounds(-1, rng).ok()?;
-                        }
-
-                        *stats = random_stats;
-                        Some(action::Success)
+                        odd_hand_mirror_randomize_stats(
+                            &mut stats,
+                            sum_change,
+                            &mut context.state.rng,
+                        )
                     })
                 else {
                     context.view_context.add_message_at(area, format!(
@@ -439,3 +424,28 @@ pub const FOUR_LEAF_CLOVER_EFFECT: StatChanges = StatChanges {
     luck: 2,
     ..StatChanges::DEFAULT
 };
+
+fn odd_hand_mirror_randomize_stats(
+    stats: &mut Stats,
+    sum_change: i16,
+    rng: &mut impl rand::Rng,
+) -> Option<action::Success> {
+    let target_sum = stats.sum() + sum_change;
+
+    use rand::seq::IteratorRandom;
+    let mut random_stats = Stats {
+        strength: (1..=10).choose(rng).unwrap(),
+        endurance: (1..=10).choose(rng).unwrap(),
+        agility: (1..=10).choose(rng).unwrap(),
+        luck: (0..=10).choose(rng).unwrap(),
+    };
+    while random_stats.sum() < target_sum {
+        random_stats.adjust_random_in_bounds(1, rng).ok()?;
+    }
+    while random_stats.sum() > target_sum {
+        random_stats.adjust_random_in_bounds(-1, rng).ok()?;
+    }
+
+    *stats = random_stats;
+    Some(action::Success)
+}

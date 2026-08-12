@@ -195,7 +195,7 @@ fn tick_and_check(
     if is_ship_launching(state) {
         leave_location(state, view_buffer);
         dialogue::trigger_ship_dialogue(state, view_buffer);
-        for memory in state.world.query::<&mut CrewLossMemory>().iter() {
+        for memory in &mut state.world.query::<&mut CrewLossMemory>() {
             memory.recent = false;
         }
         Ok(Step::PrepareNextLocation)
@@ -353,7 +353,7 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
             morale.crew_death_effect();
         }
         if let Ok(Name { name, .. }) = state.world.get::<&Name>(character).as_deref() {
-            for crew_member in state.world.query::<Entity>().with::<&CrewMember>().iter() {
+            for crew_member in &mut state.world.query::<Entity>().with::<&CrewMember>() {
                 buffer.insert_one(
                     crew_member,
                     CrewLossMemory {
@@ -369,7 +369,7 @@ fn handle_crew_deaths(state: &mut GameState, view_buffer: &mut view::Buffer) {
 
 fn drop_objects_held_by_the_dead(world: &mut World) {
     let mut buffer = CommandBuffer::new();
-    for (entity, held) in world.query::<(Entity, &Held)>().iter() {
+    for (entity, held) in &mut world.query::<(Entity, &Held)>() {
         let Ok(holder_ref) = world.entity(held.holder) else {
             buffer.despawn(entity);
             continue;

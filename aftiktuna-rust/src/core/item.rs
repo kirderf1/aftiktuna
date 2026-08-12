@@ -15,14 +15,12 @@ pub enum Tool {
 impl Tool {
     pub fn into_message(self, character_name: &str) -> String {
         match self {
-            Tool::Crowbar => format!(
-                "{} used their crowbar and forced open the door.",
-                character_name
-            ),
-            Tool::Blowtorch => format!(
-                "{} used their blowtorch and cut open the door.",
-                character_name
-            ),
+            Tool::Crowbar => {
+                format!("{character_name} used their crowbar and forced open the door.")
+            }
+            Tool::Blowtorch => {
+                format!("{character_name} used their blowtorch and cut open the door.")
+            }
         }
     }
 

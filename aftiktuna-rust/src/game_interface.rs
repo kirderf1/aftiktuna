@@ -46,7 +46,7 @@ pub enum GameResult<'a> {
     Stop,
 }
 
-impl<'a> GameResult<'a> {
+impl GameResult<'_> {
     pub fn has_frame(&self) -> bool {
         matches!(self, GameResult::Frame(_))
     }
@@ -238,7 +238,7 @@ impl<'de> Deserialize<'de> for FrameCache {
 // that there is at least one frame available.
 pub struct FrameGetter<'a>(&'a mut FrameCache);
 
-impl<'a> FrameGetter<'a> {
+impl FrameGetter<'_> {
     pub fn get(self) -> Frame {
         self.0.take_next_frame().unwrap()
     }

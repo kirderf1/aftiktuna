@@ -612,7 +612,7 @@ pub(crate) fn apply_morale_effects_from_crew_state(
                 Morale::SMALL_INTENSITY
             };
         }
-        if health.is_some_and(|health| health.is_badly_hurt()) {
+        if health.is_some_and(Health::is_badly_hurt) {
             character_negative_effect += Morale::MEDIUM_INTENSITY;
         }
 
@@ -631,7 +631,7 @@ pub(crate) fn detect_low_health(
 ) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
-    for (entity, pos, health) in world.query::<(Entity, &Pos, &Health)>().iter() {
+    for (entity, pos, health) in &mut world.query::<(Entity, &Pos, &Health)>() {
         let entity_ref = world.entity(entity).unwrap();
         let has_tag = entity_ref.has::<SeenWithLowHealth>();
         let visible_low_health = pos.is_in(area) && health.is_badly_hurt();
@@ -676,8 +676,7 @@ pub(crate) fn detect_low_stamina(
 ) {
     let area = world.get::<&Pos>(character).unwrap().get_area();
     let mut command_buffer = CommandBuffer::new();
-    for (entity, pos, stamina, health) in world.query::<(Entity, &Pos, &Stamina, &Health)>().iter()
-    {
+    for (entity, pos, stamina, health) in &mut world.query::<(Entity, &Pos, &Stamina, &Health)>() {
         let entity_ref = world.entity(entity).unwrap();
         let has_tag = entity_ref.has::<SeenWithLowStamina>();
         let visible_low_stamina = pos.is_in(area) && stamina.as_fraction() < 0.6;

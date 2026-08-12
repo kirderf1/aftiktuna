@@ -38,7 +38,7 @@ fn main() {
 
     if failure_count == 0 {
         println!("All locations are OK!");
-    };
+    }
 }
 
 fn try_load(

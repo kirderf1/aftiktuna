@@ -17,8 +17,8 @@ mod context {
         pub(super) fn resolve(&self, mut text: &str) -> String {
             let mut result = String::new();
             while !text.is_empty() {
-                if let Some(start) = text.find("{")
-                    && let Some(length) = text[start..].find("}")
+                if let Some(start) = text.find('{')
+                    && let Some(length) = text[start..].find('}')
                 {
                     result.push_str(&text[..start]);
 
@@ -232,8 +232,8 @@ fn prompt_npc_dialogue(
                     the_target = gives_hunt_reward.target_label,
                     a_reward = npc_ref
                         .get::<&Reward>()
-                        .map(|reward| reward.as_text(view_buffer.assets))
-                        .unwrap_or("???".to_owned()),
+                        .map_or("???".to_owned(), |reward| reward
+                            .as_text(view_buffer.assets)),
                 );
                 drop(gives_hunt_reward);
                 view_buffer.add_change_message(message, state);
@@ -253,8 +253,8 @@ fn prompt_npc_dialogue(
                     the_target = gives_hunt_reward.target_label,
                     a_reward = npc_ref
                         .get::<&Reward>()
-                        .map(|reward| reward.as_text(view_buffer.assets))
-                        .unwrap_or("???".to_owned()),
+                        .map_or("???".to_owned(), |reward| reward
+                            .as_text(view_buffer.assets)),
                 );
                 drop(gives_hunt_reward);
                 view_buffer.add_change_message(message, state);
@@ -390,8 +390,8 @@ fn complete_hunt_quest(
             a_reward = state
                 .world
                 .get::<&Reward>(npc)
-                .map(|reward| reward.as_text(view_buffer.assets))
-                .unwrap_or("???".to_owned()),
+                .map_or("???".to_owned(), |reward| reward
+                    .as_text(view_buffer.assets)),
         );
         view_buffer.add_change_message(message, state);
     }

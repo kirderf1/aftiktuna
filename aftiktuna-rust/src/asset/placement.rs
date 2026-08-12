@@ -161,7 +161,7 @@ impl Positioner {
                 },
             );
 
-        let updated_x_count = x_count + if model.has_x_displacement { 1 } else { 0 };
+        let updated_x_count = x_count + u16::from(model.has_x_displacement);
         let updated_z_displacement = z_displacement + model.z_displacement;
 
         for &coord in range {

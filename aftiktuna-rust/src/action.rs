@@ -200,7 +200,7 @@ struct Context<'a, 'b> {
     view_context: ViewContext<'a, 'b>,
 }
 
-impl<'a, 'b> Context<'a, 'b> {
+impl Context<'_, '_> {
     fn mut_world(&mut self) -> &mut World {
         &mut self.state.world
     }
@@ -211,7 +211,7 @@ struct ViewContext<'a, 'b> {
     view_buffer: &'a mut view::Buffer<'b>,
 }
 
-impl<'a, 'b> ViewContext<'a, 'b> {
+impl ViewContext<'_, '_> {
     fn add_message_at(&mut self, area: Entity, message: impl IntoMessage, state: &mut GameState) {
         if area == self.player_area {
             self.view_buffer.add_change_message(message, state);

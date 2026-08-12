@@ -240,7 +240,7 @@ pub(super) fn place_corpse(
         .assets
         .species_data_map
         .get(species)
-        .ok_or_else(|| format!("Missing data for species: {}", species))?;
+        .ok_or_else(|| format!("Missing data for species: {species}"))?;
     if !matches!(species_data.kind, SpeciesKind::CharacterSpecies) {
         return Err(format!(
             "Tried spawning character with non-character species: {species}"
@@ -430,7 +430,7 @@ pub(super) fn align_aggressiveness(world: &mut World) {
         .filter(|&(_, hostile)| hostile.aggressive)
         .map(|(pos, _)| pos.get_area())
         .collect::<HashSet<_>>();
-    for (pos, hostile) in world.query_mut::<(&Pos, &mut Hostile)>().into_iter() {
+    for (pos, hostile) in world.query_mut::<(&Pos, &mut Hostile)>() {
         hostile.aggressive |= areas_with_aggressive_creatures.contains(&pos.get_area());
     }
 }

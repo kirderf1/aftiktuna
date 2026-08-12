@@ -146,7 +146,7 @@ impl NameData {
     }
     pub fn definite(&self) -> String {
         match self {
-            Self::Name(name) => name.to_string(),
+            Self::Name(name) => name.clone(),
             Self::Noun(adjective, noun) => format!(
                 "the {adjective}{entity}",
                 adjective = format_option_with_space(adjective.as_ref()),

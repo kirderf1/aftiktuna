@@ -5,7 +5,7 @@ fn main() {
 
     if failure_count == 0 {
         println!("All dialogue files are OK!");
-    };
+    }
 }
 
 fn verify_files_in_dir(path: &std::path::Path) -> u32 {

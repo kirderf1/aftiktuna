@@ -224,7 +224,7 @@ pub mod world {
 
     struct WorldSerialize<'a>(&'a World);
 
-    impl<'a> Serialize for WorldSerialize<'a> {
+    impl Serialize for WorldSerialize<'_> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer,

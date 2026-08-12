@@ -312,7 +312,7 @@ impl TryFrom<IndexMap<u16, Offsets>> for GroupPlacement {
         if !value.contains_key(&1) {
             return Err("Must contain at least position group 1".to_string());
         }
-        for (key, positions) in value.iter() {
+        for (key, positions) in &value {
             if positions.len() != usize::from(*key) {
                 return Err(format!(
                     "Position group {key} has wrong number of positions: {}",

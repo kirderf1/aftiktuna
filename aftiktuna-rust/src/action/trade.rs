@@ -205,8 +205,10 @@ pub(super) fn ask_about(
         .item_type_map
         .get(item_type)
         .and_then(|item_data| item_data.shop_description.as_ref())
-        .map(String::as_str)
-        .unwrap_or("I am not sure. But if it interests you, how about you buy it and find out?");
+        .map_or(
+            "I am not sure. But if it interests you, how about you buy it and find out?",
+            String::as_str,
+        );
     context.view_context.view_buffer.push_dialogue(
         &context.state.world,
         shopkeeper,
