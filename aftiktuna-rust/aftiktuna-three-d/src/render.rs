@@ -91,7 +91,7 @@ pub fn draw_secondary_background(
             let render_camera = default_render_camera(frame_input.viewport);
             screen.render(&render_camera, [background_object], &[]);
         }
-    };
+    }
 }
 
 pub fn get_render_objects_for_entity(
@@ -188,16 +188,15 @@ fn get_render_objects_for_layer(
 
     match &layer.textures_or_children {
         aftiktuna::asset::model::TexturesOrChildren::Texture(colored_textures) => {
-            let (width, height) = layer
-                .positioning
-                .size
-                .map(|(width, height)| (f32::from(width), f32::from(height)))
-                .unwrap_or_else(|| {
+            let (width, height) = layer.positioning.size.map_or_else(
+                || {
                     (
                         colored_textures.primary_texture().width() as f32,
                         colored_textures.primary_texture().height() as f32,
                     )
-                });
+                },
+                |(width, height)| (f32::from(width), f32::from(height)),
+            );
             let center = pos + offset + parent_rotation * three_d::vec2(0., height / 2.);
             let center = anchor + three_d::Mat2::from_angle(rotation_angle) * (center - anchor);
             colored_textures

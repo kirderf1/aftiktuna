@@ -269,15 +269,15 @@ fn textures_render_rect(
     positioning: &LayerPositioning,
     direction_mod: f32,
 ) -> Rect {
-    let (width, height) = positioning
-        .size
-        .map(|(width, height)| (f32::from(width), f32::from(height)))
-        .unwrap_or_else(|| {
+    let (width, height) = positioning.size.map_or_else(
+        || {
             (
                 textures.primary_texture().width() as f32,
                 textures.primary_texture().height() as f32,
             )
-        });
+        },
+        |(width, height)| (f32::from(width), f32::from(height)),
+    );
     let layer_pos = pos + crate::to_vec(positioning.offset.0, direction_mod);
     Rect::new(layer_pos.x - width / 2., layer_pos.y, width, height)
 }

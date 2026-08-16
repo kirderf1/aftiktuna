@@ -23,25 +23,21 @@ mod camera {
                 match event {
                     three_d::Event::MousePress {
                         button, handled, ..
-                    } => {
-                        if !*handled && *button == three_d::MouseButton::Left {
-                            self.is_dragging = true;
-                            *handled = true;
-                        }
+                    } if !*handled && *button == three_d::MouseButton::Left => {
+                        self.is_dragging = true;
+                        *handled = true;
                     }
                     three_d::Event::MouseRelease {
                         button, handled, ..
-                    } => {
-                        if self.is_dragging && *button == three_d::MouseButton::Left {
-                            self.is_dragging = false;
-                            *handled = true;
-                        }
+                    } if self.is_dragging && *button == three_d::MouseButton::Left => {
+                        self.is_dragging = false;
+                        *handled = true;
                     }
-                    three_d::Event::MouseMotion { delta, handled, .. } => {
-                        if !*handled && self.is_dragging {
-                            self.camera_x -= delta.0;
-                            *handled = true;
-                        }
+                    three_d::Event::MouseMotion { delta, handled, .. }
+                        if !*handled && self.is_dragging =>
+                    {
+                        self.camera_x -= delta.0;
+                        *handled = true;
                     }
                     _ => {}
                 }
