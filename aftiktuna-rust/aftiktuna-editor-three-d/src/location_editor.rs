@@ -12,7 +12,7 @@ mod ui {
     use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
     use aftiktuna::core::{BlockType, SpeciesId};
-    use aftiktuna_editor_three_d::name_from_symbol;
+    use aftiktuna_editor_three_d::{name_from_symbol, option_with_checkbox};
     use std::mem;
     use three_d::egui;
 
@@ -680,22 +680,20 @@ mod ui {
                 ui.label("Morale:");
                 ui.add(egui::Slider::new(morale, -10.0..=10.0));
 
-                let mut wielding_item = wielded_item.is_some();
-                if ui.checkbox(&mut wielding_item, "Wielding item").changed() {
-                    *wielded_item = if wielding_item {
-                        Some(ItemTypeId::crowbar())
-                    } else {
-                        None
-                    };
-                }
-                if let Some(wielded_item) = wielded_item {
-                    aftiktuna_editor_three_d::item_type_editor(
-                        ui,
-                        wielded_item,
-                        "character_wielded",
-                        item_type_list,
-                    );
-                }
+                option_with_checkbox(
+                    ui,
+                    wielded_item,
+                    "Wielding item",
+                    ItemTypeId::crowbar,
+                    |ui, wielded_item| {
+                        aftiktuna_editor_three_d::item_type_editor(
+                            ui,
+                            wielded_item,
+                            "character_wielded",
+                            item_type_list,
+                        )
+                    },
+                );
 
                 aftiktuna_editor_three_d::option_direction_editor(
                     ui,
@@ -777,6 +775,10 @@ mod ui {
     ) {
         aftiktuna_editor_three_d::species_editor(ui, creature, "fauna", fauna_list);
 
+        option_with_checkbox(ui, name, "Custom name", String::new, |ui, name| {
+            ui.text_edit_singleline(name);
+        });
+
         aftiktuna_editor_three_d::custom_model_editor(ui, custom_model, || creature.model_id());
 
         ui.label("Health:");
@@ -820,14 +822,13 @@ mod ui {
                 }
             });
 
-        let mut is_wandering = wandering.is_some();
-        ui.checkbox(&mut is_wandering, "Wandering");
-        if is_wandering && wandering.is_none() {
-            *wandering = Some(Wandering { area_tag: None });
-        }
-        if !is_wandering && wandering.is_some() {
-            *wandering = None;
-        }
+        option_with_checkbox(
+            ui,
+            wandering,
+            "Wandering",
+            || Wandering { area_tag: None },
+            |ui, wandering| {},
+        );
 
         aftiktuna_editor_three_d::option_direction_editor(ui, direction, "creature_direction");
     }

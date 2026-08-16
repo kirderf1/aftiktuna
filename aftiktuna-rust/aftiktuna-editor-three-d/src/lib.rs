@@ -195,22 +195,28 @@ pub fn model_id_editor(ui: &mut egui::Ui, model_id: &mut ModelId) {
     ui.text_edit_singleline(&mut model_id.0);
 }
 
+pub fn option_with_checkbox<T>(
+    ui: &mut egui::Ui,
+    option: &mut Option<T>,
+    label: &str,
+    default: impl FnOnce() -> T,
+    editor: impl FnOnce(&mut egui::Ui, &mut T),
+) {
+    let mut has_value: bool = option.is_some();
+    if ui.checkbox(&mut has_value, label).changed() {
+        *option = if has_value { Some(default()) } else { None };
+    }
+    if let Some(value) = option {
+        editor(ui, value);
+    }
+}
+
 pub fn custom_model_editor(
     ui: &mut egui::Ui,
     custom_model: &mut Option<ModelId>,
     default: impl FnOnce() -> ModelId,
 ) {
-    let mut has_custom_model = custom_model.is_some();
-    if ui.checkbox(&mut has_custom_model, "Custom model").changed() {
-        *custom_model = if has_custom_model {
-            Some(default())
-        } else {
-            None
-        };
-    }
-    if let Some(model_id) = custom_model {
-        model_id_editor(ui, model_id);
-    }
+    option_with_checkbox(ui, custom_model, "Custom model", default, model_id_editor);
 }
 
 pub fn background_layer_list_editor(
