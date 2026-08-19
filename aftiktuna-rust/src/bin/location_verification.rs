@@ -1,10 +1,10 @@
 use aftiktuna::asset::GameAssets;
-use aftiktuna::asset::location::LocationData;
+use aftiktuna::asset::location::LOCATION_DIR;
 use aftiktuna::location;
 use aftiktuna::location::generate::LocationBuildData;
 
 fn main() {
-    let locations = match location::Locations::load_from_json() {
+    let locations = match location::LOCATIONS_FILE.load() {
         Ok(locations) => locations,
         Err(message) => {
             eprintln!("{message}");
@@ -46,7 +46,9 @@ fn try_load(
     verify_build_data: impl Fn(LocationBuildData) -> Result<(), String>,
     assets: &GameAssets,
 ) -> bool {
-    let load_result = LocationData::load_from_json(location_name)
+    let load_result = LOCATION_DIR
+        .load(location_name)
+        .map_err(|error| error.to_string())
         .and_then(|location_data| {
             location::generate::build_location(
                 location_data,

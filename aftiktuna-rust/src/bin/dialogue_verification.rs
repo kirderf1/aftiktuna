@@ -1,7 +1,7 @@
-const DIALOGUE_DIR_PATH: &str = "./assets/dialogue";
+use aftiktuna::asset::dialogue::DIALOGUE_DIR;
 
 fn main() {
-    let failure_count = verify_files_in_dir(DIALOGUE_DIR_PATH.as_ref());
+    let failure_count = verify_files_in_dir(DIALOGUE_DIR.dir_path().as_ref());
 
     if failure_count == 0 {
         println!("All dialogue files are OK!");
@@ -24,11 +24,11 @@ fn verify_files_in_dir(path: &std::path::Path) -> u32 {
                 let mut path = std::fs::canonicalize(path).unwrap();
                 path.set_extension("");
                 let path = path
-                    .strip_prefix(std::fs::canonicalize(DIALOGUE_DIR_PATH).unwrap())
+                    .strip_prefix(std::fs::canonicalize(DIALOGUE_DIR.dir_path()).unwrap())
                     .unwrap();
                 let dialogue_name = path.to_str().unwrap();
 
-                if let Err(error) = aftiktuna::asset::dialogue::load_dialogue_data(dialogue_name) {
+                if let Err(error) = DIALOGUE_DIR.load(dialogue_name) {
                     eprintln!("Failed to load dialogue \"{dialogue_name}\":");
                     eprintln!("{error}");
                     failure_count += 1;

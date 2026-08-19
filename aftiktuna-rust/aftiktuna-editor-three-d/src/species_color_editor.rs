@@ -1,4 +1,4 @@
-use aftiktuna::asset::color::{RGBColor, SpeciesColorData, SpeciesColorEntry};
+use aftiktuna::asset::color::{RGBColor, SPECIES_COLOR_DIR, SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::model::{self, Model};
 use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{
@@ -35,9 +35,9 @@ pub fn run(file_path: std::path::PathBuf) {
         _ => panic!("No default for example setup"),
     };
 
-    let file = File::open(&file_path).expect("Unable to open color data file");
-    let mut color_map =
-        serde_json::from_reader::<_, IndexMap<_, _>>(file).expect("Unable to load color data");
+    let mut color_map = SPECIES_COLOR_DIR
+        .load_index_map(species_name)
+        .expect("Unable to load color data");
     assert!(!color_map.is_empty());
 
     let window = three_d::Window::new(three_d::WindowSettings {
@@ -50,14 +50,15 @@ pub fn run(file_path: std::path::PathBuf) {
 
     let mut gui = three_d::GUI::new(&window.gl());
     let mut texture_loader = CachedLoader::new(window.gl());
-    let model = model::load_raw_model_from_path(species_id.model_id().file_path())
+    let model = model::MODEL_DIR
+        .load(species_id.model_id())
         .expect("Unable to load model")
         .load(&mut texture_loader)
         .unwrap();
-    let portrait_model =
-        model::load_raw_model_from_path(species_id.portrait_model_id().file_path())
-            .ok()
-            .and_then(|model| model.load(&mut texture_loader).ok());
+    let portrait_model = model::MODEL_DIR
+        .load(species_id.portrait_model_id())
+        .ok()
+        .and_then(|model| model.load(&mut texture_loader).ok());
 
     let mut selected_index = 0;
     let mut new_color_name = String::new();

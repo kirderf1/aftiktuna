@@ -8,13 +8,13 @@ pub mod species;
 
 pub mod color {
     use super::Error;
+    use crate::asset::AssetDirectory;
     use crate::core::SpeciesId;
     use crate::core::display::SpeciesColorId;
     use crate::core::name::Adjective;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
     use std::fs;
-    use std::path::{Path, PathBuf};
 
     pub const DEFAULT_COLOR: SpeciesColorData = SpeciesColorData {
         primary_color: RGBColor::new(255, 255, 255),
@@ -54,30 +54,23 @@ pub mod color {
         pub color_data: SpeciesColorData,
     }
 
-    pub fn colors_path(species: &SpeciesId) -> impl AsRef<Path> {
-        format!("assets/species_color/{species}.json")
-    }
-
-    pub fn load_species_color_data(
-        species: &SpeciesId,
-    ) -> Result<HashMap<SpeciesColorId, SpeciesColorEntry>, Error> {
-        super::load_from_json(colors_path(species))
-    }
+    pub const SPECIES_COLOR_DIR: AssetDirectory<HashMap<SpeciesColorId, SpeciesColorEntry>> =
+        AssetDirectory::new("species_color");
 
     pub struct SpeciesColorMap(HashMap<SpeciesId, HashMap<SpeciesColorId, SpeciesColorEntry>>);
 
     impl SpeciesColorMap {
         pub fn load() -> Result<Self, Error> {
             let mut map = HashMap::new();
-            for entry in fs::read_dir("assets/species_color")
-                .map_err(|error| Error::IO(PathBuf::from("assets/species_color"), error))?
+            for entry in fs::read_dir(SPECIES_COLOR_DIR.dir_path())
+                .map_err(|error| Error::IO(SPECIES_COLOR_DIR.dir_path(), error))?
             {
                 if let Ok(entry) = entry
                     && let Ok(file_name) = entry.file_name().into_string()
                     && let [file_name, "json"] = file_name.split('.').collect::<Vec<_>>()[..]
                 {
                     let species_id = SpeciesId::from(file_name);
-                    let species_colors = super::load_from_json(entry.path())?;
+                    let species_colors = SPECIES_COLOR_DIR.load(file_name)?;
                     map.insert(species_id, species_colors);
                 }
             }
@@ -124,6 +117,7 @@ pub mod color {
 }
 
 pub mod loot {
+    use crate::asset::AssetDirectory;
     use crate::core::item::ItemTypeId;
     use rand::Rng;
     use rand::distr::weighted::WeightedIndex;
@@ -133,17 +127,19 @@ pub mod loot {
     #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
     pub struct LootTableId(pub String);
 
-    impl LootTableId {
-        pub fn path(&self) -> String {
-            format!("loot_table/{}.json", self.0)
+    impl std::fmt::Display for LootTableId {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(f)
         }
     }
 
     #[derive(Debug, Deserialize)]
-    struct LootEntry {
+    pub struct LootEntry {
         item: ItemTypeId,
         weight: u16,
     }
+
+    pub const LOOT_TABLE_DIR: AssetDirectory<Vec<LootEntry>> = AssetDirectory::new("loot_table");
 
     pub(crate) struct LootTable {
         entries: Vec<LootEntry>,
@@ -153,7 +149,7 @@ pub mod loot {
     impl LootTable {
         fn load(id: &LootTableId) -> Result<Self, String> {
             let entries: Vec<LootEntry> =
-                super::load_json_asset(id.path()).map_err(|error| error.to_string())?;
+                LOOT_TABLE_DIR.load(id).map_err(|error| error.to_string())?;
             let index_distribution = WeightedIndex::new(entries.iter().map(|entry| entry.weight))
                 .map_err(|error| error.to_string())?;
             Ok(Self {
@@ -191,11 +187,14 @@ use crate::core::display::SpeciesColorId;
 use crate::core::item::{ItemTypeId, Price};
 use crate::core::name::{NounData, NounId};
 use crate::core::status::StatChanges;
+use indexmap::IndexMap;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::fs::File;
+use std::hash::Hash;
+use std::marker::PhantomData;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -231,13 +230,8 @@ pub trait TextureLoader<T, E> {
     fn load_texture(&mut self, name: String) -> Result<T, E>;
 }
 
-/// Loads json data from a path relative to the assets directory.
-pub(crate) fn load_json_asset<T: DeserializeOwned>(path: impl Display) -> Result<T, Error> {
-    load_from_json(format!("assets/{path}"))
-}
-
 /// Loads json data from a direct path.
-pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, Error> {
+fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, Error> {
     let path = path.as_ref();
     let file = File::open(path).map_err(|error| Error::IO(path.to_owned(), error))?;
     let object =
@@ -245,20 +239,70 @@ pub(crate) fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Res
     Ok(object)
 }
 
-pub(crate) fn load_aftik_color_names() -> Result<HashMap<SpeciesColorId, Vec<String>>, Error> {
-    load_json_asset("selectable_aftik_color_names.json")
+pub struct AssetFile<T> {
+    path: &'static str,
+    data_type: PhantomData<T>,
+}
+
+impl<T: DeserializeOwned> AssetFile<T> {
+    pub(crate) const fn new(path: &'static str) -> Self {
+        Self {
+            path,
+            data_type: PhantomData,
+        }
+    }
+    pub fn matches(&self, path: &Path) -> bool {
+        path.ends_with(self.path)
+    }
+    pub fn file_path(&self) -> PathBuf {
+        format!("assets/{}", self.path).into()
+    }
+    pub fn load(&self) -> Result<T, Error> {
+        load_from_json::<T>(format!("assets/{}", self.path))
+    }
+}
+
+impl<K: Eq + Hash + DeserializeOwned, V: DeserializeOwned> AssetFile<HashMap<K, V>> {
+    /// Loads asset as order-preserved map.
+    pub fn load_index_map(&self) -> Result<IndexMap<K, V>, Error> {
+        load_from_json::<IndexMap<K, V>>(format!("assets/{}", self.path))
+    }
+}
+
+pub struct AssetDirectory<T> {
+    path: &'static str,
+    data_type: PhantomData<T>,
+}
+
+impl<T: DeserializeOwned> AssetDirectory<T> {
+    pub(crate) const fn new(path: &'static str) -> Self {
+        Self {
+            path,
+            data_type: PhantomData,
+        }
+    }
+    pub fn dir_path(&self) -> PathBuf {
+        format!("assets/{}", self.path).into()
+    }
+    pub fn file_path(&self, id: impl Display) -> PathBuf {
+        format!("assets/{}/{id}.json", self.path).into()
+    }
+    pub fn load(&self, id: impl Display) -> Result<T, Error> {
+        load_from_json::<T>(format!("assets/{}/{id}.json", self.path))
+    }
+}
+
+impl<K: Eq + Hash + DeserializeOwned, V: DeserializeOwned> AssetDirectory<HashMap<K, V>> {
+    /// Loads asset as order-preserved map.
+    pub fn load_index_map(&self, id: impl Display) -> Result<IndexMap<K, V>, Error> {
+        load_from_json::<IndexMap<K, V>>(format!("assets/{}/{id}.json", self.path))
+    }
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct CrewData {
     pub points: i32,
     pub crew: Vec<profile::ProfileOrRandom>,
-}
-
-impl CrewData {
-    pub(crate) fn load_starting_crew() -> Result<CrewData, Error> {
-        load_json_asset("starting_crew.json")
-    }
 }
 
 pub(crate) struct NounDataMap {
@@ -268,7 +312,7 @@ pub(crate) struct NounDataMap {
 
 impl NounDataMap {
     pub(crate) fn load() -> Result<Self, Error> {
-        load_json_asset::<HashMap<NounId, NounData>>("noun_data.json").map(|map| NounDataMap {
+        NOUN_DATA_FILE.load().map(|map| NounDataMap {
             map,
             fallback: NounData::default(),
         })
@@ -314,9 +358,13 @@ impl ItemTypeData {
     }
 }
 
-pub fn load_item_type_map() -> Result<HashMap<ItemTypeId, ItemTypeData>, Error> {
-    load_json_asset::<HashMap<ItemTypeId, ItemTypeData>>("item_types.json")
-}
+pub const CHARACTER_NAMES_FILE: AssetFile<Vec<String>> = AssetFile::new("character_names.json");
+pub const AFTIK_COLOR_NAMES_FILE: AssetFile<HashMap<SpeciesColorId, Vec<String>>> =
+    AssetFile::new("selectable_aftik_color_names.json");
+pub(crate) const CREW_DATA_FILE: AssetFile<CrewData> = AssetFile::new("starting_crew.json");
+pub const NOUN_DATA_FILE: AssetFile<HashMap<NounId, NounData>> = AssetFile::new("noun_data.json");
+pub const ITEM_TYPES_FILE: AssetFile<HashMap<ItemTypeId, ItemTypeData>> =
+    AssetFile::new("item_types.json");
 
 pub struct GameAssets {
     pub(crate) noun_data_map: NounDataMap,
@@ -331,7 +379,7 @@ impl GameAssets {
             noun_data_map: NounDataMap::load()?,
             species_data_map: species::load_species_map()?,
             color_map: color::SpeciesColorMap::load()?,
-            item_type_map: load_item_type_map()?,
+            item_type_map: ITEM_TYPES_FILE.load()?,
         })
     }
 }

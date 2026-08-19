@@ -1,9 +1,9 @@
+use crate::asset::AssetFile;
 use crate::core::SpeciesId;
 use crate::core::behavior::BadlyHurtBehavior;
 use crate::core::combat::{AttackSet, UnarmedType, WeaponProperties};
 use crate::core::display::CreatureVariant;
 use crate::core::status::Stats;
-use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -124,10 +124,14 @@ impl From<FaunaData> for SpeciesData {
 
 pub type SpeciesDataMap = HashMap<SpeciesId, SpeciesData>;
 
+const SPECIES_FILE: AssetFile<HashMap<SpeciesId, CharacterSpeciesData>> =
+    AssetFile::new("species.json");
+
+const FAUNA_FILE: AssetFile<HashMap<SpeciesId, FaunaData>> = AssetFile::new("fauna.json");
+
 pub(super) fn load_species_map() -> Result<SpeciesDataMap, super::Error> {
-    let character_species_map =
-        super::load_json_asset::<HashMap<SpeciesId, CharacterSpeciesData>>("species.json")?;
-    let fauna_map = super::load_json_asset::<HashMap<SpeciesId, FaunaData>>("fauna.json")?;
+    let character_species_map = SPECIES_FILE.load()?;
+    let fauna_map = FAUNA_FILE.load()?;
     let mut species_map = SpeciesDataMap::new();
     for (species, data) in fauna_map {
         species_map.insert(species, data.into());
@@ -148,18 +152,10 @@ pub(super) fn load_species_map() -> Result<SpeciesDataMap, super::Error> {
 
 /// Loads species.json and discards the data to return just the species ids, excluding fauna.
 pub fn load_species_list() -> Result<Vec<SpeciesId>, super::Error> {
-    Ok(
-        super::load_json_asset::<IndexMap<SpeciesId, CharacterSpeciesData>>("species.json")?
-            .into_keys()
-            .collect(),
-    )
+    Ok(SPECIES_FILE.load_index_map()?.into_keys().collect())
 }
 
 /// Loads fauna.json and discards the data to return just the species ids of fauna only.
 pub fn load_fauna_list() -> Result<Vec<SpeciesId>, super::Error> {
-    Ok(
-        super::load_json_asset::<IndexMap<SpeciesId, CharacterSpeciesData>>("fauna.json")?
-            .into_keys()
-            .collect(),
-    )
+    Ok(FAUNA_FILE.load_index_map()?.into_keys().collect())
 }

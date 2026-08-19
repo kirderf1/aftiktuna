@@ -6,6 +6,7 @@ mod ui {
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
         SymbolData, SymbolMap,
     };
+    use aftiktuna::asset::model;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::behavior::Wandering;
     use aftiktuna::core::display::ModelId;
@@ -602,7 +603,7 @@ mod ui {
             }
             SymbolData::Inanimate { model, direction } => {
                 ui.text_edit_singleline(&mut model.0);
-                if !model.file_path().as_ref().exists() {
+                if !model::MODEL_DIR.file_path(model).exists() {
                     ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
                 }
                 aftiktuna_editor_three_d::direction_editor(ui, direction, "inanimate_direction");
@@ -891,7 +892,8 @@ pub fn run(file_path: std::path::PathBuf) {
     .unwrap();
 
     let mut assets = Assets {
-        background_types: background::load_index_map_backgrounds()
+        background_types: background::DATA_FILE
+            .load_index_map()
             .unwrap()
             .into_keys()
             .collect::<Vec<_>>(),
@@ -901,7 +903,8 @@ pub fn run(file_path: std::path::PathBuf) {
         species: aftiktuna::asset::species::load_species_list().unwrap(),
         fauna: aftiktuna::asset::species::load_fauna_list().unwrap(),
         species_colors: SpeciesColors::default(),
-        item_type_list: aftiktuna::asset::load_item_type_map()
+        item_type_list: aftiktuna::asset::ITEM_TYPES_FILE
+            .load_index_map()
             .unwrap()
             .into_keys()
             .collect(),

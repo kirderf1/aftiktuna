@@ -1,6 +1,6 @@
 use super::TextureLoader;
+use crate::asset::AssetFile;
 use crate::core::area::BackgroundId;
-use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -145,16 +145,8 @@ pub struct Offset {
     pub y: i16,
 }
 
-pub const DATA_FILE_PATH: &str = "assets/texture/background/backgrounds.json";
-
-pub fn load_raw_backgrounds() -> Result<HashMap<BackgroundId, BGData<String>>, super::Error> {
-    super::load_from_json(DATA_FILE_PATH)
-}
-
-pub fn load_index_map_backgrounds() -> Result<IndexMap<BackgroundId, BGData<String>>, super::Error>
-{
-    super::load_from_json(DATA_FILE_PATH)
-}
+pub const DATA_FILE: AssetFile<HashMap<BackgroundId, BGData<String>>> =
+    AssetFile::new("texture/background/backgrounds.json");
 
 fn load_texture<T, E>(texture: &str, loader: &mut impl TextureLoader<T, E>) -> Result<T, E> {
     loader.load_texture(format!("background/{texture}"))

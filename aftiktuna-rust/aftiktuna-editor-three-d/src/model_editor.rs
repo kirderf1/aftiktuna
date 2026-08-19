@@ -20,7 +20,8 @@ const SIZE: (u32, u32) = (
 );
 
 pub fn run(file_path: std::path::PathBuf) {
-    let selected_model = model::load_raw_model_from_path(&file_path).unwrap();
+    let selected_model =
+        serde_json::from_reader::<_, Model<String>>(File::open(&file_path).unwrap()).unwrap();
     assert!(
         !selected_model.layers.is_empty(),
         "Layers must not be empty"
@@ -54,7 +55,7 @@ pub fn run(file_path: std::path::PathBuf) {
     let mut texture_loader = CachedLoader::new(window.gl());
 
     let mut example_models = LazilyLoadedModels::new(window.gl()).unwrap();
-    let backgrounds_map = background::load_raw_backgrounds().unwrap();
+    let backgrounds_map = background::DATA_FILE.load().unwrap();
     let forest_background = backgrounds_map
         .get(&BackgroundId::new("forest"))
         .unwrap()

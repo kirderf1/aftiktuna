@@ -1,5 +1,5 @@
 use crate::action::{self, Action};
-use crate::asset::{CrewData, GameAssets};
+use crate::asset::{self, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipState, ShipStatus};
 use crate::core::behavior::{
     Character, CrewLossMemory, Decision, Hostile, RepeatingAction, TalkedAboutEnoughFuel, Waiting,
@@ -42,7 +42,9 @@ pub fn setup(
         controlled_character,
         ship_core,
     } = location::spawn_starting_crew_and_ship(
-        CrewData::load_starting_crew().map_err(|error| error.to_string())?,
+        asset::CREW_DATA_FILE
+            .load()
+            .map_err(|error| error.to_string())?,
         &mut generation_state,
         assets,
     )?;

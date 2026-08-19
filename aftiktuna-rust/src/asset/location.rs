@@ -173,6 +173,7 @@ pub mod creature {
 
 use crate::asset::background::ParallaxLayer;
 use crate::asset::loot::{self, LootTableId};
+use crate::asset::{AssetDirectory, AssetFile};
 use crate::core::area::BackgroundId;
 use crate::core::display::ModelId;
 use crate::core::item::ItemTypeId;
@@ -181,7 +182,6 @@ use crate::core::position::Direction;
 use crate::core::{BlockType, DoorKind, Tag};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::fs::File;
 
 pub type SymbolMap = IndexMap<char, SymbolData>;
 pub type DoorPairMap = IndexMap<String, DoorPairData>;
@@ -202,11 +202,7 @@ pub struct LocationData {
     pub door_pairs: DoorPairMap,
 }
 
-impl LocationData {
-    pub fn load_from_json(name: &str) -> Result<Self, String> {
-        super::load_json_asset(format!("location/{name}.json")).map_err(|error| error.to_string())
-    }
-}
+pub const LOCATION_DIR: AssetDirectory<LocationData> = AssetDirectory::new("location");
 
 #[derive(Serialize, Deserialize)]
 pub struct AreaData {
@@ -229,11 +225,12 @@ pub struct AreaData {
     pub symbols: SymbolMap,
 }
 
+const BASE_SYMBOLS_FILE: AssetFile<SymbolMap> = AssetFile::new("symbols.json");
+
 pub fn load_base_symbols() -> Result<SymbolMap, String> {
-    let file = File::open("assets/symbols.json")
-        .map_err(|error| format!("Failed to open symbols file: {error}"))?;
-    serde_json::from_reader::<_, SymbolMap>(file)
-        .map_err(|error| format!("Failed to parse symbols file: {error}"))
+    BASE_SYMBOLS_FILE
+        .load()
+        .map_err(|error| format!("Failed to load symbols file: {error}"))
 }
 
 pub struct SymbolLookup<'a> {
@@ -458,9 +455,4 @@ pub struct FurnishTemplate {
     pub symbols: SymbolMap,
 }
 
-impl FurnishTemplate {
-    pub fn load_list(template: &str) -> Result<Vec<Self>, String> {
-        super::load_json_asset(format!("area_furnish/{template}.json"))
-            .map_err(|error| error.to_string())
-    }
-}
+pub const FURNISH_DIR: AssetDirectory<Vec<FurnishTemplate>> = AssetDirectory::new("area_furnish");

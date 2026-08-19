@@ -8,7 +8,7 @@ fn main() {
         return;
     };
 
-    if path.ends_with(aftiktuna::asset::background::DATA_FILE_PATH) {
+    if aftiktuna::asset::background::DATA_FILE.matches(&path) {
         backgrounds_editor::run()
     } else if path_starts_with(&path, "assets/texture/object/") {
         model_editor::run(path)

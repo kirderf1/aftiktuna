@@ -2,9 +2,9 @@ pub mod generate;
 
 use self::generate::creature;
 use self::generate::door::{self, DoorInfo};
-use crate::asset::location::{DoorPairData, DoorType, LocationData};
+use crate::asset::location::{DoorPairData, DoorType, LOCATION_DIR};
 use crate::asset::profile::CharacterProfile;
-use crate::asset::{CrewData, GameAssets};
+use crate::asset::{AssetFile, CrewData, GameAssets};
 use crate::core::area::{self, FuelAmount, ShipRoom, ShipState, ShipStatus};
 use crate::core::behavior::{ObservationTarget, Passenger, PassengerPhase, Waiting};
 use crate::core::display::{ModelId, SpeciesColorId};
@@ -39,7 +39,7 @@ pub struct GenerationState {
 
 impl GenerationState {
     pub fn load_new(locations_before_fortuna: i32) -> Result<Self, asset::Error> {
-        Self::new(Locations::load_from_json()?, locations_before_fortuna)
+        Self::new(LOCATIONS_FILE.load()?, locations_before_fortuna)
     }
 
     pub fn single(location: String) -> Result<Self, asset::Error> {
@@ -52,8 +52,8 @@ impl GenerationState {
             state: TrackedState::BeforeFortuna {
                 remaining_locations_count: locations_before_fortuna,
             },
-            character_names: asset::load_json_asset::<Vec<String>>("character_names.json")?,
-            aftik_color_names: asset::load_aftik_color_names()?,
+            character_names: asset::CHARACTER_NAMES_FILE.load()?,
+            aftik_color_names: asset::AFTIK_COLOR_NAMES_FILE.load()?,
         })
     }
 
@@ -108,11 +108,9 @@ pub struct Locations {
     fortuna_locations: Vec<String>,
 }
 
-impl Locations {
-    pub fn load_from_json() -> Result<Self, asset::Error> {
-        asset::load_json_asset("locations.json")
-    }
+pub const LOCATIONS_FILE: AssetFile<Locations> = AssetFile::new("locations.json");
 
+impl Locations {
     pub fn all_location_names(&self) -> impl Iterator<Item = &String> {
         self.categories
             .iter()
@@ -241,7 +239,9 @@ pub(crate) fn spawn_starting_crew_and_ship(
     generation_state: &mut GenerationState,
     assets: &GameAssets,
 ) -> Result<InitialSpawnData, String> {
-    let ship_data = LocationData::load_from_json("crew_ship")?;
+    let ship_data = LOCATION_DIR
+        .load("crew_ship")
+        .map_err(|error| error.to_string())?;
 
     let mut gen_context = LocationGenContext {
         world: World::new(),
@@ -360,7 +360,9 @@ pub(crate) fn setup_location_into_game(
 ) -> Result<bool, String> {
     let mut gen_context = LocationGenContext::clone_from(state, assets);
 
-    let build_data = LocationData::load_from_json(location_name)
+    let build_data = LOCATION_DIR
+        .load(location_name)
+        .map_err(|error| error.to_string())
         .and_then(|location_data| generate::build_location(location_data, &mut gen_context))
         .map_err(|message| format!("Error loading location {location_name}: {message}"))?;
 

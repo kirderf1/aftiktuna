@@ -1,9 +1,9 @@
-use aftiktuna::asset::background;
-use aftiktuna::asset::color::SpeciesColorData;
+use aftiktuna::asset::color::{SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::profile::ProfileOrRandom;
+use aftiktuna::asset::{background, loot, model};
 use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{ModelId, SpeciesColorId};
 use aftiktuna::core::item::ItemTypeId;
@@ -14,11 +14,10 @@ use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fs;
 use std::hash::Hash;
-use std::path::PathBuf;
 use three_d::egui;
 
 #[derive(Default)]
-pub struct SpeciesColors(HashMap<SpeciesId, IndexMap<SpeciesColorId, SpeciesColorData>>);
+pub struct SpeciesColors(HashMap<SpeciesId, IndexMap<SpeciesColorId, SpeciesColorEntry>>);
 
 impl SpeciesColors {
     pub fn lookup(
@@ -26,7 +25,9 @@ impl SpeciesColors {
         species_id: &SpeciesId,
         color_id: &SpeciesColorId,
     ) -> Option<SpeciesColorData> {
-        self.find_or_load(species_id).get(color_id).copied()
+        self.find_or_load(species_id)
+            .get(color_id)
+            .map(|entry| entry.color_data)
     }
 
     pub fn keys(&mut self, species_id: &SpeciesId) -> impl Iterator<Item = &SpeciesColorId> {
@@ -36,10 +37,10 @@ impl SpeciesColors {
     fn find_or_load(
         &mut self,
         species_id: &SpeciesId,
-    ) -> &IndexMap<SpeciesColorId, SpeciesColorData> {
+    ) -> &IndexMap<SpeciesColorId, SpeciesColorEntry> {
         self.0.entry(species_id.clone()).or_insert_with(|| {
-            std::fs::File::open(aftiktuna::asset::color::colors_path(species_id))
-                .map(|file| serde_json::from_reader::<_, _>(file).unwrap())
+            aftiktuna::asset::color::SPECIES_COLOR_DIR
+                .load_index_map(species_id)
                 .ok()
                 .unwrap_or_default()
         })
@@ -112,9 +113,7 @@ pub fn item_type_editor(
 
 pub fn loot_table_id_editor(ui: &mut egui::Ui, loot_table_id: &mut LootTableId) {
     ui.text_edit_singleline(&mut loot_table_id.0);
-    let path = ["assets", &loot_table_id.path()]
-        .iter()
-        .collect::<PathBuf>();
+    let path = loot::LOOT_TABLE_DIR.file_path(loot_table_id);
     if !path.exists() {
         ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
     }
@@ -171,7 +170,7 @@ pub fn color_editor<'a, I: Iterator<Item = &'a SpeciesColorId>>(
 
 pub fn model_id_editor(ui: &mut egui::Ui, model_id: &mut ModelId) {
     if ui.button("Select Model").clicked() {
-        let objects_directory = fs::canonicalize("./assets/texture/object").unwrap();
+        let objects_directory = fs::canonicalize(model::MODEL_DIR.dir_path()).unwrap();
         let path = rfd::FileDialog::new()
             .set_title("Pick a model file")
             .add_filter("JSON", &["json"])

@@ -109,7 +109,7 @@ pub struct BackgroundMap(
 
 impl BackgroundMap {
     pub fn load(context: three_d::Context) -> Result<Self, Error> {
-        let background_data = background::load_raw_backgrounds()?;
+        let background_data = background::DATA_FILE.load()?;
         if !background_data.contains_key(&BackgroundId::blank()) {
             return Err(Error::MissingBlankBackground);
         }
@@ -160,7 +160,8 @@ impl LazilyLoadedModels {
     }
 
     fn load_and_insert_model(&mut self, model_id: &ModelId) -> Result<(), Error> {
-        let model = model::load_raw_model_from_path(model_id.file_path())?
+        let model = model::MODEL_DIR
+            .load(model_id)?
             .load(&mut self.texture_loader)?;
         self.loaded_models.insert(model_id.clone(), model);
         Ok(())

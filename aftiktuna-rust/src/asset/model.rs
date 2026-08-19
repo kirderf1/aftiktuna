@@ -1,11 +1,11 @@
 use super::TextureLoader;
 use super::color::ColorSource;
+use crate::asset::AssetDirectory;
 use crate::core::display::{CreatureVariant, DialogueExpression, ModelId};
 use crate::view::area::ObjectProperties;
 use crate::{OneOrList, Range, Vec2};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize, Serializer};
-use std::path::Path;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Model<T> {
@@ -324,11 +324,7 @@ impl TryFrom<IndexMap<u16, Offsets>> for GroupPlacement {
     }
 }
 
-pub fn load_raw_model_from_path(
-    file_path: impl AsRef<Path>,
-) -> Result<Model<String>, super::Error> {
-    super::load_from_json(file_path)
-}
+pub const MODEL_DIR: AssetDirectory<Model<String>> = AssetDirectory::new("texture/object");
 
 pub trait ModelAccess<T> {
     fn lookup_model(&mut self, model_id: &ModelId) -> &Model<T>;

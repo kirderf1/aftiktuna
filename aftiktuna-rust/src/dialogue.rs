@@ -653,7 +653,7 @@ pub fn trigger_dialogue_by_name(
     state: &mut GameState,
     view_buffer: &mut view::Buffer,
 ) {
-    match asset::dialogue::load_dialogue_data(name) {
+    match asset::dialogue::DIALOGUE_DIR.load(name) {
         Ok(dialogue_data) => run_dialogue(&dialogue_data, speaker, target, state, view_buffer),
         Err(error) => {
             println!("Failed to load dialogue {name}: {error}");

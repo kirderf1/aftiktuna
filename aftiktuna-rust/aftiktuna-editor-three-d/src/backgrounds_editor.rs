@@ -23,7 +23,7 @@ const SIZE: (u32, u32) = (
 );
 
 pub fn run() {
-    let mut backgrounds = background::load_index_map_backgrounds().unwrap();
+    let mut backgrounds = background::DATA_FILE.load_index_map().unwrap();
     let mut selected_bg = 0;
     let mut selected_layer = 0;
 
@@ -111,7 +111,7 @@ pub fn run() {
         screen.write(|| gui.render()).unwrap();
 
         if save {
-            let file = File::create(background::DATA_FILE_PATH).unwrap();
+            let file = File::create(background::DATA_FILE.file_path()).unwrap();
             serde_json_pretty::to_writer(file, &backgrounds).unwrap();
 
             three_d::FrameOutput {

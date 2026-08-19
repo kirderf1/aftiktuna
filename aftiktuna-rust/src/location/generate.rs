@@ -3,8 +3,8 @@ pub(super) mod door;
 
 use super::LocationGenContext;
 use crate::asset::location::{
-    AreaData, ContainerData, DoorPairMap, FurnishTemplate, ItemOrLoot, LocationData, SymbolData,
-    SymbolLookup, SymbolMap,
+    AreaData, ContainerData, DoorPairMap, FURNISH_DIR, FurnishTemplate, ItemOrLoot, LocationData,
+    SymbolData, SymbolLookup, SymbolMap,
 };
 use crate::asset::{self, GameAssets, loot};
 use crate::core::area::{Area, ShipControls};
@@ -177,7 +177,9 @@ fn place_symbol(
             creature::place_corpse(aftik_corpse_data, pos, builder.gen_context)?
         }
         SymbolData::Furnish { template } => {
-            let template_list = FurnishTemplate::load_list(template)?;
+            let template_list = FURNISH_DIR
+                .load(template)
+                .map_err(|error| error.to_string())?;
             let template_data = template_list
                 .choose(&mut builder.gen_context.rng)
                 .ok_or_else(|| format!("Furnish template \"{template}\" is without entries."))?;

@@ -1,4 +1,5 @@
 use crate::OneOrList;
+use crate::asset::AssetDirectory;
 use crate::core::behavior::{self, CrewLossMemory, Passenger, TalkedAboutEnoughFuel};
 use crate::core::display::DialogueExpression;
 use crate::core::name::Name;
@@ -254,6 +255,4 @@ pub enum RefOrData {
     Data(DialogueData),
 }
 
-pub fn load_dialogue_data(name: &str) -> Result<DialogueData, super::Error> {
-    super::load_json_asset(format!("dialogue/{name}.json"))
-}
+pub const DIALOGUE_DIR: AssetDirectory<DialogueData> = AssetDirectory::new("dialogue");

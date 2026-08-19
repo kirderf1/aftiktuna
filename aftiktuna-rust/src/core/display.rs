@@ -2,7 +2,6 @@ use crate::asset::species::{SpeciesData, WeightedVariant};
 use rand::distr::Distribution;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use std::path::Path;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct ModelId(pub String);
@@ -37,11 +36,6 @@ impl ModelId {
 
     pub fn path(&self) -> &str {
         &self.0
-    }
-
-    pub fn file_path(&self) -> impl AsRef<Path> + use<> {
-        let Self(path) = self;
-        format!("assets/texture/object/{path}.json")
     }
 }
 
