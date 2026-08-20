@@ -2,7 +2,7 @@ use aftiktuna::asset::color::{SpeciesColorData, SpeciesColorEntry};
 use aftiktuna::asset::location::creature::CharacterInteraction;
 use aftiktuna::asset::location::{DoorPairMap, DoorType, ItemOrLoot, SymbolData};
 use aftiktuna::asset::loot::LootTableId;
-use aftiktuna::asset::profile::ProfileOrRandom;
+use aftiktuna::asset::profile::{CharacterProfile, ProfileOrRandom, StatsOrRandom, TraitsOrRandom};
 use aftiktuna::asset::{background, loot, model};
 use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{ModelId, SpeciesColorId};
@@ -207,6 +207,80 @@ pub fn option_with_checkbox<T>(
     }
     if let Some(value) = option {
         editor(ui, value);
+    }
+}
+
+pub fn character_profile_editor(
+    ui: &mut egui::Ui,
+    CharacterProfile {
+        species,
+        name,
+        color,
+        stats,
+        traits,
+    }: &mut CharacterProfile,
+    species_colors: &mut SpeciesColors,
+    species_list: &[SpeciesId],
+) {
+    species_editor(ui, species, "character_species", species_list);
+
+    ui.text_edit_singleline(name);
+
+    egui::ComboBox::new("profile_color", "Color")
+        .selected_text(&color.0)
+        .show_ui(ui, |ui| {
+            for selectable in species_colors.keys(species) {
+                ui.selectable_value(color, selectable.clone(), &selectable.0);
+            }
+        });
+}
+
+pub fn profile_or_random_editor(
+    ui: &mut egui::Ui,
+    profile: &mut ProfileOrRandom,
+    species_colors: &mut SpeciesColors,
+    species_list: &[SpeciesId],
+) {
+    let mut is_random: bool = matches!(profile, ProfileOrRandom::Random { .. });
+    if ui.checkbox(&mut is_random, "Random Profile").changed() {
+        *profile = match profile {
+            ProfileOrRandom::Random {
+                species,
+                stats_bonus,
+            } => ProfileOrRandom::Profile(CharacterProfile {
+                species: species.clone(),
+                name: String::new(),
+                color: species_colors.keys(species).next().unwrap().clone(),
+                stats: StatsOrRandom::Random {
+                    stats_bonus: *stats_bonus,
+                },
+                traits: TraitsOrRandom::Random,
+            }),
+            ProfileOrRandom::Profile(CharacterProfile { species, stats, .. }) => {
+                let stats_bonus = match stats {
+                    StatsOrRandom::Random { stats_bonus } => *stats_bonus,
+                    StatsOrRandom::Stats(_) => 0,
+                };
+                ProfileOrRandom::Random {
+                    species: species.clone(),
+                    stats_bonus,
+                }
+            }
+        };
+    }
+
+    match profile {
+        ProfileOrRandom::Random {
+            species,
+            stats_bonus,
+        } => {
+            species_editor(ui, species, "character_species", species_list);
+
+            ui.add(egui::Slider::new(stats_bonus, -15..=15));
+        }
+        ProfileOrRandom::Profile(character_profile) => {
+            character_profile_editor(ui, character_profile, species_colors, species_list);
+        }
     }
 }
 

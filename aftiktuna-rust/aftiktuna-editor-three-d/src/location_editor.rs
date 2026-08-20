@@ -7,7 +7,6 @@ mod ui {
         SymbolData, SymbolMap,
     };
     use aftiktuna::asset::model;
-    use aftiktuna::asset::profile::CharacterProfile;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::behavior::Wandering;
     use aftiktuna::core::display::ModelId;
@@ -651,7 +650,7 @@ mod ui {
                 creature_spawn_data_editor(ui, creature_spawn_data, &assets.fauna);
             }
             SymbolData::Character(npc_spawn_data) => {
-                npc_spawn_data_editor(ui, npc_spawn_data, &assets.item_type_list, &assets.species);
+                npc_spawn_data_editor(ui, npc_spawn_data, assets);
             }
             SymbolData::CharacterCorpse(CharacterCorpseData {
                 species,
@@ -798,34 +797,14 @@ mod ui {
             wielded_item,
             direction,
         }: &mut NpcSpawnData,
-        item_type_list: &[ItemTypeId],
-        species_list: &[SpeciesId],
+        assets: &mut super::Assets,
     ) {
-        match profile {
-            aftiktuna::asset::profile::ProfileOrRandom::Random { species, .. } => {
-                aftiktuna_editor_three_d::species_editor(
-                    ui,
-                    species,
-                    "character_species",
-                    species_list,
-                );
-            }
-            aftiktuna::asset::profile::ProfileOrRandom::Profile(character_profile) => {
-                let CharacterProfile {
-                    species,
-                    name,
-                    color,
-                    stats,
-                    traits,
-                } = character_profile;
-                aftiktuna_editor_three_d::species_editor(
-                    ui,
-                    species,
-                    "character_species",
-                    species_list,
-                );
-            }
-        };
+        aftiktuna_editor_three_d::profile_or_random_editor(
+            ui,
+            profile,
+            &mut assets.species_colors,
+            &assets.species,
+        );
 
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
@@ -843,7 +822,7 @@ mod ui {
                     ui,
                     wielded_item,
                     "character_wielded",
-                    item_type_list,
+                    &assets.item_type_list,
                 )
             },
         );
