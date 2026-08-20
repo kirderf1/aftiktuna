@@ -225,13 +225,7 @@ pub struct AreaData {
     pub symbols: SymbolMap,
 }
 
-const BASE_SYMBOLS_FILE: AssetFile<SymbolMap> = AssetFile::new("symbols.json");
-
-pub fn load_base_symbols() -> Result<SymbolMap, String> {
-    BASE_SYMBOLS_FILE
-        .load()
-        .map_err(|error| format!("Failed to load symbols file: {error}"))
-}
+pub const BASE_SYMBOLS_FILE: AssetFile<SymbolMap> = AssetFile::new("symbols.json");
 
 pub struct SymbolLookup<'a> {
     parent_map: &'a SymbolMap,

@@ -7,6 +7,7 @@ mod ui {
         SymbolData, SymbolMap,
     };
     use aftiktuna::asset::model;
+    use aftiktuna::asset::profile::CharacterProfile;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::behavior::Wandering;
     use aftiktuna::core::display::ModelId;
@@ -56,22 +57,20 @@ mod ui {
         if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
             let area = &mut editor_data.location_data.areas[editor_data.area_index];
             let old_char = symbol_edit_data.old_char;
+            let base_symbols = assets.base_symbols.clone();
             let action = symbol_editor_ui(
                 ui,
                 symbol_edit_data,
                 |new_char| {
                     if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
                         SymbolStatus::Conflicting
-                    } else if assets.base_symbols.contains_key(&new_char) {
+                    } else if base_symbols.contains_key(&new_char) {
                         SymbolStatus::Overriding
                     } else {
                         SymbolStatus::Unique
                     }
                 },
-                &mut assets.species_colors,
-                &assets.item_type_list,
-                &assets.species,
-                &assets.fauna,
+                assets,
             );
 
             match action {
@@ -273,7 +272,7 @@ mod ui {
 
         ui.separator();
         ui.collapsing("Global Symbols", |ui| {
-            for (char, symbol_data) in &assets.base_symbols {
+            for (char, symbol_data) in &*assets.base_symbols {
                 let color = if area.symbols.contains_key(char) {
                     egui::Color32::DARK_GRAY
                 } else {
@@ -516,10 +515,7 @@ mod ui {
         ui: &mut egui::Ui,
         symbol_edit_data: &mut SymbolEditData,
         symbol_lookup: impl FnOnce(char) -> SymbolStatus,
-        species_colors: &mut super::SpeciesColors,
-        item_type_list: &[ItemTypeId],
-        species_list: &[SpeciesId],
-        fauna_list: &[SpeciesId],
+        assets: &mut super::Assets,
     ) -> Option<SymbolEditAction> {
         ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
 
@@ -556,7 +552,12 @@ mod ui {
             }
             SymbolData::FoodDeposit | SymbolData::ShipDialogueSpot => {}
             SymbolData::Item { item } => {
-                aftiktuna_editor_three_d::item_type_editor(ui, item, "item", item_type_list);
+                aftiktuna_editor_three_d::item_type_editor(
+                    ui,
+                    item,
+                    "item",
+                    &assets.item_type_list,
+                );
             }
             SymbolData::Loot { table } => {
                 aftiktuna_editor_three_d::loot_table_id_editor(ui, table);
@@ -632,13 +633,13 @@ mod ui {
                         ui,
                         item_or_loot,
                         index,
-                        item_type_list,
+                        &assets.item_type_list,
                     );
                 }
                 ui.horizontal(|ui| {
                     if ui.button("Add").clicked() {
                         content.push(ItemOrLoot::Item {
-                            item: item_type_list[0].clone(),
+                            item: assets.item_type_list[0].clone(),
                         });
                     }
                     if ui.button("Remove").clicked() {
@@ -647,60 +648,10 @@ mod ui {
                 });
             }
             SymbolData::Creature(creature_spawn_data) => {
-                creature_spawn_data_editor(ui, creature_spawn_data, fauna_list);
+                creature_spawn_data_editor(ui, creature_spawn_data, &assets.fauna);
             }
-            SymbolData::Character(nps_spawn_data) => {
-                let NpcSpawnData {
-                    profile,
-                    health,
-                    morale,
-                    tag,
-                    background,
-                    interaction,
-                    background_dialogue,
-                    wielded_item,
-                    direction,
-                } = nps_spawn_data.as_mut();
-
-                let species = match profile {
-                    aftiktuna::asset::profile::ProfileOrRandom::Random { species, .. } => species,
-                    aftiktuna::asset::profile::ProfileOrRandom::Profile(character_profile) => {
-                        &mut character_profile.species
-                    }
-                };
-                aftiktuna_editor_three_d::species_editor(
-                    ui,
-                    species,
-                    "character_species",
-                    species_list,
-                );
-
-                ui.label("Health:");
-                ui.add(egui::Slider::new(health, 0.0..=1.0));
-
-                ui.label("Morale:");
-                ui.add(egui::Slider::new(morale, -10.0..=10.0));
-
-                option_with_checkbox(
-                    ui,
-                    wielded_item,
-                    "Wielding item",
-                    ItemTypeId::crowbar,
-                    |ui, wielded_item| {
-                        aftiktuna_editor_three_d::item_type_editor(
-                            ui,
-                            wielded_item,
-                            "character_wielded",
-                            item_type_list,
-                        )
-                    },
-                );
-
-                aftiktuna_editor_three_d::option_direction_editor(
-                    ui,
-                    direction,
-                    "character_direction",
-                );
+            SymbolData::Character(npc_spawn_data) => {
+                npc_spawn_data_editor(ui, npc_spawn_data, &assets.item_type_list, &assets.species);
             }
             SymbolData::CharacterCorpse(CharacterCorpseData {
                 species,
@@ -711,7 +662,7 @@ mod ui {
                     ui,
                     species,
                     "corpse_species",
-                    species_list,
+                    &assets.species,
                 );
 
                 egui::ComboBox::new("corpse_color", "Color")
@@ -723,7 +674,7 @@ mod ui {
                     )
                     .show_ui(ui, |ui| {
                         ui.selectable_value(color, None, "random");
-                        for selectable in species_colors.keys(species) {
+                        for selectable in assets.species_colors.keys(species) {
                             ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
                         }
                     });
@@ -833,6 +784,72 @@ mod ui {
 
         aftiktuna_editor_three_d::option_direction_editor(ui, direction, "creature_direction");
     }
+
+    fn npc_spawn_data_editor(
+        ui: &mut egui::Ui,
+        NpcSpawnData {
+            profile,
+            health,
+            morale,
+            tag,
+            background,
+            interaction,
+            background_dialogue,
+            wielded_item,
+            direction,
+        }: &mut NpcSpawnData,
+        item_type_list: &[ItemTypeId],
+        species_list: &[SpeciesId],
+    ) {
+        match profile {
+            aftiktuna::asset::profile::ProfileOrRandom::Random { species, .. } => {
+                aftiktuna_editor_three_d::species_editor(
+                    ui,
+                    species,
+                    "character_species",
+                    species_list,
+                );
+            }
+            aftiktuna::asset::profile::ProfileOrRandom::Profile(character_profile) => {
+                let CharacterProfile {
+                    species,
+                    name,
+                    color,
+                    stats,
+                    traits,
+                } = character_profile;
+                aftiktuna_editor_three_d::species_editor(
+                    ui,
+                    species,
+                    "character_species",
+                    species_list,
+                );
+            }
+        };
+
+        ui.label("Health:");
+        ui.add(egui::Slider::new(health, 0.0..=1.0));
+
+        ui.label("Morale:");
+        ui.add(egui::Slider::new(morale, -10.0..=10.0));
+
+        option_with_checkbox(
+            ui,
+            wielded_item,
+            "Wielding item",
+            ItemTypeId::crowbar,
+            |ui, wielded_item| {
+                aftiktuna_editor_three_d::item_type_editor(
+                    ui,
+                    wielded_item,
+                    "character_wielded",
+                    item_type_list,
+                )
+            },
+        );
+
+        aftiktuna_editor_three_d::option_direction_editor(ui, direction, "character_direction");
+    }
 }
 
 use aftiktuna::asset::location::{
@@ -851,6 +868,7 @@ use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
 use std::collections::HashMap;
 use std::fs::File;
+use std::rc::Rc;
 
 const SIDE_PANEL_WIDTH: u32 = 250;
 const BOTTOM_PANEL_HEIGHT: u32 = 50;
@@ -898,7 +916,7 @@ pub fn run(file_path: std::path::PathBuf) {
             .into_keys()
             .collect::<Vec<_>>(),
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
-        base_symbols: location::load_base_symbols().unwrap(),
+        base_symbols: Rc::new(location::BASE_SYMBOLS_FILE.load().unwrap()),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
         species: aftiktuna::asset::species::load_species_list().unwrap(),
         fauna: aftiktuna::asset::species::load_fauna_list().unwrap(),
@@ -1006,7 +1024,7 @@ struct EditorData {
 struct Assets {
     background_types: Vec<BackgroundId>,
     background_map: asset::BackgroundMap,
-    base_symbols: SymbolMap,
+    base_symbols: Rc<SymbolMap>,
     models: LazilyLoadedModels,
     species: Vec<SpeciesId>,
     fauna: Vec<SpeciesId>,

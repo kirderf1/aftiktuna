@@ -36,7 +36,9 @@ pub fn build_location(
         .ok()
         .map(|variant| variant.id.clone());
     let mut builder = Builder::new(gen_context, variant, location_data.door_pairs);
-    let base_symbols = asset::location::load_base_symbols()?;
+    let base_symbols = asset::location::BASE_SYMBOLS_FILE
+        .load()
+        .map_err(|error| format!("Failed to load symbols file: {error}"))?;
 
     let mut spawned_areas = Vec::with_capacity(location_data.areas.len());
     for area in location_data.areas {
