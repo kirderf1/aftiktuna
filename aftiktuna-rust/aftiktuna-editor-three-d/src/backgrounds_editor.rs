@@ -8,6 +8,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::ModelId;
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::ObjectProperties;
+use aftiktuna_editor_three_d::editors::*;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -175,11 +176,7 @@ fn backgrounds_editor_ui(
 
     let (_, raw_background) = backgrounds.get_index_mut(*selected_bg).unwrap();
 
-    aftiktuna_editor_three_d::background_layer_list_editor(
-        ui,
-        selected_layer,
-        &mut raw_background.primary.0.layers,
-    );
+    background_layer_list_editor(ui, selected_layer, &mut raw_background.primary.0.layers);
 
     ui.separator();
     ui.button("Save").clicked()

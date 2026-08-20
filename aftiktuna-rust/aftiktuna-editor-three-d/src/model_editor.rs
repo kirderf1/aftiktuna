@@ -6,6 +6,7 @@ use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::display::{DialogueExpression, ModelId};
 use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
+use aftiktuna_editor_three_d::editors::*;
 use aftiktuna_three_d::asset::{CachedLoader, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
@@ -193,7 +194,7 @@ fn model_editor_ui(
     }
 
     ui.checkbox(&mut editor_data.indoors, "Indoors");
-    aftiktuna_editor_three_d::direction_editor(ui, &mut editor_data.direction, "view direction");
+    direction_editor(ui, &mut editor_data.direction, "view direction");
 
     if model.layers.iter().any(|layer| {
         layer

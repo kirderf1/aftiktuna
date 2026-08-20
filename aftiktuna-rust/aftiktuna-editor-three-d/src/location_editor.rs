@@ -13,7 +13,8 @@ mod ui {
     use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
     use aftiktuna::core::{BlockType, SpeciesId};
-    use aftiktuna_editor_three_d::{name_from_symbol, option_with_checkbox};
+    use aftiktuna_editor_three_d::editors::*;
+    use aftiktuna_editor_three_d::name_from_symbol;
     use std::mem;
     use three_d::egui;
 
@@ -326,7 +327,7 @@ mod ui {
 
         ui.add(egui::Slider::new(&mut area.darkness, 0.0..=1.0));
 
-        aftiktuna_editor_three_d::background_layer_list_editor(
+        background_layer_list_editor(
             ui,
             selected_extra_background_layer,
             &mut area.extra_background_layers,
@@ -543,23 +544,14 @@ mod ui {
             SymbolData::LocationEntry => {}
             SymbolData::FortunaChest => {}
             SymbolData::ShipControls { direction } => {
-                aftiktuna_editor_three_d::direction_editor(
-                    ui,
-                    direction,
-                    "ship_controls_direction",
-                );
+                direction_editor(ui, direction, "ship_controls_direction");
             }
             SymbolData::FoodDeposit | SymbolData::ShipDialogueSpot => {}
             SymbolData::Item { item } => {
-                aftiktuna_editor_three_d::item_type_editor(
-                    ui,
-                    item,
-                    "item",
-                    &assets.item_type_list,
-                );
+                item_type_editor(ui, item, "item", &assets.item_type_list);
             }
             SymbolData::Loot { table } => {
-                aftiktuna_editor_three_d::loot_table_id_editor(ui, table);
+                loot_table_id_editor(ui, table);
             }
             SymbolData::Door(DoorSpawnData {
                 pair_id: _,
@@ -579,9 +571,7 @@ mod ui {
                         }
                     });
 
-                aftiktuna_editor_three_d::custom_model_editor(ui, model, || {
-                    ModelId::from(*door_type)
-                });
+                custom_model_editor(ui, model, || ModelId::from(*door_type));
 
                 fn adjective_name(adjective: Option<DoorAdjective>) -> &'static str {
                     adjective.map(DoorAdjective::word).unwrap_or("none")
@@ -606,7 +596,7 @@ mod ui {
                 if !model::MODEL_DIR.file_path(model).exists() {
                     ui.label(egui::RichText::new("Missing File").color(egui::Color32::YELLOW));
                 }
-                aftiktuna_editor_three_d::direction_editor(ui, direction, "inanimate_direction");
+                direction_editor(ui, direction, "inanimate_direction");
             }
             SymbolData::Container(ContainerData {
                 container_type,
@@ -624,16 +614,11 @@ mod ui {
                             );
                         }
                     });
-                aftiktuna_editor_three_d::direction_editor(ui, direction, "container_direction");
+                direction_editor(ui, direction, "container_direction");
                 ui.separator();
 
                 for (index, item_or_loot) in content.iter_mut().enumerate() {
-                    aftiktuna_editor_three_d::item_or_loot_editor(
-                        ui,
-                        item_or_loot,
-                        index,
-                        &assets.item_type_list,
-                    );
+                    item_or_loot_editor(ui, item_or_loot, index, &assets.item_type_list);
                 }
                 ui.horizontal(|ui| {
                     if ui.button("Add").clicked() {
@@ -657,12 +642,7 @@ mod ui {
                 color,
                 direction,
             }) => {
-                aftiktuna_editor_three_d::species_editor(
-                    ui,
-                    species,
-                    "corpse_species",
-                    &assets.species,
-                );
+                species_editor(ui, species, "corpse_species", &assets.species);
 
                 egui::ComboBox::new("corpse_color", "Color")
                     .selected_text(
@@ -677,11 +657,7 @@ mod ui {
                             ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
                         }
                     });
-                aftiktuna_editor_three_d::option_direction_editor(
-                    ui,
-                    direction,
-                    "aftik_corpse_direction",
-                );
+                option_direction_editor(ui, direction, "aftik_corpse_direction");
             }
             SymbolData::Furnish { template } => {}
         }
@@ -724,13 +700,13 @@ mod ui {
         }: &mut CreatureSpawnData,
         fauna_list: &[SpeciesId],
     ) {
-        aftiktuna_editor_three_d::species_editor(ui, creature, "fauna", fauna_list);
+        species_editor(ui, creature, "fauna", fauna_list);
 
         option_with_checkbox(ui, name, "Custom name", String::new, |ui, name| {
             ui.text_edit_singleline(name);
         });
 
-        aftiktuna_editor_three_d::custom_model_editor(ui, custom_model, || creature.model_id());
+        custom_model_editor(ui, custom_model, || creature.model_id());
 
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
@@ -781,7 +757,7 @@ mod ui {
             |ui, wandering| {},
         );
 
-        aftiktuna_editor_three_d::option_direction_editor(ui, direction, "creature_direction");
+        option_direction_editor(ui, direction, "creature_direction");
     }
 
     fn npc_spawn_data_editor(
@@ -799,12 +775,7 @@ mod ui {
         }: &mut NpcSpawnData,
         assets: &mut super::Assets,
     ) {
-        aftiktuna_editor_three_d::profile_or_random_editor(
-            ui,
-            profile,
-            &mut assets.species_colors,
-            &assets.species,
-        );
+        profile_or_random_editor(ui, profile, &mut assets.species_colors, &assets.species);
 
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
@@ -818,7 +789,7 @@ mod ui {
             "Wielding item",
             ItemTypeId::crowbar,
             |ui, wielded_item| {
-                aftiktuna_editor_three_d::item_type_editor(
+                item_type_editor(
                     ui,
                     wielded_item,
                     "character_wielded",
@@ -827,7 +798,7 @@ mod ui {
             },
         );
 
-        aftiktuna_editor_three_d::option_direction_editor(ui, direction, "character_direction");
+        option_direction_editor(ui, direction, "character_direction");
     }
 }
 
