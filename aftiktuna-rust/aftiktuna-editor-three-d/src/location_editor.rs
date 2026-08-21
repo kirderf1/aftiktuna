@@ -1,6 +1,6 @@
 mod ui {
     use aftiktuna::asset::location::creature::{
-        AttributeChoice, CharacterCorpseData, CreatureSpawnData, NpcSpawnData,
+        AttributeChoice, CharacterCorpseData, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
     };
     use aftiktuna::asset::location::{
         AreaData, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
@@ -465,6 +465,41 @@ mod ui {
                             aggressive: None,
                             wandering: None,
                             tag: None,
+                            direction: None,
+                        }),
+                    })
+                }
+
+                if ui.button("Add Character").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Character(Box::new(NpcSpawnData {
+                            profile: aftiktuna::asset::profile::ProfileOrRandom::Random {
+                                species: SpeciesId::from("aftik"),
+                                stats_bonus: 0,
+                            },
+                            health: 1.,
+                            morale: 0.,
+                            tag: None,
+                            background: None,
+                            interaction: CharacterInteraction::Recruitable {
+                                will_request: false,
+                            },
+                            background_dialogue: None,
+                            wielded_item: None,
+                            direction: None,
+                        })),
+                    })
+                }
+
+                if ui.button("Add Character Corpse").clicked() {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::CharacterCorpse(CharacterCorpseData {
+                            species: SpeciesId::from("aftik"),
+                            color: None,
                             direction: None,
                         }),
                     })
