@@ -294,86 +294,88 @@ mod ui {
         selected_extra_background_layer: &mut usize,
         assets: &super::Assets,
     ) -> Option<SymbolEditData> {
-        ui.label("Display Name:");
-        ui.text_edit_singleline(&mut area.name);
+        ui.collapsing("Visuals / Meta", |ui| {
+            ui.label("Display Name:");
+            ui.text_edit_singleline(&mut area.name);
 
-        ui.label("Background:");
-        egui::ComboBox::from_id_salt("background")
-            .selected_text(&area.background.0)
-            .show_ui(ui, |ui| {
-                for background_id in &assets.background_types {
-                    if ui
-                        .selectable_label(background_id == &area.background, &background_id.0)
-                        .clicked()
-                    {
-                        area.background = background_id.clone();
+            ui.label("Background:");
+            egui::ComboBox::from_id_salt("background")
+                .selected_text(&area.background.0)
+                .show_ui(ui, |ui| {
+                    for background_id in &assets.background_types {
+                        if ui
+                            .selectable_label(background_id == &area.background, &background_id.0)
+                            .clicked()
+                        {
+                            area.background = background_id.clone();
+                        }
                     }
+                });
+
+            ui.label("Background offset:");
+            ui.horizontal(|ui| {
+                let mut has_offset = area.background_offset.is_some();
+                ui.add(egui::Checkbox::without_text(&mut has_offset));
+                if has_offset && area.background_offset.is_none() {
+                    area.background_offset = Some(0);
+                }
+                if !has_offset && area.background_offset.is_some() {
+                    area.background_offset = None;
+                }
+                if let Some(offset) = &mut area.background_offset {
+                    ui.add(egui::Slider::new(offset, -10..=10));
                 }
             });
 
-        ui.label("Background offset:");
-        ui.horizontal(|ui| {
-            let mut has_offset = area.background_offset.is_some();
-            ui.add(egui::Checkbox::without_text(&mut has_offset));
-            if has_offset && area.background_offset.is_none() {
-                area.background_offset = Some(0);
-            }
-            if !has_offset && area.background_offset.is_some() {
-                area.background_offset = None;
-            }
-            if let Some(offset) = &mut area.background_offset {
-                ui.add(egui::Slider::new(offset, -10..=10));
-            }
-        });
+            ui.add(egui::Slider::new(&mut area.darkness, 0.0..=1.0));
 
-        ui.add(egui::Slider::new(&mut area.darkness, 0.0..=1.0));
+            background_layer_list_editor(
+                ui,
+                selected_extra_background_layer,
+                &mut area.extra_background_layers,
+            );
+            ui.separator();
 
-        background_layer_list_editor(
-            ui,
-            selected_extra_background_layer,
-            &mut area.extra_background_layers,
-        );
-        ui.separator();
-
-        ui.horizontal(|ui| {
-            if ui.button("Add Left").clicked() {
-                area.objects.insert(0, String::new());
-                for variant in &mut area.variant_objects.values_mut() {
-                    variant.insert(0, String::new());
+            ui.horizontal(|ui| {
+                if ui.button("Add Left").clicked() {
+                    area.objects.insert(0, String::new());
+                    for variant in &mut area.variant_objects.values_mut() {
+                        variant.insert(0, String::new());
+                    }
+                    if let Some(offset) = &mut area.background_offset {
+                        *offset += 1;
+                    }
+                    for background_layer in &mut area.extra_background_layers {
+                        background_layer.offset.x += 120;
+                    }
                 }
-                if let Some(offset) = &mut area.background_offset {
-                    *offset += 1;
+                if ui.button("Add Right").clicked() {
+                    area.objects.push(String::new());
+                    for variant in &mut area.variant_objects.values_mut() {
+                        variant.push(String::new());
+                    }
                 }
-                for background_layer in &mut area.extra_background_layers {
-                    background_layer.offset.x += 120;
+            });
+            ui.horizontal(|ui| {
+                if ui.button("Remove Left").clicked() {
+                    area.objects.remove(0);
+                    for variant in &mut area.variant_objects.values_mut() {
+                        variant.remove(0);
+                    }
+                    if let Some(offset) = &mut area.background_offset {
+                        *offset -= 1;
+                    }
+                    for background_layer in &mut area.extra_background_layers {
+                        background_layer.offset.x -= 120;
+                    }
                 }
-            }
-            if ui.button("Add Right").clicked() {
-                area.objects.push(String::new());
-                for variant in &mut area.variant_objects.values_mut() {
-                    variant.push(String::new());
+                if ui.button("Remove Right").clicked() {
+                    area.objects.pop();
+                    for variant in &mut area.variant_objects.values_mut() {
+                        variant.pop();
+                    }
                 }
-            }
-        });
-        ui.horizontal(|ui| {
-            if ui.button("Remove Left").clicked() {
-                area.objects.remove(0);
-                for variant in &mut area.variant_objects.values_mut() {
-                    variant.remove(0);
-                }
-                if let Some(offset) = &mut area.background_offset {
-                    *offset -= 1;
-                }
-                for background_layer in &mut area.extra_background_layers {
-                    background_layer.offset.x -= 120;
-                }
-            }
-            if ui.button("Remove Right").clicked() {
-                area.objects.pop();
-                for variant in &mut area.variant_objects.values_mut() {
-                    variant.pop();
-                }
-            }
+            });
         });
 
         local_symbols_editor(ui, area, assets)
@@ -866,9 +868,8 @@ use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fs::File;
-use std::rc::Rc;
 
-const SIDE_PANEL_WIDTH: u32 = 250;
+const SIDE_PANEL_WIDTH: u32 = 300;
 const BOTTOM_PANEL_HEIGHT: u32 = 50;
 
 const SIZE: (u32, u32) = (
