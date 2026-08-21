@@ -11,14 +11,18 @@ use aftiktuna::core::position::{Coord, Direction};
 use aftiktuna::core::status::Health;
 use aftiktuna::view::area::{ObjectProperties, ObjectRenderData};
 use indexmap::IndexMap;
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 #[derive(Default)]
-pub struct SpeciesColors(HashMap<SpeciesId, IndexMap<SpeciesColorId, SpeciesColorEntry>>);
+pub struct SpeciesColors(
+    RefCell<HashMap<SpeciesId, Rc<IndexMap<SpeciesColorId, SpeciesColorEntry>>>>,
+);
 
 impl SpeciesColors {
     pub fn lookup(
-        &mut self,
+        &self,
         species_id: &SpeciesId,
         color_id: &SpeciesColorId,
     ) -> Option<SpeciesColorData> {
@@ -27,20 +31,22 @@ impl SpeciesColors {
             .map(|entry| entry.color_data)
     }
 
-    pub fn keys(&mut self, species_id: &SpeciesId) -> impl Iterator<Item = &SpeciesColorId> {
-        self.find_or_load(species_id).keys()
-    }
-
-    fn find_or_load(
-        &mut self,
+    pub fn find_or_load(
+        &self,
         species_id: &SpeciesId,
-    ) -> &IndexMap<SpeciesColorId, SpeciesColorEntry> {
-        self.0.entry(species_id.clone()).or_insert_with(|| {
-            aftiktuna::asset::color::SPECIES_COLOR_DIR
-                .load_index_map(species_id)
-                .ok()
-                .unwrap_or_default()
-        })
+    ) -> Rc<IndexMap<SpeciesColorId, SpeciesColorEntry>> {
+        self.0
+            .borrow_mut()
+            .entry(species_id.clone())
+            .or_insert_with(|| {
+                Rc::new(
+                    aftiktuna::asset::color::SPECIES_COLOR_DIR
+                        .load_index_map(species_id)
+                        .ok()
+                        .unwrap_or_default(),
+                )
+            })
+            .clone()
     }
 }
 

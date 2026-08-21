@@ -53,20 +53,19 @@ mod ui {
     fn side_panel_content(
         ui: &mut egui::Ui,
         editor_data: &mut super::EditorData,
-        assets: &mut super::Assets,
+        assets: &super::Assets,
     ) -> bool {
         let mut save = false;
         if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
             let area = &mut editor_data.location_data.areas[editor_data.area_index];
             let old_char = symbol_edit_data.old_char;
-            let base_symbols = assets.base_symbols.clone();
             let action = symbol_editor_ui(
                 ui,
                 symbol_edit_data,
                 |new_char| {
                     if Some(new_char) != old_char && area.symbols.contains_key(&new_char) {
                         SymbolStatus::Conflicting
-                    } else if base_symbols.contains_key(&new_char) {
+                    } else if assets.base_symbols.contains_key(&new_char) {
                         SymbolStatus::Overriding
                     } else {
                         SymbolStatus::Unique
@@ -274,7 +273,7 @@ mod ui {
 
         ui.separator();
         ui.collapsing("Global Symbols", |ui| {
-            for (char, symbol_data) in &*assets.base_symbols {
+            for (char, symbol_data) in &assets.base_symbols {
                 let color = if area.symbols.contains_key(char) {
                     egui::Color32::DARK_GRAY
                 } else {
@@ -517,7 +516,7 @@ mod ui {
         ui: &mut egui::Ui,
         symbol_edit_data: &mut SymbolEditData,
         symbol_lookup: impl FnOnce(char) -> SymbolStatus,
-        assets: &mut super::Assets,
+        assets: &super::Assets,
     ) -> Option<SymbolEditAction> {
         ui.label(name_from_symbol(&symbol_edit_data.symbol_data));
 
@@ -655,7 +654,7 @@ mod ui {
                     )
                     .show_ui(ui, |ui| {
                         ui.selectable_value(color, None, "random");
-                        for selectable in assets.species_colors.keys(species) {
+                        for selectable in assets.species_colors.find_or_load(species).keys() {
                             ui.selectable_value(color, Some(selectable.clone()), &selectable.0);
                         }
                     });
@@ -783,9 +782,11 @@ mod ui {
             wielded_item,
             direction,
         }: &mut NpcSpawnData,
-        assets: &mut super::Assets,
+        assets: &super::Assets,
     ) {
-        profile_or_random_editor(ui, profile, &mut assets.species_colors, &assets.species);
+        profile_or_random_editor(ui, profile, &assets.species_colors, &assets.species);
+
+        ui.separator();
 
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
@@ -878,7 +879,7 @@ pub fn run(file_path: std::path::PathBuf) {
             .into_keys()
             .collect::<Vec<_>>(),
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
-        base_symbols: Rc::new(location::BASE_SYMBOLS_FILE.load().unwrap()),
+        base_symbols: location::BASE_SYMBOLS_FILE.load().unwrap(),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
         species: aftiktuna::asset::species::SPECIES_FILE
             .load_index_map()
@@ -990,7 +991,7 @@ struct EditorData {
 struct Assets {
     background_types: Vec<BackgroundId>,
     background_map: asset::BackgroundMap,
-    base_symbols: Rc<SymbolMap>,
+    base_symbols: SymbolMap,
     models: LazilyLoadedModels,
     species: IndexMap<SpeciesId, CharacterSpeciesData>,
     fauna: IndexMap<SpeciesId, FaunaData>,

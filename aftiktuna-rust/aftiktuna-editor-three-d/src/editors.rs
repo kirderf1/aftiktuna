@@ -202,7 +202,7 @@ pub fn stats_or_random_editor(
     default_stats: impl FnOnce() -> Stats,
 ) {
     let mut is_random: bool = matches!(stats, StatsOrRandom::Random { .. });
-    if ui.checkbox(&mut is_random, "Random Profile").changed() {
+    if ui.checkbox(&mut is_random, "Random Stats").changed() {
         *stats = match stats {
             StatsOrRandom::Random { stats_bonus } => {
                 let mut stats = default_stats();
@@ -233,7 +233,7 @@ pub fn character_profile_editor(
         stats,
         traits,
     }: &mut CharacterProfile,
-    species_colors: &mut SpeciesColors,
+    species_colors: &SpeciesColors,
     species_data: &IndexMap<SpeciesId, CharacterSpeciesData>,
 ) {
     species_editor(ui, species, "character_species", species_data.keys());
@@ -243,7 +243,7 @@ pub fn character_profile_editor(
     egui::ComboBox::new("profile_color", "Color")
         .selected_text(&color.0)
         .show_ui(ui, |ui| {
-            for selectable in species_colors.keys(species) {
+            for selectable in species_colors.find_or_load(species).keys() {
                 ui.selectable_value(color, selectable.clone(), &selectable.0);
             }
         });
@@ -256,7 +256,7 @@ pub fn character_profile_editor(
 pub fn profile_or_random_editor(
     ui: &mut egui::Ui,
     profile: &mut ProfileOrRandom,
-    species_colors: &mut SpeciesColors,
+    species_colors: &SpeciesColors,
     species_data: &IndexMap<SpeciesId, CharacterSpeciesData>,
 ) {
     let mut is_random: bool = matches!(profile, ProfileOrRandom::Random { .. });
@@ -268,7 +268,12 @@ pub fn profile_or_random_editor(
             } => ProfileOrRandom::Profile(CharacterProfile {
                 species: species.clone(),
                 name: String::new(),
-                color: species_colors.keys(species).next().unwrap().clone(),
+                color: species_colors
+                    .find_or_load(species)
+                    .keys()
+                    .next()
+                    .unwrap()
+                    .clone(),
                 stats: StatsOrRandom::Random {
                     stats_bonus: *stats_bonus,
                 },
