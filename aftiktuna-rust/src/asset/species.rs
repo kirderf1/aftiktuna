@@ -44,8 +44,8 @@ impl SpeciesData {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct CharacterSpeciesData {
-    default_stats: Stats,
+pub struct CharacterSpeciesData {
+    pub default_stats: Stats,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     is_large: bool,
     unarmed: UnarmedType,
@@ -79,8 +79,8 @@ impl From<CharacterSpeciesData> for SpeciesData {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct FaunaData {
-    default_stats: Stats,
+pub struct FaunaData {
+    pub default_stats: Stats,
     #[serde(default, skip_serializing_if = "crate::is_default")]
     is_large: bool,
     unarmed: UnarmedType,
@@ -124,10 +124,10 @@ impl From<FaunaData> for SpeciesData {
 
 pub type SpeciesDataMap = HashMap<SpeciesId, SpeciesData>;
 
-const SPECIES_FILE: AssetFile<HashMap<SpeciesId, CharacterSpeciesData>> =
+pub const SPECIES_FILE: AssetFile<HashMap<SpeciesId, CharacterSpeciesData>> =
     AssetFile::new("species.json");
 
-const FAUNA_FILE: AssetFile<HashMap<SpeciesId, FaunaData>> = AssetFile::new("fauna.json");
+pub const FAUNA_FILE: AssetFile<HashMap<SpeciesId, FaunaData>> = AssetFile::new("fauna.json");
 
 pub(super) fn load_species_map() -> Result<SpeciesDataMap, super::Error> {
     let character_species_map = SPECIES_FILE.load()?;
@@ -148,14 +148,4 @@ pub(super) fn load_species_map() -> Result<SpeciesDataMap, super::Error> {
     }
 
     Ok(species_map)
-}
-
-/// Loads species.json and discards the data to return just the species ids, excluding fauna.
-pub fn load_species_list() -> Result<Vec<SpeciesId>, super::Error> {
-    Ok(SPECIES_FILE.load_index_map()?.into_keys().collect())
-}
-
-/// Loads fauna.json and discards the data to return just the species ids of fauna only.
-pub fn load_fauna_list() -> Result<Vec<SpeciesId>, super::Error> {
-    Ok(FAUNA_FILE.load_index_map()?.into_keys().collect())
 }

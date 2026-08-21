@@ -52,6 +52,7 @@ dependencies = [
  "aftiktuna",
  "aftiktuna-three-d",
  "indexmap",
+ "rand",
  "rfd",
  "serde_json",
  "serde_json_pretty",

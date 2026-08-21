@@ -7,6 +7,7 @@ mod ui {
         SymbolData, SymbolMap,
     };
     use aftiktuna::asset::model;
+    use aftiktuna::asset::species::FaunaData;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::behavior::Wandering;
     use aftiktuna::core::display::ModelId;
@@ -15,6 +16,7 @@ mod ui {
     use aftiktuna::core::{BlockType, SpeciesId};
     use aftiktuna_editor_three_d::editors::*;
     use aftiktuna_editor_three_d::name_from_symbol;
+    use indexmap::IndexMap;
     use std::mem;
     use three_d::egui;
 
@@ -642,7 +644,7 @@ mod ui {
                 color,
                 direction,
             }) => {
-                species_editor(ui, species, "corpse_species", &assets.species);
+                species_editor(ui, species, "corpse_species", assets.species.keys());
 
                 egui::ComboBox::new("corpse_color", "Color")
                     .selected_text(
@@ -698,9 +700,9 @@ mod ui {
             tag,
             direction,
         }: &mut CreatureSpawnData,
-        fauna_list: &[SpeciesId],
+        fauna_data: &IndexMap<SpeciesId, FaunaData>,
     ) {
-        species_editor(ui, creature, "fauna", fauna_list);
+        species_editor(ui, creature, "fauna", fauna_data.keys());
 
         option_with_checkbox(ui, name, "Custom name", String::new, |ui, name| {
             ui.text_edit_singleline(name);
@@ -710,6 +712,14 @@ mod ui {
 
         ui.label("Health:");
         ui.add(egui::Slider::new(health, 0.0..=1.0));
+
+        option_with_checkbox(
+            ui,
+            stats,
+            "Custom stats",
+            || fauna_data.get(creature).unwrap().default_stats,
+            stats_editor,
+        );
 
         fn attribute_name(attribute: AttributeChoice) -> &'static str {
             match attribute {
@@ -806,6 +816,7 @@ use aftiktuna::asset::location::{
     self, AreaData, LocationData, SymbolData, SymbolLookup, SymbolMap,
 };
 use aftiktuna::asset::model::ModelAccess;
+use aftiktuna::asset::species::{CharacterSpeciesData, FaunaData};
 use aftiktuna::asset::{background, color, placement};
 use aftiktuna::core::SpeciesId;
 use aftiktuna::core::area::BackgroundId;
@@ -816,6 +827,7 @@ use aftiktuna_editor_three_d::SpeciesColors;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
+use indexmap::IndexMap;
 use std::collections::HashMap;
 use std::fs::File;
 use std::rc::Rc;
@@ -868,8 +880,12 @@ pub fn run(file_path: std::path::PathBuf) {
         background_map: asset::BackgroundMap::load(window.gl()).unwrap(),
         base_symbols: Rc::new(location::BASE_SYMBOLS_FILE.load().unwrap()),
         models: LazilyLoadedModels::new(window.gl()).unwrap(),
-        species: aftiktuna::asset::species::load_species_list().unwrap(),
-        fauna: aftiktuna::asset::species::load_fauna_list().unwrap(),
+        species: aftiktuna::asset::species::SPECIES_FILE
+            .load_index_map()
+            .unwrap(),
+        fauna: aftiktuna::asset::species::FAUNA_FILE
+            .load_index_map()
+            .unwrap(),
         species_colors: SpeciesColors::default(),
         item_type_list: aftiktuna::asset::ITEM_TYPES_FILE
             .load_index_map()
@@ -976,8 +992,8 @@ struct Assets {
     background_map: asset::BackgroundMap,
     base_symbols: Rc<SymbolMap>,
     models: LazilyLoadedModels,
-    species: Vec<SpeciesId>,
-    fauna: Vec<SpeciesId>,
+    species: IndexMap<SpeciesId, CharacterSpeciesData>,
+    fauna: IndexMap<SpeciesId, FaunaData>,
     species_colors: SpeciesColors,
     item_type_list: Vec<ItemTypeId>,
 }

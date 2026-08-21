@@ -2,11 +2,14 @@ use crate::SpeciesColors;
 use aftiktuna::asset::location::ItemOrLoot;
 use aftiktuna::asset::loot::LootTableId;
 use aftiktuna::asset::profile::{CharacterProfile, ProfileOrRandom, StatsOrRandom, TraitsOrRandom};
+use aftiktuna::asset::species::CharacterSpeciesData;
 use aftiktuna::asset::{background, loot, model};
 use aftiktuna::core::SpeciesId;
 use aftiktuna::core::display::{ModelId, SpeciesColorId};
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Direction;
+use aftiktuna::core::status::Stats;
+use indexmap::IndexMap;
 use std::fs;
 use std::hash::Hash;
 use three_d::egui;
@@ -35,11 +38,11 @@ pub fn option_direction_editor(
         });
 }
 
-pub fn species_editor(
+pub fn species_editor<'a>(
     ui: &mut egui::Ui,
     edited_id: &mut SpeciesId,
     id: impl Hash,
-    species_id_list: &[SpeciesId],
+    species_id_list: impl Iterator<Item = &'a SpeciesId>,
 ) {
     egui::ComboBox::new(id, "Species")
         .selected_text(edited_id.to_string())
@@ -174,6 +177,53 @@ pub fn option_with_checkbox<T>(
     }
 }
 
+pub fn stats_editor(
+    ui: &mut egui::Ui,
+    Stats {
+        strength,
+        endurance,
+        agility,
+        luck,
+    }: &mut Stats,
+) {
+    ui.label("Strength:");
+    ui.add(egui::Slider::new(strength, 1..=15));
+    ui.label("Endurance:");
+    ui.add(egui::Slider::new(endurance, 1..=15));
+    ui.label("Agility:");
+    ui.add(egui::Slider::new(agility, 1..=15));
+    ui.label("Luck:");
+    ui.add(egui::Slider::new(luck, 0..=15));
+}
+
+pub fn stats_or_random_editor(
+    ui: &mut egui::Ui,
+    stats: &mut StatsOrRandom,
+    default_stats: impl FnOnce() -> Stats,
+) {
+    let mut is_random: bool = matches!(stats, StatsOrRandom::Random { .. });
+    if ui.checkbox(&mut is_random, "Random Profile").changed() {
+        *stats = match stats {
+            StatsOrRandom::Random { stats_bonus } => {
+                let mut stats = default_stats();
+                let _ = stats.adjust_random_in_bounds(*stats_bonus, &mut rand::rng());
+                StatsOrRandom::Stats(stats)
+            }
+            StatsOrRandom::Stats(stats) => StatsOrRandom::Random {
+                stats_bonus: stats.sum() - default_stats().sum(),
+            },
+        }
+    }
+
+    match stats {
+        StatsOrRandom::Random { stats_bonus } => {
+            ui.label("Stats bonus:");
+            ui.add(egui::Slider::new(stats_bonus, -15..=15));
+        }
+        StatsOrRandom::Stats(stats) => stats_editor(ui, stats),
+    }
+}
+
 pub fn character_profile_editor(
     ui: &mut egui::Ui,
     CharacterProfile {
@@ -184,9 +234,9 @@ pub fn character_profile_editor(
         traits,
     }: &mut CharacterProfile,
     species_colors: &mut SpeciesColors,
-    species_list: &[SpeciesId],
+    species_data: &IndexMap<SpeciesId, CharacterSpeciesData>,
 ) {
-    species_editor(ui, species, "character_species", species_list);
+    species_editor(ui, species, "character_species", species_data.keys());
 
     ui.text_edit_singleline(name);
 
@@ -197,13 +247,17 @@ pub fn character_profile_editor(
                 ui.selectable_value(color, selectable.clone(), &selectable.0);
             }
         });
+
+    stats_or_random_editor(ui, stats, || {
+        species_data.get(species).unwrap().default_stats
+    });
 }
 
 pub fn profile_or_random_editor(
     ui: &mut egui::Ui,
     profile: &mut ProfileOrRandom,
     species_colors: &mut SpeciesColors,
-    species_list: &[SpeciesId],
+    species_data: &IndexMap<SpeciesId, CharacterSpeciesData>,
 ) {
     let mut is_random: bool = matches!(profile, ProfileOrRandom::Random { .. });
     if ui.checkbox(&mut is_random, "Random Profile").changed() {
@@ -238,12 +292,13 @@ pub fn profile_or_random_editor(
             species,
             stats_bonus,
         } => {
-            species_editor(ui, species, "character_species", species_list);
+            species_editor(ui, species, "character_species", species_data.keys());
 
+            ui.label("Stats bonus:");
             ui.add(egui::Slider::new(stats_bonus, -15..=15));
         }
         ProfileOrRandom::Profile(character_profile) => {
-            character_profile_editor(ui, character_profile, species_colors, species_list);
+            character_profile_editor(ui, character_profile, species_colors, species_data);
         }
     }
 }
