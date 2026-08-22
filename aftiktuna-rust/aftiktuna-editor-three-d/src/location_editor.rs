@@ -7,16 +7,14 @@ mod ui {
         SymbolData, SymbolMap,
     };
     use aftiktuna::asset::model;
-    use aftiktuna::asset::species::FaunaData;
     use aftiktuna::core::area::BackgroundId;
     use aftiktuna::core::behavior::Wandering;
     use aftiktuna::core::display::ModelId;
     use aftiktuna::core::item::ItemTypeId;
     use aftiktuna::core::position::Direction;
-    use aftiktuna::core::{BlockType, SpeciesId};
+    use aftiktuna::core::{BlockType, SpeciesId, Tag};
     use aftiktuna_editor_three_d::editors::*;
     use aftiktuna_editor_three_d::name_from_symbol;
-    use indexmap::IndexMap;
     use std::mem;
     use three_d::egui;
 
@@ -53,7 +51,7 @@ mod ui {
     fn side_panel_content(
         ui: &mut egui::Ui,
         editor_data: &mut super::EditorData,
-        assets: &super::Assets,
+        assets: &mut super::Assets,
     ) -> bool {
         let mut save = false;
         if let Some(symbol_edit_data) = &mut editor_data.symbol_edit_data {
@@ -234,7 +232,7 @@ mod ui {
     fn area_view_ui(
         ui: &mut egui::Ui,
         editor_data: &mut super::EditorData,
-        assets: &super::Assets,
+        assets: &mut super::Assets,
     ) {
         egui::ComboBox::from_id_salt("area").show_index(
             ui,
@@ -292,11 +290,37 @@ mod ui {
         ui: &mut egui::Ui,
         area: &mut AreaData,
         selected_extra_background_layer: &mut usize,
-        assets: &super::Assets,
+        assets: &mut super::Assets,
     ) -> Option<SymbolEditData> {
         ui.collapsing("Visuals / Meta", |ui| {
             ui.label("Display Name:");
             ui.text_edit_singleline(&mut area.name);
+
+            option_with_checkbox(
+                ui,
+                &mut area.tag,
+                "Tag",
+                || Tag(String::new()),
+                |ui, tag| {
+                    let edit_response = ui.text_edit_singleline(&mut tag.0);
+                    if edit_response.lost_focus() {
+                        assets.area_tag_cache.insert(tag.clone());
+                    }
+
+                    egui::ComboBox::from_id_salt("area tag")
+                        .selected_text(&tag.0)
+                        .show_ui(ui, |ui| {
+                            for selectable_tag in &assets.area_tag_cache {
+                                if ui
+                                    .selectable_label(selectable_tag == tag, &selectable_tag.0)
+                                    .clicked()
+                                {
+                                    *tag = selectable_tag.clone();
+                                }
+                            }
+                        });
+                },
+            );
 
             ui.label("Background:");
             egui::ComboBox::from_id_salt("background")
@@ -378,19 +402,19 @@ mod ui {
             });
         });
 
-        local_symbols_editor(ui, area, assets)
+        local_symbols_editor(ui, &mut area.symbols, assets)
     }
 
     fn local_symbols_editor(
         ui: &mut egui::Ui,
-        area: &mut AreaData,
+        symbols: &mut SymbolMap,
         assets: &super::Assets,
     ) -> Option<SymbolEditData> {
         ui.collapsing("Local Symbols", |ui| {
             let mut symbol_edit_data = None;
             let mut char_to_delete = None;
 
-            for (char, symbol_data) in &area.symbols {
+            for (char, symbol_data) in &*symbols {
                 let color = if assets.base_symbols.contains_key(char) {
                     egui::Color32::LIGHT_GRAY
                 } else {
@@ -521,7 +545,7 @@ mod ui {
             });
 
             if let Some(char_to_delete) = char_to_delete {
-                area.symbols.shift_remove(&char_to_delete);
+                symbols.shift_remove(&char_to_delete);
                 None
             } else {
                 symbol_edit_data
@@ -670,7 +694,7 @@ mod ui {
                 });
             }
             SymbolData::Creature(creature_spawn_data) => {
-                creature_spawn_data_editor(ui, creature_spawn_data, &assets.fauna);
+                creature_spawn_data_editor(ui, creature_spawn_data, assets);
             }
             SymbolData::Character(npc_spawn_data) => {
                 npc_spawn_data_editor(ui, npc_spawn_data, assets);
@@ -736,9 +760,9 @@ mod ui {
             tag,
             direction,
         }: &mut CreatureSpawnData,
-        fauna_data: &IndexMap<SpeciesId, FaunaData>,
+        assets: &super::Assets,
     ) {
-        species_editor(ui, creature, "fauna", fauna_data.keys());
+        species_editor(ui, creature, "fauna", assets.fauna.keys());
 
         option_with_checkbox(ui, name, "Custom name", String::new, |ui, name| {
             ui.text_edit_singleline(name);
@@ -753,7 +777,7 @@ mod ui {
             ui,
             stats,
             "Custom stats",
-            || fauna_data.get(creature).unwrap().default_stats,
+            || assets.fauna.get(creature).unwrap().default_stats,
             stats_editor,
         );
 
@@ -800,7 +824,35 @@ mod ui {
             wandering,
             "Wandering",
             || Wandering { area_tag: None },
-            |ui, wandering| {},
+            |ui, Wandering { area_tag }| {
+                option_with_checkbox(
+                    ui,
+                    area_tag,
+                    "Area Tag",
+                    || {
+                        assets
+                            .area_tag_cache
+                            .iter()
+                            .next()
+                            .cloned()
+                            .unwrap_or_else(|| Tag(String::new()))
+                    },
+                    |ui, tag| {
+                        egui::ComboBox::from_id_salt("wandering area tag")
+                            .selected_text(&tag.0)
+                            .show_ui(ui, |ui| {
+                                for selectable_tag in &assets.area_tag_cache {
+                                    if ui
+                                        .selectable_label(selectable_tag == tag, &selectable_tag.0)
+                                        .clicked()
+                                    {
+                                        *tag = selectable_tag.clone();
+                                    }
+                                }
+                            });
+                    },
+                );
+            },
         );
 
         option_direction_editor(ui, direction, "creature_direction");
@@ -856,17 +908,17 @@ use aftiktuna::asset::location::{
 use aftiktuna::asset::model::ModelAccess;
 use aftiktuna::asset::species::{CharacterSpeciesData, FaunaData};
 use aftiktuna::asset::{background, color, placement};
-use aftiktuna::core::SpeciesId;
 use aftiktuna::core::area::BackgroundId;
 use aftiktuna::core::item::ItemTypeId;
 use aftiktuna::core::position::Coord;
+use aftiktuna::core::{SpeciesId, Tag};
 use aftiktuna::view::area::ObjectProperties;
 use aftiktuna_editor_three_d::SpeciesColors;
 use aftiktuna_three_d::asset::{self, LazilyLoadedModels};
 use aftiktuna_three_d::dimensions;
 use aftiktuna_three_d::render::{self, RenderProperties};
 use indexmap::IndexMap;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 
 const SIDE_PANEL_WIDTH: u32 = 300;
@@ -928,6 +980,12 @@ pub fn run(file_path: std::path::PathBuf) {
             .load_index_map()
             .unwrap()
             .into_keys()
+            .collect(),
+        area_tag_cache: editor_data
+            .location_data
+            .areas
+            .iter()
+            .flat_map(|area| area.tag.clone())
             .collect(),
     };
     let mut camera = aftiktuna_three_d::Camera::default();
@@ -1033,6 +1091,7 @@ struct Assets {
     fauna: IndexMap<SpeciesId, FaunaData>,
     species_colors: SpeciesColors,
     item_type_list: Vec<ItemTypeId>,
+    area_tag_cache: HashSet<Tag>,
 }
 
 #[derive(Clone, Copy, Debug)]

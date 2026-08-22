@@ -136,8 +136,8 @@ impl std::fmt::Display for SpeciesId {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Tag(String);
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct Tag(pub String);
 
 pub fn any_alive_with_tag(target_tag: &Tag, world: &hecs::World) -> bool {
     world
