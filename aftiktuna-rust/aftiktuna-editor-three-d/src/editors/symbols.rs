@@ -3,8 +3,8 @@ use aftiktuna::asset::location::creature::{
     AttributeChoice, CharacterCorpseData, CharacterInteraction, CreatureSpawnData, NpcSpawnData,
 };
 use aftiktuna::asset::location::{
-    ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot, SymbolData,
-    SymbolMap,
+    self, ContainerData, ContainerType, DoorAdjective, DoorSpawnData, DoorType, ItemOrLoot,
+    SymbolData, SymbolMap,
 };
 use aftiktuna::asset::model;
 use aftiktuna::asset::species::{CharacterSpeciesData, FaunaData};
@@ -179,6 +179,17 @@ pub fn local_symbols_editor(
                         direction: Direction::Right,
                     }),
                 })
+            }
+
+            if ui.button("Add Furnish Template").clicked() {
+                let selected_template = select_furnish_template();
+                if let Some(template) = selected_template {
+                    symbol_edit_data = Some(SymbolEditData {
+                        old_char: None,
+                        new_char: String::new(),
+                        symbol_data: SymbolData::Furnish { template },
+                    })
+                }
             }
         });
 
@@ -377,7 +388,15 @@ pub fn symbol_editor_ui(
                 });
             super::option_direction_editor(ui, direction, "aftik_corpse_direction");
         }
-        SymbolData::Furnish { template } => {}
+        SymbolData::Furnish { template } => {
+            ui.label(&*template);
+            if ui.button("Select Template").clicked() {
+                let selected_template = select_furnish_template();
+                if let Some(selected_template) = selected_template {
+                    *template = selected_template;
+                }
+            }
+        }
     }
 
     ui.separator();
@@ -402,7 +421,7 @@ pub fn symbol_editor_ui(
     .inner
 }
 
-fn creature_spawn_data_editor<'a>(
+fn creature_spawn_data_editor(
     ui: &mut egui::Ui,
     CreatureSpawnData {
         creature,
@@ -544,4 +563,26 @@ fn npc_spawn_data_editor(
     );
 
     super::option_direction_editor(ui, direction, "character_direction");
+}
+
+fn select_furnish_template() -> Option<String> {
+    let templates_directory = std::fs::canonicalize(location::FURNISH_DIR.dir_path()).unwrap();
+    let path = rfd::FileDialog::new()
+        .set_title("Pick a template file")
+        .add_filter("JSON", &["json"])
+        .set_directory(&templates_directory)
+        .pick_file();
+
+    if let Some(path) = path {
+        let mut path = std::fs::canonicalize(path).unwrap();
+        path.set_extension("");
+        if let Ok(path) = path
+            .strip_prefix(&templates_directory)
+            .inspect_err(|error| eprintln!("Got error preparing path: {error}"))
+        {
+            return Some(path.to_str().unwrap().to_owned());
+        }
+    }
+
+    None
 }
