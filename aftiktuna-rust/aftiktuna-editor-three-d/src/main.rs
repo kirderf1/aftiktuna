@@ -1,4 +1,5 @@
 mod backgrounds_editor;
+mod furnish_template_editor;
 mod location_editor;
 mod model_editor;
 mod species_color_editor;
@@ -14,6 +15,8 @@ fn main() {
         model_editor::run(path)
     } else if path_starts_with(&path, "assets/location/") {
         location_editor::run(path)
+    } else if path_starts_with(&path, "assets/area_furnish/") {
+        furnish_template_editor::run(path)
     } else if path_starts_with(&path, "assets/species_color/") {
         species_color_editor::run(path)
     } else {

@@ -1,3 +1,5 @@
+pub mod symbols;
+
 use crate::SpeciesColors;
 use aftiktuna::asset::location::ItemOrLoot;
 use aftiktuna::asset::loot::LootTableId;
