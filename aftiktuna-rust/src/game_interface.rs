@@ -6,13 +6,11 @@ use crate::serialization::{self, LoadError};
 use crate::view::Frame;
 use crate::{CommandInfo, StopType};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::fs::File;
 use std::mem;
 
 pub fn load() -> Result<Game, LoadError> {
     let assets = GameAssets::load()?;
-    let file = File::open(serialization::SAVE_FILE_NAME)?;
-    let serialized_state = serialization::load_game(file, &assets)?;
+    let serialized_state = serialization::fs_save_file::load(&assets)?;
     Ok(Game {
         serialized_state,
         is_in_error_state: false,

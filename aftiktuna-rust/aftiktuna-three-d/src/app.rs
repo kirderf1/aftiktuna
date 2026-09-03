@@ -4,7 +4,6 @@ use aftiktuna_three_d::asset::{Assets, BuiltinFonts};
 use aftiktuna_three_d::game::{self, GameAction};
 use aftiktuna_three_d::{dimensions, render};
 use std::env;
-use std::path::Path;
 use std::rc::Rc;
 use three_d::egui;
 use winit::event::{Event as WinitEvent, WindowEvent};
@@ -268,7 +267,7 @@ enum AppState {
 
 impl AppState {
     fn main_menu() -> Self {
-        let has_save_file = Path::new(serialization::SAVE_FILE_NAME).exists();
+        let has_save_file = serialization::fs_save_file::exists();
         Self::MainMenu { has_save_file }
     }
     fn game(game: game_interface::Game, is_save_enabled: bool, assets: &mut Assets) -> Self {

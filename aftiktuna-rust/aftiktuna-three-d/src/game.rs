@@ -9,7 +9,6 @@ use aftiktuna::game_interface::{Game, GameResult};
 use aftiktuna::serialization;
 use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::{Frame, FullStatus};
-use std::fs;
 
 pub enum GameAction {
     ExitGame,
@@ -169,7 +168,7 @@ impl State {
 
     pub fn save_game_if_enabled(&self) {
         if !matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
-            if let Err(error) = serialization::write_game_to_save_file(&self.game) {
+            if let Err(error) = serialization::fs_save_file::write(&self.game) {
                 eprintln!("Failed to save game: {error}");
             } else {
                 println!("Saved the game successfully.")
@@ -191,7 +190,7 @@ impl State {
                 self.cached_objects = Vec::new();
             }
             if matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
-                let _ = fs::remove_file(serialization::SAVE_FILE_NAME);
+                serialization::fs_save_file::delete();
             }
             self.text_box_text = self.frame.get_messages();
             self.request_input_focus = self.game.ready_to_take_input();
