@@ -1,7 +1,7 @@
 use crate::asset::{self, GameAssets};
 use crate::core::SpeciesId;
 use crate::core::display::CreatureVariantSet;
-use crate::game_interface::SerializedState;
+use crate::game_interface::{Game, SerializedState};
 use crate::game_loop::GameState;
 use hecs::World;
 use rmp_serde::{decode, encode};
@@ -302,10 +302,10 @@ impl Display for LoadError {
     }
 }
 
-fn serialize_game(state: &SerializedState, writer: impl Write) -> Result<(), SaveError> {
+pub fn serialize_game(game: &Game, writer: impl Write) -> Result<(), SaveError> {
     let mut serializer = rmp_serde::Serializer::new(writer).with_struct_map();
     (MAJOR_VERSION, MINOR_VERSION).serialize(&mut serializer)?;
-    state.serialize(&mut serializer)?;
+    game.serialized_state.serialize(&mut serializer)?;
     Ok(())
 }
 
@@ -374,29 +374,23 @@ pub fn check_world_components(world: &World) {
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub mod fs_save_file {
-    use crate::asset::GameAssets;
-    use crate::game_interface::Game;
-
     const SAVE_FILE_NAME: &str = "SAVE_FILE";
 
     pub fn exists() -> bool {
-        std::path::Path::new(SAVE_FILE_NAME).exists()
+        std::fs::metadata(SAVE_FILE_NAME).is_ok_and(|metadata| metadata.is_file())
     }
 
     pub fn delete() {
         let _ = std::fs::remove_file(SAVE_FILE_NAME);
     }
 
-    pub fn write(game: &Game) -> Result<(), super::SaveError> {
-        super::serialize_game(
-            &game.serialized_state,
-            std::fs::File::create(SAVE_FILE_NAME)?,
-        )
+    pub fn writer() -> Result<impl std::io::Write, super::SaveError> {
+        Ok(std::fs::File::create(SAVE_FILE_NAME)?)
     }
 
-    pub(crate) fn load(assets: &GameAssets) -> Result<super::SerializedState, super::LoadError> {
-        let file = std::fs::File::open(SAVE_FILE_NAME)?;
-        super::load_game(file, assets)
+    pub fn reader() -> Result<impl std::io::Read, super::LoadError> {
+        Ok(std::fs::File::open(SAVE_FILE_NAME)?)
     }
 }

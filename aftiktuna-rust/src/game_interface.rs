@@ -2,15 +2,14 @@ use crate::asset::GameAssets;
 use crate::command::{self, CommandResult};
 use crate::game_loop::{self, GameState, Step};
 use crate::location::{self, GenerationState};
-use crate::serialization::{self, LoadError};
 use crate::view::Frame;
 use crate::{CommandInfo, StopType};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::mem;
 
-pub fn load() -> Result<Game, LoadError> {
+pub fn load(save_file: impl std::io::Read) -> Result<Game, crate::serialization::LoadError> {
     let assets = GameAssets::load()?;
-    let serialized_state = serialization::fs_save_file::load(&assets)?;
+    let serialized_state = crate::serialization::load_game(save_file, &assets)?;
     Ok(Game {
         serialized_state,
         is_in_error_state: false,

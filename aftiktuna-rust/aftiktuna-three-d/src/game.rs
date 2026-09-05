@@ -6,7 +6,6 @@ use crate::Camera;
 use aftiktuna::asset::placement;
 use aftiktuna::command_suggestion::{self, Suggestion};
 use aftiktuna::game_interface::{Game, GameResult};
-use aftiktuna::serialization;
 use aftiktuna::view::area::ObjectRenderData;
 use aftiktuna::view::{Frame, FullStatus};
 
@@ -139,6 +138,7 @@ impl State {
             }
         }
 
+        #[cfg(not(target_arch = "wasm32"))]
         if crate::check_pressed_key(&mut frame_input.events, three_d::Key::Escape)
             && action.is_none()
         {
@@ -168,7 +168,10 @@ impl State {
 
     pub fn save_game_if_enabled(&self) {
         if !matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
-            if let Err(error) = serialization::fs_save_file::write(&self.game) {
+            #[cfg(not(target_arch = "wasm32"))]
+            if let Err(error) = aftiktuna::serialization::fs_save_file::writer()
+                .and_then(|writer| aftiktuna::serialization::serialize_game(&self.game, writer))
+            {
                 eprintln!("Failed to save game: {error}");
             } else {
                 println!("Saved the game successfully.")
@@ -189,8 +192,9 @@ impl State {
             } else {
                 self.cached_objects = Vec::new();
             }
+            #[cfg(not(target_arch = "wasm32"))]
             if matches!(self.frame, Frame::Ending { .. }) && self.is_save_enabled {
-                serialization::fs_save_file::delete();
+                aftiktuna::serialization::fs_save_file::delete();
             }
             self.text_box_text = self.frame.get_messages();
             self.request_input_focus = self.game.ready_to_take_input();

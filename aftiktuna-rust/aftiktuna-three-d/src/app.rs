@@ -1,5 +1,4 @@
-use aftiktuna::serialization::LoadError;
-use aftiktuna::{game_interface, serialization};
+use aftiktuna::game_interface;
 use aftiktuna_three_d::asset::{Assets, BuiltinFonts};
 use aftiktuna_three_d::game::{self, GameAction};
 use aftiktuna_three_d::{dimensions, render};
@@ -223,28 +222,34 @@ impl LoadedApp {
                             );
                         }
                     },
-                    Some(MenuAction::LoadGame) => match game_interface::load() {
-                        Ok(game) => {
-                            self.state = AppState::game(game, self.autosave, &mut self.assets)
+                    Some(MenuAction::LoadGame) =>
+                    {
+                        #[cfg(not(target_arch = "wasm32"))]
+                        match aftiktuna::serialization::fs_save_file::reader()
+                            .and_then(game_interface::load)
+                        {
+                            Ok(game) => {
+                                self.state = AppState::game(game, self.autosave, &mut self.assets)
+                            }
+                            Err(error) => {
+                                let recommendation = if matches!(
+                                    error,
+                                    aftiktuna::serialization::LoadError::UnsupportedVersion(_, _)
+                                ) {
+                                    "Consider starting a new game or using a different version of Aftiktuna."
+                                } else {
+                                    "Consider starting a new game."
+                                };
+                                return (
+                                    AppAction::Continue,
+                                    vec![
+                                        format!("Unable to load save file: {error}"),
+                                        recommendation.to_string(),
+                                    ],
+                                );
+                            }
                         }
-                        Err(error) => {
-                            let recommendation = if matches!(
-                                error,
-                                LoadError::UnsupportedVersion(_, _)
-                            ) {
-                                "Consider starting a new game or using a different version of Aftiktuna."
-                            } else {
-                                "Consider starting a new game."
-                            };
-                            return (
-                                AppAction::Continue,
-                                vec![
-                                    format!("Unable to load save file: {error}"),
-                                    recommendation.to_string(),
-                                ],
-                            );
-                        }
-                    },
+                    }
                     None => {}
                 }
             }
@@ -267,7 +272,10 @@ enum AppState {
 
 impl AppState {
     fn main_menu() -> Self {
-        let has_save_file = serialization::fs_save_file::exists();
+        #[cfg(not(target_arch = "wasm32"))]
+        let has_save_file = aftiktuna::serialization::fs_save_file::exists();
+        #[cfg(target_arch = "wasm32")]
+        let has_save_file = false;
         Self::MainMenu { has_save_file }
     }
     fn game(game: game_interface::Game, is_save_enabled: bool, assets: &mut Assets) -> Self {
