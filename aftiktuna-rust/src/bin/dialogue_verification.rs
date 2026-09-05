@@ -26,9 +26,9 @@ fn verify_files_in_dir(path: &std::path::Path) -> u32 {
                 let path = path
                     .strip_prefix(std::fs::canonicalize(DIALOGUE_DIR.dir_path()).unwrap())
                     .unwrap();
-                let dialogue_name = path.to_str().unwrap();
+                let dialogue_name = path.to_str().unwrap().replace('\\', "/");
 
-                if let Err(error) = DIALOGUE_DIR.load(dialogue_name) {
+                if let Err(error) = DIALOGUE_DIR.load(&dialogue_name) {
                     eprintln!("Failed to load dialogue \"{dialogue_name}\":");
                     eprintln!("{error}");
                     failure_count += 1;

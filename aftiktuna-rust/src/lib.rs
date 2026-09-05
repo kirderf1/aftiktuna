@@ -10,6 +10,14 @@ pub mod location;
 pub mod serialization;
 pub mod view;
 
+#[cfg(target_arch = "wasm32")]
+mod builtin_assets {
+    include!(concat!(env!("OUT_DIR"), "/builtin_assets.rs"));
+}
+
+#[cfg(target_arch = "wasm32")]
+pub use builtin_assets::binary_data as builtin_binary_asset_data;
+
 use serde::{Deserialize, Serialize};
 use std::ops::{Add, Deref, Mul, Sub};
 

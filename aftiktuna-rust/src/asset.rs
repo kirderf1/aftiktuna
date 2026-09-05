@@ -1,3 +1,4 @@
+mod access;
 pub mod background;
 pub mod dialogue;
 pub mod location;
@@ -14,7 +15,6 @@ pub mod color {
     use crate::core::name::Adjective;
     use serde::{Deserialize, Serialize};
     use std::collections::HashMap;
-    use std::fs;
 
     pub const DEFAULT_COLOR: SpeciesColorData = SpeciesColorData {
         primary_color: RGBColor::new(255, 255, 255),
@@ -61,19 +61,7 @@ pub mod color {
 
     impl SpeciesColorMap {
         pub fn load() -> Result<Self, Error> {
-            let mut map = HashMap::new();
-            for entry in fs::read_dir(SPECIES_COLOR_DIR.dir_path())
-                .map_err(|error| Error::IO(SPECIES_COLOR_DIR.dir_path(), error))?
-            {
-                if let Ok(entry) = entry
-                    && let Ok(file_name) = entry.file_name().into_string()
-                    && let [file_name, "json"] = file_name.split('.').collect::<Vec<_>>()[..]
-                {
-                    let species_id = SpeciesId::from(file_name);
-                    let species_colors = SPECIES_COLOR_DIR.load(file_name)?;
-                    map.insert(species_id, species_colors);
-                }
-            }
+            let map = SPECIES_COLOR_DIR.load_all::<SpeciesId>()?;
             Ok(Self(map))
         }
 
@@ -187,15 +175,11 @@ use crate::core::display::SpeciesColorId;
 use crate::core::item::{ItemTypeId, Price};
 use crate::core::name::{NounData, NounId};
 use crate::core::status::StatChanges;
-use indexmap::IndexMap;
-use serde::de::DeserializeOwned;
+pub use access::{AssetDirectory, AssetFile};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
-use std::fs::File;
-use std::hash::Hash;
-use std::marker::PhantomData;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub enum Error {
@@ -228,75 +212,6 @@ impl Display for Error {
 
 pub trait TextureLoader<T, E> {
     fn load_texture(&mut self, name: String) -> Result<T, E>;
-}
-
-/// Loads json data from a direct path.
-fn load_from_json<T: DeserializeOwned>(path: impl AsRef<Path>) -> Result<T, Error> {
-    let path = path.as_ref();
-    let file = File::open(path).map_err(|error| Error::IO(path.to_owned(), error))?;
-    let object =
-        serde_json::from_reader(file).map_err(|error| Error::Json(path.to_owned(), error))?;
-    Ok(object)
-}
-
-pub struct AssetFile<T> {
-    path: &'static str,
-    data_type: PhantomData<T>,
-}
-
-impl<T: DeserializeOwned> AssetFile<T> {
-    pub(crate) const fn new(path: &'static str) -> Self {
-        Self {
-            path,
-            data_type: PhantomData,
-        }
-    }
-    pub fn matches(&self, path: &Path) -> bool {
-        path.ends_with(self.path)
-    }
-    pub fn file_path(&self) -> PathBuf {
-        format!("assets/{}", self.path).into()
-    }
-    pub fn load(&self) -> Result<T, Error> {
-        load_from_json::<T>(format!("assets/{}", self.path))
-    }
-}
-
-impl<K: Eq + Hash + DeserializeOwned, V: DeserializeOwned> AssetFile<HashMap<K, V>> {
-    /// Loads asset as order-preserved map.
-    pub fn load_index_map(&self) -> Result<IndexMap<K, V>, Error> {
-        load_from_json::<IndexMap<K, V>>(format!("assets/{}", self.path))
-    }
-}
-
-pub struct AssetDirectory<T> {
-    path: &'static str,
-    data_type: PhantomData<T>,
-}
-
-impl<T: DeserializeOwned> AssetDirectory<T> {
-    pub(crate) const fn new(path: &'static str) -> Self {
-        Self {
-            path,
-            data_type: PhantomData,
-        }
-    }
-    pub fn dir_path(&self) -> PathBuf {
-        format!("assets/{}", self.path).into()
-    }
-    pub fn file_path(&self, id: impl Display) -> PathBuf {
-        format!("assets/{}/{id}.json", self.path).into()
-    }
-    pub fn load(&self, id: impl Display) -> Result<T, Error> {
-        load_from_json::<T>(format!("assets/{}/{id}.json", self.path))
-    }
-}
-
-impl<K: Eq + Hash + DeserializeOwned, V: DeserializeOwned> AssetDirectory<HashMap<K, V>> {
-    /// Loads asset as order-preserved map.
-    pub fn load_index_map(&self, id: impl Display) -> Result<IndexMap<K, V>, Error> {
-        load_from_json::<IndexMap<K, V>>(format!("assets/{}/{id}.json", self.path))
-    }
 }
 
 #[derive(Debug, Deserialize)]

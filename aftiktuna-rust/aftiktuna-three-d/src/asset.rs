@@ -96,10 +96,24 @@ pub fn load_texture(
 ) -> Result<three_d::Texture2DRef, three_d_asset::Error> {
     let path = format!("assets/texture/{name}.png");
 
-    let mut texture: three_d::CpuTexture = three_d_asset::io::load_and_deserialize(path)?;
+    let mut texture: three_d::CpuTexture = load_texture_data(&path)?;
     texture.wrap_s = three_d::Wrapping::ClampToEdge;
     texture.wrap_t = three_d::Wrapping::ClampToEdge;
     Ok(three_d::Texture2DRef::from_cpu_texture(context, &texture))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn load_texture_data(path: &str) -> Result<three_d::CpuTexture, three_d_asset::Error> {
+    three_d_asset::io::load_and_deserialize(path)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn load_texture_data(path: &str) -> Result<three_d::CpuTexture, three_d_asset::Error> {
+    let bytes = aftiktuna::builtin_binary_asset_data(path)
+        .ok_or_else(|| std::io::Error::from(std::io::ErrorKind::NotFound))?;
+    three_d_asset::io::RawAssets::new()
+        .insert(path, bytes.to_owned())
+        .deserialize(path)
 }
 
 pub struct BackgroundMap(
