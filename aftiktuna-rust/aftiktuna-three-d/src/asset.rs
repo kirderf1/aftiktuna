@@ -109,8 +109,8 @@ pub fn load_texture_data(path: &str) -> Result<three_d::CpuTexture, three_d_asse
 
 #[cfg(target_arch = "wasm32")]
 pub fn load_texture_data(path: &str) -> Result<three_d::CpuTexture, three_d_asset::Error> {
-    let bytes = aftiktuna::builtin_binary_asset_data(path)
-        .ok_or_else(|| std::io::Error::from(std::io::ErrorKind::NotFound))?;
+    let bytes =
+        aftiktuna::builtin_binary_asset_data(path).expect(&format!("Missing data from {path}"));
     three_d_asset::io::RawAssets::new()
         .insert(path, bytes.to_owned())
         .deserialize(path)

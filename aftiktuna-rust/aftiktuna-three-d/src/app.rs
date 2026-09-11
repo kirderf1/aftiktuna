@@ -1,7 +1,7 @@
+use crate::asset::{Assets, BuiltinFonts};
+use crate::game::{self, GameAction};
+use crate::{dimensions, render};
 use aftiktuna::game_interface;
-use aftiktuna_three_d::asset::{Assets, BuiltinFonts};
-use aftiktuna_three_d::game::{self, GameAction};
-use aftiktuna_three_d::{dimensions, render};
 use std::env;
 use std::rc::Rc;
 use three_d::egui;
@@ -90,15 +90,15 @@ impl App {
 
     fn handle_frame(&mut self, mut frame_input: three_d::FrameInput) -> AppAction {
         if !self.error_messages.is_empty() {
-            let clicked = aftiktuna_three_d::check_clicked_anywhere(&mut frame_input.events);
+            let clicked = crate::check_clicked_anywhere(&mut frame_input.events);
             let pressed_enter =
-                aftiktuna_three_d::check_pressed_key(&mut frame_input.events, three_d::Key::Enter);
+                crate::check_pressed_key(&mut frame_input.events, three_d::Key::Enter);
 
             let screen = frame_input.screen();
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
             let mut y = 350.;
             for line in &self.error_messages {
-                let text_obj = aftiktuna_three_d::make_centered_text_obj(
+                let text_obj = crate::make_centered_text_obj(
                     line,
                     three_d::vec2(dimensions::WINDOW_WIDTH_F / 2., y),
                     three_d::vec4(1., 0.4, 0.7, 1.),
@@ -131,7 +131,7 @@ impl App {
         } else {
             let screen = frame_input.screen();
             screen.clear(three_d::ClearState::color_and_depth(0., 0., 0., 1., 1.));
-            let text_obj = aftiktuna_three_d::make_centered_text_obj(
+            let text_obj = crate::make_centered_text_obj(
                 "Loading textures...",
                 three_d::vec2(dimensions::WINDOW_WIDTH_F / 2., 300.),
                 three_d::vec4(1., 1., 1., 1.),
