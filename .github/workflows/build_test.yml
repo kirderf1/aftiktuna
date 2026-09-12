@@ -24,7 +24,8 @@ jobs:
         if: matrix.setup-script != null
         run: ${{ matrix.setup-script }}
       - name: Build binary
-        run: cargo build --manifest-path=aftiktuna-rust/Cargo.toml --profile dev --target=${{ matrix.target }} --package=aftiktuna-three-d --bin=aftiktuna-three-d
+        # Use a raised opt-level to try avoid getting an "export ordinal too large" error from mingw-w64
+        run: cargo build --manifest-path=aftiktuna-rust/Cargo.toml --profile dev --target=${{ matrix.target }} --package=aftiktuna-three-d --bin=aftiktuna-three-d --config profile.dev.opt-level=1
   build-web:
     name: Build with wasm-pack
     runs-on: ubuntu-latest
