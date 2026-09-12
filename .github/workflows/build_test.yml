@@ -24,7 +24,7 @@ jobs:
         if: matrix.setup-script != null
         run: ${{ matrix.setup-script }}
       - name: Build binary
-        run: cargo build --manifest-path=aftiktuna-rust/Cargo.toml --release --target=${{ matrix.target }} --package=aftiktuna-three-d --bin=aftiktuna-three-d
+        run: cargo build --manifest-path=aftiktuna-rust/Cargo.toml --profile dev --target=${{ matrix.target }} --package=aftiktuna-three-d --bin=aftiktuna-three-d
   build-web:
     name: Build with wasm-pack
     runs-on: ubuntu-latest
