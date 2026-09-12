@@ -311,6 +311,11 @@ fn handle_menu_frame(
                                 .font(TITLE_FONT)
                                 .color(egui::Color32::WHITE),
                         );
+                        ui.label(
+                            egui::RichText::new(format!("v{}", env!("CARGO_PKG_VERSION")))
+                                .font(egui::FontId::monospace(12.))
+                                .color(egui::Color32::WHITE),
+                        );
 
                         ui.style_mut().spacing.button_padding = egui::vec2(46., 18.);
                         const BUTTON_FONT: egui::FontId = egui::FontId::proportional(22.);
