@@ -2,6 +2,8 @@ pub mod app;
 pub mod asset;
 pub mod game;
 pub mod render;
+#[cfg(target_arch = "wasm32")]
+mod web;
 
 mod camera {
     use crate::dimensions;
